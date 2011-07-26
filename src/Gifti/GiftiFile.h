@@ -1,0 +1,249 @@
+#ifndef __GIFTI_FILE_H__
+#define __GIFTI_FILE_H__
+
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+/*LICENSE_END*/
+#include <stdint.h>
+
+#include "DataFile.h"
+#include "GiftiDataArray.h"
+#include "GiftiLabelTable.h"
+#include "NiftiDataType.h"
+#include "NiftiIntent.h"
+#include "TracksModificationInterface.h"
+
+namespace caret { 
+    
+/// This abstract class defines some variables and methods used for gifti data array files.
+/// While this class may be instantiated, it is best subclassed.
+class GiftiFile : public DataFile {
+   public:
+      /// append array index values
+      enum APPEND_ARRAY_INDEX {
+         APPEND_ARRAY_NEW = -1,
+         APPEND_ARRAY_DO_NOT_LOAD = -2
+      };
+      
+      /// constructor
+    GiftiFile(const std::string& descriptiveName,
+              const NiftiIntent::Enum defaultDataArrayIntentIn,
+              const NiftiDataType::Enum defaultDataTypeIn,
+              const std::string& defaultExt,
+              const bool dataAreIndicesIntoLabelTableIn);
+      
+      /// constructor for generic gifti data array file
+      GiftiFile();
+      
+      // copy constructor
+      GiftiFile(const GiftiFile& nndf);
+      
+      // destructor
+      virtual ~GiftiFile();
+
+      // assignment operator
+      GiftiFile& operator=(const GiftiFile& nndf);
+      
+      // add a data array
+      virtual void addDataArray(GiftiDataArray* nda);
+            
+      // add rows to this file.
+      void addRows(const int32_t numberOfRowsToAdd);
+
+      // append a data array file to this one
+      virtual void append(const GiftiFile& naf) throw (GiftiException);
+
+      // append a data array file to this one but selectively load/overwrite arraysumns
+      // arrayDestination is where naf's arrays should be (-1=new, -2=do not load)
+      virtual void append(const GiftiFile& naf, 
+                          std::vector<int32_t>& indexDestinationg) throw (GiftiException);
+
+      /// compare a file for unit testing (returns true if "within tolerance")
+      virtual bool compareFileForUnitTesting(const GiftiFile* gf,
+                                             const float tolerance,
+                                             std::string& messageOut) const;
+                                     
+      // Clear the gifti array data file.
+      virtual void clear();
+      
+      // returns true if the file is isEmpty (contains no data)
+      virtual bool empty() const;
+      
+    std::string getFileComment() const;
+    
+    void setFileComment(const std::string& comment);
+    
+    void appendToFileComment(const std::string& comment);
+    
+      /// get the number of data arrays
+      int32_t getNumberOfDataArrays() const { return dataArrays.size() ; }
+      
+      /// get a data array
+      GiftiDataArray* getDataArray(const int32_t arrayNumber) { return dataArrays[arrayNumber]; }
+      
+      /// get a data array (const method)
+      const GiftiDataArray* getDataArray(const int32_t arrayNumber) const { return dataArrays[arrayNumber]; }
+      
+      /// reset a data array
+      virtual void resetDataArray(const int32_t arrayIndex);
+      
+      /// remove a data array
+      virtual void removeDataArray(const GiftiDataArray* arrayPointer);
+      
+      /// remove a data array
+      virtual void removeDataArray(const int32_t arrayIndex);
+      
+      // get all of the data array names
+      void getAllArrayNames(std::vector<std::string>& names) const;
+      
+      // get the specified data array's name
+      std::string getDataArrayName(const int32_t arrayIndex) const;
+
+      // get the index of the data array with the specified name 
+      int32_t getDataArrayWithNameIndex(const std::string& n) const;
+ 
+      // get the data array with the specified name 
+      GiftiDataArray* getDataArrayWithName(const std::string& n);
+ 
+      // get the data array with the specified name 
+      const GiftiDataArray* getDataArrayWithName(const std::string& n) const;
+ 
+      // get the index of the data array of the specified intent
+    int32_t getDataArrayWithIntentIndex(const NiftiIntent::Enum intent) const;
+      
+      // get the data array of the specified intent
+    GiftiDataArray* getDataArrayWithIntent(const NiftiIntent::Enum intent);
+      
+      // get the data array of the specified intent (const method)
+    const GiftiDataArray* getDataArrayWithIntent(const NiftiIntent::Enum intent) const;
+      
+      // get the comment for a data array
+      std::string getDataArrayComment(const int32_t arrayIndex) const;
+      
+      // set the name of a data array
+      void setDataArrayName(const int32_t arrayIndex, const std::string& name);
+      
+      // set the comment for a data array
+      void setDataArrayComment(const int32_t arrayIndex, const std::string& comm);
+      
+      // append to the comment for a data array
+      void appendToDataArrayComment(const int32_t arrayIndex, const std::string& comm);
+      
+      // prepend to the comment for a data array
+      void prependToDataArrayComment(const int32_t arrayIndex, const std::string& comm);
+      
+      // check for data arrays with the same name (returns true if there are any)
+      bool checkForDataArraysWithSameName(std::vector<std::string>& multipleDataArrayNames) const;
+      
+      // get the metadata
+      GiftiMetaData* getMetaData() { return &metaData; }
+      
+      // get the metadata (const method)
+      const GiftiMetaData* getMetaData() const { return &metaData; }
+      
+      /// get the label table 
+      GiftiLabelTable* getLabelTable() { return &labelTable; }
+      
+      /// get the label table 
+      const GiftiLabelTable* getLabelTable() const { return &labelTable; }
+            
+      /// get the current version for GiftiFiles
+      static float getCurrentFileVersion() { return 1.0; }
+      
+      /// get the default data array intent
+      NiftiIntent::Enum getDefaultDataArrayIntent() const { return defaultDataArrayIntent; }
+      
+      /// get the default data array intent
+      void setDefaultDataArrayIntent(const NiftiIntent::Enum newIntent);
+      
+      /// set the number of nodes for sparse node index files (NIFTI_INTENT_NODE_INDEX)
+      void setNumberOfNodesForSparseNodeIndexFiles(const int32_t numNodes);
+      
+    // read the XML file 
+    virtual void readFile(const std::string& filename) throw (DataFileException);
+    
+    // write the XML file
+    virtual void writeFile(const std::string& filename) throw (DataFileException);
+    
+    bool getReadMetaDataOnlyFlag() const { return false; }
+    
+    virtual void clearModified();
+    
+    virtual bool isModified() const;
+    
+    virtual std::string toString() const;
+    
+   protected:
+      // append helper for files where data are label indices
+      //void appendLabelDataHelper(const GiftiFile& naf,
+      //                           const std::vector<bool>& arrayWillBeAppended,
+      //                           std::vector<int32_t>& oldIndicesToNewIndicesTable);
+                                 
+      // copy helper
+      void copyHelperGiftiFile(const GiftiFile& nndf);
+      
+      
+      // process NIFTI_INTENT_NODE_INDEX arrays
+      void procesNiftiIntentNodeIndexArrays() throw (GiftiException);
+
+      // validate the data arrays (optional for subclasses)
+      virtual void validateDataArrays() throw (GiftiException);
+
+      /// the data arrays
+      std::vector<GiftiDataArray*> dataArrays;
+      
+      /// the label table
+      GiftiLabelTable labelTable;
+      
+      /// the file's metadata
+      GiftiMetaData metaData;
+      
+      /// the default data type
+      NiftiDataType::Enum defaultDataType;
+      
+      /// default data array intent for this file
+      NiftiIntent::Enum defaultDataArrayIntent;
+      
+      /// data arrays contain indices into label table
+      bool dataAreIndicesIntoLabelTable;
+      
+    std::string descriptiveName;
+    std::string defaultExtension;
+    
+      /// number of nodes in sparse node index files (NIFTI_INTENT_NODE_INDEX array)
+      int32_t numberOfNodesForSparseNodeIndexFile;
+      
+      /*!!!! be sure to update copyHelperGiftiFile if new member added !!!!*/
+   
+   // 
+   // friends
+   //
+};
+
+#endif // __GIFTI_FILE_H__
+
+} // namespace 
+
+#ifdef __GIFTI_FILE_MAIN__
+#endif // __GIFTI_FILE_MAIN__

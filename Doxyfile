@@ -1,0 +1,29 @@
+PROJECT_NAME           = Caret7
+
+OUTPUT_DIRECTORY       = ../documentation
+
+OUTPUT_LANGUAGE        = English
+
+EXTRACT_ALL            = YES
+
+EXTRACT_PRIVATE        = YES
+
+HAVE_DOT         = YES
+
+CALL_GRAPH = YES
+
+CALLER_GRAPH = YES
+
+INPUT = \
+	src/Common \
+	src/Xml \
+	src/Nifti \
+	src/Gifti \
+	src/Files \
+	src/Brain \
+	src/GuiQt \
+	src/Desktop
+
+
+FILE_PATTERNS          = *.h *.cxx
+

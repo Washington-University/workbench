@@ -1,0 +1,45 @@
+#
+# Name of Project
+#
+PROJECT (Xml)
+
+#
+# Use XML from Qt but not GUI.
+#
+SET(QT_USE_QTXML TRUE)
+SET(QT_DONT_USE_QTGUI TRUE)
+
+#
+# QT include files
+#
+INCLUDE(${QT_USE_FILE})
+
+#
+# Create a Library
+#
+ADD_LIBRARY(Xml
+XmlWriter.h
+XmlException.h
+XmlAttributes.h
+XmlSaxParser.h
+XmlSaxParserException.h
+XmlSaxParserWithQt.h
+XmlUtilities.h
+
+XmlWriter.cxx
+XmlException.cxx
+XmlAttributes.cxx
+XmlSaxParser.cxx
+XmlSaxParserException.cxx
+XmlSaxParserWithQt.cxx
+XmlUtilities.cxx
+)
+
+#
+# Find headers
+#
+INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Xml
+${CMAKE_SOURCE_DIR}/Common
+)
+

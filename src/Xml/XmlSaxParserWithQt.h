@@ -1,0 +1,104 @@
+#ifndef __XMLSAXPARSERWITHQT_H__
+#define __XMLSAXPARSERWITHQT_H__
+
+/*LICENSE_START*/ 
+/* 
+ *  Copyright 1995-2002 Washington University School of Medicine 
+ * 
+ *  http://brainmap.wustl.edu 
+ * 
+ *  This file is part of CARET. 
+ * 
+ *  CARET is free software; you can redistribute it and/or modify 
+ *  it under the terms of the GNU General Public License as published by 
+ *  the Free Software Foundation; either version 2 of the License, or 
+ *  (at your option) any later version. 
+ * 
+ *  CARET is distributed in the hope that it will be useful, 
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU General Public License for more details. 
+ * 
+ *  You should have received a copy of the GNU General Public License 
+ *  along with CARET; if not, write to the Free Software 
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * 
+ */ 
+
+
+#include <string>
+
+#include <QString>
+#include <QXmlDefaultHandler>
+#include "XmlAttributes.h"
+#include "XmlSaxParser.h"
+
+class QXmlSimpleReader;
+class QXmlParseException;
+
+namespace caret {
+    
+    //lass XmlSaxParserException;
+    
+    /**
+     * Abstract class for XML SAX Parsing.  The design of this
+     * class is based of the handler classes in Java.
+     */
+    class XmlSaxParserWithQt : public XmlSaxParser {
+        
+        
+    public:
+        XmlSaxParserWithQt();
+        
+        virtual ~XmlSaxParserWithQt();
+
+        virtual void parse(const std::string& filename,
+                   XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
+        
+    private:
+        XmlSaxParserWithQt(const XmlSaxParserWithQt& sp);
+        XmlSaxParserWithQt& operator=(const XmlSaxParserWithQt&);
+        
+    protected:
+    private:
+        
+        void initializeMembersXmlSaxParserWithQt();
+        
+        QXmlSimpleReader* xmlReader;
+        
+        class PrivateHandler : public QXmlDefaultHandler {
+          
+        public:
+            PrivateHandler(XmlSaxParserHandlerInterface* handler);
+            ~PrivateHandler();
+            bool error(const QXmlParseException& exception);
+            bool fatalError(const QXmlParseException& exception);
+            bool warning(const QXmlParseException& exception);
+            
+            bool startDocument();
+            bool startElement(const QString& namespaceURI, 
+                              const QString& localName, 
+                              const QString& qName, 
+                              const QXmlAttributes& atts);
+            
+            bool endDocument();
+            bool endElement(const QString& namespaceURI, 
+                            const QString& localName, 
+                            const QString& qName);
+            
+            bool characters(const QString& ch);
+            
+            virtual QString errorString() const;
+            
+        private:
+            static XmlSaxParserException fromQXmlParseException(const QXmlParseException& e);
+            static XmlAttributes fromQXmlAttributes(const QXmlAttributes& atts);
+            XmlSaxParserHandlerInterface* handler;
+            QString errorMessage;
+        };
+    };
+
+    
+} // namespace
+
+#endif // __XMLSAXPARSERWITHQT_H__
