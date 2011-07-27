@@ -24,7 +24,9 @@
 
 #include <sstream>
 
+#ifndef _WIN32
 #include "execinfo.h"
+#endif
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -46,8 +48,8 @@ SystemUtilities::getBackTrace()
 {
     std::ostringstream str;
     void* callstack[1024];
-    int numFrames = backtrace(callstack, 1024);
-    char** symbols = backtrace_symbols(callstack, numFrames);
+    int numFrames;// = backtrace(callstack, 1024);
+    char** symbols;// = backtrace_symbols(callstack, numFrames);
     for (int i = 0; i < numFrames; i++) {
         str << symbols[i] << std::endl;
     }
@@ -64,6 +66,7 @@ SystemUtilities::getBackTrace()
 std::string
 SystemUtilities::getCurrentDirectory()
 {
+    return std::string("");
 }
 
 /**
@@ -85,6 +88,7 @@ SystemUtilities::setCurrentDirectory(const std::string& path)
 std::string
 SystemUtilities::getTempDirectory()
 {
+    return std::string("");
 }
 
 /**
@@ -96,6 +100,7 @@ SystemUtilities::getTempDirectory()
 std::string
 SystemUtilities::getUsersHomeDirectory()
 {
+    return std::string("");
 }
 
 /**
@@ -107,6 +112,7 @@ SystemUtilities::getUsersHomeDirectory()
 std::string
 SystemUtilities::getUserName()
 {
+    return std::string("");
 }
 
 /**
@@ -118,6 +124,7 @@ SystemUtilities::getUserName()
 std::string
 SystemUtilities::getDate()
 {
+    return std::string("");
 }
 
 /**
@@ -129,6 +136,7 @@ SystemUtilities::getDate()
 std::string
 SystemUtilities::getTime()
 {
+    return std::string("");
 }
 
 /**
@@ -140,6 +148,7 @@ SystemUtilities::getTime()
 std::string
 SystemUtilities::getDateAndTime()
 {
+    return std::string("");
 }
 
 /**
@@ -150,6 +159,7 @@ SystemUtilities::getDateAndTime()
 std::string
 SystemUtilities::getOperatingSystemName()
 {
+    return std::string("");
 }
 
 /**
@@ -161,6 +171,7 @@ SystemUtilities::getOperatingSystemName()
 bool
 SystemUtilities::isWindowsOperatingSystem()
 {
+    return false;
 }
 
 /**
@@ -172,6 +183,7 @@ SystemUtilities::isWindowsOperatingSystem()
 bool
 SystemUtilities::isMacOperatingSystem()
 {
+    return false;
 }
 
 /**
@@ -183,6 +195,7 @@ SystemUtilities::isMacOperatingSystem()
 int32_t
 SystemUtilities::getNumberOfProcessors()
 {
+    return 1;
 }
 
 /**
@@ -194,6 +207,7 @@ SystemUtilities::getNumberOfProcessors()
 std::string
 SystemUtilities::basename(const std::string& name)
 {
+    return std::string("");
 }
 
 /**
@@ -205,6 +219,7 @@ SystemUtilities::basename(const std::string& name)
 std::string
 SystemUtilities::dirname(const std::string& path)
 {
+    return std::string("");
 }
 
 /**
@@ -217,6 +232,7 @@ SystemUtilities::dirname(const std::string& path)
 std::string
 SystemUtilities::getFileExtension(const std::string& path)
 {
+    return std::string("");
 }
 
 /**
@@ -247,6 +263,7 @@ SystemUtilities::testRelativePath(
 std::string
 SystemUtilities::createUniqueID()
 {
+    return std::string("");
 }
 
 /**
@@ -311,5 +328,6 @@ SystemUtilities::createFileAbsolutePath(
                    const std::string& directoryName,
                    const std::string& fileName)
 {
+    return std::string("");
 }
 
