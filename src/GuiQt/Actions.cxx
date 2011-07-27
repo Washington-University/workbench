@@ -47,6 +47,17 @@ Actions::Actions(WindowMain* mainWindow)
 {
     this->mainWindow = mainWindow;
     
+    this->dataFileOpenAction = 
+            this->createAction("Open Data File...", 
+                               Qt::CTRL+Qt::Key_O,
+                               SLOT(processDataFileOpenAction()));
+
+    this->exitProgramAction =
+            this->createAction("Exit", 
+                               Qt::CTRL+Qt::Key_Q, 
+                               SLOT(processExitProgramAction()));
+    
+/*
     this->dataFileOpenAction = new QAction(this->mainWindow);
     this->dataFileOpenAction->setText("Open Data File...");
     this->dataFileOpenAction->setShortcut(Qt::CTRL+Qt::Key_O);
@@ -58,6 +69,7 @@ Actions::Actions(WindowMain* mainWindow)
     this->exitProgramAction->setShortcut(Qt::CTRL+Qt::Key_M);
     QObject::connect(this->exitProgramAction, SIGNAL(triggered(bool)),
                      this, SLOT(processExitProgramAction()));
+*/
 }
 
 /**
@@ -66,6 +78,54 @@ Actions::Actions(WindowMain* mainWindow)
 Actions::~Actions()
 {
     
+}
+
+/**
+ * Create an action with the specified text, shortcut, 
+ * and calls the specified slot.
+ * 
+ * @param text
+ *    Text for the action.
+ * @param method
+ *    Slot that is called by the action.
+ * @param shortcut
+ *    Keyboard shortcut.
+ * @return
+ *    Action that was created.
+ */
+QAction* 
+Actions::createAction(const QString& text,
+                      const QKeySequence& shortcut,
+                      const char* method)
+{
+    QAction* action = this->createAction(text,
+                                         method);
+    action->setShortcut(shortcut);
+    return action;
+}
+
+/**
+ * Create an action with the specified text and calls 
+ * the specified slot.
+ * 
+ * @param text
+ *    Text for the action.
+ * @param method
+ *    Slot that is called by the action.
+ * @return
+ *    Action that was created.
+ */
+QAction* 
+Actions::createAction(const QString& text,
+                      const char* method)
+{
+    QAction* action = new QAction(this->mainWindow);
+    action->setText(text);
+    QObject::connect(action, 
+                     SIGNAL(triggered(bool)),
+                     this,
+                     method);
+    return action;
 }
 
 /**
@@ -80,7 +140,6 @@ Actions::processExitProgramAction()
                              (QMessageBox::Yes | QMessageBox::No),
                              QMessageBox::Yes)
         == QMessageBox::Yes) {
-        //speakText("Goodbye carrot user.");
         qApp->quit();
     }
 }
@@ -104,6 +163,7 @@ Actions::processDataFileOpenAction()
     catch (DataFileException e) {
         QMessageBox::critical(this->mainWindow, "ERROR", QString::fromStdString(e.whatString()));
     }
+    GuiGlobals::redrawAllGraphicsWindows();
 }
 
 /**

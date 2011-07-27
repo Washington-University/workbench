@@ -22,9 +22,14 @@
  * 
  */ 
 
+#include <iostream>
 #include <typeinfo>
 
+#define __CARET_OBJECT_DECLARE_H__
 #include "CaretObject.h"
+#undef __CARET_OBJECT_DECLARE_H__
+
+#include "SystemUtilities.h"
 
 using namespace caret;
 
@@ -52,6 +57,15 @@ CaretObject::CaretObject(const CaretObject& co)
  */
 CaretObject::~CaretObject()
 {
+    /*
+     * Erase returns the number of objects deleted.
+     * If zero, then the object has already been deleted.
+     */
+    uint64_t numDeleted = CaretObject::allocatedObjects.erase(this);
+    if (numDeleted <= 0) {
+        std::cerr << "Destructor for a CaretObject called but the object is not allocated "
+                  << "and this implies that the object has already been deleted.";
+    }
 }
 
 CaretObject& 
@@ -66,6 +80,9 @@ CaretObject::operator=(const CaretObject& co)
 void
 CaretObject::initializeMembersCaretObject()
 {
+    CaretObject::allocatedObjects.insert(
+           std::make_pair(this, 
+                          SystemUtilities::getBackTrace()));
 }
 
 void 
@@ -85,5 +102,47 @@ CaretObject::toString() const
     std::string typeName(typeid(*this).name());
     std::string s = "Type=" + typeName;
     return s;
+}
+
+/**
+ * Print a list of CaretObjects that were not deleted.
+ */
+void 
+CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
+{
+    if (CaretObject::allocatedObjects.empty() == false) {
+        std::cout << "These Caret Objects were not deleted:" << std::endl;
+        for (CARET_OBJECT_TRACKER_MAP_ITERATOR iter = CaretObject::allocatedObjects.begin();
+             iter != allocatedObjects.end();
+             iter++) {
+            const CaretObject* caretObject = iter->first;
+            const CaretObjectInfo& caretObjectInfo = iter->second;
+            std::cout << caretObject->toString() << std::endl;
+            if (showCallStack) {
+                std::cout << caretObjectInfo.callStack << std::endl;
+            }
+            std::cout << std::endl;
+        }
+    }
+}
+
+/**
+ * Constructor.
+ * @param caretObject
+ *     A caret object.
+ * @param callStack
+ *     A callstack showing where the object was created.
+ */
+CaretObject::CaretObjectInfo::CaretObjectInfo(const std::string& callStack)
+{
+    this->callStack   = callStack;
+}
+
+/**
+ * Destructor.
+ */
+CaretObject::CaretObjectInfo::~CaretObjectInfo()
+{
+    
 }
 

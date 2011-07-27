@@ -25,12 +25,14 @@
  * 
  */ 
 
+#include <map>
 #include <string>
 
 namespace caret {
     
 /**
- * A bounding box - minimum and maximum X, Y, and Z values for something.
+ * A base class for all objects that are not derived
+ * from third party libraries.
  */
 class CaretObject {
 protected:
@@ -39,21 +41,42 @@ protected:
     CaretObject(const CaretObject& o);
     
     CaretObject& operator=(const CaretObject& co);
-public:
-    
+
+public:    
     
     virtual ~CaretObject();
 
 
     virtual std::string toString() const;
+    
+    static void printListOfObjectsNotDeleted(const bool showCallStack);
 
 private:
+    /**
+     * Info about an allocated object.
+     */
+    class CaretObjectInfo {
+    public:
+        CaretObjectInfo(const std::string& callStack);
+        ~CaretObjectInfo();
+        
+        std::string callStack;
+    };
+    
     void copyHelper(const CaretObject& co);
     
     void initializeMembersCaretObject();
 
+    typedef std::map<CaretObject*, CaretObjectInfo> CARET_OBJECT_TRACKER_MAP;
+    typedef CARET_OBJECT_TRACKER_MAP::iterator CARET_OBJECT_TRACKER_MAP_ITERATOR;
+    
+    static CARET_OBJECT_TRACKER_MAP allocatedObjects;
 };
 
+#ifdef __CARET_OBJECT_DECLARE_H__
+    CaretObject::CARET_OBJECT_TRACKER_MAP CaretObject::allocatedObjects;
+#endif __CARET_OBJECT_DECLARE_H__
+    
 } // namespace
 
 #endif // __CARETOBJECT_H__

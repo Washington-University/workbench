@@ -53,7 +53,9 @@ BrainOpenGL::BrainOpenGL()
 }
 
 /**
- * Get the BrainOpenGL for drawing.
+ * Get the BrainOpenGL for drawing.  Users
+ * should never call this.  Get BrainOpenGL
+ * from GuiGlobals.
  *
  * @return 
  *    Pointer to BrainOpenGL for drawing.
@@ -154,7 +156,6 @@ BrainOpenGL::initializeMembersBrainOpenGL()
 void 
 BrainOpenGL::initializeOpenGL()
 {
-    std::cout << "Init openGL" << std::endl;
     if (BrainOpenGL::versionOfOpenGL == 0.0) {
         //
         // Note: The version string might be something like 1.2.4.  std::atof()
@@ -162,7 +163,7 @@ BrainOpenGL::initializeOpenGL()
         //
         const char* versionStr = (char*)(glGetString(GL_VERSION));
         BrainOpenGL::versionOfOpenGL = std::atof(versionStr);
-        std::cout << "OpenGL version: " << BrainOpenGL::versionOfOpenGL << std::endl;
+        //std::cout << "OpenGL version: " << BrainOpenGL::versionOfOpenGL << std::endl;
     }
     
     glEnable(GL_DEPTH_TEST);

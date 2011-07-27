@@ -26,6 +26,8 @@
 
 #include "Actions.h"
 #include "Brain.h"
+#include "BrainOpenGL.h"
+#include "BrainOpenGLWidget.h"
 
 #define __GUI_GLOBALS_DEFINE__
 #include "GuiGlobals.h"
@@ -46,6 +48,37 @@ GuiGlobals::getBrain()
         GuiGlobals::brain = new Brain();
     }
     return GuiGlobals::brain;
+}
+
+/**
+ * Get the Brain OpenGL for drawing with OpenGL.
+ *
+ * @return 
+ *    Point to the brain.
+ */
+BrainOpenGL* 
+GuiGlobals::getBrainOpenGL()
+{
+    if (GuiGlobals::brainOpenGL == NULL) {
+        GuiGlobals::brainOpenGL = BrainOpenGL::getBrainOpenGL();
+    }
+    return GuiGlobals::brainOpenGL;
+}
+
+/**
+ * Delete all when the program is exited.
+ */
+void 
+GuiGlobals::deleteAllAtProgramExit()
+{
+    if (GuiGlobals::brain != NULL) {        
+        delete GuiGlobals::brain;
+        GuiGlobals::brain = NULL;
+    }
+    if (GuiGlobals::brainOpenGL != NULL) {        
+        delete GuiGlobals::brainOpenGL;
+        GuiGlobals::brainOpenGL = NULL;
+    }
 }
 
 /**
@@ -70,6 +103,35 @@ void
 GuiGlobals::setMainWindow(WindowMain* mainWindow)
 {
     GuiGlobals::mainWindow = mainWindow;
+}
+
+/**
+ * Register a Brain OpenGL widget.  When the widget is being
+ * deleted, its value will be NULL.
+ * 
+ * @param windowIndex
+ *    Index of window containing the Brain OpenGL widget.
+ * @param brainOpenGLWidget
+ *    The brain OpenGL Widget for the window.
+ */
+void 
+GuiGlobals::registerBrainOpenGLWidget(const int32_t windowIndex,
+                                      BrainOpenGLWidget* brainOpenGLWidget)
+{
+    if (GuiGlobals::brainOpenGLWidgets.empty()) {
+        GuiGlobals::brainOpenGLWidgets.resize(CaretWindow::NUMBER_OF_WINDOWS, NULL);
+    }
+    GuiGlobals::brainOpenGLWidgets[windowIndex] = brainOpenGLWidget;
+}
+
+void 
+GuiGlobals::redrawAllGraphicsWindows()
+{
+    for (uint32_t i = 0; i < GuiGlobals::brainOpenGLWidgets.size(); i++) {
+        if (GuiGlobals::brainOpenGLWidgets[i] != NULL) {
+            GuiGlobals::brainOpenGLWidgets[i]->updateGL();
+        }
+    }
 }
 
 Actions*

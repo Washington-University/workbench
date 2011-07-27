@@ -29,7 +29,7 @@
 #include <QObject>
 
 class QAction;
-
+class QKeySequence;
 
 namespace caret  {
 
@@ -136,6 +136,13 @@ namespace caret  {
     private:
         Actions(const Actions&);
         Actions& operator=(const Actions&);
+        
+        QAction* createAction(const QString& text,
+                              const QKeySequence& shortcut,
+                              const char* method);
+        
+        QAction* createAction(const QString& text,
+                              const char* method);
         
         WindowMain* mainWindow;
         

@@ -31,6 +31,8 @@ namespace caret {
 
     class Actions;
     class Brain;
+    class BrainOpenGL;
+    class BrainOpenGLWidget;
     class WindowMain;
     
 
@@ -50,19 +52,33 @@ namespace caret {
 
         static Brain* getBrain();
         
+        static BrainOpenGL* getBrainOpenGL();
+        
         static WindowMain* getMainWindow();
 
         static void setMainWindow(WindowMain* mainWindow);
         
+        static void deleteAllAtProgramExit();
+        
+        static void registerBrainOpenGLWidget(const int32_t windowIndex,
+                                              BrainOpenGLWidget* brainOpenGLWidget);
+        
+        static void redrawAllGraphicsWindows();
+        
     private:
         static Brain* brain;
+        static BrainOpenGL* brainOpenGL;
         static WindowMain* mainWindow;
         static Actions* actions;
+        static std::vector<BrainOpenGLWidget*> brainOpenGLWidgets;
+        
     };
     
 #ifdef __GUI_GLOBALS_DEFINE__
     Actions* GuiGlobals::actions = NULL;
     Brain* GuiGlobals::brain = 0;
+    BrainOpenGL* GuiGlobals::brainOpenGL = 0;
+    std::vector<BrainOpenGLWidget*> GuiGlobals::brainOpenGLWidgets;
     WindowMain* GuiGlobals::mainWindow = 0;
 #endif __GUI_GLOBALS_DEFINE__
     

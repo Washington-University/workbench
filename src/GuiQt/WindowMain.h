@@ -48,6 +48,13 @@ namespace caret {
     private:
         void createMenus();
         
+        QMenu* createMenuFile();
+        QMenu* createMenuData();
+        QMenu* createMenuSurface();
+        QMenu* createMenuVolume();
+        QMenu* createMenuWindow();
+        QMenu* createMenuHelp();
+        
         Actions* actions;
         BrainOpenGLWidget* openGLWidget;
     };

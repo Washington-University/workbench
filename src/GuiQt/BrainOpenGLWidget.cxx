@@ -54,6 +54,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 {
     this->windowIndex = windowIndex;
     this->modelController = NULL;
+    
+    
+    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
 }
 
 /**
@@ -61,7 +64,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
-    
+    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, NULL);
 }
 
 /**
@@ -105,7 +108,7 @@ BrainOpenGLWidget::getDisplayedModelController()
 void 
 BrainOpenGLWidget::initializeGL()
 {
-    this->openGL = BrainOpenGL::getBrainOpenGL();
+    this->openGL = GuiGlobals::getBrainOpenGL();
     this->openGL->initializeOpenGL();
     
     this->mouseMovedBounds[0] = 0;

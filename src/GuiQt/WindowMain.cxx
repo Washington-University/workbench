@@ -60,13 +60,17 @@ WindowMain::WindowMain(const int openGLSizeX,
     this->openGLWidget =
         new BrainOpenGLWidget(this,
                               CaretWindow::WINDOW_MAIN);
+    
     this->openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);
     
     this->setCentralWidget(this->openGLWidget);
     
     this->actions = GuiGlobals::getActions();
+    
     this->createMenus();
+    
+    this->setWindowTitle("Caret 7");
 }
 
 /**
@@ -96,11 +100,88 @@ WindowMain::closeEvent(QCloseEvent* event)
 void 
 WindowMain::createMenus()
 {
-    QMenu* fileMenu = new QMenu("File", this->openGLWidget);
-    fileMenu->addAction(this->actions->getDataFileOpen());
-    fileMenu->addAction(this->actions->getExitProgram());
-
+    /*
+     * Create the menu bar and add menus to it.
+     */
     QMenuBar* menuBar = this->menuBar();
-    menuBar->addMenu(fileMenu);
+    menuBar->addMenu(this->createMenuFile());
+    menuBar->addMenu(this->createMenuData());
+    menuBar->addMenu(this->createMenuSurface());
+    menuBar->addMenu(this->createMenuVolume());
+    menuBar->addMenu(this->createMenuWindow());
+    menuBar->addMenu(this->createMenuWindow());
 }
+
+QMenu* 
+WindowMain::createMenuFile()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("File", this->openGLWidget);
+    
+    /*
+     * Add items to the menu.
+     */
+    menu->addAction(this->actions->getDataFileOpen());
+    menu->addAction(this->actions->getExitProgram());
+    
+    return menu;
+}
+
+QMenu* 
+WindowMain::createMenuData()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("Data", this->openGLWidget);
+    
+    return menu;
+}
+
+QMenu*
+WindowMain::createMenuSurface()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("Surface", this->openGLWidget);
+    
+    return menu;
+}
+
+QMenu* 
+WindowMain::createMenuVolume()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("Volume", this->openGLWidget);
+    
+    return menu;
+}
+
+QMenu* 
+WindowMain::createMenuWindow()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("Window", this->openGLWidget);
+    
+    return menu;    
+}
+
+QMenu* 
+WindowMain::createMenuHelp()
+{
+    /*
+     * Create the menu.
+     */
+    QMenu* menu = new QMenu("Help", this->openGLWidget);
+    
+    return menu;
+}
+
 
