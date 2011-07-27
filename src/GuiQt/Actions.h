@@ -30,9 +30,11 @@
 
 class QAction;
 
+
 namespace caret  {
 
     class WindowMain;
+
     
     /**
      * Contains actions that are attached to and executed

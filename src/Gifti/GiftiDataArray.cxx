@@ -216,7 +216,7 @@ GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntent::Enum intent,
    }
    else {
       std::cout << "WARNING: unrecogized intent \""
-       << NiftiIntent::toString(intent, NULL).c_str()
+       << NiftiIntent::toName(intent).c_str()
                 << " in GiftiDataArray::getDataTypeAppropriateForIntent()." << std::endl;
       return false;
    }
@@ -611,7 +611,7 @@ GiftiDataArray::readFromText(const std::string text,
                      }
                      break;
                    default:
-                       throw GiftiException("DataType " + NiftiDataType::toString(dataType, NULL) + " not supported in GIFTI");
+                       throw GiftiException("DataType " + NiftiDataType::toName(dataType) + " not supported in GIFTI");
                }
             }
             break;
@@ -942,12 +942,12 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    // Write the opening tag
    //
     XmlAttributes dataAtt;
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INTENT, NiftiIntent::toString(this->intent, NULL));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DATA_TYPE, NiftiDataType::toString(this->dataType, NULL));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER, GiftiArrayIndexingOrder::toString(this->arraySubscriptingOrder, NULL));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INTENT, NiftiIntent::toName(this->intent));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DATA_TYPE, NiftiDataType::toName(this->dataType));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER, GiftiArrayIndexingOrder::toGiftiName(this->arraySubscriptingOrder));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY, this->dimensions, ",");
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENCODING, GiftiEncoding::toString(this->encoding, NULL));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN, GiftiEndian::toString(this->endian, NULL));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENCODING, GiftiEncoding::toGiftiName(this->encoding));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN, GiftiEndian::toGiftiName(this->endian));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME, externalFileName);
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET, externalFileOffset);
 
@@ -1541,7 +1541,7 @@ bool
 GiftiDataArray::intentNameValid(const std::string& intentNameIn)
 {
     bool valid = false;
-    NiftiIntent::fromString(intentNameIn, &valid);
+    NiftiIntent::fromName(intentNameIn, &valid);
     return valid;
 }      
 
@@ -1570,8 +1570,8 @@ GiftiDataArray::toString() const
 {
     std::ostringstream str;
     str << "Data Array" << std::endl;
-    str << "   DataType=" << NiftiDataType::toString(this->dataType, NULL) << std::endl;
-    str << "   Intent=" << NiftiIntent::toString(this->intent, NULL) << std::endl;
+    str << "   DataType=" << NiftiDataType::toName(this->dataType) << std::endl;
+    str << "   Intent=" << NiftiIntent::toName(this->intent) << std::endl;
     str << "   Dimensions=" << StringUtilities::fromNumbers(this->dimensions, ",");
     return str.str();
 }

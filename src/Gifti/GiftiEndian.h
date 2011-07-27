@@ -52,16 +52,18 @@ public:
 
     ~GiftiEndian();
 
-    Enum getEnum() const;
-
-    int32_t getIntegerCode() const;
-
-    std::string getName() const;
-
-    std::string getGiftiName() const;
+    static std::string toName(Enum e);
     
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static std::string toGiftiName(Enum e);
+    
+    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+
 private:
     GiftiEndian(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
+
+    static const GiftiEndian* findData(const Enum e);
 
     static std::vector<GiftiEndian> enumData;
 
@@ -77,12 +79,6 @@ private:
     
     std::string giftiName;
 
-public:
-    static std::string toString(Enum e, bool* isValidOut);
-
-    static Enum fromString(const std::string& s, bool* isValidOut);
-
-    static const GiftiEndian* findData(const Enum e);
 
 };
 

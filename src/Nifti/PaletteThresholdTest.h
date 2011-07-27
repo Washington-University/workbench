@@ -48,21 +48,22 @@ public:
 
     ~PaletteThresholdTest();
 
-    Enum getEnum() const;
-
-    int32_t getIntegerCode() const;
-
-    std::string getName() const;
-
-    std::string getGuiName() const;
+    static std::string toName(Enum e);
     
-    static std::string toString(Enum e, bool* isValidOut);
+    static Enum fromName(const std::string& s, bool* isValidOut);
     
-    static Enum fromString(const std::string& s, bool* isValidOut);
+    static std::string toGuiName(Enum e);
     
-    static const PaletteThresholdTest* findData(const Enum e);
+    static Enum fromGuiName(const std::string& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
+    
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
+    
 private:
     PaletteThresholdTest(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
+
+    static const PaletteThresholdTest* findData(const Enum e);
 
     static std::vector<PaletteThresholdTest> enumData;
 

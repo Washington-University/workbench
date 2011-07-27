@@ -71,36 +71,6 @@ NiftiTransform::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-NiftiTransform::Enum 
-NiftiTransform::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t 
-NiftiTransform::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-NiftiTransform::getName() const
-{
-    return this->name;
-}
-
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -133,26 +103,11 @@ NiftiTransform::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-NiftiTransform::toString(Enum e, bool* isValidOut) {
+NiftiTransform::toName(Enum e) {
     initialize();
     
-    std::string s;
-    
-    for (std::vector<NiftiTransform>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const NiftiTransform& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const NiftiTransform* nt = findData(e);
+    return nt->name;
 }
 
 /**
@@ -166,7 +121,7 @@ NiftiTransform::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 NiftiTransform::Enum 
-NiftiTransform::fromString(const std::string& s, bool* isValidOut)
+NiftiTransform::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
@@ -189,3 +144,54 @@ NiftiTransform::fromString(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+
+/**
+ * Get the integer code associated with a transform.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with a transform.
+ */
+int32_t 
+NiftiTransform::toIntegerCode(Enum e)
+{
+    initialize();
+    const NiftiTransform* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+NiftiTransform::Enum 
+NiftiTransform::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<NiftiTransform>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const NiftiTransform& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+

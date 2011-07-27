@@ -28,34 +28,6 @@
 #include "CaretWindow.h"
 #undef __CARET_WINDOW_DECLARE_H__
 
-
-using namespace caret;
-
-/*LICENSE_START*/ 
-/* 
- *  Copyright 1995-2002 Washington University School of Medicine 
- * 
- *  http://brainmap.wustl.edu 
- * 
- *  This file is part of CARET. 
- * 
- *  CARET is free software; you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or 
- *  (at your option) any later version. 
- * 
- *  CARET is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- * 
- *  You should have received a copy of the GNU General Public License 
- *  along with CARET; if not, write to the Free Software 
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- * 
- */ 
-
-
 #include "CaretObject.h"
 
 
@@ -138,15 +110,14 @@ CaretWindow::isMainWindow() const
  * @return  
  *    A vector containing each of caret's windows.
  */
-std::vector<const CaretWindow*> 
+std::vector<CaretWindow::Enum> 
 CaretWindow::getWindows()
 {
     CaretWindow::initialize();
-    std::vector<const CaretWindow*> windowsOut;
+    std::vector<CaretWindow::Enum> windowsOut;
     
     for (uint64_t i = 0; i < enumData.size(); i++) {
-        const CaretWindow* cw = &enumData[i];
-        windowsOut.push_back(cw);
+        windowsOut.push_back(enumData[i].getEnum());
     }
     
     return windowsOut;    
@@ -160,16 +131,16 @@ CaretWindow::getWindows()
  *    A vector containing each of caret's windows
  *    except all windows.
  */
-std::vector<const CaretWindow*> 
+std::vector<CaretWindow::Enum> 
 CaretWindow::getWindowsExcludingAllWindows()
 {
     CaretWindow::initialize();
-    std::vector<const CaretWindow*> windowsOut;
+    std::vector<CaretWindow::Enum> windowsOut;
     
     for (uint64_t i = 0; i < enumData.size(); i++) {
-        const CaretWindow* cw = &enumData[i];
-        if (cw->e != WINDOW_ALL) {
-            windowsOut.push_back(cw);
+        CaretWindow::Enum e = enumData[i].getEnum();
+        if (e != WINDOW_ALL) {
+            windowsOut.push_back(e);
         }
     }
     
@@ -208,7 +179,7 @@ CaretWindow::indexToWindow(const int32_t indx)
  *    The name of the enum.
  */
 std::string 
-CaretWindow::toString(Enum e)
+CaretWindow::toName(Enum e)
 {
     CaretWindow::initialize();
     
@@ -241,7 +212,7 @@ CaretWindow::toString(Enum e)
  *    Enum corresponding to name.
  */
 CaretWindow::Enum 
-CaretWindow::fromString(const std::string& name, bool* isValidOut)
+CaretWindow::fromName(const std::string& name, bool* isValidOut)
 {
     CaretWindow::initialize();
     
@@ -343,11 +314,24 @@ CaretWindow::initialize()
  *    enum corresponding to window index..
  */
 CaretWindow::Enum 
-CaretWindow::indexToEnum(const int32_t windowIndex)
+CaretWindow::fromIndex(const int32_t windowIndex, bool* isValidOut)
 {
     CaretWindow::initialize();
     assert((windowIndex >= 0) && (windowIndex < static_cast<int>(CaretWindow::enumData.size())));
-    return enumData[windowIndex].getEnum();
+    
+    Enum e = WINDOW_MAIN;
+    if ((windowIndex >= 0) && (windowIndex < static_cast<int>(CaretWindow::enumData.size()))) {
+        e = enumData[windowIndex].getEnum();
+        if (isValidOut != NULL) {
+            *isValidOut = true;
+        }
+    }
+    else {
+        if (isValidOut != NULL) {
+            *isValidOut = false;
+        }
+    }
+    return e;
 }
 
 /**
@@ -360,7 +344,7 @@ CaretWindow::indexToEnum(const int32_t windowIndex)
  *    index corresponding to enum.
  */
 int32_t 
-CaretWindow::enumToIndex(const Enum e)
+CaretWindow::toIndex(const Enum e)
 {
     CaretWindow::initialize();
     const CaretWindow* cw = CaretWindow::findData(e);

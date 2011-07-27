@@ -1101,7 +1101,7 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
       const int32_t numNodeIndices = nodeIndexArray->getDimension(0);
       if (numNodeIndices <= 0) {
          throw GiftiException("Dimension is zero for data intent: "
-                              + NiftiIntent::toString(NiftiIntent::NIFTI_INTENT_NODE_INDEX, NULL));
+                              + NiftiIntent::toName(NiftiIntent::NIFTI_INTENT_NODE_INDEX));
       }
       const int32_t zeroIndex[2] = { 0, 0 };
       const int32_t* indexData = nodeIndexArray->getDataInt32Pointer(zeroIndex);
@@ -1124,12 +1124,12 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
           if (dataArray->getIntent() != NiftiIntent::NIFTI_INTENT_NODE_INDEX) {
             if (dataArray->getNumberOfDimensions() < 1) {
                throw GiftiException("Data Array with intent \""
-                                    + NiftiIntent::toString(dataArray->getIntent(), NULL)
+                                    + NiftiIntent::toName(dataArray->getIntent())
                                    + " is not one-dimensional in sparse node file.");
             }
             if (dataArray->getDimension(0) != numNodeIndices) {
                throw GiftiException("Data Array with intent \""
-                                   + NiftiIntent::toString(dataArray->getIntent(), NULL)
+                                   + NiftiIntent::toName(dataArray->getIntent())
                                    + " has a different number of nodes than the NIFTI_INTENT_NODE_INDEX array in the file.");
             }
             

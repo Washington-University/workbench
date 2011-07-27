@@ -54,7 +54,7 @@ GuiGlobals::getBrain()
  * @return 
  *    Pointer to the main window.
  */
-WindowMain* 
+WindowMain*
 GuiGlobals::getMainWindow()
 {
     return GuiGlobals::mainWindow;

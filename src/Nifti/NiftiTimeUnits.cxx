@@ -27,6 +27,7 @@
 #include "NiftiTimeUnits.h"
 #undef __NIFTITIMEUNITS_DECLARE__
 
+#include <cassert>
 
 using namespace caret;
 
@@ -55,7 +56,7 @@ NiftiTimeUnits::~NiftiTimeUnits()
 }
 
 void
-NiftiTimeUnits::initialize()
+NiftiTimeUnits::initializeTimeUnits()
 {
     if (initializedFlag) {
         return;
@@ -71,36 +72,6 @@ NiftiTimeUnits::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-NiftiTimeUnits::Enum 
-NiftiTimeUnits::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-NiftiTimeUnits::getName() const
-{
-    return this->name;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t
-NiftiTimeUnits::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -110,7 +81,7 @@ NiftiTimeUnits::getIntegerCode() const
 const NiftiTimeUnits*
 NiftiTimeUnits::findData(const Enum e)
 {
-    initialize();
+    initializeTimeUnits();
     int64_t num = enumData.size();
     for (int64_t i = 0; i < num; i++) {
         const NiftiTimeUnits* d = &enumData[i];
@@ -118,6 +89,7 @@ NiftiTimeUnits::findData(const Enum e)
             return d;
         }
     }
+    assert(0);
 
     return NULL;
 }
@@ -133,26 +105,11 @@ NiftiTimeUnits::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-NiftiTimeUnits::toString(Enum e, bool* isValidOut) {
-    initialize();
+NiftiTimeUnits::toName(Enum e) {
+    initializeTimeUnits();
     
-    std::string s;
-    
-    for (std::vector<NiftiTimeUnits>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const NiftiTimeUnits& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const NiftiTimeUnits* ntu = findData(e);
+    return ntu->name;
 }
 
 /**
@@ -166,9 +123,9 @@ NiftiTimeUnits::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 NiftiTimeUnits::Enum 
-NiftiTimeUnits::fromString(const std::string& s, bool* isValidOut)
+NiftiTimeUnits::fromName(const std::string& s, bool* isValidOut)
 {
-    initialize();
+    initializeTimeUnits();
     
     bool validFlag = false;
     Enum e;
@@ -189,3 +146,53 @@ NiftiTimeUnits::fromString(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+/**
+ * Get the integer code associated with an time units.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with time units.
+ */
+int32_t 
+NiftiTimeUnits::toIntegerCode(Enum e)
+{
+    initializeTimeUnits();
+    const NiftiTimeUnits* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+NiftiTimeUnits::Enum 
+NiftiTimeUnits::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initializeTimeUnits();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<NiftiTimeUnits>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const NiftiTimeUnits& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+

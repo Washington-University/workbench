@@ -52,12 +52,14 @@ public:
 
     ~NiftiVersion();
 
-    Enum getEnum() const;
-
-    int32_t getIntegerCode() const;
-
-    std::string getName() const;
-
+    static std::string toName(Enum e);
+    
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
+    
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
+    
 private:
     NiftiVersion(const Enum e, const int32_t integerCode, const std::string& name);
 
@@ -72,10 +74,6 @@ private:
     int32_t integerCode;
 
     std::string name;
-
-    static std::string toString(Enum e, bool* isValidOut);
-
-    static Enum fromString(const std::string& s, bool* isValidOut);
 
     static const NiftiVersion* findData(const Enum e);
 

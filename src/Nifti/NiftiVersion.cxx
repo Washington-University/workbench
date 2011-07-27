@@ -27,6 +27,7 @@
 #include "NiftiVersion.h"
 #undef __NIFTIVERSION_DECLARE__
 
+#include <cassert>
 
 using namespace caret;
 
@@ -68,36 +69,6 @@ NiftiVersion::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-NiftiVersion::Enum 
-NiftiVersion::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t 
-NiftiVersion::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-NiftiVersion::getName() const
-{
-    return this->name;
-}
-
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -116,6 +87,8 @@ NiftiVersion::findData(const Enum e)
         }
     }
 
+    assert(0);
+    
     return NULL;
 }
 
@@ -123,33 +96,15 @@ NiftiVersion::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-NiftiVersion::toString(Enum e, bool* isValidOut) {
+NiftiVersion::toName(Enum e) {
     initialize();
     
-    std::string s;
-    
-    for (std::vector<NiftiVersion>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const NiftiVersion& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const NiftiVersion* nv = findData(e);
+    return nv->name;
 }
 
 /**
@@ -163,7 +118,7 @@ NiftiVersion::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 NiftiVersion::Enum 
-NiftiVersion::fromString(const std::string& s, bool* isValidOut)
+NiftiVersion::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
@@ -186,3 +141,54 @@ NiftiVersion::fromString(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+
+/**
+ * Get the integer code associated with a transform.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with a transform.
+ */
+int32_t 
+NiftiVersion::toIntegerCode(Enum e)
+{
+    initialize();
+    const NiftiVersion* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+NiftiVersion::Enum 
+NiftiVersion::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<NiftiVersion>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const NiftiVersion& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+

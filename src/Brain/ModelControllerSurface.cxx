@@ -102,8 +102,7 @@ ModelControllerSurface::setDefaultScalingToFitWindow()
     this->defaultModelScaling = scale;
     
     for (int32_t i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
-        const CaretWindow* cw = CaretWindow::indexToWindow(i);
-        this->setScaling(*cw, this->defaultModelScaling);
+        this->setScaling(i, this->defaultModelScaling);
     }
 }
 

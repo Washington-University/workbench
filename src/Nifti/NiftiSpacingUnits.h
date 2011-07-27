@@ -56,16 +56,19 @@ public:
     ~NiftiSpacingUnits();
 private:
     NiftiSpacingUnits(Enum e, const int32_t integerCode, const std::string& name);
+    static const NiftiSpacingUnits* findData(Enum e);
     static std::vector<NiftiSpacingUnits> spacingUnits;
-    static void initialize();
+    static void initializeSpacingUnits();
     static bool initializedFlag;
     
     Enum e;
     int32_t integerCode;
     std::string name;
 public:
-    static std::string toString(Enum e, bool* isValidOut);
-    static Enum fromString(const std::string& s, bool* isValidOut);
+    static std::string toName(Enum e);
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    static int32_t toIntegerCode(Enum e);
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     
 };
   

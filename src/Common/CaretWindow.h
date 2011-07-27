@@ -67,33 +67,21 @@ public:
     
     virtual ~CaretWindow() { }
 
-    Enum getEnum() const;
-    
-    std::string getName() const;
-    
-    std::string getWindowName() const;
-    
-    int32_t getWindowIndex() const;
-    
     bool isAllWindows() const;
     
     bool isMainWindow() const;
     
-    static std::vector<const CaretWindow*> getWindows();
+    static std::vector<CaretWindow::Enum> getWindows();
     
-    static std::vector<const CaretWindow*> getWindowsExcludingAllWindows();
+    static std::vector<CaretWindow::Enum> getWindowsExcludingAllWindows();
     
-    static CaretWindow* indexToWindow(const int32_t index);
-
-    static CaretWindow::Enum indexToEnum(const int32_t index);
+    static CaretWindow::Enum fromIndex(const int32_t index, bool* isValidOut);
     
-    static int32_t enumToIndex(const Enum e);
+    static int32_t toIndex(const Enum e);
     
-    static std::string toString(Enum e);
+    static std::string toName(Enum e);
     
-    static Enum fromString(const std::string& s, bool* isValidOut);
-    
-    static CaretWindow* findData(const Enum e);
+    static Enum fromName(const std::string& s, bool* isValidOut);
     
     
 private:
@@ -103,11 +91,23 @@ private:
                 const int32_t windowIndex);
     
 
+    Enum getEnum() const;
+    
+    std::string getName() const;
+    
+    std::string getWindowName() const;
+    
+    int32_t getWindowIndex() const;
+    
     static std::vector<CaretWindow> enumData;
     
     static void initialize();
     
     static bool initializedFlag;
+    
+    static CaretWindow* indexToWindow(const int32_t index);
+    
+    static CaretWindow* findData(const Enum e);
     
     Enum e;
     

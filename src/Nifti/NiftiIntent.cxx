@@ -26,6 +26,8 @@
 #include "NiftiIntent.h"
 #undef __NIFTI_INTENT_DECLARE__
 
+#include <cassert>
+
 using namespace caret;
 
 
@@ -137,33 +139,15 @@ NiftiIntent::initializeIntents()
  * Get a string representition of the enumerated type.
  * @param e
  *     Enumerated value.
- * @param isValidOut
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return
  *     String representing enumerated value.
  */
 std::string
-NiftiIntent::toString(Enum e, bool* isValidOut) {
+NiftiIntent::toName(Enum e) {
     initializeIntents();
     
-    std::string s;
-    
-    for (std::vector<NiftiIntent>::const_iterator iter = intents.begin();
-         iter != intents.end();
-         iter++) {
-        const NiftiIntent& intent = *iter;
-        if (intent.e == e) {
-            s = intent.enumName;
-            break;
-        }
-    }
-    
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const NiftiIntent* ni = findData(e);
+    return ni->name;
 }
 
 /**
@@ -177,7 +161,7 @@ NiftiIntent::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 NiftiIntent::Enum
-NiftiIntent::fromString(const std::string& s, bool* isValidOut)
+NiftiIntent::fromName(const std::string& s, bool* isValidOut)
 {
     initializeIntents();
     
@@ -189,6 +173,124 @@ NiftiIntent::fromString(const std::string& s, bool* isValidOut)
          iter++) {
         const NiftiIntent& intent = *iter;
         if (intent.enumName == s) {
+            e = intent.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Find the Intent object corresponding to the enum.
+ * @param e
+ *    The enum
+ * @return 
+ *    The Intent or NULL if enum does not match an intent.
+ */
+const 
+NiftiIntent* 
+NiftiIntent::findData(Enum e)
+{
+    initializeIntents();
+    for (std::vector<NiftiIntent>::const_iterator iter = intents.begin();
+         iter != intents.end();
+         iter++) {
+        const NiftiIntent& intent = *iter;
+        return &intent;
+    }
+    
+    assert(0);
+    
+    return NULL;
+}
+
+/**
+ * Get the "P1" name associated with an intent.
+ * @param e
+ *   The enum.
+ * @return 
+ *   P1 name associated with intent (may be empty string).
+ */
+std::string 
+NiftiIntent::toNameP1(Enum e)
+{
+    initializeIntents();
+    const NiftiIntent* ni = findData(e);
+    return ni->p1Name;
+}
+
+/**
+ * Get the "P2" name associated with an intent.
+ * @param e
+ *   The enum.
+ * @return 
+ *   P2 name associated with intent (may be empty string).
+ */
+std::string 
+NiftiIntent::toNameP2(Enum e)
+{
+    initializeIntents();
+    const NiftiIntent* ni = findData(e);
+    return ni->p2Name;
+}
+
+/**
+ * Get the "P3" name associated with an intent.
+ * @param e
+ *   The enum.
+ * @return 
+ *   P3 name associated with intent (may be empty string).
+ */
+std::string 
+NiftiIntent::toNameP3(Enum e)
+{
+    initializeIntents();
+    const NiftiIntent* ni = findData(e);
+    return ni->p3Name;
+}
+
+/**
+ * Get the integer code associated with an intent.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with intent.
+ */
+int32_t 
+NiftiIntent::toIntegerCode(Enum e)
+{
+    initializeIntents();
+    const NiftiIntent* ni = findData(e);
+    return ni->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+NiftiIntent::Enum 
+NiftiIntent::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initializeIntents();
+
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<NiftiIntent>::const_iterator iter = intents.begin();
+         iter != intents.end();
+         iter++) {
+        const NiftiIntent& intent = *iter;
+        if (intent.integerCode == integerCode) {
             e = intent.e;
             validFlag = true;
             break;

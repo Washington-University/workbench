@@ -26,12 +26,14 @@
  */
 /*LICENSE_END*/
 
+
 namespace caret {
 
     class Actions;
     class Brain;
     class WindowMain;
     
+
     /**
      * Global variables.
      */
@@ -45,11 +47,11 @@ namespace caret {
         
     public:
         static Actions* getActions();
-        
+
         static Brain* getBrain();
         
         static WindowMain* getMainWindow();
-        
+
         static void setMainWindow(WindowMain* mainWindow);
         
     private:

@@ -154,14 +154,11 @@ ByteOrder::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-ByteOrder::toString(Enum e, bool* isValidOut) {
+ByteOrder::toName(Enum e) {
     initialize();
     
     std::string s;
@@ -176,10 +173,6 @@ ByteOrder::toString(Enum e, bool* isValidOut) {
         }
     }
 
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
     return s;
 }
 
@@ -194,12 +187,12 @@ ByteOrder::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 ByteOrder::Enum 
-ByteOrder::fromString(const std::string& s, bool* isValidOut)
+ByteOrder::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ENDIAN_LITTLE;
     
     for (std::vector<ByteOrder>::iterator iter = enumData.begin();
          iter != enumData.end();

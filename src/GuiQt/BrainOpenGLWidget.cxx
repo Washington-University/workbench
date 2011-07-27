@@ -49,11 +49,10 @@ using namespace caret;
  *   The parent widget.
  */
 BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
-                                     const CaretWindow::Enum& caretWindowEnum)
+                                     const int32_t windowIndex)
 : QGLWidget(parent)
 {
-    this->caretWindow = CaretWindow::findData(caretWindowEnum);
-    this->windowIndex = this->caretWindow->getWindowIndex();
+    this->windowIndex = windowIndex;
     this->modelController = NULL;
 }
 
@@ -164,7 +163,7 @@ BrainOpenGLWidget::paintGL()
     ModelController* modelController = this->getDisplayedModelController();
     
     this->openGL->drawModel(GuiGlobals::getBrain(),
-                             *this->caretWindow,
+                             this->windowIndex,
                              viewport,
                              modelController);
 }
@@ -215,7 +214,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 // Mouse moved with just left button down
                 //
                 if (bs == leftMouseButtonMoveMask) {
-                    Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(*this->caretWindow);
+                    Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(this->windowIndex);
                     rotationMatrix->rotateX(-dy);
                     rotationMatrix->rotateY(dx);
                 }
@@ -223,20 +222,20 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 // Mouse moved with control key and left mouse button down
                 //
                 else if (bs == leftControlMouseButtonMoveMask) {
-                    float scale = modelController->getScaling(*this->caretWindow);
+                    float scale = modelController->getScaling(this->windowIndex);
                     if (dy != 0) {
                         scale += (dy * 0.05);
                     }
                     if (scale < 0.01) scale = 0.01;
-                    modelController->setScaling(*this->caretWindow, scale);
+                    modelController->setScaling(this->windowIndex, scale);
                 }
                 //
                 // Mouse moved with shift key and left mouse button down
                 //
                 else if (bs == leftShiftMouseButtonMoveMask) {
-                    const float* t1 = modelController->getTranslation(*this->caretWindow);
+                    const float* t1 = modelController->getTranslation(this->windowIndex);
                     float t2[] = { t1[0] + dx, t1[1] + dy, t2[2] };
-                    modelController->setTranslation(*this->caretWindow, t2);
+                    modelController->setTranslation(this->windowIndex, t2);
                 }
                 //
                 // Mouse moved with alt key and left mouse button down

@@ -70,45 +70,6 @@ GiftiEndian::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-GiftiEndian::Enum 
-GiftiEndian::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t 
-GiftiEndian::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-GiftiEndian::getName() const
-{
-    return this->name;
-}
-
-/**
- * Get the GIFTI name for this enumerated item.
- * @return the GIFTI name for this enumerated item.
- */
-std::string
-GiftiEndian::getGiftiName() const
-{
-    return this->giftiName;
-}
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -135,33 +96,15 @@ GiftiEndian::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-GiftiEndian::toString(Enum e, bool* isValidOut) {
+GiftiEndian::toName(Enum e) {
     initialize();
     
-    std::string s;
-    
-    for (std::vector<GiftiEndian>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const GiftiEndian& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const GiftiEndian* gaio = findData(e);
+    return gaio->name;
 }
 
 /**
@@ -175,7 +118,7 @@ GiftiEndian::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 GiftiEndian::Enum 
-GiftiEndian::fromString(const std::string& s, bool* isValidOut)
+GiftiEndian::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
@@ -186,7 +129,57 @@ GiftiEndian::fromString(const std::string& s, bool* isValidOut)
          iter != enumData.end();
          iter++) {
         const GiftiEndian& d = *iter;
-        if ((d.name == s) || (d.giftiName == s)) {
+        if (d.name == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+std::string 
+GiftiEndian::toGiftiName(Enum e) {
+    initialize();
+    
+    const GiftiEndian* gaio = findData(e);
+    return gaio->giftiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+GiftiEndian::Enum 
+GiftiEndian::fromGiftiName(const std::string& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<GiftiEndian>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const GiftiEndian& d = *iter;
+        if (d.giftiName == s) {
             e = d.e;
             validFlag = true;
             break;

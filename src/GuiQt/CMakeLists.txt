@@ -26,24 +26,27 @@ WindowMain.h
 )
 
 #
-# Process the header files with moc producing moc_*.cpp files
-#
-QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
-
-#
 # Source files 
 #
 SET(SOURCE_FILES
 GuiGlobals.h
 
 ${MOC_INPUT_HEADER_FILES}
-
 Actions.cxx
 BrainOpenGLWidget.cxx
 GuiGlobals.cxx
 WindowMain.cxx
 )
 
+#SET(FORMS
+#    mainwindow.ui)
+
+#
+# Process the header files with moc producing moc_*.cpp files
+#
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
+#QT4_WRAP_UI(FORMS ${FORMS})
+QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 
 #
 # Create the GUI library
@@ -51,6 +54,7 @@ WindowMain.cxx
 ADD_LIBRARY(GuiQt
 ${SOURCE_FILES}
 ${MOC_SOURCE_FILES}
+${FORMS}
 )
 
 INCLUDE_DIRECTORIES(

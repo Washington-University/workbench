@@ -63,47 +63,43 @@ namespace caret {
         
         bool isYokeable() const;
         
-        void copyTransformations(
-                                 const ModelController& controller,
-                                 const CaretWindow& windowSourceID,
-                                 const CaretWindow& windowTargetID);
+        void copyTransformations(const ModelController& controller,
+                                 const int32_t windowIndexSource,
+                                 const int32_t windowIndexTarget);
         
-        Matrix4x4* getViewingRotationMatrix(const CaretWindow& windowID) const;
+        Matrix4x4* getViewingRotationMatrix(const int32_t windowIndex) const;
         
-        const float* getTranslation(const CaretWindow& windowID) const;
+        const float* getTranslation(const int32_t windowIndex) const;
         
-        void setTranslation(
-                            const CaretWindow& windowID,
+        void setTranslation(const int32_t windowIndex,
                             const float t[]);
         
-        void setTranslation(
-                            const CaretWindow& windowID,
+        void setTranslation(const int32_t windowIndex,
                             const float tx,
                             const float ty,
                             const float tz);
         
-        float getScaling(const CaretWindow& windowID) const;
+        float getScaling(const int32_t windowIndex) const;
         
-        void setScaling(
-                        const CaretWindow& windowID,
+        void setScaling(const int32_t windowIndex,
                         const float s);
         
-        void resetView(const CaretWindow& windowID);
+        void resetView(const int32_t windowIndex);
         
-        void rightView(const CaretWindow& windowID);
+        void rightView(const int32_t windowIndex);
         
-        void leftView(const CaretWindow& windowID);
+        void leftView(const int32_t windowIndex);
         
-        void anteriorView(const CaretWindow& windowID);
+        void anteriorView(const int32_t windowIndex);
         
-        void posteriorView(const CaretWindow& windowID);
+        void posteriorView(const int32_t windowIndex);
         
-        void dorsalView(const CaretWindow& windowID);
+        void dorsalView(const int32_t windowIndex);
         
-        void ventralView(const CaretWindow& windowID);
+        void ventralView(const int32_t windowIndex);
         
         void setTransformation(
-                               const CaretWindow& windowID,
+                               const int32_t windowIndex,
                                const std::vector<float>& transformationData);
         
         virtual std::string toString() const;

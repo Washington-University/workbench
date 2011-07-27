@@ -54,13 +54,13 @@ namespace caret {
         ~BrainOpenGL();
         
         void drawModel(Brain* brain,
-                        const CaretWindow& caretWindow,
+                        const int32_t windowIndex,
                         const int32_t viewport[4],
                         ModelController* controller);
         
         void initializeOpenGL();
         
-        void updateOrthoSize(const int32_t windowNumber, 
+        void updateOrthoSize(const int32_t windowIndex, 
                              const int32_t width, 
                              const int32_t height);
 

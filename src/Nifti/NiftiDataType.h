@@ -84,16 +84,21 @@ public:
     ~NiftiDataType();
 private:
     NiftiDataType();
-    NiftiDataType(Enum e, const std::string& name);
+    NiftiDataType(Enum e, const std::string& name, const int32_t integerCode);
+    static const NiftiDataType* findData(Enum e);
     static std::vector<NiftiDataType> dataTypes;
     static void createDataTypes();
     static bool dataTypesCreatedFlag;
     
     Enum e;
     std::string name;
+    int32_t integerCode;
+    
 public:
-    static std::string toString(Enum e, bool* isValidOut);
-    static Enum fromString(const std::string& s, bool* isValidOut);
+    static std::string toName(Enum e);
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    static int32_t toIntegerCode(Enum e);
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
 };
 

@@ -156,7 +156,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                 PaletteXmlElements::XML_TAG_PALETTE_COLOR_MAPPING,
                                 attributes);
     xmlWriter.writeElementCharacters(PaletteXmlElements::XML_TAG_SCALE_MODE,
-                                     PaletteScaleMode::toString(this->scaleMode, NULL));
+                                     PaletteScaleMode::toName(this->scaleMode));
     float autoScaleValues[4] = {
         this->autoScalePercentageNegativeMaximum,
         this->autoScalePercentageNegativeMinimum,
@@ -194,10 +194,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_TEST,
-                                     PaletteThresholdTest::toString(this->thresholdTest, NULL));
+                                     PaletteThresholdTest::toName(this->thresholdTest));
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_TYPE,
-                                     PaletteThresholdType::toString(this->thresholdType, NULL));
+                                     PaletteThresholdType::toName(this->thresholdType));
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);

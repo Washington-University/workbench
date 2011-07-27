@@ -80,12 +80,12 @@ BrainOpenGL::~BrainOpenGL()
  */
 void 
 BrainOpenGL::drawModel(Brain* brain,
-                        const CaretWindow& caretWindow,
+                        const int32_t windowIndex,
                         const int32_t viewport[4],
                         ModelController* controller)
 {
     this->brain = brain;
-    this->windowIndex = caretWindow.getWindowIndex();
+    this->windowIndex = windowIndex;
     
     float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     glClearColor(backgroundColor[0],
@@ -111,17 +111,17 @@ BrainOpenGL::drawModel(Brain* brain,
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const float* translation = controller->getTranslation(caretWindow);
+    const float* translation = controller->getTranslation(this->windowIndex);
     glTranslatef(translation[0], 
                  translation[1], 
                  translation[2]);
     
-    Matrix4x4* rotationMatrix = controller->getViewingRotationMatrix(caretWindow);
+    Matrix4x4* rotationMatrix = controller->getViewingRotationMatrix(this->windowIndex);
     double rotationMatrixElements[16];
     rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
     
-    const float scale = controller->getScaling(caretWindow);
+    const float scale = controller->getScaling(this->windowIndex);
     glScalef(scale, 
              scale, 
              scale);
@@ -217,18 +217,18 @@ BrainOpenGL::initializeOpenGL()
  *
  */
 void 
-BrainOpenGL::updateOrthoSize(const int32_t windowNumber, 
+BrainOpenGL::updateOrthoSize(const int32_t windowIndex, 
                              const int32_t width,
                              const int32_t height)
 {
     const double aspectRatio = (static_cast<double>(width)) /
                                (static_cast<double>(height));
-    orthographicRight[windowNumber]  =    getModelViewingHalfWindowHeight() * aspectRatio;
-    orthographicLeft[windowNumber]   =   -getModelViewingHalfWindowHeight() * aspectRatio;
-    orthographicTop[windowNumber]    =    getModelViewingHalfWindowHeight();
-    orthographicBottom[windowNumber] =   -getModelViewingHalfWindowHeight();
-    orthographicNear[windowNumber]   = -5000.0; //-500.0; //-10000.0;
-    orthographicFar[windowNumber]    =  5000.0; //500.0; // 10000.0;
+    orthographicRight[windowIndex]  =    getModelViewingHalfWindowHeight() * aspectRatio;
+    orthographicLeft[windowIndex]   =   -getModelViewingHalfWindowHeight() * aspectRatio;
+    orthographicTop[windowIndex]    =    getModelViewingHalfWindowHeight();
+    orthographicBottom[windowIndex] =   -getModelViewingHalfWindowHeight();
+    orthographicNear[windowIndex]   = -5000.0; //-500.0; //-10000.0;
+    orthographicFar[windowIndex]    =  5000.0; //500.0; // 10000.0;
 }
 
 /**

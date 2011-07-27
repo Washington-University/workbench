@@ -53,16 +53,18 @@ public:
 
     ~GiftiEncoding();
 
-    Enum getEnum() const;
-
-    int32_t getIntegerCode() const;
-
-    std::string getName() const;
-
-    std::string getGiftiName() const;
+    static std::string toName(Enum e);
+    
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static std::string toGiftiName(Enum e);
+    
+    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
     
 private:
     GiftiEncoding(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
+
+    static const GiftiEncoding* findData(const Enum e);
 
     static std::vector<GiftiEncoding> enumData;
 
@@ -77,13 +79,6 @@ private:
     std::string name;
 
     std::string giftiName;
-
-public:
-    static std::string toString(Enum e, bool* isValidOut);
-
-    static Enum fromString(const std::string& s, bool* isValidOut);
-
-    static const GiftiEncoding* findData(const Enum e);
 
 };
 

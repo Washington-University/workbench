@@ -43,7 +43,7 @@ namespace caret {
         
     public:
         BrainOpenGLWidget(QWidget* parent,
-                          const CaretWindow::Enum& caretWindow);
+                          const int32_t windowIndex);
         
         ~BrainOpenGLWidget();
         

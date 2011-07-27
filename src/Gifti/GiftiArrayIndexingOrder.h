@@ -48,22 +48,25 @@ public:
         /** Row-Major Order (C/C++/Java)  */
         ROW_MAJOR_ORDER
     };
-
-
+    
     ~GiftiArrayIndexingOrder();
 
-    Enum getEnum() const;
-
-    int32_t getIntegerCode() const;
-
-    std::string getName() const;
-
-    std::string getGiftiName() const;
+    static std::string toName(Enum e);
     
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static std::string toGiftiName(Enum e);
+    
+    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    
+
 private:
-    GiftiArrayIndexingOrder(const Enum e, const int32_t integerCode, const std::string& name,
+    GiftiArrayIndexingOrder(const Enum e, 
+                            const std::string& name,
                             const std::string& giftiName);
 
+    static const GiftiArrayIndexingOrder* findData(const Enum e);
+    
     static std::vector<GiftiArrayIndexingOrder> enumData;
 
     static void initialize();
@@ -72,19 +75,9 @@ private:
 
     Enum e;
 
-    int32_t integerCode;
-
     std::string name;
 
     std::string giftiName;
-    
-public:
-    static std::string toString(Enum e, bool* isValidOut);
-
-    static Enum fromString(const std::string& s, bool* isValidOut);
-
-    static const GiftiArrayIndexingOrder* findData(const Enum e);
-
 };
 
 #ifdef __GIFTIARRAYINDEXINGORDER_DECLARE__

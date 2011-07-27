@@ -99,7 +99,7 @@ ModelController::initializeTransformations()
     }
     
     for (int32_t i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
-        this->resetView(*CaretWindow::indexToWindow(i));
+        this->resetView(i);
     }
 }
 
@@ -135,73 +135,70 @@ ModelController::isYokeable() const
  * the structure model to another window.
  *
  * @param controller           Source structure model
- * @param windowSourceID   WindowID of source transformation.
- * @param windowTargetID   WindowID of target transformation.
+ * @param windowSourceID   windowIndex of source transformation.
+ * @param windowTargetID   windowIndex of target transformation.
  *
  */
 void
 ModelController::copyTransformations(
                    const ModelController& controller,
-                   const CaretWindow& windowSourceID,
-                   const CaretWindow& windowTargetID)
+                   const int32_t windowIndexSource,
+                   const int32_t windowIndexTarget)
 {
-    if (windowSourceID.getEnum() == windowTargetID.getEnum()) {
+    if (windowIndexSource == windowIndexTarget) {
         return;
     }
     
-    const int32_t sourceWindowIndex = windowSourceID.getWindowIndex();
-    const int32_t targetWindowIndex = windowTargetID.getWindowIndex();
-    
-    const int32_t it3 = targetWindowIndex * 3;
-    const int32_t is3 = sourceWindowIndex * 3;
+    const int32_t it3 = windowIndexTarget * 3;
+    const int32_t is3 = windowIndexSource * 3;
     translation[it3] = controller.translation[is3];
     translation[it3+1] = controller.translation[is3+1];
     translation[it3+2] = controller.translation[is3+2];
-    scaling[targetWindowIndex] = controller.scaling[sourceWindowIndex];
+    scaling[windowIndexTarget] = controller.scaling[windowIndexSource];
     
-    viewingRotationMatrix[targetWindowIndex]->setMatrix(*controller.getViewingRotationMatrix(windowSourceID));
+    viewingRotationMatrix[windowIndexTarget]->setMatrix(*controller.getViewingRotationMatrix(windowIndexSource));
 }
 
 /**
  * the viewing rotation matrix.
  *
- * @param  windowID  Window for which rotation is requested
+ * @param  windowIndex  Window for which rotation is requested
  * @return Reference to the viewing rotation matrix.
  *
  */
 Matrix4x4*
-ModelController::getViewingRotationMatrix(const CaretWindow& windowID) const
+ModelController::getViewingRotationMatrix(const int32_t windowIndex) const
 {
-    return this->viewingRotationMatrix[windowID.getWindowIndex()];
+    return this->viewingRotationMatrix[windowIndex];
 }
 
 /**
  * get the translation.
  *
- * @param  windowID  Window for which translation is requested
+ * @param  windowIndex  Window for which translation is requested
  * @return  The translation, an array of three floats.
  *
  */
 const float*
-ModelController::getTranslation(const CaretWindow& windowID) const
+ModelController::getTranslation(const int32_t windowIndex) const
 {
-    const int32_t i3 = windowID.getWindowIndex() * 3;
+    const int32_t i3 = windowIndex * 3;
     return &this->translation[i3];
 }
 
 /**
  * set the translation.
  *
- * @param  windowID  Window for which translation is requested
+ * @param  windowIndex  Window for which translation is requested
  * @param  t  The translation, an array of three floats.
  *
  */
 void
 ModelController::setTranslation(
-                   const CaretWindow& windowID,
+                   const int32_t windowIndex,
                    const float t[])
 {
-    const int32_t i3 = windowID.getWindowIndex() * 3;
+    const int32_t i3 = windowIndex * 3;
     this->translation[i3]   = t[0];
     this->translation[i3+1] = t[1];
     this->translation[i3+2] = t[2];
@@ -210,7 +207,7 @@ ModelController::setTranslation(
 /**
  * set the translation.
  *
- * @param  windowID  Window for which translation is requested
+ * @param  windowIndex  Window for which translation is requested
  * @param  tx - The x-coordinate of the translation.
  * @param  ty - The y-coordinate of the translation.
  * @param  tz - The z-coordinate of the translation.
@@ -218,12 +215,12 @@ ModelController::setTranslation(
  */
 void
 ModelController::setTranslation(
-                   const CaretWindow& windowID,
+                   const int32_t windowIndex,
                    const float tx,
                    const float ty,
                    const float tz)
 {
-    const int32_t i3 = windowID.getWindowIndex() * 3;
+    const int32_t i3 = windowIndex * 3;
     this->translation[i3]   = tx;
     this->translation[i3+1] = ty;
     this->translation[i3+2] = tz;
@@ -232,54 +229,52 @@ ModelController::setTranslation(
 /**
  * get the scaling.
  *
- * @param  windowID  Window for which scaling is requested
+ * @param  windowIndex  Window for which scaling is requested
  * @return  Scaling value.
  *
  */
 float
-ModelController::getScaling(const CaretWindow& windowID) const
+ModelController::getScaling(const int32_t windowIndex) const
 {
-    return this->scaling[windowID.getWindowIndex()];
+    return this->scaling[windowIndex];
 }
 
 /**
  * set the scaling.
  *
- * @param  windowID  Window for which scaling is requested
+ * @param  windowIndex  Window for which scaling is requested
  * @param  s  The scaling value.
  *
  */
 void
 ModelController::setScaling(
-                   const CaretWindow& windowID,
+                   const int32_t windowIndex,
                    const float s)
 {
-    this->scaling[windowID.getWindowIndex()] = s;
+    this->scaling[windowIndex] = s;
 }
 
 /**
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  * reset the view.
  *
  */
 void
-ModelController::resetView(const CaretWindow& windowID)
+ModelController::resetView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
-    this->setTranslation(windowID, 0.0f, 0.0f, 0.0f);
+    this->setTranslation(windowIndex, 0.0f, 0.0f, 0.0f);
     this->viewingRotationMatrix[windowIndex]->identity();
-    this->setScaling(windowID, this->defaultModelScaling);
+    this->setScaling(windowIndex, this->defaultModelScaling);
 }
 
 /**
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  * set to a right side view.
  *
  */
 void
-ModelController::rightView(const CaretWindow& windowID)
+ModelController::rightView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
     viewingRotationMatrix[windowIndex]->rotateY(-90.0);
     viewingRotationMatrix[windowIndex]->rotateZ(-90.0);
@@ -287,13 +282,12 @@ ModelController::rightView(const CaretWindow& windowID)
 
 /**
  * set to a left side view.
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  *
  */
 void
-ModelController::leftView(const CaretWindow& windowID)
+ModelController::leftView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
     viewingRotationMatrix[windowIndex]->rotateY(90.0);
     viewingRotationMatrix[windowIndex]->rotateZ(90.0);
@@ -301,51 +295,47 @@ ModelController::leftView(const CaretWindow& windowID)
 
 /**
  * set to a anterior view.
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  *
  */
 void
-ModelController::anteriorView(const CaretWindow& windowID)
+ModelController::anteriorView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
     viewingRotationMatrix[windowIndex]->rotateX(-90.0);
     viewingRotationMatrix[windowIndex]->rotateY(180.0);}
 
 /**
  * set to a posterior view.
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  *
  */
 void
-ModelController::posteriorView(const CaretWindow& windowID)
+ModelController::posteriorView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
     viewingRotationMatrix[windowIndex]->rotateX(-90.0);
 }
 
 /**
  * set to a dorsal view.
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  *
  */
 void
-ModelController::dorsalView(const CaretWindow& windowID)
+ModelController::dorsalView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
 }
 
 /**
  * set to a ventral view.
- * @param  windowID  Window for which view is requested
+ * @param  windowIndex  Window for which view is requested
  *
  */
 void
-ModelController::ventralView(const CaretWindow& windowID)
+ModelController::ventralView(const int32_t windowIndex)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     viewingRotationMatrix[windowIndex]->identity();
     viewingRotationMatrix[windowIndex]->rotateY(-180.0);
 }
@@ -353,7 +343,7 @@ ModelController::ventralView(const CaretWindow& windowID)
 /**
  * Set the transformation.
  *
- * @param windowID  Window of this view.
+ * @param windowIndex  Window of this view.
  * @param transformationData - the transformation data:
  *          translation(3)
  *          viewing matrix[4][4],
@@ -362,14 +352,13 @@ ModelController::ventralView(const CaretWindow& windowID)
  */
 void
 ModelController::setTransformation(
-                   const CaretWindow& windowID,
+                   const int32_t windowIndex,
                    const std::vector<float>& transformationData)
 {
-    const int32_t windowIndex = windowID.getWindowIndex();
     uint32_t ctr = 0;
     
     if (transformationData.size() >= (ctr + 3)) {
-        this->setTranslation(windowID,
+        this->setTranslation(windowIndex,
                             transformationData[ctr + 0],
                             transformationData[ctr + 1],
                             transformationData[ctr + 2]);
@@ -387,7 +376,7 @@ ModelController::setTransformation(
     }
     
     if (transformationData.size() >= (ctr + 17)) {
-        this->setScaling(windowID, transformationData[ctr]);
+        this->setScaling(windowIndex, transformationData[ctr]);
         ctr++;
     }
 }

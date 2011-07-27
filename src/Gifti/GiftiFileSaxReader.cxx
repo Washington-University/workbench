@@ -430,7 +430,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + " not found for DataArray"); 
    }
     bool intentValid = false;
-    NiftiIntent::Enum intent = NiftiIntent::fromString(intentName, &intentValid);
+    NiftiIntent::Enum intent = NiftiIntent::fromName(intentName, &intentValid);
    if (intentValid == false) {
       throw XmlSaxParserException("Intent name invalid: "
                      + intentName);
@@ -446,7 +446,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + " not found for DataArray"); 
    }
    bool dataTypeNameValid = false;
-   dataTypeForReadingArrayData = NiftiDataType::fromString(dataTypeName,
+   dataTypeForReadingArrayData = NiftiDataType::fromName(dataTypeName,
                                                                      &dataTypeNameValid);
    if (dataTypeNameValid == false) {
       throw XmlSaxParserException("Attribute "
@@ -465,7 +465,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + " not found for DataArray"); 
    }
    bool validEncoding = false;
-    encodingForReadingArrayData = GiftiEncoding::fromString(encodingName,
+    encodingForReadingArrayData = GiftiEncoding::fromGiftiName(encodingName,
                                                                      &validEncoding);
    if (validEncoding == false) {
       throw XmlSaxParserException("Attribute "
@@ -504,7 +504,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + " not found for DataArray"); 
    }
     bool endianValid = false;
-    this->endianForReadingArrayData = GiftiEndian::fromString(endianAttributeNameForReadingArrayData, &endianValid);
+    this->endianForReadingArrayData = GiftiEndian::fromGiftiName(endianAttributeNameForReadingArrayData, &endianValid);
     if (endianValid == false) {
       throw XmlSaxParserException("Attribute "
                      + GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN
@@ -571,7 +571,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + " not found for DataArray"); 
    }
    bool validArraySubscriptingOrder = false;
-    arraySubscriptingOrderForReadingArrayData = GiftiArrayIndexingOrder::fromString(
+    arraySubscriptingOrderForReadingArrayData = GiftiArrayIndexingOrder::fromGiftiName(
                                                      subscriptOrderString,
                                                      &validArraySubscriptingOrder);   
    if (validArraySubscriptingOrder == false) {

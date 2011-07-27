@@ -26,6 +26,8 @@
 #include "NiftiSpacingUnits.h"
 #undef __NIFTI_SPACING_UNITS_DECLARE__
 
+#include <cassert>
+
 using namespace caret;
 
 NiftiSpacingUnits::NiftiSpacingUnits(Enum e, 
@@ -43,7 +45,7 @@ NiftiSpacingUnits::~NiftiSpacingUnits()
 }
 
 void 
-NiftiSpacingUnits::initialize()
+NiftiSpacingUnits::initializeSpacingUnits()
 {
     if (initializedFlag) {
         return;
@@ -68,33 +70,15 @@ NiftiSpacingUnits::initialize()
  * Get a string representition of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-NiftiSpacingUnits::toString(Enum e, bool* isValidOut) {
-    initialize();
+NiftiSpacingUnits::toName(Enum e) {
+    initializeSpacingUnits();
     
-    std::string s;
-    
-    for (std::vector<NiftiSpacingUnits>::iterator iter = spacingUnits.begin();
-         iter != spacingUnits.end();
-         iter++) {
-        const NiftiSpacingUnits& ndt = *iter;
-        if (ndt.e == e) {
-            s = ndt.name;
-            break;
-        }
-    }
-    
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const NiftiSpacingUnits* nsu = findData(e);
+    return nsu->name;
 }
 
 /**
@@ -108,9 +92,9 @@ NiftiSpacingUnits::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 NiftiSpacingUnits::Enum 
-NiftiSpacingUnits::fromString(const std::string& s, bool* isValidOut)
+NiftiSpacingUnits::fromName(const std::string& s, bool* isValidOut)
 {
-    initialize();
+    initializeSpacingUnits();
     
     bool validFlag = false;
     Enum e;
@@ -131,3 +115,79 @@ NiftiSpacingUnits::fromString(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+
+/**
+ * Find the Intent object corresponding to the enum.
+ * @param e
+ *    The enum
+ * @return 
+ *    The Intent or NULL if enum does not match an intent.
+ */
+const 
+NiftiSpacingUnits* 
+NiftiSpacingUnits::findData(Enum e)
+{
+    initializeSpacingUnits();
+    
+    for (std::vector<NiftiSpacingUnits>::const_iterator iter = spacingUnits.begin();
+         iter != spacingUnits.end();
+         iter++) {
+        const NiftiSpacingUnits& nsu = *iter;
+        return &nsu;
+    }
+    
+    assert(0);
+    
+    return NULL;
+}
+
+/**
+ * Get the integer code associated with an spacing units.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with spacing units.
+ */
+int32_t 
+NiftiSpacingUnits::toIntegerCode(Enum e)
+{
+    initializeSpacingUnits();
+    const NiftiSpacingUnits* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+NiftiSpacingUnits::Enum 
+NiftiSpacingUnits::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initializeSpacingUnits();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<NiftiSpacingUnits>::const_iterator iter = spacingUnits.begin();
+         iter != spacingUnits.end();
+         iter++) {
+        const NiftiSpacingUnits& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+

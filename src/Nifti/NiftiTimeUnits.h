@@ -60,24 +60,22 @@ public:
 
     ~NiftiTimeUnits();
 
-    Enum getEnum() const;
+    static std::string toName(Enum e);
+    
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
 
-    int32_t getIntegerCode() const;
-    
-    std::string getName() const;
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
-    static std::string toString(Enum e, bool* isValidOut);
-    
-    static Enum fromString(const std::string& s, bool* isValidOut);
-    
-    static const NiftiTimeUnits* findData(const Enum e);
-    
 private:
     NiftiTimeUnits(const Enum e, const int32_t integerCode, const std::string& name);
 
+    static const NiftiTimeUnits* findData(const Enum e);
+    
     static std::vector<NiftiTimeUnits> enumData;
 
-    static void initialize();
+    static void initializeTimeUnits();
 
     static bool initializedFlag;
 

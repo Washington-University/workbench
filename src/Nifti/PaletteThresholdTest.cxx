@@ -27,6 +27,7 @@
 #include "PaletteThresholdTest.h"
 #undef __PALETTE_THRESHOLD_TEST_DECLARE__
 
+#include <cassert>
 
 using namespace caret;
 
@@ -70,36 +71,6 @@ PaletteThresholdTest::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-PaletteThresholdTest::Enum 
-PaletteThresholdTest::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t 
-PaletteThresholdTest::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-PaletteThresholdTest::getName() const
-{
-    return this->name;
-}
-
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -119,6 +90,8 @@ PaletteThresholdTest::findData(const Enum e)
         }
     }
 
+    assert(0);
+    
     return NULL;
 }
 
@@ -126,33 +99,15 @@ PaletteThresholdTest::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-PaletteThresholdTest::toString(Enum e, bool* isValidOut) {
+PaletteThresholdTest::toName(Enum e) {
     initialize();
     
-    std::string s;
-    
-    for (std::vector<PaletteThresholdTest>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const PaletteThresholdTest& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const PaletteThresholdTest* ptt = findData(e);
+    return ptt->name;
 }
 
 /**
@@ -166,7 +121,7 @@ PaletteThresholdTest::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 PaletteThresholdTest::Enum 
-PaletteThresholdTest::fromString(const std::string& s, bool* isValidOut)
+PaletteThresholdTest::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
@@ -179,6 +134,105 @@ PaletteThresholdTest::fromString(const std::string& s, bool* isValidOut)
         const PaletteThresholdTest& d = *iter;
         if (d.name == s) {
             e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a gui name representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+std::string 
+PaletteThresholdTest::toGuiName(Enum e) {
+    initialize();
+    
+    const PaletteThresholdTest* psm = findData(e);
+    return psm->guiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its gui name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+PaletteThresholdTest::Enum 
+PaletteThresholdTest::fromGuiName(const std::string& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteThresholdTest>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteThresholdTest& d = *iter;
+        if (d.guiName == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get the integer code associated with a scale mode.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with a scale mode.
+ */
+int32_t 
+PaletteThresholdTest::toIntegerCode(Enum e)
+{
+    initialize();
+    const PaletteThresholdTest* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+PaletteThresholdTest::Enum 
+PaletteThresholdTest::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteThresholdTest>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteThresholdTest& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
             validFlag = true;
             break;
         }

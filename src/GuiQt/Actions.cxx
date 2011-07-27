@@ -34,6 +34,7 @@
 #include "GuiGlobals.h"
 #include "WindowMain.h"
 
+
 using namespace caret;
 
 /**

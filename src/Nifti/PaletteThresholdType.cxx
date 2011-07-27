@@ -72,36 +72,6 @@ PaletteThresholdType::initialize()
 }
 
 /**
- * Get the enum value for this enumerated item.
- * @return the value for this enumerated item.
- */
-PaletteThresholdType::Enum 
-PaletteThresholdType::getEnum() const
-{
-    return this->e;
-}
-
-/**
- * Get the integer code for this enumerated item.
- * @return the integer code for this enumerated item.
- */
-int32_t 
-PaletteThresholdType::getIntegerCode() const
-{
-    return this->integerCode;
-}
-
-/**
- * Get the enum name for this enumerated item.
- * @return the name for this enumerated item.
- */
-std::string
-PaletteThresholdType::getName() const
-{
-    return this->name;
-}
-
-/**
  * Find the data for and enumerated value.
  * @param e
  *     The enumerated value.
@@ -128,33 +98,15 @@ PaletteThresholdType::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-PaletteThresholdType::toString(Enum e, bool* isValidOut) {
+PaletteThresholdType::toName(Enum e) {
     initialize();
     
-    std::string s;
-    
-    for (std::vector<PaletteThresholdType>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const PaletteThresholdType& d = *iter;
-        if (d.e == e) {
-            s = d.name;
-            break;
-        }
-    }
-
-    if (isValidOut != NULL) {
-        *isValidOut = (s.size() > 0);
-    }
-    
-    return s;
+    const PaletteThresholdType* ptt = findData(e);
+    return ptt->name;
 }
 
 /**
@@ -168,7 +120,7 @@ PaletteThresholdType::toString(Enum e, bool* isValidOut) {
  *     Enumerated value.
  */
 PaletteThresholdType::Enum 
-PaletteThresholdType::fromString(const std::string& s, bool* isValidOut)
+PaletteThresholdType::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
@@ -181,6 +133,105 @@ PaletteThresholdType::fromString(const std::string& s, bool* isValidOut)
         const PaletteThresholdType& d = *iter;
         if (d.name == s) {
             e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a gui name representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+std::string 
+PaletteThresholdType::toGuiName(Enum e) {
+    initialize();
+    
+    const PaletteThresholdType* psm = findData(e);
+    return psm->guiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its gui name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+PaletteThresholdType::Enum 
+PaletteThresholdType::fromGuiName(const std::string& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteThresholdType>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteThresholdType& d = *iter;
+        if (d.guiName == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get the integer code associated with a threshold type.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with a threshold type.
+ */
+int32_t 
+PaletteThresholdType::toIntegerCode(Enum e)
+{
+    initialize();
+    const PaletteThresholdType* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+PaletteThresholdType::Enum 
+PaletteThresholdType::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteThresholdType>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteThresholdType& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
             validFlag = true;
             break;
         }

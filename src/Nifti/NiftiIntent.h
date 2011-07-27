@@ -139,8 +139,6 @@ public:
     };
 
 
-    static const NiftiIntent* getIntent(Enum e);
-
     ~NiftiIntent();
 
 private:
@@ -163,12 +161,19 @@ private:
     std::string p3Name;
     
     static void initializeIntents();
+    static const NiftiIntent* findData(Enum e);
+
     static std::vector<NiftiIntent> intents;
     static bool intentsCreatedFlag;
 
 public:
-    static std::string toString(Enum e, bool* isValidOut);
-    static Enum fromString(const std::string& s, bool* isValidOut);
+    static std::string toName(Enum e);
+    static std::string toNameP1(Enum e);
+    static std::string toNameP2(Enum e);
+    static std::string toNameP3(Enum e);
+    static Enum fromName(const std::string& s, bool* isValidOut);
+    static int32_t toIntegerCode(Enum e);
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     
 };
     
