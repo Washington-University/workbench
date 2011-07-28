@@ -58,6 +58,7 @@ NiftiUtilities::toString1(
                    const float* floatArray,
                    const int32_t precision)
 {
+   return std::string("");
 }
 
 /**
@@ -77,6 +78,7 @@ NiftiUtilities::toString3(
                    const float* floatArray,
                    const int32_t precision)
 {
+      return std::string("");
 }
 
 /**
@@ -95,6 +97,7 @@ NiftiUtilities::toString2(
                    const float* floatArray,
                    const int32_t precision)
 {
+      return std::string("");
 }
 
 /**
@@ -110,6 +113,7 @@ NiftiUtilities::toString(
                    const float f,
                    const int32_t precision)
 {
+      return std::string("");
 }
 
 /**
@@ -125,6 +129,7 @@ NiftiUtilities::toString(
                    const double d,
                    const int32_t precision)
 {
+      return std::string("");
 }
 
 /**
@@ -140,6 +145,7 @@ NiftiUtilities::toString3(const int32_t dim1,
                           const int32_t dim3,
                           const int32_t* intArray)
 {
+      return std::string("");
 }
 
 /**
@@ -154,6 +160,7 @@ NiftiUtilities::toString2(const int32_t dim1,
                          const int32_t dim2,
                          const int32_t* intArray)
 {
+      return std::string("");
 }
 
 /**
@@ -167,6 +174,7 @@ std::string
 NiftiUtilities::toString1(const int32_t dim1,
                           const int32_t* intArray)
 {
+      return std::string("");
 }
 
 /**
@@ -178,6 +186,7 @@ NiftiUtilities::toString1(const int32_t dim1,
 std::string
 NiftiUtilities::toString(const int32_t i)
 {
+      return std::string("");
 }
 
 /**
@@ -190,6 +199,7 @@ NiftiUtilities::toString(const int32_t i)
 float
 NiftiUtilities::stringToFloatArray(const std::string& dataString)
 {
+   return 0.0f;
 }
 
 /**
@@ -203,6 +213,7 @@ NiftiUtilities::stringToFloatArray(const std::string& dataString)
 int32_t
 NiftiUtilities::stringIntArray(const std::string& dataString)
 {
+   return 0;
 }
 
 /**
@@ -214,6 +225,7 @@ NiftiUtilities::stringIntArray(const std::string& dataString)
 float
 NiftiUtilities::toFloat(const std::string& s)
 {
+   return 0.0f;
 }
 
 /**
@@ -225,6 +237,7 @@ NiftiUtilities::toFloat(const std::string& s)
 int32_t
 NiftiUtilities::toInt(const std::string& s)
 {
+   return 0;
 }
 
 /**
@@ -237,6 +250,7 @@ NiftiUtilities::toInt(const std::string& s)
 std::string
 NiftiUtilities::encodeXmlSpecialCharacters(const std::string& text)
 {
+      return std::string("");
 }
 
 /**
@@ -249,6 +263,7 @@ NiftiUtilities::encodeXmlSpecialCharacters(const std::string& text)
 std::string
 NiftiUtilities::decodeXmlSpecialCharacters(const std::string& text)
 {
+      return std::string("");
 }
 
 /**
@@ -311,5 +326,6 @@ NiftiUtilities::leftJustify(
                    const std::string& s,
                    const int32_t numberOfCharacters)
 {
+      return std::string("");
 }
 

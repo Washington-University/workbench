@@ -26,6 +26,8 @@
 
 #ifndef _WIN32
 #include "execinfo.h"
+#else
+#include "Windows.h"
 #endif
 #include "SystemUtilities.h"
 
@@ -48,7 +50,7 @@ SystemUtilities::getBackTrace()
 {
     std::ostringstream str;
     void* callstack[1024];
-    int numFrames;// = backtrace(callstack, 1024);
+    int numFrames=0;// = backtrace(callstack, 1024);
     char** symbols;// = backtrace_symbols(callstack, numFrames);
     for (int i = 0; i < numFrames; i++) {
         str << symbols[i] << std::endl;
@@ -258,6 +260,7 @@ SystemUtilities::testRelativePath(
                    const std::string& myPath,
                    const std::string& correctResult)
 {
+   return false;
 }
 
 std::string
@@ -294,6 +297,7 @@ SystemUtilities::relativePath(
                    const std::string& otherPathIn,
                    const std::string& myPathIn)
 {
+   return std::string("");
 }
 
 /**

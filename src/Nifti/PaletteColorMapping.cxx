@@ -272,6 +272,7 @@ PaletteColorMapping::decodeFromXML(const std::string& xml)
 std::string
 PaletteColorMapping::getNodeChildText(const Node& node) const
 {
+   return std::string("");
 }
 
 /**

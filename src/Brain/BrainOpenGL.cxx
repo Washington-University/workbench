@@ -25,7 +25,9 @@
 /*LICENSE_END*/
 
 #include <iostream>
-
+#ifdef CARET_WINDOWS
+#include <Windows.h>
+#endif
 #ifdef CARET_MAC_OSX
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>

@@ -636,6 +636,7 @@ int32_t
 GiftiLabelTable::getLabelKeysSortedByName() const
 {
     assert(0);
+    return 0;
 }
 
 /**

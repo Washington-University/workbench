@@ -19,13 +19,18 @@ IF(APPLE)
 ELSEIF(UNIX)
 ELSEIF(WIN32)
     ADD_DEFINITIONS(-DCARET_WINDOWS)
-	ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
+
 	IF(CMAKE_CL_64)
+        ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
 		SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include")
 		SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib")
-	ELSE()
+    ELSEIF(CMAKE_CL)
+        ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
 		SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
 		SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
+    ELSE()
+        SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
+        SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
 	ENDIF()
 ELSE(APPLE)
     MESSAGE(FATAL_ERROR "Unrecognized operating system " ${CMAKE_SYSTEM_NAME})
@@ -57,6 +62,7 @@ IF (OPENMP_FOUND)
 ELSE (OPENMP_FOUND)
     MESSAGE(FATAL_ERROR "OpenMP was not found")
 ENDIF(OPENMP_FOUND)
+
 
 #
 # MUST have ZLIB

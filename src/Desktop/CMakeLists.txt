@@ -48,6 +48,13 @@ ${ZLIB_LIBRARIES}
 #${LIBS}
 )
 
+IF(WIN32)
+    TARGET_LINK_LIBRARIES(desktop
+    opengl32
+    glu32
+    )
+ENDIF(WIN32)
+
 IF (UNIX)
    IF (NOT APPLE) 
       TARGET_LINK_LIBRARIES(desktop
