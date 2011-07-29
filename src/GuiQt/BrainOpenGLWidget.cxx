@@ -34,7 +34,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
-#include "CaretWindow.h"
+#include "CaretWindowEnum.h"
 #include "GuiGlobals.h"
 #include "Matrix4x4.h"
 #include "Surface.h"

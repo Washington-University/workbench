@@ -23,11 +23,10 @@
  */ 
 
 
-#define __NIFTITIMEUNITS_DECLARE__
-#include "NiftiTimeUnits.h"
-#undef __NIFTITIMEUNITS_DECLARE__
+#define __PALETTE_SCALE_DECLARE__
+#include "PaletteScaleModeEnum.h"
+#undef __PALETTE_SCALE_DECLARE__
 
-#include <cassert>
 
 using namespace caret;
 
@@ -39,36 +38,36 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-NiftiTimeUnits::NiftiTimeUnits(
+PaletteScaleModeEnum::PaletteScaleModeEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name)
+                   const std::string& name,
+                   const std::string& guiName)
 {
     this->e = e;
+    this->integerCode = integerCode;
     this->name = name;
+    this->guiName = guiName;
 }
 
 /**
  * Destructor.
  */
-NiftiTimeUnits::~NiftiTimeUnits()
+PaletteScaleModeEnum::~PaletteScaleModeEnum()
 {
 }
 
 void
-NiftiTimeUnits::initializeTimeUnits()
+PaletteScaleModeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_UNKNOWN, 0,"NIFTI_UNITS_UNKNOWN"));
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_SEC, 8,"NIFTI_UNITS_SEC"));
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_MSEC, 16,"NIFTI_UNITS_MSEC"));
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_USEC, 24,"NIFTI_UNITS_USEC"));
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_HZ, 32,"NIFTI_UNITS_HZ"));
-    enumData.push_back(NiftiTimeUnits(NIFTI_UNITS_PPM, 40,"NIFTI_UNITS_PPM"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE, 1, "MODE_AUTO_SCALE", "Auto Scale"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE_PERCENTAGE, 1, "MODE_AUTO_SCALE_PERCENTAGE", "Auto Scale - Percentage"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_USER_SCALE, 1, "MODE_USER_SCALE", "User Scale"));
 }
 
 /**
@@ -78,18 +77,18 @@ NiftiTimeUnits::initializeTimeUnits()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const NiftiTimeUnits*
-NiftiTimeUnits::findData(const Enum e)
+const PaletteScaleModeEnum*
+PaletteScaleModeEnum::findData(const Enum e)
 {
-    initializeTimeUnits();
+    initialize();
+
     int64_t num = enumData.size();
     for (int64_t i = 0; i < num; i++) {
-        const NiftiTimeUnits* d = &enumData[i];
+        const PaletteScaleModeEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
     }
-    assert(0);
 
     return NULL;
 }
@@ -98,18 +97,15 @@ NiftiTimeUnits::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-NiftiTimeUnits::toName(Enum e) {
-    initializeTimeUnits();
+PaletteScaleModeEnum::toName(Enum e) {
+    initialize();
     
-    const NiftiTimeUnits* ntu = findData(e);
-    return ntu->name;
+    const PaletteScaleModeEnum* psm = findData(e);
+    return psm->name;
 }
 
 /**
@@ -122,18 +118,18 @@ NiftiTimeUnits::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-NiftiTimeUnits::Enum 
-NiftiTimeUnits::fromName(const std::string& s, bool* isValidOut)
+PaletteScaleModeEnum::Enum 
+PaletteScaleModeEnum::fromName(const std::string& s, bool* isValidOut)
 {
-    initializeTimeUnits();
+    initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiTimeUnits>::iterator iter = enumData.begin();
+    for (std::vector<PaletteScaleModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiTimeUnits& d = *iter;
+        const PaletteScaleModeEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -146,18 +142,69 @@ NiftiTimeUnits::fromName(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+
 /**
- * Get the integer code associated with an time units.
+ * Get a gui name representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+std::string 
+PaletteScaleModeEnum::toGuiName(Enum e) {
+    initialize();
+    
+    const PaletteScaleModeEnum* psm = findData(e);
+    return psm->guiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its gui name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+PaletteScaleModeEnum::Enum 
+PaletteScaleModeEnum::fromGuiName(const std::string& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteScaleModeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteScaleModeEnum& d = *iter;
+        if (d.guiName == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get the integer code associated with a scale mode.
  * @param e
  *   The enum.
  * @return 
- *   Integer code associated with time units.
+ *   Integer code associated with a scale mode.
  */
 int32_t 
-NiftiTimeUnits::toIntegerCode(Enum e)
+PaletteScaleModeEnum::toIntegerCode(Enum e)
 {
-    initializeTimeUnits();
-    const NiftiTimeUnits* nsu = findData(e);
+    initialize();
+    const PaletteScaleModeEnum* nsu = findData(e);
     return nsu->integerCode;
 }
 
@@ -170,18 +217,18 @@ NiftiTimeUnits::toIntegerCode(Enum e)
  * @return
  *    Enum corresponding to integer code.
  */
-NiftiTimeUnits::Enum 
-NiftiTimeUnits::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+PaletteScaleModeEnum::Enum 
+PaletteScaleModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
-    initializeTimeUnits();
+    initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiTimeUnits>::const_iterator iter = enumData.begin();
+    for (std::vector<PaletteScaleModeEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiTimeUnits& nsu = *iter;
+        const PaletteScaleModeEnum& nsu = *iter;
         if (nsu.integerCode == integerCode) {
             e = nsu.e;
             validFlag = true;
@@ -194,5 +241,3 @@ NiftiTimeUnits::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     }
     return e;
 }
-
-

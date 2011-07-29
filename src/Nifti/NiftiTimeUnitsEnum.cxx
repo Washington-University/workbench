@@ -23,9 +23,9 @@
  */ 
 
 
-#define __PALETTE_THRESHOLD_TEST_DECLARE__
-#include "PaletteThresholdTest.h"
-#undef __PALETTE_THRESHOLD_TEST_DECLARE__
+#define __NIFTITIMEUNITS_DECLARE__
+#include "NiftiTimeUnitsEnum.h"
+#undef __NIFTITIMEUNITS_DECLARE__
 
 #include <cassert>
 
@@ -39,35 +39,36 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-PaletteThresholdTest::PaletteThresholdTest(
+NiftiTimeUnitsEnum::NiftiTimeUnitsEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name,
-                   const std::string& guiName)
+                   const std::string& name)
 {
     this->e = e;
-    this->integerCode = integerCode;
     this->name = name;
-    this->guiName = guiName;
 }
 
 /**
  * Destructor.
  */
-PaletteThresholdTest::~PaletteThresholdTest()
+NiftiTimeUnitsEnum::~NiftiTimeUnitsEnum()
 {
 }
 
 void
-PaletteThresholdTest::initialize()
+NiftiTimeUnitsEnum::initializeTimeUnits()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteThresholdTest(THRESHOLD_TEST_SHOW_ABOVE, 1, "THRESHOLD_TEST_SHOW_ABOVE", "Show Data Above Threshold"));
-    enumData.push_back(PaletteThresholdTest(THRESHOLD_TEST_SHOW_BELOW, 1, "THRESHOLD_TEST_SHOW_BELOW", "Show Data Below Threshold"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_UNKNOWN, 0,"NIFTI_UNITS_UNKNOWN"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_SEC, 8,"NIFTI_UNITS_SEC"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_MSEC, 16,"NIFTI_UNITS_MSEC"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_USEC, 24,"NIFTI_UNITS_USEC"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_HZ, 32,"NIFTI_UNITS_HZ"));
+    enumData.push_back(NiftiTimeUnitsEnum(NIFTI_UNITS_PPM, 40,"NIFTI_UNITS_PPM"));
 }
 
 /**
@@ -77,21 +78,19 @@ PaletteThresholdTest::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const PaletteThresholdTest*
-PaletteThresholdTest::findData(const Enum e)
+const NiftiTimeUnitsEnum*
+NiftiTimeUnitsEnum::findData(const Enum e)
 {
-    initialize();
-
+    initializeTimeUnits();
     int64_t num = enumData.size();
     for (int64_t i = 0; i < num; i++) {
-        const PaletteThresholdTest* d = &enumData[i];
+        const NiftiTimeUnitsEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
     }
-
     assert(0);
-    
+
     return NULL;
 }
 
@@ -99,15 +98,18 @@ PaletteThresholdTest::findData(const Enum e)
  * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     label exists for the input enum value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-PaletteThresholdTest::toName(Enum e) {
-    initialize();
+NiftiTimeUnitsEnum::toName(Enum e) {
+    initializeTimeUnits();
     
-    const PaletteThresholdTest* ptt = findData(e);
-    return ptt->name;
+    const NiftiTimeUnitsEnum* ntu = findData(e);
+    return ntu->name;
 }
 
 /**
@@ -120,18 +122,18 @@ PaletteThresholdTest::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-PaletteThresholdTest::Enum 
-PaletteThresholdTest::fromName(const std::string& s, bool* isValidOut)
+NiftiTimeUnitsEnum::Enum 
+NiftiTimeUnitsEnum::fromName(const std::string& s, bool* isValidOut)
 {
-    initialize();
+    initializeTimeUnits();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteThresholdTest>::iterator iter = enumData.begin();
+    for (std::vector<NiftiTimeUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteThresholdTest& d = *iter;
+        const NiftiTimeUnitsEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -144,69 +146,18 @@ PaletteThresholdTest::fromName(const std::string& s, bool* isValidOut)
     }
     return e;
 }
-
 /**
- * Get a gui name representation of the enumerated type.
- * @param e 
- *     Enumerated value.
- * @return 
- *     String representing enumerated value.
- */
-std::string 
-PaletteThresholdTest::toGuiName(Enum e) {
-    initialize();
-    
-    const PaletteThresholdTest* psm = findData(e);
-    return psm->guiName;
-}
-
-/**
- * Get an enumerated value corresponding to its gui name.
- * @param s 
- *     Name of enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     enum value exists for the input name.
- * @return 
- *     Enumerated value.
- */
-PaletteThresholdTest::Enum 
-PaletteThresholdTest::fromGuiName(const std::string& s, bool* isValidOut)
-{
-    initialize();
-    
-    bool validFlag = false;
-    Enum e;
-    
-    for (std::vector<PaletteThresholdTest>::iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const PaletteThresholdTest& d = *iter;
-        if (d.guiName == s) {
-            e = d.e;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    return e;
-}
-
-/**
- * Get the integer code associated with a scale mode.
+ * Get the integer code associated with an time units.
  * @param e
  *   The enum.
  * @return 
- *   Integer code associated with a scale mode.
+ *   Integer code associated with time units.
  */
 int32_t 
-PaletteThresholdTest::toIntegerCode(Enum e)
+NiftiTimeUnitsEnum::toIntegerCode(Enum e)
 {
-    initialize();
-    const PaletteThresholdTest* nsu = findData(e);
+    initializeTimeUnits();
+    const NiftiTimeUnitsEnum* nsu = findData(e);
     return nsu->integerCode;
 }
 
@@ -219,18 +170,18 @@ PaletteThresholdTest::toIntegerCode(Enum e)
  * @return
  *    Enum corresponding to integer code.
  */
-PaletteThresholdTest::Enum 
-PaletteThresholdTest::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+NiftiTimeUnitsEnum::Enum 
+NiftiTimeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
-    initialize();
+    initializeTimeUnits();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteThresholdTest>::const_iterator iter = enumData.begin();
+    for (std::vector<NiftiTimeUnitsEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteThresholdTest& nsu = *iter;
+        const NiftiTimeUnitsEnum& nsu = *iter;
         if (nsu.integerCode == integerCode) {
             e = nsu.e;
             validFlag = true;
@@ -243,3 +194,5 @@ PaletteThresholdTest::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     }
     return e;
 }
+
+

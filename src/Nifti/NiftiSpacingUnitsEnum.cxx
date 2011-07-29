@@ -23,14 +23,14 @@
  */ 
 
 #define __NIFTI_SPACING_UNITS_DECLARE__
-#include "NiftiSpacingUnits.h"
+#include "NiftiSpacingUnitsEnum.h"
 #undef __NIFTI_SPACING_UNITS_DECLARE__
 
 #include <cassert>
 
 using namespace caret;
 
-NiftiSpacingUnits::NiftiSpacingUnits(Enum e, 
+NiftiSpacingUnitsEnum::NiftiSpacingUnitsEnum(Enum e, 
                                      const int32_t integerCode,
                                      const std::string& name)
 {
@@ -39,29 +39,29 @@ NiftiSpacingUnits::NiftiSpacingUnits(Enum e,
     this->name = name;
 }
 
-NiftiSpacingUnits::~NiftiSpacingUnits()
+NiftiSpacingUnitsEnum::~NiftiSpacingUnitsEnum()
 {
     
 }
 
 void 
-NiftiSpacingUnits::initializeSpacingUnits()
+NiftiSpacingUnitsEnum::initializeSpacingUnits()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
     
-    spacingUnits.push_back(NiftiSpacingUnits(NIFTI_UNITS_UNKNOWN,
+    spacingUnits.push_back(NiftiSpacingUnitsEnum(NIFTI_UNITS_UNKNOWN,
                                              0,
                                      "NIFTI_UNITS_UNKNOWN"));
-    spacingUnits.push_back(NiftiSpacingUnits(NIFTI_UNITS_METER,
+    spacingUnits.push_back(NiftiSpacingUnitsEnum(NIFTI_UNITS_METER,
                                              1,
                                             "NIFTI_UNITS_METER"));
-    spacingUnits.push_back(NiftiSpacingUnits(NIFTI_UNITS_MM,
+    spacingUnits.push_back(NiftiSpacingUnitsEnum(NIFTI_UNITS_MM,
                                              2,
                                             "NIFTI_UNITS_MM"));
-    spacingUnits.push_back(NiftiSpacingUnits(NIFTI_UNITS_MICRON,
+    spacingUnits.push_back(NiftiSpacingUnitsEnum(NIFTI_UNITS_MICRON,
                                              3,
                                             "NIFTI_UNITS_MICRON"));
 }
@@ -74,10 +74,10 @@ NiftiSpacingUnits::initializeSpacingUnits()
  *     String representing enumerated value.
  */
 std::string 
-NiftiSpacingUnits::toName(Enum e) {
+NiftiSpacingUnitsEnum::toName(Enum e) {
     initializeSpacingUnits();
     
-    const NiftiSpacingUnits* nsu = findData(e);
+    const NiftiSpacingUnitsEnum* nsu = findData(e);
     return nsu->name;
 }
 
@@ -91,18 +91,18 @@ NiftiSpacingUnits::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-NiftiSpacingUnits::Enum 
-NiftiSpacingUnits::fromName(const std::string& s, bool* isValidOut)
+NiftiSpacingUnitsEnum::Enum 
+NiftiSpacingUnitsEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initializeSpacingUnits();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiSpacingUnits>::iterator iter = spacingUnits.begin();
+    for (std::vector<NiftiSpacingUnitsEnum>::iterator iter = spacingUnits.begin();
          iter != spacingUnits.end();
          iter++) {
-        const NiftiSpacingUnits& ndt = *iter;
+        const NiftiSpacingUnitsEnum& ndt = *iter;
         if (ndt.name == s) {
             e = ndt.e;
             validFlag = true;
@@ -124,15 +124,15 @@ NiftiSpacingUnits::fromName(const std::string& s, bool* isValidOut)
  *    The Intent or NULL if enum does not match an intent.
  */
 const 
-NiftiSpacingUnits* 
-NiftiSpacingUnits::findData(Enum e)
+NiftiSpacingUnitsEnum* 
+NiftiSpacingUnitsEnum::findData(Enum e)
 {
     initializeSpacingUnits();
     
-    for (std::vector<NiftiSpacingUnits>::const_iterator iter = spacingUnits.begin();
+    for (std::vector<NiftiSpacingUnitsEnum>::const_iterator iter = spacingUnits.begin();
          iter != spacingUnits.end();
          iter++) {
-        const NiftiSpacingUnits& nsu = *iter;
+        const NiftiSpacingUnitsEnum& nsu = *iter;
         return &nsu;
     }
     
@@ -149,10 +149,10 @@ NiftiSpacingUnits::findData(Enum e)
  *   Integer code associated with spacing units.
  */
 int32_t 
-NiftiSpacingUnits::toIntegerCode(Enum e)
+NiftiSpacingUnitsEnum::toIntegerCode(Enum e)
 {
     initializeSpacingUnits();
-    const NiftiSpacingUnits* nsu = findData(e);
+    const NiftiSpacingUnitsEnum* nsu = findData(e);
     return nsu->integerCode;
 }
 
@@ -165,18 +165,18 @@ NiftiSpacingUnits::toIntegerCode(Enum e)
  * @return
  *    Enum corresponding to integer code.
  */
-NiftiSpacingUnits::Enum 
-NiftiSpacingUnits::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+NiftiSpacingUnitsEnum::Enum 
+NiftiSpacingUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     initializeSpacingUnits();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiSpacingUnits>::const_iterator iter = spacingUnits.begin();
+    for (std::vector<NiftiSpacingUnitsEnum>::const_iterator iter = spacingUnits.begin();
          iter != spacingUnits.end();
          iter++) {
-        const NiftiSpacingUnits& nsu = *iter;
+        const NiftiSpacingUnitsEnum& nsu = *iter;
         if (nsu.integerCode == integerCode) {
             e = nsu.e;
             validFlag = true;

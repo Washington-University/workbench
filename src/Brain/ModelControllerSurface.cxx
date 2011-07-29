@@ -101,7 +101,7 @@ ModelControllerSurface::setDefaultScalingToFitWindow()
     float scale = percentScreenY / bigY;
     this->defaultModelScaling = scale;
     
-    for (int32_t i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
         this->setScaling(i, this->defaultModelScaling);
     }
 }

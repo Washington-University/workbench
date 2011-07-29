@@ -141,7 +141,7 @@ BrainOpenGL::drawModel(Brain* brain,
 void 
 BrainOpenGL::initializeMembersBrainOpenGL()
 {
-    for (int i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
+    for (int i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
         orthographicLeft[i] = -1.0f;
         orthographicRight[i] = -1.0f;
         orthographicBottom[i] = -1.0f;

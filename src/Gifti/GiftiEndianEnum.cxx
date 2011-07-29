@@ -23,9 +23,9 @@
  */ 
 
 
-#define __PALETTE_THRESHOLDTYPE_DECLARE__
-#include "PaletteThresholdType.h"
-#undef __PALETTE_THRESHOLDTYPE_DECLARE__
+#define __GIFTIENDIAN_DECLARE__
+#include "GiftiEndianEnum.h"
+#undef __GIFTIENDIAN_DECLARE__
 
 
 using namespace caret;
@@ -38,37 +38,35 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-PaletteThresholdType::PaletteThresholdType(
+GiftiEndianEnum::GiftiEndianEnum(
                    const Enum e,
                    const int32_t integerCode,
                    const std::string& name,
-                   const std::string& guiName)
+                   const std::string& giftiName)
 {
     this->e = e;
     this->integerCode = integerCode;
     this->name = name;
-    this->guiName = guiName;
+    this->giftiName = giftiName;
 }
 
 /**
  * Destructor.
  */
-PaletteThresholdType::~PaletteThresholdType()
+GiftiEndianEnum::~GiftiEndianEnum()
 {
 }
 
 void
-PaletteThresholdType::initialize()
+GiftiEndianEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteThresholdType(THRESHOLD_TYPE_OFF, 0, "THRESHOLD_TYPE_OFF", "Off"));
-    enumData.push_back(PaletteThresholdType(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "Normal"));
-    enumData.push_back(PaletteThresholdType(THRESHOLD_TYPE_MAPPED, 2, "THRESHOLD_TYPE_MAPPED", "Mapped"));
-    enumData.push_back(PaletteThresholdType(THRESHOLD_TYPE_MAPPED_AVERAGE_AREA, 3, "THRESHOLD_TYPE_MAPPED_AVERAGE_AREA", "Mapped Average Area"));
+    enumData.push_back(GiftiEndianEnum(ENDIAN_BIG, 0, "ENDIAN_BIG", "BigEndian"));
+    enumData.push_back(GiftiEndianEnum(ENDIAN_LITTLE, 1, "ENDIAN_LITTLE", "LittleEndian"));
 }
 
 /**
@@ -78,14 +76,14 @@ PaletteThresholdType::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const PaletteThresholdType*
-PaletteThresholdType::findData(const Enum e)
+const GiftiEndianEnum*
+GiftiEndianEnum::findData(const Enum e)
 {
     initialize();
 
-    int64_t num = enumData.size();
-    for (int64_t i = 0; i < num; i++) {
-        const PaletteThresholdType* d = &enumData[i];
+    size_t num = enumData.size();
+    for (size_t i = 0; i < num; i++) {
+        const GiftiEndianEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
@@ -102,11 +100,11 @@ PaletteThresholdType::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-PaletteThresholdType::toName(Enum e) {
+GiftiEndianEnum::toName(Enum e) {
     initialize();
     
-    const PaletteThresholdType* ptt = findData(e);
-    return ptt->name;
+    const GiftiEndianEnum* gaio = findData(e);
+    return gaio->name;
 }
 
 /**
@@ -119,18 +117,18 @@ PaletteThresholdType::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-PaletteThresholdType::Enum 
-PaletteThresholdType::fromName(const std::string& s, bool* isValidOut)
+GiftiEndianEnum::Enum 
+GiftiEndianEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteThresholdType>::iterator iter = enumData.begin();
+    for (std::vector<GiftiEndianEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteThresholdType& d = *iter;
+        const GiftiEndianEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -145,22 +143,22 @@ PaletteThresholdType::fromName(const std::string& s, bool* isValidOut)
 }
 
 /**
- * Get a gui name representation of the enumerated type.
+ * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-PaletteThresholdType::toGuiName(Enum e) {
+GiftiEndianEnum::toGiftiName(Enum e) {
     initialize();
     
-    const PaletteThresholdType* psm = findData(e);
-    return psm->guiName;
+    const GiftiEndianEnum* gaio = findData(e);
+    return gaio->giftiName;
 }
 
 /**
- * Get an enumerated value corresponding to its gui name.
+ * Get an enumerated value corresponding to its name.
  * @param s 
  *     Name of enumerated value.
  * @param isValidOut 
@@ -169,69 +167,20 @@ PaletteThresholdType::toGuiName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-PaletteThresholdType::Enum 
-PaletteThresholdType::fromGuiName(const std::string& s, bool* isValidOut)
+GiftiEndianEnum::Enum 
+GiftiEndianEnum::fromGiftiName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteThresholdType>::iterator iter = enumData.begin();
+    for (std::vector<GiftiEndianEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteThresholdType& d = *iter;
-        if (d.guiName == s) {
+        const GiftiEndianEnum& d = *iter;
+        if (d.giftiName == s) {
             e = d.e;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    return e;
-}
-
-/**
- * Get the integer code associated with a threshold type.
- * @param e
- *   The enum.
- * @return 
- *   Integer code associated with a threshold type.
- */
-int32_t 
-PaletteThresholdType::toIntegerCode(Enum e)
-{
-    initialize();
-    const PaletteThresholdType* nsu = findData(e);
-    return nsu->integerCode;
-}
-
-/**
- * Find enum corresponding to integer code.
- * @param integerCode
- *    The integer code.
- * @param isValidOut
- *    If not NULL, on exit it indicates valid integer code.
- * @return
- *    Enum corresponding to integer code.
- */
-PaletteThresholdType::Enum 
-PaletteThresholdType::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
-{
-    initialize();
-    
-    bool validFlag = false;
-    Enum e;
-    
-    for (std::vector<PaletteThresholdType>::const_iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const PaletteThresholdType& nsu = *iter;
-        if (nsu.integerCode == integerCode) {
-            e = nsu.e;
             validFlag = true;
             break;
         }

@@ -1,5 +1,5 @@
-#ifndef __PALETTESCALEMODE_H
-#define __PALETTESCALEMODE_H
+#ifndef __GIFTIARRAYINDEXINGORDER_H__
+#define __GIFTIARRAYINDEXINGORDER_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,6 +26,8 @@
  */ 
 
 
+#include "GiftiException.h"
+
 #include <stdint.h>
 #include <vector>
 #include <string>
@@ -33,42 +35,39 @@
 namespace caret {
 
 /**
- * Palette Scale Mode.
+ * Type for GIFTI Data Array ArrayIndexingOrder Attribute.
  */
-class PaletteScaleMode {
+class GiftiArrayIndexingOrderEnum {
 
 public:
-    /**  Palette Scale Mode. */
+    /**  Type for GIFTI Data Array ArrayIndexingOrder Attribute.
+ */
     enum Enum {
-        /** Auto Scale   */
-        MODE_AUTO_SCALE,
-        /** Auto Scale Percentage   */
-        MODE_AUTO_SCALE_PERCENTAGE,
-        /** User Scale */
-        MODE_USER_SCALE
+        /** Column-Major Order (Fortran/Matlab)  */
+        COLUMN_MAJOR_ORDER,
+        /** Row-Major Order (C/C++/Java)  */
+        ROW_MAJOR_ORDER
     };
-
-
-    ~PaletteScaleMode();
+    
+    ~GiftiArrayIndexingOrderEnum();
 
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
     
-    static std::string toGuiName(Enum e);
+    static std::string toGiftiName(Enum e);
     
-    static Enum fromGuiName(const std::string& s, bool* isValidOut);
+    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
     
-    static int32_t toIntegerCode(Enum e);
-    
-    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
-    
-private:
-    PaletteScaleMode(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
 
-    static const PaletteScaleMode* findData(const Enum e);
+private:
+    GiftiArrayIndexingOrderEnum(const Enum e, 
+                            const std::string& name,
+                            const std::string& giftiName);
+
+    static const GiftiArrayIndexingOrderEnum* findData(const Enum e);
     
-    static std::vector<PaletteScaleMode> enumData;
+    static std::vector<GiftiArrayIndexingOrderEnum> enumData;
 
     static void initialize();
 
@@ -76,19 +75,16 @@ private:
 
     Enum e;
 
-    int32_t integerCode;
-
     std::string name;
-    
-    std::string guiName;
 
+    std::string giftiName;
 };
 
-#ifdef __PALETTE_SCALE_DECLARE__
-    std::vector<PaletteScaleMode> PaletteScaleMode::enumData;
-    bool PaletteScaleMode::initializedFlag = false;
-#endif // __PALETTE_SCALE_DECLARE__
+#ifdef __GIFTIARRAYINDEXINGORDER_DECLARE__
+std::vector<GiftiArrayIndexingOrderEnum> GiftiArrayIndexingOrderEnum::enumData;
+bool GiftiArrayIndexingOrderEnum::initializedFlag = false;
+#endif // __GIFTIARRAYINDEXINGORDER_DECLARE__
 
 } // namespace
 
-#endif // __PALETTESCALEMODE_H
+#endif // __GIFTIARRAYINDEXINGORDER_H__

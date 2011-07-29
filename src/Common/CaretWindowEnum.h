@@ -43,7 +43,7 @@ namespace caret {
  * values method must not return the all windows
  * value.
  */
-class CaretWindow : public CaretObject {
+class CaretWindowEnum : public CaretObject {
 
 public:
     enum Enum {
@@ -65,17 +65,17 @@ public:
         NUMBER_OF_WINDOWS = 5
     };
     
-    virtual ~CaretWindow() { }
+    virtual ~CaretWindowEnum() { }
 
     bool isAllWindows() const;
     
     bool isMainWindow() const;
     
-    static std::vector<CaretWindow::Enum> getWindows();
+    static std::vector<CaretWindowEnum::Enum> getWindows();
     
-    static std::vector<CaretWindow::Enum> getWindowsExcludingAllWindows();
+    static std::vector<CaretWindowEnum::Enum> getWindowsExcludingAllWindows();
     
-    static CaretWindow::Enum fromIndex(const int32_t index, bool* isValidOut);
+    static CaretWindowEnum::Enum fromIndex(const int32_t index, bool* isValidOut);
     
     static int32_t toIndex(const Enum e);
     
@@ -85,7 +85,7 @@ public:
     
     
 private:
-    CaretWindow(const Enum e,
+    CaretWindowEnum(const Enum e,
                 const std::string& name,
                 const std::string& windowName,
                 const int32_t windowIndex);
@@ -99,15 +99,15 @@ private:
     
     int32_t getWindowIndex() const;
     
-    static std::vector<CaretWindow> enumData;
+    static std::vector<CaretWindowEnum> enumData;
     
     static void initialize();
     
     static bool initializedFlag;
     
-    static CaretWindow* indexToWindow(const int32_t index);
+    static CaretWindowEnum* indexToWindow(const int32_t index);
     
-    static CaretWindow* findData(const Enum e);
+    static CaretWindowEnum* findData(const Enum e);
     
     Enum e;
     
@@ -123,8 +123,8 @@ private:
 };
 
 #ifdef __CARET_WINDOW_DECLARE_H__
-    std::vector<CaretWindow> CaretWindow::enumData;
-    bool CaretWindow::initializedFlag = false;
+    std::vector<CaretWindowEnum> CaretWindowEnum::enumData;
+    bool CaretWindowEnum::initializedFlag = false;
 #endif // __CARET_WINDOW_DECLARE_H__
 } // namespace
 

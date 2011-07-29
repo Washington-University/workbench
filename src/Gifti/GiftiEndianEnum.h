@@ -37,7 +37,7 @@ namespace caret {
 /**
  * GIFTI Endian Types.
  */
-class GiftiEndian {
+class GiftiEndianEnum {
 
 public:
     /**  GIFTI Endian Types.
@@ -50,7 +50,7 @@ public:
     };
 
 
-    ~GiftiEndian();
+    ~GiftiEndianEnum();
 
     static std::string toName(Enum e);
     
@@ -61,11 +61,11 @@ public:
     static Enum fromGiftiName(const std::string& s, bool* isValidOut);
 
 private:
-    GiftiEndian(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
+    GiftiEndianEnum(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
 
-    static const GiftiEndian* findData(const Enum e);
+    static const GiftiEndianEnum* findData(const Enum e);
 
-    static std::vector<GiftiEndian> enumData;
+    static std::vector<GiftiEndianEnum> enumData;
 
     static void initialize();
 
@@ -83,8 +83,8 @@ private:
 };
 
 #ifdef __GIFTIENDIAN_DECLARE__
-std::vector<GiftiEndian> GiftiEndian::enumData;
-bool GiftiEndian::initializedFlag = false;
+std::vector<GiftiEndianEnum> GiftiEndianEnum::enumData;
+bool GiftiEndianEnum::initializedFlag = false;
 #endif // __GIFTIENDIAN_DECLARE__
 
 } // namespace

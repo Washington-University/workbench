@@ -24,7 +24,7 @@
 
 
 #define __BYTE_ORDER_DECLARE__
-#include "ByteOrder.h"
+#include "ByteOrderEnum.h"
 #undef __BYTE_ORDER_DECLARE__
 
 
@@ -38,7 +38,7 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-ByteOrder::ByteOrder(
+ByteOrderEnum::ByteOrderEnum(
                    const Enum e,
                    const std::string& name)
 {
@@ -49,7 +49,7 @@ ByteOrder::ByteOrder(
 /**
  * Destructor.
  */
-ByteOrder::~ByteOrder()
+ByteOrderEnum::~ByteOrderEnum()
 {
 }
 
@@ -59,11 +59,11 @@ ByteOrder::~ByteOrder()
  *    Byte order of the system.
  */
 
-ByteOrder::Enum 
-ByteOrder::getSystemEndian()
+ByteOrderEnum::Enum 
+ByteOrderEnum::getSystemEndian()
 {
-    ByteOrder::initialize();
-    return ByteOrder::systemEndian;
+    ByteOrderEnum::initialize();
+    return ByteOrderEnum::systemEndian;
 }
 
 /**
@@ -72,10 +72,10 @@ ByteOrder::getSystemEndian()
  *    true if system is little endian byte order.
  */
 bool 
-ByteOrder::isSystemLittleEndian()
+ByteOrderEnum::isSystemLittleEndian()
 {
-    ByteOrder::initialize();
-    return (ByteOrder::systemEndian == ENDIAN_LITTLE);    
+    ByteOrderEnum::initialize();
+    return (ByteOrderEnum::systemEndian == ENDIAN_LITTLE);    
 }
 
 /**
@@ -84,36 +84,36 @@ ByteOrder::isSystemLittleEndian()
  *    true if system is big endian byte order.
  */
 bool 
-ByteOrder::isSystemBigEndian()
+ByteOrderEnum::isSystemBigEndian()
 {
-    ByteOrder::initialize();
-    return (ByteOrder::systemEndian == ENDIAN_BIG);    
+    ByteOrderEnum::initialize();
+    return (ByteOrderEnum::systemEndian == ENDIAN_BIG);    
 }
 
 void
-ByteOrder::initialize()
+ByteOrderEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ByteOrder(ENDIAN_BIG,"ENDIAN_BIG"));
-    enumData.push_back(ByteOrder(ENDIAN_LITTLE,"ENDIAN_LITTLE"));
+    enumData.push_back(ByteOrderEnum(ENDIAN_BIG,"ENDIAN_BIG"));
+    enumData.push_back(ByteOrderEnum(ENDIAN_LITTLE,"ENDIAN_LITTLE"));
     
     uint32_t intVal = 0x00000001;
     unsigned char* c = (unsigned char*)&intVal;
     
-    ByteOrder::systemEndian = ByteOrder::ENDIAN_BIG;
-    if (*c == 0x01) systemEndian = ByteOrder::ENDIAN_LITTLE;
+    ByteOrderEnum::systemEndian = ByteOrderEnum::ENDIAN_BIG;
+    if (*c == 0x01) systemEndian = ByteOrderEnum::ENDIAN_LITTLE;
 }
 
 /**
  * Get the enum value for this enumerated item.
  * @return the value for this enumerated item.
  */
-ByteOrder::Enum 
-ByteOrder::getEnum() const
+ByteOrderEnum::Enum 
+ByteOrderEnum::getEnum() const
 {
     return this->e;
 }
@@ -123,7 +123,7 @@ ByteOrder::getEnum() const
  * @return the name for this enumerated item.
  */
 std::string
-ByteOrder::getName() const
+ByteOrderEnum::getName() const
 {
     return this->name;
 }
@@ -135,13 +135,13 @@ ByteOrder::getName() const
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ByteOrder*
-ByteOrder::findData(const Enum e)
+const ByteOrderEnum*
+ByteOrderEnum::findData(const Enum e)
 {
     initialize();
     int64_t num = enumData.size();
     for (int64_t i = 0; i < num; i++) {
-        const ByteOrder* d = &enumData[i];
+        const ByteOrderEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
@@ -158,15 +158,15 @@ ByteOrder::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-ByteOrder::toName(Enum e) {
+ByteOrderEnum::toName(Enum e) {
     initialize();
     
     std::string s;
     
-    for (std::vector<ByteOrder>::iterator iter = enumData.begin();
+    for (std::vector<ByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ByteOrder& d = *iter;
+        const ByteOrderEnum& d = *iter;
         if (d.e == e) {
             s = d.name;
             break;
@@ -186,18 +186,18 @@ ByteOrder::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-ByteOrder::Enum 
-ByteOrder::fromName(const std::string& s, bool* isValidOut)
+ByteOrderEnum::Enum 
+ByteOrderEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e = ENDIAN_LITTLE;
     
-    for (std::vector<ByteOrder>::iterator iter = enumData.begin();
+    for (std::vector<ByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ByteOrder& d = *iter;
+        const ByteOrderEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;

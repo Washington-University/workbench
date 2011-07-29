@@ -108,8 +108,8 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
      */
     for (int i = 0; i < numDataArrays; i++) {
         GiftiDataArray* gda = this->giftiFile->getDataArray(i);
-        if (gda->getIntent() == NiftiIntent::NIFTI_INTENT_POINTSET) {
-            if (gda->getDataType() == NiftiDataType::NIFTI_TYPE_FLOAT32) {
+        if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
+            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
                 if (gda->getNumberOfDimensions() == 2) {
                     int64_t dim0 = gda->getDimension(0);
                     int64_t dim1 = gda->getDimension(1);
@@ -120,8 +120,8 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
                 }
             }
         }
-        else if (gda->getIntent() == NiftiIntent::NIFTI_INTENT_TRIANGLE) {
-            if (gda->getDataType() == NiftiDataType::NIFTI_TYPE_INT32) {
+        else if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_TRIANGLE) {
+            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_INT32) {
                 if (gda->getNumberOfDimensions() == 2) {
                     int64_t dim0 = gda->getDimension(0);
                     int64_t dim1 = gda->getDimension(1);

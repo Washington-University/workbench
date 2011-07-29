@@ -23,10 +23,11 @@
  */ 
 
 
-#define __GIFTIARRAYINDEXINGORDER_DECLARE__
-#include "GiftiArrayIndexingOrder.h"
-#undef __GIFTIARRAYINDEXINGORDER_DECLARE__
+#define __PALETTE_THRESHOLD_TEST_DECLARE__
+#include "PaletteThresholdTestEnum.h"
+#undef __PALETTE_THRESHOLD_TEST_DECLARE__
 
+#include <cassert>
 
 using namespace caret;
 
@@ -38,33 +39,35 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-GiftiArrayIndexingOrder::GiftiArrayIndexingOrder(
+PaletteThresholdTestEnum::PaletteThresholdTestEnum(
                    const Enum e,
+                   const int32_t integerCode,
                    const std::string& name,
-                   const std::string& giftiName)
+                   const std::string& guiName)
 {
     this->e = e;
+    this->integerCode = integerCode;
     this->name = name;
-    this->giftiName = giftiName;
+    this->guiName = guiName;
 }
 
 /**
  * Destructor.
  */
-GiftiArrayIndexingOrder::~GiftiArrayIndexingOrder()
+PaletteThresholdTestEnum::~PaletteThresholdTestEnum()
 {
 }
 
 void
-GiftiArrayIndexingOrder::initialize()
+PaletteThresholdTestEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(GiftiArrayIndexingOrder(COLUMN_MAJOR_ORDER, "COLUMN_MAJOR_ORDER", "ColumnMajorOrder"));
-    enumData.push_back(GiftiArrayIndexingOrder(ROW_MAJOR_ORDER, "ROW_MAJOR_ORDER", "RowMajorOrder"));
+    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_ABOVE, 1, "THRESHOLD_TEST_SHOW_ABOVE", "Show Data Above Threshold"));
+    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_BELOW, 1, "THRESHOLD_TEST_SHOW_BELOW", "Show Data Below Threshold"));
 }
 
 /**
@@ -74,19 +77,21 @@ GiftiArrayIndexingOrder::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const GiftiArrayIndexingOrder*
-GiftiArrayIndexingOrder::findData(const Enum e)
+const PaletteThresholdTestEnum*
+PaletteThresholdTestEnum::findData(const Enum e)
 {
     initialize();
 
-    size_t num = enumData.size();
-    for (size_t i = 0; i < num; i++) {
-        const GiftiArrayIndexingOrder* d = &enumData[i];
+    int64_t num = enumData.size();
+    for (int64_t i = 0; i < num; i++) {
+        const PaletteThresholdTestEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
     }
 
+    assert(0);
+    
     return NULL;
 }
 
@@ -98,11 +103,11 @@ GiftiArrayIndexingOrder::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-GiftiArrayIndexingOrder::toName(Enum e) {
+PaletteThresholdTestEnum::toName(Enum e) {
     initialize();
     
-    const GiftiArrayIndexingOrder* gaio = findData(e);
-    return gaio->name;
+    const PaletteThresholdTestEnum* ptt = findData(e);
+    return ptt->name;
 }
 
 /**
@@ -115,18 +120,18 @@ GiftiArrayIndexingOrder::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-GiftiArrayIndexingOrder::Enum 
-GiftiArrayIndexingOrder::fromName(const std::string& s, bool* isValidOut)
+PaletteThresholdTestEnum::Enum 
+PaletteThresholdTestEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<GiftiArrayIndexingOrder>::iterator iter = enumData.begin();
+    for (std::vector<PaletteThresholdTestEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GiftiArrayIndexingOrder& d = *iter;
+        const PaletteThresholdTestEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -141,22 +146,22 @@ GiftiArrayIndexingOrder::fromName(const std::string& s, bool* isValidOut)
 }
 
 /**
- * Get a string representation of the enumerated type.
+ * Get a gui name representation of the enumerated type.
  * @param e 
  *     Enumerated value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-GiftiArrayIndexingOrder::toGiftiName(Enum e) {
+PaletteThresholdTestEnum::toGuiName(Enum e) {
     initialize();
     
-    const GiftiArrayIndexingOrder* gaio = findData(e);
-    return gaio->giftiName;
+    const PaletteThresholdTestEnum* psm = findData(e);
+    return psm->guiName;
 }
 
 /**
- * Get an enumerated value corresponding to its name.
+ * Get an enumerated value corresponding to its gui name.
  * @param s 
  *     Name of enumerated value.
  * @param isValidOut 
@@ -165,20 +170,69 @@ GiftiArrayIndexingOrder::toGiftiName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-GiftiArrayIndexingOrder::Enum 
-GiftiArrayIndexingOrder::fromGiftiName(const std::string& s, bool* isValidOut)
+PaletteThresholdTestEnum::Enum 
+PaletteThresholdTestEnum::fromGuiName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<GiftiArrayIndexingOrder>::iterator iter = enumData.begin();
+    for (std::vector<PaletteThresholdTestEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GiftiArrayIndexingOrder& d = *iter;
-        if (d.giftiName == s) {
+        const PaletteThresholdTestEnum& d = *iter;
+        if (d.guiName == s) {
             e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get the integer code associated with a scale mode.
+ * @param e
+ *   The enum.
+ * @return 
+ *   Integer code associated with a scale mode.
+ */
+int32_t 
+PaletteThresholdTestEnum::toIntegerCode(Enum e)
+{
+    initialize();
+    const PaletteThresholdTestEnum* nsu = findData(e);
+    return nsu->integerCode;
+}
+
+/**
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
+ */
+PaletteThresholdTestEnum::Enum 
+PaletteThresholdTestEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e;
+    
+    for (std::vector<PaletteThresholdTestEnum>::const_iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const PaletteThresholdTestEnum& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
             validFlag = true;
             break;
         }

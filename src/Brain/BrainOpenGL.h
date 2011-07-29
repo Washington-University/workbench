@@ -29,7 +29,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
-#include "CaretWindow.h"
+#include "CaretWindowEnum.h"
 
 namespace caret {
     
@@ -98,14 +98,14 @@ namespace caret {
         int windowIndex;
         
         /** Caret Window that OpenGL is being drawn within */
-        //CaretWindow caretWindow;
+        //CaretWindowEnum CaretWindowEnum;
         
-        double orthographicLeft[CaretWindow::NUMBER_OF_WINDOWS];
-        double orthographicRight[CaretWindow::NUMBER_OF_WINDOWS];
-        double orthographicBottom[CaretWindow::NUMBER_OF_WINDOWS];
-        double orthographicTop[CaretWindow::NUMBER_OF_WINDOWS];
-        double orthographicFar[CaretWindow::NUMBER_OF_WINDOWS];
-        double orthographicNear[CaretWindow::NUMBER_OF_WINDOWS];
+        double orthographicLeft[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicRight[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicBottom[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicTop[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicFar[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicNear[CaretWindowEnum::NUMBER_OF_WINDOWS];
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H

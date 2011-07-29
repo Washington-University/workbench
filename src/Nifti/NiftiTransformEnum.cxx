@@ -24,7 +24,7 @@
 
 
 #define __NIFTITRANSFORM_DECLARE__
-#include "NiftiTransform.h"
+#include "NiftiTransformEnum.h"
 #undef __NIFTITRANSFORM_DECLARE__
 
 
@@ -38,7 +38,7 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-NiftiTransform::NiftiTransform(
+NiftiTransformEnum::NiftiTransformEnum(
                    const Enum e,
                    const int32_t integerCode,
                    const std::string& name)
@@ -51,23 +51,23 @@ NiftiTransform::NiftiTransform(
 /**
  * Destructor.
  */
-NiftiTransform::~NiftiTransform()
+NiftiTransformEnum::~NiftiTransformEnum()
 {
 }
 
 void
-NiftiTransform::initialize()
+NiftiTransformEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(NiftiTransform(NIFTI_XFORM_UNKNOWN, 0,"NIFTI_XFORM_UNKNOWN"));
-    enumData.push_back(NiftiTransform(NIFTI_XFORM_SCANNER_ANAT, 1,"NIFTI_XFORM_SCANNER_ANAT"));
-    enumData.push_back(NiftiTransform(NIFTI_XFORM_ALIGNED_ANAT, 2,"NIFTI_XFORM_ALIGNED_ANAT"));
-    enumData.push_back(NiftiTransform(NIFTI_XFORM_TALAIRACH, 3,"NIFTI_XFORM_TALAIRACH"));
-    enumData.push_back(NiftiTransform(NIFTI_XFORM_MNI_152, 4,"NIFTI_XFORM_MNI_152"));
+    enumData.push_back(NiftiTransformEnum(NIFTI_XFORM_UNKNOWN, 0,"NIFTI_XFORM_UNKNOWN"));
+    enumData.push_back(NiftiTransformEnum(NIFTI_XFORM_SCANNER_ANAT, 1,"NIFTI_XFORM_SCANNER_ANAT"));
+    enumData.push_back(NiftiTransformEnum(NIFTI_XFORM_ALIGNED_ANAT, 2,"NIFTI_XFORM_ALIGNED_ANAT"));
+    enumData.push_back(NiftiTransformEnum(NIFTI_XFORM_TALAIRACH, 3,"NIFTI_XFORM_TALAIRACH"));
+    enumData.push_back(NiftiTransformEnum(NIFTI_XFORM_MNI_152, 4,"NIFTI_XFORM_MNI_152"));
 }
 
 /**
@@ -77,13 +77,13 @@ NiftiTransform::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const NiftiTransform*
-NiftiTransform::findData(const Enum e)
+const NiftiTransformEnum*
+NiftiTransformEnum::findData(const Enum e)
 {
     initialize();
     int64_t num = enumData.size();
     for (int64_t i = 0; i < num; i++) {
-        const NiftiTransform* d = &enumData[i];
+        const NiftiTransformEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
@@ -103,10 +103,10 @@ NiftiTransform::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-NiftiTransform::toName(Enum e) {
+NiftiTransformEnum::toName(Enum e) {
     initialize();
     
-    const NiftiTransform* nt = findData(e);
+    const NiftiTransformEnum* nt = findData(e);
     return nt->name;
 }
 
@@ -120,18 +120,18 @@ NiftiTransform::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-NiftiTransform::Enum 
-NiftiTransform::fromName(const std::string& s, bool* isValidOut)
+NiftiTransformEnum::Enum 
+NiftiTransformEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiTransform>::iterator iter = enumData.begin();
+    for (std::vector<NiftiTransformEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiTransform& d = *iter;
+        const NiftiTransformEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -153,10 +153,10 @@ NiftiTransform::fromName(const std::string& s, bool* isValidOut)
  *   Integer code associated with a transform.
  */
 int32_t 
-NiftiTransform::toIntegerCode(Enum e)
+NiftiTransformEnum::toIntegerCode(Enum e)
 {
     initialize();
-    const NiftiTransform* nsu = findData(e);
+    const NiftiTransformEnum* nsu = findData(e);
     return nsu->integerCode;
 }
 
@@ -169,18 +169,18 @@ NiftiTransform::toIntegerCode(Enum e)
  * @return
  *    Enum corresponding to integer code.
  */
-NiftiTransform::Enum 
-NiftiTransform::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+NiftiTransformEnum::Enum 
+NiftiTransformEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiTransform>::const_iterator iter = enumData.begin();
+    for (std::vector<NiftiTransformEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiTransform& nsu = *iter;
+        const NiftiTransformEnum& nsu = *iter;
         if (nsu.integerCode == integerCode) {
             e = nsu.e;
             validFlag = true;

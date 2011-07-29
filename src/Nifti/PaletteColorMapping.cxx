@@ -111,7 +111,7 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
 void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {
-    this->scaleMode = PaletteScaleMode::MODE_AUTO_SCALE;
+    this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE;
     this->autoScalePercentageNegativeMaximum = 90.0f;
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
@@ -125,8 +125,8 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = false;
-    this->thresholdType = PaletteThresholdType::THRESHOLD_TYPE_OFF;
-    this->thresholdTest = PaletteThresholdTest::THRESHOLD_TEST_SHOW_ABOVE;
+    this->thresholdType = PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF;
+    this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE;
     this->thresholdNormalNegative = -1.0f;
     this->thresholdNormalPositive = 1.0f;
     this->thresholdMappedNegative = -1.0f;
@@ -156,7 +156,7 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                 PaletteXmlElements::XML_TAG_PALETTE_COLOR_MAPPING,
                                 attributes);
     xmlWriter.writeElementCharacters(PaletteXmlElements::XML_TAG_SCALE_MODE,
-                                     PaletteScaleMode::toName(this->scaleMode));
+                                     PaletteScaleModeEnum::toName(this->scaleMode));
     float autoScaleValues[4] = {
         this->autoScalePercentageNegativeMaximum,
         this->autoScalePercentageNegativeMinimum,
@@ -194,10 +194,10 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
     
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_TEST,
-                                     PaletteThresholdTest::toName(this->thresholdTest));
+                                     PaletteThresholdTestEnum::toName(this->thresholdTest));
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_TYPE,
-                                     PaletteThresholdType::toName(this->thresholdType));
+                                     PaletteThresholdTypeEnum::toName(this->thresholdType));
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);
@@ -480,7 +480,7 @@ PaletteColorMapping::setInterpolatePaletteFlag(const bool interpolatePaletteFlag
  * @return  Enumerated type indicating how data is scaled to the palette.
  *
  */
-PaletteScaleMode::Enum
+PaletteScaleModeEnum::Enum
 PaletteColorMapping::getScaleMode() const
 {
     return scaleMode;
@@ -493,7 +493,7 @@ PaletteColorMapping::getScaleMode() const
  *
  */
 void
-PaletteColorMapping::setScaleMode(const PaletteScaleMode::Enum scaleMode)
+PaletteColorMapping::setScaleMode(const PaletteScaleModeEnum::Enum scaleMode)
 {
     if (this->scaleMode != scaleMode) {
         this->scaleMode = scaleMode;
@@ -693,12 +693,12 @@ PaletteColorMapping::performThresholdTest(const float value)
     float posMax = -std::numeric_limits<float>::max();
     
     bool showAboveFlag =
-    (this->thresholdTest == PaletteThresholdTest::THRESHOLD_TEST_SHOW_ABOVE);
+    (this->thresholdTest == PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE);
     
     switch (this->thresholdType) {
-        case PaletteThresholdType::THRESHOLD_TYPE_OFF:
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
             break;
-        case PaletteThresholdType::THRESHOLD_TYPE_NORMAL:
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             if (showAboveFlag) {
                 negMin = this->thresholdNormalNegative;
                 posMin = this->thresholdNormalPositive;
@@ -708,7 +708,7 @@ PaletteColorMapping::performThresholdTest(const float value)
                 posMax = this->thresholdNormalPositive;
             }
             break;
-        case PaletteThresholdType::THRESHOLD_TYPE_MAPPED:
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
             if (showAboveFlag) {
                 negMin = this->thresholdMappedNegative;
                 posMin = this->thresholdMappedPositive;
@@ -718,7 +718,7 @@ PaletteColorMapping::performThresholdTest(const float value)
                 posMax = this->thresholdMappedPositive;
             }
             break;
-        case PaletteThresholdType::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
             if (showAboveFlag) {
                 negMin = this->thresholdMappedAverageAreaNegative;
                 posMin = this->thresholdMappedAverageAreaPositive;
@@ -901,7 +901,7 @@ PaletteColorMapping::setThresholdNormalPositive(const float thresholdNormalPosit
  * @return Threshold test.
  *
  */
-PaletteThresholdTest::Enum
+PaletteThresholdTestEnum::Enum
 PaletteColorMapping::getThresholdTest() const
 {
     return thresholdTest;
@@ -913,7 +913,7 @@ PaletteColorMapping::getThresholdTest() const
  *
  */
 void
-PaletteColorMapping::setThresholdTest(const PaletteThresholdTest::Enum thresholdTest)
+PaletteColorMapping::setThresholdTest(const PaletteThresholdTestEnum::Enum thresholdTest)
 {
     if (this->thresholdTest != thresholdTest) {
         this->thresholdTest = thresholdTest;
@@ -926,7 +926,7 @@ PaletteColorMapping::setThresholdTest(const PaletteThresholdTest::Enum threshold
  * @return  Threshold type.
  *
  */
-PaletteThresholdType::Enum
+PaletteThresholdTypeEnum::Enum
 PaletteColorMapping::getThresholdType() const
 {
     return thresholdType;
@@ -938,7 +938,7 @@ PaletteColorMapping::getThresholdType() const
  *
  */
 void
-PaletteColorMapping::setThresholdType(const PaletteThresholdType::Enum thresholdType)
+PaletteColorMapping::setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType)
 {
     if (this->thresholdType != thresholdType) {
         this->thresholdType = thresholdType;

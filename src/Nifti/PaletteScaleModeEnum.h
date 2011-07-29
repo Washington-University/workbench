@@ -1,5 +1,5 @@
-#ifndef __GIFTIENCODING_H__
-#define __GIFTIENCODING_H__
+#ifndef __PALETTESCALEMODE_H
+#define __PALETTESCALEMODE_H
 
 /*LICENSE_START*/ 
 /* 
@@ -25,6 +25,7 @@
  * 
  */ 
 
+
 #include <stdint.h>
 #include <vector>
 #include <string>
@@ -32,41 +33,42 @@
 namespace caret {
 
 /**
- * GIFTI Encoding Types.
+ * Palette Scale Mode.
  */
-class GiftiEncoding {
+class PaletteScaleModeEnum {
 
 public:
-    /**  GIFTI Encoding Types.
- */
+    /**  Palette Scale Mode. */
     enum Enum {
-        /** The data is ASCII Text  */
-        ASCII,
-        /** THe data is binary data that is encoded as text using the Base64 Algorithm   */
-        BASE64_BINARY,
-        /** The data is binary encoded as Base64 and then compressed using the GZIP algorithm   */
-        GZIP_BASE64_BINARY,
-        /** The data is stored in a separate, uncompressed, binary data file   */
-        EXTERNAL_FILE_BINARY
+        /** Auto Scale   */
+        MODE_AUTO_SCALE,
+        /** Auto Scale Percentage   */
+        MODE_AUTO_SCALE_PERCENTAGE,
+        /** User Scale */
+        MODE_USER_SCALE
     };
 
 
-    ~GiftiEncoding();
+    ~PaletteScaleModeEnum();
 
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
     
-    static std::string toGiftiName(Enum e);
+    static std::string toGuiName(Enum e);
     
-    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    static Enum fromGuiName(const std::string& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
+    
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     
 private:
-    GiftiEncoding(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
+    PaletteScaleModeEnum(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
 
-    static const GiftiEncoding* findData(const Enum e);
-
-    static std::vector<GiftiEncoding> enumData;
+    static const PaletteScaleModeEnum* findData(const Enum e);
+    
+    static std::vector<PaletteScaleModeEnum> enumData;
 
     static void initialize();
 
@@ -77,16 +79,16 @@ private:
     int32_t integerCode;
 
     std::string name;
-
-    std::string giftiName;
+    
+    std::string guiName;
 
 };
 
-#ifdef __GIFTIENCODING_DECLARE__
-std::vector<GiftiEncoding> GiftiEncoding::enumData;
-bool GiftiEncoding::initializedFlag = false;
-#endif // __GIFTIENCODING_DECLARE__
+#ifdef __PALETTE_SCALE_DECLARE__
+    std::vector<PaletteScaleModeEnum> PaletteScaleModeEnum::enumData;
+    bool PaletteScaleModeEnum::initializedFlag = false;
+#endif // __PALETTE_SCALE_DECLARE__
 
 } // namespace
 
-#endif // __GIFTIENCODING_H__
+#endif // __PALETTESCALEMODE_H

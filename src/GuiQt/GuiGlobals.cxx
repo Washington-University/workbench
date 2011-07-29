@@ -119,7 +119,7 @@ GuiGlobals::registerBrainOpenGLWidget(const int32_t windowIndex,
                                       BrainOpenGLWidget* brainOpenGLWidget)
 {
     if (GuiGlobals::brainOpenGLWidgets.empty()) {
-        GuiGlobals::brainOpenGLWidgets.resize(CaretWindow::NUMBER_OF_WINDOWS, NULL);
+        GuiGlobals::brainOpenGLWidgets.resize(CaretWindowEnum::NUMBER_OF_WINDOWS, NULL);
     }
     GuiGlobals::brainOpenGLWidgets[windowIndex] = brainOpenGLWidget;
 }

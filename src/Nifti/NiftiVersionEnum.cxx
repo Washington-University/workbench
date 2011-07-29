@@ -23,10 +23,11 @@
  */ 
 
 
-#define __GIFTIENDIAN_DECLARE__
-#include "GiftiEndian.h"
-#undef __GIFTIENDIAN_DECLARE__
+#define __NIFTIVERSION_DECLARE__
+#include "NiftiVersionEnum.h"
+#undef __NIFTIVERSION_DECLARE__
 
+#include <cassert>
 
 using namespace caret;
 
@@ -38,35 +39,33 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-GiftiEndian::GiftiEndian(
+NiftiVersionEnum::NiftiVersionEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name,
-                   const std::string& giftiName)
+                   const std::string& name)
 {
     this->e = e;
     this->integerCode = integerCode;
     this->name = name;
-    this->giftiName = giftiName;
 }
 
 /**
  * Destructor.
  */
-GiftiEndian::~GiftiEndian()
+NiftiVersionEnum::~NiftiVersionEnum()
 {
 }
 
 void
-GiftiEndian::initialize()
+NiftiVersionEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(GiftiEndian(ENDIAN_BIG, 0, "ENDIAN_BIG", "BigEndian"));
-    enumData.push_back(GiftiEndian(ENDIAN_LITTLE, 1, "ENDIAN_LITTLE", "LittleEndian"));
+    enumData.push_back(NiftiVersionEnum(NIFTI_VERSION_1, 348, "NIFTI_VERSION_1"));
+    enumData.push_back(NiftiVersionEnum(NIFTI_VERSION_2, 540, "NIFTI_VERSION_2"));
 }
 
 /**
@@ -76,19 +75,20 @@ GiftiEndian::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const GiftiEndian*
-GiftiEndian::findData(const Enum e)
+const NiftiVersionEnum*
+NiftiVersionEnum::findData(const Enum e)
 {
     initialize();
-
-    size_t num = enumData.size();
-    for (size_t i = 0; i < num; i++) {
-        const GiftiEndian* d = &enumData[i];
+    int64_t num = enumData.size();
+    for (int64_t i = 0; i < num; i++) {
+        const NiftiVersionEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
     }
 
+    assert(0);
+    
     return NULL;
 }
 
@@ -100,11 +100,11 @@ GiftiEndian::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-GiftiEndian::toName(Enum e) {
+NiftiVersionEnum::toName(Enum e) {
     initialize();
     
-    const GiftiEndian* gaio = findData(e);
-    return gaio->name;
+    const NiftiVersionEnum* nv = findData(e);
+    return nv->name;
 }
 
 /**
@@ -117,18 +117,18 @@ GiftiEndian::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-GiftiEndian::Enum 
-GiftiEndian::fromName(const std::string& s, bool* isValidOut)
+NiftiVersionEnum::Enum 
+NiftiVersionEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<GiftiEndian>::iterator iter = enumData.begin();
+    for (std::vector<NiftiVersionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GiftiEndian& d = *iter;
+        const NiftiVersionEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -143,44 +143,43 @@ GiftiEndian::fromName(const std::string& s, bool* isValidOut)
 }
 
 /**
- * Get a string representation of the enumerated type.
- * @param e 
- *     Enumerated value.
+ * Get the integer code associated with a transform.
+ * @param e
+ *   The enum.
  * @return 
- *     String representing enumerated value.
+ *   Integer code associated with a transform.
  */
-std::string 
-GiftiEndian::toGiftiName(Enum e) {
+int32_t 
+NiftiVersionEnum::toIntegerCode(Enum e)
+{
     initialize();
-    
-    const GiftiEndian* gaio = findData(e);
-    return gaio->giftiName;
+    const NiftiVersionEnum* nsu = findData(e);
+    return nsu->integerCode;
 }
 
 /**
- * Get an enumerated value corresponding to its name.
- * @param s 
- *     Name of enumerated value.
- * @param isValidOut 
- *     If not NULL, it is set indicating that a
- *     enum value exists for the input name.
- * @return 
- *     Enumerated value.
+ * Find enum corresponding to integer code.
+ * @param integerCode
+ *    The integer code.
+ * @param isValidOut
+ *    If not NULL, on exit it indicates valid integer code.
+ * @return
+ *    Enum corresponding to integer code.
  */
-GiftiEndian::Enum 
-GiftiEndian::fromGiftiName(const std::string& s, bool* isValidOut)
+NiftiVersionEnum::Enum 
+NiftiVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<GiftiEndian>::iterator iter = enumData.begin();
+    for (std::vector<NiftiVersionEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const GiftiEndian& d = *iter;
-        if (d.giftiName == s) {
-            e = d.e;
+        const NiftiVersionEnum& nsu = *iter;
+        if (nsu.integerCode == integerCode) {
+            e = nsu.e;
             validFlag = true;
             break;
         }
@@ -191,3 +190,5 @@ GiftiEndian::fromGiftiName(const std::string& s, bool* isValidOut)
     }
     return e;
 }
+
+

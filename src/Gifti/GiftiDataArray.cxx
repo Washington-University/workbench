@@ -32,7 +32,7 @@
 #include <sstream>
 
 #include "Base64.h"
-#include "ByteOrder.h"
+#include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "DataCompressZLib.h"
 
@@ -41,7 +41,7 @@
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
-#include "NiftiTransform.h"
+#include "NiftiTransformEnum.h"
 #include "StringUtilities.h"
 #include "SystemUtilities.h"
 #include "XmlWriter.h"
@@ -52,10 +52,10 @@ using namespace caret;
  * constructor.
  */
 GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                               const NiftiIntent::Enum intentIn,
-                               const NiftiDataType::Enum dataTypeIn,
+                               const NiftiIntentEnum::Enum intentIn,
+                               const NiftiDataTypeEnum::Enum dataTypeIn,
                                const std::vector<int64_t>& dimensionsIn,
-                               const GiftiEncoding::Enum encodingIn)
+                               const GiftiEncodingEnum::Enum encodingIn)
 {
    parentGiftiFile = parentGiftiFileIn;
    intent = intentIn;
@@ -68,11 +68,11 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
    setDimensions(dimensionsIn);
    encoding = encodingIn;
    endian = getSystemEndian();
-    arraySubscriptingOrder = GiftiArrayIndexingOrder::ROW_MAJOR_ORDER;
+    arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
    externalFileName = "";
    externalFileOffset = 0;
    
-    if (intent == NiftiIntent::NIFTI_INTENT_POINTSET) {   
+    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {   
       Matrix4x4 gm;
       matrices.push_back(gm);
    }
@@ -87,7 +87,7 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
  * constructor.
  */
 GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                               const NiftiIntent::Enum intentIn)
+                               const NiftiIntentEnum::Enum intentIn)
 {
    parentGiftiFile = parentGiftiFileIn;
    intent = intentIn;
@@ -97,18 +97,18 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
    dataPointerUByte = NULL;
    clear();
    dimensions.clear();
-   encoding = GiftiEncoding::ASCII;
+   encoding = GiftiEncodingEnum::ASCII;
    endian = getSystemEndian();
-    arraySubscriptingOrder = GiftiArrayIndexingOrder::ROW_MAJOR_ORDER;
+    arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
    externalFileName = "";
    externalFileOffset = 0;
    
-    if (intent == NiftiIntent::NIFTI_INTENT_POINTSET) {   
+    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {   
       Matrix4x4 gm;
       matrices.push_back(gm);
    }
    
-   dataType = NiftiDataType::NIFTI_TYPE_FLOAT32;
+   dataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    getDataTypeAppropriateForIntent(intent, dataType);
 }
 
@@ -186,37 +186,37 @@ GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
  * get the data type appropriate for the intent (returns true if intent is valid).
  */
 bool 
-GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntent::Enum intent,
-                                                  NiftiDataType::Enum& dataTypeOut)
+GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum intent,
+                                                  NiftiDataTypeEnum::Enum& dataTypeOut)
 {
-    if (intent == NiftiIntent::NIFTI_INTENT_POINTSET) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_FLOAT32;
+    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_TIME_SERIES) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_FLOAT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_TIME_SERIES) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_NORMAL) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_FLOAT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_NORMAL) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_LABEL) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_INT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_INT32;
    }
-   else if ((intent == NiftiIntent::NIFTI_INTENT_RGB_VECTOR) ||
-            (intent == NiftiIntent::NIFTI_INTENT_RGBA_VECTOR)) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_UINT8;
+   else if ((intent == NiftiIntentEnum::NIFTI_INTENT_RGB_VECTOR) ||
+            (intent == NiftiIntentEnum::NIFTI_INTENT_RGBA_VECTOR)) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_UINT8;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_SHAPE) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_FLOAT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_SHAPE) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_SYMMATRIX) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_FLOAT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_SYMMATRIX) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
-   else if (intent == NiftiIntent::NIFTI_INTENT_TRIANGLE) {
-      dataTypeOut = NiftiDataType::NIFTI_TYPE_INT32;
+   else if (intent == NiftiIntentEnum::NIFTI_INTENT_TRIANGLE) {
+      dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_INT32;
    }
    else {
       std::cout << "WARNING: unrecogized intent \""
-       << NiftiIntent::toName(intent).c_str()
+       << NiftiIntentEnum::toName(intent).c_str()
                 << " in GiftiDataArray::getDataTypeAppropriateForIntent()." << std::endl;
       return false;
    }
@@ -311,13 +311,13 @@ GiftiDataArray::allocateData()
    //
    dataTypeSize = 0;
    switch (dataType) {
-      case NiftiDataType::NIFTI_TYPE_FLOAT32:
+      case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
          dataTypeSize = sizeof(float);
          break;
-      case NiftiDataType::NIFTI_TYPE_INT32:
+      case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
          dataTypeSize = sizeof(int32_t);
          break;
-      case NiftiDataType::NIFTI_TYPE_UINT8:
+      case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
          dataTypeSize = sizeof(uint8_t);
          break;
        default:
@@ -358,13 +358,13 @@ GiftiDataArray::updateDataPointers()
    dataPointerUByte = NULL;
    if (data.empty() == false) {
       switch (dataType) {
-         case NiftiDataType::NIFTI_TYPE_FLOAT32:
+         case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
             dataPointerFloat = (float*)&data[0];
             break;
-         case NiftiDataType::NIFTI_TYPE_INT32:
+         case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
             dataPointerInt   = (int32_t*)&data[0];
             break;
-         case NiftiDataType::NIFTI_TYPE_UINT8:
+         case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
             dataPointerUByte = (uint8_t*)&data[0];
             break;
           default:
@@ -379,9 +379,9 @@ GiftiDataArray::updateDataPointers()
 void 
 GiftiDataArray::clear()
 {
-    arraySubscriptingOrder = GiftiArrayIndexingOrder::ROW_MAJOR_ORDER;
-    encoding = GiftiEncoding::ASCII;
-   dataType = NiftiDataType::NIFTI_TYPE_FLOAT32;
+    arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
+    encoding = GiftiEncodingEnum::ASCII;
+   dataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    endian = getSystemEndian();
    dataTypeSize = sizeof(float);
    metaData.clear();
@@ -463,12 +463,12 @@ GiftiDataArray::getDataOffset(const int64_t nodeNum,
 /**
  * get the system's endian.
  */
-GiftiEndian::Enum 
+GiftiEndianEnum::Enum 
 GiftiDataArray::getSystemEndian()
 {
-    GiftiEndian::Enum endian = GiftiEndian::ENDIAN_BIG;
-    if (ByteOrder::isSystemLittleEndian()) {
-        endian = GiftiEndian::ENDIAN_LITTLE;
+    GiftiEndianEnum::Enum endian = GiftiEndianEnum::ENDIAN_BIG;
+    if (ByteOrderEnum::isSystemLittleEndian()) {
+        endian = GiftiEndianEnum::ENDIAN_LITTLE;
     }
    //if (QSysInfo::ByteOrder == QSysInfo::BigEndian) {
    //   return ENDIAN_BIG;
@@ -525,7 +525,7 @@ GiftiDataArray::remapIntValues(const std::vector<int32_t>& remappingTable)
  */
 void 
 GiftiDataArray::transferLabelIndices(const std::map<int32_t,int32_t>& indexConverter) {
-    if (this->getDataType() == NiftiDataType::NIFTI_TYPE_INT32) {
+    if (this->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_INT32) {
         int64_t num = this->getTotalNumberOfElements();
         for (int i = 0; i < num; i++) {
             int oldIndex = this->dataPointerInt[i];
@@ -547,15 +547,15 @@ GiftiDataArray::transferLabelIndices(const std::map<int32_t,int32_t>& indexConve
  */
 void 
 GiftiDataArray::readFromText(const std::string text,
-            const GiftiEndian::Enum dataEndianForReading,
-            const GiftiArrayIndexingOrder::Enum arraySubscriptingOrderForReading,
-            const NiftiDataType::Enum dataTypeForReading,
+            const GiftiEndianEnum::Enum dataEndianForReading,
+            const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
+            const NiftiDataTypeEnum::Enum dataTypeForReading,
             const std::vector<int64_t>& dimensionsForReading,
-            const GiftiEncoding::Enum encodingForReading,
+            const GiftiEncodingEnum::Enum encodingForReading,
             const std::string& externalFileNameForReading,
             const int64_t externalFileOffsetForReading) throw (GiftiException)
 {
-   const NiftiDataType::Enum requiredDataType = dataType;
+   const NiftiDataTypeEnum::Enum requiredDataType = dataType;
    dataType = dataTypeForReading;
    encoding = encodingForReading;
    endian   = dataEndianForReading;
@@ -576,12 +576,12 @@ GiftiDataArray::readFromText(const std::string text,
       const int64_t numElements = getTotalNumberOfElements();
       
       switch (encoding) {
-          case GiftiEncoding::ASCII:
+          case GiftiEncodingEnum::ASCII:
             {
                 std::istringstream stream(text);
                 
                switch (dataType) {
-                  case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      {
                         float* ptr = dataPointerFloat;
                         for (int64_t i = 0; i < numElements; i++) {
@@ -590,7 +590,7 @@ GiftiDataArray::readFromText(const std::string text,
                         }
                      }
                      break;
-                   case NiftiDataType::NIFTI_TYPE_INT32:
+                   case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                      {
                         int32_t* ptr = dataPointerInt;
                         for (int64_t i = 0; i < numElements; i++) {
@@ -599,7 +599,7 @@ GiftiDataArray::readFromText(const std::string text,
                         }
                      }
                      break;
-                   case NiftiDataType::NIFTI_TYPE_UINT8:
+                   case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                      {
                         uint8_t* ptr = dataPointerUByte;
                          int32_t c;
@@ -611,11 +611,11 @@ GiftiDataArray::readFromText(const std::string text,
                      }
                      break;
                    default:
-                       throw GiftiException("DataType " + NiftiDataType::toName(dataType) + " not supported in GIFTI");
+                       throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                }
             }
             break;
-          case GiftiEncoding::BASE64_BINARY:
+          case GiftiEncodingEnum::BASE64_BINARY:
             {
                //
                // Decode the Base64 data using VTK's algorithm
@@ -640,7 +640,7 @@ GiftiDataArray::readFromText(const std::string text,
                }
             }
             break;
-          case GiftiEncoding::GZIP_BASE64_BINARY:
+          case GiftiEncodingEnum::GZIP_BASE64_BINARY:
             {
                //
                // Decode the Base64 data using VTK's algorithm
@@ -686,7 +686,7 @@ GiftiDataArray::readFromText(const std::string text,
                }
             }
             break;
-          case GiftiEncoding::EXTERNAL_FILE_BINARY:
+          case GiftiEncodingEnum::EXTERNAL_FILE_BINARY:
             {
                if (externalFileName.length() <= 0) {
                   throw GiftiException("External file name is empty.");
@@ -710,15 +710,15 @@ GiftiDataArray::readFromText(const std::string text,
                     std::streamsize numberOfBytesToRead = 0;
                   char* pointerToForReadingData = NULL;
                   switch (dataType) {
-                     case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                         numberOfBytesToRead = numElements * sizeof(float);
                         pointerToForReadingData = (char*)dataPointerFloat;
                         break;
-                     case NiftiDataType::NIFTI_TYPE_INT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                         numberOfBytesToRead = numElements * sizeof(int32_t);
                         pointerToForReadingData = (char*)dataPointerInt;
                         break;
-                     case NiftiDataType::NIFTI_TYPE_UINT8:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                         numberOfBytesToRead = numElements * sizeof(uint8_t);
                         pointerToForReadingData = (char*)dataPointerUByte;
                         break;
@@ -754,7 +754,7 @@ GiftiDataArray::readFromText(const std::string text,
       // Check if data type needs to be converted
       //
       if (requiredDataType != dataType) {
-          if (intent != NiftiIntent::NIFTI_INTENT_POINTSET) {
+          if (intent != NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
             convertToDataType(requiredDataType);
          }
       }
@@ -805,7 +805,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
        //
        if (dimI == dimJ) {
            switch (dataType) {
-               case NiftiDataType::NIFTI_TYPE_FLOAT32:
+               case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                  {
                    for (int64_t i = 1; i < dimI; i++) {
                        for (int64_t j = 0; j < i; j++) {
@@ -818,7 +818,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                    }
                  }
                  break;
-              case NiftiDataType::NIFTI_TYPE_INT32:
+              case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                  {
                    for (int64_t i = 1; i < dimI; i++) {
                        for (int64_t j = 0; j < i; j++) {
@@ -831,7 +831,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                    }
                  }
                  break;
-              case NiftiDataType::NIFTI_TYPE_UINT8:
+              case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                  {
                    for (int64_t i = 1; i < dimI; i++) {
                        for (int64_t j = 0; j < i; j++) {
@@ -856,7 +856,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
            std::vector<uint8_t> dataCopy = data;
 
           switch (dataType) {
-             case NiftiDataType::NIFTI_TYPE_FLOAT32:
+             case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                 {
                    float* ptr = (float*)&(dataCopy[0]);
                    for (int64_t i = 0; i < dimI; i++) {
@@ -868,7 +868,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                    }
                 }
                 break;
-             case NiftiDataType::NIFTI_TYPE_INT32:
+             case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                 {
                    uint32_t* ptr = (uint32_t*)&(dataCopy[0]);
                    for (int64_t i = 0; i < dimI; i++) {
@@ -880,7 +880,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                    }
                 }
                 break;
-             case NiftiDataType::NIFTI_TYPE_UINT8:
+             case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                 {
                    uint8_t* ptr = (uint8_t*)&(dataCopy[0]);
                    for (int64_t i = 0; i < dimI; i++) {
@@ -942,12 +942,12 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    // Write the opening tag
    //
     XmlAttributes dataAtt;
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INTENT, NiftiIntent::toName(this->intent));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DATA_TYPE, NiftiDataType::toName(this->dataType));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER, GiftiArrayIndexingOrder::toGiftiName(this->arraySubscriptingOrder));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INTENT, NiftiIntentEnum::toName(this->intent));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DATA_TYPE, NiftiDataTypeEnum::toName(this->dataType));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER, GiftiArrayIndexingOrderEnum::toGiftiName(this->arraySubscriptingOrder));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY, this->dimensions, ",");
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENCODING, GiftiEncoding::toGiftiName(this->encoding));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN, GiftiEndian::toGiftiName(this->endian));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENCODING, GiftiEncodingEnum::toGiftiName(this->encoding));
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN, GiftiEndianEnum::toGiftiName(this->endian));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME, externalFileName);
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET, externalFileOffset);
 
@@ -978,7 +978,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    // no spaces between the <DATA> and </DATA> tags.
    //
    switch (encoding) {
-       case GiftiEncoding::ASCII:
+       case GiftiEncodingEnum::ASCII:
          {
             //
             // Newline after <DATA> tag (only do this for ASCII !!!)
@@ -999,19 +999,19 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             int32_t offset = 0;
             for (int32_t i = 0; i < numRows; i++) {
                switch (dataType) {
-                  case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
                          xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerFloat[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
-                  case NiftiDataType::NIFTI_TYPE_INT32:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
                          xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerInt[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
-                  case NiftiDataType::NIFTI_TYPE_UINT8:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
                          xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerUByte[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
@@ -1026,7 +1026,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             }
          }
          break;
-       case GiftiEncoding::BASE64_BINARY:
+       case GiftiEncodingEnum::BASE64_BINARY:
          {
             //
             // Encode the data with VTK's Base64 algorithm
@@ -1057,7 +1057,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             delete[] buffer;
          }
          break;
-       case GiftiEncoding::GZIP_BASE64_BINARY:
+       case GiftiEncodingEnum::GZIP_BASE64_BINARY:
          {
             //
             // Compress the data with VTK's ZLIB algorithm
@@ -1094,7 +1094,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             delete[] compressedDataBuffer;
          }
          break;
-       case GiftiEncoding::EXTERNAL_FILE_BINARY:
+       case GiftiEncodingEnum::EXTERNAL_FILE_BINARY:
          {
             const int64_t dataLength = data.size();
             externalBinaryOutputStream->write((const char*)&data[0], dataLength);
@@ -1120,7 +1120,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
  * convert to data type.
  */
 void 
-GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
+GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
 {
    if (newDataType != dataType) {      
       //
@@ -1131,7 +1131,7 @@ GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
       //
       // Set my new data type and reallocate memory
       //
-      const NiftiDataType::Enum oldDataType = dataType;
+      const NiftiDataTypeEnum::Enum oldDataType = dataType;
       dataType = newDataType;
       allocateData();
       
@@ -1149,15 +1149,15 @@ GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
          //
          for (int64_t i = 0; i < numElements; i++) {
             switch (dataType) {
-               case NiftiDataType::NIFTI_TYPE_FLOAT32:
+               case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                   switch (oldDataType) {
-                     case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                         dataPointerFloat[i] = static_cast<float>(copyOfMe.dataPointerFloat[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_INT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                         dataPointerFloat[i] = static_cast<float>(copyOfMe.dataPointerInt[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_UINT8:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                         dataPointerFloat[i] = static_cast<float>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
@@ -1165,15 +1165,15 @@ GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
                           break;
                   }
                   break;
-               case NiftiDataType::NIFTI_TYPE_INT32:
+               case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                   switch (oldDataType) {
-                     case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                         dataPointerInt[i] = static_cast<int32_t>(copyOfMe.dataPointerFloat[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_INT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                         dataPointerInt[i] = static_cast<int32_t>(copyOfMe.dataPointerInt[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_UINT8:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                         dataPointerInt[i] = static_cast<int32_t>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
@@ -1181,15 +1181,15 @@ GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
                           break;
                   }
                   break;
-               case NiftiDataType::NIFTI_TYPE_UINT8:
+               case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                   switch (oldDataType) {
-                     case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                         dataPointerUByte[i] = static_cast<uint8_t>(copyOfMe.dataPointerFloat[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_INT32:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                         dataPointerUByte[i] = static_cast<uint8_t>(copyOfMe.dataPointerInt[i]);
                         break;
-                     case NiftiDataType::NIFTI_TYPE_UINT8:
+                     case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                         dataPointerUByte[i] = static_cast<uint8_t>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
@@ -1212,17 +1212,17 @@ GiftiDataArray::convertToDataType(const NiftiDataType::Enum newDataType)
  * byte swap the data (data read is different endian than this system).
  */
 void 
-GiftiDataArray::byteSwapData(const GiftiEndian::Enum newEndian)
+GiftiDataArray::byteSwapData(const GiftiEndianEnum::Enum newEndian)
 {
    endian = newEndian;
    switch (dataType) {
-      case NiftiDataType::NIFTI_TYPE_FLOAT32:
+      case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
          ByteSwapping::swapBytes(dataPointerFloat, getTotalNumberOfElements());
          break;
-      case NiftiDataType::NIFTI_TYPE_INT32:
+      case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
          ByteSwapping::swapBytes(dataPointerInt, getTotalNumberOfElements());
          break;
-      case NiftiDataType::NIFTI_TYPE_UINT8:
+      case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
          // should not need to swap ??
          break;
        default:
@@ -1427,13 +1427,13 @@ GiftiDataArray::getDataOffset(const int32_t indices[]) const
    int64_t offset = 0;
    int64_t dimProduct = 1;
    switch (this->arraySubscriptingOrder) {
-       case GiftiArrayIndexingOrder::ROW_MAJOR_ORDER:
+       case GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER:
          for (int32_t d = (numDim - 1); d >= 0; d--) {
             offset += indices[d] * dimProduct;
             dimProduct *= dimensions[d];
          }
          break;
-      case GiftiArrayIndexingOrder::COLUMN_MAJOR_ORDER:  // correct???
+      case GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER:  // correct???
          for (int32_t d = 0; d <= (numDim - 1); d++) {
             offset += indices[d] * dimProduct;
             dimProduct *= dimensions[d];
@@ -1541,7 +1541,7 @@ bool
 GiftiDataArray::intentNameValid(const std::string& intentNameIn)
 {
     bool valid = false;
-    NiftiIntent::fromName(intentNameIn, &valid);
+    NiftiIntentEnum::fromName(intentNameIn, &valid);
     return valid;
 }      
 
@@ -1570,8 +1570,8 @@ GiftiDataArray::toString() const
 {
     std::ostringstream str;
     str << "Data Array" << std::endl;
-    str << "   DataType=" << NiftiDataType::toName(this->dataType) << std::endl;
-    str << "   Intent=" << NiftiIntent::toName(this->intent) << std::endl;
+    str << "   DataType=" << NiftiDataTypeEnum::toName(this->dataType) << std::endl;
+    str << "   Intent=" << NiftiIntentEnum::toName(this->intent) << std::endl;
     str << "   Dimensions=" << StringUtilities::fromNumbers(this->dimensions, ",");
     return str.str();
 }

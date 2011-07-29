@@ -28,7 +28,7 @@
 
 #include "CaretObject.h"
 
-#include "CaretWindow.h"
+#include "CaretWindowEnum.h"
 #include "Matrix4x4.h"
 
 namespace caret {

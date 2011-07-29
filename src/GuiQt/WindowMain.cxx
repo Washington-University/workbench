@@ -59,7 +59,7 @@ WindowMain::WindowMain(const int openGLSizeX,
 
     this->openGLWidget =
         new BrainOpenGLWidget(this,
-                              CaretWindow::WINDOW_MAIN);
+                              CaretWindowEnum::WINDOW_MAIN);
     
     this->openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);

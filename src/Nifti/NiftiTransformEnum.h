@@ -1,5 +1,5 @@
-#ifndef __PALETTETHRESHOLDTYPE_H__
-#define __PALETTETHRESHOLDTYPE_H__
+#ifndef __NIFTITRANSFORM_H__
+#define __NIFTITRANSFORM_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,52 +26,53 @@
  */ 
 
 
+
+#include <stdint.h>
+
 #include <vector>
 #include <string>
-#include <stdint.h>
 
 namespace caret {
 
 /**
- * Palette Threshold Type.
+ * NIFTI Transform.
  */
-class PaletteThresholdType {
+class NiftiTransformEnum {
 
 public:
-    /**  Palette Threshold Type. */
+    /**  NIFTI Transform.
+ */
     enum Enum {
-        /** thresholding is off */
-        THRESHOLD_TYPE_OFF,
-        /** normal thresholding */
-        THRESHOLD_TYPE_NORMAL,
-        /** threshold from mapping of volume */
-        THRESHOLD_TYPE_MAPPED,
-        /** threshold from mapping to PALS average area */
-        THRESHOLD_TYPE_MAPPED_AVERAGE_AREA
+        /** Arbitrary Coordinates  */
+        NIFTI_XFORM_UNKNOWN,
+        /** Scanner-base anatomical coordinates  */
+        NIFTI_XFORM_SCANNER_ANAT,
+        /** Coordinates aligned to another file's or anatomial "truth"  */
+        NIFTI_XFORM_ALIGNED_ANAT,
+        /** Coordinates aligned to Talairach-Tournoux Atlas: (0,0,0) = Anterior Commissure  */
+        NIFTI_XFORM_TALAIRACH,
+        /** MNI 152 Normalize Coordinates  */
+        NIFTI_XFORM_MNI_152
     };
 
 
-    ~PaletteThresholdType();
+    ~NiftiTransformEnum();
 
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
-    
-    static std::string toGuiName(Enum e);
-    
-    static Enum fromGuiName(const std::string& s, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum e);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
 private:
-    PaletteThresholdType(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
+    NiftiTransformEnum(const Enum e, const int32_t integerCode, const std::string& name);
 
-    static const PaletteThresholdType* findData(const Enum e);
+    static std::vector<NiftiTransformEnum> enumData;
+
+    static const NiftiTransformEnum* findData(const Enum e);
     
-    static std::vector<PaletteThresholdType> enumData;
-
     static void initialize();
 
     static bool initializedFlag;
@@ -81,17 +82,13 @@ private:
     int32_t integerCode;
 
     std::string name;
-    
-    std::string guiName;
-
-
 };
 
-#ifdef __PALETTE_THRESHOLDTYPE_DECLARE__
-    std::vector<PaletteThresholdType> PaletteThresholdType::enumData;
-bool PaletteThresholdType::initializedFlag = false;
-#endif // __PALETTE_THRESHOLDTYPE_DECLARE__
+#ifdef __NIFTITRANSFORM_DECLARE__
+std::vector<NiftiTransformEnum> enumData;
+bool NiftiTransformEnum::initializedFlag = false;
+#endif // __NIFTITRANSFORM_DECLARE__
 
 } // namespace
 
-#endif // __PALETTETHRESHOLDTYPE_H__
+#endif // __NIFTITRANSFORM_H__

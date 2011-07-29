@@ -10,11 +10,11 @@ PROJECT(Common)
 ADD_LIBRARY(Common 
 Base64.h
 BoundingBox.h
-ByteOrder.h
+ByteOrderEnum.h
 ByteSwapping.h
 CaretException.h
 CaretObject.h
-CaretWindow.h
+CaretWindowEnum.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
@@ -25,11 +25,11 @@ TracksModificationInterface.h
 
 Base64.cxx
 BoundingBox.cxx
-ByteOrder.cxx
+ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretException.cxx
 CaretObject.cxx
-CaretWindow.cxx
+CaretWindowEnum.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx

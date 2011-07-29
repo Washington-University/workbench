@@ -39,7 +39,7 @@ namespace caret {
  * NIFTI Data Types.  Note that only a small subset are used
  * in GIFTI data files.
  */
-class NiftiDataType {
+class NiftiDataTypeEnum {
 
 public:
     /**  NIFTI Data Types.  Note that only a small subset are used
@@ -81,12 +81,12 @@ public:
     };
 
 
-    ~NiftiDataType();
+    ~NiftiDataTypeEnum();
 private:
-    NiftiDataType();
-    NiftiDataType(Enum e, const std::string& name, const int32_t integerCode);
-    static const NiftiDataType* findData(Enum e);
-    static std::vector<NiftiDataType> dataTypes;
+    NiftiDataTypeEnum();
+    NiftiDataTypeEnum(Enum e, const std::string& name, const int32_t integerCode);
+    static const NiftiDataTypeEnum* findData(Enum e);
+    static std::vector<NiftiDataTypeEnum> dataTypes;
     static void createDataTypes();
     static bool dataTypesCreatedFlag;
     
@@ -103,8 +103,8 @@ public:
 };
 
 #ifdef __NIFTI_DATA_TYPE_DECLARE__
-    std::vector<NiftiDataType> NiftiDataType::dataTypes;
-    bool NiftiDataType::dataTypesCreatedFlag = false;
+    std::vector<NiftiDataTypeEnum> NiftiDataTypeEnum::dataTypes;
+    bool NiftiDataTypeEnum::dataTypesCreatedFlag = false;
 #endif // __NIFTI_DATA_TYPE_DECLARE__
 } // namespace
 

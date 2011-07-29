@@ -31,10 +31,10 @@
 #include <string>
 #include <stdint.h>
 
-#include "GiftiArrayIndexingOrder.h"
-#include "GiftiEndian.h"
-#include "GiftiEncoding.h"
-#include "NiftiDataType.h"
+#include "GiftiArrayIndexingOrderEnum.h"
+#include "GiftiEndianEnum.h"
+#include "GiftiEncodingEnum.h"
+#include "NiftiDataTypeEnum.h"
 #include "XmlSaxParserException.h"
 #include "XmlSaxParserHandlerInterface.h"
 
@@ -175,19 +175,19 @@ class XmlException;
       float labelAlpha;
 
       /// endian attribute data
-      GiftiEndian::Enum endianForReadingArrayData;
+      GiftiEndianEnum::Enum endianForReadingArrayData;
       
       /// array subscripting order for reading
-      GiftiArrayIndexingOrder::Enum arraySubscriptingOrderForReadingArrayData;
+      GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReadingArrayData;
       
       /// data type for reading
-      NiftiDataType::Enum dataTypeForReadingArrayData;
+      NiftiDataTypeEnum::Enum dataTypeForReadingArrayData;
       
       /// dimension for reading
       std::vector<int64_t> dimensionsForReadingArrayData;
       
       /// encoding for reading
-      GiftiEncoding::Enum encodingForReadingArrayData;
+      GiftiEncodingEnum::Enum encodingForReadingArrayData;
       
       /// data location for reading
       //GiftiDataArray::DATA_LOCATION dataLocationForReadingArrayData;

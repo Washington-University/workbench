@@ -8,27 +8,29 @@ PROJECT (Gifti)
 # Create GIFTI Library
 #
 ADD_LIBRARY(Gifti
-GiftiArrayIndexingOrder.h
+GiftiArrayIndexingOrderEnum.h
 GiftiDataArray.h
-GiftiEncoding.h
-GiftiEndian.h
+GiftiEncodingEnum.h
+GiftiEndianEnum.h
 GiftiException.h
 GiftiFile.h
 GiftiFileSaxReader.h
 GiftiLabel.h
 GiftiLabelTable.h
 GiftiMetaData.h
+GiftiXmlElements.h
 
-GiftiArrayIndexingOrder.cxx
+GiftiArrayIndexingOrderEnum.cxx
 GiftiDataArray.cxx
-GiftiEncoding.cxx
-GiftiEndian.cxx
+GiftiEncodingEnum.cxx
+GiftiEndianEnum.cxx
 GiftiException.cxx
 GiftiFile.cxx
 GiftiFileSaxReader.cxx
 GiftiLabel.cxx
 GiftiLabelTable.cxx
 GiftiMetaData.cxx
+GiftiXmlElements.cxx
 )
 
 #

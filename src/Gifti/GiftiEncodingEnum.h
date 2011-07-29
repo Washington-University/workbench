@@ -1,5 +1,5 @@
-#ifndef __NIFTITIMEUNITS_H__
-#define __NIFTITIMEUNITS_H__
+#ifndef __GIFTIENCODING_H__
+#define __GIFTIENCODING_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -25,74 +25,68 @@
  * 
  */ 
 
-
-
 #include <stdint.h>
-
 #include <vector>
 #include <string>
 
 namespace caret {
 
 /**
- * NIFTI Time Units
+ * GIFTI Encoding Types.
  */
-class NiftiTimeUnits {
+class GiftiEncodingEnum {
 
 public:
-    /**  NIFTI Time Units
+    /**  GIFTI Encoding Types.
  */
     enum Enum {
-        /**  */
-        NIFTI_UNITS_UNKNOWN,
-        /**  */
-        NIFTI_UNITS_SEC,
-        /**  */
-        NIFTI_UNITS_MSEC,
-        /**  */
-        NIFTI_UNITS_USEC,
-        /**  */
-        NIFTI_UNITS_HZ,
-        /**  */
-        NIFTI_UNITS_PPM
+        /** The data is ASCII Text  */
+        ASCII,
+        /** THe data is binary data that is encoded as text using the Base64 Algorithm   */
+        BASE64_BINARY,
+        /** The data is binary encoded as Base64 and then compressed using the GZIP algorithm   */
+        GZIP_BASE64_BINARY,
+        /** The data is stored in a separate, uncompressed, binary data file   */
+        EXTERNAL_FILE_BINARY
     };
 
 
-    ~NiftiTimeUnits();
+    ~GiftiEncodingEnum();
 
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
     
-    static int32_t toIntegerCode(Enum e);
-
-    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
-
-private:
-    NiftiTimeUnits(const Enum e, const int32_t integerCode, const std::string& name);
-
-    static const NiftiTimeUnits* findData(const Enum e);
+    static std::string toGiftiName(Enum e);
     
-    static std::vector<NiftiTimeUnits> enumData;
+    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    
+private:
+    GiftiEncodingEnum(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
 
-    static void initializeTimeUnits();
+    static const GiftiEncodingEnum* findData(const Enum e);
+
+    static std::vector<GiftiEncodingEnum> enumData;
+
+    static void initialize();
 
     static bool initializedFlag;
 
     Enum e;
 
     int32_t integerCode;
-    
+
     std::string name;
 
+    std::string giftiName;
 
 };
 
-#ifdef __NIFTITIMEUNITS_DECLARE__
-    std::vector<NiftiTimeUnits> NiftiTimeUnits::enumData;
-    bool NiftiTimeUnits::initializedFlag = false;
-#endif // __NIFTITIMEUNITS_DECLARE__
+#ifdef __GIFTIENCODING_DECLARE__
+std::vector<GiftiEncodingEnum> GiftiEncodingEnum::enumData;
+bool GiftiEncodingEnum::initializedFlag = false;
+#endif // __GIFTIENCODING_DECLARE__
 
 } // namespace
 
-#endif // __NIFTITIMEUNITS_H__
+#endif // __GIFTIENCODING_H__

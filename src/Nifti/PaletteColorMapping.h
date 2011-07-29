@@ -29,9 +29,9 @@
 
 #include "CaretObject.h"
 
-#include "PaletteScaleMode.h"
-#include "PaletteThresholdTest.h"
-#include "PaletteThresholdType.h"
+#include "PaletteScaleModeEnum.h"
+#include "PaletteThresholdTestEnum.h"
+#include "PaletteThresholdTypeEnum.h"
 #include "XmlException.h"
 
 class Node;
@@ -104,9 +104,9 @@ public:
 
     void setInterpolatePaletteFlag(const bool interpolatePaletteFlag);
 
-    PaletteScaleMode::Enum getScaleMode() const;
+    PaletteScaleModeEnum::Enum getScaleMode() const;
 
-    void setScaleMode(const PaletteScaleMode::Enum scaleMode);
+    void setScaleMode(const PaletteScaleModeEnum::Enum scaleMode);
 
     std::string getSelectedPaletteName() const;
 
@@ -162,13 +162,13 @@ public:
 
     void setThresholdNormalPositive(const float thresholdNormalPositive);
 
-    PaletteThresholdTest::Enum getThresholdTest() const;
+    PaletteThresholdTestEnum::Enum getThresholdTest() const;
 
-    void setThresholdTest(const PaletteThresholdTest::Enum thresholdTest);
+    void setThresholdTest(const PaletteThresholdTestEnum::Enum thresholdTest);
 
-    PaletteThresholdType::Enum getThresholdType() const;
+    PaletteThresholdTypeEnum::Enum getThresholdType() const;
 
-    void setThresholdType(const PaletteThresholdType::Enum thresholdType);
+    void setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType);
 
     std::string getThresholdDataName() const;
 
@@ -187,7 +187,7 @@ public:
 private:
     std::string getNodeChildText(const Node& node) const;
 
-    PaletteScaleMode::Enum scaleMode;
+    PaletteScaleModeEnum::Enum scaleMode;
 
     float autoScalePercentageNegativeMaximum;
 
@@ -215,9 +215,9 @@ private:
 
     bool displayNegativeDataFlag;
 
-    PaletteThresholdType::Enum thresholdType;
+    PaletteThresholdTypeEnum::Enum thresholdType;
 
-    PaletteThresholdTest::Enum thresholdTest;
+    PaletteThresholdTestEnum::Enum thresholdTest;
 
     float thresholdNormalNegative;
 

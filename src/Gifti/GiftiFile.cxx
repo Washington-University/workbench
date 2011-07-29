@@ -44,8 +44,8 @@ using namespace caret;
  * Constructor
  */
 GiftiFile::GiftiFile(const std::string& descriptiveName,
-                     const NiftiIntent::Enum defaultDataArrayIntentIn,
-                                       const NiftiDataType::Enum defaultDataTypeIn,
+                     const NiftiIntentEnum::Enum defaultDataArrayIntentIn,
+                                       const NiftiDataTypeEnum::Enum defaultDataTypeIn,
                                        const std::string& defaultExtension,
                                        const bool dataAreIndicesIntoLabelTableIn)
 : DataFile()
@@ -65,8 +65,8 @@ GiftiFile::GiftiFile()
 : DataFile()
 {
     this->descriptiveName = "GIFTI";
-    defaultDataArrayIntent = NiftiIntent::NIFTI_INTENT_NONE;
-    defaultDataType = NiftiDataType::NIFTI_TYPE_FLOAT32;
+    defaultDataArrayIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
+    defaultDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
     dataAreIndicesIntoLabelTable = false;
     numberOfNodesForSparseNodeIndexFile = 0;
     this->defaultExtension = ".gii";
@@ -194,7 +194,7 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                int32_t diffCount = 0;
                
                switch (gdf1->getDataType()) {
-                   case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                   case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      {
                         const float* p1 = gdf1->getDataPointerFloat();
                         const float* p2 = gdf2->getDataPointerFloat();
@@ -207,7 +207,7 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                         }
                      }
                      break;
-                  case NiftiDataType::NIFTI_TYPE_INT32:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                      {
                         const int32_t tol = static_cast<int32_t>(tolerance);
                         const int32_t* p1 = gdf1->getDataPointerInt();
@@ -221,7 +221,7 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                         }
                      }
                      break;
-                  case NiftiDataType::NIFTI_TYPE_UINT8:
+                  case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                      {
                         const uint8_t tol = static_cast<uint8_t>(tolerance);
                         const uint8_t* p1 = gdf1->getDataPointerUByte();
@@ -322,7 +322,7 @@ GiftiFile::getDataArrayWithNameIndex(const std::string& n) const
  * get the data array of the specified intent.
  */
 GiftiDataArray* 
-GiftiFile::getDataArrayWithIntent(const NiftiIntent::Enum intent) 
+GiftiFile::getDataArrayWithIntent(const NiftiIntentEnum::Enum intent) 
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       GiftiDataArray* gda = getDataArray(i);
@@ -337,7 +337,7 @@ GiftiFile::getDataArrayWithIntent(const NiftiIntent::Enum intent)
  * get the data array of the specified intent (const method).
  */
 const GiftiDataArray* 
-GiftiFile::getDataArrayWithIntent(const NiftiIntent::Enum intent) const
+GiftiFile::getDataArrayWithIntent(const NiftiIntentEnum::Enum intent) const
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       const GiftiDataArray* gda = getDataArray(i);
@@ -352,7 +352,7 @@ GiftiFile::getDataArrayWithIntent(const NiftiIntent::Enum intent) const
  * get the index of the data array of the specified intent.
  */
 int32_t 
-GiftiFile::getDataArrayWithIntentIndex(const NiftiIntent::Enum intent) const
+GiftiFile::getDataArrayWithIntentIndex(const NiftiIntentEnum::Enum intent) const
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       const GiftiDataArray* gda = getDataArray(i);
@@ -426,7 +426,7 @@ GiftiFile::getDataArrayComment(const int32_t arrayIndex) const
  * get the default data array intent.
  */
 void 
-GiftiFile::setDefaultDataArrayIntent(const NiftiIntent::Enum newIntent) 
+GiftiFile::setDefaultDataArrayIntent(const NiftiIntentEnum::Enum newIntent) 
 { 
    defaultDataArrayIntent = newIntent; 
    setModified();
@@ -549,7 +549,7 @@ GiftiFile::append(const GiftiFile& gf) throw (GiftiException)
            gda = new GiftiDataArray(*(gf.dataArrays[i]));
        }
        gda->setMyParentGiftiFile(this);
-       if (gda->getIntent() == NiftiIntent::NIFTI_INTENT_LABEL) {
+       if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
            gda->transferLabelIndices(labelIndexConverter);
        }
        this->addDataArray(gda);
@@ -607,7 +607,7 @@ GiftiFile::append(const GiftiFile& gf,
            if (copyDataArrayFlag) {
                gda = new GiftiDataArray(*gda);
                gda->setMyParentGiftiFile(this);
-               if (gda->getIntent() == NiftiIntent::NIFTI_INTENT_LABEL) {
+               if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
                    gda->transferLabelIndices(labelIndexConverter);
                }
                this->addDataArray(gda);
@@ -1081,12 +1081,12 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
    //
    // See if there is a node index array
    //
-    GiftiDataArray* nodeIndexArray = getDataArrayWithIntent(NiftiIntent::NIFTI_INTENT_NODE_INDEX);
+    GiftiDataArray* nodeIndexArray = getDataArrayWithIntent(NiftiIntentEnum::NIFTI_INTENT_NODE_INDEX);
    if (nodeIndexArray != NULL) {
       //
       // Make sure node index array is integer type and one dimensional
       //
-      if (nodeIndexArray->getDataType() != NiftiDataType::NIFTI_TYPE_INT32) {
+      if (nodeIndexArray->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_INT32) {
           throw GiftiException("Data type other than \"int\" not supported for data intent  node index.");
       }
       if (nodeIndexArray->getNumberOfDimensions() < 1) {
@@ -1096,7 +1096,7 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
       //
       // Make node index array integer
       //
-       nodeIndexArray->convertToDataType(NiftiDataType::NIFTI_TYPE_INT32);
+       nodeIndexArray->convertToDataType(NiftiDataTypeEnum::NIFTI_TYPE_INT32);
       
       //
       // Get the node indices
@@ -1104,7 +1104,7 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
       const int32_t numNodeIndices = nodeIndexArray->getDimension(0);
       if (numNodeIndices <= 0) {
          throw GiftiException("Dimension is zero for data intent: "
-                              + NiftiIntent::toName(NiftiIntent::NIFTI_INTENT_NODE_INDEX));
+                              + NiftiIntentEnum::toName(NiftiIntentEnum::NIFTI_INTENT_NODE_INDEX));
       }
       const int32_t zeroIndex[2] = { 0, 0 };
       const int32_t* indexData = nodeIndexArray->getDataInt32Pointer(zeroIndex);
@@ -1124,20 +1124,20 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
       const int32_t numArrays = getNumberOfDataArrays();
       for (int32_t i = 0; i < numArrays; i++) {
          GiftiDataArray* dataArray = getDataArray(i);
-          if (dataArray->getIntent() != NiftiIntent::NIFTI_INTENT_NODE_INDEX) {
+          if (dataArray->getIntent() != NiftiIntentEnum::NIFTI_INTENT_NODE_INDEX) {
             if (dataArray->getNumberOfDimensions() < 1) {
                throw GiftiException("Data Array with intent \""
-                                    + NiftiIntent::toName(dataArray->getIntent())
+                                    + NiftiIntentEnum::toName(dataArray->getIntent())
                                    + " is not one-dimensional in sparse node file.");
             }
             if (dataArray->getDimension(0) != numNodeIndices) {
                throw GiftiException("Data Array with intent \""
-                                   + NiftiIntent::toName(dataArray->getIntent())
+                                   + NiftiIntentEnum::toName(dataArray->getIntent())
                                    + " has a different number of nodes than the NIFTI_INTENT_NODE_INDEX array in the file.");
             }
             
             switch (dataArray->getDataType()) {
-                case NiftiDataType::NIFTI_TYPE_FLOAT32:
+                case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                   {
                      std::vector<float> dataFloat(numNodes, 0.0);
                      const float* readPtr = dataArray->getDataFloat32Pointer(zeroIndex);
@@ -1152,7 +1152,7 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
                      }
                   }
                   break;
-               case NiftiDataType::NIFTI_TYPE_INT32:
+               case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                   {
                      std::vector<int32_t> dataInt(numNodes, 0);
                      const int32_t* readPtr = dataArray->getDataInt32Pointer(zeroIndex);
@@ -1167,7 +1167,7 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
                      }
                   }
                   break;
-               case NiftiDataType::NIFTI_TYPE_UINT8:
+               case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                   {
                      std::vector<uint8_t> dataByte(numNodes, 0);
                      const uint8_t* readPtr = dataArray->getDataUInt8Pointer(zeroIndex);

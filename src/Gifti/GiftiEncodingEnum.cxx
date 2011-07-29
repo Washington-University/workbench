@@ -23,9 +23,9 @@
  */ 
 
 
-#define __PALETTE_SCALE_DECLARE__
-#include "PaletteScaleMode.h"
-#undef __PALETTE_SCALE_DECLARE__
+#define __GIFTIENCODING_DECLARE__
+#include "GiftiEncodingEnum.h"
+#undef __GIFTIENCODING_DECLARE__
 
 
 using namespace caret;
@@ -38,36 +38,37 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-PaletteScaleMode::PaletteScaleMode(
+GiftiEncodingEnum::GiftiEncodingEnum(
                    const Enum e,
                    const int32_t integerCode,
                    const std::string& name,
-                   const std::string& guiName)
+                   const std::string& giftiName)
 {
     this->e = e;
     this->integerCode = integerCode;
     this->name = name;
-    this->guiName = guiName;
+    this->giftiName = giftiName;
 }
 
 /**
  * Destructor.
  */
-PaletteScaleMode::~PaletteScaleMode()
+GiftiEncodingEnum::~GiftiEncodingEnum()
 {
 }
 
 void
-PaletteScaleMode::initialize()
+GiftiEncodingEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteScaleMode(MODE_AUTO_SCALE, 1, "MODE_AUTO_SCALE", "Auto Scale"));
-    enumData.push_back(PaletteScaleMode(MODE_AUTO_SCALE_PERCENTAGE, 1, "MODE_AUTO_SCALE_PERCENTAGE", "Auto Scale - Percentage"));
-    enumData.push_back(PaletteScaleMode(MODE_USER_SCALE, 1, "MODE_USER_SCALE", "User Scale"));
+    enumData.push_back(GiftiEncodingEnum(ASCII, -1, "ASCII", "ASCII"));
+    enumData.push_back(GiftiEncodingEnum(BASE64_BINARY, -1, "BASE64_BINARY", "Base64Binary"));
+    enumData.push_back(GiftiEncodingEnum(GZIP_BASE64_BINARY, -1, "GZIP_BASE64_BINARY", "GZipBase64Binary"));
+    enumData.push_back(GiftiEncodingEnum(EXTERNAL_FILE_BINARY, -1, "EXTERNAL_FILE_BINARY", "ExternalFileBinary"));
 }
 
 /**
@@ -77,14 +78,14 @@ PaletteScaleMode::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const PaletteScaleMode*
-PaletteScaleMode::findData(const Enum e)
+const GiftiEncodingEnum*
+GiftiEncodingEnum::findData(const Enum e)
 {
     initialize();
 
-    int64_t num = enumData.size();
-    for (int64_t i = 0; i < num; i++) {
-        const PaletteScaleMode* d = &enumData[i];
+    size_t num = enumData.size();
+    for (size_t i = 0; i < num; i++) {
+        const GiftiEncodingEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
@@ -101,11 +102,11 @@ PaletteScaleMode::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-PaletteScaleMode::toName(Enum e) {
+GiftiEncodingEnum::toName(Enum e) {
     initialize();
     
-    const PaletteScaleMode* psm = findData(e);
-    return psm->name;
+    const GiftiEncodingEnum* gaio = findData(e);
+    return gaio->name;
 }
 
 /**
@@ -118,18 +119,18 @@ PaletteScaleMode::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-PaletteScaleMode::Enum 
-PaletteScaleMode::fromName(const std::string& s, bool* isValidOut)
+GiftiEncodingEnum::Enum 
+GiftiEncodingEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteScaleMode>::iterator iter = enumData.begin();
+    for (std::vector<GiftiEncodingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteScaleMode& d = *iter;
+        const GiftiEncodingEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -144,22 +145,22 @@ PaletteScaleMode::fromName(const std::string& s, bool* isValidOut)
 }
 
 /**
- * Get a gui name representation of the enumerated type.
+ * Get a string representation of the enumerated type.
  * @param e 
  *     Enumerated value.
  * @return 
  *     String representing enumerated value.
  */
 std::string 
-PaletteScaleMode::toGuiName(Enum e) {
+GiftiEncodingEnum::toGiftiName(Enum e) {
     initialize();
     
-    const PaletteScaleMode* psm = findData(e);
-    return psm->guiName;
+    const GiftiEncodingEnum* gaio = findData(e);
+    return gaio->giftiName;
 }
 
 /**
- * Get an enumerated value corresponding to its gui name.
+ * Get an enumerated value corresponding to its name.
  * @param s 
  *     Name of enumerated value.
  * @param isValidOut 
@@ -168,69 +169,20 @@ PaletteScaleMode::toGuiName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-PaletteScaleMode::Enum 
-PaletteScaleMode::fromGuiName(const std::string& s, bool* isValidOut)
+GiftiEncodingEnum::Enum 
+GiftiEncodingEnum::fromGiftiName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<PaletteScaleMode>::iterator iter = enumData.begin();
+    for (std::vector<GiftiEncodingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const PaletteScaleMode& d = *iter;
-        if (d.guiName == s) {
+        const GiftiEncodingEnum& d = *iter;
+        if (d.giftiName == s) {
             e = d.e;
-            validFlag = true;
-            break;
-        }
-    }
-    
-    if (isValidOut != 0) {
-        *isValidOut = validFlag;
-    }
-    return e;
-}
-
-/**
- * Get the integer code associated with a scale mode.
- * @param e
- *   The enum.
- * @return 
- *   Integer code associated with a scale mode.
- */
-int32_t 
-PaletteScaleMode::toIntegerCode(Enum e)
-{
-    initialize();
-    const PaletteScaleMode* nsu = findData(e);
-    return nsu->integerCode;
-}
-
-/**
- * Find enum corresponding to integer code.
- * @param integerCode
- *    The integer code.
- * @param isValidOut
- *    If not NULL, on exit it indicates valid integer code.
- * @return
- *    Enum corresponding to integer code.
- */
-PaletteScaleMode::Enum 
-PaletteScaleMode::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
-{
-    initialize();
-    
-    bool validFlag = false;
-    Enum e;
-    
-    for (std::vector<PaletteScaleMode>::const_iterator iter = enumData.begin();
-         iter != enumData.end();
-         iter++) {
-        const PaletteScaleMode& nsu = *iter;
-        if (nsu.integerCode == integerCode) {
-            e = nsu.e;
             validFlag = true;
             break;
         }

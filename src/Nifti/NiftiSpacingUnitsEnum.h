@@ -36,7 +36,7 @@ namespace caret {
 /**
  * NIFTI Spacing Units
  */
-class NiftiSpacingUnits {
+class NiftiSpacingUnitsEnum {
 
 public:
     /**  NIFTI Spacing Units
@@ -53,11 +53,11 @@ public:
     };
 
 
-    ~NiftiSpacingUnits();
+    ~NiftiSpacingUnitsEnum();
 private:
-    NiftiSpacingUnits(Enum e, const int32_t integerCode, const std::string& name);
-    static const NiftiSpacingUnits* findData(Enum e);
-    static std::vector<NiftiSpacingUnits> spacingUnits;
+    NiftiSpacingUnitsEnum(Enum e, const int32_t integerCode, const std::string& name);
+    static const NiftiSpacingUnitsEnum* findData(Enum e);
+    static std::vector<NiftiSpacingUnitsEnum> spacingUnits;
     static void initializeSpacingUnits();
     static bool initializedFlag;
     
@@ -73,8 +73,8 @@ public:
 };
   
 #ifdef __NIFTI_SPACING_UNITS_DECLARE__
-    std::vector<NiftiSpacingUnits> NiftiSpacingUnits::spacingUnits;
-    bool NiftiSpacingUnits::initializedFlag = false;
+    std::vector<NiftiSpacingUnitsEnum> NiftiSpacingUnitsEnum::spacingUnits;
+    bool NiftiSpacingUnitsEnum::initializedFlag = false;
 #endif // __NIFTI_SPACING_UNITS_DECLARE__
 
 } // namespace

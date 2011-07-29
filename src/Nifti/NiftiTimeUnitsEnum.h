@@ -1,5 +1,5 @@
-#ifndef __BYTE_ORDER_H__
-#define __BYTE_ORDER_H__
+#ifndef __NIFTITIMEUNITS_H__
+#define __NIFTITIMEUNITS_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -35,61 +35,64 @@
 namespace caret {
 
 /**
- * Byte order.
+ * NIFTI Time Units
  */
-class ByteOrder {
+class NiftiTimeUnitsEnum {
 
 public:
-    /**  ENDIAN Types */
+    /**  NIFTI Time Units
+ */
     enum Enum {
         /**  */
-        ENDIAN_BIG,
+        NIFTI_UNITS_UNKNOWN,
         /**  */
-        ENDIAN_LITTLE
+        NIFTI_UNITS_SEC,
+        /**  */
+        NIFTI_UNITS_MSEC,
+        /**  */
+        NIFTI_UNITS_USEC,
+        /**  */
+        NIFTI_UNITS_HZ,
+        /**  */
+        NIFTI_UNITS_PPM
     };
 
 
-    ~ByteOrder();
+    ~NiftiTimeUnitsEnum();
 
-    static ByteOrder::Enum getSystemEndian();
-    
-    static bool isSystemLittleEndian();
-    
-    static bool isSystemBigEndian();
-    
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
+
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
 private:
-    ByteOrder(const Enum e, const std::string& name);
+    NiftiTimeUnitsEnum(const Enum e, const int32_t integerCode, const std::string& name);
 
-    Enum getEnum() const;
+    static const NiftiTimeUnitsEnum* findData(const Enum e);
     
-    std::string getName() const;
-    
-    static std::vector<ByteOrder> enumData;
+    static std::vector<NiftiTimeUnitsEnum> enumData;
 
-    static void initialize();
+    static void initializeTimeUnits();
 
     static bool initializedFlag;
 
-    static Enum systemEndian;
-    
     Enum e;
 
+    int32_t integerCode;
+    
     std::string name;
 
-    static const ByteOrder* findData(const Enum e);
 
 };
 
-#ifdef __BYTE_ORDER_DECLARE__
-    std::vector<ByteOrder> ByteOrder::enumData;
-    bool ByteOrder::initializedFlag = false;
-    ByteOrder::Enum ByteOrder::systemEndian;
-#endif // __BYTE_ORDER_DECLARE__
+#ifdef __NIFTITIMEUNITS_DECLARE__
+    std::vector<NiftiTimeUnitsEnum> NiftiTimeUnitsEnum::enumData;
+    bool NiftiTimeUnitsEnum::initializedFlag = false;
+#endif // __NIFTITIMEUNITS_DECLARE__
 
 } // namespace
 
-#endif // __BYTE_ORDER_H__
+#endif // __NIFTITIMEUNITS_H__

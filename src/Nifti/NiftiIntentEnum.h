@@ -36,7 +36,7 @@ namespace caret {
 /**
  * NIFTI Intent codes and related parameters.
  */
-class NiftiIntent {
+class NiftiIntentEnum {
 
 public:
     /**  NIFTI Intent codes and related parameters.
@@ -139,10 +139,10 @@ public:
     };
 
 
-    ~NiftiIntent();
+    ~NiftiIntentEnum();
 
 private:
-    NiftiIntent(const Enum e, 
+    NiftiIntentEnum(const Enum e, 
                 const std::string& enumName,
                 const int32_t integerCode,
                 const std::string& name,
@@ -150,7 +150,7 @@ private:
                 const std::string& p2Name,
                 const std::string& p3Name);
     
-    NiftiIntent();
+    NiftiIntentEnum();
     
     Enum e;
     std::string enumName;
@@ -161,9 +161,9 @@ private:
     std::string p3Name;
     
     static void initializeIntents();
-    static const NiftiIntent* findData(Enum e);
+    static const NiftiIntentEnum* findData(Enum e);
 
-    static std::vector<NiftiIntent> intents;
+    static std::vector<NiftiIntentEnum> intents;
     static bool intentsCreatedFlag;
 
 public:
@@ -178,8 +178,8 @@ public:
 };
     
 #ifdef __NIFTI_INTENT_DECLARE__
-    std::vector<NiftiIntent> NiftiIntent::intents;
-    bool NiftiIntent::intentsCreatedFlag = false;
+    std::vector<NiftiIntentEnum> NiftiIntentEnum::intents;
+    bool NiftiIntentEnum::intentsCreatedFlag = false;
 #endif // __NIFTI_INTENT_DECLARE__
 
 

@@ -1,5 +1,5 @@
-#ifndef __PALETTETHRESHOLDTEST_H__
-#define __PALETTETHRESHOLDTEST_H__
+#ifndef __PALETTETHRESHOLDTYPE_H__
+#define __PALETTETHRESHOLDTYPE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -25,28 +25,33 @@
  * 
  */ 
 
-#include <stdint.h>
+
 #include <vector>
 #include <string>
+#include <stdint.h>
 
 namespace caret {
 
 /**
- * Palette Threshold Test.
+ * Palette Threshold Type.
  */
-class PaletteThresholdTest {
+class PaletteThresholdTypeEnum {
 
 public:
-    /** Palette Threshold Test. */
+    /**  Palette Threshold Type. */
     enum Enum {
-        /** show data when value is greater than threshold value */
-        THRESHOLD_TEST_SHOW_ABOVE,
-        /** show data when value is less than threshold value */
-        THRESHOLD_TEST_SHOW_BELOW
+        /** thresholding is off */
+        THRESHOLD_TYPE_OFF,
+        /** normal thresholding */
+        THRESHOLD_TYPE_NORMAL,
+        /** threshold from mapping of volume */
+        THRESHOLD_TYPE_MAPPED,
+        /** threshold from mapping to PALS average area */
+        THRESHOLD_TYPE_MAPPED_AVERAGE_AREA
     };
 
 
-    ~PaletteThresholdTest();
+    ~PaletteThresholdTypeEnum();
 
     static std::string toName(Enum e);
     
@@ -59,13 +64,13 @@ public:
     static int32_t toIntegerCode(Enum e);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
-    
+
 private:
-    PaletteThresholdTest(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
+    PaletteThresholdTypeEnum(const Enum e, const int32_t integerCode, const std::string& name, const std::string& guiName);
 
-    static const PaletteThresholdTest* findData(const Enum e);
-
-    static std::vector<PaletteThresholdTest> enumData;
+    static const PaletteThresholdTypeEnum* findData(const Enum e);
+    
+    static std::vector<PaletteThresholdTypeEnum> enumData;
 
     static void initialize();
 
@@ -82,11 +87,11 @@ private:
 
 };
 
-#ifdef __PALETTE_THRESHOLD_TEST_DECLARE__
-    std::vector<PaletteThresholdTest> PaletteThresholdTest::enumData;
-bool PaletteThresholdTest::initializedFlag = false;
-#endif // __PALETTE_THRESHOLD_TEST_DECLARE__
+#ifdef __PALETTE_THRESHOLDTYPE_DECLARE__
+    std::vector<PaletteThresholdTypeEnum> PaletteThresholdTypeEnum::enumData;
+bool PaletteThresholdTypeEnum::initializedFlag = false;
+#endif // __PALETTE_THRESHOLDTYPE_DECLARE__
 
 } // namespace
 
-#endif // __PALETTETHRESHOLDTEST_H__
+#endif // __PALETTETHRESHOLDTYPE_H__

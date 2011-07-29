@@ -23,11 +23,10 @@
  */ 
 
 
-#define __NIFTIVERSION_DECLARE__
-#include "NiftiVersion.h"
-#undef __NIFTIVERSION_DECLARE__
+#define __GIFTIARRAYINDEXINGORDER_DECLARE__
+#include "GiftiArrayIndexingOrderEnum.h"
+#undef __GIFTIARRAYINDEXINGORDER_DECLARE__
 
-#include <cassert>
 
 using namespace caret;
 
@@ -39,33 +38,33 @@ using namespace caret;
  * @param name
  *    Name of enumberated value.
  */
-NiftiVersion::NiftiVersion(
+GiftiArrayIndexingOrderEnum::GiftiArrayIndexingOrderEnum(
                    const Enum e,
-                   const int32_t integerCode,
-                   const std::string& name)
+                   const std::string& name,
+                   const std::string& giftiName)
 {
     this->e = e;
-    this->integerCode = integerCode;
     this->name = name;
+    this->giftiName = giftiName;
 }
 
 /**
  * Destructor.
  */
-NiftiVersion::~NiftiVersion()
+GiftiArrayIndexingOrderEnum::~GiftiArrayIndexingOrderEnum()
 {
 }
 
 void
-NiftiVersion::initialize()
+GiftiArrayIndexingOrderEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(NiftiVersion(NIFTI_VERSION_1, 348, "NIFTI_VERSION_1"));
-    enumData.push_back(NiftiVersion(NIFTI_VERSION_2, 540, "NIFTI_VERSION_2"));
+    enumData.push_back(GiftiArrayIndexingOrderEnum(COLUMN_MAJOR_ORDER, "COLUMN_MAJOR_ORDER", "ColumnMajorOrder"));
+    enumData.push_back(GiftiArrayIndexingOrderEnum(ROW_MAJOR_ORDER, "ROW_MAJOR_ORDER", "RowMajorOrder"));
 }
 
 /**
@@ -75,20 +74,19 @@ NiftiVersion::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const NiftiVersion*
-NiftiVersion::findData(const Enum e)
+const GiftiArrayIndexingOrderEnum*
+GiftiArrayIndexingOrderEnum::findData(const Enum e)
 {
     initialize();
-    int64_t num = enumData.size();
-    for (int64_t i = 0; i < num; i++) {
-        const NiftiVersion* d = &enumData[i];
+
+    size_t num = enumData.size();
+    for (size_t i = 0; i < num; i++) {
+        const GiftiArrayIndexingOrderEnum* d = &enumData[i];
         if (d->e == e) {
             return d;
         }
     }
 
-    assert(0);
-    
     return NULL;
 }
 
@@ -100,11 +98,11 @@ NiftiVersion::findData(const Enum e)
  *     String representing enumerated value.
  */
 std::string 
-NiftiVersion::toName(Enum e) {
+GiftiArrayIndexingOrderEnum::toName(Enum e) {
     initialize();
     
-    const NiftiVersion* nv = findData(e);
-    return nv->name;
+    const GiftiArrayIndexingOrderEnum* gaio = findData(e);
+    return gaio->name;
 }
 
 /**
@@ -117,18 +115,18 @@ NiftiVersion::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-NiftiVersion::Enum 
-NiftiVersion::fromName(const std::string& s, bool* isValidOut)
+GiftiArrayIndexingOrderEnum::Enum 
+GiftiArrayIndexingOrderEnum::fromName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiVersion>::iterator iter = enumData.begin();
+    for (std::vector<GiftiArrayIndexingOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiVersion& d = *iter;
+        const GiftiArrayIndexingOrderEnum& d = *iter;
         if (d.name == s) {
             e = d.e;
             validFlag = true;
@@ -143,43 +141,44 @@ NiftiVersion::fromName(const std::string& s, bool* isValidOut)
 }
 
 /**
- * Get the integer code associated with a transform.
- * @param e
- *   The enum.
+ * Get a string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
  * @return 
- *   Integer code associated with a transform.
+ *     String representing enumerated value.
  */
-int32_t 
-NiftiVersion::toIntegerCode(Enum e)
-{
+std::string 
+GiftiArrayIndexingOrderEnum::toGiftiName(Enum e) {
     initialize();
-    const NiftiVersion* nsu = findData(e);
-    return nsu->integerCode;
+    
+    const GiftiArrayIndexingOrderEnum* gaio = findData(e);
+    return gaio->giftiName;
 }
 
 /**
- * Find enum corresponding to integer code.
- * @param integerCode
- *    The integer code.
- * @param isValidOut
- *    If not NULL, on exit it indicates valid integer code.
- * @return
- *    Enum corresponding to integer code.
+ * Get an enumerated value corresponding to its name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
  */
-NiftiVersion::Enum 
-NiftiVersion::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+GiftiArrayIndexingOrderEnum::Enum 
+GiftiArrayIndexingOrderEnum::fromGiftiName(const std::string& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
     
-    for (std::vector<NiftiVersion>::const_iterator iter = enumData.begin();
+    for (std::vector<GiftiArrayIndexingOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const NiftiVersion& nsu = *iter;
-        if (nsu.integerCode == integerCode) {
-            e = nsu.e;
+        const GiftiArrayIndexingOrderEnum& d = *iter;
+        if (d.giftiName == s) {
+            e = d.e;
             validFlag = true;
             break;
         }
@@ -190,5 +189,3 @@ NiftiVersion::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     }
     return e;
 }
-
-

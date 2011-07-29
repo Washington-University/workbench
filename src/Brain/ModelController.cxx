@@ -26,7 +26,7 @@
 #include "ModelController.h"
 
 #include "Brain.h"
-#include "CaretWindow.h"
+#include "CaretWindowEnum.h"
 #include "Matrix4x4.h"
 
 using namespace caret;
@@ -86,19 +86,19 @@ ModelController::getBrain() const
 void
 ModelController::initializeTransformations()
 {
-    this->viewingRotationMatrix.reserve(CaretWindow::NUMBER_OF_WINDOWS);
-    this->translation.reserve(CaretWindow::NUMBER_OF_WINDOWS * 3);
-    this->scaling.reserve(CaretWindow::NUMBER_OF_WINDOWS);
+    this->viewingRotationMatrix.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS);
+    this->translation.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS * 3);
+    this->scaling.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS);
     
-    for (int32_t i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
         this->viewingRotationMatrix.push_back(new Matrix4x4());
         this->scaling.push_back(this->defaultModelScaling);
     }
-    for (int32_t i = 0; i < (CaretWindow::NUMBER_OF_WINDOWS * 3); i++) {
+    for (int32_t i = 0; i < (CaretWindowEnum::NUMBER_OF_WINDOWS * 3); i++) {
         this->translation.push_back(0.0f);
     }
     
-    for (int32_t i = 0; i < CaretWindow::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
         this->resetView(i);
     }
 }

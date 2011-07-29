@@ -23,83 +23,83 @@
  */ 
 
 #define __NIFTI_DATA_TYPE_DECLARE__
-#include "NiftiDataType.h"
+#include "NiftiDataTypeEnum.h"
 #undef __NIFTI_DATA_TYPE_DECLARE__
 
 
 using namespace caret;
 
-NiftiDataType::NiftiDataType()
+NiftiDataTypeEnum::NiftiDataTypeEnum()
 {
     
 }
 
-NiftiDataType::NiftiDataType(Enum e, const std::string& name, const int32_t integerCode)
+NiftiDataTypeEnum::NiftiDataTypeEnum(Enum e, const std::string& name, const int32_t integerCode)
 {
     this->e = e;
     this->name = name;
     this->integerCode = integerCode;
 }
 
-NiftiDataType::~NiftiDataType()
+NiftiDataTypeEnum::~NiftiDataTypeEnum()
 {
     
 }
 
 void 
-NiftiDataType::createDataTypes()
+NiftiDataTypeEnum::createDataTypes()
 {
     if (dataTypesCreatedFlag) {
         return;
     }
     dataTypesCreatedFlag = true;
     
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_INVALID,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_INVALID,
                                      "NIFTI_DATA_TYPE_NONE",
                                       0));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_UINT8,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_UINT8,
                                      "NIFTI_TYPE_UINT8",
                                       2));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_INT16,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_INT16,
                                      "NIFTI_TYPE_INT16",
                                       4));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_INT32,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_INT32,
                                      "NIFTI_TYPE_INT32",
                                       8));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_FLOAT32,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_FLOAT32,
                                      "NIFTI_TYPE_FLOAT32",
                                       16));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_COMPLEX64,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_COMPLEX64,
                                      "NIFTI_TYPE_COMPLEX64",
                                       32));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_FLOAT64,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_FLOAT64,
                                      "NIFTI_TYPE_FLOAT64",
                                      64));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_RGB24,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_RGB24,
                                      "NIFTI_TYPE_RGB24",
                                       128));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_INT8,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_INT8,
                                      "NIFTI_TYPE_INT8",
                                       256));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_UINT16,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_UINT16,
                                      "NIFTI_TYPE_UINT16",
                                       512));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_UINT32,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_UINT32,
                                      "NIFTI_TYPE_UINT32",
                                       768));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_INT64,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_INT64,
                                      "NIFTI_TYPE_INT64",
                                       1024));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_UINT64,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_UINT64,
                                      "NIFTI_TYPE_UINT64",
                                       1280));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_FLOAT128,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_FLOAT128,
                                      "NIFTI_TYPE_FLOAT128",
                                       1792));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_COMPLEX128,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_COMPLEX128,
                                      "NIFTI_TYPE_COMPLEX128",
                                       1792));
-    dataTypes.push_back(NiftiDataType(NIFTI_TYPE_COMPLEX256,
+    dataTypes.push_back(NiftiDataTypeEnum(NIFTI_TYPE_COMPLEX256,
                                      "NIFTI_TYPE_COMPLEX256",
                                       2048));
 }
@@ -112,10 +112,10 @@ NiftiDataType::createDataTypes()
  *     String representing enumerated value.
  */
 std::string 
-NiftiDataType::toName(Enum e) {
+NiftiDataTypeEnum::toName(Enum e) {
     createDataTypes();
 
-    const NiftiDataType* ndt = findData(e);
+    const NiftiDataTypeEnum* ndt = findData(e);
     return ndt->name;
 }
 
@@ -129,18 +129,18 @@ NiftiDataType::toName(Enum e) {
  * @return 
  *     Enumerated value.
  */
-NiftiDataType::Enum 
-NiftiDataType::fromName(const std::string& s, bool* isValidOut)
+NiftiDataTypeEnum::Enum 
+NiftiDataTypeEnum::fromName(const std::string& s, bool* isValidOut)
 {
     createDataTypes();
     
     bool validFlag = false;
     Enum e = NIFTI_TYPE_FLOAT32;
     
-    for (std::vector<NiftiDataType>::iterator iter = dataTypes.begin();
+    for (std::vector<NiftiDataTypeEnum>::iterator iter = dataTypes.begin();
          iter != dataTypes.end();
          iter++) {
-        const NiftiDataType& ndt = *iter;
+        const NiftiDataTypeEnum& ndt = *iter;
         if (ndt.name == s) {
             e = ndt.e;
             validFlag = true;
@@ -160,15 +160,15 @@ NiftiDataType::fromName(const std::string& s, bool* isValidOut)
  * @return 
  *    Object using enum or NULL if not found.
  */
-const NiftiDataType* 
-NiftiDataType::findData(Enum e)
+const NiftiDataTypeEnum* 
+NiftiDataTypeEnum::findData(Enum e)
 {
     createDataTypes();
     
-    for (std::vector<NiftiDataType>::iterator iter = dataTypes.begin();
+    for (std::vector<NiftiDataTypeEnum>::iterator iter = dataTypes.begin();
          iter != dataTypes.end();
          iter++) {
-        const NiftiDataType& ndt = *iter;
+        const NiftiDataTypeEnum& ndt = *iter;
         return &ndt;
     }    
     return NULL;
@@ -181,10 +181,10 @@ NiftiDataType::findData(Enum e)
  *    Integer code for data type.
  */
 int32_t 
-NiftiDataType::toIntegerCode(Enum e)
+NiftiDataTypeEnum::toIntegerCode(Enum e)
 {
     createDataTypes();
-    const NiftiDataType* ndt = findData(e);
+    const NiftiDataTypeEnum* ndt = findData(e);
     return ndt->integerCode;
 }
 
@@ -199,18 +199,18 @@ NiftiDataType::toIntegerCode(Enum e)
  * @return
  *     Enum for integer code.
  */
-NiftiDataType::Enum 
-NiftiDataType::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+NiftiDataTypeEnum::Enum 
+NiftiDataTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     createDataTypes();
     
     bool validFlag = false;
     Enum e = NIFTI_TYPE_FLOAT32;
     
-    for (std::vector<NiftiDataType>::iterator iter = dataTypes.begin();
+    for (std::vector<NiftiDataTypeEnum>::iterator iter = dataTypes.begin();
          iter != dataTypes.end();
          iter++) {
-        const NiftiDataType& ndt = *iter;
+        const NiftiDataTypeEnum& ndt = *iter;
         if (ndt.integerCode == integerCode) {
             e = ndt.e;
             validFlag = true;

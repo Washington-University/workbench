@@ -35,14 +35,14 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
-#include "GiftiArrayIndexingOrder.h"
-#include "GiftiEncoding.h"
-#include "GiftiEndian.h"
+#include "GiftiArrayIndexingOrderEnum.h"
+#include "GiftiEncodingEnum.h"
+#include "GiftiEndianEnum.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "Matrix4x4.h"
-#include "NiftiDataType.h"
-#include "NiftiIntent.h"
+#include "NiftiDataTypeEnum.h"
+#include "NiftiIntentEnum.h"
 #include "TracksModificationInterface.h"
 
 
@@ -57,14 +57,14 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
    public:            
       // constructor
       GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                     const NiftiIntent::Enum intentIn,
-                     const NiftiDataType::Enum dataTypeIn,
+                     const NiftiIntentEnum::Enum intentIn,
+                     const NiftiDataTypeEnum::Enum dataTypeIn,
                      const std::vector<int64_t>& dimensionsIn,
-                     const GiftiEncoding::Enum encodingIn = GiftiEncoding::ASCII);
+                     const GiftiEncodingEnum::Enum encodingIn = GiftiEncodingEnum::ASCII);
       
       // constructor used when reading data
       GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                     const NiftiIntent::Enum intentIn);
+                     const NiftiIntentEnum::Enum intentIn);
       
       // copy constructor
       GiftiDataArray(const GiftiDataArray& nda);
@@ -82,7 +82,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       void deleteRows(const std::vector<int32_t>& rowsToDelete);
       
       // convert all data arrays to data type
-      void convertToDataType(const NiftiDataType::Enum newDataType);
+      void convertToDataType(const NiftiDataTypeEnum::Enum newDataType);
       
       // set the dimensions 
       void setDimensions(const std::vector<int64_t> dimensionsIn);
@@ -120,11 +120,11 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
                     
       // read a data array from text
     void readFromText(const std::string text,
-                        const GiftiEndian::Enum dataEndianForReading,
-                        const GiftiArrayIndexingOrder::Enum arraySubscriptingOrderForReading,
-                        const NiftiDataType::Enum dataTypeForReading,
+                        const GiftiEndianEnum::Enum dataEndianForReading,
+                        const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
+                        const NiftiDataTypeEnum::Enum dataTypeForReading,
                         const std::vector<int64_t>& dimensionsForReading,
-                        const GiftiEncoding::Enum encodingForReading,
+                        const GiftiEncodingEnum::Enum encodingForReading,
                         const std::string& externalFileNameForReading,
                         const int64_t externalFileOffsetForReading) throw (GiftiException);
                                                
@@ -133,14 +133,14 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
                       std::ostream* externalBinaryOutputStream) throw (GiftiException);
                      
       /// get endian
-      GiftiEndian::Enum getEndian() const { return endian; }
+      GiftiEndianEnum::Enum getEndian() const { return endian; }
       
       // set endian
-    void setEndian(const GiftiEndian::Enum e) { endian = e; }
+    void setEndian(const GiftiEndianEnum::Enum e) { endian = e; }
       
       
       /// get the system's endian
-      static GiftiEndian::Enum getSystemEndian();
+      static GiftiEndianEnum::Enum getSystemEndian();
       
       
       // get external file information
@@ -185,31 +185,31 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       //const GiftiMetaData* getNonWrittenMetaData() const { return &nonWrittenMetaData; }
       
       /// get the data type
-    NiftiDataType::Enum getDataType() const { return dataType; }
+    NiftiDataTypeEnum::Enum getDataType() const { return dataType; }
       
       /// set the data type
-      void setDataType(const NiftiDataType::Enum dt) { dataType = dt; setModified(); }
+      void setDataType(const NiftiDataTypeEnum::Enum dt) { dataType = dt; setModified(); }
       
       /// get the encoding
-    GiftiEncoding::Enum getEncoding() const { return encoding; }
+    GiftiEncodingEnum::Enum getEncoding() const { return encoding; }
       
       /// set the encoding
-      void setEncoding(const GiftiEncoding::Enum e) { encoding = e; setModified(); }
+      void setEncoding(const GiftiEncodingEnum::Enum e) { encoding = e; setModified(); }
       
       /// get the data intent
-    NiftiIntent::Enum getIntent() const { return intent; }
+    NiftiIntentEnum::Enum getIntent() const { return intent; }
       
       /// set the data intent
-      void setIntent(const NiftiIntent::Enum cat) { intent = cat; setModified(); }
+      void setIntent(const NiftiIntentEnum::Enum cat) { intent = cat; setModified(); }
       
       /// valid intent name
       static bool intentNameValid(const std::string& intentNameIn);
       
       /// get array subscripting order
-    GiftiArrayIndexingOrder::Enum getArraySubscriptingOrder() const { return arraySubscriptingOrder; }
+    GiftiArrayIndexingOrderEnum::Enum getArraySubscriptingOrder() const { return arraySubscriptingOrder; }
       
       /// set array subscripting order
-      void setArraySubscriptingOrder(const GiftiArrayIndexingOrder::Enum aso) { arraySubscriptingOrder = aso; }
+      void setArraySubscriptingOrder(const GiftiArrayIndexingOrderEnum::Enum aso) { arraySubscriptingOrder = aso; }
       
       /// get pointer for floating point data (valid only if data type is FLOAT)
       float* getDataPointerFloat() { return dataPointerFloat; }
@@ -259,8 +259,8 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       void transferLabelIndices(const std::map<int32_t,int32_t>& indexConverter);
 
       // get the data type appropriate for the intent (returns true if valid intent)
-      static bool getDataTypeAppropriateForIntent(const NiftiIntent::Enum intentIn,
-                                                  NiftiDataType::Enum& dataTypeOut);
+      static bool getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum intentIn,
+                                                  NiftiDataTypeEnum::Enum& dataTypeOut);
       
       // get an offset for indices into data (dimensionality of indices must be same as data)
       int64_t getDataOffset(const int32_t indices[]) const;
@@ -311,7 +311,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       void updateDataPointers();
       
       // byte swap the data (data read is different endian than this system)
-    void byteSwapData(const GiftiEndian::Enum newEndian);
+    void byteSwapData(const GiftiEndianEnum::Enum newEndian);
       
       /// convert array indexing order of data
       void convertArrayIndexingOrder() throw (GiftiException);
@@ -347,19 +347,19 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       std::vector<int64_t> dimensions;
       
       /// data type
-    NiftiDataType::Enum dataType;
+    NiftiDataTypeEnum::Enum dataType;
       
       /// encoding of data
-    GiftiEncoding::Enum encoding;
+    GiftiEncodingEnum::Enum encoding;
       
       // endian of data
-    GiftiEndian::Enum endian;
+    GiftiEndianEnum::Enum endian;
       
       /// intent name
-      NiftiIntent::Enum intent;
+      NiftiIntentEnum::Enum intent;
       
       /// array subscripting order
-    GiftiArrayIndexingOrder::Enum arraySubscriptingOrder;
+    GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrder;
       
       /// external file name
       std::string externalFileName;

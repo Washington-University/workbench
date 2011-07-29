@@ -138,17 +138,19 @@ namespace GiftiXmlElements {
    /** attribute for GIFTI Version */
    static const std::string ATTRIBUTE_GIFTI_VERSION =  "Version"; 
     
+   std::string getAttributeDimension(int32_t dimIndex);
+    
     /**
      * Get an attribute dimension (Dim0, Dim1, etc).
      * @param  Index value for dimension.
      * @return Dim0, Dim1, etc
-     */
+     *
     static std::string getAttributeDimension(int32_t dimIndex) {
         std::ostringstream str;
         str << ATTRIBUTE_DATA_ARRAY_DIM_PREFIX << dimIndex;;
         return str.str();
     }
-
+    */
 /*
     static const std::string tagGIFTI  = "GIFTI";
     static const std::string tagMetaData = "MetaData";

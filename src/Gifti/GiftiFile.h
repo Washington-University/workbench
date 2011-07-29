@@ -30,8 +30,8 @@
 #include "DataFile.h"
 #include "GiftiDataArray.h"
 #include "GiftiLabelTable.h"
-#include "NiftiDataType.h"
-#include "NiftiIntent.h"
+#include "NiftiDataTypeEnum.h"
+#include "NiftiIntentEnum.h"
 #include "TracksModificationInterface.h"
 
 namespace caret { 
@@ -48,8 +48,8 @@ class GiftiFile : public DataFile {
       
       /// constructor
     GiftiFile(const std::string& descriptiveName,
-              const NiftiIntent::Enum defaultDataArrayIntentIn,
-              const NiftiDataType::Enum defaultDataTypeIn,
+              const NiftiIntentEnum::Enum defaultDataArrayIntentIn,
+              const NiftiDataTypeEnum::Enum defaultDataTypeIn,
               const std::string& defaultExt,
               const bool dataAreIndicesIntoLabelTableIn);
       
@@ -130,13 +130,13 @@ class GiftiFile : public DataFile {
       const GiftiDataArray* getDataArrayWithName(const std::string& n) const;
  
       // get the index of the data array of the specified intent
-    int32_t getDataArrayWithIntentIndex(const NiftiIntent::Enum intent) const;
+    int32_t getDataArrayWithIntentIndex(const NiftiIntentEnum::Enum intent) const;
       
       // get the data array of the specified intent
-    GiftiDataArray* getDataArrayWithIntent(const NiftiIntent::Enum intent);
+    GiftiDataArray* getDataArrayWithIntent(const NiftiIntentEnum::Enum intent);
       
       // get the data array of the specified intent (const method)
-    const GiftiDataArray* getDataArrayWithIntent(const NiftiIntent::Enum intent) const;
+    const GiftiDataArray* getDataArrayWithIntent(const NiftiIntentEnum::Enum intent) const;
       
       // get the comment for a data array
       std::string getDataArrayComment(const int32_t arrayIndex) const;
@@ -172,10 +172,10 @@ class GiftiFile : public DataFile {
       static float getCurrentFileVersion() { return 1.0; }
       
       /// get the default data array intent
-      NiftiIntent::Enum getDefaultDataArrayIntent() const { return defaultDataArrayIntent; }
+      NiftiIntentEnum::Enum getDefaultDataArrayIntent() const { return defaultDataArrayIntent; }
       
       /// get the default data array intent
-      void setDefaultDataArrayIntent(const NiftiIntent::Enum newIntent);
+      void setDefaultDataArrayIntent(const NiftiIntentEnum::Enum newIntent);
       
       /// set the number of nodes for sparse node index files (NIFTI_INTENT_NODE_INDEX)
       void setNumberOfNodesForSparseNodeIndexFiles(const int32_t numNodes);
@@ -220,10 +220,10 @@ class GiftiFile : public DataFile {
       GiftiMetaData metaData;
       
       /// the default data type
-      NiftiDataType::Enum defaultDataType;
+      NiftiDataTypeEnum::Enum defaultDataType;
       
       /// default data array intent for this file
-      NiftiIntent::Enum defaultDataArrayIntent;
+      NiftiIntentEnum::Enum defaultDataArrayIntent;
       
       /// data arrays contain indices into label table
       bool dataAreIndicesIntoLabelTable;

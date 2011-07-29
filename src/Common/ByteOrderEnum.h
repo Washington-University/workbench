@@ -1,5 +1,5 @@
-#ifndef __NIFTIVERSION_H__
-#define __NIFTIVERSION_H__
+#ifndef __BYTE_ORDER_H__
+#define __BYTE_ORDER_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -35,55 +35,61 @@
 namespace caret {
 
 /**
- * The NIFTI version
+ * Byte order.
  */
-class NiftiVersion {
+class ByteOrderEnum {
 
 public:
-    /**  The NIFTI version
- */
+    /**  ENDIAN Types */
     enum Enum {
-        /** NIFTI-1  */
-        NIFTI_VERSION_1,
-        /** NIFTI-2  */
-        NIFTI_VERSION_2
+        /**  */
+        ENDIAN_BIG,
+        /**  */
+        ENDIAN_LITTLE
     };
 
 
-    ~NiftiVersion();
+    ~ByteOrderEnum();
 
+    static ByteOrderEnum::Enum getSystemEndian();
+    
+    static bool isSystemLittleEndian();
+    
+    static bool isSystemBigEndian();
+    
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
-    
-    static int32_t toIntegerCode(Enum e);
-    
-    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
-    
-private:
-    NiftiVersion(const Enum e, const int32_t integerCode, const std::string& name);
 
-    static std::vector<NiftiVersion> enumData;
+private:
+    ByteOrderEnum(const Enum e, const std::string& name);
+
+    Enum getEnum() const;
+    
+    std::string getName() const;
+    
+    static std::vector<ByteOrderEnum> enumData;
 
     static void initialize();
 
     static bool initializedFlag;
 
+    static Enum systemEndian;
+    
     Enum e;
-
-    int32_t integerCode;
 
     std::string name;
 
-    static const NiftiVersion* findData(const Enum e);
+    static const ByteOrderEnum* findData(const Enum e);
 
 };
 
-#ifdef __NIFTIVERSION_DECLARE__
-    std::vector<NiftiVersion> NiftiVersion::enumData;
-    bool NiftiVersion::initializedFlag = false;
-#endif // __NIFTIVERSION_DECLARE__
+#ifdef __BYTE_ORDER_DECLARE__
+    std::vector<ByteOrderEnum> ByteOrderEnum::enumData;
+    bool ByteOrderEnum::initializedFlag = false;
+    ByteOrderEnum::Enum ByteOrderEnum::systemEndian;
+#endif // __BYTE_ORDER_DECLARE__
 
 } // namespace
 
-#endif // __NIFTIVERSION_H__
+#endif // __BYTE_ORDER_H__

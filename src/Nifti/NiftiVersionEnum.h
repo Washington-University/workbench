@@ -1,5 +1,5 @@
-#ifndef __GIFTIARRAYINDEXINGORDER_H__
-#define __GIFTIARRAYINDEXINGORDER_H__
+#ifndef __NIFTIVERSION_H__
+#define __NIFTIVERSION_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,48 +26,44 @@
  */ 
 
 
-#include "GiftiException.h"
 
 #include <stdint.h>
+
 #include <vector>
 #include <string>
 
 namespace caret {
 
 /**
- * Type for GIFTI Data Array ArrayIndexingOrder Attribute.
+ * The NIFTI version
  */
-class GiftiArrayIndexingOrder {
+class NiftiVersionEnum {
 
 public:
-    /**  Type for GIFTI Data Array ArrayIndexingOrder Attribute.
+    /**  The NIFTI version
  */
     enum Enum {
-        /** Column-Major Order (Fortran/Matlab)  */
-        COLUMN_MAJOR_ORDER,
-        /** Row-Major Order (C/C++/Java)  */
-        ROW_MAJOR_ORDER
+        /** NIFTI-1  */
+        NIFTI_VERSION_1,
+        /** NIFTI-2  */
+        NIFTI_VERSION_2
     };
-    
-    ~GiftiArrayIndexingOrder();
+
+
+    ~NiftiVersionEnum();
 
     static std::string toName(Enum e);
     
     static Enum fromName(const std::string& s, bool* isValidOut);
     
-    static std::string toGiftiName(Enum e);
+    static int32_t toIntegerCode(Enum e);
     
-    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     
-
 private:
-    GiftiArrayIndexingOrder(const Enum e, 
-                            const std::string& name,
-                            const std::string& giftiName);
+    NiftiVersionEnum(const Enum e, const int32_t integerCode, const std::string& name);
 
-    static const GiftiArrayIndexingOrder* findData(const Enum e);
-    
-    static std::vector<GiftiArrayIndexingOrder> enumData;
+    static std::vector<NiftiVersionEnum> enumData;
 
     static void initialize();
 
@@ -75,16 +71,19 @@ private:
 
     Enum e;
 
+    int32_t integerCode;
+
     std::string name;
 
-    std::string giftiName;
+    static const NiftiVersionEnum* findData(const Enum e);
+
 };
 
-#ifdef __GIFTIARRAYINDEXINGORDER_DECLARE__
-std::vector<GiftiArrayIndexingOrder> GiftiArrayIndexingOrder::enumData;
-bool GiftiArrayIndexingOrder::initializedFlag = false;
-#endif // __GIFTIARRAYINDEXINGORDER_DECLARE__
+#ifdef __NIFTIVERSION_DECLARE__
+    std::vector<NiftiVersionEnum> NiftiVersionEnum::enumData;
+    bool NiftiVersionEnum::initializedFlag = false;
+#endif // __NIFTIVERSION_DECLARE__
 
 } // namespace
 
-#endif // __GIFTIARRAYINDEXINGORDER_H__
+#endif // __NIFTIVERSION_H__

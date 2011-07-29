@@ -29,7 +29,7 @@
 #include <QGLWidget>
 
 #include <stdint.h>
-#include "CaretWindow.h"
+#include "CaretWindowEnum.h"
 
 class QMouseEvent;
 
@@ -64,13 +64,13 @@ namespace caret {
         
     private:
         BrainOpenGL* openGL;
-        CaretWindow* caretWindow;
+        CaretWindowEnum* CaretWindow;
         int32_t windowIndex;
         
         ModelController* modelController;
         
-        int32_t windowWidth[CaretWindow::NUMBER_OF_WINDOWS];
-        int32_t windowHeight[CaretWindow::NUMBER_OF_WINDOWS];
+        int32_t windowWidth[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        int32_t windowHeight[CaretWindowEnum::NUMBER_OF_WINDOWS];
         
         int32_t mouseMovedBounds[4];
         
