@@ -42,7 +42,9 @@ Surface::Surface()
  */
 Surface::~Surface()
 {
-    
+    if (this->surfaceController != NULL) {
+        delete this->surfaceController;
+    }
 }
 
 /**

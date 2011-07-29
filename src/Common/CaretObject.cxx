@@ -99,9 +99,20 @@ CaretObject::copyHelper(const CaretObject&)
 std::string
 CaretObject::toString() const
 {
-    std::string typeName(typeid(*this).name());
-    std::string s = "Type=" + typeName;
+    std::string s = "Type=" + this->className();
     return s;
+}
+
+/**
+ * Get the class name of this object.
+ * @return 
+ *    Class name of the object.
+ */
+std::string 
+CaretObject::className() const
+{
+    std::string name(typeid(*this).name());
+    return name;    
 }
 
 /**

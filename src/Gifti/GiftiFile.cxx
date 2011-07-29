@@ -123,6 +123,9 @@ GiftiFile::copyHelperGiftiFile(const GiftiFile& nndf)
  */
 GiftiFile::~GiftiFile()
 {
+    for (uint64_t i = 0; i < this->dataArrays.size(); i++) {
+        delete this->dataArrays[i];
+    }
 }
 
 /**

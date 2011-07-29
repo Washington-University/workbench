@@ -42,7 +42,9 @@ BrainStructure::BrainStructure(Brain* brain)
  */
 BrainStructure::~BrainStructure()
 {
-    
+    for (uint64_t i = 0; i < this->surfaces.size(); i++) {
+        delete this->surfaces[i];
+    }
 }
 
 /**

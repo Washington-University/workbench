@@ -49,6 +49,8 @@ public:
 
     virtual std::string toString() const;
     
+    std::string className() const;
+    
     static void printListOfObjectsNotDeleted(const bool showCallStack);
 
 private:

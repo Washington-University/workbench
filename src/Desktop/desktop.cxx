@@ -55,7 +55,7 @@ main(int argc, char* argv[])
     /*
      * See if any objects were not deleted.
      */
-    CaretObject::printListOfObjectsNotDeleted(false);
+    CaretObject::printListOfObjectsNotDeleted(true);
     
     return result;
 }

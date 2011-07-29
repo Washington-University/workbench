@@ -47,6 +47,12 @@ GiftiLabelTable::GiftiLabelTable()
  */
 GiftiLabelTable::~GiftiLabelTable()
 {
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != labelsMap.end();
+         iter++) {
+        delete iter->second;
+    }
+    this->labelsMap.clear();
 }
 
 /**
@@ -521,8 +527,8 @@ GiftiLabelTable::setLabel(
         gl->setColor(rgba);
     }
     else {
-        GiftiLabel* gl = new GiftiLabel(key, name, red, green, blue, alpha);
-        this->addLabel(gl);
+        GiftiLabel gl(key, name, red, green, blue, alpha);
+        this->addLabel(&gl);
     }
 }
 
