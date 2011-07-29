@@ -21,6 +21,7 @@ DataFileException.h
 MathFunctions.h
 StringUtilities.h
 SystemUtilities.h
+TracksModificationInterface.h
 
 Base64.cxx
 BoundingBox.cxx

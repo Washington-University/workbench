@@ -29,10 +29,50 @@ namespace caret {
 
 /**
  * Interface for tracking an objects modification status.
+ * <br>
+ * When the class DOES NOT extend a class that implements
+ * this interface, the class must implmenent the three
+ * methods setModified(), clearModified(), and isModified().
+ * <br>
+ * setModified() should just set a boolean that indicates
+ * the modified status.
+ * <br>
+ * clearModified() should clear the boolean that indicates
+ * the modified status AND is should call clearModified()
+ * on any members that implement this interface.
+ * <br>
+ * isModified() should return the boolean that indicates
+ * the modified status.
+ * <br>
+ * <br>
+ * When a class DOES extend a class that implements this
+ * interface, it must implement the clearModified()
+ * and the isModified() ONLY IF it contains members
+ * that implement this interface.
+ * <br>
+ * The clearMethod() must call the parent's clearModified()
+ * method and the clearModified() method on any member
+ * classes that implement this interface.
+ * <br>
+ * The isModified() method must first call the parent's
+ * isModified() method, and, if true, true true.  Otherwise,
+ * return true if a member is modified.
+ *
+ * <br>
+ * An alternative model of this interface is to add
+ * methods such as addTrackable(TracksModificationInterface)
+ * and removeTrackable(TracksModificationInterface) that
+ * could be used to query and reset the modification status
+ * of any members in the implementing class and subclasses.
+ * In this case, the isModified(), setModified(), and
+ * clearModified() methods would only need to be implemented
+ * in the top-level class.  In this case the 
+ * addTrackable() and removeTrackable() classes may be
+ * better off in a separate interface.  
  */
 class TracksModificationInterface {
 
-public:
+protected:
     /**
      * Constructor.
      */
