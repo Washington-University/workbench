@@ -26,6 +26,12 @@ IF (APPLE)
       MACOSX_BUNDLE
       desktop.cxx
    )
+   SET_TARGET_PROPERTIES(
+       desktop
+       PROPERTIES
+       RESOURCE
+       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
+   )
 ELSE (APPLE)
    ADD_EXECUTABLE(desktop
       desktop.cxx
@@ -88,25 +94,14 @@ ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )
 
+#
+# Apple needs qt_menu.nib directory copied
+# into application's Resources directory 
+#
 IF (APPLE)
-   #
-   # If the path to the Resources directory does not exist
-   # it needs to be created for the ".app".
-   #
-   SET(RESOURCE_DIR ${CMAKE_BINARY_DIR}/Desktop/desktop.app/Contents/Resources)
-   #MESSAGE("RESOURCE DIR: " ${RESOURCE_DIR})
-   #MESSAGE(WARNING "CURRENT DIR: " ${Desktop_BINARY_DIR})
-
-   IF (NOT EXISTS ${RESOURCE_DIR})
-      file(MAKE_DIRECTORY ${RESOURCE_DIR})
-   ENDIF (NOT EXISTS ${RESOURCE_DIR})
-
-   #
-   # Copy the qt_menu.nib directory into the app's Resource directory
-   #
-   ADD_CUSTOM_COMMAND(
-      TARGET desktop
-      POST_BUILD
-      COMMAND cp -r ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib ${RESOURCE_DIR}
-   )
+        ADD_CUSTOM_COMMAND(
+            TARGET desktop
+            POST_BUILD
+            COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh
+        )
 ENDIF (APPLE)

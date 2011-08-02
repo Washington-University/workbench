@@ -29,6 +29,7 @@
 #else
 #include "Windows.h"
 #endif
+
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -48,14 +49,18 @@ SystemUtilities::~SystemUtilities()
 std::string 
 SystemUtilities::getBackTrace()
 {
+#ifdef CARET_OS_WINDOWS
+    return "";
+#else  // CARET_OS_WINDOWS
     std::ostringstream str;
     void* callstack[1024];
-    int numFrames=0;// = backtrace(callstack, 1024);
-    char** symbols;// = backtrace_symbols(callstack, numFrames);
+    int numFrames = backtrace(callstack, 1024);
+    char** symbols = backtrace_symbols(callstack, numFrames);
     for (int i = 0; i < numFrames; i++) {
         str << symbols[i] << std::endl;
     }
     return str.str();
+#endif // CARET_OS_WINDOWS
 }
 
 
