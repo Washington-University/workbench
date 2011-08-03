@@ -68,7 +68,6 @@ cmake ../src >> ${ERROR_FILE} 2>&1
 make -j2 
 make -j2 >> ${ERROR_FILE} 2>&1
 cat ${ERROR_FILE}
-cd ..
 
 #
 # Copy to distribution directory
