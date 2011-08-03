@@ -185,7 +185,7 @@ std::string
 StringUtilities::fromNumber(const float f)
 {
     std::ostringstream str;
-    str << std::ios::dec << std::showpoint << std::setprecision(digitsRightOfDecimal) << f;
+    str << std::showpoint << std::setprecision(digitsRightOfDecimal) << f;
     std::string s = str.str();
     return s;
 }
@@ -197,7 +197,7 @@ std::string
 StringUtilities::fromNumber(const double f)
 {
     std::ostringstream str;
-    str << std::ios::dec << std::showpoint << std::setprecision(digitsRightOfDecimal) << f;
+    str << std::showpoint << std::setprecision(digitsRightOfDecimal) << f;
     std::string s = str.str();
     return s;
 }

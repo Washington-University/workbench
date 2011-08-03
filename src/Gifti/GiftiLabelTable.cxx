@@ -28,6 +28,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
+#include "StringUtilities.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -533,6 +534,48 @@ GiftiLabelTable::setLabel(
 }
 
 /**
+ * Set a label.  If a label with the specified key exists,
+ * it is replaced.
+ * 
+ * @param key    Key for label.
+ * @param name   Name of label.
+ * @param red    Red color component.
+ * @param green  Green color component.
+ * @param blue   Blue color component.
+ * @param alpha  Alpha color component.
+ * @param x      The X-coordinate.
+ * @param y      The Y-coordinate.
+ * @param z      The Z-coordinate.
+ *
+ */
+void
+GiftiLabelTable::setLabel(const int32_t key,
+                          const std::string& name,
+                          const float red,
+                          const float green,
+                          const float blue,
+                          const float alpha,
+                          const float x,
+                          const float y,
+                          const float z)
+{
+    LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
+    if (iter != this->labelsMap.end()) {
+        GiftiLabel* gl = iter->second;
+        gl->setName(name);
+        float rgba[4] = { red, green, blue, alpha };
+        gl->setColor(rgba);
+        gl->setX(x);
+        gl->setY(y);
+        gl->setZ(z);
+    }
+    else {
+        GiftiLabel gl(key, name, red, green, blue, alpha, x, y, z);
+        this->addLabel(&gl);
+    }
+}
+
+/**
  * Get the selection status of the label at the specified key.  If there
  * is no label at the key, false is returned.
  * @param key - key of label
@@ -841,7 +884,20 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
 std::string
 GiftiLabelTable::toString() const
 {
-    return "GiftiLabelTable";
+    std::string s = "GiftiLabelTable=[";
+    
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        s += "key=";
+        s += StringUtilities::fromNumber(iter->first);
+        s += iter->second->toString();
+        s += ",";
+        
+    }
+    s += "]";
+    
+    return s;
 }
 
 /**
@@ -854,7 +910,7 @@ GiftiLabelTable::toString() const
 std::string
 GiftiLabelTable::toFormattedString(const std::string& indentation)
 {
-    return "GiftiLabelTable";
+    return this->toString();
 }
 
 /**

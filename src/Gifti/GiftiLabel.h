@@ -56,6 +56,17 @@ public:
     explicit GiftiLabel(
                         const int32_t key,
                         const std::string& name,
+                        const float red,
+                        const float green,
+                        const float blue,
+                        const float alpha,
+                        const float x,
+                        const float y,
+                        const float z);
+    
+    explicit GiftiLabel(
+                        const int32_t key,
+                        const std::string& name,
                         const double red,
                         const double green,
                         const double blue,
@@ -122,10 +133,32 @@ public:
 
     void setColorInt(const int32_t rgba[]);
 
-    static float* getDefaultColor();
+    static void getDefaultColor(float rgbaOut[4]);
 
+    float getRed() const;
+    
+    float getGreen() const;
+    
+    float getBlue() const;
+    
     float getAlpha() const;
 
+    float getX() const;
+    
+    float getY() const;
+                        
+    float getZ() const;
+    
+    void getXYZ(float xyz[3]) const;
+    
+    void setX(const float x);
+    
+    void setY(const float x);
+    
+    void setZ(const float x);
+    
+    void setXYZ(const float xyz[3]);
+    
     void setModified();
 
     void clearModified();
@@ -158,6 +191,12 @@ private:
 
     float alpha;
 
+    float x;
+    
+    float y;
+    
+    float z;
+    
     /**Used to count nodes/voxel using label (not saved in file) */
     int32_t count;
 

@@ -119,6 +119,15 @@ namespace GiftiXmlElements {
    /** attribute for data array label alpha color component */
    static const std::string ATTRIBUTE_LABEL_ALPHA =  "Alpha"; 
 
+    /** attribute for data array label X-coordinate */
+    static const std::string ATTRIBUTE_LABEL_X =  "X"; 
+    
+    /** attribute for data array label X-coordinate */
+    static const std::string ATTRIBUTE_LABEL_Y =  "Y"; 
+    
+    /** attribute for data array label X-coordinate */
+    static const std::string ATTRIBUTE_LABEL_Z =  "Z"; 
+    
    /** attribute for data array intent */
    static const std::string ATTRIBUTE_DATA_ARRAY_INTENT =  "Intent"; 
 

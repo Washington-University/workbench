@@ -344,7 +344,16 @@ GiftiMetaData::replaceName(
 std::string
 GiftiMetaData::toString() const
 {
-    return "GiftiMetaData";
+    std::string s = "GiftiMetaData=[";
+    
+    for (MetaDataConstIterator iter = this->metadata.begin(); iter != this->metadata.end(); iter++) {
+        const std::string& name = iter->first;
+        const std::string& value = iter->second;
+        s += ("(" + name + "," + value + ")");
+    }
+    s += "]";
+    
+    return s;
 }
 
 /**
@@ -357,7 +366,7 @@ GiftiMetaData::toString() const
 std::string
 GiftiMetaData::toFormattedString(const std::string& indentation)
 {
-    return "GiftiMetaData";
+    return this->toString();
 }
 
 /**

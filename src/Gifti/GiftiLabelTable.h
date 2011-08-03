@@ -122,14 +122,23 @@ public:
                     const int32_t key,
                     const std::string& name);
 
-    void setLabel(
-                    const int32_t key,
+    void setLabel(const int32_t key,
                     const std::string& name,
                     const float red,
                     const float green,
                     const float blue,
                     const float alpha);
 
+    void setLabel(const int32_t key,
+                  const std::string& name,
+                  const float red,
+                  const float green,
+                  const float blue,
+                  const float alpha,
+                  const float x,
+                  const float y, 
+                  const float z);
+    
     bool isLabelSelected(const int32_t key) const;
 
     void setLabelSelected(

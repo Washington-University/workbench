@@ -179,3 +179,16 @@ GiftiTypeFile::initializeMembersGiftiTypeFile()
 {
     this->giftiFile = new GiftiFile();
 }
+
+/**
+ * Get information about this file's contents.
+ * @return
+ *    Information about the file's contents.
+ */
+std::string 
+GiftiTypeFile::toString() const
+{
+    return this->giftiFile->toString();
+}
+
+

@@ -1573,5 +1573,6 @@ GiftiDataArray::toString() const
     str << "   DataType=" << NiftiDataTypeEnum::toName(this->dataType) << std::endl;
     str << "   Intent=" << NiftiIntentEnum::toName(this->intent) << std::endl;
     str << "   Dimensions=" << StringUtilities::fromNumbers(this->dimensions, ",");
+    str << "   MetaData=" << this->metaData.toString() << std::endl;
     return str.str();
 }

@@ -23,6 +23,7 @@ XmlException.h
 XmlAttributes.h
 XmlSaxParser.h
 XmlSaxParserException.h
+XmlSaxParserHandlerInterface.h
 XmlSaxParserWithQt.h
 XmlUtilities.h
 

@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "GiftiLabel.h"
+#include "StringUtilities.h"
 
 using namespace caret;
 
@@ -72,6 +73,40 @@ GiftiLabel::GiftiLabel(
     this->green = green;
     this->blue = blue;
     this->alpha = alpha;
+}
+
+/**
+ * Constructor.
+ *
+ * @param key - Key of the label.
+ * @param name - name of label.
+ * @param red - red color component, zero to one.
+ * @param green - green color component, zero to one.
+ * @param blue - blue color component, zero to one.
+ * @param alpha - alpha color component, zero to one.
+ *
+ */
+GiftiLabel::GiftiLabel(const int32_t key,
+                       const std::string& name,
+                       const float red,
+                       const float green,
+                       const float blue,
+                       const float alpha,
+                       const float x,
+                       const float y,
+                       const float z)
+: CaretObject()
+{
+    this->initializeMembersGiftiLabel();
+    this->key = key;
+    this->name = name;
+    this->red = red;
+    this->green = green;
+    this->blue = blue;
+    this->alpha = alpha;
+    this->x = x;
+    this->y = y;
+    this->z = z;
 }
 
 /**
@@ -258,9 +293,12 @@ GiftiLabel::initializeMembersGiftiLabel()
     this->key = -1;
     this->selected = true;
     this->red = 1.0;
-    this->green = 1.0;;    
-    this->blue = 1.0;;    
-    this->alpha = 1.0;;
+    this->green = 1.0;    
+    this->blue = 1.0;    
+    this->alpha = 1.0;
+    this->x = 0.0;
+    this->y = 0.0;
+    this->z = 0.0;
 }
 
 /**
@@ -447,21 +485,50 @@ GiftiLabel::setColorInt(const int32_t rgba[])
 /**
  * Get the default color.
  *
- * @return The default color.  A four-dimensional array of floats
+ * @param Output with a four-dimensional array of floats
  * containing the red, green, blue, and alpha components with values
  * ranging from 0.0 to 1.0.
- * User MUST delete[] the returned array.
+ */
+void
+GiftiLabel::getDefaultColor(float rgbaOut[4])
+{
+    rgbaOut[0] = 1.0;
+    rgbaOut[1] = 1.0;
+    rgbaOut[2] = 1.0;
+    rgbaOut[3] = 1.0;
+}
+
+/**
+ * Get the red color component for this label.
+ * @return red color component.
  *
  */
-float*
-GiftiLabel::getDefaultColor()
+float
+GiftiLabel::getRed() const
 {
-    float* rgba = new float[4];
-    rgba[0] = 1.0;
-    rgba[1] = 1.0;
-    rgba[2] = 1.0;
-    rgba[3] = 1.0;
-    return rgba;
+    return this->red;
+}
+
+/**
+ * Get the green color component for this label.
+ * @return green color component.
+ *
+ */
+float
+GiftiLabel::getGreen() const
+{
+    return this->green;
+}
+
+/**
+ * Get the blue color component for this label.
+ * @return blue color component.
+ *
+ */
+float
+GiftiLabel::getBlue() const
+{
+    return this->blue;
 }
 
 /**
@@ -473,6 +540,101 @@ float
 GiftiLabel::getAlpha() const
 {
     return this->alpha;
+}
+
+/**
+ * Get the X-Coordinate.
+ * @return
+ *    The X-coordinate.
+ */
+float 
+GiftiLabel::getX() const 
+{ 
+    return this->x; 
+}
+
+/**
+ * Get the Y-Coordinate.
+ * @return
+ *    The Y-coordinate.
+ */
+float 
+GiftiLabel::getY() const 
+{ return this->y; 
+}
+
+/**
+ * Get the Z-Coordinate.
+ * @return
+ *    The Z-coordinate.
+ */
+float 
+GiftiLabel::getZ() const 
+{ 
+    return this->z; 
+}
+
+/**
+ * Get the XYZ coordiantes.
+ * @param  xyz
+ *   Array into which coordinates are loaded.
+ */
+void 
+GiftiLabel::getXYZ(float xyz[3]) const
+{
+    xyz[0] = this->x;
+    xyz[1] = this->y;
+    xyz[2] = this->z;
+}
+
+/**
+ * Set the X-coordinate.
+ * @param x
+ *    New value for X-coordinate.
+ */
+void 
+GiftiLabel::setX(const float x)
+{
+    this->x = x;
+    this->setModified();
+}
+
+/**
+ * Set the Y-coordinate.
+ * @param y
+ *    New value for Y-coordinate.
+ */
+void 
+GiftiLabel::setY(const float x)
+{
+    this->y = y;
+    this->setModified();
+}
+
+/**
+ * Set the Z-coordinate.
+ * @param z
+ *    New value for Z-coordinate.
+ */
+void 
+GiftiLabel::setZ(const float x)
+{
+    this->z = z;
+    this->setModified();
+}
+
+/**
+ * Set the XYZ coordinates.
+ * @param xyz
+ *   Array containing XYZ coordiantes.
+ */
+void 
+GiftiLabel::setXYZ(const float xyz[3])
+{
+    this->x = xyz[0];
+    this->y = xyz[1];
+    this->z = xyz[2];
+    this->setModified();
 }
 
 /**
@@ -509,16 +671,36 @@ GiftiLabel::isModified() const
 }
 
 /**
- * Get string representation of this label which returns the label's
- * name so that this object may be used with GUI components.
+ * Get information about this label.
  * 
- * @return Name of label.
+ * @return Information about the label.
  *
  */
 std::string
 GiftiLabel::toString() const
 {
-    return this->name;
+    std::string s;
+    
+    s += "[GiftiLabel=(key=" 
+    + StringUtilities::fromNumber(this->getKey()) 
+    + ","
+    + this->getName()
+    + ","
+    + StringUtilities::fromNumber(this->getRed())
+    + ","
+    + StringUtilities::fromNumber(this->getGreen())
+    + ","
+    + StringUtilities::fromNumber(this->getBlue())
+    + ","
+    + StringUtilities::fromNumber(this->getAlpha())
+    + ","
+    + StringUtilities::fromNumber(this->getX())
+    + ","
+    + StringUtilities::fromNumber(this->getY())
+    + ","
+    + StringUtilities::fromNumber(this->getZ())
+    + ") ";
+    return s;
 }
 
 /**

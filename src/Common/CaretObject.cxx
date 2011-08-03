@@ -99,7 +99,7 @@ CaretObject::copyHelper(const CaretObject&)
 std::string
 CaretObject::toString() const
 {
-    std::string s = "Type=" + this->className();
+    std::string s = "CaretObjectType=" + this->className();
     return s;
 }
 

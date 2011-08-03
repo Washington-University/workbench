@@ -41,163 +41,129 @@
 
 namespace caret {
 
-class GiftiDataArray;
-class GiftiFile;
-class GiftiLabelTable;
-class GiftiMetaData;
-class GiftiFile;
-class Matrix4x4;
-class XmlAttributes;
-class XmlException;
+    class GiftiDataArray;
+    class GiftiFile;
+    class GiftiLabelTableSaxReader;
+    class GiftiMetaDataSaxReader;
+    class GiftiFile;
+    class Matrix4x4;
+    class XmlAttributes;
+    class XmlException;
     
-/// class for reading a GIFTI Node Data File with a SAX Parser
-    class GiftiFileSaxReader : public XmlSaxParserHandlerInterface {
-   public:
-      // constructor
-      GiftiFileSaxReader(GiftiFile* giftiFileIn);
-      
-      // destructor
-      virtual ~GiftiFileSaxReader();
-      
-      // start an element
-      void startElement(const std::string& namespaceURI,
+    /// class for reading a GIFTI Node Data File with a SAX Parser
+    class GiftiFileSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
+    public:
+        GiftiFileSaxReader(GiftiFile* giftiFileIn);
+        
+        virtual ~GiftiFileSaxReader();
+        
+        void startElement(const std::string& namespaceURI,
+                          const std::string& localName,
+                          const std::string& qName,
+                          const XmlAttributes& attributes) throw (XmlSaxParserException);
+        
+        void endElement(const std::string& namspaceURI,
                         const std::string& localName,
-                        const std::string& qName,
-                        const XmlAttributes& attributes) throw (XmlSaxParserException);
-                        
-      // end an element
-      void endElement(const std::string& namspaceURI,
-                      const std::string& localName,
-                      const std::string& qName) throw (XmlSaxParserException);
-                      
-      // get characters in an element
-      void characters(const char* ch) throw (XmlSaxParserException);
-      
-      // a fatal error occurs
-      void fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException);
-      
-        // a warning occurs
+                        const std::string& qName) throw (XmlSaxParserException);
+        
+        void characters(const char* ch) throw (XmlSaxParserException);
+        
+        void fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException);
+        
         void warning(const XmlSaxParserException& e) throw (XmlSaxParserException);
         
-        // an error occurs
         void error(const XmlSaxParserException& e) throw (XmlSaxParserException);
         
         void startDocument() throw (XmlSaxParserException);
         
         void endDocument() throw (XmlSaxParserException);
         
-      
-   protected:
-      /// file reading states
-      enum STATE {
-         /// no state
-         STATE_NONE,
-         /// processing GIFTI tag
-         STATE_GIFTI,
-         /// processing MetaData tag
-         STATE_METADATA,
-         /// processing MetaData MD child tag
-         STATE_METADATA_MD,
-         /// processing MetaData MD Name tag
-         STATE_METADATA_MD_NAME,
-         /// processing MetaData MD Value tag
-         STATE_METADATA_MD_VALUE,
-         /// processing LabelTable tag
-         STATE_LABEL_TABLE,
-         /// processing LabelTable Label
-         STATE_LABEL_TABLE_LABEL,
-         /// processing DataArray tag
-         STATE_DATA_ARRAY,
-         /// processing DataArray Data tag
-         STATE_DATA_ARRAY_DATA,
-         /// processing DataArray Matrix Tag
-         STATE_DATA_ARRAY_MATRIX,
-         /// processing DataArray Matrix Data Space Tag
-         STATE_DATA_ARRAY_MATRIX_DATA_SPACE,
-         /// processing DataArray Matrix Transformed Space Tag
-         STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE,
-         /// processing DataArray Matrix Data Tag
-         STATE_DATA_ARRAY_MATRIX_DATA
-      };
-      
-      // process the array data into numbers
-      void processArrayData() throw (XmlSaxParserException);
-      
-      // create a data array
-      void createDataArray(const XmlAttributes& attributes) throw (XmlSaxParserException);
-      
-      /// file reading state
-      STATE state;
-      
-      /// the state stack used when reading a file
-      std::stack<STATE> stateStack;
-      
-      /// the error message
-      std::string errorMessage;
-      
-      /// GIFTI file that is being read
-      GiftiFile* giftiFile;
-      
-      /// meta data name
-      std::string metaDataName;
-      
-      /// meta data value
-      std::string metaDataValue;
-      
-      /// element text
-      std::string elementText;
-      
-      /// GIFTI data array being read
-      GiftiDataArray* dataArray;
-      
-      /// GIFTI label table being read
-      GiftiLabelTable* labelTable;
-      
-      /// GIFTI meta data being read
-      GiftiMetaData* metaData;
-      
-      /// GIFTI matrix data being read
-      Matrix4x4* matrix;
-      
-      /// label index
-      int labelIndex;
-      
-      /// label color component
-      float labelRed;
-
-      /// label color component
-      float labelGreen;
-
-      /// label color component
-      float labelBlue;
-
-      /// label color component
-      float labelAlpha;
-
-      /// endian attribute data
-      GiftiEndianEnum::Enum endianForReadingArrayData;
-      
-      /// array subscripting order for reading
-      GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReadingArrayData;
-      
-      /// data type for reading
-      NiftiDataTypeEnum::Enum dataTypeForReadingArrayData;
-      
-      /// dimension for reading
-      std::vector<int64_t> dimensionsForReadingArrayData;
-      
-      /// encoding for reading
-      GiftiEncodingEnum::Enum encodingForReadingArrayData;
-      
-      /// data location for reading
-      //GiftiDataArray::DATA_LOCATION dataLocationForReadingArrayData;
-      
-      /// external file name
-      std::string externalFileNameForReadingData;
-      
-      /// external file offset
-      int64_t externalFileOffsetForReadingData;
-};
+        
+    protected:
+        /// file reading states
+        enum STATE {
+            /// no state
+            STATE_NONE,
+            /// processing GIFTI tag
+            STATE_GIFTI,
+            /// processing MetaData tag
+            STATE_METADATA,
+            /// processing LabelTable tag
+            STATE_LABEL_TABLE,
+            /// processing DataArray tag
+            STATE_DATA_ARRAY,
+            /// processing DataArray Data tag
+            STATE_DATA_ARRAY_DATA,
+            /// processing DataArray Matrix Tag
+            STATE_DATA_ARRAY_MATRIX,
+            /// processing DataArray Matrix Data Space Tag
+            STATE_DATA_ARRAY_MATRIX_DATA_SPACE,
+            /// processing DataArray Matrix Transformed Space Tag
+            STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE,
+            /// processing DataArray Matrix Data Tag
+            STATE_DATA_ARRAY_MATRIX_DATA
+        };
+        
+        // process the array data into numbers
+        void processArrayData() throw (XmlSaxParserException);
+        
+        // create a data array
+        void createDataArray(const XmlAttributes& attributes) throw (XmlSaxParserException);
+        
+        /// file reading state
+        STATE state;
+        
+        /// the state stack used when reading a file
+        std::stack<STATE> stateStack;
+        
+        /// the error message
+        std::string errorMessage;
+        
+        /// GIFTI file that is being read
+        GiftiFile* giftiFile;
+        
+        /// element text
+        std::string elementText;
+        
+        /// GIFTI data array being read
+        GiftiDataArray* dataArray;
+        
+        /// GIFTI label table being read
+        GiftiLabelTable* labelTable;
+        
+        /// GIFTI label table sax reader
+        GiftiLabelTableSaxReader* labelTableSaxReader;
+        
+        /// GIFTI meta data sax reader
+        GiftiMetaDataSaxReader* metaDataSaxReader;
+        
+        /// GIFTI matrix data being read
+        Matrix4x4* matrix;
+        
+        /// endian attribute data
+        GiftiEndianEnum::Enum endianForReadingArrayData;
+        
+        /// array subscripting order for reading
+        GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReadingArrayData;
+        
+        /// data type for reading
+        NiftiDataTypeEnum::Enum dataTypeForReadingArrayData;
+        
+        /// dimension for reading
+        std::vector<int64_t> dimensionsForReadingArrayData;
+        
+        /// encoding for reading
+        GiftiEncodingEnum::Enum encodingForReadingArrayData;
+        
+        /// data location for reading
+        //GiftiDataArray::DATA_LOCATION dataLocationForReadingArrayData;
+        
+        /// external file name
+        std::string externalFileNameForReadingData;
+        
+        /// external file offset
+        int64_t externalFileOffsetForReadingData;
+    };
 
 } // namespace
 

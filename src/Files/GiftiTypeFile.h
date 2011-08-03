@@ -72,6 +72,8 @@ namespace caret {
         
         virtual void writeFile(const std::string& filename) throw (DataFileException);
         
+        virtual std::string toString() const;
+        
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

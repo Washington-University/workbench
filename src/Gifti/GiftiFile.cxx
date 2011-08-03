@@ -1243,6 +1243,8 @@ GiftiFile::toString() const
 {
     std::ostringstream str;
     str << "Gifti File: " << this->getFileName() << std::endl;
+    str << this->metaData.toString() << std::endl;
+    str << this->labelTable.toString() << std::endl;
     for (int32_t i = 0; i < this->getNumberOfDataArrays(); i++) {
         const GiftiDataArray* gda = this->getDataArray(i);
         str << gda->toString() << std::endl;
