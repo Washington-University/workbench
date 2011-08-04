@@ -64,7 +64,7 @@ git pull -u >> ${ERROR_FILE} 2>&1
 #
 mkdir -p build >> ${ERROR_FILE} 2>&1
 cd build >> ${ERROR_FILE} 2>&1
-cmake ../src >> ${ERROR_FILE} 2>&1
+cmake -DCMAKE_OSX_ARCHITECTURES=i386 ../src >> ${ERROR_FILE} 2>&1
 make -j2 
 make -j2 >> ${ERROR_FILE} 2>&1
 cat ${ERROR_FILE}
