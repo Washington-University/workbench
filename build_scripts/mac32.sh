@@ -23,7 +23,7 @@ cd ${BUILD_DIR}
 
 #for now we use caret5's lib dir
 LIB_DIR=/Volumes/DS4600/caret_development/mac32
-QTDIR=${BUILD_DIR}/libraries/qt-software/qt-4.7.1-static-32bit
+QTDIR=${LIB_DIR}/libraries/qt-software/qt-4.7.1-static-32bit
 export QTDIR
 
 PATH=${QTDIR}/bin:${PATH}
