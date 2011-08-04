@@ -1,0 +1,4 @@
+set PATH=C:\dev64\install\Qt\bin;%PATH%
+set QTDIR=C:\dev64\install\Qt
+set ZLIB_LIB_DIR=C:\dev64\install\zlib\lib
+set ZLIB_INC_DIR=C:\dev64\install\zlib\include
