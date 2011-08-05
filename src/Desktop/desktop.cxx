@@ -48,6 +48,12 @@ main(int argc, char* argv[])
     int result = app.exec();
     
     /*
+     * Hiding the window removes it from the event loop on Windows, which is necessary to
+     * prevent paint events from causing assertion errors when the Window is destroyed
+     * Although this is a Window's only bug, it's probably good practice to do on all platforms
+     */
+    theMainWindow->hide();
+    /*
      * Clean up any globally allocated objects.
      */
     GuiGlobals::deleteAllAtProgramExit();
@@ -56,8 +62,6 @@ main(int argc, char* argv[])
      * See if any objects were not deleted.
      */
     CaretObject::printListOfObjectsNotDeleted(true);
-    
-    theMainWindow->hide();//keeps paint events from causing assertion error in close
     
     return result;
 }
