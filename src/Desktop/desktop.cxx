@@ -57,5 +57,7 @@ main(int argc, char* argv[])
      */
     CaretObject::printListOfObjectsNotDeleted(true);
     
+    theMainWindow->hide();//keeps paint events from causing assertion error in close
+    
     return result;
 }
