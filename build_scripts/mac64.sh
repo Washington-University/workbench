@@ -73,8 +73,8 @@ cat ${ERROR_FILE}
 # Copy to distribution directory
 #
 DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
-/bin/cp -v Desktop/desktop ${DIST_DIR} >> ${ERROR_FILE} 2>&1
-/bin/cp -v Command/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
+/bin/cp -rv Desktop/desktop.app ${DIST_DIR} >> ${ERROR_FILE} 2>&1
+/bin/cp -rv Command/caret_command.app ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 
 #
 # Send output as email
