@@ -109,7 +109,7 @@ WindowMain::createMenus()
     menuBar->addMenu(this->createMenuSurface());
     menuBar->addMenu(this->createMenuVolume());
     menuBar->addMenu(this->createMenuWindow());
-    menuBar->addMenu(this->createMenuWindow());
+    menuBar->addMenu(this->createMenuHelp());
 }
 
 QMenu* 

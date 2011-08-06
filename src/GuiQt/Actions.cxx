@@ -155,7 +155,8 @@ Actions::processDataFileOpenAction()
                                  "Open Surface File",
                                  ".",
                                  "Surfaces (*.surf.gii)");
-    
+    if(name.length()==0) return;
+
     Brain* brain = GuiGlobals::getBrain();
     try {
         brain->readSurfaceFile(name.toStdString());
