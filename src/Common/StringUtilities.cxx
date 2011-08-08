@@ -202,6 +202,16 @@ StringUtilities::fromNumber(const double f)
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<int32_t>& v, const std::string& separator)
 {
@@ -215,6 +225,16 @@ StringUtilities::fromNumbers(const std::vector<int32_t>& v, const std::string& s
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<uint32_t>& v, const std::string& separator)
 {
@@ -228,6 +248,16 @@ StringUtilities::fromNumbers(const std::vector<uint32_t>& v, const std::string& 
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<int64_t>& v, const std::string& separator)
 {
@@ -241,6 +271,16 @@ StringUtilities::fromNumbers(const std::vector<int64_t>& v, const std::string& s
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<uint64_t>& v, const std::string& separator)
 {
@@ -268,6 +308,16 @@ StringUtilities::fromNumbers(const std::vector<std::size_t>& v, const std::strin
 }
 */
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<float>& v, const std::string& separator)
 {
@@ -281,6 +331,16 @@ StringUtilities::fromNumbers(const std::vector<float>& v, const std::string& sep
     return s;
 }
 
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
 std::string 
 StringUtilities::fromNumbers(const std::vector<double>& v, const std::string& separator)
 {
@@ -292,6 +352,105 @@ StringUtilities::fromNumbers(const std::vector<double>& v, const std::string& se
         s += StringUtilities::fromNumber(v[i]);
     }
     return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+std::string 
+StringUtilities::fromNumbers(const float* array, const int64_t numberOfElements, const std::string& separator)
+{
+    std::string s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += StringUtilities::fromNumber(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+std::string 
+StringUtilities::fromNumbers(const int32_t* array, 
+                             const int64_t numberOfElements, 
+                             const std::string& separator)
+{
+    std::string s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += StringUtilities::fromNumber(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+std::string 
+StringUtilities::fromNumbers(const double* array, 
+                             const int64_t numberOfElements, 
+                             const std::string& separator)
+{
+    std::string s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += StringUtilities::fromNumber(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert the string representation of a bool to a bool.
+ * @param s
+ *   String containing boolean value.
+ * @return
+ *   The bool value.
+ */
+bool 
+StringUtilities::toBool(const std::string& s)
+{
+    if ((s == "true") 
+        || (s == "TRUE") 
+        || (s == "True")
+        || (s == "T")
+        || (s == "t")) {
+        return true;
+    }
+    return false;
 }
 
 int32_t 
@@ -322,6 +481,14 @@ StringUtilities::toFloat(const std::string& s)
 }
 
 
+/**
+ * Split up a string containing int values.
+ * 
+ * @param s
+ *   String containing int values.
+ * @return
+ *   int vector containing values extracted from string.
+ */
 std::vector<int32_t> 
 StringUtilities::toIntVector(const std::string& s)
 {
@@ -337,6 +504,28 @@ StringUtilities::toIntVector(const std::string& s)
     return iv;
 }
 
+/**
+ * Split up a string containing float values.
+ * 
+ * @param s
+ *   String containing float values.
+ * @return
+ *   float vector containing values extracted from string.
+ */
+std::vector<float> 
+StringUtilities::toFloatVector(const std::string& s)
+{
+    std::vector<float> fv;
+    
+    std::istringstream str(s);
+    while ((str.eof() == false) && (str.fail() == false)) {
+        float value;
+        str >> value;
+        fv.push_back(value);
+    }
+    
+    return fv;
+}
 
 
 /**

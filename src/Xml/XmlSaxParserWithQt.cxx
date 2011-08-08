@@ -74,7 +74,7 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
  *    If an error occurs.
  */
 void 
-XmlSaxParserWithQt::parse(const std::string& filename,
+XmlSaxParserWithQt::parseFile(const std::string& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
 {
     PrivateHandler privateHandler(handler);
@@ -148,6 +148,41 @@ XmlSaxParserWithQt::parse(const std::string& filename,
     }
 }
 
+/**
+ * Parse the contents of the string using
+ * the specified handler.
+ * 
+ * @param xmlString
+ *    String whose contents is parsed.
+ * @param handler
+ *    Handler that will be called to process XML
+ *    as it is read.
+ * @throws XmlSaxParserException
+ *    If an error occurs.
+ */
+void 
+XmlSaxParserWithQt::parseString(const std::string& xmlString,
+                         XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
+{
+    PrivateHandler privateHandler(handler);
+    
+    QXmlSimpleReader reader;
+    reader.setContentHandler(&privateHandler);
+    reader.setErrorHandler(&privateHandler);
+    
+    /*
+     * the XML input source
+     */
+    QXmlInputSource xmlInput;
+    xmlInput.setData(QString::fromStdString(xmlString));
+    
+    /*
+     * Process the data that was just read
+     */
+    if (reader.parse(&xmlInput, true) == false) {
+        throw XmlSaxParserException(privateHandler.errorString().toStdString());            
+    }
+}
 
 
 //=========================================================================================

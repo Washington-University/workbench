@@ -114,7 +114,9 @@ GiftiLabelTable::clear()
         delete iter->second;
     }
     this->labelsMap.clear();
-    this->addLabel(new GiftiLabel(0, "???", 1.0, 1.0, 1.0, 1.0));
+    
+    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 1.0);
+    this->addLabel(&gl);
     this->modifiedFlag = false;
 }
 
@@ -167,8 +169,8 @@ GiftiLabelTable::addLabel(
                    const float blue,
                    const float alpha)
 {
-    GiftiLabel* gl = new GiftiLabel(-1, labelName, red, green, blue, alpha);
-    return this->addLabel(gl);
+    const GiftiLabel gl(-1, labelName, red, green, blue, alpha);
+    return this->addLabel(&gl);
 }
 
 /**
@@ -212,8 +214,8 @@ GiftiLabelTable::addLabel(
                    const int32_t blue,
                    const int32_t alpha)
 {
-    GiftiLabel* gl = new GiftiLabel(-1, labelName, red, green, blue, alpha);
-    return this->addLabel(gl);
+    const GiftiLabel gl(-1, labelName, red, green, blue, alpha);
+    return this->addLabel(&gl);
 }
 
 /**

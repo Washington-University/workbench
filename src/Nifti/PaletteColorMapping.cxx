@@ -25,7 +25,9 @@
 #include <sstream>
 
 #include "PaletteColorMapping.h"
+#include "PaletteColorMappingSaxReader.h"
 #include "PaletteXmlElements.h"
+#include "XmlSaxParser.h"
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
 #include <limits>
@@ -245,12 +247,6 @@ PaletteColorMapping::encodeInXML()
     return s;
 }
 
-void
-PaletteColorMapping::readFromXML(const Node& rootNode)
-            throw (XmlException)
-{
-}
-
 /**
  * Decode this object from a String containing XML.
  * @param xml - String containing XML.
@@ -258,21 +254,32 @@ PaletteColorMapping::readFromXML(const Node& rootNode)
  *
  */
 void
-PaletteColorMapping::decodeFromXML(const std::string& xml)
+PaletteColorMapping::decodeFromStringXML(const std::string& xml)
             throw (XmlException)
 {
-}
-
-/**
- * Get the text contents of the nodes first child.
- * @param node - The node.
- * @return  Contents of node's first child's text.
- *
- */
-std::string
-PaletteColorMapping::getNodeChildText(const Node& node) const
-{
-   return std::string("");
+    PaletteColorMappingSaxReader saxReader(this);
+    XmlSaxParser* parser = XmlSaxParser::createXmlParser();
+    try {
+        parser->parseString(xml, &saxReader);
+    }
+    catch (XmlSaxParserException e) {
+        int lineNum = e.getLineNumber();
+        int colNum  = e.getColumnNumber();
+        
+        std::ostringstream str;
+        str << "Parse Error while reading PaletteColorMapping XML";
+        if ((lineNum >= 0) && (colNum >= 0)) {
+            str << " line/col ("
+            << e.getLineNumber()
+            << "/"
+            << e.getColumnNumber()
+            << ")";
+        }
+        str << ": "
+        << e.whatString();
+        throw XmlException(str.str());
+    }
+    delete parser;
 }
 
 /**

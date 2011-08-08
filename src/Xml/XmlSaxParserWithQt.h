@@ -52,8 +52,11 @@ namespace caret {
         
         virtual ~XmlSaxParserWithQt();
 
-        virtual void parse(const std::string& filename,
+        virtual void parseFile(const std::string& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
+        
+        virtual void parseString(const std::string& xmlString,
+                           XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
     private:
         XmlSaxParserWithQt(const XmlSaxParserWithQt& sp);

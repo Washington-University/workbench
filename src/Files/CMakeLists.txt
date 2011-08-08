@@ -8,9 +8,15 @@ PROJECT (Files)
 #
 ADD_LIBRARY(Files
 GiftiTypeFile.h
+Palette.h
+PaletteFile.h
+PaletteScalarAndColor.h
 SurfaceFile.h
 
 GiftiTypeFile.cxx
+Palette.cxx
+PaletteFile.cxx
+PaletteScalarAndColor.cxx
 SurfaceFile.cxx
 )
 

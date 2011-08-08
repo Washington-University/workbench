@@ -77,6 +77,20 @@ public:
     
     static std::string fromNumbers(const std::vector<double>& v, const std::string& separator);
     
+    static std::string fromNumbers(const float* array, 
+                                   const int64_t numberOfElements, 
+                                   const std::string& separator);
+    
+    static std::string fromNumbers(const int32_t* array, 
+                                   const int64_t numberOfElements, 
+                                   const std::string& separator);
+    
+    static std::string fromNumbers(const double* array, 
+                                   const int64_t numberOfElements, 
+                                   const std::string& separator);
+    
+    static bool toBool(const std::string& s);
+    
     static int32_t toInt(const std::string& s);
 
     static float toFloat(const std::string& s);
@@ -84,6 +98,8 @@ public:
     static int64_t toLong(const std::string& s);
     
     static std::vector<int32_t> toIntVector(const std::string& s);
+    
+    static std::vector<float> toFloatVector(const std::string& s);
     
     // set the digits right of decimal for float/string conversions
     static void setFloatDigitsRightOfDecimal(const int numRightOfDecimal);

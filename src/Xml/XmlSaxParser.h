@@ -62,8 +62,23 @@ namespace caret {
          * @throws XmlSaxParserException
          *    If an error occurs.
          */
-        virtual void parse(const std::string& filename,
+        virtual void parseFile(const std::string& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
+        
+        /**
+         * Parse the contents of the strring using
+         * the specified handler.
+         * 
+         * @param xmlString
+         *    String whose contents is parsed.
+         * @param handler
+         *    Handler that will be called to process XML
+         *    as it is read.
+         * @throws XmlSaxParserException
+         *    If an error occurs.
+         */
+        virtual void parseString(const std::string& xmlString,
+                               XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
         
     protected:
         XmlSaxParser(const XmlSaxParser& sp);

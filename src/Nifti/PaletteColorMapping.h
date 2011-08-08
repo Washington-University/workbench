@@ -34,8 +34,6 @@
 #include "PaletteThresholdTypeEnum.h"
 #include "XmlException.h"
 
-class Node;
-
 namespace caret {
 
 class XmlWriter;
@@ -66,10 +64,8 @@ public:
     std::string encodeInXML()
             throw (XmlException);
 
-    void readFromXML(const Node& rootNode)
-            throw (XmlException);
 
-    void decodeFromXML(const std::string& xml)
+    void decodeFromStringXML(const std::string& xml)
             throw (XmlException);
 
     float getAutoScalePercentageNegativeMaximum() const;
@@ -185,8 +181,6 @@ public:
     bool isModified() const;
 
 private:
-    std::string getNodeChildText(const Node& node) const;
-
     PaletteScaleModeEnum::Enum scaleMode;
 
     float autoScalePercentageNegativeMaximum;

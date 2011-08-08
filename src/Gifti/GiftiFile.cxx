@@ -801,7 +801,7 @@ GiftiFile::readFile(const std::string& filename) throw (DataFileException)
     GiftiFileSaxReader saxReader(this);
     XmlSaxParser* parser = XmlSaxParser::createXmlParser();
     try {
-        parser->parse(filename, &saxReader);
+        parser->parseFile(filename, &saxReader);
     }
     catch (XmlSaxParserException e) {
         this->setFileName("");

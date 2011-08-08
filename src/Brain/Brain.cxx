@@ -28,6 +28,7 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "PaletteFile.h"
 #include "Surface.h"
 #include <algorithm>
 
@@ -38,7 +39,7 @@ using namespace caret;
  */
 Brain::Brain()
 {
-    
+    this->paletteFile = new PaletteFile();
 }
 
 /**
@@ -47,6 +48,7 @@ Brain::Brain()
 Brain::~Brain()
 {
     this->resetBrain();
+    delete this->paletteFile;
 }
 
 /**
@@ -122,6 +124,7 @@ Brain::resetBrain()
         delete this->brainStructures[i];
     }
     this->brainStructures.clear();
+    this->paletteFile->clear();
 }
 
 /**

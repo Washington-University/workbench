@@ -18,6 +18,7 @@ NiftiTransformEnum.h
 NiftiUtilities.h
 NiftiVersionEnum.h
 PaletteColorMapping.h
+PaletteColorMappingSaxReader.h
 PaletteScaleModeEnum.h
 PaletteThresholdTestEnum.h
 PaletteThresholdTypeEnum.h
@@ -33,6 +34,7 @@ NiftiTransformEnum.cxx
 NiftiUtilities.cxx
 NiftiVersionEnum.cxx
 PaletteColorMapping.cxx
+PaletteColorMappingSaxReader.cxx
 PaletteScaleModeEnum.cxx
 PaletteThresholdTestEnum.cxx
 PaletteThresholdTypeEnum.cxx

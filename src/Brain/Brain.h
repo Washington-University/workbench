@@ -35,6 +35,7 @@ namespace caret {
     
     class BrainStructure;
     class ModelController;
+    class PaletteFile;
     
     class Brain : public CaretObject {
 
@@ -67,6 +68,8 @@ namespace caret {
         
     private:
         std::vector<BrainStructure*> brainStructures;
+        
+        PaletteFile* paletteFile;
     };
 
 } // namespace

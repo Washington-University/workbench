@@ -1,0 +1,308 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+/*LICENSE_END*/
+
+#include <iostream>
+#include <sstream>
+
+#include "PaletteColorMapping.h"
+#include "PaletteColorMappingSaxReader.h"
+#include "PaletteColorMappingXmlElements.h"
+#include "StringUtilities.h"
+#include "NiftiIntentEnum.h"
+#include "XmlAttributes.h"
+#include "XmlException.h"
+
+using namespace caret;
+
+/**
+ * constructor.
+ */
+PaletteColorMappingSaxReader::PaletteColorMappingSaxReader(PaletteColorMapping* paletteColorMapping)
+{
+    this->state = STATE_NONE;
+    this->stateStack.push(state);
+    this->elementText = "";
+    this->paletteColorMapping = paletteColorMapping;
+}
+
+/**
+ * destructor.
+ */
+PaletteColorMappingSaxReader::~PaletteColorMappingSaxReader()
+{
+}
+
+
+/**
+ * start an element.
+ */
+void 
+PaletteColorMappingSaxReader::startElement(const std::string& /* namespaceURI */,
+                                         const std::string& /* localName */,
+                                         const std::string& qName,
+                                         const XmlAttributes& attributes)  throw (XmlSaxParserException)
+{
+//   if (DebugControl::getDebugOn()) {
+//    std::cout << "PaletteColorMapping: Start Element: " << qName << std::endl;
+//   }
+   const STATE previousState = this->state;
+
+    switch (this->state) {
+      case STATE_NONE:
+            if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
+               this->state = STATE_READING_ELEMENTS;
+                
+                int32_t version = attributes.getValueAsInt(PaletteColorMappingXmlElements::XML_ATTRIBUTE_VERSION_NUMBER);
+                if (version > PaletteColorMappingXmlElements::VERSION_NUMBER) {
+                    std::ostringstream str;
+                    str
+                    << "Version of PaletteColorMapping ("
+                    << version
+                    << ") is greater than version(s) supported ("
+                    << PaletteColorMappingXmlElements::VERSION_NUMBER
+                    << ").";
+                    throw XmlSaxParserException(str.str());
+                }
+           }
+         else {
+            std::ostringstream str;
+            str << "Root element is \"" << qName << "\" but should be "
+                << PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING;
+             throw XmlSaxParserException(str.str());
+         }
+         break;
+      case STATE_READING_ELEMENTS:
+            break;
+   }
+
+   //
+   // Save previous state
+   //
+   this->stateStack.push(previousState);
+   
+   this->elementText = "";
+}
+
+/**
+ * end an element.
+ */
+void 
+PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
+                                       const std::string& /* localName */,
+                                       const std::string& qName) throw (XmlSaxParserException)
+{
+//   if (DebugControl::getDebugOn()) {
+//      std::cout << "Palette Color Mapping: End Element: " << qName << std::endl;
+//   }
+
+   switch (state) {
+      case STATE_NONE:
+         break;
+      case STATE_READING_ELEMENTS:
+           if (qName == PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES) {
+               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               if (values.size() >= 4) {
+                   this->paletteColorMapping->setAutoScalePercentageNegativeMaximum(values[0]);
+                   this->paletteColorMapping->setAutoScalePercentageNegativeMinimum(values[1]);
+                   this->paletteColorMapping->setAutoScalePercentagePositiveMinimum(values[2]);
+                   this->paletteColorMapping->setAutoScalePercentagePositiveMaximum(values[3]);
+               }
+               else {
+                   throw XmlSaxParserException("PaletteColorMappingXmlElements::auto scale percenter does not contain four values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_NEGATIVE) {
+               this->paletteColorMapping->setDisplayNegativeDataFlag(StringUtilities::toBool(this->elementText));
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_POSITIVE) {
+               this->paletteColorMapping->setDisplayPositiveDataFlag(StringUtilities::toBool(this->elementText));
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_ZERO) {
+               this->paletteColorMapping->setDisplayZeroDataFlag(StringUtilities::toBool(this->elementText));
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE) {
+               this->paletteColorMapping->setInterpolatePaletteFlag(StringUtilities::toBool(this->elementText));
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_NAME) {
+               this->paletteColorMapping->setSelectedPaletteName(this->elementText);
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_DATA_NAME) {
+               this->paletteColorMapping->setThresholdDataName(this->elementText);
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN) {
+               /* ??? */
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES) {
+               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               if (values.size() >= 2) {
+                   this->paletteColorMapping->setThresholdMappedAverageAreaNegative(values[0]);
+                   this->paletteColorMapping->setThresholdMappedAverageAreaPositive(values[1]);
+               }
+               else {
+                   throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped average area does not contain two values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES) {
+               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               if (values.size() >= 2) {
+                   this->paletteColorMapping->setThresholdMappedNegative(values[0]);
+                   this->paletteColorMapping->setThresholdMappedPositive(values[1]);
+               }
+               else {
+                   throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped does not contain two values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES) {
+               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               if (values.size() >= 2) {
+                   this->paletteColorMapping->setThresholdNormalNegative(values[0]);
+                   this->paletteColorMapping->setThresholdNormalPositive(values[1]);
+               }
+               else {
+                   throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped normal does not contain two values.");
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_TEST) {
+               bool isValid = false;
+               PaletteThresholdTestEnum::Enum thresoldTest = 
+               PaletteThresholdTestEnum::fromName(this->elementText,
+                                              &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setThresholdTest(thresoldTest);               
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteColorMapping::thresoldTest " 
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_TYPE) {
+               bool isValid = false;
+               PaletteThresholdTypeEnum::Enum thresholdType = 
+               PaletteThresholdTypeEnum::fromName(this->elementText,
+                                              &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setThresholdType(thresholdType);               
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteColorMapping::thresholdType: " 
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_SCALE_MODE) {
+               bool isValid = false;
+               PaletteScaleModeEnum::Enum scaleMode = 
+                   PaletteScaleModeEnum::fromName(this->elementText,
+                                              &isValid);
+               if (isValid) {
+                   this->paletteColorMapping->setScaleMode(scaleMode);               
+               }
+               else {
+                   throw XmlSaxParserException("Invalid PaletteColorMapping::scaleMode: " 
+                                               + this->elementText);
+               }
+           }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_USER_SCALE_VALUES) {
+               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               if (values.size() >= 4) {
+                   this->paletteColorMapping->setUserScaleNegativeMaximum(values[0]);
+                   this->paletteColorMapping->setUserScaleNegativeMinimum(values[1]);
+                   this->paletteColorMapping->setUserScalePositiveMinimum(values[2]);
+                   this->paletteColorMapping->setUserScalePositiveMaximum(values[3]);
+               }
+               else {
+                   throw XmlSaxParserException("PaletteColorMappingXmlElements::auto scale percenter does not contain four values.");
+               }
+           }
+           else {
+               std::ostringstream str;
+               str
+               << "Unrecognized palette color mapping element \""
+               << qName
+               << "\".";
+               throw XmlSaxParserException(str.str());
+           }
+         break;
+   }
+
+   //
+   // Clear out for new elements
+   //
+   this->elementText = "";
+   
+   //
+   // Go to previous state
+   //
+   if (this->stateStack.empty()) {
+       throw XmlSaxParserException("State stack is empty while reading PaletteColorMapping.");
+   }
+   this->state = stateStack.top();
+   this->stateStack.pop();
+}
+
+
+/**
+ * get characters in an element.
+ */
+void 
+PaletteColorMappingSaxReader::characters(const char* ch) throw (XmlSaxParserException)
+{
+   this->elementText += ch;
+}
+
+/**
+ * a fatal error occurs.
+ */
+void 
+PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
+{
+   throw e;
+}
+
+/**
+ * A warning occurs
+ */
+void 
+PaletteColorMappingSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
+{    
+    std::cout << "XML Parser Warning: " + e.whatString() << std::endl;
+}
+
+// an error occurs
+void 
+PaletteColorMappingSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
+{   
+    throw e;
+}
+
+void 
+PaletteColorMappingSaxReader::startDocument()  throw (XmlSaxParserException)
+{    
+}
+
+void 
+PaletteColorMappingSaxReader::endDocument() throw (XmlSaxParserException)
+{
+}
+
