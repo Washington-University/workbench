@@ -23,6 +23,7 @@
  */ 
 
 #include <cassert>
+#include <limits>
 
 #define __PALETTE_DEFINE__
 #include "Palette.h"
