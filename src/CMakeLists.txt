@@ -67,7 +67,6 @@ ENDIF(QT4_FOUND)
 #
 # QT include files
 #
-SET(QT_USE_QTOPENGL TRUE)
 INCLUDE(${QT_USE_FILE})
 #
 #  Expect OpenMP on Apple and UNIX
