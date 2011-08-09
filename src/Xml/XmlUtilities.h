@@ -25,7 +25,7 @@
  * 
  */ 
 
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 
@@ -42,9 +42,9 @@ namespace caret {
     public:
         ~XmlUtilities();
         
-        static std::string encodeXmlSpecialCharacters(const std::string& text);
+        static QString encodeXmlSpecialCharacters(const QString& text);
         
-        static std::string decodeXmlSpecialCharacters(const std::string& text);
+        static QString decodeXmlSpecialCharacters(const QString& text);
         
     private:
 

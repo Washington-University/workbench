@@ -88,7 +88,7 @@ NiftiException::operator=(const NiftiException& e)
  *
  */
 NiftiException::NiftiException(
-                   const std::string& s)
+                   const QString& s)
 : CaretException(s)
 {
     this->initializeMembersNiftiException();

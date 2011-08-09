@@ -50,7 +50,7 @@ XmlSaxParserException::XmlSaxParserException()
  *      Column number of the parsing exception.
  *
  */
-XmlSaxParserException::XmlSaxParserException(const std::string& s, 
+XmlSaxParserException::XmlSaxParserException(const QString& s, 
                                          const int32_t lineNumber, 
                                          const int32_t columnNumber)
 : CaretException(s)
@@ -71,7 +71,7 @@ XmlSaxParserException::XmlSaxParserException(const std::string& s,
  *      Column number of the parsing exception.
  *
  */
-XmlSaxParserException::XmlSaxParserException(const std::string& s)
+XmlSaxParserException::XmlSaxParserException(const QString& s)
 : CaretException(s)
 {
     this->initializeMembersXmlSaxParserException();

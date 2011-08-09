@@ -107,7 +107,7 @@ DataFile::clear()
  *
  * @return Name of the data file.
  */
-std::string 
+QString 
 DataFile::getFileName() const
 {
     return this->filename;
@@ -120,7 +120,7 @@ DataFile::getFileName() const
  *     New name of data file.
  */
 void 
-DataFile::setFileName(const std::string& filename)
+DataFile::setFileName(const QString& filename)
 {
     if (this->filename != filename) {
         this->filename = filename;

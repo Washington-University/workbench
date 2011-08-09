@@ -35,7 +35,7 @@
 #include <set>
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -69,27 +69,27 @@ public:
     std::map<int32_t,int32_t> append(const GiftiLabelTable& glt);
 
     int32_t addLabel(
-                    const std::string& labelName,
+                    const QString& labelName,
                     const float red,
                     const float green,
                     const float blue,
                     const float alpha);
 
     int32_t addLabel(
-                    const std::string& labelName,
+                    const QString& labelName,
                     const float red,
                     const float green,
                     const float blue);
 
     int32_t addLabel(
-                    const std::string& labelName,
+                    const QString& labelName,
                     const int32_t red,
                     const int32_t green,
                     const int32_t blue,
                     const int32_t alpha);
 
     int32_t addLabel(
-                    const std::string& labelName,
+                    const QString& labelName,
                     const int32_t red,
                     const int32_t green,
                     const int32_t blue);
@@ -104,11 +104,11 @@ public:
 
     void insertLabel(const GiftiLabel* label);
 
-    int32_t getLabelKeyFromName(const std::string& name) const;
+    int32_t getLabelKeyFromName(const QString& name) const;
 
-    const GiftiLabel* getLabel(const std::string& labelName) const;
+    const GiftiLabel* getLabel(const QString& labelName) const;
 
-    const GiftiLabel* getLabelBestMatching(const std::string& name) const;
+    const GiftiLabel* getLabelBestMatching(const QString& name) const;
 
     const GiftiLabel* getLabel(const int32_t key) const;
 
@@ -116,21 +116,21 @@ public:
 
     int32_t getNumberOfLabels() const;
 
-    std::string getLabelName(const int32_t key) const;
+    QString getLabelName(const int32_t key) const;
 
     void setLabelName(
                     const int32_t key,
-                    const std::string& name);
+                    const QString& name);
 
     void setLabel(const int32_t key,
-                    const std::string& name,
+                    const QString& name,
                     const float red,
                     const float green,
                     const float blue,
                     const float alpha);
 
     void setLabel(const int32_t key,
-                  const std::string& name,
+                  const QString& name,
                   const float red,
                   const float green,
                   const float blue,
@@ -163,14 +163,14 @@ public:
 
     void writeAsXML(XmlWriter& xmlWriter) throw (GiftiException);
 
-    std::string toString() const;
+    QString toString() const;
 
-    std::string toFormattedString(const std::string& indentation);
+    QString toFormattedString(const QString& indentation);
 
     //void readFromXMLDOM(const Node* rootNode)
     //        throw (GiftiException);
 
-    void readFromXmlString(const std::string& s)
+    void readFromXmlString(const QString& s)
             throw (GiftiException);
 
     void setModified();

@@ -26,7 +26,7 @@
  */ 
 
 
-#include <string>
+#include <QString>
 
 #include "CaretException.h"
 
@@ -42,7 +42,7 @@ public:
 
     NiftiException(const exception& e);
 
-    NiftiException(const std::string& s);
+    NiftiException(const QString& s);
 
     NiftiException(const NiftiException& e);
         

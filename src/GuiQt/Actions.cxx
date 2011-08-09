@@ -159,10 +159,10 @@ Actions::processDataFileOpenAction()
 
     Brain* brain = GuiGlobals::getBrain();
     try {
-        brain->readSurfaceFile(name.toStdString());
+        brain->readSurfaceFile(name);
     }
     catch (DataFileException e) {
-        QMessageBox::critical(this->mainWindow, "ERROR", QString::fromStdString(e.whatString()));
+        QMessageBox::critical(this->mainWindow, "ERROR", e.whatString());
     }
     GuiGlobals::redrawAllGraphicsWindows();
 }

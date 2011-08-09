@@ -41,8 +41,8 @@ using namespace caret;
 PaletteThresholdTypeEnum::PaletteThresholdTypeEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name,
-                   const std::string& guiName)
+                   const QString& name,
+                   const QString& guiName)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -101,7 +101,7 @@ PaletteThresholdTypeEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-std::string 
+QString 
 PaletteThresholdTypeEnum::toName(Enum e) {
     initialize();
     
@@ -120,7 +120,7 @@ PaletteThresholdTypeEnum::toName(Enum e) {
  *     Enumerated value.
  */
 PaletteThresholdTypeEnum::Enum 
-PaletteThresholdTypeEnum::fromName(const std::string& s, bool* isValidOut)
+PaletteThresholdTypeEnum::fromName(const QString& s, bool* isValidOut)
 {
     initialize();
     
@@ -151,7 +151,7 @@ PaletteThresholdTypeEnum::fromName(const std::string& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-std::string 
+QString 
 PaletteThresholdTypeEnum::toGuiName(Enum e) {
     initialize();
     
@@ -170,7 +170,7 @@ PaletteThresholdTypeEnum::toGuiName(Enum e) {
  *     Enumerated value.
  */
 PaletteThresholdTypeEnum::Enum 
-PaletteThresholdTypeEnum::fromGuiName(const std::string& s, bool* isValidOut)
+PaletteThresholdTypeEnum::fromGuiName(const QString& s, bool* isValidOut)
 {
     initialize();
     

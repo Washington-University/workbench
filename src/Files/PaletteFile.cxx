@@ -112,7 +112,7 @@ PaletteFile::addColor(const GiftiLabel& pc)
  */
 void
 PaletteFile::addColor(
-                   const std::string& name,
+                   const QString& name,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue)
@@ -129,7 +129,7 @@ PaletteFile::addColor(
  */
 void
 PaletteFile::addColor(
-                   const std::string& name,
+                   const QString& name,
                    const int32_t rgb[])
 {
     this->addColor(name, rgb[0], rgb[1], rgb[2]);
@@ -159,7 +159,7 @@ PaletteFile::getColor(const int32_t indx) const
  *
  */
 const GiftiLabel*
-PaletteFile::getColorByName(const std::string& colorName) const
+PaletteFile::getColorByName(const QString& colorName) const
 {
     const GiftiLabel* gl = this->labelTable.getLabel(colorName);
     return gl;
@@ -173,7 +173,7 @@ PaletteFile::getColorByName(const std::string& colorName) const
  *
  */
 int32_t
-PaletteFile::getColorIndex(const std::string& colorName) const
+PaletteFile::getColorIndex(const QString& colorName) const
 {
     return this->labelTable.getLabelKeyFromName(colorName);
 }
@@ -226,7 +226,7 @@ PaletteFile::getPalette(const int32_t indx) const
  *
  */
 Palette*
-PaletteFile::getPaletteByName(const std::string& name) const
+PaletteFile::getPaletteByName(const QString& name) const
 {
     int64_t numberOfPalettes = this->palettes.size();
     for (int64_t i = 0; i < numberOfPalettes; i++) {
@@ -257,7 +257,7 @@ PaletteFile::removePalette(const int32_t indx)
  *
  */
 bool
-PaletteFile::empty() const
+PaletteFile::isEmpty() const
 {
     return this->palettes.empty();
 }
@@ -265,10 +265,10 @@ PaletteFile::empty() const
 /**
  * String description of this class. 
  */
-std::string
+QString
 PaletteFile::toString() const
 {
-    std::string s;
+    QString s;
     
     int64_t numberOfPalettes = this->palettes.size();
     for (int64_t i = 0; i < numberOfPalettes; i++) {
@@ -331,7 +331,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
     int64_t numberOfScalars = p.getNumberOfScalarsAndColors();
     for (int64_t i = 0; i < numberOfScalars; i++) {
         PaletteScalarAndColor* psac = p.getScalarAndColor(i);
-        const std::string& colorName = psac->getColorName();
+        const QString& colorName = psac->getColorName();
         const GiftiLabel* gl = this->getColorByName(colorName);
         if (gl != NULL) {
             float rgba[4];
@@ -350,7 +350,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
  *    If the file was not successfully read.
  */
 void 
-PaletteFile::readFile(const std::string& filename) throw (DataFileException)
+PaletteFile::readFile(const QString& filename) throw (DataFileException)
 {
     throw DataFileException("Reading of PaletteFile not implemented.");
 }
@@ -364,7 +364,7 @@ PaletteFile::readFile(const std::string& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-PaletteFile::writeFile(const std::string& filename) throw (DataFileException)
+PaletteFile::writeFile(const QString& filename) throw (DataFileException)
 {
     throw DataFileException("Reading of PaletteFile not implemented.");
 }

@@ -46,20 +46,21 @@ SystemUtilities::~SystemUtilities()
 {
 }
 
-std::string 
+#include <QtCore>
+QString 
 SystemUtilities::getBackTrace()
 {
 #ifdef CARET_OS_WINDOWS
     return "";
 #else  // CARET_OS_WINDOWS
-    std::ostringstream str;
+    std::stringstream str;
     void* callstack[1024];
     int numFrames = backtrace(callstack, 1024);
     char** symbols = backtrace_symbols(callstack, numFrames);
     for (int i = 0; i < numFrames; i++) {
         str << symbols[i] << std::endl;
     }
-    return str.str();
+    return QString::fromStdString(str.str());
 #endif // CARET_OS_WINDOWS
 }
 
@@ -70,10 +71,10 @@ SystemUtilities::getBackTrace()
  * @return  Path of current directory.
  *
  */
-std::string
+QString
 SystemUtilities::getCurrentDirectory()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -82,7 +83,7 @@ SystemUtilities::getCurrentDirectory()
  *
  */
 void
-SystemUtilities::setCurrentDirectory(const std::string& path)
+SystemUtilities::setCurrentDirectory(const QString& path)
 {
 }
 
@@ -92,10 +93,10 @@ SystemUtilities::setCurrentDirectory(const std::string& path)
  * @return  Path of temporary directory.
  *
  */
-std::string
+QString
 SystemUtilities::getTempDirectory()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -104,10 +105,10 @@ SystemUtilities::getTempDirectory()
  * @return  Path to user's home directory.
  *
  */
-std::string
+QString
 SystemUtilities::getUsersHomeDirectory()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -116,10 +117,10 @@ SystemUtilities::getUsersHomeDirectory()
  * @return  Name of user.
  *
  */
-std::string
+QString
 SystemUtilities::getUserName()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -128,10 +129,10 @@ SystemUtilities::getUserName()
  * @return  A string containing the date.
  *
  */
-std::string
+QString
 SystemUtilities::getDate()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -140,10 +141,10 @@ SystemUtilities::getDate()
  * @return  A string containing the time.
  *
  */
-std::string
+QString
 SystemUtilities::getTime()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -152,10 +153,10 @@ SystemUtilities::getTime()
  * @return Data and Time.
  *
  */
-std::string
+QString
 SystemUtilities::getDateAndTime()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -163,10 +164,10 @@ SystemUtilities::getDateAndTime()
  * @return  Name of operating system.
  *
  */
-std::string
+QString
 SystemUtilities::getOperatingSystemName()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -211,10 +212,10 @@ SystemUtilities::getNumberOfProcessors()
  * @return File name without any path.
  *
  */
-std::string
-SystemUtilities::basename(const std::string& name)
+QString
+SystemUtilities::basename(const QString& name)
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -223,10 +224,10 @@ SystemUtilities::basename(const std::string& name)
  * @return Path of file.
  *
  */
-std::string
-SystemUtilities::dirname(const std::string& path)
+QString
+SystemUtilities::dirname(const QString& path)
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -236,10 +237,10 @@ SystemUtilities::dirname(const std::string& path)
  * @return  The part of the file after the last "." in the file name.
  *
  */
-std::string
-SystemUtilities::getFileExtension(const std::string& path)
+QString
+SystemUtilities::getFileExtension(const QString& path)
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -261,17 +262,17 @@ SystemUtilities::unitTest()
  */
 bool
 SystemUtilities::testRelativePath(
-                   const std::string& otherPath,
-                   const std::string& myPath,
-                   const std::string& correctResult)
+                   const QString& otherPath,
+                   const QString& myPath,
+                   const QString& correctResult)
 {
    return false;
 }
 
-std::string
+QString
 SystemUtilities::createUniqueID()
 {
-    return std::string("");
+    return QString("");
 }
 
 /**
@@ -297,12 +298,12 @@ SystemUtilities::createUniqueID()
  * @return The relative path
  *
  */
-std::string
+QString
 SystemUtilities::relativePath(
-                   const std::string& otherPathIn,
-                   const std::string& myPathIn)
+                   const QString& otherPathIn,
+                   const QString& myPathIn)
 {
-   return std::string("");
+   return QString("");
 }
 
 /**
@@ -315,7 +316,7 @@ SystemUtilities::relativePath(
  */
 void
 SystemUtilities::deleteAllFilesInDirectory(
-                   const std::string& directoryPath,
+                   const QString& directoryPath,
                    const bool deleteDirectoryFlag)
 {
 }
@@ -332,11 +333,11 @@ SystemUtilities::deleteAllFilesInDirectory(
  * @return  "directory/file"
  *
  */
-std::string
+QString
 SystemUtilities::createFileAbsolutePath(
-                   const std::string& directoryName,
-                   const std::string& fileName)
+                   const QString& directoryName,
+                   const QString& fileName)
 {
-    return std::string("");
+    return QString("");
 }
 

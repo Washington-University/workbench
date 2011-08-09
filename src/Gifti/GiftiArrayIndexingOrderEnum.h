@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -51,19 +51,19 @@ public:
     
     ~GiftiArrayIndexingOrderEnum();
 
-    static std::string toName(Enum e);
+    static QString toName(Enum e);
     
-    static Enum fromName(const std::string& s, bool* isValidOut);
+    static Enum fromName(const QString& s, bool* isValidOut);
     
-    static std::string toGiftiName(Enum e);
+    static QString toGiftiName(Enum e);
     
-    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    static Enum fromGiftiName(const QString& s, bool* isValidOut);
     
 
 private:
     GiftiArrayIndexingOrderEnum(const Enum e, 
-                            const std::string& name,
-                            const std::string& giftiName);
+                            const QString& name,
+                            const QString& giftiName);
 
     static const GiftiArrayIndexingOrderEnum* findData(const Enum e);
     
@@ -75,9 +75,9 @@ private:
 
     Enum e;
 
-    std::string name;
+    QString name;
 
-    std::string giftiName;
+    QString giftiName;
 };
 
 #ifdef __GIFTIARRAYINDEXINGORDER_DECLARE__

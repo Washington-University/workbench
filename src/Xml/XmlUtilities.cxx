@@ -40,27 +40,30 @@ XmlUtilities::XmlUtilities() {
 XmlUtilities::~XmlUtilities() {
 }
 
-std::string 
-XmlUtilities::encodeXmlSpecialCharacters(const std::string& text)
+QString 
+XmlUtilities::encodeXmlSpecialCharacters(const QString& text)
 {
-    std::string textOut = StringUtilities::replace(text, "&", "&amp;"); // MUST BE FIRST
-    textOut = StringUtilities::replace(textOut, "<", "&lt;");
-    textOut = StringUtilities::replace(textOut, ">", "&gt;");
-    textOut = StringUtilities::replace(textOut, "'", "&apos;");
-    textOut = StringUtilities::replace(textOut, "\"", "&quot;");
+    QString textOut = text;
+    textOut.replace(QString("&"), QString("&amp;"));
+    //QString::replace(text, "&", "&amp;"); // MUST BE FIRST
+    textOut.replace("<", "&lt;");
+    textOut.replace(">", "&gt;");
+    textOut.replace("'", "&apos;");
+    textOut.replace("\"", "&quot;");
     
     return textOut;
     
 }
 
-std::string 
-XmlUtilities::decodeXmlSpecialCharacters(const std::string& text)
+QString 
+XmlUtilities::decodeXmlSpecialCharacters(const QString& text)
 {
-    std::string textOut = StringUtilities::replace(text, "&amp;", "&");
-    textOut = StringUtilities::replace(textOut, "&lt;", "<");
-    textOut = StringUtilities::replace(textOut, "&gt;", ">");
-    textOut = StringUtilities::replace(textOut, "&apos;", "'");
-    textOut = StringUtilities::replace(textOut, "&quot;", "\"");
+    QString textOut = text;
+    textOut.replace("&amp;", "&");
+    textOut.replace("&lt;", "<");
+    textOut.replace("&gt;", ">");
+    textOut.replace( "&apos;", "'");
+    textOut.replace("&quot;", "\"");
     
     return textOut;
     

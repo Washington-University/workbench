@@ -216,7 +216,7 @@ GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum inte
    }
    else {
       std::cout << "WARNING: unrecogized intent \""
-       << NiftiIntentEnum::toName(intent).c_str()
+       << NiftiIntentEnum::toName(intent).toStdString().c_str()
                 << " in GiftiDataArray::getDataTypeAppropriateForIntent()." << std::endl;
       return false;
    }
@@ -480,7 +480,7 @@ GiftiDataArray::getSystemEndian()
  * get external file information.
  */
 void 
-GiftiDataArray::getExternalFileInformation(std::string& nameOut,
+GiftiDataArray::getExternalFileInformation(QString& nameOut,
                                            int64_t & offsetOut) const
 {
    nameOut = externalFileName;
@@ -491,7 +491,7 @@ GiftiDataArray::getExternalFileInformation(std::string& nameOut,
  * set external file information.
  */
 void 
-GiftiDataArray::setExternalFileInformation(const std::string& nameIn,
+GiftiDataArray::setExternalFileInformation(const QString& nameIn,
                                            const int64_t offsetIn)
 {
    externalFileName = nameIn;
@@ -504,7 +504,7 @@ GiftiDataArray::setExternalFileInformation(const std::string& nameIn,
 void 
 GiftiDataArray::remapIntValues(const std::vector<int32_t>& remappingTable)
 {
-   if (remappingTable.empty()) {
+   if (remappingTable.isEmpty()) {
       return;
    }
    if (dataType != NiftiDataType::NIFTI_TYPE_INT32) {
@@ -546,13 +546,13 @@ GiftiDataArray::transferLabelIndices(const std::map<int32_t,int32_t>& indexConve
  * Data array should already be initialized and allocated.
  */
 void 
-GiftiDataArray::readFromText(const std::string text,
+GiftiDataArray::readFromText(const QString text,
             const GiftiEndianEnum::Enum dataEndianForReading,
             const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
             const NiftiDataTypeEnum::Enum dataTypeForReading,
             const std::vector<int64_t>& dimensionsForReading,
             const GiftiEncodingEnum::Enum encodingForReading,
-            const std::string& externalFileNameForReading,
+            const QString& externalFileNameForReading,
             const int64_t externalFileOffsetForReading) throw (GiftiException)
 {
    const NiftiDataTypeEnum::Enum requiredDataType = dataType;
@@ -578,7 +578,7 @@ GiftiDataArray::readFromText(const std::string text,
       switch (encoding) {
           case GiftiEncodingEnum::ASCII:
             {
-                std::istringstream stream(text);
+                std::istringstream stream(text.toStdString());
                 
                switch (dataType) {
                   case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
@@ -621,15 +621,15 @@ GiftiDataArray::readFromText(const std::string text,
                // Decode the Base64 data using VTK's algorithm
                //
                const uint64_t numDecoded =
-                     Base64::decode((const unsigned char*)(text.c_str()),
+                     Base64::decode((const unsigned char*)(text.toStdString().c_str()),
                                                 data.size(),
                                                 &data[0]);
                if (numDecoded != data.size()) {
                   std::ostringstream str;
                   str << "Decoding of Base64 Binary data failed.\n"
-                   << "Decoded " << StringUtilities::fromNumber(numDecoded) << " bytes but should be "
-                      << StringUtilities::fromNumber(static_cast<int>(data.size())) << " bytes.";
-                  throw GiftiException(str.str());
+                   << "Decoded " << QString::number(numDecoded).toStdString() << " bytes but should be "
+                      << QString::number(static_cast<int>(data.size())).toStdString() << " bytes.";
+                  throw GiftiException(QString::fromStdString(str.str()));
                }
                
                //
@@ -648,7 +648,7 @@ GiftiDataArray::readFromText(const std::string text,
                unsigned char* dataBuffer = new unsigned char[data.size()];
                // crashes const char* textChars = text.toAscii().constData();
                const uint64_t numDecoded =
-                     Base64::decode((unsigned char*)text.c_str(),
+                     Base64::decode((unsigned char*)text.toStdString().c_str(),
                                                 data.size(),
                                                 dataBuffer);
                if (numDecoded == 0) {
@@ -668,9 +668,9 @@ GiftiDataArray::readFromText(const std::string text,
                if (uncompressedDataLength != data.size()) {
                   std::ostringstream str;
                   str << "Decompression of Binary data failed.\n"
-                   << "Uncompressed " << StringUtilities::fromNumber(uncompressedDataLength) << " bytes but should be "
-                   << StringUtilities::fromNumber(static_cast<uint64_t>(data.size())) << " bytes.";
-                  throw GiftiException(str.str());
+                   << "Uncompressed " << QString::number(uncompressedDataLength).toStdString() << " bytes but should be "
+                   << QString::number(static_cast<uint64_t>(data.size())).toStdString() << " bytes.";
+                  throw GiftiException(QString::fromStdString(str.str()));
                }
                
                //
@@ -692,7 +692,7 @@ GiftiDataArray::readFromText(const std::string text,
                   throw GiftiException("External file name is empty.");
                }
                
-                std::ifstream extBinFile(StringUtilities::toStdString(externalFileName).c_str());
+                std::ifstream extBinFile(externalFileName.toStdString().c_str());
                 if (!extBinFile) {
                         throw GiftiException("Error opening \""
                                             + externalFileName
@@ -733,7 +733,7 @@ GiftiDataArray::readFromText(const std::string text,
                                     numberOfBytesToRead);
                   if(extBinFile.fail()) {
                      throw GiftiException("Tried to read "
-                                         + StringUtilities::fromNumber((int64_t)numberOfBytesToRead)
+                                         + QString::number((int64_t)numberOfBytesToRead)
                                          + " from "
                                          + externalFileName
                                          + " but failed");
@@ -912,7 +912,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                                                 throw (GiftiException)
 {
     //
-    // Do not write if data array is isEmpty
+    // Do not write if data array is isEmpty()
     //
     const int64_t numRows = dimensions[0];
     if (numRows <= 0) {
@@ -935,8 +935,8 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    //
    // External file not supported
    //
-   //const std::string externalFileName = "";
-   //const std::string externalFileOffset = "0";
+   //const QString externalFileName = "";
+   //const QString externalFileOffset = "0";
    
    //
    // Write the opening tag
@@ -1001,19 +1001,19 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                switch (dataType) {
                   case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerFloat[offset + j]));
+                         xmlWriter.writeCharacters(QString::number(this->dataPointerFloat[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
                   case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerInt[offset + j]));
+                         xmlWriter.writeCharacters(QString::number(this->dataPointerInt[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
                   case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(StringUtilities::fromNumber(this->dataPointerUByte[offset + j]));
+                         xmlWriter.writeCharacters(QString::number(this->dataPointerUByte[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
@@ -1040,9 +1040,9 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             if (compressedLength >= bufferLength) {
                throw GiftiException(
                      "Base64 encoding buffer length ("
-                     + StringUtilities::fromNumber(bufferLength)
+                     + QString::number(bufferLength)
                      + ") is too small but needs to be "
-                                    + StringUtilities::fromNumber(compressedLength));
+                                    + QString::number(compressedLength));
             }
             buffer[compressedLength] = '\0';
             
@@ -1538,7 +1538,7 @@ GiftiDataArray::setDataUInt8(const int32_t indices[], const uint8_t dataValue) c
  * valid intent name.
  */
 bool 
-GiftiDataArray::intentNameValid(const std::string& intentNameIn)
+GiftiDataArray::intentNameValid(const QString& intentNameIn)
 {
     bool valid = false;
     NiftiIntentEnum::fromName(intentNameIn, &valid);
@@ -1564,15 +1564,28 @@ GiftiDataArray::removeMatrix(const int32_t indx)
    matrices.erase(matrices.begin() + indx);
    setModified();
 }
-      
-std::string 
+
+QString 
+fromNumbers(const std::vector<int64_t>& v, const QString& separator)
+{
+    QString s;
+    for (int64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += QString::number(v[i]);
+    }
+    return s;
+}
+
+QString 
 GiftiDataArray::toString() const
 {
     std::ostringstream str;
     str << "Data Array" << std::endl;
-    str << "   DataType=" << NiftiDataTypeEnum::toName(this->dataType) << std::endl;
-    str << "   Intent=" << NiftiIntentEnum::toName(this->intent) << std::endl;
-    str << "   Dimensions=" << StringUtilities::fromNumbers(this->dimensions, ",");
-    str << "   MetaData=" << this->metaData.toString() << std::endl;
-    return str.str();
+    str << "   DataType=" << NiftiDataTypeEnum::toName(this->dataType).toStdString() << std::endl;
+    str << "   Intent=" << NiftiIntentEnum::toName(this->intent).toStdString() << std::endl;
+    str << "   Dimensions=" << fromNumbers(this->dimensions, ",").toStdString();
+    str << "   MetaData=" << this->metaData.toString().toStdString() << std::endl;
+    return QString::fromStdString(str.str());
 }

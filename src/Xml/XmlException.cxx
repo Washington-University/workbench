@@ -60,7 +60,7 @@ XmlException::XmlException(
  * @param  s  Description of the exception.
  *
  */
-XmlException::XmlException(const std::string& s)
+XmlException::XmlException(const QString& s)
 : CaretException(s)
 {
     this->initializeMembers();

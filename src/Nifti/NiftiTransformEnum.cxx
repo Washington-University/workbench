@@ -41,7 +41,7 @@ using namespace caret;
 NiftiTransformEnum::NiftiTransformEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name)
+                   const QString& name)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -102,7 +102,7 @@ NiftiTransformEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-std::string 
+QString 
 NiftiTransformEnum::toName(Enum e) {
     initialize();
     
@@ -121,7 +121,7 @@ NiftiTransformEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiTransformEnum::Enum 
-NiftiTransformEnum::fromName(const std::string& s, bool* isValidOut)
+NiftiTransformEnum::fromName(const QString& s, bool* isValidOut)
 {
     initialize();
     

@@ -46,6 +46,8 @@ ELSE(APPLE)
     MESSAGE(FATAL_ERROR "Unrecognized operating system " ${CMAKE_SYSTEM_NAME})
 ENDIF(APPLE)
 
+
+
 #cmake_policy(SET CMP0015 OLD)
 
 #
@@ -62,7 +64,11 @@ ELSE(QT4_FOUND)
     MESSAGE(FATAL_ERROR "QT4 not found")
 ENDIF(QT4_FOUND)
 
-
+#
+# QT include files
+#
+SET(QT_USE_QTOPENGL TRUE)
+INCLUDE(${QT_USE_FILE})
 #
 #  Expect OpenMP on Apple and UNIX
 #

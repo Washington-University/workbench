@@ -118,9 +118,9 @@ GiftiTypeFile::isModified() const
  * @return true if file is empty, else false.
  */
 bool 
-GiftiTypeFile::empty() const
+GiftiTypeFile::isEmpty() const
 {
-    return this->giftiFile->empty();
+    return this->giftiFile->isEmpty();
 }
 
 /**
@@ -133,7 +133,7 @@ GiftiTypeFile::empty() const
  *    If there is an error reading the file.
  */
 void 
-GiftiTypeFile::readFile(const std::string& filename) throw (DataFileException)
+GiftiTypeFile::readFile(const QString& filename) throw (DataFileException)
 {
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
@@ -150,7 +150,7 @@ GiftiTypeFile::readFile(const std::string& filename) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-GiftiTypeFile::writeFile(const std::string& filename) throw (DataFileException)
+GiftiTypeFile::writeFile(const QString& filename) throw (DataFileException)
 {
     this->giftiFile->writeFile(filename);
     this->clearModified();
@@ -185,7 +185,7 @@ GiftiTypeFile::initializeMembersGiftiTypeFile()
  * @return
  *    Information about the file's contents.
  */
-std::string 
+QString 
 GiftiTypeFile::toString() const
 {
     return this->giftiFile->toString();

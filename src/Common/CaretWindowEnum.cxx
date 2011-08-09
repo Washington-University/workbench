@@ -33,7 +33,7 @@
 
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 #include <vector> 
 
 using namespace caret;
@@ -54,7 +54,7 @@ CaretWindowEnum::getEnum() const
  *
  * @return Enum name for this caret window.
  */
-std::string 
+QString 
 CaretWindowEnum::getName() const
 {
     return this->name;
@@ -65,7 +65,7 @@ CaretWindowEnum::getName() const
  *
  * @return window name for this caret window.
  */
-std::string 
+QString 
 CaretWindowEnum::getWindowName() const
 {
     return this->windowName;
@@ -178,12 +178,12 @@ CaretWindowEnum::indexToWindow(const int32_t indx)
  * @return
  *    The name of the enum.
  */
-std::string 
+QString 
 CaretWindowEnum::toName(Enum e)
 {
     CaretWindowEnum::initialize();
     
-    std::string s;
+    QString s;
     
     for (std::vector<CaretWindowEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -212,7 +212,7 @@ CaretWindowEnum::toName(Enum e)
  *    Enum corresponding to name.
  */
 CaretWindowEnum::Enum 
-CaretWindowEnum::fromName(const std::string& name, bool* isValidOut)
+CaretWindowEnum::fromName(const QString& name, bool* isValidOut)
 {
     CaretWindowEnum::initialize();
     
@@ -275,8 +275,8 @@ CaretWindowEnum::findData(const Enum e)
  *     Index of window.
  */
 CaretWindowEnum::CaretWindowEnum(const Enum e,
-            const std::string& name,
-            const std::string& windowName,
+            const QString& name,
+            const QString& windowName,
             const int32_t windowIndex)
 {
     this->e = e;

@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 #include <vector>
 
 namespace caret {
@@ -55,7 +55,7 @@ public:
 
     ~NiftiSpacingUnitsEnum();
 private:
-    NiftiSpacingUnitsEnum(Enum e, const int32_t integerCode, const std::string& name);
+    NiftiSpacingUnitsEnum(Enum e, const int32_t integerCode, const QString& name);
     static const NiftiSpacingUnitsEnum* findData(Enum e);
     static std::vector<NiftiSpacingUnitsEnum> spacingUnits;
     static void initializeSpacingUnits();
@@ -63,10 +63,10 @@ private:
     
     Enum e;
     int32_t integerCode;
-    std::string name;
+    QString name;
 public:
-    static std::string toName(Enum e);
-    static Enum fromName(const std::string& s, bool* isValidOut);
+    static QString toName(Enum e);
+    static Enum fromName(const QString& s, bool* isValidOut);
     static int32_t toIntegerCode(Enum e);
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     

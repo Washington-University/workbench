@@ -21,7 +21,7 @@
  */
 
 #include <sstream>
-#include <string>
+#include <QString>
 #include <stdint.h>
 
 namespace caret {
@@ -32,165 +32,165 @@ namespace caret {
 namespace GiftiXmlElements {
     
    /** tag for coordinate transformation matrix element */
-   static const std::string TAG_COORDINATE_TRANSFORMATION_MATRIX = 
+   static const QString TAG_COORDINATE_TRANSFORMATION_MATRIX = 
                                          "CoordinateSystemTransformMatrix"; 
 
    /** tag for data element */
-   static const std::string TAG_DATA = "Data"; 
+   static const QString TAG_DATA = "Data"; 
 
    /** tag for data array element */
-   static const std::string TAG_DATA_ARRAY =  "DataArray"; 
+   static const QString TAG_DATA_ARRAY =  "DataArray"; 
 
    /** tag for coordinate transformation data space element */
-   static const std::string TAG_MATRIX_DATA_SPACE =  "DataSpace"; 
+   static const QString TAG_MATRIX_DATA_SPACE =  "DataSpace"; 
 
    /** tag for GIFTI element */
-   static const std::string TAG_GIFTI =  "GIFTI"; 
+   static const QString TAG_GIFTI =  "GIFTI"; 
 
    /** tag for label element */
-   static const std::string TAG_LABEL =  "Label"; 
+   static const QString TAG_LABEL =  "Label"; 
 
    /** tag for label table element */
-   static const std::string TAG_LABEL_TABLE =  "LabelTable"; 
+   static const QString TAG_LABEL_TABLE =  "LabelTable"; 
 
    /** tag for a metadata entry */
-   static const std::string TAG_METADATA_ENTRY =  "MD"; 
+   static const QString TAG_METADATA_ENTRY =  "MD"; 
 
    /** tag for matrix data */
-   static const std::string TAG_MATRIX_DATA =  "MatrixData"; 
+   static const QString TAG_MATRIX_DATA =  "MatrixData"; 
 
    /** tag for metadata */
-   static const std::string TAG_METADATA =  "MetaData"; 
+   static const QString TAG_METADATA =  "MetaData"; 
 
    /** tag for metadata name */
-   static const std::string TAG_METADATA_NAME =  "Name"; 
+   static const QString TAG_METADATA_NAME =  "Name"; 
 
    /** tag for coordinate transformation space element */
-   static const std::string TAG_MATRIX_TRANSFORMED_SPACE =  "TransformedSpace"; 
+   static const QString TAG_MATRIX_TRANSFORMED_SPACE =  "TransformedSpace"; 
 
    /** tag for metadata value element */
-   static const std::string TAG_METADATA_VALUE =  "Value"; 
+   static const QString TAG_METADATA_VALUE =  "Value"; 
 
 
 
    /** attribute for data array indexing order */
-   static const std::string ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER = 
+   static const QString ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER = 
                                                            "ArrayIndexingOrder"; 
 
    /** attribute for data array data type */
-   static const std::string ATTRIBUTE_DATA_ARRAY_DATA_TYPE =  "DataType"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_DATA_TYPE =  "DataType"; 
 
    /** attribute for data array dimensionality */
-   static const std::string ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY = 
+   static const QString ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY = 
                                                                "Dimensionality"; 
 
    /** attribute for data array dimensionality */
-   static const std::string ATTRIBUTE_DATA_ARRAY_DIM_PREFIX =  "Dim"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_DIM_PREFIX =  "Dim"; 
 
    /** attribute for data array encoding */
-   static const std::string ATTRIBUTE_DATA_ARRAY_ENCODING =  "Encoding"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_ENCODING =  "Encoding"; 
 
    /** attribute for data array ending */
-   static const std::string ATTRIBUTE_DATA_ARRAY_ENDIAN =  "Endian"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_ENDIAN =  "Endian"; 
 
    /** attribute for data array external file name */
-   static const std::string ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME = 
+   static const QString ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME = 
                                                             "ExternalFileName"; 
 
    /** attribute for data array external file offset */
-   static const std::string ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET = 
+   static const QString ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET = 
                                                           "ExternalFileOffset"; 
 
    /** attribute for data array label index REPLACED BY KEY*/
-   static const std::string ATTRIBUTE_LABEL_INDEX_obsolete =  "Index"; 
+   static const QString ATTRIBUTE_LABEL_INDEX_obsolete =  "Index"; 
 
    /** attribute for data array label key */
-   static const std::string ATTRIBUTE_LABEL_KEY =  "Key"; 
+   static const QString ATTRIBUTE_LABEL_KEY =  "Key"; 
 
    /** attribute for data array label red color component */
-   static const std::string ATTRIBUTE_LABEL_RED =  "Red"; 
+   static const QString ATTRIBUTE_LABEL_RED =  "Red"; 
 
    /** attribute for data array label green color component */
-   static const std::string ATTRIBUTE_LABEL_GREEN =  "Green"; 
+   static const QString ATTRIBUTE_LABEL_GREEN =  "Green"; 
 
    /** attribute for data array label blue color component */
-   static const std::string ATTRIBUTE_LABEL_BLUE =  "Blue"; 
+   static const QString ATTRIBUTE_LABEL_BLUE =  "Blue"; 
 
    /** attribute for data array label alpha color component */
-   static const std::string ATTRIBUTE_LABEL_ALPHA =  "Alpha"; 
+   static const QString ATTRIBUTE_LABEL_ALPHA =  "Alpha"; 
 
     /** attribute for data array label X-coordinate */
-    static const std::string ATTRIBUTE_LABEL_X =  "X"; 
+    static const QString ATTRIBUTE_LABEL_X =  "X"; 
     
     /** attribute for data array label X-coordinate */
-    static const std::string ATTRIBUTE_LABEL_Y =  "Y"; 
+    static const QString ATTRIBUTE_LABEL_Y =  "Y"; 
     
     /** attribute for data array label X-coordinate */
-    static const std::string ATTRIBUTE_LABEL_Z =  "Z"; 
+    static const QString ATTRIBUTE_LABEL_Z =  "Z"; 
     
    /** attribute for data array intent */
-   static const std::string ATTRIBUTE_DATA_ARRAY_INTENT =  "Intent"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_INTENT =  "Intent"; 
 
    /** attribute for data array intent parameter 1 */
-   static const std::string ATTRIBUTE_DATA_ARRAY_INTENT_P1 =  "intent_p1"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_INTENT_P1 =  "intent_p1"; 
 
    /** attribute for data array intent parameter 2 */
-   static const std::string ATTRIBUTE_DATA_ARRAY_INTENT_P2 =  "intent_p2"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_INTENT_P2 =  "intent_p2"; 
 
    /** attribute for data array intent parameter 3 */
-   static const std::string ATTRIBUTE_DATA_ARRAY_INTENT_P3 =  "intent_p3"; 
+   static const QString ATTRIBUTE_DATA_ARRAY_INTENT_P3 =  "intent_p3"; 
 
    /** attribute for GIFTI Number of Data Arrays */
-   static const std::string ATTRIBUTE_GIFTI_NUMBER_OF_DATA_ARRAYS = 
+   static const QString ATTRIBUTE_GIFTI_NUMBER_OF_DATA_ARRAYS = 
                                                           "NumberOfDataArrays"; 
 
    /** attribute for GIFTI Version */
-   static const std::string ATTRIBUTE_GIFTI_VERSION =  "Version"; 
+   static const QString ATTRIBUTE_GIFTI_VERSION =  "Version"; 
     
-   std::string getAttributeDimension(int32_t dimIndex);
+   QString getAttributeDimension(int32_t dimIndex);
     
     /**
      * Get an attribute dimension (Dim0, Dim1, etc).
      * @param  Index value for dimension.
      * @return Dim0, Dim1, etc
      *
-    static std::string getAttributeDimension(int32_t dimIndex) {
+    static QString getAttributeDimension(int32_t dimIndex) {
         std::ostringstream str;
         str << ATTRIBUTE_DATA_ARRAY_DIM_PREFIX << dimIndex;;
         return str.str();
     }
     */
 /*
-    static const std::string tagGIFTI  = "GIFTI";
-    static const std::string tagMetaData = "MetaData";
-    static const std::string tagMD = "MD";
-    static const std::string tagName = "Name";
-    static const std::string tagValue = "Value";
-    static const std::string tagDataArray = "DataArray";
-    static const std::string tagData = "Data";
-    static const std::string tagLabelTable = "LabelTable";
-    static const std::string tagLabel = "Labe";
-    static const std::string tagMatrix = "CoordinateSystemTransformMatrix";
-    static const std::string tagMatrixDataSpace = "DataSpace";
-    static const std::string tagMatrixTransformedSpace = "TransformedSpace";
-    static const std::string tagMatrixData = "MatrixData";
+    static const QString tagGIFTI  = "GIFTI";
+    static const QString tagMetaData = "MetaData";
+    static const QString tagMD = "MD";
+    static const QString tagName = "Name";
+    static const QString tagValue = "Value";
+    static const QString tagDataArray = "DataArray";
+    static const QString tagData = "Data";
+    static const QString tagLabelTable = "LabelTable";
+    static const QString tagLabel = "Labe";
+    static const QString tagMatrix = "CoordinateSystemTransformMatrix";
+    static const QString tagMatrixDataSpace = "DataSpace";
+    static const QString tagMatrixTransformedSpace = "TransformedSpace";
+    static const QString tagMatrixData = "MatrixData";
     
-    static const std::string attVersion = "Version";
-    static const std::string attNumberOfDataArrays = "NumberOfDataArrays";
-    static const std::string attArraySubscriptingOrder = "ArrayIndexingOrder";
-    static const std::string attKey = "Key";
-    static const std::string attRed = "Red";
-    static const std::string attGreen = "Green";
-    static const std::string attBlue = "Blue";
-    static const std::string attAlpha = "Alpha";
-    static const std::string attIntent = "Intent";
-    static const std::string attDataType = "DataType";
-    static const std::string attDimensionality = "Dimensionality";
-    static const std::string attDim = "Dim";
-    static const std::string attEncoding = "Encoding";
-    static const std::string attEndian = "Endian";
-    static const std::string attExternalFileName = "ExternalFileName";
-    static const std::string attExternalFileOffset = "ExternalFileOffset";
+    static const QString attVersion = "Version";
+    static const QString attNumberOfDataArrays = "NumberOfDataArrays";
+    static const QString attArraySubscriptingOrder = "ArrayIndexingOrder";
+    static const QString attKey = "Key";
+    static const QString attRed = "Red";
+    static const QString attGreen = "Green";
+    static const QString attBlue = "Blue";
+    static const QString attAlpha = "Alpha";
+    static const QString attIntent = "Intent";
+    static const QString attDataType = "DataType";
+    static const QString attDimensionality = "Dimensionality";
+    static const QString attDim = "Dim";
+    static const QString attEncoding = "Encoding";
+    static const QString attEndian = "Endian";
+    static const QString attExternalFileName = "ExternalFileName";
+    static const QString attExternalFileOffset = "ExternalFileOffset";
 */
     
     

@@ -26,7 +26,7 @@
  */ 
 
 #include <map>
-#include <string>
+#include <QtCore>
 
 namespace caret {
     
@@ -47,9 +47,9 @@ public:
     virtual ~CaretObject();
 
 
-    virtual std::string toString() const;
+    virtual QString toString() const;
     
-    std::string className() const;
+    QString className() const;
     
     static void printListOfObjectsNotDeleted(const bool showCallStack);
 
@@ -59,10 +59,10 @@ private:
      */
     class CaretObjectInfo {
     public:
-        CaretObjectInfo(const std::string& callStack);
+        CaretObjectInfo(const QString& callStack);
         ~CaretObjectInfo();
         
-        std::string callStack;
+        QString callStack;
     };
     
     void copyHelper(const CaretObject& co);

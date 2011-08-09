@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <string>
+#include <QString>
 
 #include "CaretException.h"
 
@@ -43,7 +43,7 @@ public:
 
     DataFileException(const exception& e);
 
-    DataFileException(const std::string& s);
+    DataFileException(const QString& s);
 
     DataFileException(const DataFileException& e);
     

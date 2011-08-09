@@ -31,7 +31,7 @@
 #include <stdint.h>
 
 #include <vector>
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -84,19 +84,19 @@ public:
     ~NiftiDataTypeEnum();
 private:
     NiftiDataTypeEnum();
-    NiftiDataTypeEnum(Enum e, const std::string& name, const int32_t integerCode);
+    NiftiDataTypeEnum(Enum e, const QString& name, const int32_t integerCode);
     static const NiftiDataTypeEnum* findData(Enum e);
     static std::vector<NiftiDataTypeEnum> dataTypes;
     static void createDataTypes();
     static bool dataTypesCreatedFlag;
     
     Enum e;
-    std::string name;
+    QString name;
     int32_t integerCode;
     
 public:
-    static std::string toName(Enum e);
-    static Enum fromName(const std::string& s, bool* isValidOut);
+    static QString toName(Enum e);
+    static Enum fromName(const QString& s, bool* isValidOut);
     static int32_t toIntegerCode(Enum e);
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 

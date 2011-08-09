@@ -20,7 +20,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -28,25 +28,25 @@ namespace caret {
   * GIFTI XML Element tags
   */
 namespace PaletteXmlElements {    
-    static const std::string XML_TAG_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
-    static const std::string XML_TAG_SCALE_MODE = "ScaleMode";
-    static const std::string XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES = "AutoScalePercentageValues";
-    static const std::string XML_TAG_USER_SCALE_VALUES = "UserScaleValues";
-    static const std::string XML_TAG_PALETTE_NAME = "PaletteName";
-    static const std::string XML_TAG_INTERPOLATE = "InterpolatePalette";
-    static const std::string XML_TAG_DISPLAY_POSITIVE = "DisplayPositiveData";   
-    static const std::string XML_TAG_DISPLAY_NEGATIVE = "DisplayNegativeData";
-    static const std::string XML_TAG_DISPLAY_ZERO = "DisplayZeroData";
-    static const std::string XML_TAG_THRESHOLD_TEST = "ThresholdTest";
-    static const std::string XML_TAG_THRESHOLD_TYPE = "ThresholdType";
-    static const std::string XML_TAG_THRESHOLD_NORMAL_VALUES = "ThresholdNormalValues";
-    static const std::string XML_TAG_THRESHOLD_MAPPED_VALUES = "ThresholdMappedValues";
-    static const std::string XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES = "ThresholdMappedAvgAreaValues";
-    static const std::string XML_TAG_THRESHOLD_DATA_NAME = "ThresholdDataName";
-    static const std::string XML_TAG_THRESHOLD_FAILURE_IN_GREEN = "ThresholdFailureInGreen";
+    static const QString XML_TAG_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
+    static const QString XML_TAG_SCALE_MODE = "ScaleMode";
+    static const QString XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES = "AutoScalePercentageValues";
+    static const QString XML_TAG_USER_SCALE_VALUES = "UserScaleValues";
+    static const QString XML_TAG_PALETTE_NAME = "PaletteName";
+    static const QString XML_TAG_INTERPOLATE = "InterpolatePalette";
+    static const QString XML_TAG_DISPLAY_POSITIVE = "DisplayPositiveData";   
+    static const QString XML_TAG_DISPLAY_NEGATIVE = "DisplayNegativeData";
+    static const QString XML_TAG_DISPLAY_ZERO = "DisplayZeroData";
+    static const QString XML_TAG_THRESHOLD_TEST = "ThresholdTest";
+    static const QString XML_TAG_THRESHOLD_TYPE = "ThresholdType";
+    static const QString XML_TAG_THRESHOLD_NORMAL_VALUES = "ThresholdNormalValues";
+    static const QString XML_TAG_THRESHOLD_MAPPED_VALUES = "ThresholdMappedValues";
+    static const QString XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES = "ThresholdMappedAvgAreaValues";
+    static const QString XML_TAG_THRESHOLD_DATA_NAME = "ThresholdDataName";
+    static const QString XML_TAG_THRESHOLD_FAILURE_IN_GREEN = "ThresholdFailureInGreen";
     
-    static const std::string XML_ATTRIBUTE_VERSION_NUMBER = "Version";
-    static const std::string XML_VERSION_NUMBER = "1";
+    static const QString XML_ATTRIBUTE_VERSION_NUMBER = "Version";
+    static const QString XML_VERSION_NUMBER = "1";
 };  // namespace
 
     

@@ -26,7 +26,7 @@
  */ 
 
 
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 #include "DataFileInterface.h"
@@ -48,9 +48,9 @@ namespace caret {
         DataFile& operator=(const DataFile&);
         
     public:
-        virtual std::string getFileName() const;
+        virtual QString getFileName() const;
         
-        virtual void setFileName(const std::string& filename);
+        virtual void setFileName(const QString& filename);
         
         /**
          * Read the data file.
@@ -60,7 +60,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully read.
          */
-        virtual void readFile(const std::string& filename) throw (DataFileException) = 0;
+        virtual void readFile(const QString& filename) throw (DataFileException) = 0;
         
         /**
          * Write the data file.
@@ -70,7 +70,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully written.
          */
-        virtual void writeFile(const std::string& filename) throw (DataFileException) = 0;
+        virtual void writeFile(const QString& filename) throw (DataFileException) = 0;
         
         virtual void setModified();
         
@@ -86,7 +86,7 @@ namespace caret {
         void initializeMembersDataFile();
         
         /** name of data file */
-        std::string filename;
+        QString filename;
         
         /** modification status */
         bool modifiedFlag;

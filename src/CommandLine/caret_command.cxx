@@ -36,7 +36,7 @@ int main(int argc, char* argv[]) {
     SurfaceFile sf;
     try {
         sf.readFile("/Users/john/caret_data/caret7_test_files/gifti/Human.PALS_B12.LEFT_AVG_B1-12.FIDUCIAL_FLIRT.clean.73730.surf.gii");
-        std::cout << sf.toString() << std::endl;
+        std::cout << sf.toString().toStdString() << std::endl;
         
         const float* xyz = sf.getCoordinate(1000);
         std::cout << "Coordinate 1000: "
@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
         
     }
     catch (DataFileException e) {
-        std::cout << "ERROR: " << e.whatString() << std::endl;
+        std::cout << "ERROR: " << e.whatString().toStdString() << std::endl;
     }
 
     /*

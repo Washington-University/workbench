@@ -30,7 +30,7 @@
 #include "XmlException.h"
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -116,13 +116,13 @@ public:
     
     void multiplyPoint3X3(float p[3]) const;
 
-    std::string getDataSpaceName() const;
+    QString getDataSpaceName() const;
 
-    void setDataSpaceName(const std::string& name);
+    void setDataSpaceName(const QString& name);
 
-    std::string getTransformedSpaceName() const;
+    QString getTransformedSpaceName() const;
 
-    void setTransformedSpaceName(const std::string& name);
+    void setTransformedSpaceName(const QString& name);
 
     double getMatrixElement(
                     const int32_t i,
@@ -139,9 +139,9 @@ public:
 
     bool invert();
 
-    std::string toString() const;
+    QString toString() const;
 
-    std::string toFormattedString(const std::string& indentation);
+    QString toFormattedString(const QString& indentation);
 
     void setModified();
 
@@ -175,10 +175,10 @@ protected:
     double matrix[4][4];
 
     /**data space name (used by GIFTI) */
-    std::string dataSpaceName;
+    QString dataSpaceName;
 
     /**transformed space name (used by GIFTI) */
-    std::string transformedSpaceName;
+    QString transformedSpaceName;
 
 private:
     /**data modification status (DO NOT CLONE) */

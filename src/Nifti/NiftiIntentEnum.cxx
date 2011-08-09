@@ -32,12 +32,12 @@ using namespace caret;
 
 
 NiftiIntentEnum::NiftiIntentEnum(Enum e, 
-                         const std::string& enumName,
+                         const QString& enumName,
                          const int32_t integerCode,
-                         const std::string& name,
-                         const std::string& p1Name,
-                         const std::string& p2Name,
-                         const std::string& p3Name)
+                         const QString& name,
+                         const QString& p1Name,
+                         const QString& p2Name,
+                         const QString& p3Name)
 {
     this->e = e;
     this->enumName = enumName;
@@ -142,7 +142,7 @@ NiftiIntentEnum::initializeIntents()
  * @return
  *     String representing enumerated value.
  */
-std::string
+QString
 NiftiIntentEnum::toName(Enum e) {
     initializeIntents();
     
@@ -161,7 +161,7 @@ NiftiIntentEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiIntentEnum::Enum
-NiftiIntentEnum::fromName(const std::string& s, bool* isValidOut)
+NiftiIntentEnum::fromName(const QString& s, bool* isValidOut)
 {
     initializeIntents();
     
@@ -216,7 +216,7 @@ NiftiIntentEnum::findData(Enum e)
  * @return 
  *   P1 name associated with intent (may be empty string).
  */
-std::string 
+QString 
 NiftiIntentEnum::toNameP1(Enum e)
 {
     initializeIntents();
@@ -231,7 +231,7 @@ NiftiIntentEnum::toNameP1(Enum e)
  * @return 
  *   P2 name associated with intent (may be empty string).
  */
-std::string 
+QString 
 NiftiIntentEnum::toNameP2(Enum e)
 {
     initializeIntents();
@@ -246,7 +246,7 @@ NiftiIntentEnum::toNameP2(Enum e)
  * @return 
  *   P3 name associated with intent (may be empty string).
  */
-std::string 
+QString 
 NiftiIntentEnum::toNameP3(Enum e)
 {
     initializeIntents();

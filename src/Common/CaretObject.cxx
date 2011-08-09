@@ -96,10 +96,10 @@ CaretObject::copyHelper(const CaretObject&)
  * @return String containing caret object.
  *
  */
-std::string
+QString
 CaretObject::toString() const
 {
-    std::string s = "CaretObjectType=" + this->className();
+    QString s = "CaretObjectType=" + this->className();
     return s;
 }
 
@@ -108,10 +108,10 @@ CaretObject::toString() const
  * @return 
  *    Class name of the object.
  */
-std::string 
+QString 
 CaretObject::className() const
 {
-    std::string name(typeid(*this).name());
+    QString name(typeid(*this).name());
     return name;    
 }
 
@@ -128,9 +128,9 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
              iter++) {
             const CaretObject* caretObject = iter->first;
             const CaretObjectInfo& caretObjectInfo = iter->second;
-            std::cout << caretObject->toString() << std::endl;
+            std::cout << caretObject->toString().toStdString() << std::endl;
             if (showCallStack) {
-                std::cout << caretObjectInfo.callStack << std::endl;
+                std::cout << caretObjectInfo.callStack.toStdString() << std::endl;
             }
             std::cout << std::endl;
         }
@@ -144,7 +144,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
  * @param callStack
  *     A callstack showing where the object was created.
  */
-CaretObject::CaretObjectInfo::CaretObjectInfo(const std::string& callStack)
+CaretObject::CaretObjectInfo::CaretObjectInfo(const QString& callStack)
 {
     this->callStack   = callStack;
 }

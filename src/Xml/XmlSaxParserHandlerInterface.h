@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 #include "XmlAttributes.h"
@@ -77,9 +77,9 @@ namespace caret {
          *    XmlParsingException
          *        If an error is encountered and parsing should cease.
          */
-        virtual void startElement(const std::string& uri,
-                                  const std::string& localName,
-                                  const std::string& qName,
+        virtual void startElement(const QString& uri,
+                                  const QString& localName,
+                                  const QString& qName,
                                   const XmlAttributes& atts) 
                       throw (XmlSaxParserException) = 0;
         
@@ -103,9 +103,9 @@ namespace caret {
          *    XmlParsingException
          *        If an error is encountered and parsing should cease.
          */
-        virtual void endElement(const std::string& namespaceURI,
-                                       const std::string& localName,
-                                       const std::string& qualifiedName) 
+        virtual void endElement(const QString& namespaceURI,
+                                       const QString& localName,
+                                       const QString& qualifiedName) 
                       throw (XmlSaxParserException) = 0;
         
         /**

@@ -37,7 +37,7 @@ using namespace caret;
  */
 PaletteScalarAndColor::PaletteScalarAndColor(
                    const float scalar,
-                   const std::string& colorName)
+                   const QString& colorName)
     : CaretObject()
 {
     this->initializeMembersPaletteScalarAndColor();
@@ -134,7 +134,7 @@ PaletteScalarAndColor::setScalar(const float scalar)
  * @return
  *   Name of the color assigned to the scalar.
  */
-std::string 
+QString 
 PaletteScalarAndColor::getColorName() const 
 { 
     return this->colorName; 
@@ -146,7 +146,7 @@ PaletteScalarAndColor::getColorName() const
  *    New name for color.
  */
 void 
-PaletteScalarAndColor::setColorName(const std::string& colorName)
+PaletteScalarAndColor::setColorName(const QString& colorName)
 {
     if (this->colorName != colorName) {
         this->colorName = colorName;
@@ -201,22 +201,60 @@ PaletteScalarAndColor::setColor(const float rgba[4])
     }
 }
 
+QString 
+fromNumbers(const std::vector<double>& v, const QString& separator)
+{
+    QString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += QString::number(v[i]);
+    }
+    return s;
+}
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+QString
+fromNumbers(const float* array, const int64_t numberOfElements, const QString& separator)
+{
+    QString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += QString::number(array[i]);
+        
+    }
+    return s;
+}
+
 /**
  * Get string representation for debugging.
  * 
  * @return A string.
  *
  */
-std::string
+QString
 PaletteScalarAndColor::toString() const
 {
-    std::string s = 
+    QString s = 
     "[colorName="
     + this->colorName
     + ", scale="
-    + StringUtilities::fromNumber(this->scalar)
+    + QString::number(this->scalar)
     + ", rgba="
-    + StringUtilities::fromNumbers(rgba, 4, ",")
+    + fromNumbers(rgba, 4, ",")
     + "]";
     return s;
 }

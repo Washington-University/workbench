@@ -26,7 +26,7 @@
  */ 
 
 
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 #include "XmlSaxParserException.h"
@@ -62,7 +62,7 @@ namespace caret {
          * @throws XmlSaxParserException
          *    If an error occurs.
          */
-        virtual void parseFile(const std::string& filename,
+        virtual void parseFile(const QString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
         
         /**
@@ -77,7 +77,7 @@ namespace caret {
          * @throws XmlSaxParserException
          *    If an error occurs.
          */
-        virtual void parseString(const std::string& xmlString,
+        virtual void parseString(const QString& xmlString,
                                XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
         
     protected:

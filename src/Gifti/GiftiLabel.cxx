@@ -38,7 +38,7 @@ using namespace caret;
  */
 GiftiLabel::GiftiLabel(
                    const int32_t key,
-                   const std::string& name)
+                   const QString& name)
     : CaretObject()
 {
     this->initializeMembersGiftiLabel();
@@ -59,7 +59,7 @@ GiftiLabel::GiftiLabel(
  */
 GiftiLabel::GiftiLabel(
                    const int32_t key,
-                   const std::string& name,
+                   const QString& name,
                    const float red,
                    const float green,
                    const float blue,
@@ -87,7 +87,7 @@ GiftiLabel::GiftiLabel(
  *
  */
 GiftiLabel::GiftiLabel(const int32_t key,
-                       const std::string& name,
+                       const QString& name,
                        const float red,
                        const float green,
                        const float blue,
@@ -122,7 +122,7 @@ GiftiLabel::GiftiLabel(const int32_t key,
  */
 GiftiLabel::GiftiLabel(
                        const int32_t key,
-                       const std::string& name,
+                       const QString& name,
                        const double red,
                        const double green,
                        const double blue,
@@ -148,7 +148,7 @@ GiftiLabel::GiftiLabel(
  */
 GiftiLabel::GiftiLabel(
                    const int32_t key,
-                   const std::string& name,
+                   const QString& name,
                    const float rgba[])
     : CaretObject()
 {
@@ -174,7 +174,7 @@ GiftiLabel::GiftiLabel(
  */
 GiftiLabel::GiftiLabel(
                    const int32_t key,
-                   const std::string& name,
+                   const QString& name,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue,
@@ -200,7 +200,7 @@ GiftiLabel::GiftiLabel(
  */
 GiftiLabel::GiftiLabel(
                    const int32_t key,
-                   const std::string& name,
+                   const QString& name,
                    const int32_t rgba[])
     : CaretObject()
 {
@@ -231,7 +231,7 @@ GiftiLabel::GiftiLabel(
     else {
         std::stringstream str;
         str << "???" << this->key;
-        this->name = str.str();
+        this->name = QString::fromStdString(str.str());
     }
 }
 
@@ -357,7 +357,7 @@ GiftiLabel::setKey(const int32_t key)
  * @return Name of label.
  *
  */
-std::string
+QString
 GiftiLabel::getName() const
 {
     return this->name;
@@ -369,7 +369,7 @@ GiftiLabel::getName() const
  *
  */
 void
-GiftiLabel::setName(const std::string& name)
+GiftiLabel::setName(const QString& name)
 {
     this->name = name;
     this->setModified();
@@ -676,29 +676,29 @@ GiftiLabel::isModified() const
  * @return Information about the label.
  *
  */
-std::string
+QString
 GiftiLabel::toString() const
 {
-    std::string s;
+    QString s;
     
     s += "[GiftiLabel=(key=" 
-    + StringUtilities::fromNumber(this->getKey()) 
+    + QString::number(this->getKey()) 
     + ","
     + this->getName()
     + ","
-    + StringUtilities::fromNumber(this->getRed())
+    + QString::number(this->getRed())
     + ","
-    + StringUtilities::fromNumber(this->getGreen())
+    + QString::number(this->getGreen())
     + ","
-    + StringUtilities::fromNumber(this->getBlue())
+    + QString::number(this->getBlue())
     + ","
-    + StringUtilities::fromNumber(this->getAlpha())
+    + QString::number(this->getAlpha())
     + ","
-    + StringUtilities::fromNumber(this->getX())
+    + QString::number(this->getX())
     + ","
-    + StringUtilities::fromNumber(this->getY())
+    + QString::number(this->getY())
     + ","
-    + StringUtilities::fromNumber(this->getZ())
+    + QString::number(this->getZ())
     + ") ";
     return s;
 }

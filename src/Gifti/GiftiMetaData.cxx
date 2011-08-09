@@ -95,10 +95,10 @@ GiftiMetaData::initializeMembersGiftiMetaData()
  * @return String containing unique ID.
  *
  */
-std::string
+QString
 GiftiMetaData::getUniqueID() const
 {
-    std::string uid = "UID";
+    QString uid = "UID";
     MetaDataConstIterator iter = this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
     if (iter == this->metadata.end()) {
         
@@ -168,8 +168,8 @@ GiftiMetaData::replace(const GiftiMetaData& smd)
  */
 void
 GiftiMetaData::set(
-                   const std::string& name,
-                   const std::string& value)
+                   const QString& name,
+                   const QString& value)
 {
     this->metadata.insert(std::make_pair(name, value));
     this->setModified();
@@ -183,10 +183,10 @@ GiftiMetaData::set(
  */
 void
 GiftiMetaData::setInt(
-                   const std::string& name,
+                   const QString& name,
                    const int32_t value)
 {
-    std::string s = StringUtilities::fromNumber(value);
+    QString s = QString::number(value);
     this->set(name, s);
 }
 
@@ -198,10 +198,10 @@ GiftiMetaData::setInt(
  */
 void
 GiftiMetaData::setFloat(
-                   const std::string& name,
+                   const QString& name,
                    const float value)
 {
-    std::string s = StringUtilities::fromNumber(value);
+    QString s = QString::number(value);
     this->set(name, s);
 }
 
@@ -212,7 +212,7 @@ GiftiMetaData::setFloat(
  *
  */
 void
-GiftiMetaData::remove(const std::string& name)
+GiftiMetaData::remove(const QString& name)
 {
     this->metadata.erase(name);
 }
@@ -225,7 +225,7 @@ GiftiMetaData::remove(const std::string& name)
  *
  */
 bool
-GiftiMetaData::exists(const std::string& name)
+GiftiMetaData::exists(const QString& name)
 {
     if (this->metadata.find(name) != this->metadata.end()) {
         return true;
@@ -242,8 +242,8 @@ GiftiMetaData::exists(const std::string& name)
  *               string is returned.
  *
  */
-std::string
-GiftiMetaData::get(const std::string& name) const
+QString
+GiftiMetaData::get(const QString& name) const
 {
     MetaDataConstIterator iter = this->metadata.find(name);
     if (iter != this->metadata.end()) {
@@ -260,11 +260,11 @@ GiftiMetaData::get(const std::string& name) const
  *
  */
 int32_t
-GiftiMetaData::getInt(const std::string& name) const
+GiftiMetaData::getInt(const QString& name) const
 {
-    std::string s = this->get(name);
+    QString s = this->get(name);
     if (s.length() > 0) {
-        int32_t i = StringUtilities::toInt(s);
+        int32_t i = s.toInt();
         return i;
     }
     return 0;
@@ -278,11 +278,11 @@ GiftiMetaData::getInt(const std::string& name) const
  *
  */
 float
-GiftiMetaData::getFloat(const std::string& name) const
+GiftiMetaData::getFloat(const QString& name) const
 {
-    std::string s = this->get(name);
+    QString s = this->get(name);
     if (s.length() > 0) {
-        float f = StringUtilities::toFloat(s);
+        float f = s.toFloat();
         return f;
     }
     return 0.0f;
@@ -294,10 +294,10 @@ GiftiMetaData::getFloat(const std::string& name) const
  * @return List of all metadata names.
  *
  */
-std::vector<std::string>
+std::vector<QString>
 GiftiMetaData::getAllMetaDataNames() const
 {
-    std::vector<std::string> names;
+    std::vector<QString> names;
     for (MetaDataConstIterator iter = this->metadata.begin();
          iter != this->metadata.end();
          iter++) {
@@ -323,12 +323,12 @@ GiftiMetaData::updateFromCaret5Names()
  */
 void
 GiftiMetaData::replaceName(
-                   const std::string& oldName,
-                   const std::string& newName)
+                   const QString& oldName,
+                   const QString& newName)
 {
     MetaDataIterator iter = this->metadata.find(oldName);
     if (iter != this->metadata.end()) {
-        std::string value = iter->second;
+        QString value = iter->second;
         this->remove(oldName);
         this->set(newName, value);
         this->setModified();
@@ -341,14 +341,14 @@ GiftiMetaData::replaceName(
  * @return  String representation of metadata.
  *
  */
-std::string
+QString
 GiftiMetaData::toString() const
 {
-    std::string s = "GiftiMetaData=[";
+    QString s = "GiftiMetaData=[";
     
     for (MetaDataConstIterator iter = this->metadata.begin(); iter != this->metadata.end(); iter++) {
-        const std::string& name = iter->first;
-        const std::string& value = iter->second;
+        const QString& name = iter->first;
+        const QString& value = iter->second;
         s += ("(" + name + "," + value + ")");
     }
     s += "]";
@@ -363,8 +363,8 @@ GiftiMetaData::toString() const
  * @return  String containing label information.
  *
  */
-std::string
-GiftiMetaData::toFormattedString(const std::string& indentation)
+QString
+GiftiMetaData::toFormattedString(const QString& indentation)
 {
     return this->toString();
 }
@@ -391,8 +391,8 @@ GiftiMetaData::writeAsXML(XmlWriter& xmlWriter)
         for (MetaDataConstIterator iter = this->metadata.begin();
              iter != this->metadata.end();
              iter++) {
-            const std::string& key = iter->first;
-            const std::string& value = iter->second;
+            const QString& key = iter->first;
+            const QString& value = iter->second;
             //
             // MD Tag
             //

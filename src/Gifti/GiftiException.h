@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <string>
+#include <QString>
 
 #include "CaretException.h"
 
@@ -43,7 +43,7 @@ public:
 
     GiftiException(const exception& e);
 
-    GiftiException(const std::string& s);
+    GiftiException(const QString& s);
 
     GiftiException(const GiftiException& e);
         

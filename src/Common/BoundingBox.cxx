@@ -24,6 +24,7 @@
 
 #include <limits>
 #include <sstream>
+#include <QtCore>
 #include "BoundingBox.h"
 
 using namespace caret;
@@ -468,7 +469,7 @@ BoundingBox::isCoordinateWithinBoundingBox(const float xyz[]) const
  * @return String containing bounding box.
  *
  */
-std::string
+QString
 BoundingBox::toString() const
 {
     std::stringstream str;
@@ -485,7 +486,7 @@ BoundingBox::toString() const
     << ","
     << this->boundingBox[5]
     << "]";
-    std::string s = str.str();
+    QString s = QString::fromStdString(str.str());
     return s;
 }
 

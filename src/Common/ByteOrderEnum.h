@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 #include <vector>
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -57,16 +57,16 @@ public:
     
     static bool isSystemBigEndian();
     
-    static std::string toName(Enum e);
+    static QString toName(Enum e);
     
-    static Enum fromName(const std::string& s, bool* isValidOut);
+    static Enum fromName(const QString& s, bool* isValidOut);
 
 private:
-    ByteOrderEnum(const Enum e, const std::string& name);
+    ByteOrderEnum(const Enum e, const QString& name);
 
     Enum getEnum() const;
     
-    std::string getName() const;
+    QString getName() const;
     
     static std::vector<ByteOrderEnum> enumData;
 
@@ -78,7 +78,7 @@ private:
     
     Enum e;
 
-    std::string name;
+    QString name;
 
     static const ByteOrderEnum* findData(const Enum e);
 

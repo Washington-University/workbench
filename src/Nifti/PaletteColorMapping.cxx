@@ -236,14 +236,14 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
  * @throws XmlException if an error occurs.
  *
  */
-std::string
+QString
 PaletteColorMapping::encodeInXML()
             throw (XmlException)
 {
     std::ostringstream str;
     XmlWriter xmlWriter(str);
     this->writeAsXML(xmlWriter);
-    std::string s = str.str();
+    QString s = QString::fromStdString(str.str());
     return s;
 }
 
@@ -254,7 +254,7 @@ PaletteColorMapping::encodeInXML()
  *
  */
 void
-PaletteColorMapping::decodeFromStringXML(const std::string& xml)
+PaletteColorMapping::decodeFromStringXML(const QString& xml)
             throw (XmlException)
 {
     PaletteColorMappingSaxReader saxReader(this);
@@ -276,8 +276,8 @@ PaletteColorMapping::decodeFromStringXML(const std::string& xml)
             << ")";
         }
         str << ": "
-        << e.whatString();
-        throw XmlException(str.str());
+        << e.whatString().toStdString();
+        throw XmlException(QString::fromStdString(str.str()));
     }
     delete parser;
 }
@@ -513,7 +513,7 @@ PaletteColorMapping::setScaleMode(const PaletteScaleModeEnum::Enum scaleMode)
  * @return Name of the selected palette.
  *
  */
-std::string
+QString
 PaletteColorMapping::getSelectedPaletteName() const
 {
     return selectedPaletteName;
@@ -525,7 +525,7 @@ PaletteColorMapping::getSelectedPaletteName() const
  *
  */
 void
-PaletteColorMapping::setSelectedPaletteName(const std::string& selectedPaletteName)
+PaletteColorMapping::setSelectedPaletteName(const QString& selectedPaletteName)
 {
     if (this->selectedPaletteName != selectedPaletteName) {
         this->selectedPaletteName = selectedPaletteName;
@@ -959,7 +959,7 @@ PaletteColorMapping::setThresholdType(const PaletteThresholdTypeEnum::Enum thres
  * @return  Name of data used as a threshold.
  *
  */
-std::string
+QString
 PaletteColorMapping::getThresholdDataName() const
 {
     return thresholdDataName;
@@ -972,7 +972,7 @@ PaletteColorMapping::getThresholdDataName() const
  *
  */
 void
-PaletteColorMapping::setThresholdDataName(const std::string& thresholdDataName)
+PaletteColorMapping::setThresholdDataName(const QString& thresholdDataName)
 {
     if (this->thresholdDataName != thresholdDataName) {
         this->thresholdDataName = thresholdDataName;

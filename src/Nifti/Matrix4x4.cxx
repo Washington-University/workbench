@@ -623,7 +623,7 @@ Matrix4x4::multiplyPoint3X3(float p[3]) const
  * @return  Name of data space.
  *
  */
-std::string
+QString
 Matrix4x4::getDataSpaceName() const
 {
     return dataSpaceName;
@@ -636,7 +636,7 @@ Matrix4x4::getDataSpaceName() const
  *
  */
 void
-Matrix4x4::setDataSpaceName(const std::string& name)
+Matrix4x4::setDataSpaceName(const QString& name)
 {
     dataSpaceName = name;
     this->setModified();
@@ -648,7 +648,7 @@ Matrix4x4::setDataSpaceName(const std::string& name)
  * @return  Name of transformed space.
  *
  */
-std::string
+QString
 Matrix4x4::getTransformedSpaceName() const
 {
     return transformedSpaceName;
@@ -661,7 +661,7 @@ Matrix4x4::getTransformedSpaceName() const
  *
  */
 void
-Matrix4x4::setTransformedSpaceName(const std::string& name)
+Matrix4x4::setTransformedSpaceName(const QString& name)
 {
     transformedSpaceName = name;
     this->setModified();
@@ -1114,7 +1114,7 @@ Matrix4x4::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
  * @return  String representation of the matrix.
  *
  */
-std::string
+QString
 Matrix4x4::toString() const
 {
     return "Matrix4x4";
@@ -1127,8 +1127,8 @@ Matrix4x4::toString() const
  * @return  String containing label information.
  *
  */
-std::string
-Matrix4x4::toFormattedString(const std::string& indentation)
+QString
+Matrix4x4::toFormattedString(const QString& indentation)
 {
     return "Matrix4x4";
 }

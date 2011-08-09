@@ -25,7 +25,7 @@
  * 
  */ 
 
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 
@@ -61,11 +61,11 @@ public:
     void writeAsXML(XmlWriter& xmlWriter)
             throw (XmlException);
 
-    std::string encodeInXML()
+    QString encodeInXML()
             throw (XmlException);
 
 
-    void decodeFromStringXML(const std::string& xml)
+    void decodeFromStringXML(const QString& xml)
             throw (XmlException);
 
     float getAutoScalePercentageNegativeMaximum() const;
@@ -104,9 +104,9 @@ public:
 
     void setScaleMode(const PaletteScaleModeEnum::Enum scaleMode);
 
-    std::string getSelectedPaletteName() const;
+    QString getSelectedPaletteName() const;
 
-    void setSelectedPaletteName(const std::string& selectedPaletteName);
+    void setSelectedPaletteName(const QString& selectedPaletteName);
 
     void setSelectedPaletteToPsych();
 
@@ -166,9 +166,9 @@ public:
 
     void setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType);
 
-    std::string getThresholdDataName() const;
+    QString getThresholdDataName() const;
 
-    void setThresholdDataName(const std::string& thresholdDataName);
+    void setThresholdDataName(const QString& thresholdDataName);
 
     bool isShowThresholdFailureInGreen() const;
 
@@ -199,7 +199,7 @@ private:
 
     float userScalePositiveMaximum;
 
-    std::string selectedPaletteName;
+    QString selectedPaletteName;
 
     bool interpolatePaletteFlag;
 
@@ -225,7 +225,7 @@ private:
 
     float thresholdMappedAverageAreaPositive;
 
-    std::string thresholdDataName;
+    QString thresholdDataName;
 
     bool thresholdShowFailureInGreen;
 

@@ -135,9 +135,9 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
         
     }
     
-    std::string errorMessage;
+    QString errorMessage;
     if (this->coordinateDataArray == NULL) {
-        if (errorMessage.empty() == false) {
+        if (errorMessage.isEmpty() == false) {
         }
         errorMessage += "Unable to find coordinate data array which "
             " contains data type FLOAT32, Intent POINTSET, and two "
@@ -148,7 +148,7 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
         " contains data type INT32, Intent TRIANGLE, and two "
         " dimensions with the second dimension set to three.";
     }
-    if (errorMessage.empty() == false) {
+    if (errorMessage.isEmpty() == false) {
         throw DataFileException(errorMessage);
     }
     

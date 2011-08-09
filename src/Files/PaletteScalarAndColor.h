@@ -42,7 +42,7 @@ class PaletteScalarAndColor : public CaretObject, TracksModificationInterface {
 
 public:
     PaletteScalarAndColor(const float scalar,
-                          const std::string& colorName);
+                          const QString& colorName);
 
     PaletteScalarAndColor(const PaletteScalarAndColor& o);
 
@@ -60,9 +60,9 @@ public:
 
     void setScalar(const float scalar);
 
-    std::string getColorName() const;
+    QString getColorName() const;
 
-    void setColorName(const std::string& colorName);
+    void setColorName(const QString& colorName);
                       
     const float* getColor() const;
     
@@ -70,7 +70,7 @@ public:
     
     void setColor(const float rgba[4]);
     
-    std::string toString() const;
+    QString toString() const;
 
     void setModified();
 
@@ -86,7 +86,7 @@ private:
     float scalar;
 
     /** the color's name */
-    std::string colorName;
+    QString colorName;
     
     /** the color's rgba components */
     float rgba[4];

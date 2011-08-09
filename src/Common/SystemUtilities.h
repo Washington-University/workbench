@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -47,25 +47,25 @@ public:
     virtual ~SystemUtilities();
 
 public:
-    static std::string getBackTrace();
+    static QString getBackTrace();
     
-    static std::string getCurrentDirectory();
+    static QString getCurrentDirectory();
 
-    static void setCurrentDirectory(const std::string& path);
+    static void setCurrentDirectory(const QString& path);
 
-    static std::string getTempDirectory();
+    static QString getTempDirectory();
 
-    static std::string getUsersHomeDirectory();
+    static QString getUsersHomeDirectory();
 
-    static std::string getUserName();
+    static QString getUserName();
 
-    static std::string getDate();
+    static QString getDate();
 
-    static std::string getTime();
+    static QString getTime();
 
-    static std::string getDateAndTime();
+    static QString getDateAndTime();
 
-    static std::string getOperatingSystemName();
+    static QString getOperatingSystemName();
 
     static bool isWindowsOperatingSystem();
 
@@ -73,32 +73,32 @@ public:
 
     static int32_t getNumberOfProcessors();
 
-    static std::string basename(const std::string& name);
+    static QString basename(const QString& name);
 
-    static std::string dirname(const std::string& path);
+    static QString dirname(const QString& path);
 
-    static std::string getFileExtension(const std::string& path);
+    static QString getFileExtension(const QString& path);
 
-    static std::string createUniqueID();
+    static QString createUniqueID();
     
     static void unitTest();
 
     static bool testRelativePath(
-                    const std::string& otherPath,
-                    const std::string& myPath,
-                    const std::string& correctResult);
+                    const QString& otherPath,
+                    const QString& myPath,
+                    const QString& correctResult);
 
-    static std::string relativePath(
-                    const std::string& otherPathIn,
-                    const std::string& myPathIn);
+    static QString relativePath(
+                    const QString& otherPathIn,
+                    const QString& myPathIn);
 
     static void deleteAllFilesInDirectory(
-                    const std::string& directoryPath,
+                    const QString& directoryPath,
                     const bool deleteDirectoryFlag);
 
-    static std::string createFileAbsolutePath(
-                    const std::string& directoryName,
-                    const std::string& fileName);
+    static QString createFileAbsolutePath(
+                    const QString& directoryName,
+                    const QString& fileName);
     
 };
 

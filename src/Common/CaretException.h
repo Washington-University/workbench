@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -41,7 +41,7 @@ public:
 
     CaretException(const exception& e);
 
-    CaretException(const std::string& s);
+    CaretException(const QString& s);
 
     CaretException(const CaretException& e);
         
@@ -49,16 +49,16 @@ public:
         
     virtual ~CaretException() throw();
     
-    virtual std::string whatString() const throw();
+    virtual QString whatString() const throw();
 
-    std::string getCallStack() const;
+    QString getCallStack() const;
         
 private:
     /// Description of the exception
-    std::string exceptionDescription;
+    QString exceptionDescription;
     
     /// the call stack
-    std::string callStack;
+    QString callStack;
         
     /// get description of exception (private to prevent its use)
     virtual const char* what() const throw() { return ""; }

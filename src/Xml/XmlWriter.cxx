@@ -40,7 +40,8 @@ XmlWriter::XmlWriter(std::ostream& writerIn)
    : writer(writerIn) {
    this->indentationSpaces = 0;
    this->numberOfDecimalPlaces = 6;
-   StringUtilities::setFloatDigitsRightOfDecimal(this->numberOfDecimalPlaces);
+   //QString::setFloatDigitsRightOfDecimal(this->numberOfDecimalPlaces);
+   
 }
 
 /**
@@ -50,8 +51,8 @@ XmlWriter::XmlWriter(std::ostream& writerIn)
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeStartDocument(const std::string& xmlVersion) throw (XmlException) {
-   writer << ("<?xml version=\"" + xmlVersion + "\" encoding=\"UTF-8\"?>\n");
+XmlWriter::writeStartDocument(const QString& xmlVersion) throw (XmlException) {
+   writer << ("<?xml version=\"" + xmlVersion.toStdString() + "\" encoding=\"UTF-8\"?>\n");
 }
 
 /**
@@ -61,7 +62,7 @@ XmlWriter::writeStartDocument(const std::string& xmlVersion) throw (XmlException
  * @throws IOException if an I/O error occurs.
  */
 //void writeStartDocument(const char* localName) throw(XmlException) {
-//   std::string ln = localName;
+//   QString ln = localName;
 //   this->writeStartDocument(ln);
 //}
 
@@ -83,10 +84,10 @@ XmlWriter::writeStartDocument() throw (XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeDTD(const std::string& rootTag, const std::string& dtdURL) throw(XmlException) {
+XmlWriter::writeDTD(const QString& rootTag, const QString& dtdURL) throw(XmlException) {
    writer << ("<!DOCTYPE "
-                + rootTag + " SYSTEM \""
-                + dtdURL + "\">\n");
+                + rootTag.toStdString() + " SYSTEM \""
+                + dtdURL.toStdString() + "\">\n");
 }
 
 /**
@@ -110,8 +111,8 @@ XmlWriter::writeEndDocument() throw(XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCharacters(const std::string& localName, const float f) {
-   std::string text = StringUtilities::fromNumber(f); //std::string::number(f, 'f', this->numberOfDecimalPlaces);
+XmlWriter::writeElementCharacters(const QString& localName, const float f) {
+   QString text = QString::number(f); //QString::number(f, 'f', this->numberOfDecimalPlaces);
    this->writeElementCharacters(localName, text);
 }
 
@@ -123,15 +124,15 @@ XmlWriter::writeElementCharacters(const std::string& localName, const float f) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCharacters(const std::string& localName, const float* values, const int32_t num) {
-   std::ostringstream str;
+XmlWriter::writeElementCharacters(const QString& localName, const float* values, const int32_t num) {
+   QString str;
    for (int32_t i = 0; i < num; i++) {
        if (i > 0) {
-           str << " ";
+           str.append(" ");
        }
-       str << StringUtilities::fromNumber(values[i]); //std::string::number(values[i], 'f', this->numberOfDecimalPlaces);
+       str.append(QString::number(values[i],'f',this->numberOfDecimalPlaces)); //QString::number(values[i], 'f', this->numberOfDecimalPlaces);
    }
-    this->writeElementCharacters(localName, str.str());
+   this->writeElementCharacters(localName,str);
 }
 
 /**
@@ -142,8 +143,8 @@ XmlWriter::writeElementCharacters(const std::string& localName, const float* val
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCharacters(const std::string& localName, const int32_t value) {
-    const std::string text = StringUtilities::fromNumber(value);
+XmlWriter::writeElementCharacters(const QString& localName, const int32_t value) {
+    const QString text = QString::number(value);
     this->writeElementCharacters(localName, text);
 }
 
@@ -155,15 +156,15 @@ XmlWriter::writeElementCharacters(const std::string& localName, const int32_t va
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCharacters(const std::string& localName, const int* values, const int32_t num) {
-    std::ostringstream str;
+XmlWriter::writeElementCharacters(const QString& localName, const int* values, const int32_t num) {
+    QString str;
     for (int32_t i = 0; i < num; i++) {
         if (i > 0) {
-            str << " ";
+            str.append(" ");
         }
-        str << StringUtilities::fromNumber(values[i]);
+        str.append(QString::number(values[i],'f',this->numberOfDecimalPlaces));
     }
-    this->writeElementCharacters(localName, str.str());
+    this->writeElementCharacters(localName, str);
 }
 
 /**
@@ -185,12 +186,12 @@ XmlWriter::writeElementCharacters(const std::string& localName, const int* value
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCharacters(const std::string& localName, const std::string& text)
+XmlWriter::writeElementCharacters(const QString& localName, const QString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName + ">");
+   writer << ("<" + localName.toStdString() + ">");
    this->writeCharacters(text);
-   writer << ("</" + localName + ">\n");
+   writer << ("</" + localName.toStdString() + ">\n");
 }
 
 /**
@@ -200,9 +201,9 @@ XmlWriter::writeElementCharacters(const std::string& localName, const std::strin
  * @param text - text to write.
  * @throws IOException if an I/O error occurs.
  */
-//void writeElementCharacters(const char* localName, std::string text)
+//void writeElementCharacters(const char* localName, QString text)
 //                                                 throw(XmlException) {
-//   std::string ln = localName;
+//   QString ln = localName;
 //   this->writeElementCharacters(ln, text);
 //}
 
@@ -224,7 +225,7 @@ XmlWriter::writeElementCharacters(const std::string& localName, const std::strin
  * @param text - text to write.
  * @throws IOException if an I/O error occurs.
  */
-//void writeElementCData(const char* localName, std::string text) {
+//void writeElementCData(const char* localName, QString text) {
 //   this->writeElementCData(localName, text);
 //}
 
@@ -236,12 +237,12 @@ XmlWriter::writeElementCharacters(const std::string& localName, const std::strin
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCData(const std::string& localName, const std::string& text)
+XmlWriter::writeElementCData(const QString& localName, const QString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName + ">");
+   writer << ("<" + localName.toStdString() + ">");
    this->writeCData(text);
-   writer << ("</" + localName + ">\n");
+   writer << ("</" + localName.toStdString() + ">\n");
 }
 
 /**
@@ -253,23 +254,23 @@ XmlWriter::writeElementCData(const std::string& localName, const std::string& te
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementCData(const std::string& localName,
+XmlWriter::writeElementCData(const QString& localName,
                               const XmlAttributes& attributes,
-                              const std::string& text)
+                              const QString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName);
+   writer << ("<" + localName.toStdString());
    int32_t numAtts = attributes.getNumberOfAttributes();
    for (int32_t i = 0; i < numAtts; i++) {
       writer << (" "
-                   + attributes.getName(i)
+                   + attributes.getName(i).toStdString()
                    + "=\""
-                   + attributes.getValue(i)
+                   + attributes.getValue(i).toStdString()
                    + "\"");
    }
    writer << (">");
    this->writeCData(text);
-   writer << ("</" + localName + ">\n");
+   writer << ("</" + localName.toStdString() + ">\n");
 }
 
 /**
@@ -280,12 +281,12 @@ XmlWriter::writeElementCData(const std::string& localName,
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeElementNoSpace(const std::string& localName, const std::string& text)
+XmlWriter::writeElementNoSpace(const QString& localName, const QString& text)
                                                  throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName + ">");
-   writer << (text);
-   writer << ("</" + localName + ">\n");
+   writer << ("<" + localName.toStdString() + ">");
+   writer << (text.toStdString());
+   writer << ("</" + localName.toStdString() + ">\n");
 }
 
 /**
@@ -295,7 +296,7 @@ XmlWriter::writeElementNoSpace(const std::string& localName, const std::string& 
  * @throws IOException if an I/O error occurs.
  */
 //void writeStartElement(const char* localName) throw(XmlException) {
-//   std::string ln = localName;
+//   QString ln = localName;
 //   this->writeStartElement(ln);
 //}
 /**
@@ -305,9 +306,9 @@ XmlWriter::writeElementNoSpace(const std::string& localName, const std::string& 
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeStartElement(const std::string& localName) throw(XmlException) {
+XmlWriter::writeStartElement(const QString& localName) throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName + ">\n");
+   writer << ("<" + localName.toStdString() + ">\n");
    this->indentationSpaces++;
    this->elementStack.push(localName);
 }
@@ -320,23 +321,23 @@ XmlWriter::writeStartElement(const std::string& localName) throw(XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeStartElement(const std::string& localName,
+XmlWriter::writeStartElement(const QString& localName,
                   const XmlAttributes& attributes) throw(XmlException) {
    this->writeIndentation();
-   writer << ("<" + localName + " ");
+   writer << ("<" + localName.toStdString() + " ");
 
    int32_t attIndentSpaces = localName.length() + 2;
-   std::string attIndentString(attIndentSpaces, ' ');
+   QString attIndentString(attIndentSpaces, ' ');
 
    int32_t  numAtts = attributes.getNumberOfAttributes();
    for (int32_t i = 0; i < numAtts; i++) {
       if (i > 0) {
          this->writeIndentation();
-         writer << (attIndentString);
+         writer << (attIndentString.toStdString());
       }
-      writer << (attributes.getName(i)
+      writer << (attributes.getName(i).toStdString()
                    + "=\""
-                   + attributes.getValue(i)
+                   + attributes.getValue(i).toStdString()
                    + "\"");
       if (i < (numAtts - 1)) {
          writer << ("\n");
@@ -359,11 +360,11 @@ XmlWriter::writeEndElement() throw(XmlException) {
       throw XmlException("Unbalanced start/end element calls.");
    }
 
-    std::string localName = this->elementStack.top();
+    QString localName = this->elementStack.top();
     this->elementStack.pop();
     this->indentationSpaces--;
     this->writeIndentation();
-    writer << ("</" + localName + ">\n");
+    writer << ("</" + localName.toStdString() + ">\n");
 }
 
 /**
@@ -373,7 +374,7 @@ XmlWriter::writeEndElement() throw(XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeCData(const std::string& data) throw(XmlException) {
+XmlWriter::writeCData(const QString& data) throw(XmlException) {
    writer << "<![CDATA[";
    this->writeCharacters(data);
    writer << "]]>";
@@ -387,14 +388,14 @@ XmlWriter::writeCData(const std::string& data) throw(XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeCharacters(const std::string& text) throw(XmlException) {
+XmlWriter::writeCharacters(const QString& text) throw(XmlException) {
    const wchar_t CARRIAGE_RETURN = 13;
    const wchar_t LINE_FEED = 10;
    const wchar_t TAB = 9;
 
    int32_t num = text.length();
    for (int32_t i = 0; i < num; i++) {
-      char c = text[i];
+      char c = text.toStdString().at(i);
 
       bool printIt = true; //c.isPrint();
 
@@ -426,9 +427,9 @@ XmlWriter::writeCharacters(const std::string& text) throw(XmlException) {
  * @throws XmlAttributes if an I/O error occurs.
  */
 void
-XmlWriter::writeCharactersWithIndent(const std::string& text) throw(XmlException) {
+XmlWriter::writeCharactersWithIndent(const QString& text) throw(XmlException) {
    this->writeIndentation();
-   writer << (text);
+   writer << (text.toStdString());
 }
 
 void
@@ -443,8 +444,8 @@ XmlWriter::setNumberOfDecimalPlaces(int32_t decimals) {
  */
 void XmlWriter::writeIndentation() throw(XmlException) {
    if (this->indentationSpaces > 0) {
-      std::string sb(indentationSpaces * 3, ' ');
-      writer << (sb);
+      QString sb(indentationSpaces * 3, ' ');
+      writer << (sb.toStdString());
    }
 }
 

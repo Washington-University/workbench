@@ -60,7 +60,7 @@ DataFileException::DataFileException(
  * @param  s  Description of the exception.
  *
  */
-DataFileException::DataFileException(const std::string& s)
+DataFileException::DataFileException(const QString& s)
 : CaretException(s)
 {
     this->initializeMembersDataFileException();

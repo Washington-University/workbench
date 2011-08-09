@@ -59,9 +59,9 @@ PaletteColorMappingSaxReader::~PaletteColorMappingSaxReader()
  * start an element.
  */
 void 
-PaletteColorMappingSaxReader::startElement(const std::string& /* namespaceURI */,
-                                         const std::string& /* localName */,
-                                         const std::string& qName,
+PaletteColorMappingSaxReader::startElement(const QString& /* namespaceURI */,
+                                         const QString& /* localName */,
+                                         const QString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
@@ -83,14 +83,14 @@ PaletteColorMappingSaxReader::startElement(const std::string& /* namespaceURI */
                     << ") is greater than version(s) supported ("
                     << PaletteColorMappingXmlElements::VERSION_NUMBER
                     << ").";
-                    throw XmlSaxParserException(str.str());
+                    throw XmlSaxParserException(QString::fromStdString(str.str()));
                 }
            }
          else {
             std::ostringstream str;
-            str << "Root element is \"" << qName << "\" but should be "
-                << PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING;
-             throw XmlSaxParserException(str.str());
+            str << "Root element is \"" << qName.toStdString() << "\" but should be "
+                << PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING.toStdString();
+             throw XmlSaxParserException(QString::fromStdString(str.str()));
          }
          break;
       case STATE_READING_ELEMENTS:
@@ -104,14 +104,56 @@ PaletteColorMappingSaxReader::startElement(const std::string& /* namespaceURI */
    
    this->elementText = "";
 }
+/**
+ * Convert the string representation of a bool to a bool.
+ * @param s
+ *   String containing boolean value.
+ * @return
+ *   The bool value.
+ */
+bool 
+toBool(const QString& s)
+{
+    if ((s == "true") 
+        || (s == "TRUE") 
+        || (s == "True")
+        || (s == "T")
+        || (s == "t")) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Split up a string containing float values.
+ * 
+ * @param s
+ *   String containing float values.
+ * @return
+ *   float vector containing values extracted from string.
+ */
+std::vector<float> 
+toFloatVector(const QString& s)
+{
+    std::vector<float> fv;
+    
+    std::istringstream str(s.toStdString());
+    while ((str.eof() == false) && (str.fail() == false)) {
+        float value;
+        str >> value;
+        fv.push_back(value);
+    }
+    
+    return fv;
+}
 
 /**
  * end an element.
  */
 void 
-PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
-                                       const std::string& /* localName */,
-                                       const std::string& qName) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::endElement(const QString& /* namspaceURI */,
+                                       const QString& /* localName */,
+                                       const QString& qName) throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
 //      std::cout << "Palette Color Mapping: End Element: " << qName << std::endl;
@@ -122,7 +164,7 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
          break;
       case STATE_READING_ELEMENTS:
            if (qName == PaletteColorMappingXmlElements::XML_TAG_AUTO_SCALE_PERCENTAGE_VALUES) {
-               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 4) {
                    this->paletteColorMapping->setAutoScalePercentageNegativeMaximum(values[0]);
                    this->paletteColorMapping->setAutoScalePercentageNegativeMinimum(values[1]);
@@ -134,16 +176,16 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_NEGATIVE) {
-               this->paletteColorMapping->setDisplayNegativeDataFlag(StringUtilities::toBool(this->elementText));
+               this->paletteColorMapping->setDisplayNegativeDataFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_POSITIVE) {
-               this->paletteColorMapping->setDisplayPositiveDataFlag(StringUtilities::toBool(this->elementText));
+               this->paletteColorMapping->setDisplayPositiveDataFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_DISPLAY_ZERO) {
-               this->paletteColorMapping->setDisplayZeroDataFlag(StringUtilities::toBool(this->elementText));
+               this->paletteColorMapping->setDisplayZeroDataFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_INTERPOLATE) {
-               this->paletteColorMapping->setInterpolatePaletteFlag(StringUtilities::toBool(this->elementText));
+               this->paletteColorMapping->setInterpolatePaletteFlag(toBool(this->elementText));
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_NAME) {
                this->paletteColorMapping->setSelectedPaletteName(this->elementText);
@@ -155,7 +197,7 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                /* ??? */
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES) {
-               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
                    this->paletteColorMapping->setThresholdMappedAverageAreaNegative(values[0]);
                    this->paletteColorMapping->setThresholdMappedAverageAreaPositive(values[1]);
@@ -165,7 +207,7 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES) {
-               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
                    this->paletteColorMapping->setThresholdMappedNegative(values[0]);
                    this->paletteColorMapping->setThresholdMappedPositive(values[1]);
@@ -175,7 +217,7 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES) {
-               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
                    this->paletteColorMapping->setThresholdNormalNegative(values[0]);
                    this->paletteColorMapping->setThresholdNormalPositive(values[1]);
@@ -224,7 +266,7 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                }
            }
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_USER_SCALE_VALUES) {
-               std::vector<float> values = StringUtilities::toFloatVector(this->elementText);
+               std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 4) {
                    this->paletteColorMapping->setUserScaleNegativeMaximum(values[0]);
                    this->paletteColorMapping->setUserScaleNegativeMinimum(values[1]);
@@ -239,9 +281,9 @@ PaletteColorMappingSaxReader::endElement(const std::string& /* namspaceURI */,
                std::ostringstream str;
                str
                << "Unrecognized palette color mapping element \""
-               << qName
+               << qName.toStdString()
                << "\".";
-               throw XmlSaxParserException(str.str());
+               throw XmlSaxParserException(QString::fromStdString(str.str()));
            }
          break;
    }
@@ -286,7 +328,7 @@ PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e) throw (
 void 
 PaletteColorMappingSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {    
-    std::cout << "XML Parser Warning: " + e.whatString() << std::endl;
+    std::cout << "XML Parser Warning: " + e.whatString().toStdString() << std::endl;
 }
 
 // an error occurs

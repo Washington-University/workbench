@@ -26,7 +26,7 @@
  * 
  */ 
 
-#include <string>
+#include <QString>
 #include <vector>
 
 #include "CaretObject.h"
@@ -46,43 +46,43 @@ public:
     
     void clear();
     
-   void addAttribute(const std::string& name, const std::string& value);
+   void addAttribute(const QString& name, const QString& value);
 
-   void addAttribute(const std::string& name, const int32_t value);
+   void addAttribute(const QString& name, const int32_t value);
 
-    void addAttribute(const std::string& name, const std::vector<int32_t>& value, const std::string& separator);
+    void addAttribute(const QString& name, const std::vector<int32_t>& value, const QString& separator);
     
-    void addAttribute(const std::string& name, const std::vector<int64_t>& value, const std::string& separator);
+    void addAttribute(const QString& name, const std::vector<int64_t>& value, const QString& separator);
     
-   void addAttribute(const std::string& name, const int64_t value);
+   void addAttribute(const QString& name, const int64_t value);
 
-    void addAttribute(const std::string& name, const float value);
+    void addAttribute(const QString& name, const float value);
 
-    void addAttribute(const std::string& name, const double value);
+    void addAttribute(const QString& name, const double value);
     
 
     int getNumberOfAttributes() const;
 
-    std::string getName(const int index) const;
+    QString getName(const int index) const;
 
-    std::string getValue(const int index) const;
+    QString getValue(const int index) const;
 
     int32_t getValueAsInt(const int index) const;
     
     float getValueAsFloat(const int index) const;
     
-    std::string getValue(const std::string& name) const;
+    QString getValue(const QString& name) const;
     
-    int32_t getValueAsInt(const std::string& name) const;
+    int32_t getValueAsInt(const QString& name) const;
     
-    float getValueAsFloat(const std::string& name) const;
+    float getValueAsFloat(const QString& name) const;
     
 private:
    /** attribute names. */
-    std::vector<std::string> names;
+    std::vector<QString> names;
 
    /** attribute values. */
-    std::vector<std::string> values;
+    std::vector<QString> values;
 };
 
 } // namespace

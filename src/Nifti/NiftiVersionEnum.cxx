@@ -42,7 +42,7 @@ using namespace caret;
 NiftiVersionEnum::NiftiVersionEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const std::string& name)
+                   const QString& name)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -99,7 +99,7 @@ NiftiVersionEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-std::string 
+QString 
 NiftiVersionEnum::toName(Enum e) {
     initialize();
     
@@ -118,7 +118,7 @@ NiftiVersionEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiVersionEnum::Enum 
-NiftiVersionEnum::fromName(const std::string& s, bool* isValidOut)
+NiftiVersionEnum::fromName(const QString& s, bool* isValidOut)
 {
     initialize();
     

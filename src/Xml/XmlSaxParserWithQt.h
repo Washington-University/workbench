@@ -26,7 +26,7 @@
  */ 
 
 
-#include <string>
+#include <QString>
 
 #include <QString>
 #include <QXmlDefaultHandler>
@@ -52,10 +52,10 @@ namespace caret {
         
         virtual ~XmlSaxParserWithQt();
 
-        virtual void parseFile(const std::string& filename,
+        virtual void parseFile(const QString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
-        virtual void parseString(const std::string& xmlString,
+        virtual void parseString(const QString& xmlString,
                            XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
     private:

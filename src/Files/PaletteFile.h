@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#include <string>
+#include <QString>
 #include <vector>
 
 #include "GiftiLabelTable.h"
@@ -67,20 +67,20 @@ namespace caret {
         void addColor(const GiftiLabel& pc);
         
         void addColor(
-                      const std::string& name,
+                      const QString& name,
                       const int32_t red,
                       const int32_t green,
                       const int32_t blue);
         
         void addColor(
-                      const std::string& name,
+                      const QString& name,
                       const int32_t rgb[]);
         
         const GiftiLabel* getColor(const int32_t index) const;
         
-        const GiftiLabel* getColorByName(const std::string& colorName) const;
+        const GiftiLabel* getColorByName(const QString& colorName) const;
         
-        int32_t getColorIndex(const std::string& colorName) const;
+        int32_t getColorIndex(const QString& colorName) const;
         
         int32_t getNumberOfPalettes() const;
         
@@ -88,21 +88,21 @@ namespace caret {
         
         Palette* getPalette(const int32_t index) const;
         
-        Palette* getPaletteByName(const std::string& name) const;
+        Palette* getPaletteByName(const QString& name) const;
         
         void removePalette(const int32_t index);
         
-        virtual bool empty() const;
+        virtual bool isEmpty() const;
         
-        std::string toString() const;
+        QString toString() const;
         
         bool isModified() const;
         
         void clearModified();
         
-        virtual void readFile(const std::string& filename) throw (DataFileException);
+        virtual void readFile(const QString& filename) throw (DataFileException);
         
-        virtual void writeFile(const std::string& filename) throw (DataFileException);
+        virtual void writeFile(const QString& filename) throw (DataFileException);
         
     private:
         void assignColorsToPalette(Palette& p);

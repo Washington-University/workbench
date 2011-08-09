@@ -56,9 +56,9 @@ XmlAttributes::clear() {
  * @param value - Value of attribute.
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, const std::string& value) {
-    std::string s = name;
-    names.push_back(std::string(name));
+XmlAttributes::addAttribute(const QString& name, const QString& value) {
+    QString s = name;
+    names.push_back(QString(name));
     values.push_back(value);
 }
 
@@ -69,9 +69,10 @@ XmlAttributes::addAttribute(const std::string& name, const std::string& value) {
  * @param value - Value of attribute.
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, const int32_t value) {
+XmlAttributes::addAttribute(const QString& name, const int32_t value) {
     names.push_back(name);
-    values.push_back(StringUtilities::fromNumber(value));
+    values.push_back(QString::number(value));
+    
 }
 
 /**
@@ -84,16 +85,16 @@ XmlAttributes::addAttribute(const std::string& name, const int32_t value) {
  *    Characters placed between each pair of numbers in text./
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, 
+XmlAttributes::addAttribute(const QString& name, 
                             const std::vector<int32_t>& value, 
-                            const std::string& separator)
+                            const QString& separator)
 {
-    std::string s;
+    QString s;
     for (uint32_t i = 0; i < value.size(); i++) {
         if (i > 0) {
             s += separator;
         }
-        s += StringUtilities::fromNumber(value[i]);
+        s += QString::number(value[i]);
     }
     names.push_back(name);
     values.push_back(s);
@@ -109,16 +110,16 @@ XmlAttributes::addAttribute(const std::string& name,
  *    Characters placed between each pair of numbers in text./
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, 
+XmlAttributes::addAttribute(const QString& name, 
                             const std::vector<int64_t>& value, 
-                            const std::string& separator)
+                            const QString& separator)
 {
-    std::string s;
+    QString s;
     for (uint64_t i = 0; i < value.size(); i++) {
         if (i > 0) {
             s += separator;
         }
-        s += StringUtilities::fromNumber(value[i]);
+        s += QString::number(value[i]);
     }
     names.push_back(name);
     values.push_back(s);
@@ -131,9 +132,9 @@ XmlAttributes::addAttribute(const std::string& name,
  * @param value - Value of attribute.
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, const int64_t value) {
+XmlAttributes::addAttribute(const QString& name, const int64_t value) {
     names.push_back(name);
-    values.push_back(StringUtilities::fromNumber(value));
+    values.push_back(QString::number(value));
 }
 
 /**
@@ -143,9 +144,9 @@ XmlAttributes::addAttribute(const std::string& name, const int64_t value) {
  * @param value - Value of attribute.
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, const float value) {
+XmlAttributes::addAttribute(const QString& name, const float value) {
     names.push_back(name);
-    values.push_back(StringUtilities::fromNumber(value));
+    values.push_back(QString::number(value));
 }
 
 /**
@@ -155,9 +156,9 @@ XmlAttributes::addAttribute(const std::string& name, const float value) {
  * @param value - Value of attribute.
  */
 void 
-XmlAttributes::addAttribute(const std::string& name, const double value) {
+XmlAttributes::addAttribute(const QString& name, const double value) {
     names.push_back(name);
-    values.push_back(StringUtilities::fromNumber(value));
+    values.push_back(QString::number(value));
 }
 
 /**
@@ -177,7 +178,7 @@ XmlAttributes::getNumberOfAttributes() const {
  *
  * @return Name of attribute at index.
  */
-std::string 
+QString 
 XmlAttributes::getName(const int index) const{
     return this->names.at(index);
 }
@@ -189,7 +190,7 @@ XmlAttributes::getName(const int index) const{
  *
  * @return Value of attribute at index.
  */
-std::string 
+QString 
 XmlAttributes::getValue(const int index) const{
     return this->values.at(index);
 }
@@ -203,7 +204,7 @@ XmlAttributes::getValue(const int index) const{
  */
 int32_t
 XmlAttributes::getValueAsInt(const int index) const{
-    return StringUtilities::toInt(this->values.at(index));
+    return this->values.at(index).toInt();
 }
 /**
  * Get the value of an attribute as a float.
@@ -215,7 +216,7 @@ XmlAttributes::getValueAsInt(const int index) const{
 float 
 XmlAttributes::getValueAsFloat(const int index) const{
     
-    return StringUtilities::toFloat(this->values.at(index));
+    return this->values.at(index).toFloat();
 }
 
 /**
@@ -225,8 +226,8 @@ XmlAttributes::getValueAsFloat(const int index) const{
  *
  * @return Value of attribute at index.
  */
-std::string 
-XmlAttributes::getValue(const std::string& name) const{
+QString 
+XmlAttributes::getValue(const QString& name) const{
     uint64_t num = this->names.size();
     for (uint64_t i = 0; i < num; i++) {
         if (this->names[i] == name) {
@@ -244,9 +245,9 @@ XmlAttributes::getValue(const std::string& name) const{
  * @return Value of attribute at index.
  */
 int32_t
-XmlAttributes::getValueAsInt(const std::string& name) const{
-    std::string value = this->getValue(name);
-    return StringUtilities::toInt(value);
+XmlAttributes::getValueAsInt(const QString& name) const{
+    QString value = this->getValue(name);
+    return value.toInt();
 }
 /**
  * Get the value of an attribute as a float.
@@ -256,9 +257,9 @@ XmlAttributes::getValueAsInt(const std::string& name) const{
  * @return Value of attribute at index.
  */
 float 
-XmlAttributes::getValueAsFloat(const std::string& name) const
+XmlAttributes::getValueAsFloat(const QString& name) const
 {
-    std::string value = this->getValue(name);
-    return StringUtilities::toFloat(value);
+    QString value = this->getValue(name);
+    return value.toFloat();
 }
 

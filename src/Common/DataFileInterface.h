@@ -26,7 +26,7 @@
  */ 
 
 
-#include <string>
+#include <QString>
 
 #include "DataFileException.h"
 #include "TracksModificationInterface.h"
@@ -54,14 +54,14 @@ namespace caret {
          * @return 
          *    true if the file is empty, else false.
          */
-        virtual bool empty() const = 0;
+        virtual bool isEmpty() const = 0;
         
         /**
          * Get the name of the data file.
          *
          * @return Name of the data file.
          */
-        virtual std::string getFileName() const = 0;
+        virtual QString getFileName() const = 0;
         
         /**
          * Set the name of the data file.
@@ -69,7 +69,7 @@ namespace caret {
          * @param filename
          *     New name of data file.
          */
-        virtual void setFileName(const std::string& filename) = 0;
+        virtual void setFileName(const QString& filename) = 0;
         
         /**
          * Read the data file.
@@ -79,7 +79,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully read.
          */
-        virtual void readFile(const std::string& filename) throw (DataFileException) = 0;
+        virtual void readFile(const QString& filename) throw (DataFileException) = 0;
         
         /**
          * Write the data file.
@@ -89,7 +89,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully written.
          */
-        virtual void writeFile(const std::string& filename) throw (DataFileException) = 0;
+        virtual void writeFile(const QString& filename) throw (DataFileException) = 0;
         
     };
     

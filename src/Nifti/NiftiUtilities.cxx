@@ -52,13 +52,13 @@ NiftiUtilities::~NiftiUtilities()
  * @throws IllegalArgumentException if precision is less than zero.
  *
  */
-std::string
+QString
 NiftiUtilities::toString1(
                    const int32_t dim1,
                    const float* floatArray,
                    const int32_t precision)
 {
-   return std::string("");
+   return QString("");
 }
 
 /**
@@ -70,7 +70,7 @@ NiftiUtilities::toString1(
  * @throws IllegalArgumentException if precision is less than zero.
  *
  */
-std::string
+QString
 NiftiUtilities::toString3(
                    const int32_t dim1,
                    const int32_t dim2,
@@ -78,7 +78,7 @@ NiftiUtilities::toString3(
                    const float* floatArray,
                    const int32_t precision)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -90,14 +90,14 @@ NiftiUtilities::toString3(
  * @throws IllegalArgumentException if precision is less than zero.
  *
  */
-std::string
+QString
 NiftiUtilities::toString2(
                    const int32_t dim1,
                    const int32_t dim2,
                    const float* floatArray,
                    const int32_t precision)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -108,12 +108,12 @@ NiftiUtilities::toString2(
  * @throws IllegalArgumentException if precision is less than zero.
  *
  */
-std::string
+QString
 NiftiUtilities::toString(
                    const float f,
                    const int32_t precision)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -124,12 +124,12 @@ NiftiUtilities::toString(
  * @throws IllegalArgumentException if precision is less than zero.
  *
  */
-std::string
+QString
 NiftiUtilities::toString(
                    const double d,
                    const int32_t precision)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -139,13 +139,13 @@ NiftiUtilities::toString(
  * @return  String containing the int array values.
  *
  */
-std::string
+QString
 NiftiUtilities::toString3(const int32_t dim1,
                           const int32_t dim2,
                           const int32_t dim3,
                           const int32_t* intArray)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -155,12 +155,12 @@ NiftiUtilities::toString3(const int32_t dim1,
  * @return  String containing the int array values.
  *
  */
-std::string
+QString
 NiftiUtilities::toString2(const int32_t dim1,
                          const int32_t dim2,
                          const int32_t* intArray)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -170,11 +170,11 @@ NiftiUtilities::toString2(const int32_t dim1,
  * @return  String containing the int array values.
  *
  */
-std::string
+QString
 NiftiUtilities::toString1(const int32_t dim1,
                           const int32_t* intArray)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -183,10 +183,10 @@ NiftiUtilities::toString1(const int32_t dim1,
  * @return  String containing the float's value.
  *
  */
-std::string
+QString
 NiftiUtilities::toString(const int32_t i)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -197,7 +197,7 @@ NiftiUtilities::toString(const int32_t i)
  *
  */
 float
-NiftiUtilities::stringToFloatArray(const std::string& dataString)
+NiftiUtilities::stringToFloatArray(const QString& dataString)
 {
    return 0.0f;
 }
@@ -211,7 +211,7 @@ NiftiUtilities::stringToFloatArray(const std::string& dataString)
  *
  */
 int32_t
-NiftiUtilities::stringIntArray(const std::string& dataString)
+NiftiUtilities::stringIntArray(const QString& dataString)
 {
    return 0;
 }
@@ -223,7 +223,7 @@ NiftiUtilities::stringIntArray(const std::string& dataString)
  *
  */
 float
-NiftiUtilities::toFloat(const std::string& s)
+NiftiUtilities::toFloat(const QString& s)
 {
    return 0.0f;
 }
@@ -235,7 +235,7 @@ NiftiUtilities::toFloat(const std::string& s)
  *
  */
 int32_t
-NiftiUtilities::toInt(const std::string& s)
+NiftiUtilities::toInt(const QString& s)
 {
    return 0;
 }
@@ -247,10 +247,10 @@ NiftiUtilities::toInt(const std::string& s)
  * @return  Text with any special characters encode.
  *
  */
-std::string
-NiftiUtilities::encodeXmlSpecialCharacters(const std::string& text)
+QString
+NiftiUtilities::encodeXmlSpecialCharacters(const QString& text)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -260,10 +260,10 @@ NiftiUtilities::encodeXmlSpecialCharacters(const std::string& text)
  * @return  Text with special characters decoded.
  *
  */
-std::string
-NiftiUtilities::decodeXmlSpecialCharacters(const std::string& text)
+QString
+NiftiUtilities::decodeXmlSpecialCharacters(const QString& text)
 {
-      return std::string("");
+      return QString("");
 }
 
 /**
@@ -279,7 +279,7 @@ NiftiUtilities::decodeXmlSpecialCharacters(const std::string& text)
  */
 void
 NiftiUtilities::readBytesIntoArray(
-                   const std::string& filename,
+                   const QString& filename,
                    std::ifstream fis,
                    int8_t* byteArray)
             throw (NiftiException)
@@ -301,7 +301,7 @@ NiftiUtilities::readBytesIntoArray(
  */
 void
 NiftiUtilities::readBytesIntoArray(
-                   const std::string& filename,
+                   const QString& filename,
                    std::ifstream fis,
                    int8_t* byteArray,
                    const int32_t offsetInArray,
@@ -321,11 +321,11 @@ NiftiUtilities::readBytesIntoArray(
  *    contains "numberOfCharacters".
  *
  */
-std::string
+QString
 NiftiUtilities::leftJustify(
-                   const std::string& s,
+                   const QString& s,
                    const int32_t numberOfCharacters)
 {
-      return std::string("");
+      return QString("");
 }
 

@@ -36,7 +36,7 @@
 #include <stdint.h>
 #include <ostream>
 #include <stack>
-#include <string>
+#include <QString>
 
 #include "CaretObject.h"
 #include "XmlException.h"
@@ -53,39 +53,39 @@ class XmlWriter : public CaretObject {
 public:
     XmlWriter(std::ostream& writerIn);
 
-   void writeStartDocument(const std::string& xmlVersion) throw (XmlException);
+   void writeStartDocument(const QString& xmlVersion) throw (XmlException);
 
    //void writeStartDocument(const char* localName) throw(XmlException) {
-   //   std::string ln = localName;
+   //   QString ln = localName;
    //   this->writeStartDocument(ln);
    //}
 
    void writeStartDocument() throw (XmlException);
 
-   void writeDTD(const std::string& rootTag, const std::string& dtdURL) throw(XmlException);
+   void writeDTD(const QString& rootTag, const QString& dtdURL) throw(XmlException);
 
    void writeEndDocument() throw(XmlException);
 
-   void writeElementCharacters(const std::string& localName, const float f);
+   void writeElementCharacters(const QString& localName, const float f);
 
-   void writeElementCharacters(const std::string& localName, const float* values, const int32_t num);
+   void writeElementCharacters(const QString& localName, const float* values, const int32_t num);
 
-    void writeElementCharacters(const std::string& localName, const int32_t value);
+    void writeElementCharacters(const QString& localName, const int32_t value);
 
 
-    void writeElementCharacters(const std::string& localName, const int* values, const int32_t num);
+    void writeElementCharacters(const QString& localName, const int* values, const int32_t num);
 
 
     //void writeElementCharacters(const char* localName, const char* text) {
    //   this->writeElementCharacters(localName, text);
    //}
 
-   void writeElementCharacters(const std::string& localName, const std::string& text)
+   void writeElementCharacters(const QString& localName, const QString& text)
                                                     throw(XmlException);
 
-   //void writeElementCharacters(const char* localName, std::string text)
+   //void writeElementCharacters(const char* localName, QString text)
    //                                                 throw(XmlException) {
-   //   std::string ln = localName;
+   //   QString ln = localName;
    //   this->writeElementCharacters(ln, text);
    //}
    
@@ -93,36 +93,36 @@ public:
    //   this->writeElementCData(localName, text);
    //}
 
-   //void writeElementCData(const char* localName, std::string text) {
+   //void writeElementCData(const char* localName, QString text) {
    //   this->writeElementCData(localName, text);
    //}
 
-   void writeElementCData(const std::string& localName, const std::string& text)
+   void writeElementCData(const QString& localName, const QString& text)
                                                     throw(XmlException);
 
-   void writeElementCData(const std::string& localName,
+   void writeElementCData(const QString& localName,
                                  const XmlAttributes& attributes,
-                                 const std::string& text)
+                                 const QString& text)
                                                     throw(XmlException);
 
-   void writeElementNoSpace(const std::string& localName, const std::string& text)
+   void writeElementNoSpace(const QString& localName, const QString& text)
                                                     throw(XmlException);
    //void writeStartElement(const char* localName) throw(XmlException) {
-   //   std::string ln = localName;
+   //   QString ln = localName;
    //   this->writeStartElement(ln);
    //}
-   void writeStartElement(const std::string& localName) throw(XmlException);
+   void writeStartElement(const QString& localName) throw(XmlException);
 
-   void writeStartElement(const std::string& localName,
+   void writeStartElement(const QString& localName,
                      const XmlAttributes& attributes) throw(XmlException);
 
    void writeEndElement() throw(XmlException);
 
-   void writeCData(const std::string& data) throw(XmlException);
+   void writeCData(const QString& data) throw(XmlException);
 
-   void writeCharacters(const std::string& text) throw(XmlException);
+   void writeCharacters(const QString& text) throw(XmlException);
 
-   void writeCharactersWithIndent(const std::string& text) throw(XmlException);
+   void writeCharactersWithIndent(const QString& text) throw(XmlException);
 
    void setNumberOfDecimalPlaces(const int32_t decimals);
 
@@ -136,7 +136,7 @@ private:
    int32_t indentationSpaces;
 
    /** The element stack used for closing elements. */
-    std::stack<std::string> elementStack;
+    std::stack<QString> elementStack;
 
     /** Number of decimal places for float data */
     int32_t numberOfDecimalPlaces;

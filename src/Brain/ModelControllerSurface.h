@@ -58,7 +58,7 @@ namespace caret {
     public:
         Surface* getSurface();
         
-        std::string getNameForGUI(const bool includeStructureFlag) const;
+        QString getNameForGUI(const bool includeStructureFlag) const;
         
         void setDefaultScalingToFitWindow();
         

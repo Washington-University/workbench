@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include <string>
+#include <QString>
 
 namespace caret {
 
@@ -53,16 +53,16 @@ public:
 
     ~GiftiEncodingEnum();
 
-    static std::string toName(Enum e);
+    static QString toName(Enum e);
     
-    static Enum fromName(const std::string& s, bool* isValidOut);
+    static Enum fromName(const QString& s, bool* isValidOut);
     
-    static std::string toGiftiName(Enum e);
+    static QString toGiftiName(Enum e);
     
-    static Enum fromGiftiName(const std::string& s, bool* isValidOut);
+    static Enum fromGiftiName(const QString& s, bool* isValidOut);
     
 private:
-    GiftiEncodingEnum(const Enum e, const int32_t integerCode, const std::string& name, const std::string& giftiName);
+    GiftiEncodingEnum(const Enum e, const int32_t integerCode, const QString& name, const QString& giftiName);
 
     static const GiftiEncodingEnum* findData(const Enum e);
 
@@ -76,9 +76,9 @@ private:
 
     int32_t integerCode;
 
-    std::string name;
+    QString name;
 
-    std::string giftiName;
+    QString giftiName;
 
 };
 

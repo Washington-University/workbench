@@ -332,7 +332,7 @@ BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
  */
 void 
 BrainOpenGL::checkForOpenGLError(const ModelController* modelController,
-                                      const std::string& msg)
+                                      const QString& msg)
 {
     GLenum errorCode = glGetError();
     if (errorCode != GL_NO_ERROR) {
@@ -340,11 +340,11 @@ BrainOpenGL::checkForOpenGLError(const ModelController* modelController,
         std::cout << "OpenGL Error: " << (char*)gluErrorString(errorCode) << std::endl;
         std::cout << "OpenGL Version: " << (char*)(glGetString(GL_VERSION)) << std::endl;
         std::cout << "OpenGL Vendor:  " << (char*)(glGetString(GL_VENDOR)) << std::endl;
-        if (msg.empty() == false) {
-            std::cout << msg << std::endl;
+        if (msg.length() == 0) {
+            std::cout << msg.toStdString() << std::endl;
         }
         if (modelController != NULL) {
-            std::cout << "While drawing brain model " << modelController->getNameForGUI(true) << std::endl;
+            std::cout << "While drawing brain model " << modelController->getNameForGUI(true).toStdString() << std::endl;
         }
         std::cout << "In window number " << this->windowIndex << std::endl;
         GLint nameStackDepth, modelStackDepth, projStackDepth;

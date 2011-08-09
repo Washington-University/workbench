@@ -106,7 +106,7 @@ Surface::getModelController()
 /**
  *
  */
-std::string 
+QString 
 Surface::getNameForGUI(bool includeStructureFlag) const
 {
     return    "Surface::getNameForGUI_NOT_IMPLEMENTED";

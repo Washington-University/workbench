@@ -80,7 +80,7 @@ ModelControllerSurface::getSurface()
  * @return   Name for use in a GUI.
  *
  */
-std::string
+QString
 ModelControllerSurface::getNameForGUI(const bool includeStructureFlag) const
 {
     return "ModelControllerSurface::getNameForGUI_NEEDS_IMPLEMENTATION";
