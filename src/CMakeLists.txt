@@ -28,10 +28,20 @@ ELSEIF(WIN32)
             SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
             SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
         ENDIF(CMAKE_CL_64)
-    ELSE()
-        SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
-        SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
-	ENDIF()
+    ELSE(MSVC)
+        FIND_PATH(ZLIB_INCLUDE_DIR zlib.h
+            C:\\dev32\\install\\zlib\\include
+            C:\\zlib_software\\zlib-1.2.5-install\\include)
+        FIND_PATH(ZLIB_LIBRARY libzlib.a
+            C:\\zlib_software\\zlib-1.2.5-install\\lib)
+        IF (NOT ZLIB_FOUND)
+            FIND_PATH(ZLIB_LIBRARY zlib.lib
+            C:\\dev32\\install\\zlib\\lib)
+        ENDIF(NOT ZLIB_FOUND)
+
+      ###  SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
+      ###  SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
+    ENDIF(MSVC)
 ELSE(APPLE)
     MESSAGE(FATAL_ERROR "Unrecognized operating system " ${CMAKE_SYSTEM_NAME})
 ENDIF(APPLE)
