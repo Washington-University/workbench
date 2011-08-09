@@ -2,13 +2,14 @@
 #
 # Name of project
 #
-PROJECT (Command)
+PROJECT (CommandLine)
 
 #cmake_policy(SET CMP0015 OLD) 
 
 #
 # Need XML from Qt
 #
+SET(QT_DONT_USE_QTGUI)
 SET(QT_USE_QTXML TRUE)
 
 #
@@ -77,7 +78,7 @@ ${LIBS})
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/Command
+${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti

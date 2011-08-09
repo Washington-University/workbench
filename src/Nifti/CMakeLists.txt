@@ -3,6 +3,16 @@
 #
 project (Nifti)
 
+#
+# Need XML from Qt
+#
+SET(QT_DONT_USE_QTGUI)
+
+#
+# Add QT for includes
+#
+INCLUDE (${QT_USE_FILE})
+
 
 #
 # Create the NIFTI library

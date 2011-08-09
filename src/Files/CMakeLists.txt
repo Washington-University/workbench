@@ -4,6 +4,16 @@
 PROJECT (Files)
 
 #
+# Need XML from Qt
+#
+SET(QT_DONT_USE_QTGUI)
+
+#
+# Add QT for includes
+#
+INCLUDE (${QT_USE_FILE})
+
+#
 # Files Library
 #
 ADD_LIBRARY(Files
