@@ -24,6 +24,7 @@
 
 #include <iostream>
 
+#include "CaretAssert.h"
 #include "SurfaceFile.h"
 
 
@@ -31,8 +32,7 @@ using namespace caret;
 
 
 int main(int argc, char* argv[]) {
-    std::cout << "In Main" << std::endl;
-    
+
     SurfaceFile sf;
     try {
         sf.readFile("/Users/john/caret_data/caret7_test_files/gifti/Human.PALS_B12.LEFT_AVG_B1-12.FIDUCIAL_FLIRT.clean.73730.surf.gii");

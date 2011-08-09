@@ -20,6 +20,8 @@ Base64.h
 BoundingBox.h
 ByteOrderEnum.h
 ByteSwapping.h
+CaretAssert.h
+CaretAssertion.h
 CaretException.h
 CaretObject.h
 CaretWindowEnum.h
@@ -34,6 +36,7 @@ Base64.cxx
 BoundingBox.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
+CaretAssertion.cxx
 CaretException.cxx
 CaretObject.cxx
 CaretWindowEnum.cxx
