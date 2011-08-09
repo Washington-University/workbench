@@ -25,6 +25,8 @@
  * 
  */ 
 
+#include <stdint.h>
+
 #include "CaretAssertion.h"
 
 #ifdef NDEBUG
@@ -99,8 +101,8 @@
  *    The index into the vector.
  */
 #define CaretAssertVectorIndex(v, i) \
-    ((((i) < 0) || ((i) >= (v.size()))) \
-        ? caret::CaretAssertion::assertVectorIndexFailed(#v, (v.size()), i, __FILE__, __LINE__) \
+    ((((i) < 0) || ((i) >= (static_cast<int64_t>(v.size())))) \
+        ? caret::CaretAssertion::assertVectorIndexFailed(#v, (static_cast<int64_t>(v.size())), i, __FILE__, __LINE__) \
         : (void)0)
 
 #endif // NDEBUG

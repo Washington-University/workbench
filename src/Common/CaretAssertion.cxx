@@ -287,6 +287,7 @@ CaretAssertion::unitTest(std::ostream& stream,
     str.str("");
     
     int32_t someArray[] = { 1, 2, 3 };
+    someArray[1] = 2;
     
     CaretAssertArrayIndex(someArray, 3, -1);
     CaretAssertion::unitTestHelper(stream, "Assert Array Index -1", str.str(), false, isVerbose);
