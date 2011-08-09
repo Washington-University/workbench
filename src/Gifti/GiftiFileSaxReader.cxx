@@ -33,7 +33,7 @@
 #include "GiftiLabelTableSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "GiftiXmlElements.h"
-#include "StringUtilities.h"
+
 #include "NiftiIntentEnum.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"

@@ -28,7 +28,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
-#include "StringUtilities.h"
+
 #include "XmlWriter.h"
 
 using namespace caret;

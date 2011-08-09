@@ -42,7 +42,6 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 #include "NiftiTransformEnum.h"
-#include "StringUtilities.h"
 #include "SystemUtilities.h"
 #include "XmlWriter.h"
 

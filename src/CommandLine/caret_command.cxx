@@ -25,7 +25,7 @@
 #include <iostream>
 
 #include "SurfaceFile.h"
-#include "StringUtilities.h"
+
 
 using namespace caret;
 

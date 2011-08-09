@@ -26,7 +26,6 @@
 #include <ostream>
 #include <sstream>
 
-#include "StringUtilities.h"
 #include "XmlWriter.h"
 
 using namespace caret;

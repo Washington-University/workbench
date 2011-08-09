@@ -29,7 +29,7 @@
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "GiftiXmlElements.h"
-#include "StringUtilities.h"
+
 #include "XmlAttributes.h"
 #include "XmlException.h"
 

@@ -25,7 +25,7 @@
 #include <sstream>
 
 #include "GiftiLabel.h"
-#include "StringUtilities.h"
+
 
 using namespace caret;
 

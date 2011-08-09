@@ -24,7 +24,6 @@
 
 
 #include "PaletteScalarAndColor.h"
-#include "StringUtilities.h"
 
 using namespace caret;
 

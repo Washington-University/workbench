@@ -35,7 +35,7 @@
 #include "GiftiFileSaxReader.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
-#include "StringUtilities.h"
+
 #include "XmlSaxParser.h"
 
 using namespace caret;

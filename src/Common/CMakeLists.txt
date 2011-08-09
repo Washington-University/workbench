@@ -27,7 +27,6 @@ DataCompressZLib.h
 DataFile.h
 DataFileException.h
 MathFunctions.h
-StringUtilities.h
 SystemUtilities.h
 TracksModificationInterface.h
 
@@ -42,7 +41,6 @@ DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
 MathFunctions.cxx
-StringUtilities.cxx
 SystemUtilities.cxx
 )
 

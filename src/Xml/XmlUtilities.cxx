@@ -26,7 +26,6 @@
 
 using namespace caret;
 
-#include "StringUtilities.h"
 
 /**
  * Constructor.
