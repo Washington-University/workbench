@@ -22,67 +22,48 @@
  * 
  */ 
 
-#include "CommandOperation.h"
+#include <fstream>
+#include <ostream>
+#include <iostream>
+
+#include "CaretAssertion.h"
+#include "CommandUnitTest.h"
 
 using namespace caret;
 
 /**
  * Constructor.
- * @param commandLineSwitch
- *   Switch to select this command.
- * @param operationShortDescription
- *   Short description of the command.
  */
-CommandOperation::CommandOperation(const QString& commandLineSwitch,
-                                   const QString& operationShortDescription)
-: CaretObject()
-{
-    this->commandLineSwitch = commandLineSwitch;
-    this->operationShortDescription = operationShortDescription;
-}
- 
-/**
- * Destructor.
- */
-CommandOperation::~CommandOperation()
+CommandUnitTest::CommandUnitTest()
+: CommandOperation("-unit-test",
+                   "Unit Testing")
 {
     
 }
 
 /**
- * Execute the command.
+ * Destructor.
+ */
+CommandUnitTest::~CommandUnitTest()
+{
+    
+}
+
+/**
+ * Execute the operation.
  * 
  * @param parameters
  *   Parameters for the operation.
  * @throws CommandException
  *   If the command failed.
+ * @throws ProgramParametersException
+ *   If there is an error in the parameters.
  */
 void 
-CommandOperation::execute(ProgramParameters& parameters) throw (CommandException)
+CommandUnitTest::executeOperation(ProgramParameters& parameters) throw (CommandException,
+                                                               ProgramParametersException)
 {
-    try {
-        this->executeOperation(parameters);
-    }
-    catch (ProgramParametersException& e) {
-        throw CommandException(e);
-    }
+    std::ostream* stream = &std::cout;
+    
+    CaretAssertion::unitTest(*stream, true);
 }
-
-/**
- * Get the short description of the operation.
- */
-QString 
-CommandOperation::getOperationShortDescription() const
-{
-    return this->operationShortDescription;
-}
-
-/**
- * Get the command line switch for selecting the operation.
- */
-QString 
-CommandOperation::getCommandLineSwitch() const
-{
-    return this->commandLineSwitch;
-}
-

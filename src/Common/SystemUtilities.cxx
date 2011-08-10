@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <cstdlib>
+#include <iostream>
 #include <sstream>
 
 #ifndef _WIN32
@@ -340,4 +342,61 @@ SystemUtilities::createFileAbsolutePath(
 {
     return QString("");
 }
+/**
+ * Unexpected handler
+ */
+static void unexpectedHandler()
+{
+    std::cerr << "WARNING: unhandled exception." << std::endl;
+    //if (theMainWindow != NULL) {
+        const QString msg("Caret will be terminating due to an unexpected exception.\n"
+                          "abort() will be called and a core file may be created.");
+    std::cerr << qPrintable(msg) << std::endl;
+        //QMessageBox::critical(theMainWindow, "ERROR", msg);
+    //}
+    
+    std::cerr << qPrintable(SystemUtilities::getBackTrace()) << std::endl;
+    
+    abort();
+}
 
+/**
+ * New handler
+ */
+static void newHandler()
+{
+    std::ostringstream str;
+    str << "\n"
+    << "OUT OF MEMORY\n"
+    << "\n"
+    << "This means that Caret is unable to get memory that it needs.\n"
+    << "Possible causes:\n"
+    << "   (1) Your computer lacks sufficient RAM.\n"
+    << "   (2) Swap space is too small (you might increase it).\n"
+    << "   (3) Your computer may be using an non-English character \n"
+    << "       set.  Try switching to the English character set.\n"
+    << "\n";
+    std::cerr << str.str().c_str() << std::endl;
+    
+    std::cerr << qPrintable(SystemUtilities::getBackTrace()) << std::endl;
+    
+    abort();
+    
+    //if (theMainWindow != NULL) {
+    //    QMessageBox::critical(theMainWindow, "OUT OF MEMORY",
+    //                          "Out of memory, Caret terminating");
+    //    std::exit(-1);
+    //}
+}
+
+/**
+ * Set handlers for unhandled exceptions or
+ * out of memory errors.
+ */
+void 
+SystemUtilities::setHandlersForUnexpected()
+{
+    std::set_unexpected(unexpectedHandler);
+    std::set_new_handler(newHandler);
+
+}

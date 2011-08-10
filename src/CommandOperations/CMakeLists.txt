@@ -18,10 +18,14 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(CommandOperations
 CommandOperation.h
+CommandOperationManager.h
 CommandException.h
+CommandUnitTest.h
 
 CommandOperation.cxx
+CommandOperationManager.cxx
 CommandException.cxx
+CommandUnitTest.cxx
 )
 
 #

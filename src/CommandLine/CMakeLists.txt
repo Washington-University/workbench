@@ -64,6 +64,7 @@ caret_command.cxx
 # Libraries that are linked
 #
 TARGET_LINK_LIBRARIES(caret_command 
+CommandOperations
 Brain
 Files
 Gifti
@@ -79,6 +80,7 @@ ${LIBS})
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
+${CMAKE_SOURCE_DIR}/CommandOperations
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti

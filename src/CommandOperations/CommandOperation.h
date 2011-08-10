@@ -1,5 +1,5 @@
-#ifndef __COMMAND_H__
-#define __COMMAND_H__
+#ifndef __COMMAND_OPERATION_H__
+#define __COMMAND_OPERATION_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -28,25 +28,40 @@
 
 #include "CaretObject.h"
 #include "CommandException.h"
-#include "ProgramParameters.h"
 #include "ProgramParametersException.h"
 
 namespace caret {
 
+    class ProgramParameters;
+    
     /**
      * Abstract class for a command operation.
      */
     class CommandOperation : public CaretObject {
+
+    public:
+        virtual ~CommandOperation();
+        
+        void execute(ProgramParameters& parameters) 
+            throw (CommandException);
         
     protected:
+        /**
+         * Execute the operation.
+         * 
+         * @param parameters
+         *   Parameters for the operation.
+         * @throws CommandException
+         *   If the command failed.
+         * @throws ProgramParametersException
+         *   If there is an error in the parameters.
+         */
+        virtual void executeOperation(ProgramParameters& parameters) 
+           throw (CommandException,
+                ProgramParametersException) = 0;
+        
         CommandOperation(const QString& commandLineSwitch,
                          const QString& operationShortDescription);
-        
-        virtual ~CommandOperation();
-
-        virtual void executeCommandOperation(ProgramParameters& parameters) 
-            throw (CommandException,
-                   ProgramParametersException) = 0;
         
     private:
         CommandOperation();
@@ -61,19 +76,14 @@ namespace caret {
         
         QString getCommandLineSwitch() const;
         
-        void setParameters(ProgramParameters* parameters);
-        
     private:
         /** Short description listing commands purpose */
         QString operationShortDescription;
         
         /** Switch on command line */
         QString commandLineSwitch;
-        
-        /** The command's parameters */
-        ProgramParameters* parameters;
     };
     
 } // namespace
 
-#endif // __COMMAND_H__
+#endif // __COMMAND_OPERATION_H__

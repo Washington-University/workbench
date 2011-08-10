@@ -100,6 +100,7 @@ public:
                     const QString& directoryName,
                     const QString& fileName);
     
+    static void setHandlersForUnexpected();
 };
 
 } // namespace
