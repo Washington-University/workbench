@@ -106,7 +106,7 @@ ProgramParameters::verifyAllParametersProcessed()
             throw (ProgramParametersException)
 {
     if (this->hasNext()) {
-        throw new ProgramParametersException("There are too many parameters.");
+        throw ProgramParametersException("There are too many parameters.");
     }
 }
 

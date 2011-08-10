@@ -262,7 +262,7 @@ PaletteColorMapping::decodeFromStringXML(const QString& xml)
     try {
         parser->parseString(xml, &saxReader);
     }
-    catch (XmlSaxParserException e) {
+    catch (XmlSaxParserException& e) {
         int lineNum = e.getLineNumber();
         int colNum  = e.getColumnNumber();
         

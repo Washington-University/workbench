@@ -871,7 +871,7 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
         //
         xmlWriter.writeEndElement();
     }
-    catch (XmlException e) {
+    catch (XmlException& e) {
         throw GiftiException(e);
     }
 }

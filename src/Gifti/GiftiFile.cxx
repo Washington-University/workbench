@@ -805,7 +805,7 @@ GiftiFile::readFile(const QString& filename) throw (DataFileException)
     try {
         parser->parseFile(filename, &saxReader);
     }
-    catch (XmlSaxParserException e) {
+    catch (XmlSaxParserException& e) {
         this->setFileName("");
         
         int lineNum = e.getLineNumber();

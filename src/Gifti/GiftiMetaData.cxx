@@ -415,7 +415,7 @@ GiftiMetaData::writeAsXML(XmlWriter& xmlWriter)
         //
         xmlWriter.writeEndElement();
     }
-    catch (XmlException e) {
+    catch (XmlException& e) {
         throw GiftiException(e);
     }
 }

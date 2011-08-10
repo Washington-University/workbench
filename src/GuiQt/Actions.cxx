@@ -161,7 +161,7 @@ Actions::processDataFileOpenAction()
     try {
         brain->readSurfaceFile(name);
     }
-    catch (DataFileException e) {
+    catch (DataFileException& e) {
         QMessageBox::critical(this->mainWindow, "ERROR", e.whatString());
     }
     GuiGlobals::redrawAllGraphicsWindows();
