@@ -156,7 +156,6 @@ ProgramParameters::nextBoolean(const QString& parameterName)
              || (s == "f")) {
         return false;
     }
-    
     throw new ProgramParametersException(parameterName 
                                          + " is not a boolean value (true/false) but is \""
                                          + s + "\".");
