@@ -109,10 +109,10 @@ CaretAssertion::assertFailed(const char* expression,
         << std::endl;
     }
     
-    const std::string s = SystemUtilities::getBackTrace();
-    if (s.empty() == false) {
+    const QString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
         std::cerr 
-        << s 
+        << qPrintable(s) 
         << std::endl
         << std::endl;
     }
@@ -171,9 +171,9 @@ CaretAssertion::assertArrayIndexFailed(const char* arrayName,
     << std::endl
     << std::endl;
     
-    const std::string s = SystemUtilities::getBackTrace();
-    if (s.empty() == false) {
-        std::cerr << s << std::endl << std::endl;
+    const QString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
+        std::cerr << qPrintable(s) << std::endl << std::endl;
     }
     
     if (CaretAssertion::unitTestFlag == false) {
@@ -231,9 +231,9 @@ CaretAssertion::assertVectorIndexFailed(const char* vectorName,
     << std::endl
     << std::endl;
     
-    const std::string s = SystemUtilities::getBackTrace();
-    if (s.empty() == false) {
-        std::cerr << s << std::endl << std::endl;
+    const QString s = SystemUtilities::getBackTrace();
+    if (s.isEmpty() == false) {
+        std::cerr << qPrintable(s) << std::endl << std::endl;
     }
     
     if (CaretAssertion::unitTestFlag == false) {
@@ -287,6 +287,7 @@ CaretAssertion::unitTest(std::ostream& stream,
     str.str("");
     
     int32_t someArray[] = { 1, 2, 3 };
+    someArray[1] = 2;
     
     CaretAssertArrayIndex(someArray, 3, -1);
     CaretAssertion::unitTestHelper(stream, "Assert Array Index -1", str.str(), false, isVerbose);
