@@ -22,9 +22,9 @@
  * 
  */ 
 
-#include <cassert>
 #include <limits>
 
+#include "CaretAssert.h"
 #define __PALETTE_DEFINE__
 #include "Palette.h"
 #undef __PALETTE_DEFINE__
@@ -170,10 +170,10 @@ Palette::getNumberOfScalarsAndColors() const
  *
  */
 PaletteScalarAndColor*
-Palette::getScalarAndColor(const int32_t index) const
+Palette::getScalarAndColor(const int32_t indx) const
 {
-    assert((index >= 0) && (index < this->getNumberOfScalarsAndColors()));
-    return this->paletteScalars[index];
+    CaretAssertVectorIndex(this->paletteScalars, indx);
+    return this->paletteScalars[indx];
 }
 
 /**
@@ -203,7 +203,7 @@ Palette::insertScalarAndColor(
                    const PaletteScalarAndColor& psac,
                    const int32_t insertAfterIndex)
 {
-    assert((insertAfterIndex >= 0) && (insertAfterIndex < this->getNumberOfScalarsAndColors()));
+    CaretAssertVectorIndex(this->paletteScalars, insertAfterIndex);
     this->paletteScalars.insert(this->paletteScalars.begin() + insertAfterIndex,
                                 new PaletteScalarAndColor(psac));
     this->setModified();
@@ -216,10 +216,10 @@ Palette::insertScalarAndColor(
  *
  */
 void
-Palette::removeScalarAndColor(const int32_t index)
+Palette::removeScalarAndColor(const int32_t indx)
 {
-    assert((index >= 0) && (index < this->getNumberOfScalarsAndColors()));
-    this->paletteScalars.erase(this->paletteScalars.begin() + index);
+    CaretAssertVectorIndex(this->paletteScalars, indx);
+    this->paletteScalars.erase(this->paletteScalars.begin() + indx);
     
     this->setModified();
 }

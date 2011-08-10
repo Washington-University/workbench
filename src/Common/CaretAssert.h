@@ -34,6 +34,7 @@
     #define CaretAssert(e) ((void)0)
     #define CaretAssertMessage(e, m) ((void)0)
     #define CaretAssertArrayIndex(a, n, i) ((void 0)
+    #define CaretAssertVectorIndex(v, i) ((void 0)
 
 #else // NDEBUG
 

@@ -24,7 +24,7 @@
 
 #include <iostream>
 
-#include <cassert>
+#include "CaretAssert.h"
 
 #include "Brain.h"
 #include "BrainStructure.h"
@@ -86,8 +86,7 @@ Brain::addBrainStructure(BrainStructure* brainStructure)
 BrainStructure* 
 Brain::getBrainStructure(const int32_t indx)
 {
-    assert((indx >= 0) && (indx < this->getNumberOfBrainStructures()));
-    
+    CaretAssertVectorIndex(this->brainStructures, indx);
     return this->brainStructures[indx];
     
 }

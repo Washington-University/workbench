@@ -22,9 +22,9 @@
  * 
  */ 
 
-#include <cassert>
 #include <sstream>
 
+#include "CaretAssert.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
@@ -686,7 +686,7 @@ GiftiLabelTable::setLabelColor(
 int32_t
 GiftiLabelTable::getLabelKeysSortedByName() const
 {
-    assert(0);
+    CaretAssertMessage(0, "NEEDS TO BE IMPLEMENTED");
     return 0;
 }
 

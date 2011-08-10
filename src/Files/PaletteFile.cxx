@@ -22,8 +22,6 @@
  * 
  */ 
 
-#include <cassert>
-
 #include "GiftiLabel.h"
 #include "Palette.h"
 #include "PaletteFile.h"
@@ -146,7 +144,6 @@ PaletteFile::addColor(
 const GiftiLabel*
 PaletteFile::getColor(const int32_t indx) const
 {
-    assert((indx >= 0) && (indx < this->getNumberOfPalettes()));
     return this->labelTable.getLabel(indx);
 }
 

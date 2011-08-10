@@ -27,7 +27,7 @@
 #include "PaletteThresholdTestEnum.h"
 #undef __PALETTE_THRESHOLD_TEST_DECLARE__
 
-#include <cassert>
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -90,7 +90,7 @@ PaletteThresholdTestEnum::findData(const Enum e)
         }
     }
 
-    assert(0);
+    CaretAssertMessage(0, "Threshold Test enum failed to match.");
     
     return NULL;
 }

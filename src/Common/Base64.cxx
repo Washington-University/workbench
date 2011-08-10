@@ -36,7 +36,7 @@
      PURPOSE.  See the above copyright notice for more information.
 
 =========================================================================*/
-#include <assert.h>
+#include "CaretAssert.h"
 
 #include "Base64.h"
 
@@ -51,7 +51,7 @@ static const unsigned char Base64EncodeTable[65] =
 //----------------------------------------------------------------------------
 inline static unsigned char Base64EncodeChar(unsigned char c)
 {
-  assert( c < 65 );
+  CaretAssert( c < 65 );
   return Base64EncodeTable[c];
 }
 

@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include <cassert>
+#include "CaretAssert.h"
 
 #include "GiftiFile.h"
 #include "MathFunctions.h"
@@ -167,7 +167,7 @@ SurfaceFile::getNumberOfCoordinates() const
     if (this->coordinatePointer == NULL) {
         return 0;
     }
-    assert(this->coordinateDataArray);
+    CaretAssert(this->coordinateDataArray);
     return this->coordinateDataArray->getDimension(0);
 }
 
@@ -183,9 +183,9 @@ SurfaceFile::getNumberOfCoordinates() const
 const float* 
 SurfaceFile::getCoordinate(const int32_t indx) const
 {
-    assert(this->coordinatePointer);
+    CaretAssert(this->coordinatePointer);
     const int32_t offset = indx * 3;
-    assert((offset >= 0) && (offset < (this->getNumberOfCoordinates() * 3)));
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfCoordinates() * 3)));
     return &(this->coordinatePointer[offset]);    
 }
 
@@ -201,7 +201,7 @@ SurfaceFile::getNumberOfTriangles() const
     if (this->trianglePointer == NULL) {
         return 0;
     }
-    assert(this->triangleDataArray);
+    CaretAssert(this->triangleDataArray);
     return this->triangleDataArray->getDimension(0);
     
 }
@@ -219,9 +219,9 @@ SurfaceFile::getNumberOfTriangles() const
 const int32_t* 
 SurfaceFile::getTriangle(const int32_t indx) const
 {
-    assert(this->trianglePointer);
+    CaretAssert(this->trianglePointer);
     const int32_t offset = indx * 3;
-    assert((offset >= 0) && (offset < (this->getNumberOfTriangles() * 3)));
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfTriangles() * 3)));
     return &(this->trianglePointer[offset]);    
 }
 
@@ -262,7 +262,7 @@ const float*
 SurfaceFile::getNormalVector(const int32_t indx) const
 {
     const int32_t offset = indx * 3;
-    assert((offset >= 0) && (offset < static_cast<int>(this->normalVectors.size())));
+    CaretAssert((offset >= 0) && (offset < static_cast<int>(this->normalVectors.size())));
     return &(this->normalVectors[offset]);    
 }
 

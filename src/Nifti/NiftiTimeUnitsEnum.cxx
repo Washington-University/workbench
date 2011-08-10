@@ -27,7 +27,7 @@
 #include "NiftiTimeUnitsEnum.h"
 #undef __NIFTITIMEUNITS_DECLARE__
 
-#include <cassert>
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -89,7 +89,7 @@ NiftiTimeUnitsEnum::findData(const Enum e)
             return d;
         }
     }
-    assert(0);
+    CaretAssertMessage(0, "Time Units enum failed to match.");
 
     return NULL;
 }

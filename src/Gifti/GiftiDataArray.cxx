@@ -24,7 +24,6 @@
 /*LICENSE_END*/
 
 #include <algorithm>
-#include <assert.h>
 #include <fstream>
 #include <iostream>
 #include <ostream>
@@ -34,6 +33,7 @@
 #include "Base64.h"
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
+#include "CaretAssert.h"
 #include "DataCompressZLib.h"
 
 //#include "FileUtilities.h"
@@ -320,7 +320,8 @@ GiftiDataArray::allocateData()
          dataTypeSize = sizeof(uint8_t);
          break;
        default:
-           assert(0);
+           CaretAssertMessage(0, "Unsupported GIFTI data type.");
+           break;
    }
    
    dataSizeInBytes *= dataTypeSize;
@@ -367,7 +368,8 @@ GiftiDataArray::updateDataPointers()
             dataPointerUByte = (uint8_t*)&data[0];
             break;
           default:
-              assert(0);
+              CaretAssertMessage(0, "Unsupported GIFTI Data Type");
+              break;
       }
    }
 }
@@ -722,7 +724,7 @@ GiftiDataArray::readFromText(const QString text,
                         pointerToForReadingData = (char*)dataPointerUByte;
                         break;
                       default:
-                          assert(0);
+                          throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                   }
                
                   //
@@ -844,7 +846,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                  }
                  break;
                default:
-                   assert(0);
+                   throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                    break;
            }
        }
@@ -892,7 +894,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                 }
                 break;
               default:
-                  assert(0);
+                  throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                   break;
           }
           
@@ -1017,7 +1019,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                      }
                      break;
                    default:
-                       assert(0);
+                       throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                        break;
                }
                xmlWriter.writeCharacters("\n");
@@ -1119,7 +1121,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
  * convert to data type.
  */
 void 
-GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
+GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType) throw (GiftiException)
 {
    if (newDataType != dataType) {      
       //
@@ -1160,7 +1162,7 @@ GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
                         dataPointerFloat[i] = static_cast<float>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
-                          assert(0);
+                          throw GiftiException("DataType " + NiftiDataTypeEnum::toName(oldDataType) + " not supported in GIFTI");
                           break;
                   }
                   break;
@@ -1176,7 +1178,7 @@ GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
                         dataPointerInt[i] = static_cast<int32_t>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
-                          assert(0);
+                          throw GiftiException("DataType " + NiftiDataTypeEnum::toName(oldDataType) + " not supported in GIFTI");
                           break;
                   }
                   break;
@@ -1192,12 +1194,12 @@ GiftiDataArray::convertToDataType(const NiftiDataTypeEnum::Enum newDataType)
                         dataPointerUByte[i] = static_cast<uint8_t>(copyOfMe.dataPointerUByte[i]);
                         break;
                       default:
-                          assert(0);
+                          throw GiftiException("DataType " + NiftiDataTypeEnum::toName(oldDataType) + " not supported in GIFTI");
                           break;
                   }
                   break;
                 default:
-                    assert(0);
+                    throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
                     break;
             }
          }
@@ -1225,7 +1227,7 @@ GiftiDataArray::byteSwapData(const GiftiEndianEnum::Enum newEndian)
          // should not need to swap ??
          break;
        default:
-           assert(0);
+           CaretAssertMessage(0, "Unsupported GIFTI data Type");
            break;
    }
 }      
@@ -1568,7 +1570,7 @@ QString
 fromNumbers(const std::vector<int64_t>& v, const QString& separator)
 {
     QString s;
-    for (int64_t i = 0; i < v.size(); i++) {
+    for (uint64_t i = 0; i < v.size(); i++) {
         if (i > 0) {
             s += separator;
         }

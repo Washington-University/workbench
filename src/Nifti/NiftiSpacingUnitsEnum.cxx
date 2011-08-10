@@ -26,7 +26,7 @@
 #include "NiftiSpacingUnitsEnum.h"
 #undef __NIFTI_SPACING_UNITS_DECLARE__
 
-#include <cassert>
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -136,7 +136,7 @@ NiftiSpacingUnitsEnum::findData(Enum e)
         return &nsu;
     }
     
-    assert(0);
+    CaretAssertMessage(0, "Spacing Units enum failed to match.");
     
     return NULL;
 }

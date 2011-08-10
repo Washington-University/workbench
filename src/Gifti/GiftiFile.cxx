@@ -23,11 +23,12 @@
  */
 /*LICENSE_END*/
 
-#include <cassert>
 #include <iostream>
 
 #include <set>
 #include <sstream>
+
+#include "CaretAssert.h"
 
 #define __GIFTI_FILE_MAIN__
 #include "GiftiFile.h"
@@ -236,7 +237,8 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                      }
                      break;
                    default:
-                       assert(0);
+                       CaretAssertMessage(0, "Invalid Data Type");
+                       break;
                }
                
                if (diffCount > 0) {
@@ -1183,7 +1185,8 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
                   }
                   break;
                 default:
-                    assert(0);
+                    CaretAssertMessage(0, "Invalid Data Type");
+                    break;
             }
          }
       }

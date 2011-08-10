@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include <cassert>
+#include "CaretAssert.h"
 
 #define __CARET_WINDOW_DECLARE_H__
 #include "CaretWindowEnum.h"
@@ -195,7 +195,7 @@ CaretWindowEnum::toName(Enum e)
         }
     }
     
-    assert(s.length() > 0);
+    CaretAssert(s.length() > 0);
     return s;
 }
 
@@ -317,7 +317,7 @@ CaretWindowEnum::Enum
 CaretWindowEnum::fromIndex(const int32_t windowIndex, bool* isValidOut)
 {
     CaretWindowEnum::initialize();
-    assert((windowIndex >= 0) && (windowIndex < static_cast<int>(CaretWindowEnum::enumData.size())));
+    CaretAssert((windowIndex >= 0) && (windowIndex < static_cast<int>(CaretWindowEnum::enumData.size())));
     
     Enum e = WINDOW_MAIN;
     if ((windowIndex >= 0) && (windowIndex < static_cast<int>(CaretWindowEnum::enumData.size()))) {
@@ -348,7 +348,7 @@ CaretWindowEnum::toIndex(const Enum e)
 {
     CaretWindowEnum::initialize();
     const CaretWindowEnum* cw = CaretWindowEnum::findData(e);
-    assert(cw);
+    CaretAssert(cw);
     return cw->getWindowIndex();
 }
 

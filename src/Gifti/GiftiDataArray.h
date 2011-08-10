@@ -82,7 +82,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       void deleteRows(const std::vector<int32_t>& rowsToDelete);
       
       // convert all data arrays to data type
-      void convertToDataType(const NiftiDataTypeEnum::Enum newDataType);
+      void convertToDataType(const NiftiDataTypeEnum::Enum newDataType)  throw (GiftiException);
       
       // set the dimensions 
       void setDimensions(const std::vector<int64_t> dimensionsIn);

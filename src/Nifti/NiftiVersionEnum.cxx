@@ -27,7 +27,7 @@
 #include "NiftiVersionEnum.h"
 #undef __NIFTIVERSION_DECLARE__
 
-#include <cassert>
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -87,7 +87,7 @@ NiftiVersionEnum::findData(const Enum e)
         }
     }
 
-    assert(0);
+    CaretAssertMessage(0, "NIFTI Version enum failed to match.");
     
     return NULL;
 }

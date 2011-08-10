@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include <cassert>
+#include "CaretAssert.h"
 
 #include "BrainStructure.h"
 #include "Surface.h"
@@ -111,7 +111,7 @@ BrainStructure::getNumberOfSurfaces() const
 Surface* 
 BrainStructure::getSurface(int indx)
 {
-    assert((indx >= 0) && (indx < this->getNumberOfSurfaces()));
+    CaretAssertVectorIndex(this->surfaces, indx);
     
     return this->surfaces[indx];
 }
@@ -152,7 +152,7 @@ BrainStructure::getNumberOfNodes() const
 const float* 
 BrainStructure::getNodeColor(int32_t nodeIndex) const
 {
-    assert((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()));
+    CaretAssert((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()));
 
     return &this->nodeColoring[nodeIndex * 4];
 }

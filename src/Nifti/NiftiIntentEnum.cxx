@@ -26,7 +26,7 @@
 #include "NiftiIntentEnum.h"
 #undef __NIFTI_INTENT_DECLARE__
 
-#include <cassert>
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -204,7 +204,7 @@ NiftiIntentEnum::findData(Enum e)
         return &intent;
     }
     
-    assert(0);
+    CaretAssertMessage(0, "Intent enum failed to match.");
     
     return NULL;
 }
