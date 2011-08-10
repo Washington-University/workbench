@@ -48,7 +48,7 @@ CommandException::CommandException()
  *
  */
 CommandException::CommandException(
-                    const std::exception& e)
+                    const CaretException& e)
 : CaretException(e)
 {
     this->initializeMembersCommandException();

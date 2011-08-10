@@ -48,7 +48,7 @@ GiftiException::GiftiException()
  *
  */
 GiftiException::GiftiException(
-                    const std::exception& e)
+                    const CaretException& e)
 : CaretException(e)
 {
     this->initializeMembersGiftiException();

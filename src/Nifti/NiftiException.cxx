@@ -48,7 +48,7 @@ NiftiException::NiftiException()
  *
  */
 NiftiException::NiftiException(
-                    const std::exception& e)
+                    const CaretException& e)
 : CaretException(e)
 {
     this->initializeMembersNiftiException();

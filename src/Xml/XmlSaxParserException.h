@@ -42,6 +42,8 @@ namespace caret {
     public:
         XmlSaxParserException();
         
+        XmlSaxParserException(const CaretException& e);
+        
         XmlSaxParserException(const QString& s);
         
         XmlSaxParserException(const QString& s, const int32_t lineNumber, const int32_t columnNumber);

@@ -41,7 +41,7 @@ class DataFileException : public CaretException {
 public:
     DataFileException();
 
-    DataFileException(const exception& e);
+    DataFileException(const CaretException& e);
 
     DataFileException(const QString& s);
 

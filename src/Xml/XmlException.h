@@ -41,7 +41,7 @@ class XmlException : public CaretException {
 public:
     XmlException();
 
-    XmlException(const exception& e);
+    XmlException(const CaretException& e);
 
     XmlException(const QString& s);
 

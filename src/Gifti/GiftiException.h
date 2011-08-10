@@ -41,7 +41,7 @@ namespace caret {
 public:
     GiftiException();
 
-    GiftiException(const exception& e);
+    GiftiException(const CaretException& e);
 
     GiftiException(const QString& s);
 

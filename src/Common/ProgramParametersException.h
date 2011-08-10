@@ -41,7 +41,7 @@ class ProgramParametersException : public CaretException {
 public:
     ProgramParametersException();
 
-    ProgramParametersException(const exception& e);
+    ProgramParametersException(const CaretException& e);
 
     ProgramParametersException(const QString& s);
 

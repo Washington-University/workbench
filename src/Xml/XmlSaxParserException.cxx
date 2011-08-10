@@ -42,6 +42,16 @@ XmlSaxParserException::XmlSaxParserException()
 /**
  * Constructor.
  *
+ */
+XmlSaxParserException::XmlSaxParserException(const CaretException& e)
+: CaretException(e)
+{
+    this->initializeMembersXmlSaxParserException();
+}
+
+/**
+ * Constructor.
+ *
  * @param  s  
  *      Description of the exception.
  * @param  lineNumber

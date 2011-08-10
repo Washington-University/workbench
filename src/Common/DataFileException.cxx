@@ -48,7 +48,7 @@ DataFileException::DataFileException()
  *
  */
 DataFileException::DataFileException(
-                    const std::exception& e)
+                    const CaretException& e)
 : CaretException(e)
 {
     this->initializeMembersDataFileException();

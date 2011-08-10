@@ -39,8 +39,6 @@ namespace caret {
 public:
     CaretException();
 
-    CaretException(const exception& e);
-
     CaretException(const QString& s);
 
     CaretException(const CaretException& e);

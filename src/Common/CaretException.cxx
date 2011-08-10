@@ -40,21 +40,6 @@ CaretException::CaretException()
 }
 
 /**
- * Constructor that uses stack trace from the exception
- * passed in as a parameter.
- * 
- * @param e Any exception whose stack trace becomes
- * this exception's stack trace.
- *
- */
-CaretException::CaretException(
-                    const std::exception& e)
-: std::exception(e)
-{
-    this->exceptionDescription = e.what();
-}
-
-/**
  * Constructor.
  *
  * @param  s  Description of the exception.

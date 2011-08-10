@@ -40,7 +40,7 @@ class CommandException : public CaretException {
 public:
     CommandException();
 
-    CommandException(const exception& e);
+    CommandException(const CaretException& e);
 
     CommandException(const QString& s);
 

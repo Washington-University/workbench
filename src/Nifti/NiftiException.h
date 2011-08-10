@@ -40,7 +40,7 @@ namespace caret {
 public:
     NiftiException();
 
-    NiftiException(const exception& e);
+    NiftiException(const CaretException& e);
 
     NiftiException(const QString& s);
 

@@ -48,7 +48,7 @@ ProgramParametersException::ProgramParametersException()
  *
  */
 ProgramParametersException::ProgramParametersException(
-                    const std::exception& e)
+                    const CaretException& e)
 : CaretException(e)
 {
     this->initializeMembersProgramParametersException();
