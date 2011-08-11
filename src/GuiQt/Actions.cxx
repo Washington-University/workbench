@@ -94,7 +94,7 @@ Actions::~Actions()
  *    Action that was created.
  */
 QAction* 
-Actions::createAction(const QString& text,
+Actions::createAction(const AString& text,
                       const QKeySequence& shortcut,
                       const char* method)
 {
@@ -116,7 +116,7 @@ Actions::createAction(const QString& text,
  *    Action that was created.
  */
 QAction* 
-Actions::createAction(const QString& text,
+Actions::createAction(const AString& text,
                       const char* method)
 {
     QAction* action = new QAction(this->mainWindow);
@@ -150,7 +150,7 @@ Actions::processExitProgramAction()
 void 
 Actions::processDataFileOpenAction()
 {
-    QString name =
+    AString name =
         QFileDialog::getOpenFileName(this->mainWindow,
                                  "Open Surface File",
                                  ".",

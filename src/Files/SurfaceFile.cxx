@@ -135,7 +135,7 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
         
     }
     
-    QString errorMessage;
+    AString errorMessage;
     if (this->coordinateDataArray == NULL) {
         if (errorMessage.isEmpty() == false) {
         }

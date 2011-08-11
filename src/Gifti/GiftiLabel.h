@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 
 namespace caret {
 
@@ -43,11 +43,11 @@ class GiftiLabel : public CaretObject, TracksModificationInterface {
 public:
     GiftiLabel(
                    const int32_t key,
-                   const QString& name);
+                   const AString& name);
 
     explicit GiftiLabel(
                    const int32_t key,
-                   const QString& name,
+                   const AString& name,
                    const float red,
                    const float green,
                    const float blue,
@@ -55,7 +55,7 @@ public:
 
     explicit GiftiLabel(
                         const int32_t key,
-                        const QString& name,
+                        const AString& name,
                         const float red,
                         const float green,
                         const float blue,
@@ -66,7 +66,7 @@ public:
     
     explicit GiftiLabel(
                         const int32_t key,
-                        const QString& name,
+                        const AString& name,
                         const double red,
                         const double green,
                         const double blue,
@@ -74,12 +74,12 @@ public:
     
     GiftiLabel(
                    const int32_t key,
-                   const QString& name,
+                   const AString& name,
                    const float rgba[]);
 
     explicit GiftiLabel(
                    const int32_t key,
-                   const QString& name,
+                   const AString& name,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue,
@@ -87,7 +87,7 @@ public:
 
     GiftiLabel(
                    const int32_t key,
-                   const QString& name,
+                   const AString& name,
                    const int32_t rgba[]);
 
     GiftiLabel(const int32_t key);
@@ -115,9 +115,9 @@ public:
 
     void setKey(const int32_t key);
 
-    QString getName() const;
+    AString getName() const;
 
-    void setName(const QString& name);
+    void setName(const AString& name);
 
     bool isSelected() const;
 
@@ -165,7 +165,7 @@ public:
 
     bool isModified() const;
 
-    QString toString() const;
+    AString toString() const;
 
     int32_t getCount() const;
 
@@ -177,7 +177,7 @@ private:
     /**tracks modification status (DO NOT CLONE) */
     bool modifiedFlag;
 
-    QString name;
+    AString name;
 
     int32_t key;
 

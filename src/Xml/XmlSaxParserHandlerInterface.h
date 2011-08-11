@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <QString>
+#include <AString.h>
 
 #include "CaretObject.h"
 #include "XmlAttributes.h"
@@ -77,9 +77,9 @@ namespace caret {
          *    XmlParsingException
          *        If an error is encountered and parsing should cease.
          */
-        virtual void startElement(const QString& uri,
-                                  const QString& localName,
-                                  const QString& qName,
+        virtual void startElement(const AString& uri,
+                                  const AString& localName,
+                                  const AString& qName,
                                   const XmlAttributes& atts) 
                       throw (XmlSaxParserException) = 0;
         
@@ -103,9 +103,9 @@ namespace caret {
          *    XmlParsingException
          *        If an error is encountered and parsing should cease.
          */
-        virtual void endElement(const QString& namespaceURI,
-                                       const QString& localName,
-                                       const QString& qualifiedName) 
+        virtual void endElement(const AString& namespaceURI,
+                                       const AString& localName,
+                                       const AString& qualifiedName) 
                       throw (XmlSaxParserException) = 0;
         
         /**

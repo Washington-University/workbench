@@ -25,7 +25,7 @@
  * 
  */ 
 
-#include <QString>
+#include <AString.h>
 
 #include "CaretObject.h"
 
@@ -42,9 +42,9 @@ namespace caret {
     public:
         ~XmlUtilities();
         
-        static QString encodeXmlSpecialCharacters(const QString& text);
+        static AString encodeXmlSpecialCharacters(const AString& text);
         
-        static QString decodeXmlSpecialCharacters(const QString& text);
+        static AString decodeXmlSpecialCharacters(const AString& text);
         
     private:
 

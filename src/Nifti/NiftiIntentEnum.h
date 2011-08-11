@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 namespace caret {
@@ -143,22 +143,22 @@ public:
 
 private:
     NiftiIntentEnum(const Enum e, 
-                const QString& enumName,
+                const AString& enumName,
                 const int32_t integerCode,
-                const QString& name,
-                const QString& p1Name,
-                const QString& p2Name,
-                const QString& p3Name);
+                const AString& name,
+                const AString& p1Name,
+                const AString& p2Name,
+                const AString& p3Name);
     
     NiftiIntentEnum();
     
     Enum e;
-    QString enumName;
+    AString enumName;
     int32_t integerCode;
-    QString name;
-    QString p1Name;
-    QString p2Name;
-    QString p3Name;
+    AString name;
+    AString p1Name;
+    AString p2Name;
+    AString p3Name;
     
     static void initializeIntents();
     static const NiftiIntentEnum* findData(Enum e);
@@ -167,11 +167,11 @@ private:
     static bool intentsCreatedFlag;
 
 public:
-    static QString toName(Enum e);
-    static QString toNameP1(Enum e);
-    static QString toNameP2(Enum e);
-    static QString toNameP3(Enum e);
-    static Enum fromName(const QString& s, bool* isValidOut);
+    static AString toName(Enum e);
+    static AString toNameP1(Enum e);
+    static AString toNameP2(Enum e);
+    static AString toNameP3(Enum e);
+    static Enum fromName(const AString& s, bool* isValidOut);
     static int32_t toIntegerCode(Enum e);
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     

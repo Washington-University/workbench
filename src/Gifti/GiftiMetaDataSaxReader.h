@@ -28,7 +28,7 @@
 /*LICENSE_END*/
 
 #include <stack>
-#include <QString>
+#include <AString.h>
 #include <stdint.h>
 
 #include "XmlSaxParserException.h"
@@ -49,14 +49,14 @@ namespace caret {
         
         virtual ~GiftiMetaDataSaxReader();
         
-        void startElement(const QString& namespaceURI,
-                          const QString& localName,
-                          const QString& qName,
+        void startElement(const AString& namespaceURI,
+                          const AString& localName,
+                          const AString& qName,
                           const XmlAttributes& attributes) throw (XmlSaxParserException);
         
-        void endElement(const QString& namspaceURI,
-                        const QString& localName,
-                        const QString& qName) throw (XmlSaxParserException);
+        void endElement(const AString& namspaceURI,
+                        const AString& localName,
+                        const AString& qName) throw (XmlSaxParserException);
         
         void characters(const char* ch) throw (XmlSaxParserException);
         
@@ -97,16 +97,16 @@ namespace caret {
         std::stack<STATE> stateStack;
         
         /// the error message
-        QString errorMessage;
+        AString errorMessage;
         
         /// meta data name
-        QString metaDataName;
+        AString metaDataName;
         
         /// meta data value
-        QString metaDataValue;
+        AString metaDataValue;
         
         /// element text
-        QString elementText;
+        AString elementText;
         
         /// GIFTI meta data being read
         GiftiMetaData* metaData;

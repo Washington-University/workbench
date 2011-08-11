@@ -481,7 +481,7 @@ GiftiDataArray::getSystemEndian()
  * get external file information.
  */
 void 
-GiftiDataArray::getExternalFileInformation(QString& nameOut,
+GiftiDataArray::getExternalFileInformation(AString& nameOut,
                                            int64_t & offsetOut) const
 {
    nameOut = externalFileName;
@@ -492,7 +492,7 @@ GiftiDataArray::getExternalFileInformation(QString& nameOut,
  * set external file information.
  */
 void 
-GiftiDataArray::setExternalFileInformation(const QString& nameIn,
+GiftiDataArray::setExternalFileInformation(const AString& nameIn,
                                            const int64_t offsetIn)
 {
    externalFileName = nameIn;
@@ -547,13 +547,13 @@ GiftiDataArray::transferLabelIndices(const std::map<int32_t,int32_t>& indexConve
  * Data array should already be initialized and allocated.
  */
 void 
-GiftiDataArray::readFromText(const QString text,
+GiftiDataArray::readFromText(const AString text,
             const GiftiEndianEnum::Enum dataEndianForReading,
             const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
             const NiftiDataTypeEnum::Enum dataTypeForReading,
             const std::vector<int64_t>& dimensionsForReading,
             const GiftiEncodingEnum::Enum encodingForReading,
-            const QString& externalFileNameForReading,
+            const AString& externalFileNameForReading,
             const int64_t externalFileOffsetForReading) throw (GiftiException)
 {
    const NiftiDataTypeEnum::Enum requiredDataType = dataType;
@@ -628,9 +628,9 @@ GiftiDataArray::readFromText(const QString text,
                if (numDecoded != data.size()) {
                   std::ostringstream str;
                   str << "Decoding of Base64 Binary data failed.\n"
-                   << "Decoded " << QString::number(numDecoded).toStdString() << " bytes but should be "
-                      << QString::number(static_cast<int>(data.size())).toStdString() << " bytes.";
-                  throw GiftiException(QString::fromStdString(str.str()));
+                   << "Decoded " << AString::number(numDecoded).toStdString() << " bytes but should be "
+                      << AString::number(static_cast<int>(data.size())).toStdString() << " bytes.";
+                  throw GiftiException(AString::fromStdString(str.str()));
                }
                
                //
@@ -669,9 +669,9 @@ GiftiDataArray::readFromText(const QString text,
                if (uncompressedDataLength != data.size()) {
                   std::ostringstream str;
                   str << "Decompression of Binary data failed.\n"
-                   << "Uncompressed " << QString::number(uncompressedDataLength).toStdString() << " bytes but should be "
-                   << QString::number(static_cast<uint64_t>(data.size())).toStdString() << " bytes.";
-                  throw GiftiException(QString::fromStdString(str.str()));
+                   << "Uncompressed " << AString::number(uncompressedDataLength).toStdString() << " bytes but should be "
+                   << AString::number(static_cast<uint64_t>(data.size())).toStdString() << " bytes.";
+                  throw GiftiException(AString::fromStdString(str.str()));
                }
                
                //
@@ -734,7 +734,7 @@ GiftiDataArray::readFromText(const QString text,
                                     numberOfBytesToRead);
                   if(extBinFile.fail()) {
                      throw GiftiException("Tried to read "
-                                         + QString::number((int64_t)numberOfBytesToRead)
+                                         + AString::number((int64_t)numberOfBytesToRead)
                                          + " from "
                                          + externalFileName
                                          + " but failed");
@@ -936,8 +936,8 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    //
    // External file not supported
    //
-   //const QString externalFileName = "";
-   //const QString externalFileOffset = "0";
+   //const AString externalFileName = "";
+   //const AString externalFileOffset = "0";
    
    //
    // Write the opening tag
@@ -1002,19 +1002,19 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                switch (dataType) {
                   case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(QString::number(this->dataPointerFloat[offset + j]));
+                         xmlWriter.writeCharacters(AString::number(this->dataPointerFloat[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
                   case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(QString::number(this->dataPointerInt[offset + j]));
+                         xmlWriter.writeCharacters(AString::number(this->dataPointerInt[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
                   case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
-                         xmlWriter.writeCharacters(QString::number(this->dataPointerUByte[offset + j]));
+                         xmlWriter.writeCharacters(AString::number(this->dataPointerUByte[offset + j]));
                          xmlWriter.writeCharacters(" ");                         
                      }
                      break;
@@ -1041,9 +1041,9 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             if (compressedLength >= bufferLength) {
                throw GiftiException(
                      "Base64 encoding buffer length ("
-                     + QString::number(bufferLength)
+                     + AString::number(bufferLength)
                      + ") is too small but needs to be "
-                                    + QString::number(compressedLength));
+                                    + AString::number(compressedLength));
             }
             buffer[compressedLength] = '\0';
             
@@ -1539,7 +1539,7 @@ GiftiDataArray::setDataUInt8(const int32_t indices[], const uint8_t dataValue) c
  * valid intent name.
  */
 bool 
-GiftiDataArray::intentNameValid(const QString& intentNameIn)
+GiftiDataArray::intentNameValid(const AString& intentNameIn)
 {
     bool valid = false;
     NiftiIntentEnum::fromName(intentNameIn, &valid);
@@ -1566,20 +1566,21 @@ GiftiDataArray::removeMatrix(const int32_t indx)
    setModified();
 }
 
-QString 
-fromNumbers(const std::vector<int64_t>& v, const QString& separator)
+AString 
+fromNumbers(const std::vector<int64_t>& v, const AString& separator)
 {
-    QString s;
-    for (uint64_t i = 0; i < v.size(); i++) {
+    AString s;
+    for (int64_t i = 0; i < v.size(); i++) {
+
         if (i > 0) {
             s += separator;
         }
-        s += QString::number(v[i]);
+        s += AString::number(v[i]);
     }
     return s;
 }
 
-QString 
+AString 
 GiftiDataArray::toString() const
 {
     std::ostringstream str;
@@ -1588,5 +1589,5 @@ GiftiDataArray::toString() const
     str << "   Intent=" << NiftiIntentEnum::toName(this->intent).toStdString() << std::endl;
     str << "   Dimensions=" << fromNumbers(this->dimensions, ",").toStdString();
     str << "   MetaData=" << this->metaData.toString().toStdString() << std::endl;
-    return QString::fromStdString(str.str());
+    return AString::fromStdString(str.str());
 }

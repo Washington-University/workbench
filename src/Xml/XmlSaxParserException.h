@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <QString>
+#include <AString.h>
 
 #include "CaretException.h"
 #include <stdint.h>
@@ -44,9 +44,9 @@ namespace caret {
         
         XmlSaxParserException(const CaretException& e);
         
-        XmlSaxParserException(const QString& s);
-        
-        XmlSaxParserException(const QString& s, const int32_t lineNumber, const int32_t columnNumber);
+        XmlSaxParserException(const AString& s);
+
+        XmlSaxParserException(const AString& s, const int32_t lineNumber, const int32_t columnNumber);
         
         XmlSaxParserException(const XmlSaxParserException& e);
         

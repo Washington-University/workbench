@@ -61,7 +61,7 @@ GiftiException::GiftiException(
  *
  */
 GiftiException::GiftiException(
-                   const QString& s)
+                   const AString& s)
 : CaretException(s)
 {
     this->initializeMembersGiftiException();

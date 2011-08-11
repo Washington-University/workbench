@@ -26,7 +26,7 @@
  */ 
 
 
-#include <QString>
+#include <AString.h>
 
 #include "CaretObject.h"
 #include "XmlSaxParserException.h"
@@ -62,7 +62,7 @@ namespace caret {
          * @throws XmlSaxParserException
          *    If an error occurs.
          */
-        virtual void parseFile(const QString& filename,
+        virtual void parseFile(const AString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
         
         /**
@@ -77,7 +77,7 @@ namespace caret {
          * @throws XmlSaxParserException
          *    If an error occurs.
          */
-        virtual void parseString(const QString& xmlString,
+        virtual void parseString(const AString& xmlString,
                                XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException) = 0;
         
     protected:

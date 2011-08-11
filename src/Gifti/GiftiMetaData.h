@@ -34,7 +34,7 @@
 #include <stdint.h>
 
 #include <map>
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 namespace caret {
@@ -64,7 +64,7 @@ private:
     void initializeMembersGiftiMetaData();
     
 public:
-    QString getUniqueID() const;
+    AString getUniqueID() const;
 
     void removeUniqueID();
 
@@ -75,34 +75,34 @@ public:
     void replace(const GiftiMetaData& smd);
 
     void set(
-                    const QString& name,
-                    const QString& value);
+                    const AString& name,
+                    const AString& value);
 
     void setInt(
-                    const QString& name,
+                    const AString& name,
                     const int32_t value);
 
     void setFloat(
-                    const QString& name,
+                    const AString& name,
                     const float value);
 
-    void remove(const QString& name);
+    void remove(const AString& name);
 
-    bool exists(const QString& name);
+    bool exists(const AString& name);
 
-    QString get(const QString& name) const;
+    AString get(const AString& name) const;
 
-    int32_t getInt(const QString& name) const;
+    int32_t getInt(const AString& name) const;
 
-    float getFloat(const QString& name) const;
+    float getFloat(const AString& name) const;
 
-    std::vector<QString> getAllMetaDataNames() const;
+    std::vector<AString> getAllMetaDataNames() const;
 
     void updateFromCaret5Names();
 
-    QString toString() const;
+    AString toString() const;
  
-    QString toFormattedString(const QString& indentation);
+    AString toFormattedString(const AString& indentation);
 
     void writeAsXML(XmlWriter& xmlWriter)
             throw (GiftiException);
@@ -116,20 +116,20 @@ public:
     bool isModified() const;
 
 private:
-    std::map<QString,QString> createTreeMap();
+    std::map<AString,AString> createTreeMap();
 
     void replaceName(
-                    const QString& oldName,
-                    const QString& newName);
+                    const AString& oldName,
+                    const AString& newName);
 
 public:
 
 private:
     /**the metadata storage. */
-    std::map<QString,QString> metadata;
+    std::map<AString,AString> metadata;
 
-    typedef std::map<QString,QString>::iterator MetaDataIterator;
-    typedef std::map<QString,QString>::const_iterator MetaDataConstIterator;
+    typedef std::map<AString,AString>::iterator MetaDataIterator;
+    typedef std::map<AString,AString>::const_iterator MetaDataConstIterator;
     
     
     /**has the metadata been modified */

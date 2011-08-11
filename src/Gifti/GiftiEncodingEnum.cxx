@@ -41,8 +41,8 @@ using namespace caret;
 GiftiEncodingEnum::GiftiEncodingEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const QString& name,
-                   const QString& giftiName)
+                   const AString& name,
+                   const AString& giftiName)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -101,7 +101,7 @@ GiftiEncodingEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 GiftiEncodingEnum::toName(Enum e) {
     initialize();
     
@@ -120,7 +120,7 @@ GiftiEncodingEnum::toName(Enum e) {
  *     Enumerated value.
  */
 GiftiEncodingEnum::Enum 
-GiftiEncodingEnum::fromName(const QString& s, bool* isValidOut)
+GiftiEncodingEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     
@@ -151,7 +151,7 @@ GiftiEncodingEnum::fromName(const QString& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 GiftiEncodingEnum::toGiftiName(Enum e) {
     initialize();
     
@@ -170,7 +170,7 @@ GiftiEncodingEnum::toGiftiName(Enum e) {
  *     Enumerated value.
  */
 GiftiEncodingEnum::Enum 
-GiftiEncodingEnum::fromGiftiName(const QString& s, bool* isValidOut)
+GiftiEncodingEnum::fromGiftiName(const AString& s, bool* isValidOut)
 {
     initialize();
     

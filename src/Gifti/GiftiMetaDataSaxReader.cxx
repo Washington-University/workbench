@@ -60,9 +60,9 @@ GiftiMetaDataSaxReader::~GiftiMetaDataSaxReader()
  * start an element.
  */
 void 
-GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
-                                         const QString& /* localName */,
-                                         const QString& qName,
+GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
+                                         const AString& /* localName */,
+                                         const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
@@ -79,7 +79,7 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << "Root element is \"" << qName.toStdString() << "\" but should be "
                 << GiftiXmlElements::TAG_METADATA.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_METADATA:
@@ -90,7 +90,7 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << "Child of " << GiftiXmlElements::TAG_METADATA.toStdString() << " is \"" << qName.toStdString() 
              << "\" but should be " << GiftiXmlElements::TAG_METADATA_ENTRY.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_METADATA_MD:
@@ -106,7 +106,7 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
                 << "\" but should be one of \n"
                 << "   " << GiftiXmlElements::TAG_METADATA_NAME.toStdString() << "\n"
                 << "   " << GiftiXmlElements::TAG_METADATA_VALUE.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_METADATA_MD_NAME:
@@ -114,7 +114,7 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << GiftiXmlElements::TAG_METADATA_NAME.toStdString() << " has child \"" << qName.toStdString()
                 << "\" but should not have any child nodes";
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_METADATA_MD_VALUE:
@@ -122,7 +122,7 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << GiftiXmlElements::TAG_METADATA_VALUE.toStdString() << " has child \"" << qName.toStdString() 
                 << "\" but should not have any child nodes";
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
    }
@@ -139,9 +139,9 @@ GiftiMetaDataSaxReader::startElement(const QString& /* namespaceURI */,
  * end an element.
  */
 void 
-GiftiMetaDataSaxReader::endElement(const QString& /* namspaceURI */,
-                                       const QString& /* localName */,
-                                       const QString& qName) throw (XmlSaxParserException)
+GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
+                                       const AString& /* localName */,
+                                       const AString& qName) throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
 //      std::cout << "MetaData: End Element: " << qName << std::endl;

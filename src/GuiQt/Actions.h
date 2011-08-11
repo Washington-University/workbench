@@ -27,6 +27,7 @@
 /*LICENSE_END*/
 
 #include <QObject>
+#include <AString.h>
 
 class QAction;
 class QKeySequence;
@@ -137,11 +138,11 @@ namespace caret  {
         Actions(const Actions&);
         Actions& operator=(const Actions&);
         
-        QAction* createAction(const QString& text,
+        QAction* createAction(const AString& text,
                               const QKeySequence& shortcut,
                               const char* method);
         
-        QAction* createAction(const QString& text,
+        QAction* createAction(const AString& text,
                               const char* method);
         
         WindowMain* mainWindow;

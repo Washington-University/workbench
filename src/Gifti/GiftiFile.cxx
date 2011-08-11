@@ -44,10 +44,10 @@ using namespace caret;
 /**
  * Constructor
  */
-GiftiFile::GiftiFile(const QString& descriptiveName,
+GiftiFile::GiftiFile(const AString& descriptiveName,
                      const NiftiIntentEnum::Enum defaultDataArrayIntentIn,
                                        const NiftiDataTypeEnum::Enum defaultDataTypeIn,
-                                       const QString& defaultExtension,
+                                       const AString& defaultExtension,
                                        const bool dataAreIndicesIntoLabelTableIn)
 : DataFile()
 {
@@ -135,7 +135,7 @@ GiftiFile::~GiftiFile()
 bool 
 GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                                               const float tolerance,
-                                              QString& messageOut) const
+                                              AString& messageOut) const
 {
    messageOut = "";
    
@@ -158,7 +158,7 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
       
       if (labelCount > 0) {
          messageOut += "ERROR: The files have "
-                    + QString::number(labelCount)
+                    + AString::number(labelCount)
                     + " different labels.\n";
       }
    }
@@ -176,18 +176,18 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
          const std::vector<int64_t> dim2 = gdf2->getDimensions();
          if (dim1 != dim2) {
             messageOut += "ERROR: Data Array " 
-                          + QString::number(i)
+                          + AString::number(i)
                           + " have a different number of dimensions.\n";
          }
          else {
             if (gdf1->getDataType() != gdf2->getDataType()) {
                messageOut += "ERROR: Data Array "
-                          + QString::number(i)
+                          + AString::number(i)
                           + " are different data types.\n";
             }
             else if (gdf1->getTotalNumberOfElements() != gdf2->getTotalNumberOfElements()) {
                messageOut += "ERROR: Data Array "
-                          + QString::number(i)
+                          + AString::number(i)
                           + " have a different number of total elements.\n";
             }
             else {
@@ -243,11 +243,11 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
                
                if (diffCount > 0) {
                   messageOut += "ERROR: There are " 
-                                + QString::number(diffCount)
+                                + AString::number(diffCount)
                                 + " elements with a difference that are greater than "
-                                + QString::number(tolerance)
+                                + AString::number(tolerance)
                                 + " in data array "
-                                + QString::number(i)
+                                + AString::number(i)
                                 + ".\n";
                }
             }
@@ -262,7 +262,7 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
  * Set the name of a data array.
  */
 void
-GiftiFile::setDataArrayName(const int32_t arrayIndex, const QString& name)
+GiftiFile::setDataArrayName(const int32_t arrayIndex, const AString& name)
 {
    dataArrays[arrayIndex]->getMetaData()->set(GiftiXmlElements::TAG_METADATA_NAME, name);
    setModified();
@@ -281,7 +281,7 @@ GiftiFile::isEmpty() const
  * get the data array with the specified name.
  */
 GiftiDataArray* 
-GiftiFile::getDataArrayWithName(const QString& n) 
+GiftiFile::getDataArrayWithName(const AString& n) 
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       if (getDataArrayName(i) == n) {
@@ -295,7 +295,7 @@ GiftiFile::getDataArrayWithName(const QString& n)
  * get the data array with the specified name.
  */
 const GiftiDataArray* 
-GiftiFile::getDataArrayWithName(const QString& n) const 
+GiftiFile::getDataArrayWithName(const AString& n) const 
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       if (getDataArrayName(i) == n) {
@@ -310,7 +310,7 @@ GiftiFile::getDataArrayWithName(const QString& n) const
  * name is not found a negative number is returned.
  */
 int
-GiftiFile::getDataArrayWithNameIndex(const QString& n) const
+GiftiFile::getDataArrayWithNameIndex(const AString& n) const
 {
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       if (getDataArrayName(i) == n) {
@@ -368,10 +368,10 @@ GiftiFile::getDataArrayWithIntentIndex(const NiftiIntentEnum::Enum intent) const
 /**
  * Get the name for a data array.
  */
-QString
+AString
 GiftiFile::getDataArrayName(const int32_t arrayIndex) const
 {
-   QString s = dataArrays[arrayIndex]->getMetaData()->get(GiftiXmlElements::TAG_METADATA_NAME);
+   AString s = dataArrays[arrayIndex]->getMetaData()->get(GiftiXmlElements::TAG_METADATA_NAME);
    return s;
 }
 
@@ -379,7 +379,7 @@ GiftiFile::getDataArrayName(const int32_t arrayIndex) const
  * Set the comment for a data array.
  */
 void
-GiftiFile::setDataArrayComment(const int32_t arrayIndex, const QString& comm)
+GiftiFile::setDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
     dataArrays[arrayIndex]->getMetaData()->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, comm);
    setModified();
@@ -389,10 +389,10 @@ GiftiFile::setDataArrayComment(const int32_t arrayIndex, const QString& comm)
  * Append to the comment for a data array.
  */
 void
-GiftiFile::appendToDataArrayComment(const int32_t arrayIndex, const QString& comm)
+GiftiFile::appendToDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
    if (comm.isEmpty() == false) {
-      QString s(getDataArrayComment(arrayIndex));
+      AString s(getDataArrayComment(arrayIndex));
       s.append(comm);
       setDataArrayComment(arrayIndex, s);
       setModified();
@@ -403,10 +403,10 @@ GiftiFile::appendToDataArrayComment(const int32_t arrayIndex, const QString& com
  * Prepend to the comment for a data array.
  */
 void
-GiftiFile::prependToDataArrayComment(const int32_t arrayIndex, const QString& comm)
+GiftiFile::prependToDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
    if (comm.isEmpty() == false) {
-      QString s(comm);
+      AString s(comm);
       s.append(getDataArrayComment(arrayIndex));
       setDataArrayComment(arrayIndex, s);
       setModified();
@@ -416,10 +416,10 @@ GiftiFile::prependToDataArrayComment(const int32_t arrayIndex, const QString& co
 /**
  * Get the comment for a data array.
  */
-QString
+AString
 GiftiFile::getDataArrayComment(const int32_t arrayIndex) const
 {
-   QString s;
+   AString s;
     (void)dataArrays[arrayIndex]->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
    return s;
 }
@@ -462,7 +462,7 @@ GiftiFile::clear()
  * get all of the data array names.
  */
 void 
-GiftiFile::getAllArrayNames(std::vector<QString>& names) const
+GiftiFile::getAllArrayNames(std::vector<AString>& names) const
 {
    names.clear();
    
@@ -475,14 +475,14 @@ GiftiFile::getAllArrayNames(std::vector<QString>& names) const
  * check for data arrays with the same name (returns true if there are any).
  */
 bool 
-GiftiFile::checkForDataArraysWithSameName(std::vector<QString>& multipleArrayNames) const
+GiftiFile::checkForDataArraysWithSameName(std::vector<AString>& multipleArrayNames) const
 {
    multipleArrayNames.clear();
    
    const int32_t numArrays = getNumberOfDataArrays();
    
    if (numArrays > 0) {
-      std::set<QString> badNames;
+      std::set<AString> badNames;
       for (int32_t i = 0; i < (numArrays - 1); i++) {
          for (int32_t j = i + 1; j < numArrays; j++) {
             if (getDataArrayName(i) == getDataArrayName(j)) {
@@ -648,24 +648,24 @@ GiftiFile::append(const GiftiFile& gf,
    setModified();
 }
 
-QString 
+AString 
 GiftiFile::getFileComment() const
 {
     return this->metaData.get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
 }
     
 void 
-GiftiFile::setFileComment(const QString& comment)
+GiftiFile::setFileComment(const AString& comment)
 {
     if (comment.isEmpty() == false) {
-        QString s = this->getFileName();
+        AString s = this->getFileName();
         s += "\n" + comment;
         this->setFileComment(s);
     }
 }
     
 void 
-GiftiFile::appendToFileComment(const QString& comment)
+GiftiFile::appendToFileComment(const AString& comment)
 {
     this->metaData.set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, comment);        
 }
@@ -796,7 +796,7 @@ GiftiFile::removeDataArray(const GiftiDataArray* arrayPointer)
  * read the file.
  */
 void
-GiftiFile::readFile(const QString& filename) throw (DataFileException)
+GiftiFile::readFile(const AString& filename) throw (DataFileException)
 {
     this->setFileName(filename);
     
@@ -823,7 +823,7 @@ GiftiFile::readFile(const QString& filename) throw (DataFileException)
         }
         str << ": "
             << e.whatString().toStdString();
-        throw DataFileException(QString::fromStdString(str.str()));
+        throw DataFileException(AString::fromStdString(str.str()));
     }
     delete parser;
     
@@ -948,7 +948,7 @@ GiftiFile::readFile(const QString& filename) throw (DataFileException)
  * write the file. 
  */
 void 
-GiftiFile::writeFile(const QString& filename) throw (DataFileException)
+GiftiFile::writeFile(const AString& filename) throw (DataFileException)
 {
 /*
    //
@@ -978,8 +978,8 @@ GiftiFile::writeFile(const QString& filename) throw (DataFileException)
          break;
    }
    
-   QString giftiFileVersionString = 
-      QString::number(GiftiFile::getCurrentFileVersion(), 'f', 6);
+   AString giftiFileVersionString = 
+      AString::number(GiftiFile::getCurrentFileVersion(), 'f', 6);
    while (giftiFileVersionString.endsWith("00")) {
       giftiFileVersionString.resize(giftiFileVersionString.size() - 1);
    }
@@ -1004,7 +1004,7 @@ GiftiFile::writeFile(const QString& filename) throw (DataFileException)
    //
    // External binary file.
    //
-   QString externalBinaryFileName;
+   AString externalBinaryFileName;
    int64_t externalBinaryFileDataOffset = 0;
    std::ofstream* externalBinaryOutputStream = NULL;
    if (encoding == GiftiDataArray::ENCODING_EXTERNAL_FILE_BINARY) {
@@ -1026,8 +1026,8 @@ GiftiFile::writeFile(const QString& filename) throw (DataFileException)
       //
       // Get the tag and its value
       //
-      const QString tag(iter->first);
-      const QString value(iter->second);
+      const AString tag(iter->first);
+      const AString value(iter->second);
       metaData.set(tag,value);
    }
 #endif // CARET_FLAG
@@ -1241,7 +1241,7 @@ GiftiFile::validateDataArrays() throw (GiftiException)
     // nothing 
 }
 
-QString 
+AString 
 GiftiFile::toString() const
 {
     std::ostringstream str;
@@ -1252,6 +1252,6 @@ GiftiFile::toString() const
         const GiftiDataArray* gda = this->getDataArray(i);
         str << gda->toString().toStdString() << std::endl;
     }
-    return QString::fromStdString(str.str());
+    return AString::fromStdString(str.str());
 }
 

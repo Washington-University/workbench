@@ -25,7 +25,7 @@
 #include <iostream>
 
 #include <QFile>
-#include <QString>
+#include <AString.h>
 #include <QXmlParseException>
 #include <QXmlSimpleReader> 
 #include <QXmlAttributes>
@@ -74,7 +74,7 @@ XmlSaxParserWithQt::initializeMembersXmlSaxParserWithQt()
  *    If an error occurs.
  */
 void 
-XmlSaxParserWithQt::parseFile(const QString& filename,
+XmlSaxParserWithQt::parseFile(const AString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
 {
     PrivateHandler privateHandler(handler);
@@ -161,7 +161,7 @@ XmlSaxParserWithQt::parseFile(const QString& filename,
  *    If an error occurs.
  */
 void 
-XmlSaxParserWithQt::parseString(const QString& xmlString,
+XmlSaxParserWithQt::parseString(const AString& xmlString,
                          XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException)
 {
     PrivateHandler privateHandler(handler);
@@ -254,9 +254,9 @@ XmlSaxParserWithQt::PrivateHandler::startDocument()
 }
 
 bool 
-XmlSaxParserWithQt::PrivateHandler::startElement(const QString& namespaceURI, 
-                  const QString& localName, 
-                  const QString& qName, 
+XmlSaxParserWithQt::PrivateHandler::startElement(const AString& namespaceURI, 
+                  const AString& localName, 
+                  const AString& qName, 
                   const QXmlAttributes& atts)
 
 {
@@ -282,7 +282,7 @@ XmlSaxParserWithQt::PrivateHandler::endDocument()
         this->handler->endDocument();
     }
     catch (XmlSaxParserException& e) {
-        //this->errorMessage = QString::fromStdString(e.whatString());
+        //this->errorMessage = AString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;
     }
@@ -290,15 +290,15 @@ XmlSaxParserWithQt::PrivateHandler::endDocument()
 }
 
 bool 
-XmlSaxParserWithQt::PrivateHandler::endElement(const QString& namespaceURI, 
-                const QString& localName, 
-                const QString& qName)
+XmlSaxParserWithQt::PrivateHandler::endElement(const AString& namespaceURI, 
+                const AString& localName, 
+                const AString& qName)
 {
     try {
         this->handler->endElement(namespaceURI, localName, qName);
     }
     catch (XmlSaxParserException& e) {
-        //this->errorMessage = QString::fromStdString(e.whatString());
+        //this->errorMessage = AString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;
     }
@@ -307,20 +307,20 @@ XmlSaxParserWithQt::PrivateHandler::endElement(const QString& namespaceURI,
 
 
 bool 
-XmlSaxParserWithQt::PrivateHandler::characters(const QString& ch)
+XmlSaxParserWithQt::PrivateHandler::characters(const AString& ch)
 {
     try {
         this->handler->characters(ch.toStdString().c_str());
     }
     catch (XmlSaxParserException& e) {
-        //this->errorMessage = QString::fromStdString(e.whatString());
+        //this->errorMessage = AString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;
     }
     return true;
 }
 
-QString 
+QString
 XmlSaxParserWithQt::PrivateHandler::errorString() const 
 { 
     return this->errorMessage; 

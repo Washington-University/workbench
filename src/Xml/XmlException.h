@@ -27,7 +27,7 @@
 
 
 #include <exception>
-#include <QString>
+#include <AString.h>
 
 #include "CaretException.h"
 
@@ -43,7 +43,7 @@ public:
 
     XmlException(const CaretException& e);
 
-    XmlException(const QString& s);
+    XmlException(const AString& s);
 
     XmlException(const XmlException& e);
     

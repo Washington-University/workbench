@@ -26,9 +26,7 @@
  */ 
 
 
-#include <QString>
-
-#include <QString>
+#include <AString.h>
 #include <QXmlDefaultHandler>
 #include "XmlAttributes.h"
 #include "XmlSaxParser.h"
@@ -52,10 +50,10 @@ namespace caret {
         
         virtual ~XmlSaxParserWithQt();
 
-        virtual void parseFile(const QString& filename,
+        virtual void parseFile(const AString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
-        virtual void parseString(const QString& xmlString,
+        virtual void parseString(const AString& xmlString,
                            XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
     private:
@@ -79,17 +77,17 @@ namespace caret {
             bool warning(const QXmlParseException& exception);
             
             bool startDocument();
-            bool startElement(const QString& namespaceURI, 
-                              const QString& localName, 
-                              const QString& qName, 
+            bool startElement(const AString& namespaceURI, 
+                              const AString& localName, 
+                              const AString& qName, 
                               const QXmlAttributes& atts);
             
             bool endDocument();
-            bool endElement(const QString& namespaceURI, 
-                            const QString& localName, 
-                            const QString& qName);
+            bool endElement(const AString& namespaceURI, 
+                            const AString& localName, 
+                            const AString& qName);
             
-            bool characters(const QString& ch);
+            bool characters(const AString& ch);
             
             virtual QString errorString() const;
             
@@ -97,7 +95,7 @@ namespace caret {
             static XmlSaxParserException fromQXmlParseException(const QXmlParseException& e);
             static XmlAttributes fromQXmlAttributes(const QXmlAttributes& atts);
             XmlSaxParserHandlerInterface* handler;
-            QString errorMessage;
+            AString errorMessage;
         };
     };
 

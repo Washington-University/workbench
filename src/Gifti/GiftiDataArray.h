@@ -29,7 +29,7 @@
 
 #include <map>
 #include <ostream>
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 #include <stdint.h>
@@ -119,13 +119,13 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
                     const int64_t componentNum) const;
                     
       // read a data array from text
-    void readFromText(const QString text,
+    void readFromText(const AString text,
                         const GiftiEndianEnum::Enum dataEndianForReading,
                         const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
                         const NiftiDataTypeEnum::Enum dataTypeForReading,
                         const std::vector<int64_t>& dimensionsForReading,
                         const GiftiEncodingEnum::Enum encodingForReading,
-                        const QString& externalFileNameForReading,
+                        const AString& externalFileNameForReading,
                         const int64_t externalFileOffsetForReading) throw (GiftiException);
                                                
       // write the data as XML
@@ -144,11 +144,11 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       
       
       // get external file information
-      void getExternalFileInformation(QString& nameOut,
+      void getExternalFileInformation(AString& nameOut,
                                       int64_t& offsetOut) const;
                                       
       // set external file information
-      void setExternalFileInformation(const QString& nameIn,
+      void setExternalFileInformation(const AString& nameIn,
                                       const int64_t offsetIn);
                                       
       /// get the metadata
@@ -203,7 +203,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
       void setIntent(const NiftiIntentEnum::Enum cat) { intent = cat; setModified(); }
       
       /// valid intent name
-      static bool intentNameValid(const QString& intentNameIn);
+      static bool intentNameValid(const AString& intentNameIn);
       
       /// get array subscripting order
     GiftiArrayIndexingOrderEnum::Enum getArraySubscriptingOrder() const { return arraySubscriptingOrder; }
@@ -298,7 +298,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
     
     bool isModified() const;
     
-    virtual QString toString() const;
+    virtual AString toString() const;
     
    protected:
       // allocate data for this column
@@ -362,7 +362,7 @@ class GiftiDataArray : public CaretObject, TracksModificationInterface {
     GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrder;
       
       /// external file name
-      QString externalFileName;
+      AString externalFileName;
       
       /// external file offset
       int64_t externalFileOffset;

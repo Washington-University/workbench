@@ -469,7 +469,7 @@ BoundingBox::isCoordinateWithinBoundingBox(const float xyz[]) const
  * @return String containing bounding box.
  *
  */
-QString
+AString
 BoundingBox::toString() const
 {
     std::stringstream str;
@@ -486,7 +486,7 @@ BoundingBox::toString() const
     << ","
     << this->boundingBox[5]
     << "]";
-    QString s = QString::fromStdString(str.str());
+    AString s = AString::fromStdString(str.str());
     return s;
 }
 

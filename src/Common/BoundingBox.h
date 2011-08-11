@@ -28,7 +28,7 @@
 
 #include <CaretObject.h>
 
-#include <QString>
+#include <AString.h>
 
 #include <stdint.h>
 
@@ -108,7 +108,7 @@ public:
 
     bool isCoordinateWithinBoundingBox(const float xyz[]) const;
 
-    QString toString() const;
+    AString toString() const;
 
 private:
     void initializeMembersBoundingBox();

@@ -57,7 +57,7 @@ namespace caret {
     public:
         Brain* getBrain() const;
         
-        virtual QString getNameForGUI(const bool includeStructureFlag) const = 0;
+        virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
         bool isRotationAllowed() const;
         
@@ -102,9 +102,9 @@ namespace caret {
                                const int32_t windowIndex,
                                const std::vector<float>& transformationData);
         
-        virtual QString toString() const;
+        virtual AString toString() const;
         
-        virtual QString toDescriptiveString() const;
+        virtual AString toDescriptiveString() const;
         
     private:
         void initializeTransformations();

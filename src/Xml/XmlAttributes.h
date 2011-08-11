@@ -26,7 +26,7 @@
  * 
  */ 
 
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 #include "CaretObject.h"
@@ -46,43 +46,43 @@ public:
     
     void clear();
     
-   void addAttribute(const QString& name, const QString& value);
+   void addAttribute(const AString& name, const AString& value);
 
-   void addAttribute(const QString& name, const int32_t value);
+   void addAttribute(const AString& name, const int32_t value);
 
-    void addAttribute(const QString& name, const std::vector<int32_t>& value, const QString& separator);
+    void addAttribute(const AString& name, const std::vector<int32_t>& value, const AString& separator);
     
-    void addAttribute(const QString& name, const std::vector<int64_t>& value, const QString& separator);
+    void addAttribute(const AString& name, const std::vector<int64_t>& value, const AString& separator);
     
-   void addAttribute(const QString& name, const int64_t value);
+   void addAttribute(const AString& name, const int64_t value);
 
-    void addAttribute(const QString& name, const float value);
+    void addAttribute(const AString& name, const float value);
 
-    void addAttribute(const QString& name, const double value);
+    void addAttribute(const AString& name, const double value);
     
 
     int getNumberOfAttributes() const;
 
-    QString getName(const int index) const;
+    AString getName(const int index) const;
 
-    QString getValue(const int index) const;
+    AString getValue(const int index) const;
 
     int32_t getValueAsInt(const int index) const;
     
     float getValueAsFloat(const int index) const;
     
-    QString getValue(const QString& name) const;
+    AString getValue(const AString& name) const;
     
-    int32_t getValueAsInt(const QString& name) const;
+    int32_t getValueAsInt(const AString& name) const;
     
-    float getValueAsFloat(const QString& name) const;
+    float getValueAsFloat(const AString& name) const;
     
 private:
    /** attribute names. */
-    std::vector<QString> names;
+    std::vector<AString> names;
 
    /** attribute values. */
-    std::vector<QString> values;
+    std::vector<AString> values;
 };
 
 } // namespace

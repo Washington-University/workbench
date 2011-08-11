@@ -34,7 +34,7 @@ NiftiDataTypeEnum::NiftiDataTypeEnum()
     
 }
 
-NiftiDataTypeEnum::NiftiDataTypeEnum(Enum e, const QString& name, const int32_t integerCode)
+NiftiDataTypeEnum::NiftiDataTypeEnum(Enum e, const AString& name, const int32_t integerCode)
 {
     this->e = e;
     this->name = name;
@@ -111,7 +111,7 @@ NiftiDataTypeEnum::createDataTypes()
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 NiftiDataTypeEnum::toName(Enum e) {
     createDataTypes();
 
@@ -130,7 +130,7 @@ NiftiDataTypeEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiDataTypeEnum::Enum 
-NiftiDataTypeEnum::fromName(const QString& s, bool* isValidOut)
+NiftiDataTypeEnum::fromName(const AString& s, bool* isValidOut)
 {
     createDataTypes();
     

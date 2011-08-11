@@ -64,7 +64,7 @@ namespace caret {
         
         void resetBrain();
         
-        void readSurfaceFile(const QString& filename) throw (DataFileException);
+        void readSurfaceFile(const AString& filename) throw (DataFileException);
         
     private:
         std::vector<BrainStructure*> brainStructures;

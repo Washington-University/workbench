@@ -56,7 +56,7 @@ namespace caret {
         
         ModelController* getModelController();
         
-        QString getNameForGUI(bool includeStructureFlag) const;
+        AString getNameForGUI(bool includeStructureFlag) const;
         
         Brain* getBrain();
         

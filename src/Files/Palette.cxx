@@ -107,10 +107,10 @@ Palette::initializeMembersPalette()
  * @return String containing info.
  *
  */
-QString
+AString
 Palette::toString() const
 {
-    QString s;
+    AString s;
     
     s += "[name=" + this->name + ", ";
     uint64_t num = this->paletteScalars.size();
@@ -129,7 +129,7 @@ Palette::toString() const
  * @return - name of palette.
  *
  */
-QString
+AString
 Palette::getName() const
 {
     return this->name;
@@ -142,7 +142,7 @@ Palette::getName() const
  *
  */
 void
-Palette::setName(const QString& name)
+Palette::setName(const AString& name)
 {
     if (this->name != name) {
         this->name = name;
@@ -185,7 +185,7 @@ Palette::getScalarAndColor(const int32_t indx) const
  */
 void
 Palette::addScalarAndColor(const float scalar,
-                           const QString& colorName)
+                           const AString& colorName)
 {
     this->paletteScalars.push_back(new PaletteScalarAndColor(scalar, colorName));
     this->setModified();

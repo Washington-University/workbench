@@ -332,7 +332,7 @@ BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
  */
 void 
 BrainOpenGL::checkForOpenGLError(const ModelController* modelController,
-                                      const QString& msg)
+                                      const AString& msg)
 {
     GLenum errorCode = glGetError();
     if (errorCode != GL_NO_ERROR) {

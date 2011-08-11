@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 namespace caret {
@@ -58,11 +58,11 @@ namespace caret {
         void initializeMembersPalette();
         
     public:
-        QString toString() const;
+        AString toString() const;
         
-        QString getName() const;
+        AString getName() const;
         
-        void setName(const QString& name);
+        void setName(const AString& name);
         
         int32_t getNumberOfScalarsAndColors() const;
         
@@ -70,7 +70,7 @@ namespace caret {
         
         void addScalarAndColor(
                                const float scalar,
-                               const QString& colorName);
+                               const AString& colorName);
         
         void insertScalarAndColor(
                                   const PaletteScalarAndColor& psac,
@@ -93,17 +93,17 @@ namespace caret {
         
     public:
         /**Name of gray interpolate palette */
-        static  const QString GRAY_INTERP_PALETTE_NAME;
+        static  const AString GRAY_INTERP_PALETTE_NAME;
         
         /**"none" color name. */
-        static  const QString NONE_COLOR_NAME;
+        static  const AString NONE_COLOR_NAME;
         
     private:
         /**has this object been modified. (DO NOT CLONE) */
         bool modifiedFlag;
         
         /**Name of the palette. */
-        QString name;
+        AString name;
         
         /**The scalars in the palette. */
         std::vector<PaletteScalarAndColor*> paletteScalars;
@@ -112,8 +112,8 @@ namespace caret {
 
     
 #ifdef __PALETTE_DEFINE__
-    const QString Palette::GRAY_INTERP_PALETTE_NAME = "Gray_Interp";
-    const QString Palette::NONE_COLOR_NAME = "none";
+    const AString Palette::GRAY_INTERP_PALETTE_NAME = "Gray_Interp";
+    const AString Palette::NONE_COLOR_NAME = "none";
 #endif // __PALETTE_DEFINE__
 } // namespace
 

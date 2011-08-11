@@ -47,10 +47,10 @@ class GiftiFile : public DataFile {
       };
       
       /// constructor
-    GiftiFile(const QString& descriptiveName,
+    GiftiFile(const AString& descriptiveName,
               const NiftiIntentEnum::Enum defaultDataArrayIntentIn,
               const NiftiDataTypeEnum::Enum defaultDataTypeIn,
-              const QString& defaultExt,
+              const AString& defaultExt,
               const bool dataAreIndicesIntoLabelTableIn);
       
       /// constructor for generic gifti data array file
@@ -82,7 +82,7 @@ class GiftiFile : public DataFile {
       /// compare a file for unit testing (returns true if "within tolerance")
       virtual bool compareFileForUnitTesting(const GiftiFile* gf,
                                              const float tolerance,
-                                             QString& messageOut) const;
+                                             AString& messageOut) const;
                                      
       // Clear the gifti array data file.
       virtual void clear();
@@ -90,11 +90,11 @@ class GiftiFile : public DataFile {
       // returns true if the file is isEmpty() (contains no data)
       virtual bool isEmpty() const;
       
-    QString getFileComment() const;
+    AString getFileComment() const;
     
-    void setFileComment(const QString& comment);
+    void setFileComment(const AString& comment);
     
-    void appendToFileComment(const QString& comment);
+    void appendToFileComment(const AString& comment);
     
       /// get the number of data arrays
       int32_t getNumberOfDataArrays() const { return dataArrays.size() ; }
@@ -115,19 +115,19 @@ class GiftiFile : public DataFile {
       virtual void removeDataArray(const int32_t arrayIndex);
       
       // get all of the data array names
-      void getAllArrayNames(std::vector<QString>& names) const;
+      void getAllArrayNames(std::vector<AString>& names) const;
       
       // get the specified data array's name
-      QString getDataArrayName(const int32_t arrayIndex) const;
+      AString getDataArrayName(const int32_t arrayIndex) const;
 
       // get the index of the data array with the specified name 
-      int32_t getDataArrayWithNameIndex(const QString& n) const;
+      int32_t getDataArrayWithNameIndex(const AString& n) const;
  
       // get the data array with the specified name 
-      GiftiDataArray* getDataArrayWithName(const QString& n);
+      GiftiDataArray* getDataArrayWithName(const AString& n);
  
       // get the data array with the specified name 
-      const GiftiDataArray* getDataArrayWithName(const QString& n) const;
+      const GiftiDataArray* getDataArrayWithName(const AString& n) const;
  
       // get the index of the data array of the specified intent
     int32_t getDataArrayWithIntentIndex(const NiftiIntentEnum::Enum intent) const;
@@ -139,22 +139,22 @@ class GiftiFile : public DataFile {
     const GiftiDataArray* getDataArrayWithIntent(const NiftiIntentEnum::Enum intent) const;
       
       // get the comment for a data array
-      QString getDataArrayComment(const int32_t arrayIndex) const;
+      AString getDataArrayComment(const int32_t arrayIndex) const;
       
       // set the name of a data array
-      void setDataArrayName(const int32_t arrayIndex, const QString& name);
+      void setDataArrayName(const int32_t arrayIndex, const AString& name);
       
       // set the comment for a data array
-      void setDataArrayComment(const int32_t arrayIndex, const QString& comm);
+      void setDataArrayComment(const int32_t arrayIndex, const AString& comm);
       
       // append to the comment for a data array
-      void appendToDataArrayComment(const int32_t arrayIndex, const QString& comm);
+      void appendToDataArrayComment(const int32_t arrayIndex, const AString& comm);
       
       // prepend to the comment for a data array
-      void prependToDataArrayComment(const int32_t arrayIndex, const QString& comm);
+      void prependToDataArrayComment(const int32_t arrayIndex, const AString& comm);
       
       // check for data arrays with the same name (returns true if there are any)
-      bool checkForDataArraysWithSameName(std::vector<QString>& multipleDataArrayNames) const;
+      bool checkForDataArraysWithSameName(std::vector<AString>& multipleDataArrayNames) const;
       
       // get the metadata
       GiftiMetaData* getMetaData() { return &metaData; }
@@ -181,10 +181,10 @@ class GiftiFile : public DataFile {
       void setNumberOfNodesForSparseNodeIndexFiles(const int32_t numNodes);
       
     // read the XML file 
-    virtual void readFile(const QString& filename) throw (DataFileException);
+    virtual void readFile(const AString& filename) throw (DataFileException);
     
     // write the XML file
-    virtual void writeFile(const QString& filename) throw (DataFileException);
+    virtual void writeFile(const AString& filename) throw (DataFileException);
     
     bool getReadMetaDataOnlyFlag() const { return false; }
     
@@ -192,7 +192,7 @@ class GiftiFile : public DataFile {
     
     virtual bool isModified() const;
     
-    virtual QString toString() const;
+    virtual AString toString() const;
     
    protected:
       // append helper for files where data are label indices
@@ -228,8 +228,8 @@ class GiftiFile : public DataFile {
       /// data arrays contain indices into label table
       bool dataAreIndicesIntoLabelTable;
       
-    QString descriptiveName;
-    QString defaultExtension;
+    AString descriptiveName;
+    AString defaultExtension;
     
       /// number of nodes in sparse node index files (NIFTI_INTENT_NODE_INDEX array)
       int32_t numberOfNodesForSparseNodeIndexFile;

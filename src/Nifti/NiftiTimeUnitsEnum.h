@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 #include <vector>
-#include <QString>
+#include <AString.h>
 
 namespace caret {
 
@@ -60,16 +60,16 @@ public:
 
     ~NiftiTimeUnitsEnum();
 
-    static QString toName(Enum e);
+    static AString toName(Enum e);
     
-    static Enum fromName(const QString& s, bool* isValidOut);
+    static Enum fromName(const AString& s, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum e);
 
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
 private:
-    NiftiTimeUnitsEnum(const Enum e, const int32_t integerCode, const QString& name);
+    NiftiTimeUnitsEnum(const Enum e, const int32_t integerCode, const AString& name);
 
     static const NiftiTimeUnitsEnum* findData(const Enum e);
     
@@ -83,7 +83,7 @@ private:
 
     int32_t integerCode;
     
-    QString name;
+    AString name;
 
 
 };

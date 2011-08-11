@@ -40,7 +40,7 @@ using namespace caret;
  */
 ByteOrderEnum::ByteOrderEnum(
                    const Enum e,
-                   const QString& name)
+                   const AString& name)
 {
     this->e = e;
     this->name = name;
@@ -122,7 +122,7 @@ ByteOrderEnum::getEnum() const
  * Get the enum name for this enumerated item.
  * @return the name for this enumerated item.
  */
-QString
+AString
 ByteOrderEnum::getName() const
 {
     return this->name;
@@ -157,11 +157,11 @@ ByteOrderEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 ByteOrderEnum::toName(Enum e) {
     initialize();
     
-    QString s;
+    AString s;
     
     for (std::vector<ByteOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -187,7 +187,7 @@ ByteOrderEnum::toName(Enum e) {
  *     Enumerated value.
  */
 ByteOrderEnum::Enum 
-ByteOrderEnum::fromName(const QString& s, bool* isValidOut)
+ByteOrderEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     

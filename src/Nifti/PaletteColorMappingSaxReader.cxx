@@ -58,9 +58,9 @@ PaletteColorMappingSaxReader::~PaletteColorMappingSaxReader()
  * start an element.
  */
 void 
-PaletteColorMappingSaxReader::startElement(const QString& /* namespaceURI */,
-                                         const QString& /* localName */,
-                                         const QString& qName,
+PaletteColorMappingSaxReader::startElement(const AString& /* namespaceURI */,
+                                         const AString& /* localName */,
+                                         const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
@@ -82,14 +82,14 @@ PaletteColorMappingSaxReader::startElement(const QString& /* namespaceURI */,
                     << ") is greater than version(s) supported ("
                     << PaletteColorMappingXmlElements::VERSION_NUMBER
                     << ").";
-                    throw XmlSaxParserException(QString::fromStdString(str.str()));
+                    throw XmlSaxParserException(AString::fromStdString(str.str()));
                 }
            }
          else {
             std::ostringstream str;
             str << "Root element is \"" << qName.toStdString() << "\" but should be "
                 << PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_READING_ELEMENTS:
@@ -111,7 +111,7 @@ PaletteColorMappingSaxReader::startElement(const QString& /* namespaceURI */,
  *   The bool value.
  */
 bool 
-toBool(const QString& s)
+toBool(const AString& s)
 {
     if ((s == "true") 
         || (s == "TRUE") 
@@ -132,7 +132,7 @@ toBool(const QString& s)
  *   float vector containing values extracted from string.
  */
 std::vector<float> 
-toFloatVector(const QString& s)
+toFloatVector(const AString& s)
 {
     std::vector<float> fv;
     
@@ -150,9 +150,9 @@ toFloatVector(const QString& s)
  * end an element.
  */
 void 
-PaletteColorMappingSaxReader::endElement(const QString& /* namspaceURI */,
-                                       const QString& /* localName */,
-                                       const QString& qName) throw (XmlSaxParserException)
+PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
+                                       const AString& /* localName */,
+                                       const AString& qName) throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
 //      std::cout << "Palette Color Mapping: End Element: " << qName << std::endl;
@@ -282,7 +282,7 @@ PaletteColorMappingSaxReader::endElement(const QString& /* namspaceURI */,
                << "Unrecognized palette color mapping element \""
                << qName.toStdString()
                << "\".";
-               throw XmlSaxParserException(QString::fromStdString(str.str()));
+               throw XmlSaxParserException(AString::fromStdString(str.str()));
            }
          break;
    }

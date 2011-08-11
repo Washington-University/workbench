@@ -40,8 +40,8 @@ using namespace caret;
  */
 GiftiArrayIndexingOrderEnum::GiftiArrayIndexingOrderEnum(
                    const Enum e,
-                   const QString& name,
-                   const QString& giftiName)
+                   const AString& name,
+                   const AString& giftiName)
 {
     this->e = e;
     this->name = name;
@@ -97,7 +97,7 @@ GiftiArrayIndexingOrderEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 GiftiArrayIndexingOrderEnum::toName(Enum e) {
     initialize();
     
@@ -116,7 +116,7 @@ GiftiArrayIndexingOrderEnum::toName(Enum e) {
  *     Enumerated value.
  */
 GiftiArrayIndexingOrderEnum::Enum 
-GiftiArrayIndexingOrderEnum::fromName(const QString& s, bool* isValidOut)
+GiftiArrayIndexingOrderEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     
@@ -147,7 +147,7 @@ GiftiArrayIndexingOrderEnum::fromName(const QString& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 GiftiArrayIndexingOrderEnum::toGiftiName(Enum e) {
     initialize();
     
@@ -166,7 +166,7 @@ GiftiArrayIndexingOrderEnum::toGiftiName(Enum e) {
  *     Enumerated value.
  */
 GiftiArrayIndexingOrderEnum::Enum 
-GiftiArrayIndexingOrderEnum::fromGiftiName(const QString& s, bool* isValidOut)
+GiftiArrayIndexingOrderEnum::fromGiftiName(const AString& s, bool* isValidOut)
 {
     initialize();
     

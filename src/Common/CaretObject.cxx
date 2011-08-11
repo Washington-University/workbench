@@ -96,10 +96,10 @@ CaretObject::copyHelper(const CaretObject&)
  * @return String containing caret object.
  *
  */
-QString
+AString
 CaretObject::toString() const
 {
-    QString s = "CaretObjectType=" + this->className();
+    AString s = "CaretObjectType=" + this->className();
     return s;
 }
 
@@ -108,10 +108,10 @@ CaretObject::toString() const
  * @return 
  *    Class name of the object.
  */
-QString 
+AString 
 CaretObject::className() const
 {
-    QString name(typeid(*this).name());
+    AString name(typeid(*this).name());
     return name;    
 }
 
@@ -144,7 +144,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
  * @param callStack
  *     A callstack showing where the object was created.
  */
-CaretObject::CaretObjectInfo::CaretObjectInfo(const QString& callStack)
+CaretObject::CaretObjectInfo::CaretObjectInfo(const AString& callStack)
 {
     this->callStack   = callStack;
 }

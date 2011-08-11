@@ -163,7 +163,7 @@ GiftiLabelTable::append(const GiftiLabelTable& glt)
  */
 int32_t
 GiftiLabelTable::addLabel(
-                   const QString& labelName,
+                   const AString& labelName,
                    const float red,
                    const float green,
                    const float blue,
@@ -186,7 +186,7 @@ GiftiLabelTable::addLabel(
  */
 int32_t
 GiftiLabelTable::addLabel(
-                   const QString& labelName,
+                   const AString& labelName,
                    const float red,
                    const float green,
                    const float blue)
@@ -208,7 +208,7 @@ GiftiLabelTable::addLabel(
  */
 int32_t
 GiftiLabelTable::addLabel(
-                   const QString& labelName,
+                   const AString& labelName,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue,
@@ -231,7 +231,7 @@ GiftiLabelTable::addLabel(
  */
 int32_t
 GiftiLabelTable::addLabel(
-                   const QString& labelName,
+                   const AString& labelName,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue)
@@ -352,7 +352,7 @@ GiftiLabelTable::insertLabel(const GiftiLabel* label)
  *
  */
 int32_t
-GiftiLabelTable::getLabelKeyFromName(const QString& name) const
+GiftiLabelTable::getLabelKeyFromName(const AString& name) const
 {
     LABELS_MAP newMap;
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
@@ -374,7 +374,7 @@ GiftiLabelTable::getLabelKeyFromName(const QString& name) const
  *
  */
 const GiftiLabel*
-GiftiLabelTable::getLabel(const QString& labelName) const
+GiftiLabelTable::getLabel(const AString& labelName) const
 {
     LABELS_MAP newMap;
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
@@ -397,7 +397,7 @@ GiftiLabelTable::getLabel(const QString& labelName) const
  *
  */
 const GiftiLabel*
-GiftiLabelTable::getLabelBestMatching(const QString& name) const
+GiftiLabelTable::getLabelBestMatching(const AString& name) const
 {
     GiftiLabel* bestMatchingLabel = NULL;
     size_t bestMatchLength = -1;
@@ -407,7 +407,7 @@ GiftiLabelTable::getLabelBestMatching(const QString& name) const
          iter != this->labelsMap.end();
          iter++) {
         GiftiLabel* gl = iter->second;
-        QString labelName = gl->getName();
+        AString labelName = gl->getName();
         if (name.toStdString().find(labelName.toStdString()) == 0) {
             size_t len = labelName.length();
             if (len > bestMatchLength) {
@@ -473,12 +473,12 @@ GiftiLabelTable::getNumberOfLabels() const
  * @return  Name of label at inkeydex.
  *
  */
-QString
+AString
 GiftiLabelTable::getLabelName(const int32_t key) const
 {
     LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
-        const QString name = iter->second->getName();
+        const AString name = iter->second->getName();
         return name;
     }
     return "";
@@ -493,7 +493,7 @@ GiftiLabelTable::getLabelName(const int32_t key) const
 void
 GiftiLabelTable::setLabelName(
                    const int32_t key,
-                   const QString& name)
+                   const AString& name)
 {
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -516,7 +516,7 @@ GiftiLabelTable::setLabelName(
 void
 GiftiLabelTable::setLabel(
                    const int32_t key,
-                   const QString& name,
+                   const AString& name,
                    const float red,
                    const float green,
                    const float blue,
@@ -552,7 +552,7 @@ GiftiLabelTable::setLabel(
  */
 void
 GiftiLabelTable::setLabel(const int32_t key,
-                          const QString& name,
+                          const AString& name,
                           const float red,
                           const float green,
                           const float blue,
@@ -715,7 +715,7 @@ GiftiLabelTable::resetLabelCounts()
 void
 GiftiLabelTable::createLabelsForKeys(const std::set<int32_t>& newKeys)
 {
-    QString namePrefix = "Name";
+    AString namePrefix = "Name";
     int32_t nameCount = 0;
     int32_t colorCounter = 0;
     for (std::set<int32_t>::iterator iter = newKeys.begin();
@@ -724,13 +724,13 @@ GiftiLabelTable::createLabelsForKeys(const std::set<int32_t>& newKeys)
         int32_t key = *iter;
         if (this->getLabel(key) == NULL) {
             bool found = false;
-            QString name;
+            AString name;
             while (! found) {
                 std::stringstream str;
                 str << namePrefix.toStdString() << "_" << nameCount;
                 nameCount++;
                 
-                name = QString::fromStdString(str.str());
+                name = AString::fromStdString(str.str());
                 if (this->getLabel(name) == NULL) {
                     found = true;
                 }
@@ -883,16 +883,16 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
  * @return  String representation of labelTable.
  *
  */
-QString
+AString
 GiftiLabelTable::toString() const
 {
-    QString s = "GiftiLabelTable=[";
+    AString s = "GiftiLabelTable=[";
     
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
          iter != this->labelsMap.end();
          iter++) {
         s += "key=";
-        s += QString::number(iter->first);
+        s += AString::number(iter->first);
         s += iter->second->toString();
         s += ",";
         
@@ -909,8 +909,8 @@ GiftiLabelTable::toString() const
  * @return  String containing label information.
  *
  */
-QString
-GiftiLabelTable::toFormattedString(const QString& indentation)
+AString
+GiftiLabelTable::toFormattedString(const AString& indentation)
 {
     return this->toString();
 }
@@ -936,7 +936,7 @@ GiftiLabelTable::readFromXMLDOM(const Node* rootNode)
  *
  */
 void
-GiftiLabelTable::readFromXmlString(const QString& s)
+GiftiLabelTable::readFromXmlString(const AString& s)
             throw (GiftiException)
 {
 }

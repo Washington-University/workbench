@@ -135,7 +135,7 @@ Brain::resetBrain()
  *    If reading failed.
  */
 void 
-Brain::readSurfaceFile(const QString& filename) throw (DataFileException)
+Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
 {
     Surface* s = new Surface();
     s->readFile(filename);

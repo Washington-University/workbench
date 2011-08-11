@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 #include <vector> 
 
 namespace caret {
@@ -79,23 +79,23 @@ public:
     
     static int32_t toIndex(const Enum e);
     
-    static QString toName(Enum e);
+    static AString toName(Enum e);
     
-    static Enum fromName(const QString& s, bool* isValidOut);
+    static Enum fromName(const AString& s, bool* isValidOut);
     
     
 private:
     CaretWindowEnum(const Enum e,
-                const QString& name,
-                const QString& windowName,
+                const AString& name,
+                const AString& windowName,
                 const int32_t windowIndex);
     
 
     Enum getEnum() const;
     
-    QString getName() const;
+    AString getName() const;
     
-    QString getWindowName() const;
+    AString getWindowName() const;
     
     int32_t getWindowIndex() const;
     
@@ -112,10 +112,10 @@ private:
     Enum e;
     
     /** Enum name */
-    QString name;
+    AString name;
     
     /** Name of window. */
-    QString windowName;
+    AString windowName;
 
     /**window's index for arrays. */
     int32_t windowIndex;

@@ -32,7 +32,7 @@ using namespace caret;
 
 NiftiSpacingUnitsEnum::NiftiSpacingUnitsEnum(Enum e, 
                                      const int32_t integerCode,
-                                     const QString& name)
+                                     const AString& name)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -73,7 +73,7 @@ NiftiSpacingUnitsEnum::initializeSpacingUnits()
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 NiftiSpacingUnitsEnum::toName(Enum e) {
     initializeSpacingUnits();
     
@@ -92,7 +92,7 @@ NiftiSpacingUnitsEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiSpacingUnitsEnum::Enum 
-NiftiSpacingUnitsEnum::fromName(const QString& s, bool* isValidOut)
+NiftiSpacingUnitsEnum::fromName(const AString& s, bool* isValidOut)
 {
     initializeSpacingUnits();
     

@@ -30,6 +30,7 @@
 #include "TracksModificationInterface.h"
 
 #include <stdint.h>
+#include <vector>
 
 
 namespace caret {
@@ -42,7 +43,7 @@ class PaletteScalarAndColor : public CaretObject, TracksModificationInterface {
 
 public:
     PaletteScalarAndColor(const float scalar,
-                          const QString& colorName);
+                          const AString& colorName);
 
     PaletteScalarAndColor(const PaletteScalarAndColor& o);
 
@@ -60,9 +61,9 @@ public:
 
     void setScalar(const float scalar);
 
-    QString getColorName() const;
+    AString getColorName() const;
 
-    void setColorName(const QString& colorName);
+    void setColorName(const AString& colorName);
                       
     const float* getColor() const;
     
@@ -70,7 +71,7 @@ public:
     
     void setColor(const float rgba[4]);
     
-    QString toString() const;
+    AString toString() const;
 
     void setModified();
 
@@ -86,7 +87,7 @@ private:
     float scalar;
 
     /** the color's name */
-    QString colorName;
+    AString colorName;
     
     /** the color's rgba components */
     float rgba[4];

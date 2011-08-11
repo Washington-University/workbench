@@ -36,7 +36,7 @@ using namespace caret;
  */
 PaletteScalarAndColor::PaletteScalarAndColor(
                    const float scalar,
-                   const QString& colorName)
+                   const AString& colorName)
     : CaretObject()
 {
     this->initializeMembersPaletteScalarAndColor();
@@ -133,7 +133,7 @@ PaletteScalarAndColor::setScalar(const float scalar)
  * @return
  *   Name of the color assigned to the scalar.
  */
-QString 
+AString 
 PaletteScalarAndColor::getColorName() const 
 { 
     return this->colorName; 
@@ -145,7 +145,7 @@ PaletteScalarAndColor::getColorName() const
  *    New name for color.
  */
 void 
-PaletteScalarAndColor::setColorName(const QString& colorName)
+PaletteScalarAndColor::setColorName(const AString& colorName)
 {
     if (this->colorName != colorName) {
         this->colorName = colorName;
@@ -200,15 +200,15 @@ PaletteScalarAndColor::setColor(const float rgba[4])
     }
 }
 
-QString 
-fromNumbers(const std::vector<double>& v, const QString& separator)
+AString 
+fromNumbers(const std::vector<double>& v, const AString& separator)
 {
-    QString s;
+    AString s;
     for (uint64_t i = 0; i < v.size(); i++) {
         if (i > 0) {
             s += separator;
         }
-        s += QString::number(v[i]);
+        s += AString::number(v[i]);
     }
     return s;
 }
@@ -224,15 +224,15 @@ fromNumbers(const std::vector<double>& v, const QString& separator)
  *   String containing the array values separated
  *   by the separator.
  */
-QString
-fromNumbers(const float* array, const int64_t numberOfElements, const QString& separator)
+AString
+fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator)
 {
-    QString s;
+    AString s;
     for (int64_t i = 0; i < numberOfElements; i++) {
         if (i > 0) {
             s += separator;
         }
-        s += QString::number(array[i]);
+        s += AString::number(array[i]);
         
     }
     return s;
@@ -244,14 +244,14 @@ fromNumbers(const float* array, const int64_t numberOfElements, const QString& s
  * @return A string.
  *
  */
-QString
+AString
 PaletteScalarAndColor::toString() const
 {
-    QString s = 
+    AString s = 
     "[colorName="
     + this->colorName
     + ", scale="
-    + QString::number(this->scalar)
+    + AString::number(this->scalar)
     + ", rgba="
     + fromNumbers(rgba, 4, ",")
     + "]";

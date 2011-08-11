@@ -42,7 +42,7 @@ using namespace caret;
 NiftiTimeUnitsEnum::NiftiTimeUnitsEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const QString& name)
+                   const AString& name)
 {
     this->e = e;
     this->name = name;
@@ -104,7 +104,7 @@ NiftiTimeUnitsEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 NiftiTimeUnitsEnum::toName(Enum e) {
     initializeTimeUnits();
     
@@ -123,7 +123,7 @@ NiftiTimeUnitsEnum::toName(Enum e) {
  *     Enumerated value.
  */
 NiftiTimeUnitsEnum::Enum 
-NiftiTimeUnitsEnum::fromName(const QString& s, bool* isValidOut)
+NiftiTimeUnitsEnum::fromName(const AString& s, bool* isValidOut)
 {
     initializeTimeUnits();
     

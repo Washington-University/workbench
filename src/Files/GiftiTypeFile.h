@@ -26,7 +26,7 @@
  */ 
 
 
-#include <QString>
+#include <AString.h>
 
 #include "DataFile.h"
 
@@ -68,11 +68,11 @@ namespace caret {
         
         virtual bool isEmpty() const;
 
-        virtual void readFile(const QString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename) throw (DataFileException);
         
-        virtual void writeFile(const QString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename) throw (DataFileException);
         
-        virtual QString toString() const;
+        virtual AString toString() const;
         
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);

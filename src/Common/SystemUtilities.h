@@ -31,7 +31,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 
 namespace caret {
 
@@ -47,25 +47,25 @@ public:
     virtual ~SystemUtilities();
 
 public:
-    static QString getBackTrace();
+    static AString getBackTrace();
     
-    static QString getCurrentDirectory();
+    static AString getCurrentDirectory();
 
-    static void setCurrentDirectory(const QString& path);
+    static void setCurrentDirectory(const AString& path);
 
-    static QString getTempDirectory();
+    static AString getTempDirectory();
 
-    static QString getUsersHomeDirectory();
+    static AString getUsersHomeDirectory();
 
-    static QString getUserName();
+    static AString getUserName();
 
-    static QString getDate();
+    static AString getDate();
 
-    static QString getTime();
+    static AString getTime();
 
-    static QString getDateAndTime();
+    static AString getDateAndTime();
 
-    static QString getOperatingSystemName();
+    static AString getOperatingSystemName();
 
     static bool isWindowsOperatingSystem();
 
@@ -73,32 +73,32 @@ public:
 
     static int32_t getNumberOfProcessors();
 
-    static QString basename(const QString& name);
+    static AString basename(const AString& name);
 
-    static QString dirname(const QString& path);
+    static AString dirname(const AString& path);
 
-    static QString getFileExtension(const QString& path);
+    static AString getFileExtension(const AString& path);
 
-    static QString createUniqueID();
+    static AString createUniqueID();
     
     static void unitTest();
 
     static bool testRelativePath(
-                    const QString& otherPath,
-                    const QString& myPath,
-                    const QString& correctResult);
+                    const AString& otherPath,
+                    const AString& myPath,
+                    const AString& correctResult);
 
-    static QString relativePath(
-                    const QString& otherPathIn,
-                    const QString& myPathIn);
+    static AString relativePath(
+                    const AString& otherPathIn,
+                    const AString& myPathIn);
 
     static void deleteAllFilesInDirectory(
-                    const QString& directoryPath,
+                    const AString& directoryPath,
                     const bool deleteDirectoryFlag);
 
-    static QString createFileAbsolutePath(
-                    const QString& directoryName,
-                    const QString& fileName);
+    static AString createFileAbsolutePath(
+                    const AString& directoryName,
+                    const AString& fileName);
     
     static void setHandlersForUnexpected();
 };

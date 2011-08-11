@@ -42,8 +42,8 @@ using namespace caret;
 PaletteThresholdTestEnum::PaletteThresholdTestEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const QString& name,
-                   const QString& guiName)
+                   const AString& name,
+                   const AString& guiName)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -102,7 +102,7 @@ PaletteThresholdTestEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 PaletteThresholdTestEnum::toName(Enum e) {
     initialize();
     
@@ -121,7 +121,7 @@ PaletteThresholdTestEnum::toName(Enum e) {
  *     Enumerated value.
  */
 PaletteThresholdTestEnum::Enum 
-PaletteThresholdTestEnum::fromName(const QString& s, bool* isValidOut)
+PaletteThresholdTestEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     
@@ -152,7 +152,7 @@ PaletteThresholdTestEnum::fromName(const QString& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 PaletteThresholdTestEnum::toGuiName(Enum e) {
     initialize();
     
@@ -171,7 +171,7 @@ PaletteThresholdTestEnum::toGuiName(Enum e) {
  *     Enumerated value.
  */
 PaletteThresholdTestEnum::Enum 
-PaletteThresholdTestEnum::fromGuiName(const QString& s, bool* isValidOut)
+PaletteThresholdTestEnum::fromGuiName(const AString& s, bool* isValidOut)
 {
     initialize();
     

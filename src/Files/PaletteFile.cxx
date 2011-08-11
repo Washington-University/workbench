@@ -110,7 +110,7 @@ PaletteFile::addColor(const GiftiLabel& pc)
  */
 void
 PaletteFile::addColor(
-                   const QString& name,
+                   const AString& name,
                    const int32_t red,
                    const int32_t green,
                    const int32_t blue)
@@ -127,7 +127,7 @@ PaletteFile::addColor(
  */
 void
 PaletteFile::addColor(
-                   const QString& name,
+                   const AString& name,
                    const int32_t rgb[])
 {
     this->addColor(name, rgb[0], rgb[1], rgb[2]);
@@ -156,7 +156,7 @@ PaletteFile::getColor(const int32_t indx) const
  *
  */
 const GiftiLabel*
-PaletteFile::getColorByName(const QString& colorName) const
+PaletteFile::getColorByName(const AString& colorName) const
 {
     const GiftiLabel* gl = this->labelTable.getLabel(colorName);
     return gl;
@@ -170,7 +170,7 @@ PaletteFile::getColorByName(const QString& colorName) const
  *
  */
 int32_t
-PaletteFile::getColorIndex(const QString& colorName) const
+PaletteFile::getColorIndex(const AString& colorName) const
 {
     return this->labelTable.getLabelKeyFromName(colorName);
 }
@@ -223,7 +223,7 @@ PaletteFile::getPalette(const int32_t indx) const
  *
  */
 Palette*
-PaletteFile::getPaletteByName(const QString& name) const
+PaletteFile::getPaletteByName(const AString& name) const
 {
     int64_t numberOfPalettes = this->palettes.size();
     for (int64_t i = 0; i < numberOfPalettes; i++) {
@@ -262,10 +262,10 @@ PaletteFile::isEmpty() const
 /**
  * String description of this class. 
  */
-QString
+AString
 PaletteFile::toString() const
 {
-    QString s;
+    AString s;
     
     int64_t numberOfPalettes = this->palettes.size();
     for (int64_t i = 0; i < numberOfPalettes; i++) {
@@ -328,7 +328,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
     int64_t numberOfScalars = p.getNumberOfScalarsAndColors();
     for (int64_t i = 0; i < numberOfScalars; i++) {
         PaletteScalarAndColor* psac = p.getScalarAndColor(i);
-        const QString& colorName = psac->getColorName();
+        const AString& colorName = psac->getColorName();
         const GiftiLabel* gl = this->getColorByName(colorName);
         if (gl != NULL) {
             float rgba[4];
@@ -347,7 +347,7 @@ PaletteFile::assignColorsToPalette(Palette& p)
  *    If the file was not successfully read.
  */
 void 
-PaletteFile::readFile(const QString& filename) throw (DataFileException)
+PaletteFile::readFile(const AString& filename) throw (DataFileException)
 {
     throw DataFileException("Reading of PaletteFile not implemented.");
 }
@@ -361,7 +361,7 @@ PaletteFile::readFile(const QString& filename) throw (DataFileException)
  *    If the file was not successfully written.
  */
 void 
-PaletteFile::writeFile(const QString& filename) throw (DataFileException)
+PaletteFile::writeFile(const AString& filename) throw (DataFileException)
 {
     throw DataFileException("Reading of PaletteFile not implemented.");
 }

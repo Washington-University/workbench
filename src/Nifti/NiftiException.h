@@ -26,7 +26,7 @@
  */ 
 
 
-#include <QString>
+#include <AString.h>
 
 #include "CaretException.h"
 
@@ -42,7 +42,7 @@ public:
 
     NiftiException(const CaretException& e);
 
-    NiftiException(const QString& s);
+    NiftiException(const AString& s);
 
     NiftiException(const NiftiException& e);
         

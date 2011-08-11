@@ -39,12 +39,12 @@ XmlUtilities::XmlUtilities() {
 XmlUtilities::~XmlUtilities() {
 }
 
-QString 
-XmlUtilities::encodeXmlSpecialCharacters(const QString& text)
+AString 
+XmlUtilities::encodeXmlSpecialCharacters(const AString& text)
 {
-    QString textOut = text;
-    textOut.replace(QString("&"), QString("&amp;"));
-    //QString::replace(text, "&", "&amp;"); // MUST BE FIRST
+    AString textOut = text;
+    textOut.replace(AString("&"), AString("&amp;"));
+    //AString::replace(text, "&", "&amp;"); // MUST BE FIRST
     textOut.replace("<", "&lt;");
     textOut.replace(">", "&gt;");
     textOut.replace("'", "&apos;");
@@ -54,10 +54,10 @@ XmlUtilities::encodeXmlSpecialCharacters(const QString& text)
     
 }
 
-QString 
-XmlUtilities::decodeXmlSpecialCharacters(const QString& text)
+AString 
+XmlUtilities::decodeXmlSpecialCharacters(const AString& text)
 {
-    QString textOut = text;
+    AString textOut = text;
     textOut.replace("&amp;", "&");
     textOut.replace("&lt;", "<");
     textOut.replace("&gt;", ">");

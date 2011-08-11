@@ -28,7 +28,7 @@
 /*LICENSE_END*/
 
 #include <stack>
-#include <QString>
+#include <AString.h>
 #include <stdint.h>
 
 #include "GiftiArrayIndexingOrderEnum.h"
@@ -57,14 +57,14 @@ namespace caret {
         
         virtual ~GiftiFileSaxReader();
         
-        void startElement(const QString& namespaceURI,
-                          const QString& localName,
-                          const QString& qName,
+        void startElement(const AString& namespaceURI,
+                          const AString& localName,
+                          const AString& qName,
                           const XmlAttributes& attributes) throw (XmlSaxParserException);
         
-        void endElement(const QString& namspaceURI,
-                        const QString& localName,
-                        const QString& qName) throw (XmlSaxParserException);
+        void endElement(const AString& namspaceURI,
+                        const AString& localName,
+                        const AString& qName) throw (XmlSaxParserException);
         
         void characters(const char* ch) throw (XmlSaxParserException);
         
@@ -117,13 +117,13 @@ namespace caret {
         std::stack<STATE> stateStack;
         
         /// the error message
-        QString errorMessage;
+        AString errorMessage;
         
         /// GIFTI file that is being read
         GiftiFile* giftiFile;
         
         /// element text
-        QString elementText;
+        AString elementText;
         
         /// GIFTI data array being read
         GiftiDataArray* dataArray;
@@ -159,7 +159,7 @@ namespace caret {
         //GiftiDataArray::DATA_LOCATION dataLocationForReadingArrayData;
         
         /// external file name
-        QString externalFileNameForReadingData;
+        AString externalFileNameForReadingData;
         
         /// external file offset
         int64_t externalFileOffsetForReadingData;

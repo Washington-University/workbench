@@ -133,7 +133,7 @@ GiftiTypeFile::isEmpty() const
  *    If there is an error reading the file.
  */
 void 
-GiftiTypeFile::readFile(const QString& filename) throw (DataFileException)
+GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
@@ -150,7 +150,7 @@ GiftiTypeFile::readFile(const QString& filename) throw (DataFileException)
  *    If there is an error writing the file.
  */
 void 
-GiftiTypeFile::writeFile(const QString& filename) throw (DataFileException)
+GiftiTypeFile::writeFile(const AString& filename) throw (DataFileException)
 {
     this->giftiFile->writeFile(filename);
     this->clearModified();
@@ -185,7 +185,7 @@ GiftiTypeFile::initializeMembersGiftiTypeFile()
  * @return
  *    Information about the file's contents.
  */
-QString 
+AString 
 GiftiTypeFile::toString() const
 {
     return this->giftiFile->toString();

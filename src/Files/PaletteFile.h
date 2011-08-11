@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 
-#include <QString>
+#include <AString.h>
 #include <vector>
 
 #include "GiftiLabelTable.h"
@@ -67,20 +67,20 @@ namespace caret {
         void addColor(const GiftiLabel& pc);
         
         void addColor(
-                      const QString& name,
+                      const AString& name,
                       const int32_t red,
                       const int32_t green,
                       const int32_t blue);
         
         void addColor(
-                      const QString& name,
+                      const AString& name,
                       const int32_t rgb[]);
         
         const GiftiLabel* getColor(const int32_t index) const;
         
-        const GiftiLabel* getColorByName(const QString& colorName) const;
+        const GiftiLabel* getColorByName(const AString& colorName) const;
         
-        int32_t getColorIndex(const QString& colorName) const;
+        int32_t getColorIndex(const AString& colorName) const;
         
         int32_t getNumberOfPalettes() const;
         
@@ -88,21 +88,21 @@ namespace caret {
         
         Palette* getPalette(const int32_t index) const;
         
-        Palette* getPaletteByName(const QString& name) const;
+        Palette* getPaletteByName(const AString& name) const;
         
         void removePalette(const int32_t index);
         
         virtual bool isEmpty() const;
         
-        QString toString() const;
+        AString toString() const;
         
         bool isModified() const;
         
         void clearModified();
         
-        virtual void readFile(const QString& filename) throw (DataFileException);
+        virtual void readFile(const AString& filename) throw (DataFileException);
         
-        virtual void writeFile(const QString& filename) throw (DataFileException);
+        virtual void writeFile(const AString& filename) throw (DataFileException);
         
     private:
         void assignColorsToPalette(Palette& p);

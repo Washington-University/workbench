@@ -61,9 +61,9 @@ GiftiLabelTableSaxReader::~GiftiLabelTableSaxReader()
  * start an element.
  */
 void 
-GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
-                                         const QString& /* localName */,
-                                         const QString& qName,
+GiftiLabelTableSaxReader::startElement(const AString& /* namespaceURI */,
+                                         const AString& /* localName */,
+                                         const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
@@ -80,13 +80,13 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << "Root element is \"" << qName.toStdString() << "\" but should be "
                 << GiftiXmlElements::TAG_LABEL_TABLE.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_LABEL_TABLE:
          if (qName == GiftiXmlElements::TAG_LABEL) {
             this->state = STATE_LABEL_TABLE_LABEL;
-            QString s = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_KEY);
+            AString s = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_KEY);
             if (s == "") {
                s = attributes.getValue("Index");
             }
@@ -96,7 +96,7 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
                    << GiftiXmlElements::TAG_LABEL.toStdString()
                    << " is missing its "
                    << GiftiXmlElements::ATTRIBUTE_LABEL_KEY.toStdString();
-                throw XmlSaxParserException(QString::fromStdString(str.str()));
+                throw XmlSaxParserException(AString::fromStdString(str.str()));
             }
              this->labelIndex = s.toInt();
 
@@ -106,19 +106,19 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
                 this->labelGreen = defaultRGBA[1];
                 this->labelBlue = defaultRGBA[2];
                 this->labelAlpha = defaultRGBA[3];
-               const QString redString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_RED);
+               const AString redString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_RED);
                if (redString.isEmpty() == false) {
                   this->labelRed = redString.toFloat();
                }
-               const QString greenString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN);
+               const AString greenString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_GREEN);
                if (greenString.isEmpty() == false) {
                   this->labelGreen = greenString.toFloat();
                }
-               const QString blueString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE);
+               const AString blueString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_BLUE);
                if (blueString.isEmpty() == false) {
                   this->labelBlue = blueString.toFloat();
                }
-               const QString alphaString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA);
+               const AString alphaString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA);
                if (alphaString.isEmpty() == false) {
                   this->labelAlpha = alphaString.toFloat();
                }
@@ -131,7 +131,7 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << "Child of " << GiftiXmlElements::TAG_LABEL_TABLE.toStdString() << " is \"" << qName.toStdString() 
                 << "\" but should be " << GiftiXmlElements::TAG_LABEL.toStdString();
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_LABEL_TABLE_LABEL:
@@ -139,7 +139,7 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
             std::ostringstream str;
             str << GiftiXmlElements::TAG_LABEL.toStdString() << " has child \"" << qName.toStdString()  
                 << "\" but should not have any child nodes";
-             throw XmlSaxParserException(QString::fromStdString(str.str()));
+             throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
    }
@@ -156,9 +156,9 @@ GiftiLabelTableSaxReader::startElement(const QString& /* namespaceURI */,
  * end an element.
  */
 void 
-GiftiLabelTableSaxReader::endElement(const QString& /* namspaceURI */,
-                                       const QString& /* localName */,
-                                       const QString& qName) throw (XmlSaxParserException)
+GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
+                                       const AString& /* localName */,
+                                       const AString& qName) throw (XmlSaxParserException)
 {
 //   if (DebugControl::getDebugOn()) {
 //      std::cout << "GIFTI LABLE TABLE: End Element: " << qName << std::endl;

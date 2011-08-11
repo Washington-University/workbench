@@ -30,7 +30,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include <QString>
+#include <AString.h>
 
 namespace caret {
 
@@ -52,16 +52,16 @@ public:
 
     ~GiftiEndianEnum();
 
-    static QString toName(Enum e);
+    static AString toName(Enum e);
     
-    static Enum fromName(const QString& s, bool* isValidOut);
+    static Enum fromName(const AString& s, bool* isValidOut);
     
-    static QString toGiftiName(Enum e);
+    static AString toGiftiName(Enum e);
     
-    static Enum fromGiftiName(const QString& s, bool* isValidOut);
+    static Enum fromGiftiName(const AString& s, bool* isValidOut);
 
 private:
-    GiftiEndianEnum(const Enum e, const int32_t integerCode, const QString& name, const QString& giftiName);
+    GiftiEndianEnum(const Enum e, const int32_t integerCode, const AString& name, const AString& giftiName);
 
     static const GiftiEndianEnum* findData(const Enum e);
 
@@ -75,9 +75,9 @@ private:
 
     int32_t integerCode;
 
-    QString name;
+    AString name;
     
-    QString giftiName;
+    AString giftiName;
 
 
 };

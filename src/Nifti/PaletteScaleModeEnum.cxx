@@ -41,8 +41,8 @@ using namespace caret;
 PaletteScaleModeEnum::PaletteScaleModeEnum(
                    const Enum e,
                    const int32_t integerCode,
-                   const QString& name,
-                   const QString& guiName)
+                   const AString& name,
+                   const AString& guiName)
 {
     this->e = e;
     this->integerCode = integerCode;
@@ -100,7 +100,7 @@ PaletteScaleModeEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 PaletteScaleModeEnum::toName(Enum e) {
     initialize();
     
@@ -119,7 +119,7 @@ PaletteScaleModeEnum::toName(Enum e) {
  *     Enumerated value.
  */
 PaletteScaleModeEnum::Enum 
-PaletteScaleModeEnum::fromName(const QString& s, bool* isValidOut)
+PaletteScaleModeEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     
@@ -150,7 +150,7 @@ PaletteScaleModeEnum::fromName(const QString& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 PaletteScaleModeEnum::toGuiName(Enum e) {
     initialize();
     
@@ -169,7 +169,7 @@ PaletteScaleModeEnum::toGuiName(Enum e) {
  *     Enumerated value.
  */
 PaletteScaleModeEnum::Enum 
-PaletteScaleModeEnum::fromGuiName(const QString& s, bool* isValidOut)
+PaletteScaleModeEnum::fromGuiName(const AString& s, bool* isValidOut)
 {
     initialize();
     

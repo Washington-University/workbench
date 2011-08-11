@@ -46,7 +46,7 @@ CaretException::CaretException()
  *
  */
 CaretException::CaretException(
-                   const QString& s)
+                   const AString& s)
 : std::exception()
 {
     this->initializeMembersCaretException();
@@ -102,7 +102,7 @@ CaretException::initializeMembersCaretException()
  * Get the current call stack.
  * @return String containing the call stack.
  */;
-QString 
+AString 
 CaretException::getCallStack() const
 {
     return callStack;
@@ -112,7 +112,7 @@ CaretException::getCallStack() const
  * Get a message describing the exception.
  * @return A message describing the exception.
  */
-QString
+AString
 CaretException::whatString() const throw() 
 {
     return this->exceptionDescription;  

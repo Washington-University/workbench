@@ -28,11 +28,11 @@ using namespace caret;
  * @param  Index value for dimension.
  * @return Dim0, Dim1, etc
  */
-QString 
+AString 
 GiftiXmlElements::getAttributeDimension(int32_t dimIndex) 
 {
     std::ostringstream str;
     str << GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIM_PREFIX.toStdString() << dimIndex;
-    return QString::fromStdString(str.str());
+    return AString::fromStdString(str.str());
 }
 

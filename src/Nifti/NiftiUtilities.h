@@ -47,74 +47,74 @@ public:
     virtual ~NiftiUtilities();
 
 public:
-    static QString toString1(
+    static AString toString1(
                     const int32_t dim1,
                     const float* floatArray,
                     const int32_t precision);
 
-    static QString toString3(
+    static AString toString3(
                     const int32_t dim1,
                     const int32_t dim2,
                     const int32_t dim3,
                     const float* floatArray,
                     const int32_t precision);
 
-    static QString toString2(
+    static AString toString2(
                            const int32_t dim1,
                            const int32_t dim2,
                     const float* floatArray,
                     const int32_t precision);
 
-    static QString toString(
+    static AString toString(
                     const float f,
                     const int32_t precision);
 
-    static QString toString(
+    static AString toString(
                     const double d,
                     const int32_t precision);
 
-    static QString toString3(const int32_t dim1,
+    static AString toString3(const int32_t dim1,
                            const int32_t dim2,
                            const int32_t dim3,
                            const int32_t* intArray);
 
-    static QString toString2(const int32_t dim1,
+    static AString toString2(const int32_t dim1,
                            const int32_t dim2,
                            const int32_t* intArray);
 
-    static QString toString1(const int32_t dim1,
+    static AString toString1(const int32_t dim1,
                            const int32_t* intArray);
 
-    static QString toString(const int32_t i);
+    static AString toString(const int32_t i);
 
-    static float stringToFloatArray(const QString& dataString);
+    static float stringToFloatArray(const AString& dataString);
 
-    static int32_t stringIntArray(const QString& dataString);
+    static int32_t stringIntArray(const AString& dataString);
 
-    static float toFloat(const QString& s);
+    static float toFloat(const AString& s);
 
-    static int32_t toInt(const QString& s);
+    static int32_t toInt(const AString& s);
 
-    static QString encodeXmlSpecialCharacters(const QString& text);
+    static AString encodeXmlSpecialCharacters(const AString& text);
 
-    static QString decodeXmlSpecialCharacters(const QString& text);
+    static AString decodeXmlSpecialCharacters(const AString& text);
 
     static void readBytesIntoArray(
-                    const QString& filename,
+                    const AString& filename,
                     std::ifstream fis,
                     int8_t byteArray[])
             throw (NiftiException);
 
     static void readBytesIntoArray(
-                    const QString& filename,
+                    const AString& filename,
                     std::ifstream fis,
                     int8_t byteArray[],
                     const int32_t offsetInArray,
                     const int32_t numberOfBytesToReadIntoArray)
             throw (NiftiException);
 
-    static QString leftJustify(
-                    const QString& s,
+    static AString leftJustify(
+                    const AString& s,
                     const int32_t numberOfCharacters);
 
 };

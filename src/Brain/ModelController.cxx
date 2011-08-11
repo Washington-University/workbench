@@ -388,7 +388,7 @@ ModelController::setTransformation(
  * @return String for use in the GUI.
  *
  */
-QString
+AString
 ModelController::toString() const
 {
        return this->getNameForGUI(true);
@@ -400,10 +400,10 @@ ModelController::toString() const
  * @return  String describing contents of this instance.
  *
  */
-QString
+AString
 ModelController::toDescriptiveString() const
 {
-    QString s = CaretObject::toString();
+    AString s = CaretObject::toString();
     
     return s;
 }

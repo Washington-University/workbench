@@ -26,7 +26,7 @@
  */ 
 
 
-#include <QString>
+#include <AString.h>
 
 #include "DataFileException.h"
 #include "TracksModificationInterface.h"
@@ -61,7 +61,7 @@ namespace caret {
          *
          * @return Name of the data file.
          */
-        virtual QString getFileName() const = 0;
+        virtual AString getFileName() const = 0;
         
         /**
          * Set the name of the data file.
@@ -69,7 +69,7 @@ namespace caret {
          * @param filename
          *     New name of data file.
          */
-        virtual void setFileName(const QString& filename) = 0;
+        virtual void setFileName(const AString& filename) = 0;
         
         /**
          * Read the data file.
@@ -79,7 +79,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully read.
          */
-        virtual void readFile(const QString& filename) throw (DataFileException) = 0;
+        virtual void readFile(const AString& filename) throw (DataFileException) = 0;
         
         /**
          * Write the data file.
@@ -89,7 +89,7 @@ namespace caret {
          * @throws DataFileException
          *    If the file was not successfully written.
          */
-        virtual void writeFile(const QString& filename) throw (DataFileException) = 0;
+        virtual void writeFile(const AString& filename) throw (DataFileException) = 0;
         
     };
     

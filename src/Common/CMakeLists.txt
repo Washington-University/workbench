@@ -15,7 +15,8 @@ INCLUDE(${QT_USE_FILE})
 #
 # Create a library
 #
-ADD_LIBRARY(Common 
+ADD_LIBRARY(Common
+AString.h
 Base64.h
 BoundingBox.h
 ByteOrderEnum.h
@@ -34,6 +35,7 @@ ProgramParametersException.h
 SystemUtilities.h
 TracksModificationInterface.h
 
+AString.cxx
 Base64.cxx
 BoundingBox.cxx
 ByteOrderEnum.cxx

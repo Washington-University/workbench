@@ -78,7 +78,7 @@ namespace caret {
         void setOrthographicProjection(const int32_t viewport[4]);
         
         void checkForOpenGLError(const ModelController* modelController,
-                                 const QString& msg);
+                                 const AString& msg);
         
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;
