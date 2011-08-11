@@ -80,7 +80,7 @@ namespace caret {
     BrainOpenGL* GuiGlobals::brainOpenGL = 0;
     std::vector<BrainOpenGLWidget*> GuiGlobals::brainOpenGLWidgets;
     WindowMain* GuiGlobals::mainWindow = 0;
-#endif __GUI_GLOBALS_DEFINE__
+#endif //__GUI_GLOBALS_DEFINE__
     
 } // namespace
 

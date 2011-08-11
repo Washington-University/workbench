@@ -77,7 +77,7 @@ private:
 
 #ifdef __CARET_OBJECT_DECLARE_H__
     CaretObject::CARET_OBJECT_TRACKER_MAP CaretObject::allocatedObjects;
-#endif __CARET_OBJECT_DECLARE_H__
+#endif //__CARET_OBJECT_DECLARE_H__
     
 } // namespace
 

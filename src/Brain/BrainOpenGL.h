@@ -111,7 +111,7 @@ namespace caret {
 #ifdef __BRAIN_OPENGL_DEFINE_H
     BrainOpenGL* BrainOpenGL::brainOpenGLSingleton = NULL;
     float BrainOpenGL::versionOfOpenGL = 0.0f;
-#endif __BRAIN_OPENGL_DEFINE_H
+#endif //__BRAIN_OPENGL_DEFINE_H
 
 } // namespace
 
