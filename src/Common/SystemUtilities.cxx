@@ -349,7 +349,7 @@ static void unexpectedHandler()
 {
     std::cerr << "WARNING: unhandled exception." << std::endl;
     //if (theMainWindow != NULL) {
-        const QString msg("Caret will be terminating due to an unexpected exception.\n"
+        const AString msg("Caret will be terminating due to an unexpected exception.\n"
                           "abort() will be called and a core file may be created.");
     std::cerr << qPrintable(msg) << std::endl;
         //QMessageBox::critical(theMainWindow, "ERROR", msg);

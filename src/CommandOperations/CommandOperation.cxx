@@ -33,8 +33,8 @@ using namespace caret;
  * @param operationShortDescription
  *   Short description of the command.
  */
-CommandOperation::CommandOperation(const QString& commandLineSwitch,
-                                   const QString& operationShortDescription)
+CommandOperation::CommandOperation(const AString& commandLineSwitch,
+                                   const AString& operationShortDescription)
 : CaretObject()
 {
     this->commandLineSwitch = commandLineSwitch;
@@ -71,7 +71,7 @@ CommandOperation::execute(ProgramParameters& parameters) throw (CommandException
 /**
  * Get the short description of the operation.
  */
-QString 
+AString
 CommandOperation::getOperationShortDescription() const
 {
     return this->operationShortDescription;
@@ -80,7 +80,7 @@ CommandOperation::getOperationShortDescription() const
 /**
  * Get the command line switch for selecting the operation.
  */
-QString 
+AString
 CommandOperation::getCommandLineSwitch() const
 {
     return this->commandLineSwitch;

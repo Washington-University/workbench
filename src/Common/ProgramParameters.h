@@ -57,29 +57,29 @@ private:
     void initializeMembersProgramParameters();
 
 public:
-    void addParameter(const QString& p);
+    void addParameter(const AString& p);
 
     bool hasNext() const;
 
     void verifyAllParametersProcessed()
             throw (ProgramParametersException);
 
-    QString nextString(const QString& parameterName)
+    AString nextString(const AString& parameterName)
             throw (ProgramParametersException);
 
-    bool nextBoolean(const QString& parameterName)
+    bool nextBoolean(const AString& parameterName)
             throw (ProgramParametersException);
 
-    int32_t nextInt(const QString& parameterName)
+    int32_t nextInt(const AString& parameterName)
             throw (ProgramParametersException);
 
-    int64_t nextLong(const QString& parameterName)
+    int64_t nextLong(const AString& parameterName)
             throw (ProgramParametersException);
 
-    float nextFloat(const QString& parameterName)
+    float nextFloat(const AString& parameterName)
             throw (ProgramParametersException);
 
-    double nextDouble(const QString& parameterName)
+    double nextDouble(const AString& parameterName)
             throw (ProgramParametersException);
 
     void backup();
@@ -92,20 +92,20 @@ public:
 
     int32_t getNumberOfParameters() const;
 
-    QString getParameter(const int32_t index) const;
+    AString getParameter(const int32_t index) const;
 
-    QString getAllParametersInString() const;
+    AString getAllParametersInString() const;
 
-    QString getProgramName() const;
+    AString getProgramName() const;
     
 private:
     /**The parameters. */
-    std::vector<QString> parameters;
+    std::vector<AString> parameters;
 
     /**Current index in parameters. */
     int32_t parameterIndex;
 
-    QString programName;
+    AString programName;
 };
 
 } // namespace

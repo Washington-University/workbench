@@ -42,7 +42,7 @@ public:
 
     CommandException(const CaretException& e);
 
-    CommandException(const QString& s);
+    CommandException(const AString& s);
 
     CommandException(const CommandException& e);
     

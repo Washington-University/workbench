@@ -60,8 +60,8 @@ namespace caret {
            throw (CommandException,
                 ProgramParametersException) = 0;
         
-        CommandOperation(const QString& commandLineSwitch,
-                         const QString& operationShortDescription);
+        CommandOperation(const AString& commandLineSwitch,
+                         const AString& operationShortDescription);
         
     private:
         CommandOperation();
@@ -72,16 +72,16 @@ namespace caret {
         
     public:
         
-        QString getOperationShortDescription() const;
+        AString getOperationShortDescription() const;
         
-        QString getCommandLineSwitch() const;
+        AString getCommandLineSwitch() const;
         
     private:
         /** Short description listing commands purpose */
-        QString operationShortDescription;
+        AString operationShortDescription;
         
         /** Switch on command line */
-        QString commandLineSwitch;
+        AString commandLineSwitch;
     };
     
 } // namespace

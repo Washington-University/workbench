@@ -43,7 +43,7 @@ public:
 
     ProgramParametersException(const CaretException& e);
 
-    ProgramParametersException(const QString& s);
+    ProgramParametersException(const AString& s);
 
     ProgramParametersException(const ProgramParametersException& e);
     

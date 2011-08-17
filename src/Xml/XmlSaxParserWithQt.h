@@ -50,10 +50,10 @@ namespace caret {
         
         virtual ~XmlSaxParserWithQt();
 
-        virtual void parseFile(const AString& filename,
+        virtual void parseFile(const QString& filename,
                    XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
-        virtual void parseString(const AString& xmlString,
+        virtual void parseString(const QString& xmlString,
                            XmlSaxParserHandlerInterface* handler) throw (XmlSaxParserException);
         
     private:
@@ -77,17 +77,17 @@ namespace caret {
             bool warning(const QXmlParseException& exception);
             
             bool startDocument();
-            bool startElement(const AString& namespaceURI, 
-                              const AString& localName, 
-                              const AString& qName, 
+            bool startElement(const QString& namespaceURI,
+                              const QString& localName,
+                              const QString& qName,
                               const QXmlAttributes& atts);
             
             bool endDocument();
-            bool endElement(const AString& namespaceURI, 
-                            const AString& localName, 
-                            const AString& qName);
+            bool endElement(const QString& namespaceURI,
+                            const QString& localName,
+                            const QString& qName);
             
-            bool characters(const AString& ch);
+            bool characters(const QString& ch);
             
             virtual QString errorString() const;
             
@@ -95,7 +95,7 @@ namespace caret {
             static XmlSaxParserException fromQXmlParseException(const QXmlParseException& e);
             static XmlAttributes fromQXmlAttributes(const QXmlAttributes& atts);
             XmlSaxParserHandlerInterface* handler;
-            AString errorMessage;
+            QString errorMessage;
         };
     };
 

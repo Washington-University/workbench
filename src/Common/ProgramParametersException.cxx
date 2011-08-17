@@ -60,7 +60,7 @@ ProgramParametersException::ProgramParametersException(
  * @param  s  Description of the exception.
  *
  */
-ProgramParametersException::ProgramParametersException(const QString& s)
+ProgramParametersException::ProgramParametersException(const AString& s)
 : CaretException(s)
 {
     this->initializeMembersProgramParametersException();

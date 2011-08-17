@@ -60,7 +60,7 @@ CommandException::CommandException(
  * @param  s  Description of the exception.
  *
  */
-CommandException::CommandException(const QString& s)
+CommandException::CommandException(const AString& s)
 : CaretException(s)
 {
     this->initializeMembersCommandException();

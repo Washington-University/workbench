@@ -78,7 +78,7 @@ ProgramParameters::initializeMembersProgramParameters()
  *
  */
 void
-ProgramParameters::addParameter(const QString& p)
+ProgramParameters::addParameter(const AString& p)
 {
     this->parameters.push_back(p);
 }
@@ -118,8 +118,8 @@ ProgramParameters::verifyAllParametersProcessed()
  * @throws ProgramParametersException If there are no more parameters.
  *
  */
-QString
-ProgramParameters::nextString(const QString& parameterName)
+AString
+ProgramParameters::nextString(const AString& parameterName)
             throw (ProgramParametersException)
 {
     if (this->hasNext() == false) {
@@ -128,7 +128,7 @@ ProgramParameters::nextString(const QString& parameterName)
     
     CaretAssertVectorIndex(this->parameters, this->parameterIndex);
     
-    QString s = this->parameters[this->parameterIndex];
+    AString s = this->parameters[this->parameterIndex];
     this->parameterIndex++;
     
     return s;
@@ -145,10 +145,10 @@ ProgramParameters::nextString(const QString& parameterName)
  *
  */
 bool
-ProgramParameters::nextBoolean(const QString& parameterName)
+ProgramParameters::nextBoolean(const AString& parameterName)
             throw (ProgramParametersException)
 {
-    QString s = this->nextString(parameterName).toLower();
+    AString s = this->nextString(parameterName).toLower();
     if ((s == "true")
         || (s == "t")) {
         return true;
@@ -173,10 +173,10 @@ ProgramParameters::nextBoolean(const QString& parameterName)
  *
  */
 int32_t
-ProgramParameters::nextInt(const QString& parameterName)
+ProgramParameters::nextInt(const AString& parameterName)
             throw (ProgramParametersException)
 {
-    QString s = this->nextString(parameterName);
+    AString s = this->nextString(parameterName);
     int32_t i = s.toInt();
     return i;
 }
@@ -191,10 +191,10 @@ ProgramParameters::nextInt(const QString& parameterName)
  *
  */
 int64_t
-ProgramParameters::nextLong(const QString& parameterName)
+ProgramParameters::nextLong(const AString& parameterName)
             throw (ProgramParametersException)
 {
-    QString s = this->nextString(parameterName);
+    AString s = this->nextString(parameterName);
     int64_t i = s.toLong();
     return i;
 }
@@ -209,10 +209,10 @@ ProgramParameters::nextLong(const QString& parameterName)
  *
  */
 float
-ProgramParameters::nextFloat(const QString& parameterName)
+ProgramParameters::nextFloat(const AString& parameterName)
             throw (ProgramParametersException)
 {
-    QString s = this->nextString(parameterName);
+    AString s = this->nextString(parameterName);
     float f = s.toFloat();
     return f;
 }
@@ -227,10 +227,10 @@ ProgramParameters::nextFloat(const QString& parameterName)
  *
  */
 double
-ProgramParameters::nextDouble(const QString& parameterName)
+ProgramParameters::nextDouble(const AString& parameterName)
             throw (ProgramParametersException)
 {
-    QString s = this->nextString(parameterName);
+    AString s = this->nextString(parameterName);
     double d = s.toDouble();
     return d;
 }
@@ -305,7 +305,7 @@ ProgramParameters::getNumberOfParameters() const
  * @return  The parameter at the specified index.
  *
  */
-QString
+AString
 ProgramParameters::getParameter(const int32_t indx) const
 {
     CaretAssertVectorIndex(this->parameters, indx);
@@ -317,10 +317,10 @@ ProgramParameters::getParameter(const int32_t indx) const
  * @return  All parameters in a String.
  *
  */
-QString
+AString
 ProgramParameters::getAllParametersInString() const
 {
-    QString str;
+    AString str;
     
     int num = this->getNumberOfParameters();
     for (int i = 0; i < num; i++) {
@@ -338,7 +338,7 @@ ProgramParameters::getAllParametersInString() const
  * @return
  *   Name of the program.
  */
-QString 
+AString 
 ProgramParameters::getProgramName() const
 {
     return this->programName;

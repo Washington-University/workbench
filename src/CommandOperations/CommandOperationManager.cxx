@@ -91,7 +91,7 @@ CommandOperationManager::~CommandOperationManager()
 void 
 CommandOperationManager::runCommand(ProgramParameters& parameters) throw (CommandException)
 {
-    QString commandSwitch;
+    AString commandSwitch;
     try {
         commandSwitch = parameters.nextString("Command Name");
     
