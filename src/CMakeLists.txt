@@ -56,6 +56,15 @@ ENDIF(APPLE)
 SET(CMAKE_VERBOSE_MAKEFILE TRUE)
 
 #
+# IF GNU compiler, functions without a return type or switch
+# statements that do not handle all of the enumerated types
+# are treated as an error.
+#
+IF (CMAKE_COMPILER_IS_GNUCXX)
+    SET(CMAKE_CXX_FLAGS "-Werror=return-type -Werror=switch ${CMAKE_CXX_FLAGS}")
+ENDIF (CMAKE_COMPILER_IS_GNUCXX)
+
+#
 # Must have QT 4.7 or later
 #
 FIND_PACKAGE(Qt4 4.7.1 REQUIRED)
