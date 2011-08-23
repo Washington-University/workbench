@@ -27,6 +27,7 @@
 
 #include <iosfwd>
 #include <stdint.h>
+#include <string>
 
 namespace caret {
     
