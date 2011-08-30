@@ -36,26 +36,60 @@ public:
     explicit AString(const QChar *unicode) : QString(unicode) {} // Qt5: merge with the above
     AString(QChar c) : QString(c) {}
     AString(int size, QChar c) : QString(size, c) {}
-    inline AString(const QLatin1String &latin1) : QString(latin1) {}
-    inline AString(const AString &string) : QString(string) {}
-    inline AString(const QString &string) : QString(string) {}
+    AString(const QLatin1String &latin1) : QString(latin1) {}
+    AString(const AString &string) : QString(string) {}
+    AString(const QString &string) : QString(string) {}
 
-    inline AString(const char *ch) : QString(ch){}
-    inline AString(const QByteArray &a) : QString(a) {}
-    inline AString(const Null &t) : QString(t) {}
-    //inline AString &operator=(const Null &t) { QString::operator=(t); return *this; }
+    AString(const char *ch) : QString(ch){}
+    AString(const QByteArray &a) : QString(a) {}
+    AString(const Null &t) : QString(t) {}
+    //AString &operator=(const Null &t) { QString::operator=(t); return *this; }
     //AString(int size, Qt::Initialization) :  QString(size,Qt::Initialization) {}
 
     //using QString::operator=;
     //AString &operator=(QChar c) { QString::operator=(c); return *this;}
     //AString &operator=(const QString &string) { QString::operator=(string); return *this;}
-    //inline AString &operator=(const QLatin1String &latin1) { QString::operator=(latin1); return *this;}
-    //inline  AString &operator=(const char *ch) { QString::operator=(ch); return *this;}
-    //inline  AString &operator=(const QByteArray &a) { QString::operator=(a); return *this;}
-    //inline  AString &operator=(char c) { QString::operator=(c); return *this;}
+    //AString &operator=(const QLatin1String &latin1) { QString::operator=(latin1); return *this;}
+    //AString &operator=(const char *ch) { QString::operator=(ch); return *this;}
+    //AString &operator=(const QByteArray &a) { QString::operator=(a); return *this;}
+    //AString &operator=(char c) { QString::operator=(c); return *this;}
 
 };
-   
+//std::string compatibility
+const std::string &operator= (std::string &lhs,AString &rhs) {lhs = AString::toStdString(rhs);}
+
+
+//char * compatibility
+const char* &operator= (char * &lhs,AString &rhs) {lhs = AString::toAscii(rhs); }
+
+//double compatiblity
+const double &operator= (double &lhs,AString &rhs) {lhs = AString::toDouble(rhs); }
+
+//float compatiblity
+const float &operator= (float &lhs,AString &rhs) {lhs = AString::toFloat(rhs); }
+
+//int compatiblity
+const int &operator= (int &lhs,AString &rhs) {lhs = AString::toInt(rhs); }
+
+//long compatiblity
+const long &operator= (long &lhs,AString &rhs) {lhs = AString::toLong(rhs); }
+
+//long long compatiblity
+const long long &operator= (long long &lhs,AString &rhs) {lhs = AString::toLongLong(rhs); }
+
+//unsigned int compatiblity
+const unsigned int &operator= (unsigned int&lhs,AString &rhs) {lhs = AString::toUInt(rhs); }
+
+//unsigned long compatiblity
+const unsigned long &operator= (unsigned long &lhs,AString &rhs) {lhs = AString::toULong(rhs); }
+
+//unsigned long long compatiblity
+const unsigned long long &operator= (unsigned long long &lhs,AString &rhs) {lhs = AString::toULongLong(rhs); }
+
+
+
+
+
 //}
 
 #endif // ASTRING_H
