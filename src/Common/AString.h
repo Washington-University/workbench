@@ -55,8 +55,8 @@ public:
     //AString &operator=(char c) { QString::operator=(c); return *this;}
 
 };
-//std::string compatibility
-const std::string &operator= (std::string &lhs,AString &rhs) {lhs = AString::toStdString(rhs);}
+/*//std::string compatibility
+const std::string &operator= (const std::string &lhs,const AString &rhs) {lhs = AString::toStdString(rhs);}
 
 
 //char * compatibility
@@ -85,10 +85,7 @@ const unsigned long &operator= (unsigned long &lhs,AString &rhs) {lhs = AString:
 
 //unsigned long long compatiblity
 const unsigned long long &operator= (unsigned long long &lhs,AString &rhs) {lhs = AString::toULongLong(rhs); }
-
-
-
-
+*/
 
 //}
 
