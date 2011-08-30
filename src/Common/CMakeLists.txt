@@ -30,6 +30,7 @@ DataCompressZLib.h
 DataFile.h
 DataFileException.h
 MathFunctions.h
+MessageManager.h
 ProgramParameters.h
 ProgramParametersException.h
 SystemUtilities.h
@@ -48,6 +49,7 @@ DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
 MathFunctions.cxx
+MessageManager.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 SystemUtilities.cxx
