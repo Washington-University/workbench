@@ -23,6 +23,224 @@
 /*LICENSE_END*/
 
 #include "AString.h"
+#include <iostream>
+std::ostream& operator << (std::ostream &lhs, AString &rhs) { return lhs << rhs.toStdString(); }
 
-//using namespace caret;
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<int32_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<uint32_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<int64_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<uint64_t>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<float>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert a vector of values into a string.
+ * @param v
+ *   The vector of values.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the vector's values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const std::vector<double>& v, const AString& separator)
+{
+    AString s;
+    for (uint64_t i = 0; i < v.size(); i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(v[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const int32_t* array,
+                             const int64_t numberOfElements,
+                             const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
+AString::fromNumbers(const double* array,
+                             const int64_t numberOfElements,
+                             const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
 

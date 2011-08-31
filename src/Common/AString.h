@@ -26,8 +26,9 @@
 #define ASTRING_H
 
 #include <QString>
+#include <vector>
+#include <stdint.h>
 
-//namespace caret {
 class AString : public QString
 {
 public:
@@ -54,39 +55,50 @@ public:
     //AString &operator=(const QByteArray &a) { QString::operator=(a); return *this;}
     //AString &operator=(char c) { QString::operator=(c); return *this;}
 
+    //std::string compatibility
+    operator std::string () {return this->toStdString(); }
+
+    //char * compatibility
+    operator const char* () {return this->toAscii(); }
+
+    //double compatiblity
+    operator double () {return this->toDouble(); }
+
+    //float compatiblity
+    operator float () { return this->toFloat(); }
+
+    //int compatiblity
+    operator int () { return this->toInt(); }
+
+    //long compatiblity
+    operator long () { return this->toLong(); }
+
+    //long long compatiblity
+    operator long long () { return this->toLongLong(); }
+
+    //unsigned int compatiblity
+    operator unsigned int () { return this->toUInt(); }
+
+    //unsigned long compatiblity
+    operator unsigned long () { return this->toULong(); }
+
+    //unsigned long long compatiblity
+    operator unsigned long long () { return this->toULongLong(); }
+
+
+    //I may move these outside the class since they don't require access to the class's internals
+    static AString fromNumbers(const std::vector<int32_t>& v, const AString& separator);
+    static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator);
+    static AString fromNumbers(const std::vector<int64_t>& v, const AString& separator);
+    static AString fromNumbers(const std::vector<uint64_t>& v, const AString& separator);
+    static AString fromNumbers(const std::vector<float>& v, const AString& separator);
+    static AString fromNumbers(const std::vector<double>& v, const AString& separator);
+    static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator);
+    static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator);
+    static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
 };
-/*//std::string compatibility
-const std::string &operator= (const std::string &lhs,const AString &rhs) {lhs = AString::toStdString(rhs);}
-
-
-//char * compatibility
-const char* &operator= (char * &lhs,AString &rhs) {lhs = AString::toAscii(rhs); }
-
-//double compatiblity
-const double &operator= (double &lhs,AString &rhs) {lhs = AString::toDouble(rhs); }
-
-//float compatiblity
-const float &operator= (float &lhs,AString &rhs) {lhs = AString::toFloat(rhs); }
-
-//int compatiblity
-const int &operator= (int &lhs,AString &rhs) {lhs = AString::toInt(rhs); }
-
-//long compatiblity
-const long &operator= (long &lhs,AString &rhs) {lhs = AString::toLong(rhs); }
-
-//long long compatiblity
-const long long &operator= (long long &lhs,AString &rhs) {lhs = AString::toLongLong(rhs); }
-
-//unsigned int compatiblity
-const unsigned int &operator= (unsigned int&lhs,AString &rhs) {lhs = AString::toUInt(rhs); }
-
-//unsigned long compatiblity
-const unsigned long &operator= (unsigned long &lhs,AString &rhs) {lhs = AString::toULong(rhs); }
-
-//unsigned long long compatiblity
-const unsigned long long &operator= (unsigned long long &lhs,AString &rhs) {lhs = AString::toULongLong(rhs); }
-*/
-
-//}
+#include <string>
+#include <iostream>
+std::ostream& operator << (std::ostream &lhs, AString &rhs);
 
 #endif // ASTRING_H

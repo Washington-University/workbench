@@ -1567,27 +1567,13 @@ GiftiDataArray::removeMatrix(const int32_t indx)
 }
 
 AString 
-fromNumbers(const std::vector<int64_t>& v, const AString& separator)
-{
-    AString s;
-    for (int64_t i = 0; i < v.size(); i++) {
-
-        if (i > 0) {
-            s += separator;
-        }
-        s += AString::number(v[i]);
-    }
-    return s;
-}
-
-AString 
 GiftiDataArray::toString() const
 {
     std::ostringstream str;
     str << "Data Array" << std::endl;
     str << "   DataType=" << NiftiDataTypeEnum::toName(this->dataType).toStdString() << std::endl;
     str << "   Intent=" << NiftiIntentEnum::toName(this->intent).toStdString() << std::endl;
-    str << "   Dimensions=" << fromNumbers(this->dimensions, ",").toStdString();
+    str << "   Dimensions=" << AString::fromNumbers(this->dimensions, ",").toStdString();
     str << "   MetaData=" << this->metaData.toString().toStdString() << std::endl;
     return AString::fromStdString(str.str());
 }
