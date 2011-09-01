@@ -1,0 +1,25 @@
+The entry point for reading and writing Cifti data is the object CiftiFile.  To get a handle to a Cifti File, use the following syntax:
+CiftiFile *cf = new CiftiFile("testciftifile.dtseries.nii");
+
+The Cifti 1.0 API breaks the file up into three logical sections, the Nifti 2 Header, the Cifti XML meta data, and the Cifti Matrix data.  To access the data use the following functions:
+
+//read/write nifti header
+Nifti2Header header;
+cf->setHeader(*header);
+cf->getHeader(*header);
+
+//read/write Cifti 1.0 XML extension "header"
+CiftiXML xml;
+cf->setCiftiXML(xml);
+cf->getCiftiXML(xml);
+
+//read/write Cifti matrix
+CiftiMatrix *matrix = new CiftiMatrix();
+cf->setCiftiMatrix(*matrix);
+matrix = cf->getCiftiMatrix();
+
+//writing to a new Cifti File
+cf->writeFile("outputfile.dtseries.nii");
+
+For more detailed information on how to manipulated Cifti data, look at the doxygen documentation, located in the doc sub-directory, and the Cifti 1.0 specification, located at the following URL:
+http://www.nitrc.org/plugins/mwiki/index.php/cifti:ConnectivityMatrixFileFormats
