@@ -30,6 +30,7 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
     
@@ -37,7 +38,7 @@ namespace caret {
     class ModelController;
     class PaletteFile;
     
-    class Brain : public CaretObject {
+    class Brain : public CaretObject, public EventListenerInterface {
 
     public:
         Brain();
@@ -65,6 +66,8 @@ namespace caret {
         void resetBrain();
         
         void readSurfaceFile(const AString& filename) throw (DataFileException);
+        
+        void receiveEvent(Event* event);
         
     private:
         std::vector<BrainStructure*> brainStructures;

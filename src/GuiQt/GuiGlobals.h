@@ -63,7 +63,7 @@ namespace caret {
         static void registerBrainOpenGLWidget(const int32_t windowIndex,
                                               BrainOpenGLWidget* brainOpenGLWidget);
         
-        static void redrawAllGraphicsWindows();
+        //static void redrawAllGraphicsWindows();
         
     private:
         static Brain* brain;

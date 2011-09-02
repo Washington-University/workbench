@@ -29,6 +29,11 @@ CaretWindowEnum.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
+Event.h
+EventListenerInterface.h
+EventLoadSurfaceFile.h
+EventManager.h
+EventUpdateAllGraphics.h
 MathFunctions.h
 MessageManager.h
 ProgramParameters.h
@@ -48,6 +53,10 @@ CaretWindowEnum.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
+Event.cxx
+EventLoadSurfaceFile.cxx
+EventManager.cxx
+EventUpdateAllGraphics.cxx
 MathFunctions.cxx
 MessageManager.cxx
 ProgramParameters.cxx

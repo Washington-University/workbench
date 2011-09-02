@@ -30,6 +30,7 @@
 
 #include <stdint.h>
 #include "CaretWindowEnum.h"
+#include "EventListenerInterface.h"
 
 class QMouseEvent;
 
@@ -38,7 +39,7 @@ namespace caret {
     class BrainOpenGL;
     class ModelController;
     
-    class BrainOpenGLWidget : public QGLWidget {
+    class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
         
     public:
@@ -54,6 +55,8 @@ namespace caret {
         void mouseMoveEvent(QMouseEvent* e);
         
         void mousePressEvent(QMouseEvent* e);
+        
+        void receiveEvent(Event* event);
         
     protected:
         void initializeGL();

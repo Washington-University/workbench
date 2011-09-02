@@ -28,6 +28,8 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "EventLoadSurfaceFile.h"
+#include "EventManager.h"
 #include "PaletteFile.h"
 #include "Surface.h"
 #include <algorithm>
@@ -40,6 +42,8 @@ using namespace caret;
 Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
+    
+    EventManager::get()->addEventListener(this, Event::EVENT_LOAD_SURFACE_FILE);
 }
 
 /**
@@ -47,6 +51,8 @@ Brain::Brain()
  */
 Brain::~Brain()
 {
+    EventManager::get()->removeEventListener(this, Event::EVENT_LOAD_SURFACE_FILE);
+
     this->resetBrain();
     delete this->paletteFile;
 }
@@ -190,4 +196,30 @@ Brain::getAllModelControllers()
     }
     return controllers;
 }
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+Brain::receiveEvent(Event* event)
+{
+    if (event->getEventType() == Event::EVENT_LOAD_SURFACE_FILE) {
+        EventLoadSurfaceFile* loadSurfaceFileEvent =
+             dynamic_cast<EventLoadSurfaceFile*>(event);
+        CaretAssert(loadSurfaceFileEvent);
+        
+        std::cout << "Received load surface event in " << __func__ << std::endl;
+        
+        try {
+            this->readSurfaceFile(loadSurfaceFileEvent->getSurfaceFileName());
+        }
+        catch (DataFileException e) {
+            loadSurfaceFileEvent->setErrorMessage(e.whatString());
+        }
+    }
+}
+
 

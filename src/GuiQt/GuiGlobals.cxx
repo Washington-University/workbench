@@ -105,34 +105,34 @@ GuiGlobals::setMainWindow(WindowMain* mainWindow)
     GuiGlobals::mainWindow = mainWindow;
 }
 
-/**
- * Register a Brain OpenGL widget.  When the widget is being
- * deleted, its value will be NULL.
- * 
- * @param windowIndex
- *    Index of window containing the Brain OpenGL widget.
- * @param brainOpenGLWidget
- *    The brain OpenGL Widget for the window.
- */
-void 
-GuiGlobals::registerBrainOpenGLWidget(const int32_t windowIndex,
-                                      BrainOpenGLWidget* brainOpenGLWidget)
-{
-    if (GuiGlobals::brainOpenGLWidgets.empty()) {
-        GuiGlobals::brainOpenGLWidgets.resize(CaretWindowEnum::NUMBER_OF_WINDOWS, NULL);
-    }
-    GuiGlobals::brainOpenGLWidgets[windowIndex] = brainOpenGLWidget;
-}
+///**
+// * Register a Brain OpenGL widget.  When the widget is being
+// * deleted, its value will be NULL.
+// * 
+// * @param windowIndex
+// *    Index of window containing the Brain OpenGL widget.
+// * @param brainOpenGLWidget
+// *    The brain OpenGL Widget for the window.
+// */
+//void 
+//GuiGlobals::registerBrainOpenGLWidget(const int32_t windowIndex,
+//                                      BrainOpenGLWidget* brainOpenGLWidget)
+//{
+//    if (GuiGlobals::brainOpenGLWidgets.empty()) {
+//        GuiGlobals::brainOpenGLWidgets.resize(CaretWindowEnum::NUMBER_OF_WINDOWS, NULL);
+//    }
+//    GuiGlobals::brainOpenGLWidgets[windowIndex] = brainOpenGLWidget;
+//}
 
-void 
-GuiGlobals::redrawAllGraphicsWindows()
-{
-    for (uint32_t i = 0; i < GuiGlobals::brainOpenGLWidgets.size(); i++) {
-        if (GuiGlobals::brainOpenGLWidgets[i] != NULL) {
-            GuiGlobals::brainOpenGLWidgets[i]->updateGL();
-        }
-    }
-}
+//void 
+//GuiGlobals::redrawAllGraphicsWindows()
+//{
+//    for (uint32_t i = 0; i < GuiGlobals::brainOpenGLWidgets.size(); i++) {
+//        if (GuiGlobals::brainOpenGLWidgets[i] != NULL) {
+//            GuiGlobals::brainOpenGLWidgets[i]->updateGL();
+//        }
+//    }
+//}
 
 Actions*
 GuiGlobals::getActions()

@@ -35,6 +35,8 @@
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
 #include "CaretWindowEnum.h"
+#include "EventManager.h"
+#include "EventUpdateAllGraphics.h"
 #include "GuiGlobals.h"
 #include "Matrix4x4.h"
 #include "Surface.h"
@@ -56,7 +58,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->modelController = NULL;
     
     
-    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
+//    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
+    
+    EventManager::get()->addEventListener(this, Event::EVENT_UPDATE_ALL_GRAPHICS);
 }
 
 /**
@@ -64,7 +68,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
-    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, NULL);
+//    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, NULL);
+    
+    EventManager::get()->removeEventListener(this, Event::EVENT_UPDATE_ALL_GRAPHICS);
 }
 
 /**
@@ -255,4 +261,14 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     lastMouseX = x;
     lastMouseY = y;
 }
+
+void 
+BrainOpenGLWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == Event::EVENT_UPDATE_ALL_GRAPHICS) {
+        std::cout << "Received update graphics event in " << __func__ << std::endl;
+        this->updateGL();
+    }
+}
+
 

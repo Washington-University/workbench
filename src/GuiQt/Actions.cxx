@@ -24,6 +24,8 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
+
 #include <QAction>
 #include <QApplication>
 #include <QFileDialog>
@@ -31,6 +33,9 @@
 
 #include "Actions.h"
 #include "Brain.h"
+#include "EventLoadSurfaceFile.h"
+#include "EventUpdateAllGraphics.h"
+#include "EventManager.h"
 #include "GuiGlobals.h"
 #include "WindowMain.h"
 
@@ -157,14 +162,33 @@ Actions::processDataFileOpenAction()
                                  "Surfaces (*.surf.gii)");
     if(name.length()==0) return;
 
-    Brain* brain = GuiGlobals::getBrain();
-    try {
-        brain->readSurfaceFile(name);
+    EventLoadSurfaceFile loadSurfaceEvent(name);
+    
+    EventManager::get()->sendEvent(loadSurfaceEvent.getPointer());
+    
+    if (loadSurfaceEvent.isError()) {
+        QMessageBox::critical(this->mainWindow, 
+                              "ERROR", 
+                              loadSurfaceEvent.getErrorMessage());
     }
-    catch (DataFileException& e) {
-        QMessageBox::critical(this->mainWindow, "ERROR", e.whatString());
-    }
-    GuiGlobals::redrawAllGraphicsWindows();
+    
+//    Brain* brain = GuiGlobals::getBrain();
+//    try {
+//        brain->readSurfaceFile(name);
+//    }
+//    catch (DataFileException& e) {
+//        QMessageBox::critical(this->mainWindow, "ERROR", e.whatString());
+//    }
+    
+    
+    //GuiGlobals::redrawAllGraphicsWindows();
+    //std::auto_ptr<EventUpdateAllGraphics> graphicsUpdate(new EventUpdateAllGraphics);
+    //EventManager::get()->sendEvent(graphicsUpdate.get());
+    
+    EventManager::get()->sendEvent(EventUpdateAllGraphics().getPointer());
+    
+    //EventUpdateAllGraphics ue;
+    //EventManager::get()->sendEvent((Event*)&ue);
 }
 
 /**
@@ -220,4 +244,5 @@ Actions::processCaptureImageSequenceAction()
 {
     
 }
+
 
