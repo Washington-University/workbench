@@ -23,6 +23,7 @@
  */ 
 
 #include <algorithm>
+#include <typeinfo>
 
 #define __EVENT_MANAGER_MAIN__
 #include "Event.h"
