@@ -26,6 +26,8 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "CommandClassCreate.h"
+#include "CommandClassCreateEnum.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -64,6 +66,8 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandClassCreate());
+    this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandUnitTest());
 }
 
