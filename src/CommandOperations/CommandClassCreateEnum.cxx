@@ -28,6 +28,7 @@
 
 #include "CaretAssertion.h"
 #include "CommandClassCreateEnum.h"
+#include "FileInformation.h"
 #include "ProgramParameters.h"
 #include "TextFile.h"
 
@@ -79,6 +80,19 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
     if (enumClassName[0].isLower()) {
         errorMessage += "First letter of class name must be upper case.\n";
     }
+
+    const AString headerFileName = enumClassName + ".h";
+    const AString implementationFileName = enumClassName + ".cxx";
+    
+    FileInformation headerInfo(headerFileName);
+    if (headerInfo.exists()) {
+        errorMessage += headerFileName + " exists and this command will not overwrite it.\n";
+    }
+    FileInformation impInfo(implementationFileName);
+    if (impInfo.exists()) {
+        errorMessage += implementationFileName + " exists and this command will not overwrite it.\n";
+    }
+    
     if (errorMessage.isEmpty() == false) {
         throw CommandException(errorMessage);
     }    
@@ -89,12 +103,14 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
                         ifndefName, 
                         ifdefNameStaticDeclarations);
     
-    this->createHeaderFile(enumClassName, 
+    this->createHeaderFile(headerFileName,
+                           enumClassName, 
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
                            numberOfEnumValues);
     
-    this->createImplementationFile(enumClassName, 
+    this->createImplementationFile(implementationFileName,
+                                   enumClassName, 
                                    ifdefNameStaticDeclarations, 
                                    numberOfEnumValues);
 }
@@ -102,6 +118,8 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
 /**
  * Create and write the header (.h) file.
  *     
+ * @param outputFileName
+ *    Name for file that is written.
  * @param enumClassName
  *    Name of enumerated type class.
  * @param ifdefName
@@ -112,7 +130,8 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
  *    Number of enumerated type values.
  */
 void 
-CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
+CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
+                                         const AString& enumClassName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
                                          const int32_t numberOfEnumValues)
@@ -198,13 +217,11 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     
     t += ("#endif  //" + ifndefName + "\n");
 
-    const AString filename = (enumClassName + ".h");
-    
     TextFile tf;
     tf.replaceText(t);
     
     try {
-        tf.writeFile(filename);
+        tf.writeFile(outputFileName);
     }
     catch (DataFileException e) {
         throw CommandException(e);
@@ -214,6 +231,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
 /**
  * Create and write the implementation (.cxx) file.
  *     
+ * @param outputFileName
+ *    Name for file that is written.
  * @param enumClassName
  *    Name of enumerated type class.
  * @param ifdefNameStaticDeclaration
@@ -222,7 +241,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
  *    Number of enumerated type values.
  */
 void 
-CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
+CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
+                                                 const AString& enumClassName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const int32_t numberOfEnumValues)
 {
@@ -457,13 +477,11 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += ("}\n");
     t += ("\n");
 
-    const AString filename = (enumClassName + ".cxx");
-    
     TextFile tf;
     tf.replaceText(t);
     
     try {
-        tf.writeFile(filename);
+        tf.writeFile(outputFileName);
     }
     catch (DataFileException e) {
         throw CommandException(e);

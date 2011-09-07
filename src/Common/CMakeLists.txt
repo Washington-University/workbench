@@ -34,6 +34,7 @@ EventListenerInterface.h
 EventLoadSurfaceFile.h
 EventManager.h
 EventUpdateAllGraphics.h
+FileInformation.h
 MathFunctions.h
 MessageManager.h
 ProgramParameters.h
@@ -57,6 +58,7 @@ Event.cxx
 EventLoadSurfaceFile.cxx
 EventManager.cxx
 EventUpdateAllGraphics.cxx
+FileInformation.cxx
 MathFunctions.cxx
 MessageManager.cxx
 ProgramParameters.cxx

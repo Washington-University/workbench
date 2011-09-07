@@ -48,12 +48,14 @@ namespace caret {
 
         CommandClassCreateEnum& operator=(const CommandClassCreateEnum&);
         
-        void createHeaderFile(const AString& enumClassName,
+        void createHeaderFile(const AString& outputFileName,
+                              const AString& enumClassName,
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
                               const int32_t numberOfEnumValues);
         
-        void createImplementationFile(const AString& enumClassName,
+        void createImplementationFile(const AString& outputFileName,
+                                      const AString& enumClassName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const int32_t numberOfEnumValues);
     };

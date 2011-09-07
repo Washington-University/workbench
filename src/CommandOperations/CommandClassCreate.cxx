@@ -28,6 +28,7 @@
 
 #include "CaretAssertion.h"
 #include "CommandClassCreate.h"
+#include "FileInformation.h"
 #include "ProgramParameters.h"
 #include "TextFile.h"
 
@@ -66,13 +67,19 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                                                                ProgramParametersException)
 {
     const AString className = parameters.nextString("Class Name");
-    const AString derivedFromClassName = parameters.nextString("Derived From Class Name");
+    AString derivedFromClassName = "CaretObject";
     
     bool hasCopyAndAssignment = false;
     while (parameters.hasNext()) {
         const AString& param = parameters.nextString("Create Class Parameter");
         if (param == "-copy") {
             hasCopyAndAssignment = true;
+        }
+        else if (param == "-base") {
+            derivedFromClassName = parameters.nextString("Derived From Class Name");
+        }
+        else if (param == "-no-base") {
+            derivedFromClassName = "";
         }
         else {
             throw CommandException("Invalid parameter: " + param);
@@ -86,6 +93,19 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
     if (className[0].isLower()) {
         errorMessage += "First letter of class name must be upper case.\n";
     }
+    
+    const AString headerFileName = className + ".h";
+    const AString implementationFileName = className + ".cxx";
+    
+    FileInformation headerInfo(headerFileName);
+    if (headerInfo.exists()) {
+        errorMessage += headerFileName + " exists and this command will not overwrite it.\n";
+    }
+    FileInformation impInfo(implementationFileName);
+    if (impInfo.exists()) {
+        errorMessage += implementationFileName + " exists and this command will not overwrite it.\n";
+    }
+
     if (errorMessage.isEmpty() == false) {
         throw CommandException(errorMessage);
     }    
@@ -96,13 +116,15 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
                         ifndefName, 
                         ifdefNameStaticDeclarations);
     
-    this->createHeaderFile(className, 
+    this->createHeaderFile(headerFileName,
+                           className, 
                            derivedFromClassName,
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
                            hasCopyAndAssignment);
     
-    this->createImplementationFile(className, 
+    this->createImplementationFile(implementationFileName,
+                                   className, 
                                    derivedFromClassName,
                                    ifdefNameStaticDeclarations, 
                                    hasCopyAndAssignment);
@@ -111,6 +133,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
 /**
  * Create and write the header (.h) file.
  *     
+ * @param outputFileName
+ *    Name for file that is written.
  * @param className
  *    Name of class.
  * @param derivedFromClassName
@@ -123,7 +147,8 @@ CommandClassCreate::executeOperation(ProgramParameters& parameters) throw (Comma
  *    Has copy constructor and assignment operator.
  */
 void 
-CommandClassCreate::createHeaderFile(const AString& className,
+CommandClassCreate::createHeaderFile(const AString& outputFileName,
+                                     const AString& className,
                                      const AString& derivedFromClassName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
@@ -150,6 +175,10 @@ CommandClassCreate::createHeaderFile(const AString& className,
     t += ("    /// <REPLACE WITH DESCRIPTION OF CLASS>\n");
     t += ("    class " + className + derivedFromDeclaration + " {\n");
     t += ("        \n");
+    if (derivedFromClassName.startsWith("Q")) {
+        t += ("        Q_OBJECT\n");
+        t += ("\n");
+    }
     t += ("    public:\n");
     t += ("        " + className + "();\n");
     t += ("        \n");
@@ -163,12 +192,12 @@ CommandClassCreate::createHeaderFile(const AString& className,
         t += ("        \n");
     }
     else {
-        t += ("private:\n");
+        t += ("    private:\n");
         t += ("        " + className + "(const " + className + "&);\n");
         t += ("\n");
         t += ("        " + className + "& operator=(const " + className + "&);\n");
         t += ("        \n");
-        t += ("public:\n");
+        t += ("    public:\n");
     }
     
     if (derivedFromClassName == "CaretObject") {
@@ -194,13 +223,11 @@ CommandClassCreate::createHeaderFile(const AString& className,
     
     t += ("#endif  //" + ifndefName + "\n");
     
-    const AString filename = (className + ".h");
-    
     TextFile tf;
     tf.replaceText(t);
     
     try {
-        tf.writeFile(filename);
+        tf.writeFile(outputFileName);
     }
     catch (DataFileException e) {
         throw CommandException(e);
@@ -210,6 +237,8 @@ CommandClassCreate::createHeaderFile(const AString& className,
 /**
  * Create and write the implementation (.cxx) file.
  *     
+ * @param outputFileName
+ *    Name for file that is written.
  * @param className
  *    Name of class.
  * @param ifdefNameStaticDeclaration
@@ -218,7 +247,8 @@ CommandClassCreate::createHeaderFile(const AString& className,
  *    Has copy constructor and assignment operator.
  */
 void 
-CommandClassCreate::createImplementationFile(const AString& className,
+CommandClassCreate::createImplementationFile(const AString& outputFileName,
+                                             const AString& className,
                                              const AString& derivedFromClassName,
                                                  const AString& ifdefNameStaticDeclaration,
                                                  const bool hasCopyAndAssignment)
@@ -309,13 +339,11 @@ CommandClassCreate::createImplementationFile(const AString& className,
         t += ("}\n");
     }
 
-    const AString filename = (className + ".cxx");
-    
     TextFile tf;
     tf.replaceText(t);
     
     try {
-        tf.writeFile(filename);
+        tf.writeFile(outputFileName);
     }
     catch (DataFileException e) {
         throw CommandException(e);

@@ -34,10 +34,7 @@ namespace caret {
 
     class GiftiFile;
     
-    /**
-     * Encapsulates a GiftiFile for use by 
-     * specific types of GIFTI data files.
-     */
+    /// Encapsulates a GiftiFile for use by specific types of GIFTI data files.
     class GiftiTypeFile : public DataFile {
         
     protected:

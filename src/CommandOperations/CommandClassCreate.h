@@ -49,13 +49,15 @@ namespace caret {
         CommandClassCreate& operator=(const CommandClassCreate&);
         
         
-        void createHeaderFile(const AString& className,
+        void createHeaderFile(const AString& outputFileName,
+                              const AString& className,
                               const AString& derivedFromClassName,
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
                               const bool hasCopyAndAssignment);
         
-        void createImplementationFile(const AString& className,
+        void createImplementationFile(const AString& outputFileName,
+                                      const AString& className,
                                       const AString& derivedFromClassName,
                                       const AString& ifdefNameStaticDeclaration,
                                       const bool hasCopyAndAssignment);
