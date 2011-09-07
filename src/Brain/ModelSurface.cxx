@@ -26,7 +26,7 @@
 #include <cmath>
 
 #include "BoundingBox.h"
-#include "ModelControllerSurface.h"
+#include "ModelSurface.h"
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
@@ -40,23 +40,23 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelControllerSurface::ModelControllerSurface(Brain* brain,
+ModelSurface::ModelSurface(Brain* brain,
                              Surface* surface)
-    : ModelController(brain, true, true)
+    : ModelBase(brain, true, true)
 {
-    this->initializeMembersModelControllerSurface();
+    this->initializeMembersModelSurface();
     this->surface = surface;
 }
 
 /**
  * Destructor
  */
-ModelControllerSurface::~ModelControllerSurface()
+ModelSurface::~ModelSurface()
 {
 }
 
 void
-ModelControllerSurface::initializeMembersModelControllerSurface()
+ModelSurface::initializeMembersModelSurface()
 {
     this->surface = NULL;
 }
@@ -67,7 +67,7 @@ ModelControllerSurface::initializeMembersModelControllerSurface()
  *
  */
 Surface*
-ModelControllerSurface::getSurface()
+ModelSurface::getSurface()
 {
     return this->surface;
 }
@@ -81,7 +81,7 @@ ModelControllerSurface::getSurface()
  *
  */
 AString
-ModelControllerSurface::getNameForGUI(const bool includeStructureFlag) const
+ModelSurface::getNameForGUI(const bool includeStructureFlag) const
 {
     return "ModelControllerSurface::getNameForGUI_NEEDS_IMPLEMENTATION";
 }
@@ -91,7 +91,7 @@ ModelControllerSurface::getNameForGUI(const bool includeStructureFlag) const
  *
  */
 void
-ModelControllerSurface::setDefaultScalingToFitWindow()
+ModelSurface::setDefaultScalingToFitWindow()
 {
     BoundingBox bounds;
     this->surface->getBounds(bounds);

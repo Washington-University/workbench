@@ -23,6 +23,7 @@ ByteOrderEnum.h
 ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
+CaretConstants.h
 CaretException.h
 CaretObject.h
 CaretWindowEnum.h
@@ -48,6 +49,7 @@ BoundingBox.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
+CaretConstants.cxx
 CaretException.cxx
 CaretObject.cxx
 CaretWindowEnum.cxx

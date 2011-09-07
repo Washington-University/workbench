@@ -1,5 +1,5 @@
-#ifndef __MODEL_CONTROLLER_SURFACE_H__
-#define __MODEL_CONTROLLER_SURFACE_H__
+#ifndef __MODEL_SURFACE_H__
+#define __MODEL_SURFACE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,7 +26,7 @@
  */ 
 
 
-#include "ModelController.h"
+#include "ModelBase.h"
 
 
 
@@ -34,26 +34,25 @@ namespace caret {
 
     class Brain;
     class Surface;
-    /**
-     * Controls views of a surface.
-     */
-    class ModelControllerSurface : public ModelController {
+    
+    /// Controls views of a surface.
+    class ModelSurface : public ModelBase {
         
     public:
-        ModelControllerSurface(Brain* brain,
+        ModelSurface(Brain* brain,
                       Surface* surface);
         
-        virtual ~ModelControllerSurface();
+        virtual ~ModelSurface();
         
     private:
-        ModelControllerSurface(const ModelControllerSurface& o);
+        ModelSurface(const ModelSurface& o);
         
-        ModelControllerSurface& operator=(const ModelControllerSurface& o);
+        ModelSurface& operator=(const ModelSurface& o);
         
     private:
-        void copyHelper(const ModelControllerSurface& o);
+        void copyHelper(const ModelSurface& o);
         
-        void initializeMembersModelControllerSurface();
+        void initializeMembersModelSurface();
         
     public:
         Surface* getSurface();
@@ -63,11 +62,11 @@ namespace caret {
         void setDefaultScalingToFitWindow();
         
     private:
-        /**Surface in this controller */
+        /**Surface that uses this model */
         Surface* surface;
         
     };
 
 } // namespace
 
-#endif // __MODEL_CONTROLLER_SURFACE_H__
+#endif // __MODEL_SURFACE_H__

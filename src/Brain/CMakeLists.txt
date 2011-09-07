@@ -45,15 +45,17 @@ ADD_LIBRARY(Brain
 Brain.h
 BrainOpenGL.h
 BrainStructure.h
-ModelController.h
-ModelControllerSurface.h
+BrowserTabContent.h
+ModelBase.h
+ModelSurface.h
 Surface.h
 
 Brain.cxx
 BrainOpenGL.cxx
 BrainStructure.cxx
-ModelController.cxx
-ModelControllerSurface.cxx
+BrowserTabContent.cxx
+ModelBase.cxx
+ModelSurface.cxx
 Surface.cxx
 )
 

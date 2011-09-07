@@ -1,5 +1,5 @@
-#ifndef __MODEL_CONTROLLER_H__
-#define __MODEL_CONTROLLER_H__
+#ifndef __MODEL_BASE_H__
+#define __MODEL_BASE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -35,24 +35,22 @@ namespace caret {
 
     class Brain;
     
-    /**
-     * Controls some type of object.
-     */
-    class ModelController : public CaretObject {
+    /// Base class for views a model
+    class ModelBase : public CaretObject {
         
     protected:
-        ModelController(Brain* brain,
+        ModelBase(Brain* brain,
                const bool allowsYokingFlag,
                const bool allowsRotationFlag);
         
-        virtual ~ModelController();
+        virtual ~ModelBase();
         
         
     private:        
-        ModelController(const ModelController& o);
-        ModelController& operator=(const ModelController& o);
+        ModelBase(const ModelBase& o);
+        ModelBase& operator=(const ModelBase& o);
         
-        void initializeMembersModelController();
+        void initializeMembersModelBase();
         
     public:
         Brain* getBrain() const;
@@ -63,43 +61,43 @@ namespace caret {
         
         bool isYokeable() const;
         
-        void copyTransformations(const ModelController& controller,
-                                 const int32_t windowIndexSource,
-                                 const int32_t windowIndexTarget);
+        void copyTransformations(const ModelBase& controller,
+                                 const int32_t windowTabNumberSource,
+                                 const int32_t windowTabNumberTarget);
         
-        Matrix4x4* getViewingRotationMatrix(const int32_t windowIndex) const;
+        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber) const;
         
-        const float* getTranslation(const int32_t windowIndex) const;
+        const float* getTranslation(const int32_t windowTabNumber) const;
         
-        void setTranslation(const int32_t windowIndex,
+        void setTranslation(const int32_t windowTabNumber,
                             const float t[]);
         
-        void setTranslation(const int32_t windowIndex,
+        void setTranslation(const int32_t windowTabNumber,
                             const float tx,
                             const float ty,
                             const float tz);
         
-        float getScaling(const int32_t windowIndex) const;
+        float getScaling(const int32_t windowTabNumber) const;
         
-        void setScaling(const int32_t windowIndex,
+        void setScaling(const int32_t windowTabNumber,
                         const float s);
         
-        void resetView(const int32_t windowIndex);
+        void resetView(const int32_t windowTabNumber);
         
-        void rightView(const int32_t windowIndex);
+        void rightView(const int32_t windowTabNumber);
         
-        void leftView(const int32_t windowIndex);
+        void leftView(const int32_t windowTabNumber);
         
-        void anteriorView(const int32_t windowIndex);
+        void anteriorView(const int32_t windowTabNumber);
         
-        void posteriorView(const int32_t windowIndex);
+        void posteriorView(const int32_t windowTabNumber);
         
-        void dorsalView(const int32_t windowIndex);
+        void dorsalView(const int32_t windowTabNumber);
         
-        void ventralView(const int32_t windowIndex);
+        void ventralView(const int32_t windowTabNumber);
         
         void setTransformation(
-                               const int32_t windowIndex,
+                               const int32_t windowTabNumber,
                                const std::vector<float>& transformationData);
         
         virtual AString toString() const;
@@ -119,7 +117,7 @@ namespace caret {
         std::vector<Matrix4x4*> viewingRotationMatrix;
         
         /**translation. */
-        std::vector<float> translation;;
+        std::vector<float> translation;
         
         /**scaling. */
         std::vector<float> scaling;
@@ -133,4 +131,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __MODEL_CONTROLLER_H__
+#endif // __MODEL_BASE_H__

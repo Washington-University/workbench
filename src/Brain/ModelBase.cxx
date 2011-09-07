@@ -23,10 +23,11 @@
  */ 
 
 
-#include "ModelController.h"
+#include "ModelBase.h"
 
 #include "Brain.h"
-#include "CaretWindowEnum.h"
+#include "CaretConstants.h"
+#include "CaretAssert.h"
 #include "Matrix4x4.h"
 
 using namespace caret;
@@ -38,12 +39,12 @@ using namespace caret;
  * @param allowsRotationFlag This controller can be rotated.
  *
  */
-ModelController::ModelController(Brain* brain,
+ModelBase::ModelBase(Brain* brain,
                const bool allowsYokingFlag,
                const bool allowsRotationFlag)
     : CaretObject()
 {
-    this->initializeMembersModelController();
+    this->initializeMembersModelBase();
     this->brain = brain;
     this->initializeTransformations();
     this->allowsRotationFlag = allowsRotationFlag;
@@ -53,7 +54,7 @@ ModelController::ModelController(Brain* brain,
 /**
  * Destructor
  */
-ModelController::~ModelController()
+ModelBase::~ModelBase()
 {
     for (uint64_t i = 0; i < this->viewingRotationMatrix.size(); i++) {
         delete this->viewingRotationMatrix[i];
@@ -61,7 +62,7 @@ ModelController::~ModelController()
 }
 
 void
-ModelController::initializeMembersModelController()
+ModelBase::initializeMembersModelBase()
 {
     this->defaultModelScaling = 1.0f;
     this->allowsYokingFlag = false;
@@ -74,7 +75,7 @@ ModelController::initializeMembersModelController()
  *
  */
 Brain*
-ModelController::getBrain() const
+ModelBase::getBrain() const
 {
     return this->brain;
 }
@@ -84,21 +85,21 @@ ModelController::getBrain() const
  *
  */
 void
-ModelController::initializeTransformations()
+ModelBase::initializeTransformations()
 {
-    this->viewingRotationMatrix.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS);
-    this->translation.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS * 3);
-    this->scaling.reserve(CaretWindowEnum::NUMBER_OF_WINDOWS);
+    this->viewingRotationMatrix.reserve(CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
+    this->translation.reserve(CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS * 3);
+    this->scaling.reserve(CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS);
     
-    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->viewingRotationMatrix.push_back(new Matrix4x4());
         this->scaling.push_back(this->defaultModelScaling);
     }
-    for (int32_t i = 0; i < (CaretWindowEnum::NUMBER_OF_WINDOWS * 3); i++) {
+    for (int32_t i = 0; i < (CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS * 3); i++) {
         this->translation.push_back(0.0f);
     }
     
-    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < CaretConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->resetView(i);
     }
 }
@@ -112,7 +113,7 @@ ModelController::initializeTransformations()
  *
  */
 bool
-ModelController::isRotationAllowed() const
+ModelBase::isRotationAllowed() const
 {
     return this->allowsRotationFlag;
 }
@@ -125,7 +126,7 @@ ModelController::isRotationAllowed() const
  *
  */
 bool
-ModelController::isYokeable() const
+ModelBase::isYokeable() const
 {
     return this->allowsYokingFlag;
 }
@@ -135,70 +136,74 @@ ModelController::isYokeable() const
  * the structure model to another window.
  *
  * @param controller           Source structure model
- * @param windowSourceID   windowIndex of source transformation.
- * @param windowTargetID   windowIndex of target transformation.
+ * @param windowTabNumberSource   windowTabNumber of source transformation.
+ * @param windowTabNumberTarget   windowTabNumber of target transformation.
  *
  */
 void
-ModelController::copyTransformations(
-                   const ModelController& controller,
-                   const int32_t windowIndexSource,
-                   const int32_t windowIndexTarget)
+ModelBase::copyTransformations(
+                   const ModelBase& controller,
+                   const int32_t windowTabNumberSource,
+                   const int32_t windowTabNumberTarget)
 {
-    if (windowIndexSource == windowIndexTarget) {
+    if (windowTabNumberSource == windowTabNumberTarget) {
         return;
     }
     
-    const int32_t it3 = windowIndexTarget * 3;
-    const int32_t is3 = windowIndexSource * 3;
-    translation[it3] = controller.translation[is3];
-    translation[it3+1] = controller.translation[is3+1];
-    translation[it3+2] = controller.translation[is3+2];
-    scaling[windowIndexTarget] = controller.scaling[windowIndexSource];
+    const int32_t it3 = windowTabNumberTarget * 3;
+    const int32_t is3 = windowTabNumberSource * 3;
     
-    viewingRotationMatrix[windowIndexTarget]->setMatrix(*controller.getViewingRotationMatrix(windowIndexSource));
+    CaretAssertVectorIndex(controller.translation, is3+2);
+    CaretAssertVectorIndex(this->translation, it3 + 2);
+    
+    this->translation[it3] = controller.translation[is3];
+    this->translation[it3+1] = controller.translation[is3+1];
+    this->translation[it3+2] = controller.translation[is3+2];
+    this->scaling[windowTabNumberTarget] = controller.scaling[windowTabNumberSource];
+    
+    this->viewingRotationMatrix[windowTabNumberTarget]->setMatrix(*controller.getViewingRotationMatrix(windowTabNumberSource));
 }
 
 /**
  * the viewing rotation matrix.
  *
- * @param  windowIndex  Window for which rotation is requested
+ * @param  windowTabNumber  Window for which rotation is requested
  * @return Reference to the viewing rotation matrix.
  *
  */
 Matrix4x4*
-ModelController::getViewingRotationMatrix(const int32_t windowIndex) const
+ModelBase::getViewingRotationMatrix(const int32_t windowTabNumber) const
 {
-    return this->viewingRotationMatrix[windowIndex];
+    return this->viewingRotationMatrix[windowTabNumber];
 }
 
 /**
  * get the translation.
  *
- * @param  windowIndex  Window for which translation is requested
+ * @param  windowTabNumber  Window for which translation is requested
  * @return  The translation, an array of three floats.
  *
  */
 const float*
-ModelController::getTranslation(const int32_t windowIndex) const
+ModelBase::getTranslation(const int32_t windowTabNumber) const
 {
-    const int32_t i3 = windowIndex * 3;
+    const int32_t i3 = windowTabNumber * 3;
     return &this->translation[i3];
 }
 
 /**
  * set the translation.
  *
- * @param  windowIndex  Window for which translation is requested
+ * @param  windowTabNumber  Window for which translation is requested
  * @param  t  The translation, an array of three floats.
  *
  */
 void
-ModelController::setTranslation(
-                   const int32_t windowIndex,
+ModelBase::setTranslation(
+                   const int32_t windowTabNumber,
                    const float t[])
 {
-    const int32_t i3 = windowIndex * 3;
+    const int32_t i3 = windowTabNumber * 3;
     this->translation[i3]   = t[0];
     this->translation[i3+1] = t[1];
     this->translation[i3+2] = t[2];
@@ -207,20 +212,20 @@ ModelController::setTranslation(
 /**
  * set the translation.
  *
- * @param  windowIndex  Window for which translation is requested
+ * @param  windowTabNumber  Window for which translation is requested
  * @param  tx - The x-coordinate of the translation.
  * @param  ty - The y-coordinate of the translation.
  * @param  tz - The z-coordinate of the translation.
  *
  */
 void
-ModelController::setTranslation(
-                   const int32_t windowIndex,
+ModelBase::setTranslation(
+                   const int32_t windowTabNumber,
                    const float tx,
                    const float ty,
                    const float tz)
 {
-    const int32_t i3 = windowIndex * 3;
+    const int32_t i3 = windowTabNumber * 3;
     this->translation[i3]   = tx;
     this->translation[i3+1] = ty;
     this->translation[i3+2] = tz;
@@ -229,121 +234,121 @@ ModelController::setTranslation(
 /**
  * get the scaling.
  *
- * @param  windowIndex  Window for which scaling is requested
+ * @param  windowTabNumber  Window for which scaling is requested
  * @return  Scaling value.
  *
  */
 float
-ModelController::getScaling(const int32_t windowIndex) const
+ModelBase::getScaling(const int32_t windowTabNumber) const
 {
-    return this->scaling[windowIndex];
+    return this->scaling[windowTabNumber];
 }
 
 /**
  * set the scaling.
  *
- * @param  windowIndex  Window for which scaling is requested
+ * @param  windowTabNumber  Window for which scaling is requested
  * @param  s  The scaling value.
  *
  */
 void
-ModelController::setScaling(
-                   const int32_t windowIndex,
+ModelBase::setScaling(
+                   const int32_t windowTabNumber,
                    const float s)
 {
-    this->scaling[windowIndex] = s;
+    this->scaling[windowTabNumber] = s;
 }
 
 /**
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  * reset the view.
  *
  */
 void
-ModelController::resetView(const int32_t windowIndex)
+ModelBase::resetView(const int32_t windowTabNumber)
 {
-    this->setTranslation(windowIndex, 0.0f, 0.0f, 0.0f);
-    this->viewingRotationMatrix[windowIndex]->identity();
-    this->setScaling(windowIndex, this->defaultModelScaling);
+    this->setTranslation(windowTabNumber, 0.0f, 0.0f, 0.0f);
+    this->viewingRotationMatrix[windowTabNumber]->identity();
+    this->setScaling(windowTabNumber, this->defaultModelScaling);
 }
 
 /**
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  * set to a right side view.
  *
  */
 void
-ModelController::rightView(const int32_t windowIndex)
+ModelBase::rightView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
-    viewingRotationMatrix[windowIndex]->rotateY(-90.0);
-    viewingRotationMatrix[windowIndex]->rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber]->identity();
+    viewingRotationMatrix[windowTabNumber]->rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber]->rotateZ(-90.0);
 }
 
 /**
  * set to a left side view.
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  *
  */
 void
-ModelController::leftView(const int32_t windowIndex)
+ModelBase::leftView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
-    viewingRotationMatrix[windowIndex]->rotateY(90.0);
-    viewingRotationMatrix[windowIndex]->rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber]->identity();
+    viewingRotationMatrix[windowTabNumber]->rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber]->rotateZ(90.0);
 }
 
 /**
  * set to a anterior view.
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  *
  */
 void
-ModelController::anteriorView(const int32_t windowIndex)
+ModelBase::anteriorView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
-    viewingRotationMatrix[windowIndex]->rotateX(-90.0);
-    viewingRotationMatrix[windowIndex]->rotateY(180.0);}
+    viewingRotationMatrix[windowTabNumber]->identity();
+    viewingRotationMatrix[windowTabNumber]->rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber]->rotateY(180.0);}
 
 /**
  * set to a posterior view.
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  *
  */
 void
-ModelController::posteriorView(const int32_t windowIndex)
+ModelBase::posteriorView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
-    viewingRotationMatrix[windowIndex]->rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber]->identity();
+    viewingRotationMatrix[windowTabNumber]->rotateX(-90.0);
 }
 
 /**
  * set to a dorsal view.
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  *
  */
 void
-ModelController::dorsalView(const int32_t windowIndex)
+ModelBase::dorsalView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
+    viewingRotationMatrix[windowTabNumber]->identity();
 }
 
 /**
  * set to a ventral view.
- * @param  windowIndex  Window for which view is requested
+ * @param  windowTabNumber  Window for which view is requested
  *
  */
 void
-ModelController::ventralView(const int32_t windowIndex)
+ModelBase::ventralView(const int32_t windowTabNumber)
 {
-    viewingRotationMatrix[windowIndex]->identity();
-    viewingRotationMatrix[windowIndex]->rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber]->identity();
+    viewingRotationMatrix[windowTabNumber]->rotateY(-180.0);
 }
 
 /**
  * Set the transformation.
  *
- * @param windowIndex  Window of this view.
+ * @param windowTabNumber  Window of this view.
  * @param transformationData - the transformation data:
  *          translation(3)
  *          viewing matrix[4][4],
@@ -351,14 +356,14 @@ ModelController::ventralView(const int32_t windowIndex)
  *
  */
 void
-ModelController::setTransformation(
-                   const int32_t windowIndex,
+ModelBase::setTransformation(
+                   const int32_t windowTabNumber,
                    const std::vector<float>& transformationData)
 {
     uint32_t ctr = 0;
     
     if (transformationData.size() >= (ctr + 3)) {
-        this->setTranslation(windowIndex,
+        this->setTranslation(windowTabNumber,
                             transformationData[ctr + 0],
                             transformationData[ctr + 1],
                             transformationData[ctr + 2]);
@@ -368,7 +373,7 @@ ModelController::setTransformation(
     if (transformationData.size() >= (ctr + 16)) {
         for (int j = 0; j < 4; j++) {
             for (int i = 0; i < 4; i++) {
-                this->viewingRotationMatrix[windowIndex]->setMatrixElement(
+                this->viewingRotationMatrix[windowTabNumber]->setMatrixElement(
                         i, j, transformationData[ctr]);
                 ctr++;
             }
@@ -376,7 +381,7 @@ ModelController::setTransformation(
     }
     
     if (transformationData.size() >= (ctr + 17)) {
-        this->setScaling(windowIndex, transformationData[ctr]);
+        this->setScaling(windowTabNumber, transformationData[ctr]);
         ctr++;
     }
 }
@@ -389,7 +394,7 @@ ModelController::setTransformation(
  *
  */
 AString
-ModelController::toString() const
+ModelBase::toString() const
 {
        return this->getNameForGUI(true);
 }
@@ -401,7 +406,7 @@ ModelController::toString() const
  *
  */
 AString
-ModelController::toDescriptiveString() const
+ModelBase::toDescriptiveString() const
 {
     AString s = CaretObject::toString();
     
