@@ -89,9 +89,9 @@ CommandClassCreateBase::start(const AString& className,
     this->header("#ifndef " + this->ifndefName);
     this->header("#define " + this->ifndefName);
 
-    this->addCopyright(this->headerText);
+    this->headerText.append(this->getCopyright());
     
-    this->addCopyright(this->implementationText);
+    this->implementationText.append(this->getCopyright());
     
     if (includeFileNames.empty() == false) {
         for (std::vector<AString>::const_iterator iter = includeFileNames.begin();
@@ -552,9 +552,34 @@ CommandClassCreateBase::imp(const AString& text)
 }
 
 void 
-CommandClassCreateBase::addCopyright(AString& text)
+CommandClassCreateBase::getIfDefNames(const AString& classNameIn,
+                                      AString& ifdefNameOut,
+                                      AString& ifdefNameStaticDeclarationOut)
+{
+    ifdefNameOut = "";
+    ifdefNameStaticDeclarationOut = "";
+    
+    const int32_t classNameLength = classNameIn.length();
+    ifdefNameOut += "_";
+    for (int32_t i = 0; i < classNameLength; i++) {
+        QChar c = classNameIn[i];
+        if (c.isUpper()) {
+            ifdefNameOut += "_";
+        }
+        ifdefNameOut += c.toUpper();
+    }
+    
+    ifdefNameStaticDeclarationOut = this->ifndefName + "_DECLARE__";
+    ifdefNameOut += "__H_";
+    
+    
+}
+
+AString 
+CommandClassCreateBase::getCopyright()
 {
     const AString year = "2011";
+    AString text;
     
     text.append("\n");
     text.append("/*LICENSE_START*/\n");
@@ -581,6 +606,8 @@ CommandClassCreateBase::addCopyright(AString& text)
     text.append(" * \n");
     text.append(" */ \n");
     text.append("\n");
+    
+    return text;
 }
 
 void 

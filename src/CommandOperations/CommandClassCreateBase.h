@@ -131,7 +131,11 @@ namespace caret {
         
         void imp(const AString& text);
         
-        void addCopyright(AString& text);
+        AString getCopyright();
+        
+        void getIfDefNames(const AString& className,
+                           AString& ifdefName,
+                           AString& ifdefNameStaticDeclaration);
         
         void createFileNames() throw (CommandException);
         
