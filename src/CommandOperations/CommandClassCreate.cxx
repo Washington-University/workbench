@@ -147,9 +147,7 @@ CommandClassCreate::createHeaderFile(const AString& className,
     t += ("\n");
 
     t += ("    \n");
-    t += ("    /**\n");
-    t += ("     * <REPLACE WITH DESCRIPTION OF CLASS>\n");
-    t += ("     */\n");
+    t += ("    /// <REPLACE WITH DESCRIPTION OF CLASS>\n");
     t += ("    class " + className + derivedFromDeclaration + " {\n");
     t += ("        \n");
     t += ("    public:\n");

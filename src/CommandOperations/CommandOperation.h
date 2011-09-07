@@ -34,9 +34,7 @@ namespace caret {
 
     class ProgramParameters;
     
-    /**
-     * Abstract class for a command operation.
-     */
+    /// Abstract class for a command operation.
     class CommandOperation : public CaretObject {
 
     public:

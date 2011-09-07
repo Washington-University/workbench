@@ -30,9 +30,7 @@
 
 namespace caret {
 
-    /**
-     * Command operation for unit testing.
-     */
+    /// Command operation for unit testing.
     class CommandUnitTest : public CommandOperation {
         
     public:

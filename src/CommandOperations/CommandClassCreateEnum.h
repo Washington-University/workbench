@@ -30,9 +30,7 @@
 
 namespace caret {
 
-    /**
-     * Command that creates class files for an enumerated type.
-     */
+    /// Command that creates class files for an enumerated type.
     class CommandClassCreateEnum : public CommandClassCreateBase {
         
     public:

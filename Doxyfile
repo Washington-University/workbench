@@ -10,19 +10,28 @@ EXTRACT_PRIVATE        = YES
 
 HAVE_DOT         = YES
 
-CALL_GRAPH = YES
+CALL_GRAPH = NO
+CALLER_GRAPH = NO
+COLLABORATION_GRAPH = NO
 
-CALLER_GRAPH = YES
+GENERATE_HTML = YES
+GENERATE_LATEX = NO
+GERERATE_MAN = NO
+GENERATE_RTF = NO
+
 
 INPUT = \
-	src/Common \
-	src/Xml \
-	src/Nifti \
-	src/Gifti \
-	src/Files \
 	src/Brain \
+	src/Cifti \
+	src/CommandLine \
+	src/CommandOperations \
+	src/Common \
+	src/Desktop \
+	src/Files \
+	src/Gifti \
 	src/GuiQt \
-	src/Desktop
+	src/Nifti \
+	src/Xml
 
 
 FILE_PATTERNS          = *.h *.cxx

@@ -130,9 +130,7 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
-    t += ("/**\n");
-    t += (" * Enumerated type for \n");
-    t += (" */\n");
+    t += ("/// Enumerated type for \n");
     t += ("class " + enumClassName + " {\n");
     t += ("\n");
     t += ("public:\n");

@@ -32,9 +32,7 @@
 
 namespace caret {
 
-/**
- * An exception thrown during command processing.
- */
+/// An exception thrown during command processing.
 class CommandException : public CaretException {
 
 public:

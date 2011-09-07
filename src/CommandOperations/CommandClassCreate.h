@@ -30,9 +30,7 @@
 
 namespace caret {
 
-    /**
-     * Command that creates class files.
-     */
+    /// Command that creates class files.
     class CommandClassCreate : public CommandClassCreateBase {
         
     public:

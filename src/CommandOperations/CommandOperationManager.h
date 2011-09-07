@@ -36,9 +36,7 @@ namespace caret {
     class CommandOperation;
     class ProgramParameters;
     
-    /**
-     * Manages all command operations.
-     */
+    /// Manages all command operations.
     class CommandOperationManager : public CaretObject {
         
     public:
