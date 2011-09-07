@@ -1,5 +1,5 @@
-#ifndef __COMMAND_CLASS_CREATE_BASE_H__
-#define __COMMAND_CLASS_CREATE_BASE_H__
+#ifndef __TEXT_FILE_H__
+#define __TEXT_FILE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,39 +26,50 @@
  */ 
 
 
-#include "CommandOperation.h"
+#include <AString.h>
+
+#include "DataFile.h"
 
 namespace caret {
-
+    
     /**
-     * Base class for creating class files.
+     * A simple text file.
      */
-    class CommandClassCreateBase : public CommandOperation {
-        
-    protected:
-        CommandClassCreateBase(const AString& commandLineSwitch,
-                               const AString& operationShortDescription);
+    class TextFile : public DataFile {
         
     public:
-        virtual ~CommandClassCreateBase();
-
+        TextFile();
+        
+        virtual ~TextFile();
+        
     private:
+        TextFile(const TextFile&);
         
-        CommandClassCreateBase(const CommandClassCreateBase&);
-
-        CommandClassCreateBase& operator=(const CommandClassCreateBase&);
-
-    protected:
-        AString getIncludeDeclaration(const AString& includeFileName) const;
+        TextFile& operator=(const TextFile&);
         
-        AString getCopyright();
+    public:
+        virtual void clear();
         
-        void getIfDefNames(const AString& className,
-                           AString& ifdefName,
-                           AString& ifdefNameStaticDeclaration);
+        virtual bool isEmpty() const;
         
+        virtual void readFile(const AString& filename) throw (DataFileException);
+        
+        virtual void writeFile(const AString& filename) throw (DataFileException);
+        
+        virtual AString toString() const;
+        
+        AString getText() const;
+        
+        void replaceText(const AString& text);
+        
+        void addText(const AString& text);
+        
+        void addLine(const AString& text);
+        
+    private:
+        AString text;
     };
     
 } // namespace
 
-#endif // __COMMAND_CLASS_CREATE_BASE_H__
+#endif // __TEXT_FILE_H__

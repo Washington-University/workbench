@@ -22,12 +22,16 @@ Palette.h
 PaletteFile.h
 PaletteScalarAndColor.h
 SurfaceFile.h
+SurfaceTypeEnum.h
+TextFile.h
 
 GiftiTypeFile.cxx
 Palette.cxx
 PaletteFile.cxx
 PaletteScalarAndColor.cxx
 SurfaceFile.cxx
+SurfaceTypeEnum.cxx
+TextFile.cxx
 )
 
 

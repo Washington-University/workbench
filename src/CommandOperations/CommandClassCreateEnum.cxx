@@ -29,6 +29,7 @@
 #include "CaretAssertion.h"
 #include "CommandClassCreateEnum.h"
 #include "ProgramParameters.h"
+#include "TextFile.h"
 
 using namespace caret;
 
@@ -37,7 +38,7 @@ using namespace caret;
  */
 CommandClassCreateEnum::CommandClassCreateEnum()
 : CommandClassCreateBase("-class-create-enum",
-                         "CREATE CLASS FOR ENUMERATED TYPE")
+                         "CREATE SOURCE CODE CLASS FILES (.h, .cxx) FOR ENUMERATED TYPE")
 {
     
 }
@@ -65,7 +66,7 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
                                                                ProgramParametersException)
 {
     const AString enumClassName = parameters.nextString("Enum Class Name");
-    const int32_t numberOfEnumValues = 1;
+    const int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");
     
     if (enumClassName.isEmpty()) {
         throw CommandException("Enum class name is empty.");
@@ -82,32 +83,50 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
         throw CommandException(errorMessage);
     }    
     
+    AString ifndefName;
+    AString ifdefNameStaticDeclarations;
+    this->getIfDefNames(enumClassName, 
+                        ifndefName, 
+                        ifdefNameStaticDeclarations);
+    
     this->createHeaderFile(enumClassName, 
                            ifndefName, 
-                           ifdefNameStaticDelarations, 
+                           ifdefNameStaticDeclarations, 
                            numberOfEnumValues);
     
     this->createImplementationFile(enumClassName, 
-                                   ifdefNameStaticDelarations, 
+                                   ifdefNameStaticDeclarations, 
                                    numberOfEnumValues);
 }
 
+/**
+ * Create and write the header (.h) file.
+ *     
+ * @param enumClassName
+ *    Name of enumerated type class.
+ * @param ifdefName
+ *    Name of "ifndef" value.
+ * @param ifdefNameStaticDeclaration
+ *    Name for "infdef" of static declarations.
+ * @param numberOfEnumValues
+ *    Number of enumerated type values.
+ */
 void 
 CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
-                                         const AString& ifdefName,
+                                         const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
                                          const int32_t numberOfEnumValues)
 {
     AString t;
 
-    t += ("#ifdef " + ifdefName + "\n");
-    t += ("#define " + ifdefName + "\n");
+    t += ("#ifndef " + ifndefName + "\n");
+    t += ("#define " + ifndefName + "\n");
     t += this->getCopyright();
     t += ("\n");
     
     t += ("#include <stdint.h>\n");
     t += ("#include <vector>\n");
-    t += ("#include <QString>\n");
+    t += ("#include <AString>\n");
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
@@ -137,13 +156,13 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     t += ("\n");
     t += ("    ~" + enumClassName + "();\n");
     t += ("\n");
-    t += ("    static QString toName(Enum e);\n");
+    t += ("    static enumValue toName(Enum e);\n");
     t += ("    \n");
-    t += ("    static Enum fromName(const QString& s, bool* isValidOut);\n");
+    t += ("    static Enum fromName(const enumValue& s, bool* isValidOut);\n");
     t += ("    \n");
-    t += ("    static QString toGuiName(Enum e);\n");
+    t += ("    static enumValue toGuiName(Enum e);\n");
     t += ("    \n");
-    t += ("    static Enum fromGuiName(const QString& s, bool* isValidOut);\n");
+    t += ("    static Enum fromGuiName(const enumValue& s, bool* isValidOut);\n");
     t += ("    \n");
     t += ("    static int32_t toIntegerCode(Enum e);\n");
     t += ("    \n");
@@ -152,8 +171,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     t += ("private:\n");
     t += ("    " + enumClassName + "(const Enum e, \n");
     t += ("                 const int32_t integerCode, \n");
-    t += ("                 const QString& name,\n");
-    t += ("                 const QString& guiName);\n");
+    t += ("                 const enumValue& name,\n");
+    t += ("                 const enumValue& guiName);\n");
     t += ("\n");
     t += ("    static const " + enumClassName + "* findData(const Enum e);\n");
     t += ("\n");
@@ -167,9 +186,9 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     t += ("\n");
     t += ("    int32_t integerCode;\n");
     t += ("\n");
-    t += ("    QString name;\n");
+    t += ("    enumValue name;\n");
     t += ("    \n");
-    t += ("    QString guiName;\n");
+    t += ("    enumValue guiName;\n");
     t += ("};\n");
     t += ("\n");
     t += ("#ifdef " + ifdefNameStaticDeclaration + "\n");
@@ -179,9 +198,31 @@ CommandClassCreateEnum::createHeaderFile(const AString& enumClassName,
     t += ("\n");
     t += ("} // namespace\n");
     
-    t += ("#endif  //" + ifdefName + "\n");
+    t += ("#endif  //" + ifndefName + "\n");
+
+    const AString filename = (enumClassName + ".h");
+    
+    TextFile tf;
+    tf.replaceText(t);
+    
+    try {
+        tf.writeFile(filename);
+    }
+    catch (DataFileException e) {
+        throw CommandException(e);
+    }
 }
 
+/**
+ * Create and write the implementation (.cxx) file.
+ *     
+ * @param enumClassName
+ *    Name of enumerated type class.
+ * @param ifdefNameStaticDeclaration
+ *    Name for "infdef" of static declarations.
+ * @param numberOfEnumValues
+ *    Number of enumerated type values.
+ */
 void 
 CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
                                                  const AString& ifdefNameStaticDeclaration,
@@ -207,8 +248,8 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += (" */\n");
     t += ("" + enumClassName + "::" + enumClassName + "(const Enum e,\n");
     t += ("                           const int32_t integerCode,\n");
-    t += ("                           const QString& name,\n");
-    t += ("                           const QString& guiName)\n");
+    t += ("                           const enumValue& name,\n");
+    t += ("                           const enumValue& guiName)\n");
     t += ("{\n");
     t += ("    this->e = e;\n");
     t += ("    this->integerCode = integerCode;\n");
@@ -274,12 +315,12 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
-    t += ("QString \n");
+    t += ("enumValue \n");
     t += ("" + enumClassName + "::toName(Enum e) {\n");
     t += ("    initialize();\n");
     t += ("    \n");
-    t += ("    const " + enumClassName + "* gaio = findData(e);\n");
-    t += ("    return gaio->name;\n");
+    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
+    t += ("    return enumValue->name;\n");
     t += ("}\n");
     t += ("\n");
     t += ("/**\n");
@@ -293,7 +334,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromName(const QString& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromName(const enumValue& s, bool* isValidOut)\n");
     t += ("{\n");
     t += ("    initialize();\n");
     t += ("    \n");
@@ -324,12 +365,12 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
-    t += ("QString \n");
+    t += ("enumValue \n");
     t += ("" + enumClassName + "::toGuiName(Enum e) {\n");
     t += ("    initialize();\n");
     t += ("    \n");
-    t += ("    const " + enumClassName + "* gaio = findData(e);\n");
-    t += ("    return gaio->guiName;\n");
+    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
+    t += ("    return enumValue->guiName;\n");
     t += ("}\n");
     t += ("\n");
     t += ("/**\n");
@@ -343,7 +384,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromGuiName(const QString& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromGuiName(const enumValue& s, bool* isValidOut)\n");
     t += ("{\n");
     t += ("    initialize();\n");
     t += ("    \n");
@@ -377,8 +418,8 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += ("" + enumClassName + "::toIntegerCode(Enum e)\n");
     t += ("{\n");
     t += ("    initialize();\n");
-    t += ("    const " + enumClassName + "* ndt = findData(e);\n");
-    t += ("    return ndt->integerCode;\n");
+    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
+    t += ("    return enumValue->integerCode;\n");
     t += ("}\n");
     t += ("\n");
     t += ("/**\n");
@@ -398,14 +439,14 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += ("    initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum e = VIEW_MODE_INVALID;\n");
+    t += ("    Enum e = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
     t += ("         iter++) {\n");
-    t += ("        const " + enumClassName + "& ndt = *iter;\n");
-    t += ("        if (ndt.integerCode == integerCode) {\n");
-    t += ("            e = ndt.e;\n");
+    t += ("        const " + enumClassName + "& enumValue = *iter;\n");
+    t += ("        if (enumValue.integerCode == integerCode) {\n");
+    t += ("            e = enumValue.e;\n");
     t += ("            validFlag = true;\n");
     t += ("            break;\n");
     t += ("        }\n");
@@ -418,5 +459,16 @@ CommandClassCreateEnum::createImplementationFile(const AString& enumClassName,
     t += ("}\n");
     t += ("\n");
 
+    const AString filename = (enumClassName + ".cxx");
+    
+    TextFile tf;
+    tf.replaceText(t);
+    
+    try {
+        tf.writeFile(filename);
+    }
+    catch (DataFileException e) {
+        throw CommandException(e);
+    }
 }
 

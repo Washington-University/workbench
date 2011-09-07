@@ -50,6 +50,17 @@ namespace caret {
 
         CommandClassCreate& operator=(const CommandClassCreate&);
         
+        
+        void createHeaderFile(const AString& className,
+                              const AString& derivedFromClassName,
+                              const AString& ifdefName,
+                              const AString& ifdefNameStaticDeclaration,
+                              const bool hasCopyAndAssignment);
+        
+        void createImplementationFile(const AString& className,
+                                      const AString& derivedFromClassName,
+                                      const AString& ifdefNameStaticDeclaration,
+                                      const bool hasCopyAndAssignment);
     };
     
 } // namespace
