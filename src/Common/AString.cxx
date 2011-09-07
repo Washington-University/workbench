@@ -24,7 +24,10 @@
 
 #include "AString.h"
 #include <iostream>
-std::ostream& operator << (std::ostream &lhs, AString &rhs) { return lhs << rhs.toStdString(); }
+std::ostream& operator << (std::ostream &lhs, const AString &rhs) 
+{ 
+    return lhs << rhs.toStdString(); 
+}
 
 /**
  * Convert a vector of values into a string.

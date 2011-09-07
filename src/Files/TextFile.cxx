@@ -82,7 +82,7 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
     std::cout << "WARNING: TextFile::readFile() has not been tested" << std::endl;
     this->clearModified();
     
-    std::ifstream inputStream(qPrintable(filename), std::ifstream::in);
+    std::ifstream inputStream(filename.c_str(), std::ifstream::in);
 
     const int BUFFER_LENGTH = 4096;
     char buffer[BUFFER_LENGTH];
@@ -117,14 +117,14 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
 void 
 TextFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    std::ofstream outputStream(qPrintable(filename));
+    std::ofstream outputStream(filename.c_str());
     if (!outputStream) {
         throw DataFileException("Unable to open " + filename + " for writing.");
     }
     
     const int64_t textLength = this->text.length();
     
-    outputStream.write(qPrintable(this->text), textLength);
+    outputStream.write(this->text, textLength);
 
     outputStream.close();
     

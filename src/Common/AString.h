@@ -84,6 +84,9 @@ public:
 
     //unsigned long long compatiblity
     operator unsigned long long () { return this->toULongLong(); }
+    
+    /// convert to a const char* (the operator() does not work in C++ library I/O functions)
+    const char* c_str() const { return qPrintable(*this); }
 
 
     //I may move these outside the class since they don't require access to the class's internals
@@ -99,6 +102,6 @@ public:
 };
 #include <string>
 #include <iostream>
-std::ostream& operator << (std::ostream &lhs, AString &rhs);
+std::ostream& operator << (std::ostream &lhs, const AString &rhs);
 
 #endif // ASTRING_H

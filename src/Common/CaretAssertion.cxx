@@ -112,7 +112,7 @@ CaretAssertion::assertFailed(const char* expression,
     const AString s = SystemUtilities::getBackTrace();
     if (s.isEmpty() == false) {
         std::cerr 
-        << qPrintable(s) 
+        << s
         << std::endl
         << std::endl;
     }
@@ -173,7 +173,7 @@ CaretAssertion::assertArrayIndexFailed(const char* arrayName,
     
     const AString s = SystemUtilities::getBackTrace();
     if (s.isEmpty() == false) {
-        std::cerr << qPrintable(s) << std::endl << std::endl;
+        std::cerr << s << std::endl << std::endl;
     }
     
     if (CaretAssertion::unitTestFlag == false) {
@@ -233,7 +233,7 @@ CaretAssertion::assertVectorIndexFailed(const char* vectorName,
     
     const AString s = SystemUtilities::getBackTrace();
     if (s.isEmpty() == false) {
-        std::cerr << qPrintable(s) << std::endl << std::endl;
+        std::cerr << s << std::endl << std::endl;
     }
     
     if (CaretAssertion::unitTestFlag == false) {

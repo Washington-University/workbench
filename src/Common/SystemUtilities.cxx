@@ -351,11 +351,11 @@ static void unexpectedHandler()
     //if (theMainWindow != NULL) {
         const AString msg("Caret will be terminating due to an unexpected exception.\n"
                           "abort() will be called and a core file may be created.");
-    std::cerr << qPrintable(msg) << std::endl;
+    std::cerr << msg << std::endl;
         //QMessageBox::critical(theMainWindow, "ERROR", msg);
     //}
     
-    std::cerr << qPrintable(SystemUtilities::getBackTrace()) << std::endl;
+    std::cerr << SystemUtilities::getBackTrace() << std::endl;
     
     abort();
 }
@@ -378,7 +378,7 @@ static void newHandler()
     << "\n";
     std::cerr << str.str().c_str() << std::endl;
     
-    std::cerr << qPrintable(SystemUtilities::getBackTrace()) << std::endl;
+    std::cerr << SystemUtilities::getBackTrace() << std::endl;
     
     abort();
     

@@ -49,7 +49,7 @@ FileInformation::FileInformation(const AString& pathname)
     this->pathIsSymbolicLink = false;
     
     struct stat stats;
-    int result = stat(qPrintable(this->pathname), &stats);    
+    int result = stat(this->pathname, &stats);    
     if (result >= 0) {
         this->pathExists = true;
         this->fileSize = stats.st_size;
