@@ -5,14 +5,16 @@
 # into the Mac App's Resources directory.
 #
 
+exeName=$1
+
 for buildType in Debug/ Release/ RelWithDebInfo/ MinRelSize/ ""
 do
    echo "BUILD TYPE ${buildType}"
-   if [ -f ${buildType}desktop.app/Contents/MacOS/desktop ] ; then
-      if [ ! -d ${buildType}desktop.app/Contents/Resources ] ; then
-         mkdir ${buildType}desktop.app/Contents/Resources
+   if [ -f ${buildType}${exeName}.app/Contents/MacOS/${exeName} ] ; then
+      if [ ! -d ${buildType}${exeName}.app/Contents/Resources ] ; then
+         mkdir ${buildType}${exeName}.app/Contents/Resources
       fi
-      cp -R ${QTDIR}/src/gui/mac/qt_menu.nib ${buildType}desktop.app/Contents/Resources 
+      cp -R ${QTDIR}/src/gui/mac/qt_menu.nib ${buildType}${exeName}.app/Contents/Resources 
    fi
 done
 

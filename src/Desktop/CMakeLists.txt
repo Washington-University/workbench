@@ -3,7 +3,10 @@
 #
 PROJECT(Desktop)
 
-#cmake_policy(SET CMP0015 OLD) 
+#
+# Name of executable
+#
+set (EXE_NAME workbench)
 
 #
 #  QT Libraries
@@ -22,18 +25,18 @@ INCLUDE (${QT_USE_FILE})
 # Apple creates a bundle
 #
 IF (APPLE)
-   ADD_EXECUTABLE(desktop
+   ADD_EXECUTABLE(${EXE_NAME}
       MACOSX_BUNDLE
       desktop.cxx
    )
    SET_TARGET_PROPERTIES(
-       desktop
+       ${EXE_NAME}
        PROPERTIES
        RESOURCE
        ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
    )
 ELSE (APPLE)
-   ADD_EXECUTABLE(desktop
+   ADD_EXECUTABLE(${EXE_NAME}
       desktop.cxx
    )
 ENDIF (APPLE)
@@ -41,7 +44,7 @@ ENDIF (APPLE)
 #
 # Libraries that are linked
 #
-TARGET_LINK_LIBRARIES(desktop
+TARGET_LINK_LIBRARIES(${EXE_NAME}
 GuiQt
 Brain
 Files
@@ -55,7 +58,7 @@ ${ZLIB_LIBRARIES}
 )
 
 IF(WIN32)
-    TARGET_LINK_LIBRARIES(desktop
+    TARGET_LINK_LIBRARIES(${EXE_NAME}
     opengl32
     glu32
     )
@@ -63,7 +66,7 @@ ENDIF(WIN32)
 
 IF (UNIX)
    IF (NOT APPLE) 
-      TARGET_LINK_LIBRARIES(desktop
+      TARGET_LINK_LIBRARIES(${EXE_NAME}
          gobject-2.0
       )
    ENDIF (NOT APPLE)
@@ -74,7 +77,7 @@ ENDIF (UNIX)
 #
 IF (APPLE)
    #SET (QT_MAC_USE_COCOA TRUE)
-   TARGET_LINK_LIBRARIES(desktop
+   TARGET_LINK_LIBRARIES(${EXE_NAME}
      "-framework Cocoa"
      "-framework OpenGL"
    )
@@ -100,8 +103,8 @@ ${CMAKE_SOURCE_DIR}/Common
 #
 IF (APPLE)
         ADD_CUSTOM_COMMAND(
-            TARGET desktop
+            TARGET ${EXE_NAME}
             POST_BUILD
-            COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh
+            COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh ${EXE_NAME}
         )
 ENDIF (APPLE)
