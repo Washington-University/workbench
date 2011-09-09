@@ -1,5 +1,5 @@
-#ifndef __MODEL_BASE_H__
-#define __MODEL_BASE_H__
+#ifndef __MODEL_DISPLAY_CONTROLLER_H__
+#define __MODEL_DISPLAY_CONTROLLER_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -132,4 +132,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __MODEL_BASE_H__
+#endif // __MODEL_DISPLAY_CONTROLLER_H__

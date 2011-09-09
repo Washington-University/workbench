@@ -27,6 +27,8 @@
 
 
 #include "CaretObject.h"
+#include "SurfaceOverlaySet.h"
+#include "YokingTypeEnum.h"
 
 namespace caret {
 
@@ -52,6 +54,16 @@ namespace caret {
         
         void setDisplayedModel(ModelDisplayController* model);
         
+        SurfaceOverlaySet* getSurfaceOverlayAssignment();
+        
+        int32_t getYokeToTabNumber() const;
+        
+        void setYokeToTabNumber(const int32_t yokeToTabNumber);
+        
+        YokingTypeEnum::Enum getYokingType() const;
+        
+        void setYokingType(const YokingTypeEnum::Enum yokingType);
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
@@ -74,8 +86,14 @@ namespace caret {
          */
         AString userName;
         
-        /** Index number to which this controller is yoked */
-        int32_t yokeToIndexNumber;
+        /** Tab number to which this controller is yoked */
+        int32_t yokeToTabNumber;
+        
+        /** Type of yoking */
+        YokingTypeEnum::Enum yokingType;
+        
+        /** The surface overlay assignments */
+        SurfaceOverlaySet surfaceOverlayAssignment;
         
     };
     

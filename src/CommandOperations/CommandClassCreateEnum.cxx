@@ -145,7 +145,7 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     
     t += ("#include <stdint.h>\n");
     t += ("#include <vector>\n");
-    t += ("#include <AString>\n");
+    t += ("#include \"AString.h\"\n");
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
@@ -173,13 +173,13 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("    ~" + enumClassName + "();\n");
     t += ("\n");
-    t += ("    static enumValue toName(Enum e);\n");
+    t += ("    static AString toName(Enum e);\n");
     t += ("    \n");
-    t += ("    static Enum fromName(const enumValue& s, bool* isValidOut);\n");
+    t += ("    static Enum fromName(const AString& s, bool* isValidOut);\n");
     t += ("    \n");
-    t += ("    static enumValue toGuiName(Enum e);\n");
+    t += ("    static AString toGuiName(Enum e);\n");
     t += ("    \n");
-    t += ("    static Enum fromGuiName(const enumValue& s, bool* isValidOut);\n");
+    t += ("    static Enum fromGuiName(const AString& s, bool* isValidOut);\n");
     t += ("    \n");
     t += ("    static int32_t toIntegerCode(Enum e);\n");
     t += ("    \n");
@@ -188,8 +188,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("private:\n");
     t += ("    " + enumClassName + "(const Enum e, \n");
     t += ("                 const int32_t integerCode, \n");
-    t += ("                 const enumValue& name,\n");
-    t += ("                 const enumValue& guiName);\n");
+    t += ("                 const AString& name,\n");
+    t += ("                 const AString& guiName);\n");
     t += ("\n");
     t += ("    static const " + enumClassName + "* findData(const Enum e);\n");
     t += ("\n");
@@ -203,9 +203,9 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("    int32_t integerCode;\n");
     t += ("\n");
-    t += ("    enumValue name;\n");
+    t += ("    AString name;\n");
     t += ("    \n");
-    t += ("    enumValue guiName;\n");
+    t += ("    AString guiName;\n");
     t += ("};\n");
     t += ("\n");
     t += ("#ifdef " + ifdefNameStaticDeclaration + "\n");
@@ -266,8 +266,8 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" */\n");
     t += ("" + enumClassName + "::" + enumClassName + "(const Enum e,\n");
     t += ("                           const int32_t integerCode,\n");
-    t += ("                           const enumValue& name,\n");
-    t += ("                           const enumValue& guiName)\n");
+    t += ("                           const AString& name,\n");
+    t += ("                           const AString& guiName)\n");
     t += ("{\n");
     t += ("    this->e = e;\n");
     t += ("    this->integerCode = integerCode;\n");
@@ -333,7 +333,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
-    t += ("enumValue \n");
+    t += ("AString \n");
     t += ("" + enumClassName + "::toName(Enum e) {\n");
     t += ("    initialize();\n");
     t += ("    \n");
@@ -352,7 +352,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromName(const enumValue& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromName(const AString& s, bool* isValidOut)\n");
     t += ("{\n");
     t += ("    initialize();\n");
     t += ("    \n");
@@ -383,7 +383,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
-    t += ("enumValue \n");
+    t += ("AString \n");
     t += ("" + enumClassName + "::toGuiName(Enum e) {\n");
     t += ("    initialize();\n");
     t += ("    \n");
@@ -402,7 +402,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromGuiName(const enumValue& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromGuiName(const AString& s, bool* isValidOut)\n");
     t += ("{\n");
     t += ("    initialize();\n");
     t += ("    \n");

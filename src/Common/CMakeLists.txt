@@ -38,6 +38,7 @@ MathFunctions.h
 MessageManager.h
 ProgramParameters.h
 ProgramParametersException.h
+StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
 
@@ -61,6 +62,7 @@ MathFunctions.cxx
 MessageManager.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
+StructureEnum.cxx
 SystemUtilities.cxx
 )
 

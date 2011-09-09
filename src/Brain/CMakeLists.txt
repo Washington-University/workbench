@@ -52,8 +52,14 @@ EventBrowserTabNew.h
 EventGetModelDisplayControllers.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
+ModelDisplayControllerVolume.h
+ModelDisplayControllerWholeBrain.h
 SessionManager.h
 Surface.h
+SurfaceOverlay.h
+SurfaceOverlayDataTypeEnum.h
+SurfaceOverlaySet.h
+YokingTypeEnum.h
 
 Brain.cxx
 BrainConstants.cxx
@@ -65,8 +71,14 @@ EventBrowserTabNew.cxx
 EventGetModelDisplayControllers.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx
+ModelDisplayControllerVolume.cxx
+ModelDisplayControllerWholeBrain.cxx
 SessionManager.cxx
 Surface.cxx
+SurfaceOverlay.cxx
+SurfaceOverlayDataTypeEnum.cxx
+SurfaceOverlaySet.cxx
+YokingTypeEnum.cxx
 )
 
 #

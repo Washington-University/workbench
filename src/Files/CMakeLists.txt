@@ -17,6 +17,7 @@ INCLUDE (${QT_USE_FILE})
 # Files Library
 #
 ADD_LIBRARY(Files
+DataFileTypeEnum.h
 GiftiTypeFile.h
 Palette.h
 PaletteFile.h
@@ -25,6 +26,7 @@ SurfaceFile.h
 SurfaceTypeEnum.h
 TextFile.h
 
+DataFileTypeEnum.cxx
 GiftiTypeFile.cxx
 Palette.cxx
 PaletteFile.cxx

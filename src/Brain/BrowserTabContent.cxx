@@ -112,6 +112,12 @@ BrowserTabContent::toString() const
     return "WindowTabContent";
 }
 
+/**
+ * Get the model displayed in this tab.
+ *
+ * @return  Model displayed in this tab or NULL
+ *   if no model is displayed.
+ */
 ModelDisplayController* 
 BrowserTabContent::getDisplayedModel()
 {
@@ -124,12 +130,72 @@ BrowserTabContent::getDisplayedModel()
     return this->displayedModel;
 }
 
+/**
+ * Set the displayed model for this tab.
+ * @param model  
+ *    Model for display in this tab.
+ */
 void 
 BrowserTabContent::setDisplayedModel(ModelDisplayController* model)
 {
     this->displayedModel = model;
 }
 
+/**
+ * Get the surface overlay assignments for this tab.
+ * 
+ * @return  Surface overlay assignments for this tab.
+ */
+SurfaceOverlaySet* 
+BrowserTabContent::getSurfaceOverlayAssignment()
+{
+    return &this->surfaceOverlayAssignment;
+}
 
+/**
+ * Get the tab number to which this tab is yoked.
+ * 
+ * @return  Tab number to which this tab is yoked.
+ */
+int32_t 
+BrowserTabContent::getYokeToTabNumber() const
+{
+    return this->yokeToTabNumber;
+}
+
+/**
+ * Set the tab number to which this tab is yoked.
+ *
+ * @param yokeToTabNumber
+ *    Tab number to which this tab is yoked.
+ */
+void 
+BrowserTabContent::setYokeToTabNumber(const int32_t yokeToTabNumber)
+{
+    this->yokeToTabNumber = yokeToTabNumber;
+}
+
+/**
+ * Get the type of yoking.
+ *
+ * @return The type of yoking.
+ */
+YokingTypeEnum::Enum 
+BrowserTabContent::getYokingType() const
+{
+    return this->yokingType;
+}
+
+/**
+ * Set the type of yoking.
+ *
+ * @param yokingType
+ *    New type of yoking.
+ */
+void 
+BrowserTabContent::setYokingType(const YokingTypeEnum::Enum yokingType)
+{
+    this->yokingType = yokingType;
+}
 
 
