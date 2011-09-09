@@ -29,7 +29,7 @@
 #include <QGLWidget>
 
 #include <stdint.h>
-#include "CaretWindowEnum.h"
+#include "BrainConstants.h"
 #include "EventListenerInterface.h"
 
 class QMouseEvent;
@@ -37,7 +37,7 @@ class QMouseEvent;
 namespace caret {
 
     class BrainOpenGL;
-    class ModelController;
+    class ModelDisplayController;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
@@ -48,9 +48,9 @@ namespace caret {
         
         ~BrainOpenGLWidget();
         
-        void setDisplayedModelController(ModelController* modelController);
+        void setDisplayedModelController(ModelDisplayController* modelController);
         
-        ModelController* getDisplayedModelController();
+        ModelDisplayController* getDisplayedModelController();
         
         void mouseMoveEvent(QMouseEvent* e);
         
@@ -67,13 +67,13 @@ namespace caret {
         
     private:
         BrainOpenGL* openGL;
-        CaretWindowEnum* CaretWindow;
+        
         int32_t windowIndex;
         
-        ModelController* modelController;
+        ModelDisplayController* modelController;
         
-        int32_t windowWidth[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        int32_t windowHeight[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
+        int32_t windowHeight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
         int32_t mouseMovedBounds[4];
         

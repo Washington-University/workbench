@@ -1,5 +1,5 @@
-#ifndef __MODEL_SURFACE_H__
-#define __MODEL_SURFACE_H__
+#ifndef __EVENT_BROWSER_TAB_DELETE_H__
+#define __EVENT_BROWSER_TAB_DELETE_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -25,48 +25,32 @@
  * 
  */ 
 
+#include <vector>
 
-#include "ModelBase.h"
-
-
+#include "Event.h"
 
 namespace caret {
 
-    class Brain;
-    class Surface;
+    class BrowserTabContent;
     
-    /// Controls views of a surface.
-    class ModelSurface : public ModelBase {
+    /// Event for deleting a browser tab
+    class EventBrowserTabDelete : public Event {
         
     public:
-        ModelSurface(Brain* brain,
-                      Surface* surface);
+        EventBrowserTabDelete(BrowserTabContent* browserTab);
         
-        virtual ~ModelSurface();
+        virtual ~EventBrowserTabDelete();
         
-    private:
-        ModelSurface(const ModelSurface& o);
-        
-        ModelSurface& operator=(const ModelSurface& o);
+        BrowserTabContent* getBrowserTab();
         
     private:
-        void copyHelper(const ModelSurface& o);
+        EventBrowserTabDelete(const EventBrowserTabDelete&);
         
-        void initializeMembersModelSurface();
+        EventBrowserTabDelete& operator=(const EventBrowserTabDelete&);
         
-    public:
-        Surface* getSurface();
-        
-        AString getNameForGUI(const bool includeStructureFlag) const;
-        
-        void setDefaultScalingToFitWindow();
-        
-    private:
-        /**Surface that uses this model */
-        Surface* surface;
-        
+        BrowserTabContent* browserTab;
     };
 
 } // namespace
 
-#endif // __MODEL_SURFACE_H__
+#endif // __EVENT_BROWSER_TAB_DELETE_H__

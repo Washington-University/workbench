@@ -27,16 +27,22 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include "EventGetModelDisplayControllers.h"
+#include "EventManager.h"
+
 using namespace caret;
 
 
 /**
  * Constructor.
+ * @param tabNumber
+ *    Number for this tab.
  */
-BrowserTabContent::BrowserTabContent(const int32_t indexNumber)
+BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
-    this->indexNumber = indexNumber;
+    this->tabNumber = tabNumber;
+    this->displayedModel = NULL;
 }
 
 /**
@@ -57,7 +63,7 @@ BrowserTabContent::~BrowserTabContent()
 AString 
 BrowserTabContent::getName() const
 {
-    AString s = "(" + AString::number(this->indexNumber + 1) + ") ";
+    AString s = "(" + AString::number(this->tabNumber + 1) + ") ";
     
     if (this->userName.isEmpty() == false) {
         s += userName;
@@ -105,3 +111,25 @@ BrowserTabContent::toString() const
 {
     return "WindowTabContent";
 }
+
+ModelDisplayController* 
+BrowserTabContent::getDisplayedModel()
+{
+    EventGetModelDisplayControllers modelsEvent;
+    EventManager::get()->sendEvent(modelsEvent.getPointer());
+    
+    if (modelsEvent.isModelDisplayControllerValid(this->displayedModel) == false) {
+        this->displayedModel = modelsEvent.getFirstModelDisplayController();
+    }
+    return this->displayedModel;
+}
+
+void 
+BrowserTabContent::setDisplayedModel(ModelDisplayController* model)
+{
+    this->displayedModel = model;
+}
+
+
+
+

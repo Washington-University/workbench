@@ -25,8 +25,9 @@
 #include <algorithm>
 #include <cmath>
 
+#include "BrowserTabContent.h"
 #include "BoundingBox.h"
-#include "ModelSurface.h"
+#include "ModelDisplayControllerSurface.h"
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
@@ -40,23 +41,23 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelSurface::ModelSurface(Brain* brain,
+ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
                              Surface* surface)
-    : ModelBase(brain, true, true)
+    : ModelDisplayController(brain, true, true)
 {
-    this->initializeMembersModelSurface();
+    this->initializeMembersModelDisplayControllerSurface();
     this->surface = surface;
 }
 
 /**
  * Destructor
  */
-ModelSurface::~ModelSurface()
+ModelDisplayControllerSurface::~ModelDisplayControllerSurface()
 {
 }
 
 void
-ModelSurface::initializeMembersModelSurface()
+ModelDisplayControllerSurface::initializeMembersModelDisplayControllerSurface()
 {
     this->surface = NULL;
 }
@@ -67,7 +68,7 @@ ModelSurface::initializeMembersModelSurface()
  *
  */
 Surface*
-ModelSurface::getSurface()
+ModelDisplayControllerSurface::getSurface()
 {
     return this->surface;
 }
@@ -81,9 +82,9 @@ ModelSurface::getSurface()
  *
  */
 AString
-ModelSurface::getNameForGUI(const bool includeStructureFlag) const
+ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) const
 {
-    return "ModelControllerSurface::getNameForGUI_NEEDS_IMPLEMENTATION";
+    return "ModelDisplayControllerSurface::getNameForGUI_NEEDS_IMPLEMENTATION";
 }
 
 /**
@@ -91,7 +92,7 @@ ModelSurface::getNameForGUI(const bool includeStructureFlag) const
  *
  */
 void
-ModelSurface::setDefaultScalingToFitWindow()
+ModelDisplayControllerSurface::setDefaultScalingToFitWindow()
 {
     BoundingBox bounds;
     this->surface->getBounds(bounds);
@@ -101,7 +102,7 @@ ModelSurface::setDefaultScalingToFitWindow()
     float scale = percentScreenY / bigY;
     this->defaultModelScaling = scale;
     
-    for (int32_t i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->setScaling(i, this->defaultModelScaling);
     }
 }

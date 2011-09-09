@@ -30,12 +30,13 @@
 
 namespace caret {
 
+    class ModelDisplayController;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject {
         
     public:
-        BrowserTabContent(const int32_t indexNumber);
+        BrowserTabContent(const int32_t tabNumber);
         
         virtual ~BrowserTabContent();
         
@@ -47,14 +48,20 @@ namespace caret {
         
         void setUserName(const AString& userName);
         
+        ModelDisplayController* getDisplayedModel();
+        
+        void setDisplayedModel(ModelDisplayController* model);
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
+        /** model displayed in this browser tab */
+        ModelDisplayController* displayedModel;
         
-        /** Index number of this tab */
-        int32_t indexNumber;
+        /** Number of this tab */
+        int32_t tabNumber;
         
         /** 
          * Name requested by user interface - reflects contents 
@@ -66,6 +73,10 @@ namespace caret {
          * User can set the name of the tab.
          */
         AString userName;
+        
+        /** Index number to which this controller is yoked */
+        int32_t yokeToIndexNumber;
+        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

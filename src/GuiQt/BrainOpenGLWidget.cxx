@@ -34,13 +34,13 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
-#include "CaretWindowEnum.h"
+#include "EventGetModelDisplayControllers.h"
 #include "EventManager.h"
 #include "EventUpdateAllGraphics.h"
 #include "GuiGlobals.h"
 #include "Matrix4x4.h"
 #include "Surface.h"
-#include "ModelController.h"
+#include "ModelDisplayController.h"
 
 using namespace caret;
 
@@ -70,7 +70,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 {
 //    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, NULL);
     
-    EventManager::get()->removeEventListener(this, Event::EVENT_UPDATE_ALL_GRAPHICS);
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -80,7 +80,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
  *    Model controller for display in widget.
  */
 void 
-BrainOpenGLWidget::setDisplayedModelController(ModelController* modelController)
+BrainOpenGLWidget::setDisplayedModelController(ModelDisplayController* modelController)
 {
     this->modelController = modelController;
 }
@@ -93,19 +93,13 @@ BrainOpenGLWidget::setDisplayedModelController(ModelController* modelController)
  *    may be NULL if there is no viewer for
  *    display.
  */
-ModelController* 
+ModelDisplayController* 
 BrainOpenGLWidget::getDisplayedModelController()
 {
-    Brain* brain = GuiGlobals::getBrain();
-    if (brain->isModelControllerValid(this->modelController)) {
-        return this->modelController;
-    }
+    EventGetModelDisplayControllers getModelEvent;
+    EventManager::get()->sendEvent(getModelEvent.getPointer());
     
-    std::vector<ModelController*> controllers = brain->getAllModelControllers();
-    if (controllers.empty() == false) {
-        return controllers[0];
-    }
-    return NULL;
+    return getModelEvent.getFirstModelDisplayController();
 }
 
 /**
@@ -169,7 +163,7 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
-    ModelController* modelController = this->getDisplayedModelController();
+    ModelDisplayController* modelController = this->getDisplayedModelController();
     
     this->openGL->drawModel(GuiGlobals::getBrain(),
                              this->windowIndex,
@@ -217,7 +211,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             const int dx = static_cast<int>((x - lastMouseX));
             const int dy = static_cast<int>((lastMouseY - y));  // origin at top
             
-            ModelController* modelController = this->getDisplayedModelController();
+            ModelDisplayController* modelController = this->getDisplayedModelController();
             if (modelController != NULL) {
                 //
                 // Mouse moved with just left button down

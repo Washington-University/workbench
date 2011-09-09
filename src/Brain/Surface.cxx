@@ -25,7 +25,7 @@
 #include "BoundingBox.h"
 #include "BrainStructure.h"
 #include "Surface.h"
-#include "ModelControllerSurface.h"
+#include "ModelDisplayControllerSurface.h"
 
 using namespace caret;
 
@@ -94,11 +94,11 @@ Surface::setBrainStructure(BrainStructure* brainStructure)
  * @return
  *    Model controller for this surface.
  */
-ModelController* 
+ModelDisplayController* 
 Surface::getModelController()
 {
     if (this->surfaceController == NULL) {
-        this->surfaceController = new ModelControllerSurface(this->getBrain(), this);
+        this->surfaceController = new ModelDisplayControllerSurface(this->getBrain(), this);
     }
     return this->surfaceController;
 }

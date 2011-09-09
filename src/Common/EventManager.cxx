@@ -87,7 +87,7 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
 }
 
 /**
- * Remove a listener for a specific event.
+ * Stop listening for an event.
  *
  * @param eventListener
  *     Listener for an event.
@@ -95,7 +95,7 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
  *     Type of event that is no longer wanted.
  */
 void 
-EventManager::removeEventListener(EventListenerInterface* eventListener,
+EventManager::removeEventFromListener(EventListenerInterface* eventListener,
                                   const Event::EventType listenForEventType)
 {
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
@@ -110,6 +110,19 @@ EventManager::removeEventListener(EventListenerInterface* eventListener,
                                 listeners.end(),
                                 eventListener),
                     listeners.end());
+}
+
+/**
+ * Stop listening for all events.
+ * @param eventListener
+ *     Listener for all events.
+ */ 
+void 
+EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
+{
+    for (int32_t i = 0; i < Event::EVENT_COUNT; i++) {
+        this->removeEventFromListener(eventListener, static_cast<Event::EventType>(i));
+    }
 }
 
 /**

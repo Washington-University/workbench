@@ -62,9 +62,11 @@ namespace caret {
         void addEventListener(EventListenerInterface* eventListener,
                               const Event::EventType listenForEventType);
         
-        void removeEventListener(EventListenerInterface* eventListener,
+        void removeEventFromListener(EventListenerInterface* eventListener,
                                  const Event::EventType listenForEventType);
 
+        void removeAllEventsFromListener(EventListenerInterface* eventListener);
+        
         void sendEvent(Event* event);
         
     private:

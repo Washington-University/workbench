@@ -28,14 +28,14 @@
 
 #include <stdint.h>
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
-#include "CaretWindowEnum.h"
 
 namespace caret {
     
     class Brain;
     class Surface;
-    class ModelController;
+    class ModelDisplayController;
     
     /**
      * Performs drawing of graphics using OpenGL.
@@ -56,7 +56,7 @@ namespace caret {
         void drawModel(Brain* brain,
                         const int32_t windowIndex,
                         const int32_t viewport[4],
-                        ModelController* controller);
+                        ModelDisplayController* controller);
         
         void initializeOpenGL();
         
@@ -77,7 +77,7 @@ namespace caret {
         
         void setOrthographicProjection(const int32_t viewport[4]);
         
-        void checkForOpenGLError(const ModelController* modelController,
+        void checkForOpenGLError(const ModelDisplayController* modelController,
                                  const AString& msg);
         
         /** contains single instance of this class */
@@ -100,12 +100,12 @@ namespace caret {
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;
         
-        double orthographicLeft[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        double orthographicRight[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        double orthographicBottom[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        double orthographicTop[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        double orthographicFar[CaretWindowEnum::NUMBER_OF_WINDOWS];
-        double orthographicNear[CaretWindowEnum::NUMBER_OF_WINDOWS];
+        double orthographicLeft[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicRight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicBottom[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicTop[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicFar[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicNear[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H

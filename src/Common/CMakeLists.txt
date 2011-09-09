@@ -23,10 +23,8 @@ ByteOrderEnum.h
 ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
-CaretConstants.h
 CaretException.h
 CaretObject.h
-CaretWindowEnum.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
@@ -49,10 +47,8 @@ BoundingBox.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
-CaretConstants.cxx
 CaretException.cxx
 CaretObject.cxx
-CaretWindowEnum.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx

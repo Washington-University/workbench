@@ -25,32 +25,32 @@
  * 
  */ 
 
-
+#include "BrainConstants.h"
 #include "CaretObject.h"
 
-#include "CaretWindowEnum.h"
+#include "BrowserTabContent.h"
 #include "Matrix4x4.h"
 
 namespace caret {
 
     class Brain;
     
-    /// Base class for views a model
-    class ModelBase : public CaretObject {
+    /// Base class for controlling a model
+    class ModelDisplayController : public CaretObject {
         
     protected:
-        ModelBase(Brain* brain,
+        ModelDisplayController(Brain* brain,
                const bool allowsYokingFlag,
                const bool allowsRotationFlag);
         
-        virtual ~ModelBase();
+        virtual ~ModelDisplayController();
         
         
     private:        
-        ModelBase(const ModelBase& o);
-        ModelBase& operator=(const ModelBase& o);
+        ModelDisplayController(const ModelDisplayController& o);
+        ModelDisplayController& operator=(const ModelDisplayController& o);
         
-        void initializeMembersModelBase();
+        void initializeMembersModelDisplayController();
         
     public:
         Brain* getBrain() const;
@@ -61,16 +61,18 @@ namespace caret {
         
         bool isYokeable() const;
         
-        void copyTransformations(const ModelBase& controller,
+        void copyTransformations(const ModelDisplayController& controller,
                                  const int32_t windowTabNumberSource,
                                  const int32_t windowTabNumberTarget);
         
-        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber) const;
+        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber);
+        
+        const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber) const;
         
         const float* getTranslation(const int32_t windowTabNumber) const;
         
         void setTranslation(const int32_t windowTabNumber,
-                            const float t[]);
+                            const float t[3]);
         
         void setTranslation(const int32_t windowTabNumber,
                             const float tx,
@@ -96,8 +98,7 @@ namespace caret {
         
         void ventralView(const int32_t windowTabNumber);
         
-        void setTransformation(
-                               const int32_t windowTabNumber,
+        void setTransformation(const int32_t windowTabNumber,
                                const std::vector<float>& transformationData);
         
         virtual AString toString() const;
@@ -114,13 +115,13 @@ namespace caret {
         Brain* brain;
         
         /**the viewing rotation matrix. */
-        std::vector<Matrix4x4*> viewingRotationMatrix;
+        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /**translation. */
-        std::vector<float> translation;
+        float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][3];
         
         /**scaling. */
-        std::vector<float> scaling;
+        float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
         bool allowsYokingFlag;

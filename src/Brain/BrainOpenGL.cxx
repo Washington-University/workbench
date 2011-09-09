@@ -41,7 +41,7 @@
 #undef __BRAIN_OPENGL_DEFINE_H
 #include "BrainStructure.h"
 #include "Surface.h"
-#include "ModelControllerSurface.h"
+#include "ModelDisplayControllerSurface.h"
 #include <cstdlib>
 
 using namespace caret;
@@ -86,7 +86,7 @@ void
 BrainOpenGL::drawModel(Brain* brain,
                         const int32_t windowIndex,
                         const int32_t viewport[4],
-                        ModelController* controller)
+                        ModelDisplayController* controller)
 {
     this->brain = brain;
     this->windowIndex = windowIndex;
@@ -130,7 +130,7 @@ BrainOpenGL::drawModel(Brain* brain,
              scale, 
              scale);
     
-    ModelControllerSurface* surfaceController = dynamic_cast<ModelControllerSurface*>(controller);
+    ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(controller);
     if (surfaceController != NULL) {
         this->drawSurface(surfaceController->getSurface());
     }
@@ -141,7 +141,7 @@ BrainOpenGL::drawModel(Brain* brain,
 void 
 BrainOpenGL::initializeMembersBrainOpenGL()
 {
-    for (int i = 0; i < CaretWindowEnum::NUMBER_OF_WINDOWS; i++) {
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         orthographicLeft[i] = -1.0f;
         orthographicRight[i] = -1.0f;
         orthographicBottom[i] = -1.0f;
@@ -331,7 +331,7 @@ BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
  * check for an OpenGL Error.
  */
 void 
-BrainOpenGL::checkForOpenGLError(const ModelController* modelController,
+BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
                                       const AString& msg)
 {
     GLenum errorCode = glGetError();

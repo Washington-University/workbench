@@ -32,19 +32,23 @@
 
 namespace caret {
 
-    /**
-     * Base class for an event.
-     */
+    /// Base class for an event.
     class Event : public CaretObject {
         
     public:
         /** Type of event */
         enum EventType {
-            /** Update all graphics windows */
-            EVENT_UPDATE_ALL_GRAPHICS,
+            /** Delete a browser tab */
+            EVENT_BROWSER_TAB_DELETE,
+            /** Create a new browser tab */
+            EVENT_BROWSER_TAB_NEW,
+            /** Get all model display controllers */
+            EVENT_GET_MODEL_DISPLAY_CONTROLLERS,
             /** Load a surface file */
             EVENT_LOAD_SURFACE_FILE,
-            /* NOT an event type but is number of event types THIS SHOULD ALWAYS BE LAST */
+            /** Update all graphics windows */
+            EVENT_UPDATE_ALL_GRAPHICS,
+            /* NOT an event type but is number of event types THIS MUST ALWAYS BE LAST */
             EVENT_COUNT 
         };
         

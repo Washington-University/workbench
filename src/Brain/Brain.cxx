@@ -28,6 +28,7 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "EventGetModelDisplayControllers.h"
 #include "EventLoadSurfaceFile.h"
 #include "EventManager.h"
 #include "PaletteFile.h"
@@ -44,6 +45,7 @@ Brain::Brain()
     this->paletteFile = new PaletteFile();
     
     EventManager::get()->addEventListener(this, Event::EVENT_LOAD_SURFACE_FILE);
+    EventManager::get()->addEventListener(this, Event::EVENT_GET_MODEL_DISPLAY_CONTROLLERS);
 }
 
 /**
@@ -51,7 +53,7 @@ Brain::Brain()
  */
 Brain::~Brain()
 {
-    EventManager::get()->removeEventListener(this, Event::EVENT_LOAD_SURFACE_FILE);
+    EventManager::get()->removeAllEventsFromListener(this);
 
     this->resetBrain();
     delete this->paletteFile;
@@ -162,9 +164,11 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
  *    true if controller is valid, else false.
  */
 bool 
-Brain::isModelControllerValid(const ModelController* modelController)
+Brain::isModelControllerValid(const ModelDisplayController* modelController)
 {
-    std::vector<ModelController*> controllers = this->getAllModelControllers();
+    std::vector<ModelDisplayController*> controllers;
+    this->getAllModelControllers(controllers);
+
     if (std::find(controllers.begin(), 
                   controllers.end(), 
                   modelController) 
@@ -180,10 +184,10 @@ Brain::isModelControllerValid(const ModelController* modelController)
  * @return
  *    Vector containing all model controllers.
  */
-std::vector<ModelController*> 
-Brain::getAllModelControllers()
+void
+Brain::getAllModelControllers(std::vector<ModelDisplayController*>& controllers)
 {
-    std::vector<ModelController*> controllers;
+    controllers.clear();
     
     int numBrainStructures = this->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
@@ -194,7 +198,6 @@ Brain::getAllModelControllers()
             controllers.push_back(s->getModelController());
         }
     }
-    return controllers;
 }
 
 /**
@@ -219,6 +222,17 @@ Brain::receiveEvent(Event* event)
         catch (DataFileException e) {
             loadSurfaceFileEvent->setErrorMessage(e.whatString());
         }
+    }
+    else if (event->getEventType() == Event::EVENT_GET_MODEL_DISPLAY_CONTROLLERS) {
+        EventGetModelDisplayControllers* getModelsEvent =
+            dynamic_cast<EventGetModelDisplayControllers*>(event);
+        CaretAssert(getModelsEvent);
+        
+        std::cout << "Received get models event in " << __func__ << std::endl;
+        
+        std::vector<ModelDisplayController*> controllers;
+        this->getAllModelControllers(controllers);
+        getModelsEvent->addModelDisplayControllers(controllers);
     }
 }
 

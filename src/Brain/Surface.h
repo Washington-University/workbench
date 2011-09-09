@@ -35,8 +35,8 @@ namespace caret {
     class BoundingBox;
     class Brain;
     class BrainStructure;
-    class ModelController;
-    class ModelControllerSurface;
+    class ModelDisplayController;
+    class ModelDisplayControllerSurface;
 
     /**
      * Maintains view of some type of object.
@@ -54,7 +54,7 @@ namespace caret {
         
         void setBrainStructure(BrainStructure* brainStructure);
         
-        ModelController* getModelController();
+        ModelDisplayController* getModelController();
         
         AString getNameForGUI(bool includeStructureFlag) const;
         
@@ -73,7 +73,7 @@ namespace caret {
         
         BrainStructure* brainStructure;
         
-        ModelControllerSurface* surfaceController;
+        ModelDisplayControllerSurface* surfaceController;
         
         bool defaultScalingInitializedFlag;
         

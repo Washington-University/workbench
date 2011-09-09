@@ -43,19 +43,29 @@ ENDIF (OPENGL_FOUND)
 #
 ADD_LIBRARY(Brain
 Brain.h
+BrainConstants.h
 BrainOpenGL.h
 BrainStructure.h
 BrowserTabContent.h
-ModelBase.h
-ModelSurface.h
+EventBrowserTabDelete.h
+EventBrowserTabNew.h
+EventGetModelDisplayControllers.h
+ModelDisplayController.h
+ModelDisplayControllerSurface.h
+SessionManager.h
 Surface.h
 
 Brain.cxx
+BrainConstants.cxx
 BrainOpenGL.cxx
 BrainStructure.cxx
 BrowserTabContent.cxx
-ModelBase.cxx
-ModelSurface.cxx
+EventBrowserTabDelete.cxx
+EventBrowserTabNew.cxx
+EventGetModelDisplayControllers.cxx
+ModelDisplayController.cxx
+ModelDisplayControllerSurface.cxx
+SessionManager.cxx
 Surface.cxx
 )
 
