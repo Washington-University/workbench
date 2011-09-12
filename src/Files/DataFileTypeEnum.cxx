@@ -27,33 +27,39 @@
 #include "DataFileTypeEnum.h"
 #undef __DATA_FILE_TYPE_ENUM_DECLARE__
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 /**
  * Constructor.
  *
- * @param e
+ * @param enumValue
  *    An enumerated value.
  * @param name
  *    Name of enumberated value.
  */
-DataFileTypeEnum::DataFileTypeEnum(const Enum e,
+DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const int32_t integerCode,
                                    const AString& name,
                                    const AString& guiName,
-                                   const AString& fileExtension1,
-                                   const AString& fileExtension2)
+                                   const AString& fileExtensionOne,
+                                   const AString& fileExtensionTwo,
+                                   const AString& fileExtensionThree)
 {
-    this->e = e;
+    this->enumValue = enumValue;
     this->integerCode = integerCode;
     this->name = name;
     this->guiName = guiName;
     
-    if (fileExtension1.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtension1);
+    if (fileExtensionOne.isEmpty() == false) {
+        this->fileExtensions.push_back(fileExtensionOne);
     }
-    if (fileExtension2.isEmpty() == false) {
-        this->fileExtensions.push_back(fileExtension2);
+    if (fileExtensionTwo.isEmpty() == false) {
+        this->fileExtensions.push_back(fileExtensionTwo);
+    }
+    if (fileExtensionThree.isEmpty() == false) {
+        this->fileExtensions.push_back(fileExtensionThree);
     }
 }
 
@@ -76,87 +82,87 @@ DataFileTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(DataFileTypeEnum(BORDER_PROJECTION, 
-                                    0, 
-                                    "BORDER_PROJECTION", 
-                                    "Border Projection",
+                                        0, 
+                                        "BORDER_PROJECTION", 
+                                        "Border Projection",
                                         "borderproj"));
     
     enumData.push_back(DataFileTypeEnum(CIFTI, 
-                                    1, 
-                                    "CIFTI", 
-                                    "Connectivity",
+                                        1, 
+                                        "CIFTI", 
+                                        "Connectivity",
                                         "cii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI_PROJECTION, 
-                                    2, 
-                                    "FOCI_PROJECTION", 
-                                    "Foci Projection",
+                                        2, 
+                                        "FOCI_PROJECTION", 
+                                        "Foci Projection",
                                         "fociproj"));
     
     enumData.push_back(DataFileTypeEnum(LABEL, 
-                                    3, 
-                                    "LABEL", 
-                                    "Label",
+                                        3, 
+                                        "LABEL", 
+                                        "Label",
                                         "label.gii"));
     
     enumData.push_back(DataFileTypeEnum(METRIC, 
-                                    4, 
-                                    "METRIC", 
-                                    "Metric",
+                                        4, 
+                                        "METRIC", 
+                                        "Metric",
                                         "func.gii"));
     
     enumData.push_back(DataFileTypeEnum(PALETTE, 
-                                    5, 
-                                    "PALETTE", 
-                                    "Palette",
+                                        5, 
+                                        "PALETTE", 
+                                        "Palette",
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
-                                    6, 
-                                    "RGBA", 
-                                    "RGBA",
+                                        6, 
+                                        "RGBA", 
+                                        "RGBA",
                                         "rgba.gii"));
     
     enumData.push_back(DataFileTypeEnum(SCENE, 
-                                    7, 
-                                    "SCENE", 
-                                    "Scene",
+                                        7, 
+                                        "SCENE", 
+                                        "Scene",
                                         "scene"));
     
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
-                                    8, 
-                                    "SPECIFICATION", 
-                                    "Specification",
+                                        8, 
+                                        "SPECIFICATION", 
+                                        "Specification",
                                         "spec"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_ANATOMICAL, 
-                                    9, 
-                                    "SURFACE_ANATOMICAL", 
-                                    "Surface - Anatomical",
+                                        9, 
+                                        "SURFACE_ANATOMICAL", 
+                                        "Surface - Anatomical",
                                         "surf.gii"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_INFLATED, 
-                                    10, 
-                                    "SURFACE_INFLATED", 
+                                        10, 
+                                        "SURFACE_INFLATED", 
                                         "Surface - Inflated",
                                         "surf.gii"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_VERY_INFLATED, 
-                                    11, 
-                                    "SURFACE_VERY_INFLATED", 
+                                        11, 
+                                        "SURFACE_VERY_INFLATED", 
                                         "Surface - Very Inflated",
                                         "surf.gii"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_FLAT, 
-                                    12, 
-                                    "SURFACE_FLAT", 
+                                        12, 
+                                        "SURFACE_FLAT", 
                                         "Surface - Flat",
                                         "surf.gii"));
     
     enumData.push_back(DataFileTypeEnum(UNKNOWN, 
-                                    13, 
-                                    "UNKNOWN", 
-                                    "Unknown",
+                                        13, 
+                                        "UNKNOWN", 
+                                        "Unknown",
                                         "unknown"));
     
     enumData.push_back(DataFileTypeEnum(VOLUME_ANATOMY, 
@@ -167,37 +173,36 @@ DataFileTypeEnum::initialize()
                                         "nii.gz"));
     
     enumData.push_back(DataFileTypeEnum(VOLUME_FUNCTIONAL, 
-                                    15, 
-                                    "VOLUME_FUNCTIONAL", 
+                                        15, 
+                                        "VOLUME_FUNCTIONAL", 
                                         "Volume - Functional",
                                         "nii",
                                         "nii.gz"));
     
     enumData.push_back(DataFileTypeEnum(VOLUME_LABEL, 
-                                    16, 
-                                    "VOLUME_LABEL", 
+                                        16, 
+                                        "VOLUME_LABEL", 
                                         "Volume - Label",
                                         "nii",
                                         "nii.gz"));
-    
 }
 
 /**
  * Find the data for and enumerated value.
- * @param e
+ * @param enumValue
  *     The enumerated value.
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
 const DataFileTypeEnum*
-DataFileTypeEnum::findData(const Enum e)
+DataFileTypeEnum::findData(const Enum enumValue)
 {
-    initialize();
+    if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
         const DataFileTypeEnum* d = &enumData[i];
-        if (d->e == e) {
+        if (d->enumValue == enumValue) {
             return d;
         }
     }
@@ -207,22 +212,22 @@ DataFileTypeEnum::findData(const Enum e)
 
 /**
  * Get a string representation of the enumerated type.
- * @param e 
+ * @param enumValue 
  *     Enumerated value.
  * @return 
  *     String representing enumerated value.
  */
 AString 
-DataFileTypeEnum::toName(Enum e) {
-    initialize();
+DataFileTypeEnum::toName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
     
-    const DataFileTypeEnum* enumValue = findData(e);
-    return enumValue->name;
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->name;
 }
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param s 
+ * @param name 
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -231,19 +236,19 @@ DataFileTypeEnum::toName(Enum e) {
  *     Enumerated value.
  */
 DataFileTypeEnum::Enum 
-DataFileTypeEnum::fromName(const AString& s, bool* isValidOut)
+DataFileTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
-    initialize();
+    if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum enumValue;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         const DataFileTypeEnum& d = *iter;
-        if (d.name == s) {
-            e = d.e;
+        if (d.name == name) {
+            enumValue = d.enumValue;
             validFlag = true;
             break;
         }
@@ -252,22 +257,25 @@ DataFileTypeEnum::fromName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    return e;
+    else {
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
 }
 
 /**
  * Get a GUI string representation of the enumerated type.
- * @param e 
+ * @param enumValue 
  *     Enumerated value.
  * @return 
  *     String representing enumerated value.
  */
 AString 
-DataFileTypeEnum::toGuiName(Enum e) {
-    initialize();
+DataFileTypeEnum::toGuiName(Enum enumValue) {
+    if (initializedFlag == false) initialize();
     
-    const DataFileTypeEnum* enumValue = findData(e);
-    return enumValue->guiName;
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->guiName;
 }
 
 /**
@@ -281,19 +289,19 @@ DataFileTypeEnum::toGuiName(Enum e) {
  *     Enumerated value.
  */
 DataFileTypeEnum::Enum 
-DataFileTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
+DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
-    initialize();
+    if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum enumValue;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         const DataFileTypeEnum& d = *iter;
-        if (d.guiName == s) {
-            e = d.e;
+        if (d.guiName == guiName) {
+            enumValue = d.enumValue;
             validFlag = true;
             break;
         }
@@ -302,7 +310,10 @@ DataFileTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    return e;
+    else {
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
 }
 
 /**
@@ -312,11 +323,11 @@ DataFileTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
  *    Integer code for data type.
  */
 int32_t
-DataFileTypeEnum::toIntegerCode(Enum e)
+DataFileTypeEnum::toIntegerCode(Enum enumValue)
 {
-    initialize();
-    const DataFileTypeEnum* enumValue = findData(e);
-    return enumValue->integerCode;
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->integerCode;
 }
 
 /**
@@ -333,17 +344,17 @@ DataFileTypeEnum::toIntegerCode(Enum e)
 DataFileTypeEnum::Enum
 DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
-    initialize();
+    if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum e = DataFileTypeEnum::UNKNOWN;
+    Enum enumValue = UNKNOWN;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const DataFileTypeEnum& enumValue = *iter;
-        if (enumValue.integerCode == integerCode) {
-            e = enumValue.e;
+        const DataFileTypeEnum& enumInstance = *iter;
+        if (enumInstance.integerCode == integerCode) {
+            enumValue = enumInstance.enumValue;
             validFlag = true;
             break;
         }
@@ -352,6 +363,30 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    return e;
+    else {
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
+}
+
+/**
+ * Get all of the enumerated type values.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+
+ * @param allEnums
+ *     A vector that is OUTPUT containing all of the enumerated values.
+ */
+void
+DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    allEnums.clear();
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        allEnums.push_back(iter->enumValue);
+    }
 }
 

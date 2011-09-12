@@ -173,38 +173,47 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("    ~" + enumClassName + "();\n");
     t += ("\n");
-    t += ("    static AString toName(Enum e);\n");
+    t += ("    static AString toName(Enum enumValue);\n");
     t += ("    \n");
-    t += ("    static Enum fromName(const AString& s, bool* isValidOut);\n");
+    t += ("    static Enum fromName(const AString& name, bool* isValidOut);\n");
     t += ("    \n");
-    t += ("    static AString toGuiName(Enum e);\n");
+    t += ("    static AString toGuiName(Enum enumValue);\n");
     t += ("    \n");
-    t += ("    static Enum fromGuiName(const AString& s, bool* isValidOut);\n");
+    t += ("    static Enum fromGuiName(const AString& guiName, bool* isValidOut);\n");
     t += ("    \n");
-    t += ("    static int32_t toIntegerCode(Enum e);\n");
+    t += ("    static int32_t toIntegerCode(Enum enumValue);\n");
     t += ("    \n");
     t += ("    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);\n");
     t += ("\n");
+    t += ("    static void getAllEnums(std::vector<Enum>& allEnums);\n");
+    t += ("\n");
     t += ("private:\n");
-    t += ("    " + enumClassName + "(const Enum e, \n");
+    t += ("    " + enumClassName + "(const Enum enumValue, \n");
     t += ("                 const int32_t integerCode, \n");
     t += ("                 const AString& name,\n");
     t += ("                 const AString& guiName);\n");
     t += ("\n");
-    t += ("    static const " + enumClassName + "* findData(const Enum e);\n");
+    t += ("    static const " + enumClassName + "* findData(const Enum enumValue);\n");
     t += ("\n");
+    t += ("    /** Holds all instance of enum values and associated metadata */\n");
     t += ("    static std::vector<" + enumClassName + "> enumData;\n");
     t += ("\n");
+    t += ("    /** Initialize instances that contain the enum values and metadata */\n");
     t += ("    static void initialize();\n");
     t += ("\n");
+    t += ("    /** Indicates instance of enum values and metadata have been initialized */\n");
     t += ("    static bool initializedFlag;\n");
+    t += ("    \n");
+    t += ("    /** The enumerated type value for an instance */\n");
+    t += ("    Enum enumValue;\n");
     t += ("\n");
-    t += ("    Enum e;\n");
-    t += ("\n");
+    t += ("    /** The integer code associated with an enumerated value */\n");
     t += ("    int32_t integerCode;\n");
     t += ("\n");
+    t += ("    /** The name, a text string that is identical to the enumerated value */\n");
     t += ("    AString name;\n");
     t += ("    \n");
+    t += ("    /** A user-friendly name that is displayed in the GUI */\n");
     t += ("    AString guiName;\n");
     t += ("};\n");
     t += ("\n");
@@ -254,27 +263,31 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("#include \"" + enumClassName + ".h\"\n");
     t += ("#undef " + ifdefNameStaticDeclaration + "\n");
     t += ("\n");
+    t += ("#include \"CaretAssert.h\"\n");
+    t += ("\n");
     t += ("using namespace caret;\n");
     t += ("\n");
     t += ("/**\n");
     t += (" * Constructor.\n");
     t += (" *\n");
-    t += (" * @param e\n");
+    t += (" * @param enumValue\n");
     t += (" *    An enumerated value.\n");
     t += (" * @param name\n");
     t += (" *    Name of enumberated value.\n");
     t += (" */\n");
-    t += ("" + enumClassName + "::" + enumClassName + "(const Enum e,\n");
+    t += ("" + enumClassName + "::" + enumClassName + "(const Enum enumValue,\n");
     t += ("                           const int32_t integerCode,\n");
     t += ("                           const AString& name,\n");
     t += ("                           const AString& guiName)\n");
     t += ("{\n");
-    t += ("    this->e = e;\n");
+    t += ("    this->enumValue = enumValue;\n");
     t += ("    this->integerCode = integerCode;\n");
     t += ("    this->name = name;\n");
     t += ("    this->guiName = guiName;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Destructor.\n");
     t += (" */\n");
@@ -282,6 +295,8 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("{\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Initialize the enumerated metadata.\n");
     t += (" */\n");
@@ -303,22 +318,24 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     }
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Find the data for and enumerated value.\n");
-    t += (" * @param e\n");
+    t += (" * @param enumValue\n");
     t += (" *     The enumerated value.\n");
     t += (" * @return Pointer to data for this enumerated type\n");
     t += (" * or NULL if no data for type or if type is invalid.\n");
     t += (" */\n");
     t += ("const " + enumClassName + "*\n");
-    t += ("" + enumClassName + "::findData(const Enum e)\n");
+    t += ("" + enumClassName + "::findData(const Enum enumValue)\n");
     t += ("{\n");
-    t += ("    initialize();\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("\n");
     t += ("    size_t num = enumData.size();\n");
     t += ("    for (size_t i = 0; i < num; i++) {\n");
     t += ("        const " + enumClassName + "* d = &enumData[i];\n");
-    t += ("        if (d->e == e) {\n");
+    t += ("        if (d->enumValue == enumValue) {\n");
     t += ("            return d;\n");
     t += ("        }\n");
     t += ("    }\n");
@@ -326,24 +343,28 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    return NULL;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Get a string representation of the enumerated type.\n");
-    t += (" * @param e \n");
+    t += (" * @param enumValue \n");
     t += (" *     Enumerated value.\n");
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
     t += ("AString \n");
-    t += ("" + enumClassName + "::toName(Enum e) {\n");
-    t += ("    initialize();\n");
+    t += ("" + enumClassName + "::toName(Enum enumValue) {\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
-    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
-    t += ("    return enumValue->name;\n");
+    t += ("    const " + enumClassName + "* enumInstance = findData(enumValue);\n");
+    t += ("    return enumInstance->name;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Get an enumerated value corresponding to its name.\n");
-    t += (" * @param s \n");
+    t += (" * @param name \n");
     t += (" *     Name of enumerated value.\n");
     t += (" * @param isValidOut \n");
     t += (" *     If not NULL, it is set indicating that a\n");
@@ -352,19 +373,19 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromName(const AString& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromName(const AString& name, bool* isValidOut)\n");
     t += ("{\n");
-    t += ("    initialize();\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum e;\n");
+    t += ("    Enum enumValue;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
     t += ("         iter++) {\n");
     t += ("        const " + enumClassName + "& d = *iter;\n");
-    t += ("        if (d.name == s) {\n");
-    t += ("            e = d.e;\n");
+    t += ("        if (d.name == name) {\n");
+    t += ("            enumValue = d.enumValue;\n");
     t += ("            validFlag = true;\n");
     t += ("            break;\n");
     t += ("        }\n");
@@ -373,24 +394,31 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (isValidOut != 0) {\n");
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
-    t += ("    return e;\n");
+    t += ("    else {\n");
+    t += ("        CaretAssertMessage(0, AString(\"Name \" + name + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("    }\n");
+    t += ("    return enumValue;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Get a GUI string representation of the enumerated type.\n");
-    t += (" * @param e \n");
+    t += (" * @param enumValue \n");
     t += (" *     Enumerated value.\n");
     t += (" * @return \n");
     t += (" *     String representing enumerated value.\n");
     t += (" */\n");
     t += ("AString \n");
-    t += ("" + enumClassName + "::toGuiName(Enum e) {\n");
-    t += ("    initialize();\n");
+    t += ("" + enumClassName + "::toGuiName(Enum enumValue) {\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
-    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
-    t += ("    return enumValue->guiName;\n");
+    t += ("    const " + enumClassName + "* enumInstance = findData(enumValue);\n");
+    t += ("    return enumInstance->guiName;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Get an enumerated value corresponding to its GUI name.\n");
     t += (" * @param s \n");
@@ -402,19 +430,19 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *     Enumerated value.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::Enum \n");
-    t += ("" + enumClassName + "::fromGuiName(const AString& s, bool* isValidOut)\n");
+    t += ("" + enumClassName + "::fromGuiName(const AString& guiName, bool* isValidOut)\n");
     t += ("{\n");
-    t += ("    initialize();\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum e;\n");
+    t += ("    Enum enumValue;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
     t += ("         iter++) {\n");
     t += ("        const " + enumClassName + "& d = *iter;\n");
-    t += ("        if (d.guiName == s) {\n");
-    t += ("            e = d.e;\n");
+    t += ("        if (d.guiName == guiName) {\n");
+    t += ("            enumValue = d.enumValue;\n");
     t += ("            validFlag = true;\n");
     t += ("            break;\n");
     t += ("        }\n");
@@ -423,9 +451,14 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (isValidOut != 0) {\n");
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
-    t += ("    return e;\n");
+    t += ("    else {\n");
+    t += ("        CaretAssertMessage(0, AString(\"guiName \" + guiName + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("    }\n");
+    t += ("    return enumValue;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Get the integer code for a data type.\n");
     t += (" *\n");
@@ -433,13 +466,15 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *    Integer code for data type.\n");
     t += (" */\n");
     t += ("int32_t\n");
-    t += ("" + enumClassName + "::toIntegerCode(Enum e)\n");
+    t += ("" + enumClassName + "::toIntegerCode(Enum enumValue)\n");
     t += ("{\n");
-    t += ("    initialize();\n");
-    t += ("    const " + enumClassName + "* enumValue = findData(e);\n");
-    t += ("    return enumValue->integerCode;\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
+    t += ("    const " + enumClassName + "* enumInstance = findData(enumValue);\n");
+    t += ("    return enumInstance->integerCode;\n");
     t += ("}\n");
     t += ("\n");
+    
+    
     t += ("/**\n");
     t += (" * Find the data type corresponding to an integer code.\n");
     t += (" *\n"); 
@@ -454,17 +489,17 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("" + enumClassName + "::Enum\n");
     t += ("" + enumClassName + "::fromIntegerCode(const int32_t integerCode, bool* isValidOut)\n");
     t += ("{\n");
-    t += ("    initialize();\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum e = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
+    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
     t += ("         iter++) {\n");
-    t += ("        const " + enumClassName + "& enumValue = *iter;\n");
-    t += ("        if (enumValue.integerCode == integerCode) {\n");
-    t += ("            e = enumValue.e;\n");
+    t += ("        const " + enumClassName + "& enumInstance = *iter;\n");
+    t += ("        if (enumInstance.integerCode == integerCode) {\n");
+    t += ("            enumValue = enumInstance.enumValue;\n");
     t += ("            validFlag = true;\n");
     t += ("            break;\n");
     t += ("        }\n");
@@ -473,10 +508,37 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (isValidOut != 0) {\n");
     t += ("        *isValidOut = validFlag;\n");
     t += ("    }\n");
-    t += ("    return e;\n");
+    t += ("    else {\n");
+    t += ("        CaretAssertMessage(0, AString(\"Integer code \" + AString::number(integerCode) + \"failed to match enumerated value for type " + enumClassName + "\"));\n");
+    t += ("    }\n");
+    t += ("    return enumValue;\n");
+    t += ("}\n");
+    t += ("\n");
+    
+    
+    t += ("/**\n");
+    t += (" * Get all of the enumerated type values.  The values can be used\n");
+    t += (" * as parameters to toXXX() methods to get associated metadata.\n"); 
+    t += (" *\n");
+    t += (" * @param allEnums\n");
+    t += (" *     A vector that is OUTPUT containing all of the enumerated values.\n");
+    t += (" */\n");
+    t += ("void\n");
+    t += ("" + enumClassName + "::getAllEnums(std::vector<" + enumClassName + "::Enum>& allEnums)\n");
+    t += ("{\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
+    t += ("    \n");
+    t += ("    allEnums.clear();\n");
+    t += ("    \n");
+    t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
+    t += ("         iter != enumData.end();\n");
+    t += ("         iter++) {\n");
+    t += ("        allEnums.push_back(iter->enumValue);\n");
+    t += ("    }\n");
     t += ("}\n");
     t += ("\n");
 
+    
     TextFile tf;
     tf.replaceText(t);
     

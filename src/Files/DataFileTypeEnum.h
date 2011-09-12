@@ -32,7 +32,7 @@
 
 namespace caret {
 
-/// Enumerated type for 
+/// Enumerated type for data files
 class DataFileTypeEnum {
 
 public:
@@ -75,46 +75,56 @@ public:
         /** Label Volume */
         VOLUME_LABEL
     };
-
-
+    
     ~DataFileTypeEnum();
 
-    static AString toName(Enum e);
+    static AString toName(Enum enumValue);
     
-    static Enum fromName(const AString& s, bool* isValidOut);
+    static Enum fromName(const AString& name, bool* isValidOut);
     
-    static AString toGuiName(Enum e);
+    static AString toGuiName(Enum enumValue);
     
-    static Enum fromGuiName(const AString& s, bool* isValidOut);
+    static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
-    static int32_t toIntegerCode(Enum e);
+    static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
+    static void getAllEnums(std::vector<Enum>& allEnums);
+
 private:
-    DataFileTypeEnum(const Enum e, 
-                 const int32_t integerCode, 
-                 const AString& name,
-                 const AString& guiName,
-                 const AString& fileExtension1,
-                 const AString& fileExtension2 = "");
+    DataFileTypeEnum(const Enum enumValue, 
+                     const int32_t integerCode, 
+                     const AString& name,
+                     const AString& guiName,
+                     const AString& fileExtensionOne,
+                     const AString& fileExtensionTwo = "",
+                     const AString& fileExtensionThree = "");
 
-    static const DataFileTypeEnum* findData(const Enum e);
+    static const DataFileTypeEnum* findData(const Enum enumValue);
 
+    /** Holds all instance of enum values and associated metadata */
     static std::vector<DataFileTypeEnum> enumData;
 
+    /** Initialize instances that contain the enum values and metadata */
     static void initialize();
 
+    /** Indicates instance of enum values and metadata have been initialized */
     static bool initializedFlag;
+    
+    /** The enumerated type value for an instance */
+    Enum enumValue;
 
-    Enum e;
-
+    /** The integer code associated with an enumerated value */
     int32_t integerCode;
 
+    /** The name, a text string that is identical to the enumerated value */
     AString name;
     
+    /** A user-friendly name that is displayed in the GUI */
     AString guiName;
     
+    /** Extension(s) for the file */
     std::vector<AString> fileExtensions;
 };
 
