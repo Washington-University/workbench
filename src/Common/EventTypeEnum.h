@@ -44,16 +44,16 @@ public:
         EVENT_BROWSER_TAB_DELETE,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
+        /** Read a data file */
+        EVENT_DATA_FILE_READ,
+        /** Update all graphics windows */
+        EVENT_GRAPHICS_UPDATE_ALL,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
-        /** Load a surface file */
-        EVENT_LOAD_SURFACE_FILE,
-        /** Update all graphics windows */
-        EVENT_UPDATE_ALL_GRAPHICS,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };
@@ -73,8 +73,8 @@ public:
 
 private:
     EventTypeEnum(const Enum enumValue, 
-                 const AString& name,
-                 const AString& guiName);
+                  const AString& name,
+                  const AString& guiName);
 
     static const EventTypeEnum* findData(const Enum enumValue);
 

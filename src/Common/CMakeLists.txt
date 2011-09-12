@@ -30,10 +30,8 @@ DataFile.h
 DataFileException.h
 Event.h
 EventListenerInterface.h
-EventLoadSurfaceFile.h
 EventManager.h
 EventTypeEnum.h
-EventUpdateAllGraphics.h
 FileInformation.h
 MathFunctions.h
 MessageManager.h
@@ -55,10 +53,8 @@ DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
 Event.cxx
-EventLoadSurfaceFile.cxx
 EventManager.cxx
 EventTypeEnum.cxx
-EventUpdateAllGraphics.cxx
 FileInformation.cxx
 MathFunctions.cxx
 MessageManager.cxx

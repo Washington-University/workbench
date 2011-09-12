@@ -60,7 +60,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     
 //    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ALL_GRAPHICS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL);
 }
 
 /**
@@ -259,7 +259,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_ALL_GRAPHICS) {
+    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL) {
         std::cout << "Received update graphics event in " << __func__ << std::endl;
         this->updateGL();
     }

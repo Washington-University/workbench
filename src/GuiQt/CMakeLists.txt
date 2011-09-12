@@ -29,11 +29,13 @@ WindowMain.h
 # Source files 
 #
 SET(SOURCE_FILES
+EventUpdateAllGraphics.h
 GuiGlobals.h
 
 ${MOC_INPUT_HEADER_FILES}
 Actions.cxx
 BrainOpenGLWidget.cxx
+EventUpdateAllGraphics.cxx
 GuiGlobals.cxx
 WindowMain.cxx
 )

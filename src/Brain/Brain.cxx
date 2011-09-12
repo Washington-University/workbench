@@ -28,7 +28,7 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
-#include "EventLoadSurfaceFile.h"
+#include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "PaletteFile.h"
 #include "Surface.h"
@@ -43,7 +43,7 @@ Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_LOAD_SURFACE_FILE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
 }
 
 /**
@@ -153,6 +153,71 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
 }
 
 /**
+ * Process a read data file event.
+ * @param readDataFileEvent
+ *   Event describing file for reading and may be updated with error messages.
+ */
+void 
+Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
+{
+    const AString filename = readDataFileEvent->getDataFileName();
+    const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
+    
+    try {
+        switch (dataFileType) {
+            case DataFileTypeEnum::BORDER_PROJECTION:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: border projection");
+                break;
+            case DataFileTypeEnum::CIFTI:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: cifti");
+                break;
+            case DataFileTypeEnum::FOCI_PROJECTION:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: foci projection");
+                break;
+            case DataFileTypeEnum::LABEL:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: label");
+                break;
+            case DataFileTypeEnum::METRIC:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: metric");
+                break;
+            case DataFileTypeEnum::PALETTE:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: palette");
+                break;
+            case DataFileTypeEnum::RGBA:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: rgba");
+                break;
+            case DataFileTypeEnum::SCENE:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: scene");
+                break;
+            case DataFileTypeEnum::SPECIFICATION:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: specification");
+                break;
+            case DataFileTypeEnum::SURFACE_ANATOMICAL:
+            case DataFileTypeEnum::SURFACE_INFLATED:
+            case DataFileTypeEnum::SURFACE_VERY_INFLATED:
+            case DataFileTypeEnum::SURFACE_FLAT:
+                this->readSurfaceFile(filename);
+                break;
+            case DataFileTypeEnum::UNKNOWN:
+                readDataFileEvent->setErrorMessage("Unable to read files of type");
+                break;
+            case DataFileTypeEnum::VOLUME_ANATOMY:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: volume anatomy");
+                break;
+            case DataFileTypeEnum::VOLUME_FUNCTIONAL:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: functional");
+                break;
+            case DataFileTypeEnum::VOLUME_LABEL:
+                readDataFileEvent->setErrorMessage("Reading not implemented for: label");
+                break;
+        }
+    }
+    catch (DataFileException e) {
+        readDataFileEvent->setErrorMessage(e.whatString());
+    }    
+}
+
+/**
  * Receive events from the event manager.
  * 
  * @param event
@@ -161,18 +226,17 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
 void 
 Brain::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_LOAD_SURFACE_FILE) {
-        EventLoadSurfaceFile* loadSurfaceFileEvent =
-             dynamic_cast<EventLoadSurfaceFile*>(event);
-        CaretAssert(loadSurfaceFileEvent);
+    if (event->getEventType() == EventTypeEnum::EVENT_DATA_FILE_READ) {
+        EventDataFileRead* readDataFileEvent =
+             dynamic_cast<EventDataFileRead*>(event);
+        CaretAssert(readDataFileEvent);
         
-        std::cout << "Received load surface event in " << __FILE__ << std::endl;
-        
-        try {
-            this->readSurfaceFile(loadSurfaceFileEvent->getSurfaceFileName());
-        }
-        catch (DataFileException e) {
-            loadSurfaceFileEvent->setErrorMessage(e.whatString());
+        /*
+         * Make sure event is for this brain
+         */
+        if (readDataFileEvent->getLoadIntoBrain() == this) {
+            std::cout << "Received read data file event in " << __FILE__ << std::endl;            
+            this->processReadDataFileEvent(readDataFileEvent);
         }
     }
 }

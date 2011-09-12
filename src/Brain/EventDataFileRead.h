@@ -1,5 +1,5 @@
-#ifndef __EVENT_LOAD_SURFACE_FILE_H__
-#define __EVENT_LOAD_SURFACE_FILE_H__
+#ifndef __EVENT_DATA_FILE_READ_H__
+#define __EVENT_DATA_FILE_READ_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -25,31 +25,43 @@
  * 
  */ 
 
-
+#include "DataFileTypeEnum.h"
 #include "Event.h"
 
 namespace caret {
 
+    class Brain;
+    
     /**
-     * Event for loading a surface file.
+     * Event for reading a data file.
      */
-    class EventLoadSurfaceFile : public Event {
+    class EventDataFileRead : public Event {
         
     public:
-        EventLoadSurfaceFile(const AString& surfaceFileName);
+        EventDataFileRead(Brain* loadIntoBrain,
+                          const DataFileTypeEnum::Enum dataFileType,
+                          const AString& dataFileName);
         
-        AString getSurfaceFileName() const;
+        virtual ~EventDataFileRead();
         
-        virtual ~EventLoadSurfaceFile();
+        AString getDataFileName() const;
+        
+        DataFileTypeEnum::Enum getDataFileType() const;
+        
+        Brain* getLoadIntoBrain();
         
     private:
-        EventLoadSurfaceFile(const EventLoadSurfaceFile&);
+        EventDataFileRead(const EventDataFileRead&);
         
-        EventLoadSurfaceFile& operator=(const EventLoadSurfaceFile&);
+        EventDataFileRead& operator=(const EventDataFileRead&);
         
-        AString surfaceFileName;
+        Brain* loadIntoBrain;
+        
+        AString dataFileName;
+        
+        DataFileTypeEnum::Enum dataFileType;
     };
 
 } // namespace
 
-#endif // __EVENT_LOAD_SURFACE_FILE_H__
+#endif // __EVENT_DATA_FILE_READ_H__

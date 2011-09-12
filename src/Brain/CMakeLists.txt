@@ -49,6 +49,7 @@ BrainStructure.h
 BrowserTabContent.h
 EventBrowserTabDelete.h
 EventBrowserTabNew.h
+EventDataFileRead.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
@@ -70,6 +71,7 @@ BrainStructure.cxx
 BrowserTabContent.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabNew.cxx
+EventDataFileRead.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx

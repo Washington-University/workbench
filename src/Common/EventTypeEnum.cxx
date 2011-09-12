@@ -74,9 +74,17 @@ EventTypeEnum::initialize()
                                     "EVENT_BROWSER_TAB_NEW", 
                                     "Create a browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
+                                    "EVENT_DATA_FILE_READ", 
+                                    "Read a data file"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL, 
+                                     "EVENT_GRAPHICS_UPDATE_ALL", 
+                                     "Update all graphics windows"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
-                                    "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
-                                    "Add a model display controller"));
+                                     "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
+                                     "Add a model display controller"));
     
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_DELETE, 
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_DELETE", 
@@ -86,18 +94,13 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
     
-    enumData.push_back(EventTypeEnum(EVENT_LOAD_SURFACE_FILE, 
-                                    "EVENT_LOAD_SURFACE_FILE", 
-                                    "Load a surface file"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ALL_GRAPHICS, 
-                                    "EVENT_UPDATE_ALL_GRAPHICS", 
-                                    "Update all graphics"));
-    
     enumData.push_back(EventTypeEnum(EVENT_COUNT, 
                                     "EVENT_COUNT", 
                                     "Count of events"));
     
+    CaretAssertMessage((enumData.size() == static_cast<uint64_t>(EVENT_COUNT + 1)),
+                       ("Number of EventTypeEnum::Enum values is incorrect.\n"
+                        "Have enumerated type been added?"));
 }
 
 /**

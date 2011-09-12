@@ -33,7 +33,7 @@
 
 #include "Actions.h"
 #include "Brain.h"
-#include "EventLoadSurfaceFile.h"
+#include "EventDataFileRead.h"
 #include "EventUpdateAllGraphics.h"
 #include "EventManager.h"
 #include "GuiGlobals.h"
@@ -162,7 +162,9 @@ Actions::processDataFileOpenAction()
                                  "Surfaces (*.surf.gii)");
     if(name.length()==0) return;
 
-    EventLoadSurfaceFile loadSurfaceEvent(name);
+    EventDataFileRead loadSurfaceEvent(GuiGlobals::getBrain(),
+                                       DataFileTypeEnum::SURFACE_ANATOMICAL,
+                                       name);
     
     EventManager::get()->sendEvent(loadSurfaceEvent.getPointer());
     

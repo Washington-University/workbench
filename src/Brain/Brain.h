@@ -35,6 +35,7 @@
 namespace caret {
     
     class BrainStructure;
+    class EventDataFileRead;
     class PaletteFile;
     
     class Brain : public CaretObject, public EventListenerInterface {
@@ -60,11 +61,13 @@ namespace caret {
         
         void resetBrain();
         
-        void readSurfaceFile(const AString& filename) throw (DataFileException);
-        
         void receiveEvent(Event* event);
         
     private:
+        void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
+        
+        void readSurfaceFile(const AString& filename) throw (DataFileException);
+        
         std::vector<BrainStructure*> brainStructures;
         
         PaletteFile* paletteFile;
