@@ -28,6 +28,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainOpenGLWidget.h"
+#include "SessionManager.h"
 
 #define __GUI_GLOBALS_DEFINE__
 #include "GuiGlobals.h"
@@ -44,10 +45,7 @@ using namespace caret;
 Brain* 
 GuiGlobals::getBrain()
 {
-    if (GuiGlobals::brain == NULL) {
-        GuiGlobals::brain = new Brain();
-    }
-    return GuiGlobals::brain;
+    return SessionManager::get()->getBrain(0);
 }
 
 /**
@@ -71,10 +69,6 @@ GuiGlobals::getBrainOpenGL()
 void 
 GuiGlobals::deleteAllAtProgramExit()
 {
-    if (GuiGlobals::brain != NULL) {        
-        delete GuiGlobals::brain;
-        GuiGlobals::brain = NULL;
-    }
     if (GuiGlobals::brainOpenGL != NULL) {        
         delete GuiGlobals::brainOpenGL;
         GuiGlobals::brainOpenGL = NULL;

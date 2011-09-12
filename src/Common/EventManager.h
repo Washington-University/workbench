@@ -58,8 +58,6 @@ namespace caret {
         
         static EventManager* get();
         
-        virtual ~EventManager();
-        
         void addEventListener(EventListenerInterface* eventListener,
                               const EventTypeEnum::Enum listenForEventType);
         
@@ -72,6 +70,8 @@ namespace caret {
         
     private:
         EventManager();
+        
+        virtual ~EventManager();
         
         typedef std::vector<EventListenerInterface*> EVENT_LISTENER_CONTAINER;
         typedef std::vector<EventListenerInterface*>::iterator EVENT_LISTENER_CONTAINER_ITERATOR;

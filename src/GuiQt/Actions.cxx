@@ -145,6 +145,9 @@ Actions::processExitProgramAction()
                              (QMessageBox::Yes | QMessageBox::No),
                              QMessageBox::Yes)
         == QMessageBox::Yes) {
+        
+        this->mainWindow->close();
+        qApp->closeAllWindows();
         qApp->quit();
     }
 }

@@ -29,6 +29,7 @@
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
 
+#include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
@@ -56,6 +57,9 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL);
+    
+    Brain* brain = new Brain();
+    this->brains.push_back(brain);    
 }
 
 /**
@@ -63,6 +67,12 @@ SessionManager::SessionManager()
  */
 SessionManager::~SessionManager()
 {
+    int32_t numberOfBrains = this->getNumberOfBrains();
+    for (int32_t i = (numberOfBrains - 1); i >= 0; i--) {
+        delete this->brains[i];
+    }
+    this->brains.clear();
+    
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -117,7 +127,56 @@ SessionManager::get()
                        "Session manager was not created.\n"
                        "It must be created with SessionManager::createSessionManager().");
     
-    return this->singletonSessionManager;
+    return SessionManager::singletonSessionManager;
+}
+
+/**
+ * Add a brain to this session.  
+ * In most cases, there is one brain per subject.
+ *
+ * @param shareDisplayPropertiesFlag
+ *    If true display properties are shared which 
+ *    is appropriate for the GUI version of Caret.
+ *    For SumsDB, false may be appropriate to keep
+ *    each subject independent of the other.
+ * 
+ * @return New brain that was added.
+ */
+Brain* 
+SessionManager::addBrain(const bool shareDisplayPropertiesFlag)
+{
+    CaretAssertMessage(0, "Adding brains not implemented at this time.");
+    return NULL;
+}
+
+/**
+ * Get the number of brains.
+ * There is always at least one brain.
+ * 
+ * @return Number of brains.
+ */
+int32_t 
+SessionManager::getNumberOfBrains() const
+{
+    return this->brains.size();
+}
+
+/**
+ * Get the brain at the specified index.
+ * There is always one brain so passing 
+ * zero as the index will always work.
+ * 
+ * @param brainIndex
+ *    Index of brain.
+ * @return
+ *    Brain at specified index.
+ */
+Brain* 
+SessionManager::getBrain(const int32_t brainIndex)
+{
+    CaretAssertVectorIndex(this->brains, brainIndex);
+    
+    return this->brains[brainIndex];
 }
 
 /**

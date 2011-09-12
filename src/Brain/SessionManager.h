@@ -31,6 +31,7 @@
 
 namespace caret {
     
+    class Brain;
     class BrowserTabContent;
     class ModelDisplayController;
     
@@ -42,14 +43,20 @@ namespace caret {
         
         static void deleteSessionManager();
         
-        SessionManager* get();
+        static SessionManager* get();
         
-        virtual ~SessionManager();
+        void receiveEvent(Event* event);
         
-        virtual void receiveEvent(Event* event);
+        Brain* addBrain(const bool shareDisplayPropertiesFlag);
+        
+        int32_t getNumberOfBrains() const;
+        
+        Brain* getBrain(const int32_t brainIndex);
         
     private:
         SessionManager();
+        
+        virtual ~SessionManager();
         
         SessionManager(const SessionManager&);
 
@@ -65,7 +72,11 @@ namespace caret {
         /** The browser tabs */
         BrowserTabContent* browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
         
+        /** Holds valid model display controllers */
         std::vector<ModelDisplayController*> modelDisplayControllers;
+        
+        /** Holds all loaded brains */
+        std::vector<Brain*> brains;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

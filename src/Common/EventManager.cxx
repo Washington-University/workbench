@@ -48,6 +48,35 @@ EventManager::EventManager()
  */
 EventManager::~EventManager()
 {
+    /*
+     * Verify that all listeners were removed.
+     */ 
+    for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
+        EVENT_LISTENER_CONTAINER el = this->eventListeners[i];
+        if (el.empty() == false) {
+            EventTypeEnum::Enum enumValue = static_cast<EventTypeEnum::Enum>(i);
+            std::cout 
+            << "Not all listeners removed for event "
+            << EventTypeEnum::toName(enumValue)
+            << ", count is: "
+            << el.size()
+            << std::endl;
+            
+/*
+ * This will not work because it is likely the object
+ * has been deleted and this simply crashes.
+            for (EVENT_LISTENER_CONTAINER_ITERATOR iter = el.begin();
+                 iter != el.end();
+                 iter++) {
+                EventListenerInterface* listener = *iter;
+                CaretObject* caretObject = dynamic_cast<CaretObject*>(listener);
+                if (caretObject != NULL) {
+                    std::cout << "   " << caretObject->toString();
+                }
+            }
+ */
+        }
+    }
     
 }
 
@@ -129,16 +158,30 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
 {
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
     
-    std::cout << "Removing listener from class "
-    << typeid(*eventListener).name()
-    << " for "
-    << EventTypeEnum::toName(listenForEventType)
-    << std::endl;
-
-    listeners.erase(std::remove(listeners.begin(),
-                                listeners.end(),
-                                eventListener),
-                    listeners.end());
+    
+    /*
+     * Remove the listener by creating a new container
+     * of non-matching listeners.
+     */
+    EVENT_LISTENER_CONTAINER updatedListeners;
+    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
+         iter != listeners.end();
+         iter++) {
+        if (*iter == eventListener) {
+            std::cout << "Removing listener from class "
+            << typeid(*eventListener).name()
+            << " for "
+            << EventTypeEnum::toName(listenForEventType)
+            << std::endl;            
+        }
+        else {
+            updatedListeners.push_back(*iter);
+        }
+    }
+    
+    if (updatedListeners.size() != listeners.size()) {
+        this->eventListeners[listenForEventType] = updatedListeners;
+    }
 }
 
 /**

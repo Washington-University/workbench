@@ -66,7 +66,6 @@ namespace caret {
         //static void redrawAllGraphicsWindows();
         
     private:
-        static Brain* brain;
         static BrainOpenGL* brainOpenGL;
         static WindowMain* mainWindow;
         static Actions* actions;
@@ -76,7 +75,6 @@ namespace caret {
     
 #ifdef __GUI_GLOBALS_DEFINE__
     Actions* GuiGlobals::actions = NULL;
-    Brain* GuiGlobals::brain = 0;
     BrainOpenGL* GuiGlobals::brainOpenGL = 0;
     std::vector<BrainOpenGLWidget*> GuiGlobals::brainOpenGLWidgets;
     WindowMain* GuiGlobals::mainWindow = 0;
