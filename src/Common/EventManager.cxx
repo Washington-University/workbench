@@ -163,9 +163,15 @@ EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 void 
 EventManager::sendEvent(Event* event)
 {   
+    /*
+     * Get listeners for event.
+     */
     EventTypeEnum::Enum eventType = event->getEventType();
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
     
+    /*
+     * Send event to each of the listeners.
+     */
     for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
          iter != listeners.end();
          iter++) {
@@ -182,6 +188,16 @@ EventManager::sendEvent(Event* event)
         if (event->isError()) {
             break;
         }
+    }
+    
+    /*
+     * Verify event was processed.
+     */
+    if (event->getEventProcessCount() == 0) {
+        std::cout 
+        << "ERROR Event not processed "
+        << event->toString()
+        << std::endl;
     }
 }
 

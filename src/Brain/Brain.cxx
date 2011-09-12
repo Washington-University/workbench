@@ -231,6 +231,8 @@ Brain::receiveEvent(Event* event)
              dynamic_cast<EventDataFileRead*>(event);
         CaretAssert(readDataFileEvent);
         
+        readDataFileEvent->setEventProcessed();
+        
         /*
          * Make sure event is for this brain
          */

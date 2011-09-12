@@ -37,6 +37,7 @@ Event::Event(const EventTypeEnum::Enum eventType)
     this->eventType = eventType;
     this->errorMessage = "";
     this->errorStatus  = false;
+    this->eventProcessedCount = 0;
 }
 
 /**
@@ -119,6 +120,26 @@ Event::setErrorMessage(const AString& errorMessage)
 {
     this->errorMessage = errorMessage;
     this->errorStatus = true;
+}
+
+/**
+ * Set the this event was processed by a listener.
+ */
+void 
+Event::setEventProcessed()
+{
+    this->eventProcessedCount++;
+}
+
+/**
+ * Get the number of times the event was processed.
+ *
+ * @preturn Count of receivers that processed this event.
+ */
+int32_t 
+Event::getEventProcessCount() const
+{
+    return this->eventProcessedCount;
 }
 
 /**

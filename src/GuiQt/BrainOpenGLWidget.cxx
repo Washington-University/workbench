@@ -34,6 +34,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
+#include "CaretAssert.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "EventUpdateAllGraphics.h"
@@ -260,7 +261,14 @@ void
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL) {
+        EventUpdateAllGraphics* updateAllEvent =
+            dynamic_cast<EventUpdateAllGraphics*>(event);
+        CaretAssert(updateAllEvent);
+        
+        updateAllEvent->setEventProcessed();
+        
         std::cout << "Received update graphics event in " << __func__ << std::endl;
+        
         this->updateGL();
     }
 }

@@ -144,6 +144,8 @@ SessionManager::receiveEvent(Event* event)
             dynamic_cast<EventBrowserTabNew*>(event);
         CaretAssert(tabEvent);
         
+        tabEvent->setEventProcessed();
+        
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (this->browserTabs[i] == NULL) {
                 BrowserTabContent* tab = new BrowserTabContent(i);
@@ -157,6 +159,8 @@ SessionManager::receiveEvent(Event* event)
         EventBrowserTabDelete* tabEvent =
         dynamic_cast<EventBrowserTabDelete*>(event);
         CaretAssert(tabEvent);
+        
+        tabEvent->setEventProcessed();
         
         BrowserTabContent* tab = tabEvent->getBrowserTab();
         
@@ -173,6 +177,8 @@ SessionManager::receiveEvent(Event* event)
         dynamic_cast<EventModelDisplayControllerAdd*>(event);
         CaretAssert(addModelsEvent);
         
+        addModelsEvent->setEventProcessed();
+        
         std::cout << "Received add models event in " << __func__ << std::endl;
         
         this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
@@ -181,6 +187,8 @@ SessionManager::receiveEvent(Event* event)
         EventModelDisplayControllerDelete* deleteModelsEvent =
         dynamic_cast<EventModelDisplayControllerDelete*>(event);
         CaretAssert(deleteModelsEvent);
+        
+        deleteModelsEvent->setEventProcessed();
         
         std::cout << "Received delete models event in " << __func__ << std::endl;
         
@@ -200,6 +208,8 @@ SessionManager::receiveEvent(Event* event)
         EventModelDisplayControllerGetAll* getModelsEvent =
         dynamic_cast<EventModelDisplayControllerGetAll*>(event);
         CaretAssert(getModelsEvent);
+        
+        getModelsEvent->setEventProcessed();
         
         std::cout << "Received get models event in " << __func__ << std::endl;
         

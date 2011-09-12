@@ -52,6 +52,10 @@ namespace caret {
         
         virtual AString toString() const;
         
+        void setEventProcessed();
+        
+        int32_t getEventProcessCount() const;
+        
     protected:
         Event(const EventTypeEnum::Enum eventType);
         
@@ -68,6 +72,9 @@ namespace caret {
         
         /** Tracks error status */
         bool errorStatus;
+        
+        /** Number of times event was processed. */
+        int32_t eventProcessedCount;
     };
 
 } // namespace
