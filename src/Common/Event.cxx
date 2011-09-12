@@ -32,7 +32,7 @@ using namespace caret;
  * @param eventType
  *    The type of the event.
  */
-Event::Event(const Event::EventType eventType)
+Event::Event(const EventTypeEnum::Enum eventType)
 {
     this->eventType = eventType;
     this->errorMessage = "";
@@ -53,7 +53,7 @@ Event::~Event()
  * @return 
  *    The event type.
  */
-Event::EventType 
+EventTypeEnum::Enum 
 Event::getEventType() const
 {
     return this->eventType;
@@ -120,3 +120,17 @@ Event::setErrorMessage(const AString& errorMessage)
     this->errorMessage = errorMessage;
     this->errorStatus = true;
 }
+
+/**
+ * Get String representation of caret object.
+ * @return String containing caret object.
+ *
+ */
+AString 
+Event::toString() const
+{
+    AString s = EventTypeEnum::toName(this->eventType);
+    return s;
+}
+
+

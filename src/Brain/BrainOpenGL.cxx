@@ -268,7 +268,6 @@ BrainOpenGL::drawSurface(const Surface* surface)
 void 
 BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
 {
-    const BrainStructure* brainStructure = surface->getBrainStructure();
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -279,7 +278,7 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
     glColorPointer(4, 
                    GL_UNSIGNED_BYTE, 
                    0, 
-                   reinterpret_cast<const GLvoid*>(brainStructure->getNodeColor(0)));
+                   reinterpret_cast<const GLvoid*>(surface->getNodeColor(0)));
     glNormalPointer(GL_FLOAT, 
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getNormalVector(0)));

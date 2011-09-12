@@ -32,26 +32,22 @@
 
 namespace caret {
 
-    class Brain;
     class Surface;
     
     /// Controls the display of a surface.
     class ModelDisplayControllerSurface : public ModelDisplayController {
         
     public:
-        ModelDisplayControllerSurface(Brain* brain,
-                      Surface* surface);
+        ModelDisplayControllerSurface(Surface* surface);
         
         virtual ~ModelDisplayControllerSurface();
         
     private:
-        ModelDisplayControllerSurface(const ModelDisplayControllerSurface& o);
+        ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);
         
-        ModelDisplayControllerSurface& operator=(const ModelDisplayControllerSurface& o);
+        ModelDisplayControllerSurface& operator=(const ModelDisplayControllerSurface&);
         
     private:
-        void copyHelper(const ModelDisplayControllerSurface& o);
-        
         void initializeMembersModelDisplayControllerSurface();
         
     public:

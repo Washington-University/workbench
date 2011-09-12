@@ -51,29 +51,32 @@ namespace caret {
      */
     class EventManager : public CaretObject {
         
-    protected:
-        EventManager();
+    public:
+        static void createEventManager();
+        
+        static void deleteEventManager();
+        
+        static EventManager* get();
         
         virtual ~EventManager();
         
-    public:
-        static EventManager* get();
-        
         void addEventListener(EventListenerInterface* eventListener,
-                              const Event::EventType listenForEventType);
+                              const EventTypeEnum::Enum listenForEventType);
         
         void removeEventFromListener(EventListenerInterface* eventListener,
-                                 const Event::EventType listenForEventType);
+                                 const EventTypeEnum::Enum listenForEventType);
 
         void removeAllEventsFromListener(EventListenerInterface* eventListener);
         
         void sendEvent(Event* event);
         
     private:
+        EventManager();
+        
         typedef std::vector<EventListenerInterface*> EVENT_LISTENER_CONTAINER;
         typedef std::vector<EventListenerInterface*>::iterator EVENT_LISTENER_CONTAINER_ITERATOR;
         
-        EVENT_LISTENER_CONTAINER eventListeners[Event::EVENT_COUNT];
+        EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
         
         static EventManager* singletonEventManager;
         
@@ -81,7 +84,7 @@ namespace caret {
     
 #ifdef __EVENT_MANAGER_MAIN__
     EventManager* EventManager::singletonEventManager = NULL;
-#endif __EVENT_MANAGER_MAIN__
+#endif // __EVENT_MANAGER_MAIN__
     
 } // namespace
 

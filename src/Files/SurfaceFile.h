@@ -62,6 +62,8 @@ namespace caret {
         const int32_t* getTriangle(const int32_t) const;
         
         void computeNormals();
+                
+        const float* getNodeColor(const int32_t nodeIndex) const;
         
     protected:
         /**
@@ -90,6 +92,9 @@ namespace caret {
         
         /** surface normal vectors. */
         std::vector<float> normalVectors;
+
+        /** The node coloring. */
+        std::vector<float> nodeColoring;
     };
 
 } // namespace

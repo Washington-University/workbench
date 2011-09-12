@@ -27,7 +27,7 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
-#include "EventGetModelDisplayControllers.h"
+#include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 
 using namespace caret;
@@ -121,7 +121,7 @@ BrowserTabContent::toString() const
 ModelDisplayController* 
 BrowserTabContent::getDisplayedModel()
 {
-    EventGetModelDisplayControllers modelsEvent;
+    EventModelDisplayControllerGetAll modelsEvent;
     EventManager::get()->sendEvent(modelsEvent.getPointer());
     
     if (modelsEvent.isModelDisplayControllerValid(this->displayedModel) == false) {

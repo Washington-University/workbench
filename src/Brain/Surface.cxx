@@ -25,7 +25,6 @@
 #include "BoundingBox.h"
 #include "BrainStructure.h"
 #include "Surface.h"
-#include "ModelDisplayControllerSurface.h"
 
 using namespace caret;
 
@@ -42,9 +41,6 @@ Surface::Surface()
  */
 Surface::~Surface()
 {
-    if (this->surfaceController != NULL) {
-        delete this->surfaceController;
-    }
 }
 
 /**
@@ -77,76 +73,12 @@ Surface::operator=(const Surface& s)
 }
 
 /**
- * Set the brain structure for this surface.
- *
- * @param brainStructure
- *    Brain structure for this surface.
- */
-void 
-Surface::setBrainStructure(BrainStructure* brainStructure)
-{
-    this->brainStructure = brainStructure;
-}
-
-/**
- * Get the model controller for this surface.
- *
- * @return
- *    Model controller for this surface.
- */
-ModelDisplayController* 
-Surface::getModelController()
-{
-    if (this->surfaceController == NULL) {
-        this->surfaceController = new ModelDisplayControllerSurface(this->getBrain(), this);
-    }
-    return this->surfaceController;
-}
-
-/**
  *
  */
 AString 
 Surface::getNameForGUI(bool includeStructureFlag) const
 {
     return    "Surface::getNameForGUI_NOT_IMPLEMENTED";
-}
-
-/**
- * Get brain containing this surface.
- *
- * @param
- *    Brain containing this surface.
- */
-Brain* 
-Surface::getBrain()
-{
-    if (this->brainStructure != NULL) {
-        return this->brainStructure->getBrain();
-    }
-    return NULL;
-}
-
-/**
- * Get the brain structure that contains this surface.
- * 
- * @return Pointer to the brain structure.
- */
-BrainStructure* 
-Surface::getBrainStructure()
-{
-    return this->brainStructure;
-}
-
-/**
- * Get the brain structure that contains this surface.
- * 
- * @return Const Pointer to the brain structure.
- */
-const BrainStructure* 
-Surface::getBrainStructure() const
-{
-    return this->brainStructure;
 }
 
 /**
@@ -168,7 +100,6 @@ Surface::getBounds(BoundingBox& boundingBoxOut) const
 void 
 Surface::initializeMemberSurface()
 {
-    this->surfaceController = NULL;
 }
 
 /**
@@ -177,8 +108,6 @@ Surface::initializeMemberSurface()
 void 
 Surface::copyHelperSurface(const Surface& s)
 {
-    this->brainStructure = s.brainStructure;
-    
     this->initializeMemberSurface();
     this->computeNormals();
 }

@@ -32,6 +32,7 @@ Event.h
 EventListenerInterface.h
 EventLoadSurfaceFile.h
 EventManager.h
+EventTypeEnum.h
 EventUpdateAllGraphics.h
 FileInformation.h
 MathFunctions.h
@@ -56,6 +57,7 @@ DataFileException.cxx
 Event.cxx
 EventLoadSurfaceFile.cxx
 EventManager.cxx
+EventTypeEnum.cxx
 EventUpdateAllGraphics.cxx
 FileInformation.cxx
 MathFunctions.cxx

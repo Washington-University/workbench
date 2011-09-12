@@ -3,15 +3,22 @@
 #include <QApplication>
 #include <QGLFormat>
 
-#include "Brain.h"
 #include "GuiGlobals.h"
+#include "SessionManager.h"
+#include "SystemUtilities.h"
 #include "WindowMain.h"
+
 
 using namespace caret;
 
 int 
 main(int argc, char* argv[])
 {
+    /*
+     * Handle uncaught exceptions
+     */
+    SystemUtilities::setHandlersForUnexpected();
+    
     QApplication app(argc, argv);
     QApplication::setApplicationName("Caret 7");
     QApplication::setApplicationVersion("7");
@@ -36,6 +43,11 @@ main(int argc, char* argv[])
     QGLFormat::setDefaultFormat(glfmt);
     
     /*
+     * Create the session manager.
+     */
+    SessionManager::createSessionManager();
+    
+    /*
      * Create and display the main window.
      */
     WindowMain* theMainWindow = new WindowMain(500, 500);
@@ -53,10 +65,16 @@ main(int argc, char* argv[])
      * Although this is a Window's only bug, it's probably good practice to do on all platforms
      */
     theMainWindow->hide();
+    
     /*
      * Clean up any globally allocated objects.
      */
     GuiGlobals::deleteAllAtProgramExit();
+    
+    /*
+     * Delete the session manager.
+     */
+    SessionManager::deleteSessionManager();
     
     /*
      * See if any objects were not deleted.

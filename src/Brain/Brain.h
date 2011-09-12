@@ -35,7 +35,6 @@
 namespace caret {
     
     class BrainStructure;
-    class ModelDisplayController;
     class PaletteFile;
     
     class Brain : public CaretObject, public EventListenerInterface {
@@ -66,10 +65,6 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private:
-        bool isModelControllerValid(const ModelDisplayController* modelController);
-        
-        void getAllModelControllers(std::vector<ModelDisplayController*>& modelControllers);
-        
         std::vector<BrainStructure*> brainStructures;
         
         PaletteFile* paletteFile;

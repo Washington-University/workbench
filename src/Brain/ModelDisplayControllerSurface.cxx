@@ -37,13 +37,12 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain - brain to which this surface controller belongs.
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
-                             Surface* surface)
-    : ModelDisplayController(brain, true, true)
+ModelDisplayControllerSurface::ModelDisplayControllerSurface(Surface* surface)
+    : ModelDisplayController(YOKING_ALLOWED_YES,
+                             ROTATION_ALLOWED_YES)
 {
     this->initializeMembersModelDisplayControllerSurface();
     this->surface = surface;

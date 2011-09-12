@@ -33,7 +33,7 @@ using namespace caret;
  *    Name of surface file to load.
  */
 EventLoadSurfaceFile::EventLoadSurfaceFile(const AString& surfaceFileName)
-: Event(Event::EVENT_LOAD_SURFACE_FILE)
+: Event(EventTypeEnum::EVENT_LOAD_SURFACE_FILE)
 {
     this->surfaceFileName = surfaceFileName;
 }

@@ -33,7 +33,8 @@ using namespace caret;
  *
  */
 ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
-    : ModelDisplayController(brain, true, true)
+: ModelDisplayController(YOKING_ALLOWED_NO,
+                         ROTATION_ALLOWED_YES)
 {
     this->initializeMembersModelDisplayControllerWholeBrain();
 }
@@ -48,6 +49,16 @@ ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
 void
 ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBrain()
 {
+}
+
+/**
+ * Get the brain that created this controller.
+ * @return The brain.
+ */
+Brain*
+ModelDisplayControllerWholeBrain::getBrain()
+{
+    return this->brain;
 }
 
 /**

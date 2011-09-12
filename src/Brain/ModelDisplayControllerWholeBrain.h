@@ -42,20 +42,22 @@ namespace caret {
         
         virtual ~ModelDisplayControllerWholeBrain();
         
-    private:
-        ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain& o);
-        
-        ModelDisplayControllerWholeBrain& operator=(const ModelDisplayControllerWholeBrain& o);
+        Brain* getBrain();
         
     private:
-        void copyHelper(const ModelDisplayControllerWholeBrain& o);
+        ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
+        ModelDisplayControllerWholeBrain& operator=(const ModelDisplayControllerWholeBrain&);
+        
+    private:
         void initializeMembersModelDisplayControllerWholeBrain();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
     private:
+        /** Brain to which this controller belongs */
+        Brain* brain;
         
     };
 

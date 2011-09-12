@@ -32,11 +32,16 @@
 namespace caret {
     
     class BrowserTabContent;
+    class ModelDisplayController;
     
-    /// <REPLACE WITH DESCRIPTION OF CLASS>
+    /// Manages a Caret session which contains 'global' brain data.
     class SessionManager : public CaretObject, public EventListenerInterface {
         
     public:
+        static void createSessionManager();
+        
+        static void deleteSessionManager();
+        
         SessionManager* get();
         
         virtual ~SessionManager();
@@ -58,7 +63,9 @@ namespace caret {
         static SessionManager* singletonSessionManager;
         
         /** The browser tabs */
-        BrowserTabContent* browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        BrowserTabContent* browserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];  
+        
+        std::vector<ModelDisplayController*> modelDisplayControllers;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

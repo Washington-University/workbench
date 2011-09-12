@@ -34,7 +34,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
-#include "EventGetModelDisplayControllers.h"
+#include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "EventUpdateAllGraphics.h"
 #include "GuiGlobals.h"
@@ -60,7 +60,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     
 //    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
     
-    EventManager::get()->addEventListener(this, Event::EVENT_UPDATE_ALL_GRAPHICS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ALL_GRAPHICS);
 }
 
 /**
@@ -96,7 +96,7 @@ BrainOpenGLWidget::setDisplayedModelController(ModelDisplayController* modelCont
 ModelDisplayController* 
 BrainOpenGLWidget::getDisplayedModelController()
 {
-    EventGetModelDisplayControllers getModelEvent;
+    EventModelDisplayControllerGetAll getModelEvent;
     EventManager::get()->sendEvent(getModelEvent.getPointer());
     
     return getModelEvent.getFirstModelDisplayController();
@@ -259,7 +259,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == Event::EVENT_UPDATE_ALL_GRAPHICS) {
+    if (event->getEventType() == EventTypeEnum::EVENT_UPDATE_ALL_GRAPHICS) {
         std::cout << "Received update graphics event in " << __func__ << std::endl;
         this->updateGL();
     }

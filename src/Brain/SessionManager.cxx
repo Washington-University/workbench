@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <algorithm>
+
 #define __SESSION_MANAGER_DECLARE__
 #include "SessionManager.h"
 #undef __SESSION_MANAGER_DECLARE__
@@ -32,6 +34,9 @@
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
+#include "EventModelDisplayControllerAdd.h"
+#include "EventModelDisplayControllerDelete.h"
+#include "EventModelDisplayControllerGetAll.h"
 
 using namespace caret;
 
@@ -46,8 +51,11 @@ SessionManager::SessionManager()
         this->browserTabs[i] = NULL;
     }
     
-    EventManager::get()->addEventListener(this, Event::EVENT_BROWSER_TAB_DELETE);
-    EventManager::get()->addEventListener(this, Event::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL);
 }
 
 /**
@@ -59,6 +67,45 @@ SessionManager::~SessionManager()
 }
 
 /**
+ * Create the session manager.
+ * This must be called one AND ONLY one time prior to any
+ * other Caret mechanisms.
+ */
+void 
+SessionManager::createSessionManager()
+{
+    CaretAssertMessage((SessionManager::singletonSessionManager == NULL), 
+                       "Session manager has already been created.");
+
+    /*
+     * Need to create event manager first.
+     */
+    EventManager::createEventManager();
+    
+    SessionManager::singletonSessionManager = new SessionManager();
+}
+
+/**
+ * Delete the session manager.
+ * This may only be called one time after session manager is created.
+ */
+void 
+SessionManager::deleteSessionManager()
+{
+    CaretAssertMessage((SessionManager::singletonSessionManager != NULL), 
+                       "Session manager does not exist, cannot delete it.");
+    
+    delete SessionManager::singletonSessionManager;
+    SessionManager::singletonSessionManager = NULL;
+    
+    /*
+     * Session manager must be deleted before the event
+     * manager is deleted.
+     */
+    EventManager::deleteEventManager();
+}
+
+/**
  * Get the one and only session manager.
  *
  * @return  Pointer to the session manager.
@@ -66,9 +113,9 @@ SessionManager::~SessionManager()
 SessionManager* 
 SessionManager::get()
 {
-    if (SessionManager::singletonSessionManager == NULL) {
-        SessionManager::singletonSessionManager = new SessionManager();
-    }
+    CaretAssertMessage(SessionManager::singletonSessionManager,
+                       "Session manager was not created.\n"
+                       "It must be created with SessionManager::createSessionManager().");
     
     return this->singletonSessionManager;
 }
@@ -92,7 +139,7 @@ SessionManager::toString() const
 void 
 SessionManager::receiveEvent(Event* event)
 {
-    if (event->getEventType() == Event::EVENT_BROWSER_TAB_NEW) {
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW) {
         EventBrowserTabNew* tabEvent =
             dynamic_cast<EventBrowserTabNew*>(event);
         CaretAssert(tabEvent);
@@ -106,7 +153,7 @@ SessionManager::receiveEvent(Event* event)
             }
         }
     }
-    else if (event->getEventType() == Event::EVENT_BROWSER_TAB_DELETE) {
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE) {
         EventBrowserTabDelete* tabEvent =
         dynamic_cast<EventBrowserTabDelete*>(event);
         CaretAssert(tabEvent);
@@ -120,6 +167,43 @@ SessionManager::receiveEvent(Event* event)
                 break;
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
+        EventModelDisplayControllerAdd* addModelsEvent =
+        dynamic_cast<EventModelDisplayControllerAdd*>(event);
+        CaretAssert(addModelsEvent);
+        
+        std::cout << "Received add models event in " << __func__ << std::endl;
+        
+        this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
+        EventModelDisplayControllerDelete* deleteModelsEvent =
+        dynamic_cast<EventModelDisplayControllerDelete*>(event);
+        CaretAssert(deleteModelsEvent);
+        
+        std::cout << "Received delete models event in " << __func__ << std::endl;
+        
+        ModelDisplayController* model = deleteModelsEvent->getModelDisplayController();
+        
+        std::vector<ModelDisplayController*>::iterator iter =
+        std::find(this->modelDisplayControllers.begin(),
+                  this->modelDisplayControllers.end(),
+                  model);
+        
+        CaretAssertMessage(iter != this->modelDisplayControllers.end(),
+                           "Trying to delete non-existent model controller");
+        
+        this->modelDisplayControllers.erase(iter);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL) {
+        EventModelDisplayControllerGetAll* getModelsEvent =
+        dynamic_cast<EventModelDisplayControllerGetAll*>(event);
+        CaretAssert(getModelsEvent);
+        
+        std::cout << "Received get models event in " << __func__ << std::endl;
+        
+        getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
     }
 }
 

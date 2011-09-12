@@ -25,6 +25,10 @@
 #include "CaretAssert.h"
 
 #include "BrainStructure.h"
+#include "EventManager.h"
+#include "EventModelDisplayControllerAdd.h"
+#include "EventModelDisplayControllerDelete.h"
+#include "ModelDisplayControllerSurface.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -42,9 +46,18 @@ BrainStructure::BrainStructure(Brain* brain)
  */
 BrainStructure::~BrainStructure()
 {
-    for (uint64_t i = 0; i < this->surfaces.size(); i++) {
-        delete this->surfaces[i];
+    /*
+     * Make a copy of all surface pointers since
+     * deleting surfaces will alter the actual
+     * vector that stores the surfaces.
+     */
+    std::vector<Surface*> allSurfaces(this->surfaces);
+    
+    for (uint64_t i = 0; i < allSurfaces.size(); i++) {
+        this->deleteSurface(allSurfaces[i]);
     }
+    
+    this->surfaces.clear();
 }
 
 /**
@@ -59,33 +72,71 @@ BrainStructure::~BrainStructure()
  *    structure, false is returned.
  */
 bool 
-BrainStructure::addSurface(Surface* s)
+BrainStructure::addSurface(Surface* surface)
 {
+    CaretAssert(surface);
+    
     int32_t numNodes = this->getNumberOfNodes();
     if (numNodes > 0) {
-        if (s->getNumberOfCoordinates() != numNodes) {
+        if (surface->getNumberOfCoordinates() != numNodes) {
             return false;
         }
     }
     
-    s->setBrainStructure(this);
-    this->surfaces.push_back(s);
+    this->surfaces.push_back(surface);
 
-    numNodes = this->getNumberOfNodes();
-    const uint64_t numColorComponents = numNodes * 4;
+    /*
+     * Create a model controller for the surface.
+     */
+    ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(surface);
+    this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
     
-    if (numColorComponents != this->nodeColoring.size()) {
-        this->nodeColoring.resize(numColorComponents);
-        
-        for (int64_t i = 0; i < numNodes; i++) {
-            const int64_t i4 = i * 4;
-            this->nodeColoring[i4]   = 0.75f;
-            this->nodeColoring[i4+1] = 0.75f;
-            this->nodeColoring[i4+2] = 0.75f;
-            this->nodeColoring[i4+3] = 1.0f;
-        }
-    }
+    /*
+     * Send the controller added event.
+     */
+    EventModelDisplayControllerAdd addEvent(mdcs);
+    EventManager::get()->sendEvent(addEvent.getPointer());
+    
     return true;
+}
+
+void 
+BrainStructure::deleteSurface(Surface* surface)
+{
+    CaretAssert(surface);
+    
+    std::vector<Surface*>::iterator iter =
+    std::find(this->surfaces.begin(),
+              this->surfaces.end(),
+              surface);
+    
+    CaretAssertMessage((iter != this->surfaces.end()),
+                       "Trying to delete surface not in brain structure.");
+    
+    std::map<Surface*, ModelDisplayControllerSurface*>::iterator controllerIter = 
+        this->surfaceControllerMap.find(surface);
+
+    CaretAssertMessage((controllerIter != this->surfaceControllerMap.end()),
+                       "Surface does not map to a model controller");
+
+    ModelDisplayControllerSurface* mdcs = controllerIter->second;
+    
+    /*
+     * Remove from surface to controller map.
+     */
+    this->surfaceControllerMap.erase(controllerIter);
+    
+    /*
+     * Send the controller deleted event.
+     */
+    EventModelDisplayControllerDelete deleteEvent(mdcs);
+    EventManager::get()->sendEvent(deleteEvent.getPointer());
+    
+    /*
+     * Delete the controller and the surface.
+     */
+    delete mdcs;
+    delete surface;
 }
 
 /**
@@ -137,23 +188,5 @@ BrainStructure::getNumberOfNodes() const
         return surfaces[0]->getNumberOfCoordinates();
     }
     return 0;
-}
-
-/**
- * Get the coloring for a node.
- *
- * @param nodeIndex
- *    Index of node for color components.
- * @return
- *    A pointer to 4 elements that are the 
- *    red, green, blue, and alpha components
- *    each of which ranges zero to one.
- */
-const float* 
-BrainStructure::getNodeColor(int32_t nodeIndex) const
-{
-    CaretAssert((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()));
-
-    return &this->nodeColoring[nodeIndex * 4];
 }
 

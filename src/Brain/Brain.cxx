@@ -28,7 +28,6 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
-#include "EventGetModelDisplayControllers.h"
 #include "EventLoadSurfaceFile.h"
 #include "EventManager.h"
 #include "PaletteFile.h"
@@ -44,8 +43,7 @@ Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
     
-    EventManager::get()->addEventListener(this, Event::EVENT_LOAD_SURFACE_FILE);
-    EventManager::get()->addEventListener(this, Event::EVENT_GET_MODEL_DISPLAY_CONTROLLERS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_LOAD_SURFACE_FILE);
 }
 
 /**
@@ -155,52 +153,6 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
 }
 
 /**
- * Is the model controller valid?
- *
- * @param modelController
- *    Model controller tested for validity.
- *
- * @return
- *    true if controller is valid, else false.
- */
-bool 
-Brain::isModelControllerValid(const ModelDisplayController* modelController)
-{
-    std::vector<ModelDisplayController*> controllers;
-    this->getAllModelControllers(controllers);
-
-    if (std::find(controllers.begin(), 
-                  controllers.end(), 
-                  modelController) 
-        != controllers.end()) {
-        return true;
-    }
-    return false;
-}
-
-/**
- * Get all of the model controllers.
- *
- * @return
- *    Vector containing all model controllers.
- */
-void
-Brain::getAllModelControllers(std::vector<ModelDisplayController*>& controllers)
-{
-    controllers.clear();
-    
-    int numBrainStructures = this->getNumberOfBrainStructures();
-    for (int32_t i = 0; i < numBrainStructures; i++) {
-        BrainStructure* bs = this->getBrainStructure(i);
-        int numSurfaces = bs->getNumberOfSurfaces();
-        for (int32_t j = 0; j < numSurfaces; j++) {
-            Surface* s = bs->getSurface(i);
-            controllers.push_back(s->getModelController());
-        }
-    }
-}
-
-/**
  * Receive events from the event manager.
  * 
  * @param event
@@ -209,12 +161,12 @@ Brain::getAllModelControllers(std::vector<ModelDisplayController*>& controllers)
 void 
 Brain::receiveEvent(Event* event)
 {
-    if (event->getEventType() == Event::EVENT_LOAD_SURFACE_FILE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_LOAD_SURFACE_FILE) {
         EventLoadSurfaceFile* loadSurfaceFileEvent =
              dynamic_cast<EventLoadSurfaceFile*>(event);
         CaretAssert(loadSurfaceFileEvent);
         
-        std::cout << "Received load surface event in " << __func__ << std::endl;
+        std::cout << "Received load surface event in " << __FILE__ << std::endl;
         
         try {
             this->readSurfaceFile(loadSurfaceFileEvent->getSurfaceFileName());
@@ -222,17 +174,6 @@ Brain::receiveEvent(Event* event)
         catch (DataFileException e) {
             loadSurfaceFileEvent->setErrorMessage(e.whatString());
         }
-    }
-    else if (event->getEventType() == Event::EVENT_GET_MODEL_DISPLAY_CONTROLLERS) {
-        EventGetModelDisplayControllers* getModelsEvent =
-            dynamic_cast<EventGetModelDisplayControllers*>(event);
-        CaretAssert(getModelsEvent);
-        
-        std::cout << "Received get models event in " << __func__ << std::endl;
-        
-        std::vector<ModelDisplayController*> controllers;
-        this->getAllModelControllers(controllers);
-        getModelsEvent->addModelDisplayControllers(controllers);
     }
 }
 

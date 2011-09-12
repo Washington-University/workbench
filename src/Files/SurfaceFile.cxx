@@ -153,6 +153,21 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
     }
     
     this->computeNormals();
+
+    const int64_t numNodes = this->getNumberOfCoordinates();
+    const uint64_t numColorComponents = numNodes * 4;
+    
+    if (numColorComponents != this->nodeColoring.size()) {
+        this->nodeColoring.resize(numColorComponents);
+        
+        for (int64_t i = 0; i < numNodes; i++) {
+            const int64_t i4 = i * 4;
+            this->nodeColoring[i4]   = 0.75f;
+            this->nodeColoring[i4+1] = 0.75f;
+            this->nodeColoring[i4+2] = 0.75f;
+            this->nodeColoring[i4+3] = 1.0f;
+        }
+    }
 }
 
 /**
@@ -333,5 +348,24 @@ SurfaceFile::computeNormals()
             }
         }
     }
+}
+
+/**
+ * Get the coloring for a node.
+ *
+ * @param nodeIndex
+ *    Index of node for color components.
+ * @return
+ *    A pointer to 4 elements that are the 
+ *    red, green, blue, and alpha components
+ *    each of which ranges zero to one.
+ */
+const float* 
+SurfaceFile::getNodeColor(int32_t nodeIndex) const
+{
+    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfCoordinates()),
+                       "Invalid index for node coloring.");
+    
+    return &this->nodeColoring[nodeIndex * 4];
 }
 

@@ -32,7 +32,8 @@ using namespace caret;
  *
  */
 ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
-    : ModelDisplayController(brain, true, true)
+: ModelDisplayController(YOKING_ALLOWED_NO,
+                         ROTATION_ALLOWED_NO)
 {
     this->initializeMembersModelDisplayControllerVolume();
 }
@@ -63,4 +64,13 @@ ModelDisplayControllerVolume::getNameForGUI(const bool includeStructureFlag) con
     return "ModelDisplayControllerVolume::getNameForGUI_NEEDS_IMPLEMENTATION";
 }
 
+/**
+ * Get the brain that created this controller.
+ * @return The brain.
+ */
+Brain*
+ModelDisplayControllerVolume::getBrain()
+{
+    return this->brain;
+}
 

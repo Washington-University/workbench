@@ -25,7 +25,6 @@
 
 #include "ModelDisplayController.h"
 
-#include "Brain.h"
 #include "CaretAssert.h"
 #include "Matrix4x4.h"
 
@@ -38,16 +37,14 @@ using namespace caret;
  * @param allowsRotationFlag This controller can be rotated.
  *
  */
-ModelDisplayController::ModelDisplayController(Brain* brain,
-               const bool allowsYokingFlag,
-               const bool allowsRotationFlag)
+ModelDisplayController::ModelDisplayController(const YokingAllowedType allowsYokingStatus,
+                                               const RotationAllowedType allowsRotationStatus)
     : CaretObject()
 {
     this->initializeMembersModelDisplayController();
-    this->brain = brain;
     this->initializeTransformations();
-    this->allowsRotationFlag = allowsRotationFlag;
-    this->allowsYokingFlag   = allowsYokingFlag;
+    this->allowsYokingStatus = allowsYokingStatus;
+    this->allowsRotationStatus   = allowsRotationStatus;
 }
 
 /**
@@ -61,19 +58,6 @@ void
 ModelDisplayController::initializeMembersModelDisplayController()
 {
     this->defaultModelScaling = 1.0f;
-    this->allowsYokingFlag = false;
-    this->allowsRotationFlag = false;
-    this->brain = NULL;
-}
-/**
- * Get the brain to which this controller belongs.
- * @return Brain of this controller.
- *
- */
-Brain*
-ModelDisplayController::getBrain() const
-{
-    return this->brain;
 }
 
 /**
@@ -99,7 +83,7 @@ ModelDisplayController::initializeTransformations()
 bool
 ModelDisplayController::isRotationAllowed() const
 {
-    return this->allowsRotationFlag;
+    return (this->allowsRotationStatus == ROTATION_ALLOWED_YES);
 }
 
 /**
@@ -112,7 +96,7 @@ ModelDisplayController::isRotationAllowed() const
 bool
 ModelDisplayController::isYokeable() const
 {
-    return this->allowsYokingFlag;
+    return (this->allowsYokingStatus == YOKING_ALLOWED_YES);
 }
 
 /**

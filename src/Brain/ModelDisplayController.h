@@ -28,20 +28,26 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 
-#include "BrowserTabContent.h"
 #include "Matrix4x4.h"
 
 namespace caret {
 
-    class Brain;
-    
     /// Base class for controlling a model
     class ModelDisplayController : public CaretObject {
         
     protected:
-        ModelDisplayController(Brain* brain,
-               const bool allowsYokingFlag,
-               const bool allowsRotationFlag);
+        enum YokingAllowedType {
+            YOKING_ALLOWED_YES,
+            YOKING_ALLOWED_NO
+        };
+        
+        enum RotationAllowedType {
+            ROTATION_ALLOWED_YES,
+            ROTATION_ALLOWED_NO
+        };
+        
+        ModelDisplayController(const YokingAllowedType allowsYokingStatus,
+                               const RotationAllowedType allowsRotationStatus);
         
         virtual ~ModelDisplayController();
         
@@ -53,8 +59,6 @@ namespace caret {
         void initializeMembersModelDisplayController();
         
     public:
-        Brain* getBrain() const;
-        
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
         bool isRotationAllowed() const;
@@ -111,9 +115,6 @@ namespace caret {
     protected:
         float defaultModelScaling;
         
-        /**Brain to which this controller belongs. */
-        Brain* brain;
-        
         /**the viewing rotation matrix. */
         Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -124,9 +125,9 @@ namespace caret {
         float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
-        bool allowsYokingFlag;
+        YokingAllowedType allowsYokingStatus;
         
-        bool allowsRotationFlag;
+        RotationAllowedType allowsRotationStatus;
         
     };
 

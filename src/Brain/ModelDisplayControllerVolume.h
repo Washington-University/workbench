@@ -42,21 +42,22 @@ namespace caret {
         
         virtual ~ModelDisplayControllerVolume();
         
-    private:
-        ModelDisplayControllerVolume(const ModelDisplayControllerVolume& o);
-        
-        ModelDisplayControllerVolume& operator=(const ModelDisplayControllerVolume& o);
+        Brain* getBrain();
         
     private:
-        void copyHelperModelDisplayControllerVolume(const ModelDisplayControllerVolume& o);
+        ModelDisplayControllerVolume(const ModelDisplayControllerVolume&);
         
+        ModelDisplayControllerVolume& operator=(const ModelDisplayControllerVolume&);
+        
+    private:
         void initializeMembersModelDisplayControllerVolume();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
     private:
-        
+        /** Brain which contains the volumes */
+        Brain* brain;
     };
 
 } // namespace

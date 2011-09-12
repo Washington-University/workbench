@@ -32,7 +32,7 @@ using namespace caret;
  * Constructor.
  */
 EventBrowserTabDelete::EventBrowserTabDelete(BrowserTabContent* browserTab)
-: Event(Event::EVENT_BROWSER_TAB_DELETE)
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_DELETE)
 {
     this->browserTab = browserTab;
 }

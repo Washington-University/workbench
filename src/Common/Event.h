@@ -30,29 +30,15 @@
 
 #include <stdint.h>
 
+#include "EventTypeEnum.h"
+
 namespace caret {
 
     /// Base class for an event.
     class Event : public CaretObject {
         
     public:
-        /** Type of event */
-        enum EventType {
-            /** Delete a browser tab */
-            EVENT_BROWSER_TAB_DELETE,
-            /** Create a new browser tab */
-            EVENT_BROWSER_TAB_NEW,
-            /** Get all model display controllers */
-            EVENT_GET_MODEL_DISPLAY_CONTROLLERS,
-            /** Load a surface file */
-            EVENT_LOAD_SURFACE_FILE,
-            /** Update all graphics windows */
-            EVENT_UPDATE_ALL_GRAPHICS,
-            /* NOT an event type but is number of event types THIS MUST ALWAYS BE LAST */
-            EVENT_COUNT 
-        };
-        
-        EventType getEventType() const;
+        EventTypeEnum::Enum getEventType() const;
         
         virtual ~Event();
         
@@ -64,8 +50,10 @@ namespace caret {
         
         void setErrorMessage(const AString& errorMessage);
         
+        virtual AString toString() const;
+        
     protected:
-        Event(const EventType eventType);
+        Event(const EventTypeEnum::Enum eventType);
         
     private:
         Event(const Event&);
@@ -73,7 +61,7 @@ namespace caret {
         Event& operator=(const Event&);
         
         /** The type of event */
-        EventType eventType;
+        EventTypeEnum::Enum eventType;
         
         /** The error message */
         AString errorMessage;

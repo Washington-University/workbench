@@ -30,7 +30,7 @@ using namespace caret;
  * Constructor.
  */
 EventUpdateAllGraphics::EventUpdateAllGraphics()
-: Event(Event::EVENT_UPDATE_ALL_GRAPHICS)
+: Event(EventTypeEnum::EVENT_UPDATE_ALL_GRAPHICS)
 {
 }
 

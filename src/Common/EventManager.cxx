@@ -52,6 +52,34 @@ EventManager::~EventManager()
 }
 
 /**
+ * Create the session manager.
+ * This must be called one AND ONLY one time prior to any
+ * other Caret mechanisms.
+ */
+void 
+EventManager::createEventManager()
+{
+    CaretAssertMessage((EventManager::singletonEventManager == NULL), 
+                       "Event manager has already been created.");
+    
+    EventManager::singletonEventManager = new EventManager();
+}
+
+/**
+ * Delete the session manager.
+ * This may only be called one time after session manager is created.
+ */
+void 
+EventManager::deleteEventManager()
+{
+    CaretAssertMessage((EventManager::singletonEventManager != NULL), 
+                       "Event manager does not exist, cannot delete it.");
+    
+    delete EventManager::singletonEventManager;
+    EventManager::singletonEventManager = NULL;
+}
+
+/**
  * Get the one and only event mangers.
  *
  * @return  Pointer to the event manager.
@@ -59,9 +87,10 @@ EventManager::~EventManager()
 EventManager* 
 EventManager::get()
 {
-    if (EventManager::singletonEventManager == NULL) {
-        EventManager::singletonEventManager = new EventManager();
-    }    
+    CaretAssertMessage(EventManager::singletonEventManager,
+                       "Event manager was not created.\n"
+                       "It must be created with EventManager::createEventManager().");
+    
     return EventManager::singletonEventManager;
 }
 
@@ -75,14 +104,14 @@ EventManager::get()
  */
 void 
 EventManager::addEventListener(EventListenerInterface* eventListener,
-                               const Event::EventType listenForEventType)
+                               const EventTypeEnum::Enum listenForEventType)
 {
     this->eventListeners[listenForEventType].push_back(eventListener);
     
     std::cout << "Adding listener from class "
     << typeid(*eventListener).name()
-    << " for event="
-    << listenForEventType
+    << " for "
+    << EventTypeEnum::toName(listenForEventType)
     << std::endl;
 }
 
@@ -96,14 +125,14 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
  */
 void 
 EventManager::removeEventFromListener(EventListenerInterface* eventListener,
-                                  const Event::EventType listenForEventType)
+                                  const EventTypeEnum::Enum listenForEventType)
 {
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
     
     std::cout << "Removing listener from class "
     << typeid(*eventListener).name()
-    << " for event="
-    << listenForEventType
+    << " for "
+    << EventTypeEnum::toName(listenForEventType)
     << std::endl;
 
     listeners.erase(std::remove(listeners.begin(),
@@ -120,8 +149,8 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
 void 
 EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 {
-    for (int32_t i = 0; i < Event::EVENT_COUNT; i++) {
-        this->removeEventFromListener(eventListener, static_cast<Event::EventType>(i));
+    for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
+        this->removeEventFromListener(eventListener, static_cast<EventTypeEnum::Enum>(i));
     }
 }
 
@@ -134,7 +163,7 @@ EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 void 
 EventManager::sendEvent(Event* event)
 {   
-    Event::EventType eventType = event->getEventType();
+    EventTypeEnum::Enum eventType = event->getEventType();
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
     
     for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
@@ -142,10 +171,10 @@ EventManager::sendEvent(Event* event)
          iter++) {
         EventListenerInterface* listener = *iter;
         
-        std::cout << "Sending listener from class "
+        std::cout << "Sending event from class "
         << typeid(*listener).name()
-        << " the event="
-        << eventType
+        << " for "
+        << EventTypeEnum::toName(eventType)
         << std::endl;
 
         listener->receiveEvent(event);

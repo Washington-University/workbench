@@ -26,6 +26,7 @@
  * 
  */ 
 
+#include <map>
 #include <vector>
 
 #include <stdint.h>
@@ -35,6 +36,7 @@
 namespace caret {
     
     class Brain;
+    class ModelDisplayControllerSurface;
     class Surface;
     
     /**
@@ -53,7 +55,9 @@ namespace caret {
         BrainStructure& operator=(const BrainStructure& s);
 
     public:
-        bool addSurface(Surface* s);
+        bool addSurface(Surface* surface);
+        
+        void deleteSurface(Surface* surface);
         
         int getNumberOfSurfaces() const;
         
@@ -62,15 +66,14 @@ namespace caret {
         Brain* getBrain();
         
         int32_t getNumberOfNodes() const;
-        
-        const float* getNodeColor(const int32_t nodeIndex) const;
-        
+
     private:
         Brain* brain;
         
         std::vector<Surface*> surfaces;
         
-        std::vector<float> nodeColoring;
+        /** Maps a surface to its model controller */
+        std::map<Surface*, ModelDisplayControllerSurface*> surfaceControllerMap; 
     };
     
 } // namespace

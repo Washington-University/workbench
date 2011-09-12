@@ -32,7 +32,7 @@ using namespace caret;
  * Constructor.
  */
 EventBrowserTabNew::EventBrowserTabNew()
-: Event(Event::EVENT_BROWSER_TAB_NEW)
+: Event(EventTypeEnum::EVENT_BROWSER_TAB_NEW)
 {
     this->browserTab = NULL;
 }

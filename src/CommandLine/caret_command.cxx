@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
+#include "SessionManager.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -54,13 +55,26 @@ static void runCommand(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
 
+    /*
+     * Handle uncaught exceptions
+     */
     SystemUtilities::setHandlersForUnexpected();
+    
+    /*
+     * Create the session manager.
+     */
+    SessionManager::createSessionManager();
     
     runCommand(argc, argv);
     
     /*
+     * Delete the session manager.
+     */
+    SessionManager::deleteSessionManager();
+    
+    /*
      * See if any objects were not deleted.
      */
-    CaretObject::printListOfObjectsNotDeleted(true);
+    CaretObject::printListOfObjectsNotDeleted(true);    
 }
   

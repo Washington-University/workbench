@@ -33,10 +33,6 @@
 namespace caret {
     
     class BoundingBox;
-    class Brain;
-    class BrainStructure;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
 
     /**
      * Maintains view of some type of object.
@@ -52,17 +48,7 @@ namespace caret {
         
         Surface& operator=(const Surface& s);
         
-        void setBrainStructure(BrainStructure* brainStructure);
-        
-        ModelDisplayController* getModelController();
-        
         AString getNameForGUI(bool includeStructureFlag) const;
-        
-        Brain* getBrain();
-        
-        BrainStructure* getBrainStructure();
-        
-        const BrainStructure* getBrainStructure() const;
         
         void getBounds(BoundingBox& boundingBoxOut) const;
         
@@ -70,14 +56,8 @@ namespace caret {
         void initializeMemberSurface();
         
         void copyHelperSurface(const Surface& s);
-        
-        BrainStructure* brainStructure;
-        
-        ModelDisplayControllerSurface* surfaceController;
-        
+
         bool defaultScalingInitializedFlag;
-        
-        std::vector<float> normalVectors;
     };
 
 } // namespace
