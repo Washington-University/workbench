@@ -1,12 +1,35 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+/*LICENSE_END*/
 
 
 #include <QApplication>
 #include <QGLFormat>
 
-#include "GuiGlobals.h"
+#include "GuiManager.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
-#include "WindowMain.h"
 
 
 using namespace caret;
@@ -20,8 +43,8 @@ main(int argc, char* argv[])
     SystemUtilities::setHandlersForUnexpected();
     
     QApplication app(argc, argv);
-    QApplication::setApplicationName("Caret 7");
-    QApplication::setApplicationVersion("7");
+    QApplication::setApplicationName("Connectome Workbench");
+    QApplication::setApplicationVersion("0");
     QApplication::setOrganizationDomain("brainvis.wustl.edu");
     QApplication::setOrganizationName("Van Essen Lab");
     
@@ -48,11 +71,14 @@ main(int argc, char* argv[])
     SessionManager::createSessionManager();
     
     /*
-     * Create and display the main window.
+     * Create the GUI Manager.
      */
-    WindowMain* theMainWindow = new WindowMain(500, 500);
-    app.connect(&app, SIGNAL(lastWindowClosed()), &app, SLOT(quit()));
-    theMainWindow->show();
+    GuiManager::createGuiManager();
+    
+    /*
+     * Create and display a main window.
+     */
+    GuiManager::get()->newBrainBrowserWindow(NULL);
     
     /*
      * Start the app which will launch the main window.
@@ -64,12 +90,12 @@ main(int argc, char* argv[])
      * prevent paint events from causing assertion errors when the Window is destroyed
      * Although this is a Window's only bug, it's probably good practice to do on all platforms
      */
-    theMainWindow->hide();
+    //theMainWindow->hide();
     
     /*
-     * Clean up any globally allocated objects.
+     * Delete the GUI Manager.
      */
-    GuiGlobals::deleteAllAtProgramExit();
+    GuiManager::deleteGuiManager();
     
     /*
      * Delete the session manager.

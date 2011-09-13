@@ -53,10 +53,9 @@ namespace caret {
         
         ~BrainOpenGL();
         
-        void drawModel(Brain* brain,
-                        const int32_t windowIndex,
-                        const int32_t viewport[4],
-                        ModelDisplayController* controller);
+        void drawModel(ModelDisplayController* controller,
+                       const int32_t windowTabIndex,
+                       const int32_t viewport[4]);
         
         void initializeOpenGL();
         
@@ -86,16 +85,14 @@ namespace caret {
         /** version number of OpenGL */
         static float versionOfOpenGL;
 
-        Brain* brain;
-        
         /** Viewport of drawing */
         //int32_t viewport[4];
         
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
-        /** Index of window */
-        int windowIndex;
+        /** Index of window tab */
+        int windowTabIndex;
         
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;

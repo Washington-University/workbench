@@ -175,7 +175,7 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumber)
 const float*
 ModelDisplayController::getTranslation(const int32_t windowTabNumber) const
 {
-    CaretAssertArrayIndex(this->viewingRotationMatrix,
+    CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     return &this->translation[windowTabNumber][0];

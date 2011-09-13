@@ -1,0 +1,712 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include <iostream>
+
+#include <QCloseEvent>
+#include <QFileDialog>
+#include <QMenu>
+#include <QMenuBar>
+#include <QMessageBox>
+
+#include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowToolBar.h"
+#include "BrainOpenGLWidget.h"
+#include "EventDataFileRead.h"
+#include "EventManager.h"
+#include "EventUpdateAllGraphics.h"
+#include "GuiManager.h"
+#include "WuQtUtilities.h"
+
+using namespace caret;
+
+/**
+ * Constructor.
+ *
+ * @param parent
+ *    Parent of this object
+ * @param flags
+ *    Flags for Qt.
+ */
+BrainBrowserWindow::BrainBrowserWindow(const int windowIndex,
+                                       QWidget* parent,
+                                       Qt::WindowFlags flags)
+: QMainWindow(parent, flags)
+{
+    GuiManager* guiManager = GuiManager::get();
+    
+    this->setAttribute(Qt::WA_DeleteOnClose);
+    
+    this->windowIndex = windowIndex;
+    
+    this->setWindowTitle(guiManager->applicationName());
+    
+    this->openGLWidget = new BrainOpenGLWidget(this,
+                                               windowIndex);
+    
+    const int openGLSizeX = 512;
+    const int openGLSizeY = 512;
+    this->openGLWidget->setMinimumSize(openGLSizeX, 
+                                       openGLSizeY);
+    
+    this->setCentralWidget(this->openGLWidget);
+    
+    
+    this->toolbar = new BrainBrowserWindowToolBar();
+    this->addToolBar(this->toolbar);
+    
+    this->createActions();
+    
+    this->createMenus();
+    
+    this->toolbar->updateToolBar();
+}
+
+/**
+ * Destructor.
+ */
+BrainBrowserWindow::~BrainBrowserWindow()
+{
+    
+}
+
+/**
+ * Called when the window is requested to close.
+ *
+ * @param event
+ *     CloseEvent that may or may not be accepted
+ *     allowing the window to close.
+ */
+void 
+BrainBrowserWindow::closeEvent(QCloseEvent* event)
+{
+    /*
+     * The GuiManager may warn user about closing the 
+     * window and the user may cancel closing of the window.
+     */
+    GuiManager* guiManager = GuiManager::get();
+    if (guiManager->allowBrainBrowserWindowToClose(this)) {
+        event->accept();
+    }
+    else {
+        event->ignore();
+    }
+}
+
+/**
+ * Create actions for this window.
+ */
+void 
+BrainBrowserWindow::createActions()
+{
+    GuiManager* guiManager = GuiManager::get();
+    
+    this->newWindowAction =
+    WuQtUtilities::createAction("New Window",
+                                "Creates a new window for viewing brain models",
+                                Qt::CTRL+Qt::Key_N,
+                                this,
+                                this,
+                                SLOT(processNewWindow()));
+    
+    this->newTabAction =
+    WuQtUtilities::createAction("New Tab", 
+                                "Create a new tab (window pane) in the window",
+                                Qt::CTRL + Qt::Key_T,
+                                this,
+                                this,
+                                SLOT(processNewTab()));
+    
+    this->openFileAction =
+    WuQtUtilities::createAction("Open File...", 
+                                "Open a data file including a spec file",
+                                Qt::CTRL+Qt::Key_O,
+                                this,
+                                this,
+                                SLOT(processDataFileOpen()));
+    
+    this->openFileViaSpecFileAction =
+    WuQtUtilities::createAction("Open File via Spec File...", 
+                                "Open a data file listed in the Spec File",
+                                Qt::CTRL + Qt::SHIFT + Qt::Key_O,
+                                this,
+                                this,
+                                SLOT(processDataFileOpenFromSpecFile()));
+    
+    
+    this->manageFilesAction =
+    WuQtUtilities::createAction("Manage/Save Files...", 
+                                "Manage and Save Loaded Files",
+                                Qt::CTRL + Qt::Key_M,
+                                this,
+                                guiManager,
+                                SLOT(processManageSaveLoadedFiles()));
+    
+    this->closeSpecFileAction =
+    WuQtUtilities::createAction("Close Spec File",
+                                "Close the Spec File",
+                                this,
+                                this,
+                                SLOT(processCloseSpecFile()));
+    
+    this->closeTabAction =
+    WuQtUtilities::createAction("Close Tab",
+                                "Close the active tab (window pane) in the window",
+                                Qt::CTRL + Qt::Key_W,
+                                this,
+                                this,
+                                SLOT(processCloseTab()));
+    
+    this->closeWindowAction = 
+    WuQtUtilities::createAction("Close Window",
+                                "Close the window",
+                                Qt::CTRL + Qt::SHIFT + Qt::Key_W,
+                                this,
+                                this,
+                                SLOT(close()));
+    
+    this->captureImageAction =
+    WuQtUtilities::createAction("Capture Image",
+                                "Capture an Image of the windows content",
+                                this,
+                                this,
+                                SLOT(processCaptureImage()));
+    
+    this->exitProgramAction =
+    WuQtUtilities::createAction("Exit", 
+                                "Exit (quit) the program",
+                                Qt::CTRL+Qt::Key_Q, 
+                                this,
+                                this,
+                                SLOT(processExitProgram()));
+    
+    this->montageTabsAction =
+    WuQtUtilities::createAction("Montage Tabs",
+                                "Show all tab content in a grid",
+                                this,
+                                this,
+                                SLOT(processToggleMontageTabs()));
+    this->montageTabsAction->blockSignals(true);
+    this->montageTabsAction->setCheckable(true);
+    this->montageTabsAction->setChecked(false);
+    this->montageTabsAction->blockSignals(false);
+    
+    this->showToolBarAction =
+    WuQtUtilities::createAction("Toolbar", 
+                                "Show or hide the toolbar",
+                                this,
+                                this,
+                                SLOT(processShowHideToolbar()));
+    this->showToolBarAction->setCheckable(true);
+    this->showToolBarAction->setChecked(true);
+    
+    this->viewFullScreenAction =
+    WuQtUtilities::createAction("View Full Screen",
+                                "Fill the screen with only the graphics area",
+                                Qt::CTRL + Qt::Key_F,
+                                this,
+                                this,
+                                SLOT(processViewFullScreen()));
+    this->viewFullScreenAction->blockSignals(true);
+    this->viewFullScreenAction->setCheckable(true);
+    this->viewFullScreenAction->setChecked(false);
+    this->viewFullScreenAction->blockSignals(false);
+    
+    this->nextTabAction =
+    WuQtUtilities::createAction("Next Tab",
+                                "Move to the next tab",
+                                Qt::CTRL + Qt::Key_Right,
+                                this,
+                                this,
+                                SLOT(processNextTab()));
+    
+    this->previousTabAction =
+    WuQtUtilities::createAction("Previous Tab",
+                                "Move to the previous tab",
+                                Qt::CTRL + Qt::Key_Left,
+                                this,
+                                this,
+                                SLOT(processPreviousTab()));
+    
+    this->renameSelectedTabAction =
+    WuQtUtilities::createAction("Rename Selected Tab...",
+                                "Change the name of the selected tab",
+                                this,
+                                this,
+                                SLOT(processRenameSelectedTab()));
+    
+    this->moveTabsInWindowToNewWindowsAction =
+    WuQtUtilities::createAction("Move All Tabs in Current Window to New Windows",
+                                "Move all but the left most tab to new windows",
+                                this,
+                                this,
+                                SLOT(processMoveAllTabsInWindowToNewWindows()));
+    
+    this->moveTabsFromAllWindowsToOneWindowAction =
+    WuQtUtilities::createAction("Move All Tabs From All Windows Into One Window",
+                                "Move all tabs from all windows into one window",
+                                this,
+                                this,
+                                SLOT(processMoveAllTabsToOneWindow()));
+    
+    this->bringAllToFrontAction =
+    WuQtUtilities::createAction("Bring All To Front",
+                                "Move all windows on top of other application windows",
+                                this,
+                                guiManager,
+                                SLOT(processBringAllWindowsToFront()));
+    
+    this->identifyWindowAction =
+    WuQtUtilities::createAction("Identify Window...",
+                                "Show the Identify Window",
+                                Qt::CTRL + Qt::Key_I,
+                                this,
+                                guiManager,
+                                SLOT(processShowIdentifyWindow()));
+    
+    this->dataDisplayAction =
+    WuQtUtilities::createAction("Data Display...",
+                                "Show the Data Display Window",
+                                Qt::CTRL + Qt::Key_D,
+                                this,
+                                guiManager,
+                                SLOT(processShowDataDisplayWindow()));
+    
+    this->helpOnlineAction =
+    WuQtUtilities::createAction("Show Help (Online)...",
+                                "Show the Help Window",
+                                this,
+                                guiManager,
+                                SLOT(processShowHelpOnlineWindow()));
+    
+    this->searchHelpOnlineAction =
+    WuQtUtilities::createAction("Search Help (Online)...",
+                                "Show the Search Helper Window",
+                                this,
+                                guiManager,
+                                SLOT(processShowSearchHelpOnlineWindow()));
+    
+}
+
+/**
+ * Create menus for this window.
+ */
+void 
+BrainBrowserWindow::createMenus()
+{
+    /*
+     * Create the menu bar and add menus to it.
+     */
+    QMenuBar* menuBar = this->menuBar();
+    menuBar->addMenu(this->createMenuFile());
+    menuBar->addMenu(this->createMenuView());
+    menuBar->addMenu(this->createMenuData());
+    menuBar->addMenu(this->createMenuSurface());
+    menuBar->addMenu(this->createMenuVolume());
+    menuBar->addMenu(this->createMenuWindow());
+    menuBar->addMenu(this->createMenuHelp());    
+}
+
+/**
+ * Create the file menu.
+ * @return the file menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuFile()
+{
+    QMenu* menu = new QMenu("File", this);
+
+    menu->addAction(this->newWindowAction);
+    menu->addAction(this->newTabAction);
+    menu->addSeparator();
+    menu->addAction(this->openFileAction);
+    menu->addAction(this->openFileViaSpecFileAction);
+    menu->addAction(this->manageFilesAction);
+    menu->addAction(this->closeSpecFileAction);
+    menu->addSeparator();
+    menu->addAction(this->closeTabAction);
+    menu->addAction(this->closeWindowAction);
+    menu->addSeparator();
+#ifndef Q_OS_MACX
+    menu->addSeparator();
+#endif // Q_OS_MACX
+    menu->addAction(this->exitProgramAction);
+    
+    return menu;
+}
+
+/**
+ * Create the view menu.
+ * @return the view menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuView()
+{
+    QMenu* menu = new QMenu("View", this);
+    
+    menu->addAction(this->montageTabsAction);
+    menu->addSeparator();
+    menu->addAction(this->showToolBarAction);
+    QAction* showToolBoxAction = this->toolbar->getShowToolBoxAction();
+    if (showToolBoxAction != NULL) {
+        menu->addAction(showToolBoxAction);
+    }
+    else {
+        std::cout << "Show toolbox action needs to be created (is NULL)" << std::endl;
+    }
+    menu->addMenu(this->createMenuViewToolBox());
+    menu->addSeparator();
+    menu->addAction(this->viewFullScreenAction);
+    
+    return menu;
+}
+
+/**
+ * Create the toolbox menu.
+ * @return the toolbox menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuViewToolBox()
+{
+    QMenu* menu = new QMenu("View", this);
+    
+    menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
+    menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
+    menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
+    menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
+    menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
+    
+    return menu;
+}
+
+/**
+ * Create the data menu.
+ * @return the data menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuData()
+{
+    QMenu* menu = new QMenu("Data", this);
+    
+    return menu;
+}
+
+/**
+ * Create the surface menu.
+ * @return the surface menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuSurface()
+{
+    QMenu* menu = new QMenu("Surface", this);
+    
+    return menu;
+}
+
+/**
+ * Create the volume menu.
+ * @return the volume menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuVolume()
+{
+    QMenu* menu = new QMenu("Volume", this);
+    
+    return menu;
+}
+
+/**
+ * Create the window menu.
+ * @return the window menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuWindow()
+{
+    this->moveTabToThisWindowMenu = new QMenu("Move tab to this window");
+    QObject::connect(this->moveTabToThisWindowMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processMoveTabToWindowMenuAboutToBeDisplayed()));
+    QObject::connect(this->moveTabToThisWindowMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processMoveTabToWindowMenuSelection(QAction*)));
+    
+    QMenu* menu = new QMenu("Window", this);
+    
+    menu->addAction(this->nextTabAction);
+    menu->addAction(this->previousTabAction);
+    menu->addAction(this->renameSelectedTabAction);
+    menu->addSeparator();
+    menu->addAction(this->moveTabsInWindowToNewWindowsAction);
+    menu->addAction(this->moveTabsFromAllWindowsToOneWindowAction);
+    menu->addMenu(this->moveTabToThisWindowMenu);
+    menu->addSeparator();
+    menu->addAction(this->dataDisplayAction);
+    menu->addAction(this->identifyWindowAction);
+    menu->addSeparator();
+    menu->addAction(this->bringAllToFrontAction);
+    
+    return menu;
+}
+
+/**
+ * Create the help menu.
+ * @return the help menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuHelp()
+{
+    QMenu* menu = new QMenu("Help", this);
+    
+    menu->addAction(this->helpOnlineAction);
+    menu->addAction(this->searchHelpOnlineAction);
+    
+    return menu;
+}
+
+/**
+ * Called when capture image is selected.
+ */
+void 
+BrainBrowserWindow::processCaptureImage()
+{
+    
+}
+
+/**
+ * Called when close spec file is selected.
+ */
+void 
+BrainBrowserWindow::processCloseSpecFile()
+{
+    
+}
+
+/**
+ * Called when close tab is selected.
+ */
+void 
+BrainBrowserWindow::processCloseTab()
+{
+    
+}
+
+void 
+BrainBrowserWindow::processNewWindow()
+{
+    GuiManager::get()->newBrainBrowserWindow(this);
+}
+
+/**
+ * Called when new tab is selected.
+ */
+void 
+BrainBrowserWindow::processNewTab()
+{
+    
+}
+
+/**
+ * Called when open data file is selected.
+ */
+void 
+BrainBrowserWindow::processDataFileOpen()
+{
+    AString name =
+    QFileDialog::getOpenFileName(this,
+                                 "Open Surface File",
+                                 ".",
+                                 "Surfaces (*.surf.gii)");
+    if (name.length() == 0) return;
+    
+    EventDataFileRead loadSurfaceEvent(GuiManager::get()->getBrain(),
+                                       DataFileTypeEnum::SURFACE_ANATOMICAL,
+                                       name);
+    
+    EventManager::get()->sendEvent(loadSurfaceEvent.getPointer());
+    
+    if (loadSurfaceEvent.isError()) {
+        QMessageBox::critical(this, 
+                              "ERROR", 
+                              loadSurfaceEvent.getErrorMessage());
+    }
+    
+    EventManager::get()->sendEvent(EventUpdateAllGraphics().getPointer());
+}
+
+/**
+ * Called when open data file from spec file is selected.
+ */
+void 
+BrainBrowserWindow::processDataFileOpenFromSpecFile()
+{
+}
+
+/**
+ * Called when manage/save loaded files is selected.
+ */
+void 
+BrainBrowserWindow::processManageSaveLoadedFiles()
+{
+    
+}
+
+void 
+BrainBrowserWindow::processExitProgram()
+{
+    GuiManager::get()->exitProgram(this);
+}
+
+/**
+ * Called when toggle montage tabs is selected.
+ */
+void 
+BrainBrowserWindow::processToggleMontageTabs()
+{
+    
+}
+
+/**
+ * Called when show toolbar is selected.
+ */
+void 
+BrainBrowserWindow::processShowHideToolbar()
+{
+    
+}
+
+/**
+ * Called when view full screen is selected.
+ */
+void 
+BrainBrowserWindow::processViewFullScreen()
+{
+    
+}
+
+/**
+ * Called when previous tab is selected.
+ */
+void 
+BrainBrowserWindow::processPreviousTab()
+{
+    
+}
+
+/**
+ * Called when next tab is selected.
+ */
+void 
+BrainBrowserWindow::processNextTab()
+{
+    
+}
+
+/**
+ * Called when rename selected tab is selected.
+ */
+void 
+BrainBrowserWindow::processRenameSelectedTab()
+{
+    
+}
+
+/**
+ * Called when move all tabs in window to new windows is selected.
+ */
+void 
+BrainBrowserWindow::processMoveAllTabsInWindowToNewWindows()
+{
+    
+}
+
+/**
+ * Called when move all tabs to one window is selected.
+ */
+void 
+BrainBrowserWindow::processMoveAllTabsToOneWindow()
+{
+    
+}
+
+/**
+ * Called when the move tab to window is about to be displayed.
+ */
+void 
+BrainBrowserWindow::processMoveTabToWindowMenuAboutToBeDisplayed()
+{
+    
+}
+
+/**
+ * Called when move tab to window menu item is selected.
+ */
+void 
+BrainBrowserWindow::processMoveTabToWindowMenuSelection(QAction*)
+{
+    
+}
+
+/**
+ * Called to move the toolbox to the left side of the window.
+ */
+void 
+BrainBrowserWindow::processMoveToolBoxToLeft()
+{
+    
+}
+
+/**
+ * Called to move the toolbox to the right side of the window.
+ */
+void 
+BrainBrowserWindow::processMoveToolBoxToRight()
+{
+    
+}
+
+/**
+ * Called to move the toolbox to the top side of the window.
+ */
+void 
+BrainBrowserWindow::processMoveToolBoxToTop()
+{
+    
+}
+
+/**
+ * Called to move the toolbox to the bottom side of the window.
+ */
+void 
+BrainBrowserWindow::processMoveToolBoxToBottom()
+{
+    
+}
+
+/**
+ * Called to move the toolbox to float outside of the window.
+ */
+void 
+BrainBrowserWindow::processMoveToolBoxToFloat()
+{
+    
+}
+

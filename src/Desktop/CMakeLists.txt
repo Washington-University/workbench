@@ -21,6 +21,12 @@ SET(QT_USE_QTOPENGL TRUE)
 INCLUDE (${QT_USE_FILE})
 
 #
+# Images
+#
+SET (IMAGE_RCS ./images/images.qrc)
+QT4_ADD_RESOURCES(IMAGE_RCS_SRCS ${IMAGE_RCS})
+
+#
 # Create the executable
 # Apple creates a bundle
 #
@@ -28,16 +34,19 @@ IF (APPLE)
    ADD_EXECUTABLE(${EXE_NAME}
       MACOSX_BUNDLE
       desktop.cxx
+      ${IMAGE_RCS_SRCS}
    )
-   SET_TARGET_PROPERTIES(
-       ${EXE_NAME}
-       PROPERTIES
-       RESOURCE
-       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
-   )
+
+#   SET_TARGET_PROPERTIES(
+#       ${EXE_NAME}
+#       PROPERTIES
+#       RESOURCE
+#       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
+#   )
 ELSE (APPLE)
    ADD_EXECUTABLE(${EXE_NAME}
       desktop.cxx
+      ${IMAGE_RCS_SRCS}
    )
 ENDIF (APPLE)
 

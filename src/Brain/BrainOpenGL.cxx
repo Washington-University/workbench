@@ -40,6 +40,7 @@
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
 #include "BrainStructure.h"
+#include "CaretAssert.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
 #include <cstdlib>
@@ -83,13 +84,12 @@ BrainOpenGL::~BrainOpenGL()
  * Draw a model.
  */
 void 
-BrainOpenGL::drawModel(Brain* brain,
-                        const int32_t windowIndex,
-                        const int32_t viewport[4],
-                        ModelDisplayController* controller)
+BrainOpenGL::drawModel(ModelDisplayController* controller,
+                       const int32_t windowTabIndex,
+                       const int32_t viewport[4])
 {
-    this->brain = brain;
-    this->windowIndex = windowIndex;
+    this->windowTabIndex = windowTabIndex;
+    CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
     
     float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     glClearColor(backgroundColor[0],
@@ -115,17 +115,17 @@ BrainOpenGL::drawModel(Brain* brain,
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const float* translation = controller->getTranslation(this->windowIndex);
+    const float* translation = controller->getTranslation(this->windowTabIndex);
     glTranslatef(translation[0], 
                  translation[1], 
                  translation[2]);
     
-    Matrix4x4* rotationMatrix = controller->getViewingRotationMatrix(this->windowIndex);
+    Matrix4x4* rotationMatrix = controller->getViewingRotationMatrix(this->windowTabIndex);
     double rotationMatrixElements[16];
     rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
     
-    const float scale = controller->getScaling(this->windowIndex);
+    const float scale = controller->getScaling(this->windowTabIndex);
     glScalef(scale, 
              scale, 
              scale);
@@ -345,7 +345,7 @@ BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
         if (modelController != NULL) {
             std::cout << "While drawing brain model " << modelController->getNameForGUI(true).toStdString() << std::endl;
         }
-        std::cout << "In window number " << this->windowIndex << std::endl;
+        std::cout << "In window number " << this->windowTabIndex << std::endl;
         GLint nameStackDepth, modelStackDepth, projStackDepth;
         glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
                       &projStackDepth);

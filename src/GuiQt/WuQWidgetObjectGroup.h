@@ -1,7 +1,8 @@
 
-#ifndef __WINDOW_MAIN_H__
-#define __WINDOW_MAIN_H__
+#ifndef __QT_WIDGET_OBJECT_GROUP_H__
+#define __QT_WIDGET_OBJECT_GROUP_H__
 
+/*LICENSE_START*/
 /*
  *  Copyright 1995-2002 Washington University School of Medicine
  *
@@ -26,39 +27,44 @@
  */
 /*LICENSE_END*/
 
-#include <QMainWindow>
+#include <QObject>
+#include <QVector>
+
+class QObject;
 
 namespace caret {
-    
-    class Actions;
-    class BrainOpenGLWidget;
-    
-    class WindowMain : public QMainWindow {
+    /**
+     * Groups QWidget and/or QObjects for applying operations to
+     * all such as blocking signals and setting visibility.
+     */
+    class WuQWidgetObjectGroup : public QObject {
         Q_OBJECT
         
     public:
-        WindowMain(const int openGLSizeX,
-                   const int openGLSizeY);
+        WuQWidgetObjectGroup(QWidget* parent);
         
-        ~WindowMain();
+        ~WuQWidgetObjectGroup();
+        
+        void add(QObject* w);
+        
+    public slots:
+        void blockSignals(bool blockTheSignals);
+        
+        void setEnabled(bool enable);
+        
+        void setDisabled(bool disable);
+        
+        void setVisible(bool makeVisible);
+        
+        void setHidden(bool hidden);
+        
+        void resizeAllToLargestSizeHint();
+        
+        void setAllCheckBoxesChecked(const bool b);
         
     protected:
-        void closeEvent(QCloseEvent* event);
-        
-    private:
-        void createMenus();
-        
-        QMenu* createMenuFile();
-        QMenu* createMenuData();
-        QMenu* createMenuSurface();
-        QMenu* createMenuVolume();
-        QMenu* createMenuWindow();
-        QMenu* createMenuHelp();
-        
-        Actions* actions;
-        BrainOpenGLWidget* openGLWidget;
+        QVector<QObject*> objects;
     };
-    
-}  // namespace
+} // namespace
 
-#endif // __WINDOW_MAIN_H__
+#endif // __QT_WIDGET_OBJECT_GROUP_H__

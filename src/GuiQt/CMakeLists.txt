@@ -19,25 +19,43 @@ INCLUDE(${QT_USE_FILE})
 # Any class that derives from a QT class and contains
 # the "Q_OBJECT" macro must be listed here.
 #
+# Also list each of these headers in the 
+# source files section so that they show
+# up in development tools such as XCode.
+#
 SET(MOC_INPUT_HEADER_FILES
-Actions.h
+BrainBrowserWindow.h
+BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
-WindowMain.h
+GuiManager.h
+WuQMessageBox.h
+WuQWidgetObjectGroup.h
 )
 
 #
 # Source files 
 #
 SET(SOURCE_FILES
+BrainBrowserWindow.h
+BrainBrowserWindowToolBar.h
+BrainOpenGLWidget.h
 EventUpdateAllGraphics.h
-GuiGlobals.h
+GuiManager.h
+ViewModeEnum.h
+WuQMessageBox.h
+WuQWidgetObjectGroup.h
+WuQtUtilities.h
 
-${MOC_INPUT_HEADER_FILES}
-Actions.cxx
+
+BrainBrowserWindow.cxx
+BrainBrowserWindowToolBar.cxx
 BrainOpenGLWidget.cxx
 EventUpdateAllGraphics.cxx
-GuiGlobals.cxx
-WindowMain.cxx
+GuiManager.cxx
+ViewModeEnum.cxx
+WuQMessageBox.cxx
+WuQWidgetObjectGroup.cxx
+WuQtUtilities.cxx
 )
 
 #SET(FORMS

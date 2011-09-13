@@ -38,7 +38,7 @@
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "EventUpdateAllGraphics.h"
-#include "GuiGlobals.h"
+#include "GuiManager.h"
 #include "Matrix4x4.h"
 #include "Surface.h"
 #include "ModelDisplayController.h"
@@ -58,9 +58,6 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->windowIndex = windowIndex;
     this->modelController = NULL;
     
-    
-//    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, this);
-    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL);
 }
 
@@ -69,8 +66,6 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
-//    GuiGlobals::registerBrainOpenGLWidget(this->windowIndex, NULL);
-    
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -109,7 +104,7 @@ BrainOpenGLWidget::getDisplayedModelController()
 void 
 BrainOpenGLWidget::initializeGL()
 {
-    this->openGL = GuiGlobals::getBrainOpenGL();
+    this->openGL = GuiManager::get()->getBrainOpenGL();
     this->openGL->initializeOpenGL();
     
     this->mouseMovedBounds[0] = 0;
@@ -166,10 +161,9 @@ BrainOpenGLWidget::paintGL()
     
     ModelDisplayController* modelController = this->getDisplayedModelController();
     
-    this->openGL->drawModel(GuiGlobals::getBrain(),
-                             this->windowIndex,
-                             viewport,
-                             modelController);
+    this->openGL->drawModel(modelController,
+                            0, //this->windowTabIndex,
+                            viewport);
 }
 
 void 
