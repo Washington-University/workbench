@@ -78,9 +78,17 @@ EventTypeEnum::initialize()
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));
     
-    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL, 
-                                     "EVENT_GRAPHICS_UPDATE_ALL", 
+    enumData.push_back(EventTypeEnum(EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW, 
+                                     "EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW", 
+                                     "Get model and information for drawing a window."));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
+                                     "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 
                                      "Update all graphics windows"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ONE_WINDOW, 
+                                     "EVENT_GRAPHICS_UPDATE_ONE_WINDOW", 
+                                     "Update graphics in one window"));
     
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
@@ -93,6 +101,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL, 
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE, 
+                                     "EVENT_USER_INTERFACE_UPDATE", 
+                                     "Update the user-interface"));
     
     enumData.push_back(EventTypeEnum(EVENT_COUNT, 
                                     "EVENT_COUNT", 

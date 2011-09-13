@@ -48,9 +48,7 @@ namespace caret {
         
         ~BrainOpenGLWidget();
         
-        void setDisplayedModelController(ModelDisplayController* modelController);
-        
-        ModelDisplayController* getDisplayedModelController();
+        //ModelDisplayController* getDisplayedModelController();
         
         void mouseMoveEvent(QMouseEvent* e);
         
@@ -69,6 +67,8 @@ namespace caret {
         BrainOpenGL* openGL;
         
         int32_t windowIndex;
+        
+        int32_t windowTabIndex;
         
         ModelDisplayController* modelController;
         

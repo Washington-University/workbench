@@ -39,7 +39,10 @@ SET(SOURCE_FILES
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
-EventUpdateAllGraphics.h
+EventGetModelToDrawForWindow.h
+EventGraphicsUpdateAllWindows.h
+EventGraphicsUpdateOneWindow.h
+EventUserInterfaceUpdate.h
 GuiManager.h
 ViewModeEnum.h
 WuQMessageBox.h
@@ -50,7 +53,10 @@ WuQtUtilities.h
 BrainBrowserWindow.cxx
 BrainBrowserWindowToolBar.cxx
 BrainOpenGLWidget.cxx
-EventUpdateAllGraphics.cxx
+EventGetModelToDrawForWindow.cxx
+EventGraphicsUpdateAllWindows.cxx
+EventGraphicsUpdateOneWindow.cxx
+EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 ViewModeEnum.cxx
 WuQMessageBox.cxx

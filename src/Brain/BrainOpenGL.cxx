@@ -82,15 +82,21 @@ BrainOpenGL::~BrainOpenGL()
 
 /**
  * Draw a model.
+ *
+ * @param modelDisplayController
+ *    Model display controller that is drawn (NULL if nothing to draw).
+ * @param windowTabIndex
+ *    Index of window TAB in which controller is drawn.
+ * @param viewport
+ *    Viewport for drawing.
  */
 void 
-BrainOpenGL::drawModel(ModelDisplayController* controller,
+BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                        const int32_t windowTabIndex,
                        const int32_t viewport[4])
 {
     this->windowTabIndex = windowTabIndex;
-    CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
-    
+
     float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
     glClearColor(backgroundColor[0],
                  backgroundColor[1],
@@ -104,38 +110,41 @@ BrainOpenGL::drawModel(ModelDisplayController* controller,
                viewport[2], 
                viewport[3]);
     
-    if(controller == NULL) {
-        return;
+    if(modelDisplayController != NULL) {
+        CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
+        
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        this->setOrthographicProjection(viewport);
+        
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        
+        const float* translation = modelDisplayController->getTranslation(this->windowTabIndex);
+        glTranslatef(translation[0], 
+                     translation[1], 
+                     translation[2]);
+        
+        Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(this->windowTabIndex);
+        double rotationMatrixElements[16];
+        rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
+        glMultMatrixd(rotationMatrixElements);
+        
+        const float scale = modelDisplayController->getScaling(this->windowTabIndex);
+        glScalef(scale, 
+                 scale, 
+                 scale);
+        
+        ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
+        if (surfaceController != NULL) {
+            this->drawSurface(surfaceController->getSurface());
+        }
+        else {
+            CaretAssertMessage(0, "Unknown type of model display controller for drawing");
+        }
     }
     
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    this->setOrthographicProjection(viewport);
-    
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    
-    const float* translation = controller->getTranslation(this->windowTabIndex);
-    glTranslatef(translation[0], 
-                 translation[1], 
-                 translation[2]);
-    
-    Matrix4x4* rotationMatrix = controller->getViewingRotationMatrix(this->windowTabIndex);
-    double rotationMatrixElements[16];
-    rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
-    glMultMatrixd(rotationMatrixElements);
-    
-    const float scale = controller->getScaling(this->windowTabIndex);
-    glScalef(scale, 
-             scale, 
-             scale);
-    
-    ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(controller);
-    if (surfaceController != NULL) {
-        this->drawSurface(surfaceController->getSurface());
-    }
-    
-    this->checkForOpenGLError(controller, "At end of drawModel()");
+    this->checkForOpenGLError(modelDisplayController, "At end of drawModel()");
 }
 
 void 

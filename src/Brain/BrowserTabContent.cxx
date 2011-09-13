@@ -198,4 +198,15 @@ BrowserTabContent::setYokingType(const YokingTypeEnum::Enum yokingType)
     this->yokingType = yokingType;
 }
 
+/**
+ * Get the tab number for this content.
+ * 
+ * @return  Tab number.
+ */
+int32_t 
+BrowserTabContent::getTabNumber() const
+{
+    return this->tabNumber;
+}
+
 

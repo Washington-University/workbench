@@ -46,14 +46,20 @@ public:
         EVENT_BROWSER_TAB_NEW,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
+        /** Get the model and other info for drawing a window */
+        EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW,
         /** Update all graphics windows */
-        EVENT_GRAPHICS_UPDATE_ALL,
+        EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
+        /** Update graphics in a window */
+        EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
+        /** Update the User-Interface */
+        EVENT_USER_INTERFACE_UPDATE,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };

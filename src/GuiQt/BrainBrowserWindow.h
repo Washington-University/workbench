@@ -30,6 +30,8 @@
 
 #include <QMainWindow>
 
+#include "EventListenerInterface.h"
+
 class QAction;
 class QMenu;
 
@@ -42,11 +44,13 @@ namespace caret {
      * brain models.  It may contain multiple tabs
      * with each tab displaying brain models.
      */ 
-    class BrainBrowserWindow : public QMainWindow {
+    class BrainBrowserWindow : public QMainWindow, public EventListenerInterface  {
         Q_OBJECT
         
     public:
-        ~BrainBrowserWindow();
+        virtual ~BrainBrowserWindow();
+        
+        void receiveEvent(Event* event);
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -79,7 +83,7 @@ namespace caret {
         void processMoveTabToWindowMenuSelection(QAction*);
         
     private:
-        BrainBrowserWindow(const int windowIndex,
+        BrainBrowserWindow(const int browserWindowIndex,
                            QWidget* parent = 0,
                            Qt::WindowFlags flags = 0);
         
@@ -99,7 +103,7 @@ namespace caret {
         QMenu* createMenuHelp();
         
         /** Index of this window */
-        int32_t windowIndex;
+        int32_t browserWindowIndex;
         
         BrainOpenGLWidget* openGLWidget;
         

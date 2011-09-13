@@ -37,7 +37,6 @@
 #include "CaretAssert.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
-#include "EventUpdateAllGraphics.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"
@@ -285,10 +284,15 @@ GuiManager::exitProgram(QWidget* parent)
     }
     
     if (okToExit) {
+        QVector<BrainBrowserWindow*> bws = this->getAllBrainBrowserWindows();
+        for (int i = 0; i < bws.size(); i++) {
+            bws[i]->deleteLater();
+        }
+        
         QCoreApplication::instance()->quit();
     }    
     
-    return false;
+    return okToExit;
 }
 
 /**

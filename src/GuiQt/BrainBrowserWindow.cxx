@@ -33,9 +33,11 @@
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainOpenGLWidget.h"
+#include "CaretAssert.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
-#include "EventUpdateAllGraphics.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -49,7 +51,7 @@ using namespace caret;
  * @param flags
  *    Flags for Qt.
  */
-BrainBrowserWindow::BrainBrowserWindow(const int windowIndex,
+BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        QWidget* parent,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
@@ -58,12 +60,12 @@ BrainBrowserWindow::BrainBrowserWindow(const int windowIndex,
     
     this->setAttribute(Qt::WA_DeleteOnClose);
     
-    this->windowIndex = windowIndex;
+    this->browserWindowIndex = browserWindowIndex;
     
     this->setWindowTitle(guiManager->applicationName());
     
     this->openGLWidget = new BrainOpenGLWidget(this,
-                                               windowIndex);
+                                               browserWindowIndex);
     
     const int openGLSizeX = 512;
     const int openGLSizeY = 512;
@@ -73,7 +75,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int windowIndex,
     this->setCentralWidget(this->openGLWidget);
     
     
-    this->toolbar = new BrainBrowserWindowToolBar();
+    this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex);
     this->addToolBar(this->toolbar);
     
     this->createActions();
@@ -81,6 +83,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int windowIndex,
     this->createMenus();
     
     this->toolbar->updateToolBar();
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -549,7 +553,8 @@ BrainBrowserWindow::processDataFileOpen()
                               loadSurfaceEvent.getErrorMessage());
     }
     
-    EventManager::get()->sendEvent(EventUpdateAllGraphics().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -710,3 +715,27 @@ BrainBrowserWindow::processMoveToolBoxToFloat()
     
 }
 
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+BrainBrowserWindow::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(uiEvent);
+        CaretAssert(uiEvent);
+        
+        this->toolbar->updateToolBar();
+        
+        uiEvent->setEventProcessed();
+        
+        std::cout << "Received update UI event in " << __func__ << std::endl;
+    }
+    else {
+        
+    }
+}

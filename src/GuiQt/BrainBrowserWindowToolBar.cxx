@@ -44,6 +44,13 @@
 #include <QToolButton>
 
 #include "BrainBrowserWindowToolBar.h"
+#include "BrowserTabContent.h"
+#include "CaretAssert.h"
+#include "EventBrowserTabNew.h"
+#include "EventGetModelToDrawForWindow.h"
+#include "EventGraphicsUpdateOneWindow.h"
+#include "EventManager.h"
+#include "ModelDisplayController.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -55,8 +62,11 @@ using namespace caret;
  * @param parent
  *    Parent for this toolbar.
  */
-BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(QWidget* parent)
+BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                                     QWidget* parent)
+: QToolBar(parent)
 {
+    this->browserWindowIndex = browserWindowIndex;
     this->toolsToolBoxToolButtonAction = NULL;
     this->updateCounter = 0;
     
@@ -68,8 +78,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(QWidget* parent)
 #ifdef Q_OS_MACX
     this->tabBar->setStyle(new QCleanlooksStyle());
 #endif // Q_OS_MACX
-    this->tabBar->addTab("One");
-    this->tabBar->addTab("Two");
     
     /*
      * Create the toolbar's widgets.
@@ -123,7 +131,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(QWidget* parent)
     
     this->addWidget(w);
     
+    this->addNewTab();
+    
     this->updateViewWidget();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW);
 }
 
 /**
@@ -131,8 +143,32 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(QWidget* parent)
  */
 BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
     
+    std::cout << "In toolbar DESTRUCTOR" << std::endl;
+    
+    for (int i = 0; i < this->tabBar->count(); i++) {
+        void* p = this->tabBar->tabData(i).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        delete btc;
+    }
 }
+
+void 
+BrainBrowserWindowToolBar::addNewTab()
+{
+    EventBrowserTabNew newTabEvent;
+    EventManager::get()->sendEvent(newTabEvent.getPointer());
+    
+    if (newTabEvent.isError()) {
+        return;
+    }
+    
+    BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
+    const int newTabIndex = this->tabBar->addTab("NewTab");
+    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
+}
+
 
 /**
  * Update the toolbar.
@@ -141,6 +177,7 @@ void
 BrainBrowserWindowToolBar::updateToolBar()
 {
     this->incrementUpdateCounter(__func__);
+    
     
     bool showOrientationWidget = false;
     bool showWholeBrainSurfaceOptionsWidget = false;
@@ -1234,6 +1271,16 @@ BrainBrowserWindowToolBar::tabBarIndexChanged(int indx)
 }
 
 /**
+ * Update the graphics windows for the selected tab.
+ */
+void 
+BrainBrowserWindowToolBar::updateGraphicsWindow()
+{
+    EventManager::get()->sendEvent(
+            EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
+/**
  * Called when a view mode is selected.
  */
 void 
@@ -1250,7 +1297,12 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 void 
 BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->leftView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1260,7 +1312,12 @@ BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->rightView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1270,7 +1327,12 @@ BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->anteriorView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1280,7 +1342,12 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->posteriorView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1290,7 +1357,12 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->dorsalView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1300,7 +1372,12 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->ventralView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1310,7 +1387,12 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        mdc->resetView(this->browserWindowIndex);
+        this->updateGraphicsWindow();
+    }
+    
     this->checkUpdateCounter();
 }
 
@@ -1630,4 +1712,71 @@ BrainBrowserWindowToolBar::decrementUpdateCounter(const char* methodName)
     //std::cout << methodName << " exit: " << this->updateCounter << std::endl;    
     this->updateCounter--;
 }
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+BrainBrowserWindowToolBar::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW) {
+        EventGetModelToDrawForWindow* getModelEvent =
+            dynamic_cast<EventGetModelToDrawForWindow*>(event);
+        CaretAssert(getModelEvent);
+        
+        if (getModelEvent->getWindowIndex() == this->browserWindowIndex) {
+            BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+            getModelEvent->setModelDisplayController(btc->getDisplayedModel());
+            getModelEvent->setWindowTabIndex(btc->getTabNumber());
+            getModelEvent->setEventProcessed();
+            
+            std::cout << "Received get model event in " << __func__ << std::endl;
+        }
+    }
+    else {
+        
+    }
+}
+
+/**
+ * Get the content in the browser tab.
+ * @return
+ *    Browser tab contents in the selected tab or NULL if none.
+ */
+BrowserTabContent* 
+BrainBrowserWindowToolBar::getTabContentFromSelectedTab()
+{
+    const int tabIndex = this->tabBar->currentIndex();
+    if ((tabIndex >= 0) && (tabIndex < this->tabBar->count())) {
+        void* p = this->tabBar->tabData(tabIndex).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        return btc;
+    }
+    
+    return NULL;
+}
+
+/**
+ * Get the model display controller displayed in the selected tab.
+ * @return
+ *     Model display controller in the selected tab or NULL if 
+ *     no model is displayed.
+ */
+ModelDisplayController* 
+BrainBrowserWindowToolBar::getDisplayedModelController()
+{
+    ModelDisplayController* mdc = NULL;
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    if (btc != NULL) {
+        mdc = btc->getDisplayedModel();
+    }
+    
+    return mdc;
+}
+
+
 

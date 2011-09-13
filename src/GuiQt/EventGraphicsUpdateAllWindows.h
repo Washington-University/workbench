@@ -1,3 +1,6 @@
+#ifndef __EVENT_GRAPHICS_UPDATE_ALL_WINDOWS_H__
+#define __EVENT_GRAPHICS_UPDATE_ALL_WINDOWS_H__
+
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -22,23 +25,25 @@
  * 
  */ 
 
-#include "EventUpdateAllGraphics.h"
 
-using namespace caret;
+#include "Event.h"
 
-/**
- * Constructor.
- */
-EventUpdateAllGraphics::EventUpdateAllGraphics()
-: Event(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL)
-{
-}
+namespace caret {
 
-/*
- * Destructor.
- */
-EventUpdateAllGraphics::~EventUpdateAllGraphics()
-{
-    
-}
+    /// Event for updating all graphics windows.
+    class EventGraphicsUpdateAllWindows : public Event {
+        
+    public:
+        EventGraphicsUpdateAllWindows();
+        
+        virtual ~EventGraphicsUpdateAllWindows();
+        
+    private:
+        EventGraphicsUpdateAllWindows(const EventGraphicsUpdateAllWindows&);
+        
+        EventGraphicsUpdateAllWindows& operator=(const EventGraphicsUpdateAllWindows&);
+    };
 
+} // namespace
+
+#endif // __EVENT_GRAPHICS_UPDATE_ALL_WINDOWS_H__

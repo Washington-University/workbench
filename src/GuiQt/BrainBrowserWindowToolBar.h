@@ -30,6 +30,7 @@
 #include <QStack>
 #include <QToolBar>
 
+#include "EventListenerInterface.h"
 #include "ViewModeEnum.h"
 
 class QAbstractButton;
@@ -48,20 +49,27 @@ class QToolButton;
 
 namespace caret {
     
+    class BrowserTabContent;
+    class ModelDisplayController;
     class WuQWidgetObjectGroup;
     
-    class BrainBrowserWindowToolBar : public QToolBar {
+    class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface   {
       
         Q_OBJECT
         
     public:
-        BrainBrowserWindowToolBar(QWidget* parent = 0);
+        BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                  QWidget* parent = 0);
         
         ~BrainBrowserWindowToolBar();
         
         ViewModeEnum::Enum getViewMode() const;
         
         QAction* getShowToolBoxAction();
+        
+        void addNewTab();
+
+        void receiveEvent(Event* event);
         
     private:        
         enum WidgetPlacement {
@@ -75,6 +83,11 @@ namespace caret {
         BrainBrowserWindowToolBar(const BrainBrowserWindowToolBar&);
         BrainBrowserWindowToolBar& operator=(const BrainBrowserWindowToolBar&);
         
+        BrowserTabContent* getTabContentFromSelectedTab();
+        
+        ModelDisplayController* getDisplayedModelController();
+        
+        void updateGraphicsWindow();
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();
@@ -266,6 +279,9 @@ namespace caret {
     
     private slots:
         void toolsToolBoxToolButtonTriggered(bool checked);
+        
+    private:
+        int32_t browserWindowIndex;
         
     private:
         friend class BrainBrowserWindow;

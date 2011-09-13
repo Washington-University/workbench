@@ -64,6 +64,8 @@ namespace caret {
         
         void setYokingType(const YokingTypeEnum::Enum yokingType);
         
+        int32_t getTabNumber() const;
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         

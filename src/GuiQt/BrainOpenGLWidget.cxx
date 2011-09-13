@@ -37,7 +37,9 @@
 #include "CaretAssert.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
-#include "EventUpdateAllGraphics.h"
+#include "EventGetModelToDrawForWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "GuiManager.h"
 #include "Matrix4x4.h"
 #include "Surface.h"
@@ -58,7 +60,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->windowIndex = windowIndex;
     this->modelController = NULL;
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 }
 
 /**
@@ -70,25 +73,13 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 }
 
 /**
- * Set the model controller displayed in this widget.
- *
- * @param modelController
- *    Model controller for display in widget.
- */
-void 
-BrainOpenGLWidget::setDisplayedModelController(ModelDisplayController* modelController)
-{
-    this->modelController = modelController;
-}
-
-/**
  * Get the model controller displayed in this widget.
  *
  * @return
  *    Model controller displayed in this widget which
  *    may be NULL if there is no viewer for
  *    display.
- */
+ *
 ModelDisplayController* 
 BrainOpenGLWidget::getDisplayedModelController()
 {
@@ -97,6 +88,7 @@ BrainOpenGLWidget::getDisplayedModelController()
     
     return getModelEvent.getFirstModelDisplayController();
 }
+*/
 
 /**
  * Initializes graphics.
@@ -159,10 +151,19 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
-    ModelDisplayController* modelController = this->getDisplayedModelController();
+    EventGetModelToDrawForWindow getModelEvent(this->windowIndex);
+    EventManager::get()->sendEvent(getModelEvent.getPointer());
+
+    if (getModelEvent.isError()) {
+        std::cout << "ERROR for " << getModelEvent.toString() << std::endl;
+        return;
+    }
     
-    this->openGL->drawModel(modelController,
-                            0, //this->windowTabIndex,
+    this->modelController = getModelEvent.getModelDisplayController();
+    this->windowTabIndex  = getModelEvent.getWindowTabIndex();
+    
+    this->openGL->drawModel(this->modelController,
+                            this->windowTabIndex,
                             viewport);
 }
 
@@ -206,13 +207,12 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             const int dx = static_cast<int>((x - lastMouseX));
             const int dy = static_cast<int>((lastMouseY - y));  // origin at top
             
-            ModelDisplayController* modelController = this->getDisplayedModelController();
-            if (modelController != NULL) {
+            if (this->modelController != NULL) {
                 //
                 // Mouse moved with just left button down
                 //
                 if (bs == leftMouseButtonMoveMask) {
-                    Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(this->windowIndex);
+                    Matrix4x4* rotationMatrix = this->modelController->getViewingRotationMatrix(this->windowIndex);
                     rotationMatrix->rotateX(-dy);
                     rotationMatrix->rotateY(dx);
                 }
@@ -225,7 +225,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                         scale += (dy * 0.05);
                     }
                     if (scale < 0.01) scale = 0.01;
-                    modelController->setScaling(this->windowIndex, scale);
+                    this->modelController->setScaling(this->windowIndex, scale);
                 }
                 //
                 // Mouse moved with shift key and left mouse button down
@@ -233,7 +233,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 else if (bs == leftShiftMouseButtonMoveMask) {
                     const float* t1 = modelController->getTranslation(this->windowIndex);
                     float t2[] = { t1[0] + dx, t1[1] + dy, t2[2] };
-                    modelController->setTranslation(this->windowIndex, t2);
+                    this->modelController->setTranslation(this->windowIndex, t2);
                 }
                 //
                 // Mouse moved with alt key and left mouse button down
@@ -251,12 +251,18 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     lastMouseY = y;
 }
 
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
 void 
 BrainOpenGLWidget::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL) {
-        EventUpdateAllGraphics* updateAllEvent =
-            dynamic_cast<EventUpdateAllGraphics*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS) {
+        EventGraphicsUpdateAllWindows* updateAllEvent =
+            dynamic_cast<EventGraphicsUpdateAllWindows*>(event);
         CaretAssert(updateAllEvent);
         
         updateAllEvent->setEventProcessed();
@@ -264,6 +270,22 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         std::cout << "Received update graphics event in " << __func__ << std::endl;
         
         this->updateGL();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
+        EventGraphicsUpdateOneWindow* updateOneEvent =
+        dynamic_cast<EventGraphicsUpdateOneWindow*>(event);
+        CaretAssert(updateOneEvent);
+        
+        if (updateOneEvent->getWindowIndex() == this->windowIndex) {
+            updateOneEvent->setEventProcessed();
+            
+            std::cout << "Received update graphics event in " << __func__ << std::endl;
+            
+            this->updateGL();
+        }
+    }
+    else {
+        
     }
 }
 
