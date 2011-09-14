@@ -28,52 +28,153 @@
 #include "TopologyHelper.h"
 #include <iostream>
 #include "CaretMutex.h"
+#include <stdint.h>
 
 using namespace caret;
+using namespace std;
 
 GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
 {
    TopologyHelper topoHelpIn(surfaceIn, true, true, false);
-   int i, j, k, m, myneigh, myneigh2, farnode, farbase, coordbase, neigh2base, neighbase;
    numNodes = surfaceIn->getNumberOfCoordinates();
    //allocate
    numNeighbors = new int[numNodes];
    nodeNeighbors = new int*[numNodes];
    distances = new float*[numNodes];
-   const float* coords = surfaceIn->getCoordinate(0);//FIXME: make this not a brutal hack
+   //const float* coords = surfaceIn->getCoordinate(0);//hack previously needed for old code, before it used edgeInfo
    float d[3], g[3], ac[3], abhat[3], abmag, ad[3], efhat[3], efmag, ea[3], cdmag, eg[3], eh[3], ah[3], tempvec[3], tempf;
-   for (i = 0; i < numNodes; ++i)
+   for (int i = 0; i < numNodes; ++i)
    {//get neighbors
       const int* neighbors = topoHelpIn.getNodeNeighbors(i, numNeighbors[i]);
+      const float* baseCoord = surfaceIn->getCoordinate(i);
       nodeNeighbors[i] = new int[numNeighbors[i]];
       distances[i] = new float[numNeighbors[i]];
-      coordbase = i * 3;
-      for (j = 0; j < numNeighbors[i]; ++j)
+      for (int j = 0; j < numNeighbors[i]; ++j)
       {
          nodeNeighbors[i][j] = neighbors[j];
-         coordDiff(coords + coordbase, coords + neighbors[j] * 3, tempvec);
-         distances[i][j] = std::sqrt(tempvec[0] * tempvec[0] + tempvec[1] * tempvec[1] + tempvec[2] * tempvec[2]);//precompute for speed in calls
+         const float* neighCoord = surfaceIn->getCoordinate(neighbors[j]);
+         coordDiff(baseCoord, neighCoord, tempvec);
+         distances[i][j] = std::sqrt(tempvec[0] * tempvec[0] + tempvec[1] * tempvec[1] + tempvec[2] * tempvec[2]);//precompute for speed in other calls
       }//so few floating point operations, this should turn out symmetric
    }
-   //TODO: use edge info for this rather than manually finding tiles with shared edges
    std::vector<int> tempneigh2;
    std::vector<float> tempdist2;
-   std::vector<int> maintiles, neightiles;
    nodeNeighbors2 = new int*[numNodes];
    numNeighbors2 = new int[numNodes];
    distances2 = new float*[numNodes];
-   for (i = 0; i < numNodes; ++i)
+   //begin edge info based code
+   vector<vector<int> > nodeNeighbors2Vec;
+   vector<vector<float> > distances2Vec;
+   nodeNeighbors2Vec.resize(numNodes);
+   distances2Vec.resize(numNodes);
+   const set<TopologyEdgeInfo>& myEdgeInfo = topoHelpIn.getEdgeInfo();
+   set<TopologyEdgeInfo>::const_iterator myiter, myend = myEdgeInfo.end();
+   for (myiter = myEdgeInfo.begin(); myiter != myend; ++myiter)
+   {
+      int neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
+      myiter->getTiles(tile1, tile2);
+      if (tile2 == -1)
+      {
+         continue;//skip edges that have only one triangle
+      }
+      myiter->getNodes(neigh1Node, neigh2Node);
+      const float* neigh1Coord = surfaceIn->getCoordinate(neigh1Node);
+      const float* neigh2Coord = surfaceIn->getCoordinate(neigh2Node);
+      const int32_t* triangle1 = surfaceIn->getTriangle(tile1);
+      const int32_t* triangle2 = surfaceIn->getTriangle(tile2);
+      for (int i = 0; i < 3; ++i)
+      {
+         if (triangle1[i] != neigh1Node && triangle1[i] != neigh2Node)
+         {
+            baseNode = triangle1[i];
+            break;
+         }
+      }
+      for (int i = 0; i < 3; ++i)
+      {
+         if (triangle2[i] != neigh1Node && triangle2[i] != neigh2Node)
+         {
+            farNode = triangle2[i];
+            break;
+         }
+      }
+      const float* baseCoord = surfaceIn->getCoordinate(baseNode);
+      const float* farCoord = surfaceIn->getCoordinate(farNode);
+      const int num_reserve = 8;//uses 8 in case it is used on a mesh with haphazard topology, these vectors go away when the constructor terminates anyway
+      nodeNeighbors2Vec[baseNode].reserve(num_reserve);//reserve should be fast if capacity is already num_reserve, and better than reallocating at 2 and 4, if vector allocation is naive doubling
+      nodeNeighbors2Vec[farNode].reserve(num_reserve);//in the extremely rare case of a node with more than num_reserve neighbors, a second allocation plus copy isn't much of a cost
+      distances2Vec[baseNode].reserve(num_reserve);
+      distances2Vec[farNode].reserve(num_reserve);
+      coordDiff(neigh2Coord, neigh1Coord, abhat);//a is neigh1, b is neigh2, b - a = (vector)ab
+      abmag = normalize(abhat);
+      coordDiff(farCoord, neigh1Coord, ac);//c is farnode, c - a = (vector)ac
+      tempf = dotProd(abhat, ac);
+      ad[0] = abhat[0] * tempf;//d is the point on the shared edge that farnode (c) is closest to
+      ad[1] = abhat[1] * tempf;//this way we can "unfold" the triangles by projecting the distance of cd, from point d, along the unit vector of the base node to closest point on shared edge, 
+      ad[2] = abhat[2] * tempf;
+      d[0] = neigh1Coord[0] + ad[0];//and now we have the point d
+      d[1] = neigh1Coord[1] + ad[1];
+      d[2] = neigh1Coord[2] + ad[2];
+      coordDiff(neigh1Coord, baseCoord, ea);//e is the base node, a - e = (vector)ea
+      tempf = dotProd(abhat, ea);//find the component of ea perpendicular to the shared edge
+      tempvec[0] = abhat[0] * tempf;//find vector fa, f being the point on shared edge closest to e, the base node
+      tempvec[1] = abhat[1] * tempf;
+      tempvec[2] = abhat[2] * tempf;
+      efhat[0] = ea[0] - tempvec[0];//and subtract it to obtain only the perpendicular
+      efhat[1] = ea[1] - tempvec[1];
+      efhat[2] = ea[2] - tempvec[2];
+      efmag = normalize(efhat);//normalize to get unit vector
+      coordDiff(&d[0], farCoord, tempvec);//this is vector cd, perpendicular to shared edge, from shared edge to far point
+      cdmag = normalize(tempvec);//get its magnitude
+      tempvec[0] = efhat[0] * cdmag;//vector dg, from shared edge at closest point to c (far node), to the unfolded position of farnode (g)
+      tempvec[1] = efhat[1] * cdmag;
+      tempvec[2] = efhat[2] * cdmag;
+      g[0] = d[0] + tempvec[0];//add vector dg to point d to get point g, the unfolded position of farnode
+      g[1] = d[1] + tempvec[1];
+      g[2] = d[2] + tempvec[2];
+      coordDiff(&g[0], baseCoord, eg);//this is the vector from base (e) to far node after unfolding (g), this is our distance, as long as the tetralateral is convex
+      tempf = efmag / (efmag + cdmag);//now we need to check that the path stays inside the tetralateral (ie, that it is convex)
+      eh[0] = eg[0] * tempf;//this is a vector from e (base node) to the point on the shared edge that the full path (eg) crosses
+      eh[1] = eg[1] * tempf;//this is because the lengths of the two perpendiculars to the root and far nodes from the shared edge establishes proportionality
+      eh[2] = eg[2] * tempf;
+      ah[0] = eh[0] - ea[0];//eh - ea = eh + ae = ae + eh = ah, vector from neigh to the point on shared edge the path goes through
+      ah[1] = eh[1] - ea[1];
+      ah[2] = eh[2] - ea[2];
+      tempf = dotProd(ah, abhat);//get the component along ab so we can test that it is positive and less than |ab|
+      if (tempf <= 0.0f || tempf >= abmag) continue;//tetralateral is concave or triangular (degenerate), our path is invalid or not shorter, so consider next edge
+      tempf = normalize(eg);//this is our path length
+      nodeNeighbors2Vec[farNode].push_back(baseNode);
+      distances2Vec[farNode].push_back(tempf);
+      nodeNeighbors2Vec[baseNode].push_back(farNode);
+      distances2Vec[baseNode].push_back(tempf);
+   }
+   for (int i = 0; i < numNodes; ++i)
+   {//copy it from vector into straight dynamic array, because now it won't change again, to use a bit less memory, and not redirect through vector operator overloads
+      numNeighbors2[i] = nodeNeighbors2Vec[i].size();
+      nodeNeighbors2[i] = new int[numNeighbors2[i]];
+      distances2[i] = new float[numNeighbors2[i]];
+      for (int j = 0; j < numNeighbors2[i]; ++j)
+      {
+         nodeNeighbors2[i][j] = nodeNeighbors2Vec[i][j];
+         distances2[i][j] = distances2Vec[i][j];
+      }
+   }
+   //end edge info based code
+   //begin old manual tile search based code
+   /*std::vector<int> maintiles, neightiles;
+   int farnode, farbase, coordbase, neigh2base, neighbase;
+   for (int i = 0; i < numNodes; ++i)
    {//find shared neighbors, for smoothed dijkstra
       tempneigh2.clear();
       tempdist2.clear();
       coordbase = i * 3;//precompute the multiplicative part of the coordinate index, for efficiency
       topoHelpIn.getNodeTiles(i, maintiles);
-      for (j = 0; j < (int)maintiles.size(); ++j)
+      for (int j = 0; j < (int)maintiles.size(); ++j)
       {
          const int32_t* tile1 = surfaceIn->getTriangle(maintiles[j]);
-         myneigh = -1;
-         myneigh2 = -1;
-         for (k = 0; k < 3; ++k)
+         int myneigh = -1;
+         int myneigh2 = -1;
+         for (int k = 0; k < 3; ++k)
          {
             if (tile1[k] != i)
             {
@@ -89,10 +190,11 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
          neighbase = myneigh * 3;
          neigh2base = myneigh2 * 3;
          topoHelpIn.getNodeTiles(myneigh, neightiles);
-         for (k = 0; k < (int)neightiles.size(); ++k)
+         for (int k = 0; k < (int)neightiles.size(); ++k)
          {
             const int* tile2 = surfaceIn->getTriangle(neightiles[k]);
             farnode = -1;
+            int m;
             for (m = 0; m < 3; ++m)
             {
                if (tile2[m] == i) break;//discard both tiles that have the root node
@@ -167,12 +269,12 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
       numNeighbors2[i] = tempneigh2.size();
       nodeNeighbors2[i] = new int[numNeighbors2[i]];
       distances2[i] = new float[numNeighbors2[i]];
-      for (j = 0; j < numNeighbors2[i]; ++j)
+      for (int j = 0; j < numNeighbors2[i]; ++j)
       {
          nodeNeighbors2[i][j] = tempneigh2[j];
          distances2[i][j] = tempdist2[j];
       }
-   }
+   }//*/
 }
 
 GeodesicHelper::GeodesicHelper(GeodesicHelperBase& baseIn)
@@ -192,8 +294,8 @@ GeodesicHelper::GeodesicHelper(GeodesicHelperBase& baseIn)
    parent = new int[numNodes];
    for (int i = 0; i < numNodes; ++i)
    {
-      marked[i] = 0;//initialize
-   }
+      marked[i] = 0;//initialize once, each internal function (dijkstra methods) tracks elements changed, and resets only those (except in the case of whole surface)
+   }//the idea is to make it faster for the more likely case of small areas of the surface for functions that have limits, by removing the runtime term based solely on surface size
 }
 
 void GeodesicHelper::getNodesToGeoDist(const int node, const float maxdist, std::vector<int>& nodesOut, std::vector<float>& distsOut, const bool smoothflag)

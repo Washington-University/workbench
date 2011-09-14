@@ -133,7 +133,7 @@ namespace caret {
       void dijkstra(const int root, bool smooth);//full surface
       void alltoall(float** out, int** parents, bool smooth);//must be fully allocated
       void dijkstra(const int root, const std::vector<int>& interested, bool smooth);//partial surface
-      CaretMutex inUse;//do we want to be able to lock this to thread once, call multiple times?  is mutex lock overhead more than a conditional, and does it compare to a small geodesic call?
+      CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
    public:
       GeodesicHelper(GeodesicHelperBase& baseIn);
       ~GeodesicHelper() {
