@@ -29,6 +29,7 @@ CaretObject.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
+ElapsedTimer.h
 Event.h
 EventListenerInterface.h
 EventManager.h
@@ -54,6 +55,7 @@ CaretObject.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
+ElapsedTimer.cxx
 Event.cxx
 EventManager.cxx
 EventTypeEnum.cxx

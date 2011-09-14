@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "ElapsedTimer.h"
 #include "GiftiFile.h"
 #include "GiftiTypeFile.h"
 
@@ -135,9 +136,18 @@ GiftiTypeFile::isEmpty() const
 void 
 GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    ElapsedTimer et;
+    et.start();
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->clearModified();
+    std::cout 
+    << "Time to read "
+    << filename
+    << " was "
+    << et.getElapsedTimeSeconds()
+    << " seconds."
+    << std::endl;
 }
 
 /**

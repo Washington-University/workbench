@@ -95,13 +95,28 @@ CommandOperationManager::~CommandOperationManager()
 void 
 CommandOperationManager::runCommand(ProgramParameters& parameters) throw (CommandException)
 {
+    const uint64_t numberOfCommands = this->commandOperations.size();
+
+    if (parameters.hasNext() == false) {
+        for (uint64_t i = 0; i < numberOfCommands; i++) {
+            CommandOperation* op = this->commandOperations[i];
+            
+            std::cout 
+            << op->getCommandLineSwitch() 
+            << " "
+            << op->getOperationShortDescription()
+            << std::endl;
+        }
+    
+        return;
+    }
+    
     AString commandSwitch;
     try {
         commandSwitch = parameters.nextString("Command Name");
     
         CommandOperation* operation = NULL;
         
-        uint64_t numberOfCommands = this->commandOperations.size();
         for (uint64_t i = 0; i < numberOfCommands; i++) {
             if (this->commandOperations[i]->getCommandLineSwitch() == commandSwitch) {
                 operation = this->commandOperations[i];
