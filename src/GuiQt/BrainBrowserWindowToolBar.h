@@ -67,8 +67,6 @@ namespace caret {
         
         QAction* getShowToolBoxAction();
         
-        void addNewTab();
-
         void receiveEvent(Event* event);
         
     private:        
@@ -154,10 +152,15 @@ namespace caret {
         int updateCounter;
         
     public slots:
+        void addNewTab();
+
+        void closeSelectedTab();
+        
         void updateToolBar();
     
     private slots:
-        void tabBarIndexChanged(int indx);
+        void selectedTabChanged(int indx);
+        void tabClosed(int index);
         
     private:
         QRadioButton* viewModeSurfaceRadioButton;

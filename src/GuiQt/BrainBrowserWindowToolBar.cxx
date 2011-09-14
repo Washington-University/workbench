@@ -46,6 +46,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
 #include "EventGetModelToDrawForWindow.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -78,6 +79,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
 #ifdef Q_OS_MACX
     this->tabBar->setStyle(new QCleanlooksStyle());
 #endif // Q_OS_MACX
+    QObject::connect(this->tabBar, SIGNAL(currentChanged(int)),
+                     this, SLOT(selectedTabChanged(int)));
+    QObject::connect(this->tabBar, SIGNAL(tabCloseRequested(int)),
+                     this, SLOT(tabClosed(int)));
     
     /*
      * Create the toolbar's widgets.
@@ -145,15 +150,16 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    std::cout << "In toolbar DESTRUCTOR" << std::endl;
+    std::cout << "In toolbar DESTRUCTOR for tab in window index=" << this->browserWindowIndex << std::endl;
     
-    for (int i = 0; i < this->tabBar->count(); i++) {
-        void* p = this->tabBar->tabData(i).value<void*>();
-        BrowserTabContent* btc = (BrowserTabContent*)p;
-        delete btc;
+    for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
+        this->tabClosed(i);
     }
 }
 
+/**
+ * Add a new tab.
+ */
 void 
 BrainBrowserWindowToolBar::addNewTab()
 {
@@ -167,6 +173,47 @@ BrainBrowserWindowToolBar::addNewTab()
     BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
     const int newTabIndex = this->tabBar->addTab("NewTab");
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
+    
+    const int numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 1);
+    
+    this->tabBar->setTabText(newTabIndex, tabContent->getName());
+    this->tabBar->setCurrentIndex(newTabIndex);
+}
+
+/**
+ * Close the selected tab.
+ */
+void 
+BrainBrowserWindowToolBar::closeSelectedTab()
+{
+    const int tabIndex = this->tabBar->currentIndex();
+    if (this->tabBar->count() > 1) {
+        this->tabBar->removeTab(tabIndex);
+    }
+}
+
+void 
+BrainBrowserWindowToolBar::selectedTabChanged(int indx)
+{
+    this->updateToolBar();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
+void 
+BrainBrowserWindowToolBar::tabClosed(int indx)
+{
+    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), indx);
+    void* p = this->tabBar->tabData(indx).value<void*>();
+    BrowserTabContent* btc = (BrowserTabContent*)p;
+    
+    EventBrowserTabDelete deleteTabEvent(btc);
+    EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+
+    this->tabBar->removeTab(indx);
+    
+    const int numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 2);
 }
 
 
@@ -1261,16 +1308,6 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
 
 
 /**
- * Called when the selected tab is changed.
- */
-void 
-BrainBrowserWindowToolBar::tabBarIndexChanged(int indx)
-{
-    std::cout << __func__ << std::endl;
-    this->checkUpdateCounter();
-}
-
-/**
  * Update the graphics windows for the selected tab.
  */
 void 
@@ -1297,9 +1334,10 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 void 
 BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->leftView(this->browserWindowIndex);
+        mdc->leftView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1312,9 +1350,10 @@ BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->rightView(this->browserWindowIndex);
+        mdc->rightView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1327,9 +1366,10 @@ BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->anteriorView(this->browserWindowIndex);
+        mdc->anteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1342,9 +1382,10 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->posteriorView(this->browserWindowIndex);
+        mdc->posteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1357,9 +1398,10 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->dorsalView(this->browserWindowIndex);
+        mdc->dorsalView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1372,9 +1414,10 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->ventralView(this->browserWindowIndex);
+        mdc->ventralView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1387,9 +1430,10 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
 {
-    ModelDisplayController* mdc = this->getDisplayedModelController();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getDisplayedModel();
     if (mdc != NULL) {
-        mdc->resetView(this->browserWindowIndex);
+        mdc->resetView(btc->getTabNumber());
         this->updateGraphicsWindow();
     }
     
@@ -1732,8 +1776,6 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
             getModelEvent->setModelDisplayController(btc->getDisplayedModel());
             getModelEvent->setWindowTabIndex(btc->getTabNumber());
             getModelEvent->setEventProcessed();
-            
-            std::cout << "Received get model event in " << __func__ << std::endl;
         }
     }
     else {

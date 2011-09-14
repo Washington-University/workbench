@@ -62,8 +62,6 @@ namespace caret {
         void processManageSaveLoadedFiles();
         void processCaptureImage();
         void processCloseSpecFile();
-        void processCloseTab();
-        void processNewTab();
         void processExitProgram();
         void processToggleMontageTabs();
         void processShowHideToolbar();

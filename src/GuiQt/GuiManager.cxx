@@ -63,6 +63,10 @@ GuiManager::GuiManager(QObject* parent)
  */
 GuiManager::~GuiManager()
 {
+    if (this->brainOpenGL != NULL) {
+        delete this->brainOpenGL;
+        this->brainOpenGL = NULL;
+    }
     
 }
 
@@ -130,11 +134,14 @@ GuiManager::getBrainOpenGL()
  *
  * @param brainBrowserWindow
  *   Brain browser window that will be closed.
+ * @param numberOfOpenTabs
+ *   Number of tabs in window.
  * @return 
  *   True if window should be closed, else false.
  */
 bool 
-GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindow)
+GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindow,
+                                           const int32_t numberOfOpenTabs)
 {
     bool isBrowserWindowAllowedToClose = false;
     
@@ -142,7 +149,6 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
         /*
          * Warn if multiple tabs in window
          */
-        const int32_t numberOfOpenTabs = 3;
         if (numberOfOpenTabs > 1) {
             QString tabMessage = QString::number(numberOfOpenTabs) + " tabs are open.";
             isBrowserWindowAllowedToClose =

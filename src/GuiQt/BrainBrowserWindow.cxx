@@ -29,6 +29,7 @@
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
+#include <QTabBar>
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
@@ -92,7 +93,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
  */
 BrainBrowserWindow::~BrainBrowserWindow()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);    
 }
 
 /**
@@ -110,7 +111,8 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
      * window and the user may cancel closing of the window.
      */
     GuiManager* guiManager = GuiManager::get();
-    if (guiManager->allowBrainBrowserWindowToClose(this)) {
+    if (guiManager->allowBrainBrowserWindowToClose(this,
+                                                   this->toolbar->tabBar->count())) {
         event->accept();
     }
     else {
@@ -139,8 +141,8 @@ BrainBrowserWindow::createActions()
                                 "Create a new tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_T,
                                 this,
-                                this,
-                                SLOT(processNewTab()));
+                                this->toolbar,
+                                SLOT(addNewTab()));
     
     this->openFileAction =
     WuQtUtilities::createAction("Open File...", 
@@ -164,7 +166,7 @@ BrainBrowserWindow::createActions()
                                 "Manage and Save Loaded Files",
                                 Qt::CTRL + Qt::Key_M,
                                 this,
-                                guiManager,
+                                this,
                                 SLOT(processManageSaveLoadedFiles()));
     
     this->closeSpecFileAction =
@@ -179,8 +181,8 @@ BrainBrowserWindow::createActions()
                                 "Close the active tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_W,
                                 this,
-                                this,
-                                SLOT(processCloseTab()));
+                                this->toolbar,
+                                SLOT(closeSelectedTab()));
     
     this->closeWindowAction = 
     WuQtUtilities::createAction("Close Window",
@@ -504,28 +506,10 @@ BrainBrowserWindow::processCloseSpecFile()
     
 }
 
-/**
- * Called when close tab is selected.
- */
-void 
-BrainBrowserWindow::processCloseTab()
-{
-    
-}
-
 void 
 BrainBrowserWindow::processNewWindow()
 {
     GuiManager::get()->newBrainBrowserWindow(this);
-}
-
-/**
- * Called when new tab is selected.
- */
-void 
-BrainBrowserWindow::processNewTab()
-{
-    
 }
 
 /**
@@ -732,8 +716,6 @@ BrainBrowserWindow::receiveEvent(Event* event)
         this->toolbar->updateToolBar();
         
         uiEvent->setEventProcessed();
-        
-        std::cout << "Received update UI event in " << __func__ << std::endl;
     }
     else {
         

@@ -212,7 +212,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 // Mouse moved with just left button down
                 //
                 if (bs == leftMouseButtonMoveMask) {
-                    Matrix4x4* rotationMatrix = this->modelController->getViewingRotationMatrix(this->windowIndex);
+                    Matrix4x4* rotationMatrix = this->modelController->getViewingRotationMatrix(this->windowTabIndex);
                     rotationMatrix->rotateX(-dy);
                     rotationMatrix->rotateY(dx);
                 }
@@ -220,20 +220,20 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 // Mouse moved with control key and left mouse button down
                 //
                 else if (bs == leftControlMouseButtonMoveMask) {
-                    float scale = modelController->getScaling(this->windowIndex);
+                    float scale = modelController->getScaling(this->windowTabIndex);
                     if (dy != 0) {
                         scale += (dy * 0.05);
                     }
                     if (scale < 0.01) scale = 0.01;
-                    this->modelController->setScaling(this->windowIndex, scale);
+                    this->modelController->setScaling(this->windowTabIndex, scale);
                 }
                 //
                 // Mouse moved with shift key and left mouse button down
                 //
                 else if (bs == leftShiftMouseButtonMoveMask) {
-                    const float* t1 = modelController->getTranslation(this->windowIndex);
+                    const float* t1 = modelController->getTranslation(this->windowTabIndex);
                     float t2[] = { t1[0] + dx, t1[1] + dy, t2[2] };
-                    this->modelController->setTranslation(this->windowIndex, t2);
+                    this->modelController->setTranslation(this->windowTabIndex, t2);
                 }
                 //
                 // Mouse moved with alt key and left mouse button down
@@ -267,8 +267,6 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         updateAllEvent->setEventProcessed();
         
-        std::cout << "Received update graphics event in " << __func__ << std::endl;
-        
         this->updateGL();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
@@ -278,8 +276,6 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         if (updateOneEvent->getWindowIndex() == this->windowIndex) {
             updateOneEvent->setEventProcessed();
-            
-            std::cout << "Received update graphics event in " << __func__ << std::endl;
             
             this->updateGL();
         }

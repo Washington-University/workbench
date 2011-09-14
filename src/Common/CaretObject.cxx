@@ -121,6 +121,8 @@ CaretObject::className() const
 void 
 CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
 {
+    int count = 0;
+    
     if (CaretObject::allocatedObjects.empty() == false) {
         std::cout << "These Caret Objects were not deleted:" << std::endl;
         for (CARET_OBJECT_TRACKER_MAP_ITERATOR iter = CaretObject::allocatedObjects.begin();
@@ -133,7 +135,13 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
                 std::cout << caretObjectInfo.callStack.toStdString() << std::endl;
             }
             std::cout << std::endl;
+            
+            count++;
         }
+    }
+    
+    if (count > 0) {
+        std::cout << count << " objects were not deleted." << std::endl;
     }
 }
 

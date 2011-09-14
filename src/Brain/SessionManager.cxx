@@ -238,8 +238,6 @@ SessionManager::receiveEvent(Event* event)
         
         addModelsEvent->setEventProcessed();
         
-        std::cout << "Received add models event in " << __func__ << std::endl;
-        
         this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
@@ -248,8 +246,6 @@ SessionManager::receiveEvent(Event* event)
         CaretAssert(deleteModelsEvent);
         
         deleteModelsEvent->setEventProcessed();
-        
-        std::cout << "Received delete models event in " << __func__ << std::endl;
         
         ModelDisplayController* model = deleteModelsEvent->getModelDisplayController();
         
@@ -269,8 +265,6 @@ SessionManager::receiveEvent(Event* event)
         CaretAssert(getModelsEvent);
         
         getModelsEvent->setEventProcessed();
-        
-        std::cout << "Received get models event in " << __func__ << std::endl;
         
         getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
     }

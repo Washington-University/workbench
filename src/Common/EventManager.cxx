@@ -137,11 +137,11 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
 {
     this->eventListeners[listenForEventType].push_back(eventListener);
     
-    std::cout << "Adding listener from class "
-    << typeid(*eventListener).name()
-    << " for "
-    << EventTypeEnum::toName(listenForEventType)
-    << std::endl;
+    //std::cout << "Adding listener from class "
+    //<< typeid(*eventListener).name()
+    //<< " for "
+    //<< EventTypeEnum::toName(listenForEventType)
+    //<< std::endl;
 }
 
 /**
@@ -168,11 +168,11 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
          iter != listeners.end();
          iter++) {
         if (*iter == eventListener) {
-            std::cout << "Removing listener from class "
-            << typeid(*eventListener).name()
-            << " for "
-            << EventTypeEnum::toName(listenForEventType)
-            << std::endl;            
+            //std::cout << "Removing listener from class "
+            //<< typeid(*eventListener).name()
+            //<< " for "
+            //<< EventTypeEnum::toName(listenForEventType)
+            //<< std::endl;            
         }
         else {
             updatedListeners.push_back(*iter);
@@ -220,11 +220,11 @@ EventManager::sendEvent(Event* event)
          iter++) {
         EventListenerInterface* listener = *iter;
         
-        std::cout << "Sending event from class "
-        << typeid(*listener).name()
-        << " for "
-        << EventTypeEnum::toName(eventType)
-        << std::endl;
+        //std::cout << "Sending event from class "
+        //<< typeid(*listener).name()
+        //<< " for "
+        //<< EventTypeEnum::toName(eventType)
+        //<< std::endl;
 
         listener->receiveEvent(event);
         

@@ -58,7 +58,8 @@ namespace caret {
         
         QVector<BrainBrowserWindow*> getAllBrainBrowserWindows() const;
         
-        bool allowBrainBrowserWindowToClose(BrainBrowserWindow* bbw);
+        bool allowBrainBrowserWindowToClose(BrainBrowserWindow* bbw,
+                                            const int32_t numberOfOpenTabs);
         
         void newBrainBrowserWindow(QWidget* parent);
         

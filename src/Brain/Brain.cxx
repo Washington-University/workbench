@@ -237,7 +237,6 @@ Brain::receiveEvent(Event* event)
          * Make sure event is for this brain
          */
         if (readDataFileEvent->getLoadIntoBrain() == this) {
-            std::cout << "Received read data file event in " << __FILE__ << std::endl;            
             this->processReadDataFileEvent(readDataFileEvent);
         }
     }
