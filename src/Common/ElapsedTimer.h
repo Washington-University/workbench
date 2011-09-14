@@ -31,7 +31,7 @@
 namespace caret {
 
     
-    /// <REPLACE WITH DESCRIPTION OF CLASS>
+    /// An elapsed timer
     class ElapsedTimer : public CaretObject {
         
     public:
