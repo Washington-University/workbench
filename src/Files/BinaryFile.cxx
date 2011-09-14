@@ -76,7 +76,7 @@ void BinaryFile::openWrite(const AString& filename) throw (DataFileException)
    m_theFile.open(filename.c_str(), ios_base::out | ios_base::binary | ios_base::trunc);
    if (m_theFile.fail())
    {//don't bother finding the exact error for now, if further investigation is done, put it in a member function
-      throw DataFileException("Error opening file for reading");
+      throw DataFileException("Error opening file for writing");
    }
    m_canRead = false;
    m_canWrite = true;
@@ -89,7 +89,7 @@ void BinaryFile::openReadWrite(const AString& filename) throw (DataFileException
    m_theFile.open(filename.c_str(), ios_base::in | ios_base::out | ios_base::binary);
    if (m_theFile.fail())
    {//don't bother finding the exact error for now, if further investigation is done, put it in a member function
-      throw DataFileException("Error opening file for reading");
+      throw DataFileException("Error opening file for read and write");
    }
    m_canRead = true;
    m_canWrite = true;

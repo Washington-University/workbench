@@ -63,7 +63,7 @@ namespace caret {
       uint64_t readBytes(byte* dataOut, const uint64_t count, const uint64_t position);//convenience methods
       void writeBytes(const byte* dataIn, const uint64_t count, const uint64_t position);
       void flushFile() throw (DataFileException);
-      uint64_t getFileSize() { return m_fileSize; };//not valid after writing some bytes
+      uint64_t getInitialFileSize() { return m_fileSize; };
    };
 } //namespace caret
 
