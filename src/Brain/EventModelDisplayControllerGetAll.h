@@ -32,6 +32,8 @@
 namespace caret {
 
     class ModelDisplayController;
+    class ModelDisplayControllerSurface;
+    
     
     /// Event for getting model display controllers
     class EventModelDisplayControllerGetAll : public Event {
@@ -48,6 +50,8 @@ namespace caret {
         bool isModelDisplayControllerValid(const ModelDisplayController* modelDisplayController) const;
         
         ModelDisplayController* getFirstModelDisplayController() const;
+        
+        ModelDisplayControllerSurface* getFirstModelDisplayControllerSurface() const;
         
     private:
         EventModelDisplayControllerGetAll(const EventModelDisplayControllerGetAll&);

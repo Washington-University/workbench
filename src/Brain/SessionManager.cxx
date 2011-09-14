@@ -208,6 +208,7 @@ SessionManager::receiveEvent(Event* event)
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (this->browserTabs[i] == NULL) {
                 BrowserTabContent* tab = new BrowserTabContent(i);
+                tab->update(this->modelDisplayControllers);
                 this->browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);
                 break;
@@ -239,6 +240,8 @@ SessionManager::receiveEvent(Event* event)
         addModelsEvent->setEventProcessed();
         
         this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
+
+        this->updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
         EventModelDisplayControllerDelete* deleteModelsEvent =
@@ -258,6 +261,8 @@ SessionManager::receiveEvent(Event* event)
                            "Trying to delete non-existent model controller");
         
         this->modelDisplayControllers.erase(iter);
+        
+        this->updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL) {
         EventModelDisplayControllerGetAll* getModelsEvent =
@@ -269,4 +274,18 @@ SessionManager::receiveEvent(Event* event)
         getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
     }
 }
+
+/**
+ * Update all of the browser tab contents since the models have changed.
+ */
+void 
+SessionManager::updateBrowserTabContents()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        if (this->browserTabs[i] != NULL) {
+            this->browserTabs[i]->update(this->modelDisplayControllers);
+        }
+    }
+}
+
 

@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include "EventModelDisplayControllerGetAll.h"
+#include "ModelDisplayControllerSurface.h"
 
 using namespace caret;
 
@@ -106,4 +107,27 @@ EventModelDisplayControllerGetAll::getFirstModelDisplayController() const
     
     return NULL;
 }
+
+/**
+ * Get the first model display controller surface.
+ * 
+ * @return Pointer to first model controller surface or
+ *    NULL if there are no model controller surfaces.
+ */
+ModelDisplayControllerSurface* 
+EventModelDisplayControllerGetAll::getFirstModelDisplayControllerSurface() const
+{
+    ModelDisplayControllerSurface* surfaceModelOut = NULL;
+    
+    const int32_t numModels = static_cast<int32_t>(this->modelDisplayControllers.size());
+    for (int32_t i = 0; i < numModels; i++) {
+        surfaceModelOut = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayControllers[i]);
+        if (surfaceModelOut != NULL) {
+            break;
+        }
+    }
+    
+    return surfaceModelOut;
+}
+
 

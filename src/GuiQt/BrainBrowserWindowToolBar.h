@@ -31,7 +31,7 @@
 #include <QToolBar>
 
 #include "EventListenerInterface.h"
-#include "ViewModeEnum.h"
+#include "ModelDisplayControllerTypeEnum.h"
 
 class QAbstractButton;
 class QActionGroup;
@@ -62,8 +62,6 @@ namespace caret {
                                   QWidget* parent = 0);
         
         ~BrainBrowserWindowToolBar();
-        
-        ViewModeEnum::Enum getViewMode() const;
         
         QAction* getShowToolBoxAction();
         
@@ -97,15 +95,15 @@ namespace caret {
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         
-        void updateViewWidget();
-        void updateOrientationWidget();
-        void updateWholeBrainSurfaceOptionsWidget();
-        void updateVolumeIndicesWidget();
-        void updateToolsWidget();
-        void updateWindowWidget();
-        void updateSingleSurfaceOptionsWidget();
-        void updateVolumeMontageWidget();
-        void updateVolumePlaneWidget();
+        ModelDisplayControllerTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
+        void updateOrientationWidget(BrowserTabContent* browserTabContent);
+        void updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
+        void updateVolumeIndicesWidget(BrowserTabContent* browserTabContent);
+        void updateToolsWidget(BrowserTabContent* browserTabContent);
+        void updateWindowWidget(BrowserTabContent* browserTabContent);
+        void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
+        void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
+        void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,

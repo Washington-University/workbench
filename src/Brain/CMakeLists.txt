@@ -55,6 +55,7 @@ EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
+ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
 SessionManager.h
@@ -77,6 +78,7 @@ EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx
+ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
 SessionManager.cxx

@@ -66,6 +66,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void updateBrowserTabContents();
+        
         /** The session manager */
         static SessionManager* singletonSessionManager;
         

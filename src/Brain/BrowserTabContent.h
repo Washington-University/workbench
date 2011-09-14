@@ -27,12 +27,16 @@
 
 
 #include "CaretObject.h"
+#include "ModelDisplayControllerTypeEnum.h"
 #include "SurfaceOverlaySet.h"
 #include "YokingTypeEnum.h"
 
 namespace caret {
 
     class ModelDisplayController;
+    class ModelDisplayControllerSurface;
+    class ModelDisplayControllerVolume;
+    class ModelDisplayControllerWholeBrain;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject {
@@ -50,10 +54,6 @@ namespace caret {
         
         void setUserName(const AString& userName);
         
-        ModelDisplayController* getDisplayedModel();
-        
-        void setDisplayedModel(ModelDisplayController* model);
-        
         SurfaceOverlaySet* getSurfaceOverlayAssignment();
         
         int32_t getYokeToTabNumber() const;
@@ -66,16 +66,54 @@ namespace caret {
         
         int32_t getTabNumber() const;
         
+        ModelDisplayControllerTypeEnum::Enum getSelectedModelType() const;
+        
+        void setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType);
+        
+        ModelDisplayController* getDisplayedModelController();
+        
+        ModelDisplayControllerSurface* getDisplayedSurfaceModel();
+        
+        ModelDisplayControllerVolume* getSelectedVolumeModel();
+        
+        ModelDisplayControllerWholeBrain* getSelectedWholeBrainModel();
+        
+        const std::vector<ModelDisplayControllerSurface*> getAllSurfaceModels() const;
+        
+        ModelDisplayControllerSurface* getSelectedSurfaceModel();
+        
+        void setSelectedSurfaceModel(ModelDisplayControllerSurface* selectedSurfaceModel);
+        
+        void update(const std::vector<ModelDisplayController*> modelDisplayControllers);
+        
+        bool isSurfaceModelValid() const;
+        
+        bool isVolumeSliceModelValid() const;
+        
+        bool isWholeBrainModelValid() const;
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
         BrowserTabContent& operator=(const BrowserTabContent&);
         
-        /** model displayed in this browser tab */
-        ModelDisplayController* displayedModel;
-        
         /** Number of this tab */
         int32_t tabNumber;
+        
+        /** Selected surface model */
+        ModelDisplayControllerSurface* selectedSurfaceModel;
+        
+        /** Selected model type */
+        ModelDisplayControllerTypeEnum::Enum selectedModelType;
+        
+        /** All surface models */
+        std::vector<ModelDisplayControllerSurface*> allSurfaceModels;
+        
+        /** The volume model */
+        ModelDisplayControllerVolume* volumeModel;
+        
+        /** The whole brain model */
+        ModelDisplayControllerWholeBrain* wholeBrainModel;
         
         /** 
          * Name requested by user interface - reflects contents 

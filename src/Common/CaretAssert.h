@@ -65,7 +65,7 @@
  */
     #define CaretAssertMessage(e, m) \
          (((e) == 0)  \
-             ? caret::CaretAssertion::assertFailed(#e, m, __FILE__, __LINE__) \
+             ? caret::CaretAssertion::assertFailed(#e, AString(m), __FILE__, __LINE__) \
              : (void)0)
 
 /**

@@ -141,6 +141,8 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
     this->clearModified();
+    
+    this->setFileName(filename);
     std::cout 
     << "Time to read "
     << filename

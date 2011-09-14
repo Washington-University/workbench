@@ -27,8 +27,12 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include "CaretAssert.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
 
 using namespace caret;
 
@@ -42,7 +46,14 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
     this->tabNumber = tabNumber;
-    this->displayedModel = NULL;
+    this->selectedSurfaceModel = NULL;
+    this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+    this->volumeModel = NULL;
+    this->wholeBrainModel = NULL;
+    this->guiName = "";
+    this->userName = "";
+    this->yokeToTabNumber = 0;
+    this->yokingType = YokingTypeEnum::OFF;
 }
 
 /**
@@ -113,32 +124,133 @@ BrowserTabContent::toString() const
 }
 
 /**
- * Get the model displayed in this tab.
- *
- * @return  Model displayed in this tab or NULL
- *   if no model is displayed.
- */
-ModelDisplayController* 
-BrowserTabContent::getDisplayedModel()
+ * Get the selected model type.
+ * 
+ * @return The selected model type.
+ */   
+ModelDisplayControllerTypeEnum::Enum 
+BrowserTabContent::getSelectedModelType() const
 {
-    EventModelDisplayControllerGetAll modelsEvent;
-    EventManager::get()->sendEvent(modelsEvent.getPointer());
-    
-    if (modelsEvent.isModelDisplayControllerValid(this->displayedModel) == false) {
-        this->displayedModel = modelsEvent.getFirstModelDisplayController();
-    }
-    return this->displayedModel;
+    return this->selectedModelType;
 }
 
 /**
- * Set the displayed model for this tab.
- * @param model  
- *    Model for display in this tab.
- */
+ * Set the selected model type.
+ *
+ * @param selectedModelType
+ *    New selected model type. 
+ */   
 void 
-BrowserTabContent::setDisplayedModel(ModelDisplayController* model)
+BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType)
 {
-    this->displayedModel = model;
+    this->selectedModelType = selectedModelType;
+}
+
+/**
+ * Get the displayed model controller.
+ * 
+ * @return  Pointer to displayed controller or NULL
+ *          if none are available.
+ */   
+ModelDisplayController* 
+BrowserTabContent::getDisplayedModelController()
+{
+    ModelDisplayController* mdc = NULL;
+    
+    switch (this->selectedModelType) {
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+            mdc = this->selectedSurfaceModel;
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            mdc = this->volumeModel;
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            mdc = this->wholeBrainModel;
+            break;
+    }
+    
+    return mdc;
+}
+
+/**
+ * Get the displayed surface model.
+ * 
+ * @return  Pointer to displayed surface model or 
+ *          NULL if the displayed model is not a 
+ *          surface.
+ */   
+ModelDisplayControllerSurface* 
+BrowserTabContent::getDisplayedSurfaceModel()
+{
+    ModelDisplayControllerSurface* mdcs =
+        dynamic_cast<ModelDisplayControllerSurface*>(this->getDisplayedModelController());
+    return mdcs;
+}
+
+/**
+ * Get the displayed volume model.
+ * 
+ * @return  Pointer to displayed volume model or 
+ *          NULL if the displayed model is not a 
+ *          volume.
+ */   
+ModelDisplayControllerVolume* 
+BrowserTabContent::getSelectedVolumeModel()
+{
+    ModelDisplayControllerVolume* mdcv =
+        dynamic_cast<ModelDisplayControllerVolume*>(this->getDisplayedModelController());
+    return mdcv;
+}
+
+/**
+ * Get the displayed whole brain model.
+ * 
+ * @return  Pointer to displayed whole brain model or 
+ *          NULL if the displayed model is not a 
+ *          whole brain.
+ */   
+ModelDisplayControllerWholeBrain* 
+BrowserTabContent::getSelectedWholeBrainModel()
+{
+    ModelDisplayControllerWholeBrain* mdcwb =
+        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getDisplayedModelController());
+    return mdcwb;
+}
+
+/**
+ * Get all of the available surface models.
+ * 
+ * @return Vector containing all surface models.
+ */   
+const std::vector<ModelDisplayControllerSurface*> 
+BrowserTabContent::getAllSurfaceModels() const
+{
+    return this->allSurfaceModels;
+}
+
+
+/**
+ * Get the selected surface model.
+ * 
+ * @return  Pointer to selected surface model.
+ */   
+ModelDisplayControllerSurface* 
+BrowserTabContent::getSelectedSurfaceModel()
+{
+    return this->selectedSurfaceModel;
+}
+
+/**
+ * Set the selected surface model.
+ * @param selectedSurfaceModel
+ *    New selected surface model.
+ */   
+void 
+BrowserTabContent::setSelectedSurfaceModel(ModelDisplayControllerSurface* selectedSurfaceModel)
+{
+    this->selectedSurfaceModel = selectedSurfaceModel;
 }
 
 /**
@@ -209,4 +321,121 @@ BrowserTabContent::getTabNumber() const
     return this->tabNumber;
 }
 
+/**
+ * Update the selected models.
+ */
+void 
+BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDisplayControllers)
+{
+    const int32_t numModels = static_cast<int32_t>(modelDisplayControllers.size());
+    
+    this->allSurfaceModels.clear();
+    this->volumeModel = NULL;
+    this->wholeBrainModel = NULL;
+    
+    bool foundSelectedSurfaceModel = false;
+    
+    for (int i = 0; i < numModels; i++) {
+        ModelDisplayController* mdc = modelDisplayControllers[i];
+        
+        ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+        ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
+        ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+        
+        if (mdcs != NULL) {
+            this->allSurfaceModels.push_back(mdcs);
+            if (mdcs == this->selectedSurfaceModel) {
+                foundSelectedSurfaceModel = true;
+            }
+        }
+        else if (mdcv != NULL) {
+            CaretAssertMessage((this->volumeModel == NULL), "There is more than one volume model.");
+            this->volumeModel = mdcv;
+        }
+        else if (mdcwb != NULL) {
+            CaretAssertMessage((this->wholeBrainModel == NULL), "There is more than one whole brain model.");
+            this->wholeBrainModel = mdcwb;
+        }
+        else {
+            CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
+        }
+    }
+    
+    if (foundSelectedSurfaceModel == false) {
+        if (this->allSurfaceModels.empty() == false) {
+            this->selectedSurfaceModel = this->allSurfaceModels[0];
+        }
+        else {
+            this->selectedSurfaceModel = NULL;
+        }
+    }
+    
+    switch (this->selectedModelType) {
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+            if (this->selectedSurfaceModel == NULL) {
+                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+            }
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            if (this->volumeModel == NULL) {
+                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+            }
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            if (this->wholeBrainModel == NULL) {
+                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+            }
+            break;
+    }
+    
+    if (this->selectedModelType == ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID) {
+        if (this->wholeBrainModel != NULL) {
+            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
+        }
+        else if (this->selectedSurfaceModel != NULL) {
+            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE;
+        }
+        else if (this->volumeModel != NULL) {
+            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES;
+        }
+    }
+}
+
+/**
+ * Is the surface model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool 
+BrowserTabContent::isSurfaceModelValid() const
+{
+    bool valid = (this->allSurfaceModels.empty() == false);
+    return valid;
+}
+
+/**
+ * Is the volume model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool 
+BrowserTabContent::isVolumeSliceModelValid() const
+{
+    bool valid = (this->volumeModel != NULL);
+    return valid;
+}
+
+/**
+ * Is the whole brain model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool 
+BrowserTabContent::isWholeBrainModelValid() const
+{
+    bool valid = (this->wholeBrainModel != NULL);
+    return valid;
+}
 

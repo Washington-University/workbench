@@ -277,10 +277,10 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *\n");
     t += (" * @param name\n");
     t += (" *    Name of enumerated value.\n");
-    t += (" */\n");
+    t += (" *\n");
     t += (" * @param guiName\n");
     t += (" *    User-friendly name for use in user-interface.\n");
-    t += (" *\n");
+    t += (" */\n");
     t += ("" + enumClassName + "::" + enumClassName + "(const Enum enumValue,\n");
     t += ("                           const int32_t integerCode,\n");
     t += ("                           const AString& name,\n");

@@ -83,7 +83,8 @@ ModelDisplayControllerSurface::getSurface()
 AString
 ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) const
 {
-    return "ModelDisplayControllerSurface::getNameForGUI_NEEDS_IMPLEMENTATION";
+    AString name = this->surface->getFileName();
+    return name;
 }
 
 /**
