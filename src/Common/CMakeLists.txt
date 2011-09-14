@@ -24,6 +24,7 @@ ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
 CaretException.h
+CaretMutex.h
 CaretObject.h
 DataCompressZLib.h
 DataFile.h
@@ -48,6 +49,7 @@ ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
 CaretException.cxx
+CaretMutex.cxx
 CaretObject.cxx
 DataCompressZLib.cxx
 DataFile.cxx
