@@ -90,10 +90,11 @@ ElapsedTimer::getElapsedTimeSeconds() const
     
     gettimeofday(&timeVal, NULL);
     
-    const double diffSeconds      = timeVal.tv_sec - this->startTimeSeconds;
+    double diffSeconds      = timeVal.tv_sec - this->startTimeSeconds;
     double diffMicroseconds = timeVal.tv_usec - this->startTimeMicroseconds;
-    if (diffMicroseconds < 0) {
+    if (diffMicroseconds < 0) {//this is only needed if we are displaying both parts separately
         diffMicroseconds += 1000000;
+        diffSeconds -= 1;//don't forget to subtract the second you just added to microseconds
     }
     
     const double diffTime = diffSeconds + (diffMicroseconds / 1000000.0);

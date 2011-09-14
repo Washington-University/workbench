@@ -29,7 +29,7 @@ using namespace caret;
 using namespace std;
 
 void BinaryFile::statFile(const AString& filename) throw (DataFileException)
-{
+{//TODO: change FileInformation to not be so deliberately unwieldy, then use it here
    struct stat myret;
    if (stat(filename.c_str(), &myret) != 0)
    {
