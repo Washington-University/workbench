@@ -25,8 +25,6 @@
 
 #include <QApplication>
 
-#include <cassert>
-
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
 #undef __GUI_MANAGER_DEFINE__
@@ -41,7 +39,7 @@
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
-//#include "CaretAssert.h"
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -277,7 +275,7 @@ GuiManager::exitProgram(QWidget* parent)
             case QMessageBox::Cancel:
                 break;
             default:
-                assert(0);
+                CaretAssert(0);
                 break;
         }
         

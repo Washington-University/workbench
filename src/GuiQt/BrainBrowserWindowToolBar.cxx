@@ -23,8 +23,6 @@
  *
  */
 
-#include <cassert>
-
 #include <QActionGroup>
 #include <QBoxLayout>
 #include <QButtonGroup>
@@ -1340,7 +1338,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
             layout->addStretch();
             break;
         default:
-            assert(0);
+            CaretAssert(0);
     }
     layout->addWidget(nameLabel, 0, Qt::AlignHCenter);
     

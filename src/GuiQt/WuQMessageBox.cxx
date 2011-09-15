@@ -23,7 +23,7 @@
  *
  */
 
-#include <cassert>
+#include "CaretAssert.h"
 
 #include "WuQMessageBox.h"
 
@@ -92,7 +92,7 @@ WuQMessageBox::saveDiscardCancel(QWidget* parent,
         case QMessageBox::Cancel:
             break;
         default:
-            assert(0);
+            CaretAssert(0);
     }
     
     return buttonPressed;
@@ -142,7 +142,7 @@ WuQMessageBox::warningCloseCancel(QWidget* parent,
         case QMessageBox::Cancel:
             break;
         default:
-            assert(0);
+            CaretAssert(0);
             break;
     }
     
@@ -193,7 +193,7 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
         case QMessageBox::Cancel:
             break;
         default:
-            assert(0);
+            CaretAssert(0);
             break;
     }
     
