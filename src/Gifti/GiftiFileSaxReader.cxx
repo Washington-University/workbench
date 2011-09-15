@@ -23,9 +23,9 @@
  */
 /*LICENSE_END*/
 
-#include <iostream>
 #include <sstream>
 
+#include "CaretLogger.h"
 #include "GiftiEndianEnum.h"
 #include "GiftiLabel.h"
 #include "GiftiFile.h"
@@ -72,10 +72,6 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
                                          const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//    std::cout << "Start Element: " << qName << std::endl;
-//   }
-   
    const STATE previousState = this->state;
    switch (this->state) {
       case STATE_NONE:
@@ -231,10 +227,6 @@ GiftiFileSaxReader::endElement(const AString& namespaceURI,
                                        const AString& localName,
                                        const AString& qName) throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//      std::cout << "End Element: " << qName << std::endl;
-//   }
-
    switch (this->state) {
       case STATE_NONE:
          break;
@@ -513,10 +505,6 @@ GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
 void 
 GiftiFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//      std::cout << "Characters (50 max): " << s.substr(0, 50) << std::endl;
-//   }
-   
     if (this->metaDataSaxReader != NULL) {
         this->metaDataSaxReader->characters(ch);
     }
@@ -555,13 +543,14 @@ GiftiFileSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxPars
 void 
 GiftiFileSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {    
-    std::cout << "XML Parser Warning: " + e.whatString().toStdString() << std::endl;
+    CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
 GiftiFileSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {   
+    CaretLogWarning("XML Parser Error: " + e.whatString());
     throw e;
 }
 

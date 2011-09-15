@@ -25,7 +25,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iostream>
 #include <ostream>
 #include <limits>
 #include <sstream>
@@ -34,6 +33,7 @@
 #include "ByteOrderEnum.h"
 #include "ByteSwapping.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "DataCompressZLib.h"
 
 //#include "FileUtilities.h"
@@ -214,9 +214,9 @@ GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum inte
       dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_INT32;
    }
    else {
-      std::cout << "WARNING: unrecogized intent \""
-       << NiftiIntentEnum::toName(intent).toStdString().c_str()
-                << " in GiftiDataArray::getDataTypeAppropriateForIntent()." << std::endl;
+       CaretLogWarning("Unrecogized NIFTI intent \""
+                       + NiftiIntentEnum::toName(intent)
+                       + " in GiftiDataArray::getDataTypeAppropriateForIntent().");
       return false;
    }
    return true;

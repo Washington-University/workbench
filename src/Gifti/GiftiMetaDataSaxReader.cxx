@@ -23,9 +23,9 @@
  */
 /*LICENSE_END*/
 
-#include <iostream>
 #include <sstream>
 
+#include "CaretLogger.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "GiftiXmlElements.h"
@@ -65,10 +65,6 @@ GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//    std::cout << "MetaData: Start Element: " << qName << std::endl;
-//   }
-   
    const STATE previousState = this->state;
    switch (this->state) {
       case STATE_NONE:
@@ -143,9 +139,6 @@ GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
                                        const AString& qName) throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//      std::cout << "MetaData: End Element: " << qName << std::endl;
-//   }
 
    switch (state) {
       case STATE_NONE:
@@ -194,9 +187,6 @@ GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
 void 
 GiftiMetaDataSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//      std::cout << "Characters (50 max): " << s.substr(0, 50) << std::endl;
-//   }
    this->elementText += ch;
 }
 
@@ -209,6 +199,7 @@ GiftiMetaDataSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSax
    //
    // Stop parsing
    //
+   CaretLogSevere("XML Parser Fatal Error: " + e.whatString());
    throw e;
 }
 
@@ -216,7 +207,7 @@ GiftiMetaDataSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSax
 void 
 GiftiMetaDataSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {    
-    std::cout << "XML Parser Warning: " + e.whatString().toStdString() << std::endl;
+    CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs

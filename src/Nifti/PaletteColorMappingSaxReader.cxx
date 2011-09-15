@@ -25,6 +25,7 @@
 
 #include <sstream>
 
+#include "CaretLogger.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
@@ -150,10 +151,6 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
                                        const AString& qName) throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//      std::cout << "Palette Color Mapping: End Element: " << qName << std::endl;
-//   }
-
    switch (state) {
       case STATE_NONE:
          break;
@@ -323,13 +320,14 @@ PaletteColorMappingSaxReader::fatalError(const XmlSaxParserException& e) throw (
 void 
 PaletteColorMappingSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {    
-    std::cout << "XML Parser Warning: " + e.whatString().toStdString() << std::endl;
+    CaretLogWarning("XML Parser Warning: " + e.whatString());
 }
 
 // an error occurs
 void 
 PaletteColorMappingSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {   
+    CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 
