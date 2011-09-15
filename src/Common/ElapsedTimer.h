@@ -25,12 +25,33 @@
  * 
  */ 
 
+#ifdef CARET_OS_WINDOWS
+
+#include "windows.h"
+
+#else
+
+#include <sys/time.h>
+
+#endif
 
 #include "CaretObject.h"
 
+
 namespace caret {
 
-    
+    //getTimeOfDay() isn't cross-platform, so use some ifdefs for windows
+#ifdef CARET_OS_WINDOWS
+   struct myTimeStore
+   {
+      uint64_t m_tickCount;//can store return from GetTickCount64() which doesn't reset at 49 days, but is vista and above only
+   };//also useful for detecting and correcting for a wrap, can just add (uint64_t)1<<32
+#else
+   struct MyTimeStore
+   {
+      struct timeval m_timeVal;
+   };
+#endif
     /// An elapsed timer
     class ElapsedTimer : public CaretObject {
         
@@ -54,9 +75,9 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        /** seconds and microseconds since Jan 1, 1970 */
-        int64_t startTimeSeconds;
-        int64_t startTimeMicroseconds;
+        MyTimeStore m_startTime;
+        
+        bool m_started;
     };
     
 #ifdef __ELAPSED_TIMER_DECLARE__

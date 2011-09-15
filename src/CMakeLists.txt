@@ -8,6 +8,8 @@ CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
 #
 #message(INFORMATION "\nTo get the correct version of QT, qmake must be in the PATH\n")
 
+#TSC: use "CACHE <type> <docstring>" syntax in SET commands so they can be overridden by cmake options
+
 #
 # Setting the compiler MUST be done before the PROJECT
 # statement or else an infinite loop will occur indicating
@@ -21,12 +23,12 @@ ELSEIF(WIN32)
     IF(MSVC)
         IF(CMAKE_CL_64)
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
-            SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include")
-            SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib")
+            SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
+            SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
         ELSE()
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
-            SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
-            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
+            SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
+            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
         ENDIF(CMAKE_CL_64)
     ELSE(MSVC)
         FIND_PATH(ZLIB_INCLUDE_DIR zlib.h
@@ -39,8 +41,8 @@ ELSEIF(WIN32)
             C:\\dev32\\install\\zlib\\lib)
         ENDIF(NOT ZLIB_FOUND)
 
-      ###  SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include")
-      ###  SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib")
+      ###  SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
+      ###  SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
     ENDIF(MSVC)
 ELSE(APPLE)
     MESSAGE(FATAL_ERROR "Unrecognized operating system " ${CMAKE_SYSTEM_NAME})
@@ -53,15 +55,15 @@ ENDIF(APPLE)
 #
 # Shows compilation command when true
 #
-SET(CMAKE_VERBOSE_MAKEFILE TRUE)
+SET(CMAKE_VERBOSE_MAKEFILE TRUE CACHE BOOL "cause all build commands to be displayed")
 
 #
 # IF GNU compiler, functions without a return type or switch
 # statements that do not handle all of the enumerated types
-# are treated as an error.
+# are treated as an error.  Also, all warnings.
 #
 IF (CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "-Werror=return-type -Werror=switch ${CMAKE_CXX_FLAGS}")
+    SET(CMAKE_CXX_FLAGS "-Wall -Werror=return-type -Werror=switch ${CMAKE_CXX_FLAGS}" CACHE STRING "c++ compiler specific options")
 ENDIF (CMAKE_COMPILER_IS_GNUCXX)
 
 #
@@ -82,7 +84,7 @@ INCLUDE(${QT_USE_FILE})
 #
 FIND_PACKAGE(OpenMP)
 IF (OPENMP_FOUND)
-    SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
+    SET(CMAKE_CXX_FLAGS "${OpenMP_CXX_FLAGS} ${CMAKE_CXX_FLAGS}" CACHE STRING "c++ compiler specific options")
 ELSE (OPENMP_FOUND)
     MESSAGE(FATAL_ERROR "OpenMP was not found")
 ENDIF(OPENMP_FOUND)

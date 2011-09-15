@@ -45,7 +45,9 @@ namespace caret {
 
    class GeodesicHelperBase
    {//This does the neighbor computation, create a GeodesicHelper to contain the temporary arrays and actually do stuff
-      GeodesicHelperBase() { };//can't construct empty
+      GeodesicHelperBase();//can't construct without arguments
+      GeodesicHelperBase& operator=(const GeodesicHelperBase& right);//can't assign
+      GeodesicHelperBase(const GeodesicHelperBase& right);//can't use copy constructor
       float** distances, **distances2;//use primitives for speed, and they don't need to change size
       int** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
       int* numNeighbors, *numNeighbors2;
@@ -128,7 +130,9 @@ namespace caret {
       int** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
       int* numNeighbors, *numNeighbors2, *marked, *changed, *parent;
       int numNodes;
-      GeodesicHelper() { marked = NULL; };//Don't allow construction without arguments
+      GeodesicHelper();//Don't allow construction without arguments
+      GeodesicHelper& operator=(const GeodesicHelper& right);//can't assign
+      GeodesicHelper(const GeodesicHelperBase&);//can't use copy constructor
       void dijkstra(const int root, const float maxdist, std::vector<int>& nodes, std::vector<float>& dists, bool smooth);//geodesic distance restricted
       void dijkstra(const int root, bool smooth);//full surface
       void alltoall(float** out, int** parents, bool smooth);//must be fully allocated

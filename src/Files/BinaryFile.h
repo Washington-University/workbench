@@ -44,8 +44,8 @@ namespace caret {
       enum OpenMode
       {
          READ,
-         WRITE,
-         READ_WRITE
+         //READ_WRITE,
+         WRITE
       };
       void statFile(const AString& filename) throw (DataFileException);
    public:
@@ -53,7 +53,7 @@ namespace caret {
       BinaryFile(const AString& filename, OpenMode fileMode) throw (DataFileException);
       void openRead(const AString& filename) throw (DataFileException);
       void openWrite(const AString& filename) throw (DataFileException);
-      void openReadWrite(const AString& filename) throw (DataFileException);//doesn't truncate on open, not sure of a way to change file size after open, maybe write to end?
+      //void openReadWrite(const AString& filename) throw (DataFileException);//ignore this case unless a need arises for it
       void closeFile();
       bool getOpenForRead() { return m_canRead; };
       bool getOpenForWrite() { return m_canWrite; };

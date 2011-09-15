@@ -23,7 +23,6 @@
  * 
  */ 
 
-#include <sys/time.h>
 
 #define __ELAPSED_TIMER_DECLARE__
 #include "ElapsedTimer.h"
@@ -40,8 +39,7 @@ using namespace caret;
 ElapsedTimer::ElapsedTimer()
 : CaretObject()
 {
-    this->startTimeSeconds = -1;
-    this->startTimeMicroseconds = -1;
+   m_started = false;
 }
 
 /**
@@ -68,12 +66,11 @@ ElapsedTimer::toString() const
 void 
 ElapsedTimer::start()
 {
-    struct timeval timeVal;
-    
-    gettimeofday(&timeVal, NULL);
-    
-    this->startTimeSeconds = timeVal.tv_sec;
-    this->startTimeMicroseconds = timeVal.tv_usec;    
+#ifdef CARET_OS_WINDOWS
+   m_startTime.m_tickCount = GetTickCount();//TODO: find a good way to use getTickCount64() so it doesn't have a reset at 49 days of uptime
+#else
+   gettimeofday(&(m_startTime.m_timeVal), NULL);
+#endif
 }
 
 /**
@@ -84,21 +81,7 @@ ElapsedTimer::start()
 double 
 ElapsedTimer::getElapsedTimeSeconds() const
 {
-    CaretAssertMessage(this->startTimeSeconds, "Timer has not been started");
-    
-    struct timeval timeVal;
-    
-    gettimeofday(&timeVal, NULL);
-    
-    double diffSeconds      = timeVal.tv_sec - this->startTimeSeconds;
-    double diffMicroseconds = timeVal.tv_usec - this->startTimeMicroseconds;
-    if (diffMicroseconds < 0) {//this is only needed if we are displaying both parts separately
-        diffMicroseconds += 1000000;
-        diffSeconds -= 1;//don't forget to subtract the second you just added to microseconds
-    }
-    
-    const double diffTime = diffSeconds + (diffMicroseconds / 1000000.0);
-    return diffTime;
+   return getElapsedTimeMilliseconds() / 1000.0;
 }
 
 /**
@@ -109,7 +92,25 @@ ElapsedTimer::getElapsedTimeSeconds() const
 double 
 ElapsedTimer::getElapsedTimeMilliseconds() const
 {
-    const double diffTimeMicro = this->getElapsedTimeSeconds() * 1000.0;
-    return diffTimeMicro;
+   CaretAssertMessage(m_started, "Timer has not been started");
+   MyTimeStore endTime;
+#ifdef CARET_OS_WINDOWS
+   endTime.m_tickCount = GetTickCount();//TODO: find a good way to use getTickCount64() when possible so it doesn't have a reset at 49 days of uptime
+   if (endTime.m_tickCount < m_startTime.m_tickCount)//check for the 49 day wrap
+   {
+      endTime.m_tickCount += ((uint64_t)1)<<32;//m_tickCount is 64 bit, so this doesn't overflow
+   }
+   const double diffTimeMilli = (double)(endTime.m_tickCount - m_startTime.m_tickCount);//contrary to its name, it returns milliseconds, not ticks
+#else
+   gettimeofday(&(endTime.m_timeVal), NULL);
+   double diffSeconds      = endTime.m_timeVal.tv_sec - m_startTime.m_timeVal.tv_sec;
+   double diffMicroseconds = endTime.m_timeVal.tv_usec - m_startTime.m_timeVal.tv_usec;
+   /*if (diffMicroseconds < 0) {//this is only needed if we are displaying both parts separately
+      diffMicroseconds += 1000000;
+      diffSeconds -= 1;//don't forget to subtract the second you just added to microseconds
+   }//*/
+   const double diffTimeMilli = diffSeconds + (diffMicroseconds / 1000.0);
+#endif
+   return diffTimeMilli;
 }
 

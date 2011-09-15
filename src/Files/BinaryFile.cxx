@@ -23,19 +23,23 @@
  */ 
 
 #include "BinaryFile.h"
-#include "sys/stat.h"
+#include "FileInformation.h"
 
 using namespace caret;
 using namespace std;
 
 void BinaryFile::statFile(const AString& filename) throw (DataFileException)
-{//TODO: change FileInformation to not be so deliberately unwieldy, then use it here
-   struct stat myret;
-   if (stat(filename.c_str(), &myret) != 0)
+{
+   FileInformation myInfo(filename);
+   if (!myInfo.exists())
    {
-      throw DataFileException("stat() failed on file '" + filename + "'");
+      throw DataFileException("File does not exist");
    }
-   m_fileSize = myret.st_size;
+   if (!myInfo.isFile())
+   {
+      throw DataFileException("File is not a regular file");
+   }
+   m_fileSize = myInfo.size();
 }
 
 
@@ -49,9 +53,9 @@ BinaryFile::BinaryFile(const AString& filename, OpenMode fileMode) throw (DataFi
       case WRITE:
          openWrite(filename);
          break;
-      case READ_WRITE:
+      /*case READ_WRITE:
          openReadWrite(filename);
-         break;
+         break;//*/
       default:
          throw DataFileException("File open mode not recognized");
    };
@@ -82,7 +86,7 @@ void BinaryFile::openWrite(const AString& filename) throw (DataFileException)
    m_canWrite = true;
 }
 
-void BinaryFile::openReadWrite(const AString& filename) throw (DataFileException)
+/*void BinaryFile::openReadWrite(const AString& filename) throw (DataFileException)
 {
    closeFile();
    statFile(filename);
@@ -93,7 +97,7 @@ void BinaryFile::openReadWrite(const AString& filename) throw (DataFileException
    }
    m_canRead = true;
    m_canWrite = true;
-}
+}//*/ //ignore this case unless a need arises for it, because it can unsync the two file positions (tellg and tellp won't match after read or write unless explicitly set)
 
 void BinaryFile::closeFile()
 {
