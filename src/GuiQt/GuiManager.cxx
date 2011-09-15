@@ -26,7 +26,6 @@
 #include <QApplication>
 
 #include <cassert>
-#include <iostream>
 
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
@@ -78,7 +77,7 @@ GuiManager::get()
 {
     if (GuiManager::singletonGuiManager == NULL) {
         GuiManager::singletonGuiManager = new GuiManager();
-        WuQtUtilities::printListOfResources(std::cout);
+        WuQtUtilities::sendListOfResourcesToCaretLogger();
     }
     return GuiManager::singletonGuiManager;
 }

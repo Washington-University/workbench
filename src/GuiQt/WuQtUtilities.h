@@ -71,7 +71,7 @@ namespace caret {
         static void setToolTipAndStatusTip(QWidget* widget,
                                            const QString& text);
         
-        static void printListOfResources(std::ostream& stream);
+        static void sendListOfResourcesToCaretLogger();
         
         static bool loadIcon(const QString& filename,
                              QIcon& iconOut);

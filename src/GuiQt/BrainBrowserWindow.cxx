@@ -22,8 +22,6 @@
  *
  */
 
-#include <iostream>
-
 #include <QCloseEvent>
 #include <QFileDialog>
 #include <QMenu>
@@ -35,6 +33,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -379,7 +378,7 @@ BrainBrowserWindow::createMenuView()
         menu->addAction(showToolBoxAction);
     }
     else {
-        std::cout << "Show toolbox action needs to be created (is NULL)" << std::endl;
+        CaretLogSevere("Show toolbox action needs to be created (is NULL)");
     }
     menu->addMenu(this->createMenuViewToolBox());
     menu->addSeparator();

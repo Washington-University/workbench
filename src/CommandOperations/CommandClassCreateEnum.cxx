@@ -149,7 +149,11 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
-    t += ("/// Enumerated type for \n");
+    t += ("/**\n");
+    t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    t += (" *\n");
+    t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
+    t += (" */\n");
     t += ("class " + enumClassName + " {\n");
     t += ("\n");
     t += ("public:\n");
@@ -384,7 +388,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum enumValue;\n");
+    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");
@@ -441,7 +445,7 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("    if (initializedFlag == false) initialize();\n");
     t += ("    \n");
     t += ("    bool validFlag = false;\n");
-    t += ("    Enum enumValue;\n");
+    t += ("    Enum enumValue = <REPLACE_WITH_DEFAULT_ENUM_VALUE>;\n");
     t += ("    \n");
     t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
     t += ("         iter != enumData.end();\n");

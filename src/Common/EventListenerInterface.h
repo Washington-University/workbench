@@ -30,6 +30,8 @@ namespace caret {
     class Event;
     
     /**
+     * \brief  Interface for objects receiving events.
+     *
      * This interface must be implemented by any object that
      * wants to receive events.
      */

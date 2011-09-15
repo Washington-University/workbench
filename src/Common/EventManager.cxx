@@ -31,6 +31,7 @@
 #undef __EVENT_MANAGER_MAIN__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventListenerInterface.h"
 
 using namespace caret;
@@ -81,9 +82,7 @@ EventManager::~EventManager()
 }
 
 /**
- * Create the session manager.
- * This must be called one AND ONLY one time prior to any
- * other Caret mechanisms.
+ * Create the event manager.
  */
 void 
 EventManager::createEventManager()
@@ -95,8 +94,8 @@ EventManager::createEventManager()
 }
 
 /**
- * Delete the session manager.
- * This may only be called one time after session manager is created.
+ * Delete the event manager.
+ * This may only be called one time after event manager is created.
  */
 void 
 EventManager::deleteEventManager()
@@ -226,9 +225,12 @@ EventManager::sendEvent(Event* event)
         //<< EventTypeEnum::toName(eventType)
         //<< std::endl;
 
+        CaretLogFiner("Sending event: " + event->toString());
+        
         listener->receiveEvent(event);
         
         if (event->isError()) {
+            CaretLogWarning("Event had error: " + event->toString());
             break;
         }
     }
@@ -237,10 +239,7 @@ EventManager::sendEvent(Event* event)
      * Verify event was processed.
      */
     if (event->getEventProcessCount() == 0) {
-        std::cout 
-        << "ERROR Event not processed "
-        << event->toString()
-        << std::endl;
+        CaretLogWarning("Event not processed: " + event->toString());
     }
 }
 

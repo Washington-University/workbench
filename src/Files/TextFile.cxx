@@ -23,8 +23,8 @@
  */ 
 
 #include <fstream>
-#include <iostream>
 
+#include "CaretLogger.h"
 #include "TextFile.h"
 
 using namespace caret;
@@ -79,7 +79,7 @@ TextFile::isEmpty() const
 void 
 TextFile::readFile(const AString& filename) throw (DataFileException)
 {
-    std::cout << "WARNING: TextFile::readFile() has not been tested" << std::endl;
+    CaretLogSevere("WARNING: TextFile::readFile() has not been tested");
     this->clearModified();
     
     std::ifstream inputStream(filename.c_str(), std::ifstream::in);

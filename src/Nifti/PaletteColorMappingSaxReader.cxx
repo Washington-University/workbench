@@ -23,7 +23,6 @@
  */
 /*LICENSE_END*/
 
-#include <iostream>
 #include <sstream>
 
 #include "PaletteColorMapping.h"
@@ -63,9 +62,6 @@ PaletteColorMappingSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-//   if (DebugControl::getDebugOn()) {
-//    std::cout << "PaletteColorMapping: Start Element: " << qName << std::endl;
-//   }
    const STATE previousState = this->state;
 
     switch (this->state) {

@@ -172,7 +172,11 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     t += ("\n");
 
     t += ("    \n");
-    t += ("    /// <REPLACE WITH DESCRIPTION OF CLASS>\n");
+    t += ("    /**\n");
+    t += ("     * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    t += ("     *\n");
+    t += ("     * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
+    t += ("     */\n");
     t += ("    class " + className + derivedFromDeclaration + " {\n");
     t += ("        \n");
     if (derivedFromClassName.startsWith("Q")) {

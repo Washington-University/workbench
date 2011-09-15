@@ -22,8 +22,6 @@
  * 
  */ 
 
-#include <iostream>
-
 #include <QFile>
 #include <AString.h>
 #include <QXmlParseException>
@@ -113,9 +111,6 @@ XmlSaxParserWithQt::parseFile(const QString& filename,
         }
         
         totalRead += numRead;
-        //if (DebugControl::getDebugOn()) {
-        //    std::cout << "GIFTI large file read, total: " << numRead << ", " << totalRead << std::endl;
-        //}
         
         /*
          * Place the input data into the XML input

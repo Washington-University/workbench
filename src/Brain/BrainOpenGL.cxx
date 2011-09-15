@@ -24,7 +24,6 @@
  */
 /*LICENSE_END*/
 
-#include <iostream>
 #ifdef CARET_OS_WINDOWS
 #include <Windows.h>
 #endif
@@ -41,6 +40,7 @@
 #undef __BRAIN_OPENGL_DEFINE_H
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
 #include <cstdlib>
@@ -174,7 +174,7 @@ BrainOpenGL::initializeOpenGL()
         //
         const char* versionStr = (char*)(glGetString(GL_VERSION));
         BrainOpenGL::versionOfOpenGL = std::atof(versionStr);
-        //std::cout << "OpenGL version: " << BrainOpenGL::versionOfOpenGL << std::endl;
+        CaretLogInfo("OpenGL version: " + AString::number(BrainOpenGL::versionOfOpenGL));
     }
     
     glEnable(GL_DEPTH_TEST);
@@ -344,17 +344,14 @@ BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
 {
     GLenum errorCode = glGetError();
     if (errorCode != GL_NO_ERROR) {
-        std::cout << std::endl;
-        std::cout << "OpenGL Error: " << (char*)gluErrorString(errorCode) << std::endl;
-        std::cout << "OpenGL Version: " << (char*)(glGetString(GL_VERSION)) << std::endl;
-        std::cout << "OpenGL Vendor:  " << (char*)(glGetString(GL_VENDOR)) << std::endl;
-        if (msg.length() == 0) {
-            std::cout << msg.toStdString() << std::endl;
-        }
+        AString msg;
+        msg += ("OpenGL Error: " + AString((char*)gluErrorString(errorCode)) + "\n");
+        msg += ("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)) + "\n");
+        msg += ("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)) + "\n");
         if (modelController != NULL) {
-            std::cout << "While drawing brain model " << modelController->getNameForGUI(true).toStdString() << std::endl;
+            msg += ("While drawing brain model " + modelController->getNameForGUI(true) + "\n");
         }
-        std::cout << "In window number " << this->windowTabIndex << std::endl;
+        msg += ("In window number " + AString::number(this->windowTabIndex) + "\n");
         GLint nameStackDepth, modelStackDepth, projStackDepth;
         glGetIntegerv(GL_PROJECTION_STACK_DEPTH,
                       &projStackDepth);
@@ -362,10 +359,10 @@ BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
                       &modelStackDepth);
         glGetIntegerv(GL_NAME_STACK_DEPTH,
                       &nameStackDepth);
-        std::cout << "Projection Matrix Stack Depth " << projStackDepth << std::endl;
-        std::cout << "Model Matrix Stack Depth " << modelStackDepth << std::endl;
-        std::cout << "Name Matrix Stack Depth " << nameStackDepth << std::endl;
-        std::cout << std::endl;
+        msg += ("Projection Matrix Stack Depth " + AString::number(projStackDepth) + "\n");
+        msg += ("Model Matrix Stack Depth " + AString::number(modelStackDepth) + "\n");
+        msg += ("Name Matrix Stack Depth " + AString::number(nameStackDepth) + "\n");
+        CaretLogSevere(msg);
     }
 }
 

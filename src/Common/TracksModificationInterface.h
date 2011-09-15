@@ -28,6 +28,8 @@
 namespace caret {
 
 /**
+ * \brief  Interface for tracking object modification status.
+ *
  * Interface for tracking an objects modification status.
  * <br>
  * When the class DOES NOT extend a class that implements

@@ -22,8 +22,6 @@
  */
 /*LICENSE_END*/
 
-#include <iostream>
-
 #include "CaretAssert.h"
 
 #include "Brain.h"

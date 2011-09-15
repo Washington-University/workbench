@@ -24,7 +24,6 @@
  */
 
 #include <cassert>
-#include <iostream>
 
 #include <QActionGroup>
 #include <QBoxLayout>
@@ -46,6 +45,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
 #include "EventGetModelToDrawForWindow.h"
@@ -155,8 +155,6 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    std::cout << "In toolbar DESTRUCTOR for tab in window index=" << this->browserWindowIndex << std::endl;
-    
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
     }
@@ -219,7 +217,9 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
     EventBrowserTabDelete deleteTabEvent(btc);
     EventManager::get()->sendEvent(deleteTabEvent.getPointer());
 
+    this->tabBar->blockSignals(true);
     this->tabBar->removeTab(indx);
+    this->tabBar->blockSignals(false);
     
     const int numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 2);
@@ -314,7 +314,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->decrementUpdateCounter(__func__);
     
     if (this->updateCounter != 0) {
-        std::cout << "Update counter is non-zero at end of updateToolBar()" << std::endl;
+        CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
     }
     
 }
@@ -446,9 +446,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     const bool ventralIconValid =
     WuQtUtilities::loadIcon(":/view-ventral.png", 
                             ventralIcon);
-    
-    //QSize leftSize = leftIcon.actualSize(QSize(32,32));
-    //std::cout << "Left size: " << leftSize.width() << ", " << leftSize.height() << std::endl;
     
     this->orientationLeftToolButtonAction = WuQtUtilities::createAction("L", 
                                                                         "View the brain from a LEFT perspective", 
@@ -1387,7 +1384,7 @@ BrainBrowserWindowToolBar::updateGraphicsWindow()
 void 
 BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
     this->updateToolBar();    
 }
@@ -1510,7 +1507,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1520,7 +1517,7 @@ BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool checke
 void 
 BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1530,7 +1527,7 @@ BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool checke
 void 
 BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1540,7 +1537,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
 void 
 BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* action)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1550,7 +1547,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int indx)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1560,27 +1557,27 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int indx)
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceLeftMenuTriggered(QAction*)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceRightMenuTriggered(QAction*)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumMenuTriggered(QAction*)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1590,7 +1587,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumMenuTriggered(QAction*)
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1600,7 +1597,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int state)
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1610,7 +1607,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int s
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double d)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1620,7 +1617,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double d)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1630,7 +1627,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
 void 
 BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1640,7 +1637,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int sta
 void 
 BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1650,7 +1647,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
 void 
 BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1660,7 +1657,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
 void 
 BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1670,7 +1667,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1680,7 +1677,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1690,7 +1687,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1700,7 +1697,7 @@ BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
 void 
 BrainBrowserWindowToolBar::windowYokeMirroredCheckBoxStateChanged(int state)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1733,7 +1730,7 @@ BrainBrowserWindowToolBar::surfaceSurfaceSelectionComboBoxIndexChanged(int selec
 void 
 BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     
     if (action == this->volumePlaneAllToolButtonAction) {
         
@@ -1754,9 +1751,7 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
         
     }
     else {
-        std::cerr << "Invalid volume plane action: " 
-        << qPrintable(action->text())
-        << std::endl;
+        CaretLogSevere("Invalid volume plane action: " + action->text());
     }
     this->checkUpdateCounter();
 }
@@ -1767,7 +1762,7 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
 void 
 BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1777,7 +1772,7 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool checked)
 void 
 BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1787,7 +1782,7 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1797,7 +1792,7 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int i)
 {
-    std::cout << __func__ << std::endl;
+    CaretLogEntering();
     this->checkUpdateCounter();
 }
 
@@ -1807,7 +1802,7 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int i)
 void 
 BrainBrowserWindowToolBar::toolsToolBoxToolButtonTriggered(bool checked)
 {
-    std::cout << __func__ << std::endl; 
+    CaretLogEntering(); 
     this->checkUpdateCounter();
 }
 
@@ -1815,8 +1810,8 @@ void
 BrainBrowserWindowToolBar::checkUpdateCounter()
 {
     if (this->updateCounter != 0) {
-        std::cout << "Update counter is non-zero, signal needs to be blocked during update." << std::endl;        
-        std::cout << "Value=" << updateCounter << std::endl;
+        CaretLogWarning(AString("Update counter is non-zero, this indicates that signal needs to be blocked during update, value=")
+                        + AString::number(updateCounter));
     }
 }
 
@@ -1824,13 +1819,11 @@ void
 BrainBrowserWindowToolBar::incrementUpdateCounter(const char* methodName)
 {
     this->updateCounter++;
-    //std::cout << methodName << " enter: " << this->updateCounter << std::endl;    
 }
 
 void 
 BrainBrowserWindowToolBar::decrementUpdateCounter(const char* methodName)
 {
-    //std::cout << methodName << " exit: " << this->updateCounter << std::endl;    
     this->updateCounter--;
 }
 

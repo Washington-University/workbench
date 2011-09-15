@@ -22,10 +22,10 @@
  * 
  */ 
 
-#include <iostream>
 #include <ostream>
 #include <sstream>
 
+#include "CaretLogger.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -411,9 +411,7 @@ XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
          writer << c;
       }
       else {
-         std::cout << "Unicode value of character not written: "
-                   << c
-                   << std::endl;
+          CaretLogWarning("Unicode value of character not written: " + c);
       }
    }
    //writer << (text);

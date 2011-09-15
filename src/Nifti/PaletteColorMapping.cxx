@@ -31,7 +31,7 @@
 #include "XmlUtilities.h"
 #include "XmlWriter.h"
 #include <limits>
-#include <iostream>
+
 using namespace caret;
 
 

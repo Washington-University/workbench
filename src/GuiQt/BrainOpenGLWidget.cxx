@@ -23,7 +23,6 @@
 /*LICENSE_END*/
 
 #include <cmath>
-#include <iostream>
 
 #include <QMouseEvent>
 
@@ -155,7 +154,6 @@ BrainOpenGLWidget::paintGL()
     EventManager::get()->sendEvent(getModelEvent.getPointer());
 
     if (getModelEvent.isError()) {
-        std::cout << "ERROR for " << getModelEvent.toString() << std::endl;
         return;
     }
     

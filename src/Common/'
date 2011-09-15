@@ -37,8 +37,6 @@ EventManager.h
 EventTypeEnum.h
 FileInformation.h
 Logger.h
-LogHandler.h
-LogHandlerStandardError.h
 LogLevelEnum.h
 LogManager.h
 LogRecord.h
@@ -69,8 +67,6 @@ EventManager.cxx
 EventTypeEnum.cxx
 FileInformation.cxx
 Logger.cxx
-LogHandler.cxx
-LogHandlerStandardError.cxx
 LogLevelEnum.cxx
 LogManager.cxx
 LogRecord.cxx

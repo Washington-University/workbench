@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "CaretLogger.h"
 #include "ElapsedTimer.h"
 #include "GiftiFile.h"
 #include "GiftiTypeFile.h"
@@ -143,13 +144,13 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
     this->clearModified();
     
     this->setFileName(filename);
-    std::cout 
-    << "Time to read "
-    << filename
-    << " was "
-    << et.getElapsedTimeSeconds()
-    << " seconds."
-    << std::endl;
+    
+    AString msg = ("Time to read " 
+                   + filename 
+                   + " was " 
+                   + AString::number(et.getElapsedTimeSeconds())
+                   + " seconds.");
+    CaretLogInfo(msg);
 }
 
 /**

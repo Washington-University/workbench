@@ -38,6 +38,8 @@ namespace caret {
     class EventListenerInterface;
     
     /**
+     * \brief  The event manager.
+     *
      * The event manager processes events
      * from senders to receivers.
      *

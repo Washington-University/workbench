@@ -38,6 +38,7 @@
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "LogManager.h"
 
 using namespace caret;
 
@@ -88,10 +89,18 @@ SessionManager::createSessionManager()
                        "Session manager has already been created.");
 
     /*
-     * Need to create event manager first.
+     * Create log manager.
+     */
+    LogManager::createLogManager();
+    
+    /*
+     * Create event manager first.
      */
     EventManager::createEventManager();
     
+    /*
+     * Create session manager.
+     */
     SessionManager::singletonSessionManager = new SessionManager();
 }
 
@@ -113,6 +122,8 @@ SessionManager::deleteSessionManager()
      * manager is deleted.
      */
     EventManager::deleteEventManager();
+    
+    LogManager::deleteLogManager();
 }
 
 /**

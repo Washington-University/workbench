@@ -22,9 +22,6 @@
  * 
  */ 
 
-#include <iostream>
-
-
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
@@ -34,6 +31,7 @@
 #include <QFrame>
 #include <QIcon>
 
+#include "CaretLogger.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -211,19 +209,19 @@ WuQtUtilities::setToolTipAndStatusTip(QWidget* widget,
 }
 
 /**
- * Print a list of resources to the specified stream.
- * @param stream
- *    Stream to which list is printed.
+ * Print a list of resources to the Caret Logger.
  */
 void 
-WuQtUtilities::printListOfResources(std::ostream& stream)
+WuQtUtilities::sendListOfResourcesToCaretLogger()
 {
-    stream << "Resources loaded: " << std::endl;
+    QString msg = "Resources loaded:\n";
     QDir dir(":/");
     QFileInfoList infoList = dir.entryInfoList();
     for (int i = 0; i < infoList.count(); i++) {
-        stream << "   " << qPrintable(infoList.at(i).filePath()) << std::endl;
+        msg += "   ";
+        msg += infoList.at(i).filePath();
     }
+    CaretLogInfo(msg);
 }
 
 /**
@@ -242,15 +240,16 @@ WuQtUtilities::loadIcon(const QString& filename,
 {
     QPixmap pixmap(filename);
     if (pixmap.isNull()) {
-        std::cout << "Failed to load icon named \""
-        << qPrintable(filename)
-        << "\""
-        << std::endl;
+        QString msg = (QString("Failed to load icon named \"")
+                       + filename
+                       + "\"");
+        CaretLogSevere(msg);
         return false;
     }
 
     if ((pixmap.width() <= 0) || (pixmap.height() <= 0)) {
-        std::cout << "Pixmap " << qPrintable(filename) << " has invalid size" << std::endl;
+        QString msg = "Pixmap " + filename + " has invalid size";
+        CaretLogSevere(msg);
         return false;
     }
     
