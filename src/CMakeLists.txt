@@ -122,4 +122,4 @@ ADD_SUBDIRECTORY ( Tests )
 #
 ENABLE_TESTING()
 
-ADD_TEST(test1 ${CMAKE_CURRENT_BINARY_DIR}/Tests/test1)
+ADD_TEST(timer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver timer)

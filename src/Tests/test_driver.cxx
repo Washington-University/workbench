@@ -1,0 +1,88 @@
+/*LICENSE_START*/ 
+/* 
+ *  Copyright 1995-2002 Washington University School of Medicine 
+ * 
+ *  http://brainmap.wustl.edu 
+ * 
+ *  This file is part of CARET. 
+ * 
+ *  CARET is free software; you can redistribute it and/or modify 
+ *  it under the terms of the GNU General Public License as published by 
+ *  the Free Software Foundation; either version 2 of the License, or 
+ *  (at your option) any later version. 
+ * 
+ *  CARET is distributed in the hope that it will be useful, 
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU General Public License for more details. 
+ * 
+ *  You should have received a copy of the GNU General Public License 
+ *  along with CARET; if not, write to the Free Software 
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * 
+ */ 
+
+//test driver for trying CTest
+
+#include <cstdlib>
+#include <iostream>
+#include <vector>
+#include "TestInterface.h"
+#include "TimerTest.h"
+
+using namespace std;
+using namespace caret;
+
+void freeTestList(vector<TestInterface*>& mylist)
+{
+   for (int i = 0; i < (int)mylist.size(); ++i)
+   {
+      delete mylist[i];
+   }
+}
+
+int main(int argc, char** argv)
+{
+   vector<TestInterface*> mytests;
+   mytests.push_back(new TimerTest("timer"));
+   if (argc < 1)
+   {
+      cout << "No test specified, please specify one of the following:" << endl;
+      for (int i = 0; i < (int)mytests.size(); ++i)
+      {
+         cout << mytests[i]->getIdentifier();
+      }
+      freeTestList(mytests);
+      return 1;//no test specified, fail
+   }
+   int failCount = 0;
+   for (int i = 1; i < argc; ++i)
+   {
+      for (int j = 0; j < (int)mytests.size(); ++j)
+      {
+         if (mytests[j]->getIdentifier() == AString(argv[i]))
+         {
+            try
+            {
+               mytests[j]->execute();
+            } catch (exception e) {
+               ++failCount;
+               cout << "Test " << mytests[j]->getIdentifier() << " failed, exception: " << e.what() << endl;
+               continue;//skip trying failed() and getFailMessage()
+            }
+            if (mytests[j]->failed())
+            {
+               ++failCount;
+               cout << "Test " << mytests[j]->getIdentifier() << " failed: " << mytests[j]->getFailMessage() << endl;
+            }
+         }
+      }
+   }
+   freeTestList(mytests);
+   if (failCount != 0)
+   {
+      cout << "Total of " << failCount << " tests failed!" << endl;
+      return 1;
+   }
+   return 0;
+}

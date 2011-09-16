@@ -1,3 +1,6 @@
+#ifndef __TIMER_TEST_H__
+#define __TIMER_TEST_H__
+
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -21,22 +24,16 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */ 
+#include "TestInterface.h"
 
-//test driver for trying CTest
+namespace caret {
 
-#include <cstdlib>
-#include <iostream>
+   class TimerTest : public TestInterface
+   {
+   public:
+      TimerTest(const AString identifier);
+      virtual void execute();
+   };
 
-using namespace std;
-//using namespace caret;
-
-void fail(int status = 1)
-{
-   if (status != 0) exit(status);
-   exit(1);
 }
-
-int main()
-{
-   return 0;
-}
+#endif //__TIMER_TEST_H__

@@ -110,7 +110,7 @@ ElapsedTimer::getElapsedTimeMilliseconds() const
       diffMicroseconds += 1000000;
       diffSeconds -= 1;//don't forget to subtract the second you just added to microseconds
    }//*/
-   const double diffTimeMilli = diffSeconds + (diffMicroseconds / 1000.0);
+   const double diffTimeMilli = diffSeconds * 1000.0 + (diffMicroseconds / 1000.0);
 #endif
    return diffTimeMilli;
 }

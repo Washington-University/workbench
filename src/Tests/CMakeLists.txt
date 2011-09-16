@@ -14,28 +14,40 @@ SET(QT_DONT_USE_QTGUI)
 INCLUDE (${QT_USE_FILE})
 
 #
+#The individual tests
+#
+ADD_LIBRARY(Tests
+TestInterface.h
+TimerTest.h
+
+TimerTest.cxx
+)
+
+
+#
 # Create the test1 executable
 #
 IF (APPLE)
-   ADD_EXECUTABLE(test1
+   ADD_EXECUTABLE(test_driver
       MACOSX_BUNDLE
-      test1.cxx
+      test_driver.cxx
       )
       ADD_CUSTOM_COMMAND(
-         TARGET test1
+         TARGET test_driver
          POST_BUILD
          COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh test1
       )
 ELSE (APPLE)
-   ADD_EXECUTABLE(test1
-      test1.cxx
+   ADD_EXECUTABLE(test_driver
+      test_driver.cxx
    )
 ENDIF (APPLE)
 
 #
 # Libraries that are linked
 #
-TARGET_LINK_LIBRARIES(test1
+TARGET_LINK_LIBRARIES(test_driver
+Tests
 GuiQt
 Brain
 Helpers
@@ -50,7 +62,7 @@ ${ZLIB_LIBRARIES}
 )
 
 IF(WIN32)
-    TARGET_LINK_LIBRARIES(test1
+    TARGET_LINK_LIBRARIES(test_driver
     opengl32
     glu32
     )
@@ -58,7 +70,7 @@ ENDIF(WIN32)
 
 IF (UNIX)
    IF (NOT APPLE) 
-      TARGET_LINK_LIBRARIES(test1
+      TARGET_LINK_LIBRARIES(test_driver
          gobject-2.0
       )
    ENDIF (NOT APPLE)
@@ -69,7 +81,7 @@ ENDIF (UNIX)
 #
 IF (APPLE)
    #SET (QT_MAC_USE_COCOA TRUE)
-   TARGET_LINK_LIBRARIES(test1
+   TARGET_LINK_LIBRARIES(test_driver
      "-framework Cocoa"
      "-framework OpenGL"
    )
