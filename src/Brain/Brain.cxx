@@ -26,6 +26,7 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "CaretLogger.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "PaletteFile.h"
@@ -106,12 +107,13 @@ Brain::getBrainStructure(const int32_t indx)
  *    Pointer to brain structure or NULL if no match..
  */
 BrainStructure* 
-Brain::getBrainStructure(/*Structure structure,*/
-                                  bool createIfNotFound)
+Brain::getBrainStructure(StructureEnum::Enum structure,
+                         bool createIfNotFound)
 {
     if (this->brainStructures.empty()) {
-        BrainStructure* bs = new BrainStructure(this);
+        BrainStructure* bs = new BrainStructure(this, structure);
         this->addBrainStructure(bs);
+        CaretLogFine("Creating brain structure for " + StructureEnum::toName(structure));
     }
     return this->getBrainStructure(0);
 }
@@ -144,7 +146,9 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
     Surface* s = new Surface();
     s->readFile(filename);
     
-    BrainStructure* bs = this->getBrainStructure(true);
+    const StructureEnum::Enum structure = s->getStructure();
+    
+    BrainStructure* bs = this->getBrainStructure(structure, true);
     if (bs != NULL) {
         bs->addSurface(s);
     }

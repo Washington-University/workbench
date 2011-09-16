@@ -538,7 +538,7 @@ BrainBrowserWindow::processDataFileOpen()
     QFileDialog fd(this);
     fd.setAcceptMode(QFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setFileMode(QFileDialog::ExistingFiles);
     fd.setViewMode(QFileDialog::List);
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();

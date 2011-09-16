@@ -368,4 +368,3 @@ SurfaceFile::getNodeColor(int32_t nodeIndex) const
     
     return &this->nodeColoring[nodeIndex * 4];
 }
-

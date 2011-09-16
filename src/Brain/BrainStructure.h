@@ -32,6 +32,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "StructureEnum.h"
 
 namespace caret {
     
@@ -45,7 +46,8 @@ namespace caret {
     class BrainStructure : public CaretObject {
         
     public:
-        BrainStructure(Brain* brain);
+        BrainStructure(Brain* brain,
+                       StructureEnum::Enum structure);
         
         ~BrainStructure();
         
@@ -67,8 +69,12 @@ namespace caret {
         
         int32_t getNumberOfNodes() const;
 
+        StructureEnum::Enum getStructure() const;
+        
     private:
         Brain* brain;
+        
+        StructureEnum::Enum structure;
         
         std::vector<Surface*> surfaces;
         

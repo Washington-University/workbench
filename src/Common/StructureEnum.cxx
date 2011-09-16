@@ -82,12 +82,12 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(CORTEX_LEFT, 
                                      1, 
                                      "CORTEX_LEFT", 
-                                     "Left Cerebral Cortex"));
+                                     "CortexLeft"));
     
     enumData.push_back(StructureEnum(CORTEX_RIGHT, 
                                      2, 
                                      "CORTEX_RIGHT", 
-                                     "Right Cerebral Cortex"));
+                                     "CortexRight"));
     
     enumData.push_back(StructureEnum(ACCUMBENS_LEFT, 
                                      3, 

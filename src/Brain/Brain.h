@@ -31,6 +31,7 @@
 #include "CaretObject.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
+#include "StructureEnum.h"
 
 namespace caret {
     
@@ -56,7 +57,7 @@ namespace caret {
         
         BrainStructure* getBrainStructure(const int32_t indx);
 
-        BrainStructure* getBrainStructure(/*Structure structure,*/
+        BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
         
         void resetBrain();

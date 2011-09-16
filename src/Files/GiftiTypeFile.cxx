@@ -26,6 +26,8 @@
 #include "ElapsedTimer.h"
 #include "GiftiFile.h"
 #include "GiftiTypeFile.h"
+#include "GiftiMetaDataNames.h"
+#include "SurfaceFile.h"
 
 using namespace caret;
 
@@ -203,5 +205,31 @@ GiftiTypeFile::toString() const
 {
     return this->giftiFile->toString();
 }
+
+StructureEnum::Enum 
+GiftiTypeFile::getStructure() const
+{
+    AString structurePrimaryName;
+    
+    /*
+     * Surface contains anatomical structure in pointset array.
+     */
+    const SurfaceFile* surfaceFile = dynamic_cast<const SurfaceFile*>(this);
+    if (surfaceFile != NULL) {
+        const GiftiDataArray* gda = this->giftiFile->getDataArrayWithIntent(NiftiIntentEnum::NIFTI_INTENT_POINTSET);
+        const GiftiMetaData* metadata = gda->getMetaData();
+        structurePrimaryName = metadata->get(GiftiMetaDataNames::ANATOMICAL_STRUCTURE_PRIMARY);
+    }
+    else {
+        const GiftiMetaData* metadata = this->giftiFile->getMetaData();
+        structurePrimaryName = metadata->get(GiftiMetaDataNames::ANATOMICAL_STRUCTURE_PRIMARY);
+    }
+    
+    bool isValid = false;
+    StructureEnum::Enum structure = StructureEnum::fromGuiName(structurePrimaryName, &isValid);
+    return structure;
+}
+                                                                                
+                                                                                
 
 

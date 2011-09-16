@@ -369,16 +369,18 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
    // External File Offset
    //
    this->externalFileOffsetForReadingData = 0;
-   const AString offsetString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET);
-   if (offsetString.isEmpty() == false) {
-      bool validOffsetFlag = false;
-       this->externalFileOffsetForReadingData = offsetString.toLong();
-      if (validOffsetFlag == false) {
-         throw XmlSaxParserException("File Offset is not an integer ("
-                             + offsetString
-                             + ")");
-      }
-   }
+    if (encodingForReadingArrayData == GiftiEncodingEnum::EXTERNAL_FILE_BINARY) {
+        const AString offsetString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET);
+        if (offsetString.isEmpty() == false) {
+            bool validOffsetFlag = false;
+            this->externalFileOffsetForReadingData = offsetString.toLong();
+            if (validOffsetFlag == false) {
+                throw XmlSaxParserException("File Offset is not an integer ("
+                                            + offsetString
+                                            + ")");
+            }
+        }
+    }
    
    //
    // Endian

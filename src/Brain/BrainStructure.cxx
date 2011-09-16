@@ -37,10 +37,13 @@ using namespace caret;
 
 /**
  * Constructor.
+ * 
  */
-BrainStructure::BrainStructure(Brain* brain)
+BrainStructure::BrainStructure(Brain* brain,
+                               StructureEnum::Enum structure)
 {
     this->brain = brain;
+    this->structure = structure;
 }
 
 /**
@@ -60,6 +63,17 @@ BrainStructure::~BrainStructure()
     }
     
     this->surfaces.clear();
+}
+
+/**
+ * Get the structure for this BrainStructure.
+ *
+ * @return The structure.
+ */
+StructureEnum::Enum 
+BrainStructure::getStructure() const
+{
+    return this->structure;
 }
 
 /**

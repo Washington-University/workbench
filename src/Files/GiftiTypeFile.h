@@ -29,6 +29,7 @@
 #include <AString.h>
 
 #include "DataFile.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -70,6 +71,8 @@ namespace caret {
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
         virtual AString toString() const;
+        
+        StructureEnum::Enum getStructure() const;
         
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
