@@ -825,7 +825,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                        for (int64_t j = 0; j < i; j++) {
                            const int64_t indexLowerLeft  = (i * dimJ) + j;
                            const int64_t indexUpperRight = (j * dimI) + i;
-                           float temp = dataPointerInt[indexLowerLeft];
+                           const int32_t temp = dataPointerInt[indexLowerLeft];
                            dataPointerInt[indexLowerLeft] = dataPointerInt[indexUpperRight];
                            dataPointerInt[indexUpperRight] = temp;
                        }
@@ -838,7 +838,7 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
                        for (int64_t j = 0; j < i; j++) {
                            const int64_t indexLowerLeft  = (i * dimJ) + j;
                            const int64_t indexUpperRight = (j * dimI) + i;
-                           float temp = dataPointerUByte[indexLowerLeft];
+                           const uint8_t temp = dataPointerUByte[indexLowerLeft];
                            dataPointerUByte[indexLowerLeft] = dataPointerUByte[indexUpperRight];
                            dataPointerUByte[indexUpperRight] = temp;
                        }
@@ -1361,12 +1361,12 @@ GiftiDataArray::getMinMaxValuesFromPercentages(const float negMaxPctIn,
                posMaxPctValue = positives[0];
             }
             else {
-               int32_t minIndex = numPos * (posMinPct / 100.0);
+               int32_t minIndex = static_cast<int32_t>(numPos * (posMinPct / 100.0));
                if (minIndex < 0) minIndex = 0;
                if (minIndex >= numPos) minIndex = numPos - 1;
                posMinPctValue = positives[minIndex];
 
-               int32_t maxIndex = numPos * (posMaxPct / 100.0);
+               int32_t maxIndex = static_cast<int32_t>(numPos * (posMaxPct / 100.0));
                if (maxIndex < 0) maxIndex = 0;
                if (maxIndex >= numPos) maxIndex = numPos - 1;
                posMaxPctValue = positives[maxIndex];
@@ -1382,12 +1382,12 @@ GiftiDataArray::getMinMaxValuesFromPercentages(const float negMaxPctIn,
                negMaxPctValue = negatives[0];
             }
             else {
-               int32_t maxIndex = numNeg * ((100.0 - negMaxPct) / 100.0);
+               int32_t maxIndex = static_cast<int32_t>(numNeg * ((100.0 - negMaxPct) / 100.0));
                if (maxIndex < 0) maxIndex = 0;
                if (maxIndex >= numNeg) maxIndex = numNeg - 1;
                negMaxPctValue = negatives[maxIndex];
 
-               int32_t minIndex = numNeg * ((100.0 - negMinPct) / 100.0);
+               int32_t minIndex = static_cast<int32_t>(numNeg * ((100.0 - negMinPct) / 100.0));
                if (minIndex < 0) minIndex = 0;
                if (minIndex >= numNeg) minIndex = numNeg - 1;
                negMinPctValue = negatives[minIndex];

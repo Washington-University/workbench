@@ -460,10 +460,10 @@ int32_t*
 GiftiLabel::getColorInt() const
 {
     int32_t* rgbaOut = new int32_t[4];
-    rgbaOut[0] = this->red * 255;
-    rgbaOut[1] = this->green * 255;
-    rgbaOut[2] = this->blue * 255;
-    rgbaOut[3] = this->alpha * 255;
+    rgbaOut[0] = static_cast<int32_t>(this->red * 255);
+    rgbaOut[1] = static_cast<int32_t>(this->green * 255);
+    rgbaOut[2] = static_cast<int32_t>(this->blue * 255);
+    rgbaOut[3] = static_cast<int32_t>(this->alpha * 255);
     return rgbaOut;
 }
 
