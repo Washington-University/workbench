@@ -71,6 +71,7 @@ ElapsedTimer::start()
 #else
    gettimeofday(&(m_startTime.m_timeVal), NULL);
 #endif
+   m_started = true;
 }
 
 /**
