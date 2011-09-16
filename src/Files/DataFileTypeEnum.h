@@ -92,6 +92,12 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
 
+    static Enum fromQFileDialogFilter(const AString& qFileDialogNameFilter, bool* isValidOut);
+    
+    static AString toQFileDialogFilter(const Enum enumValue);
+    
+    static Enum fromFileExtension(const AString& filename, bool* isValidOut);
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const int32_t integerCode, 
@@ -126,6 +132,9 @@ private:
     
     /** Extension(s) for the file */
     std::vector<AString> fileExtensions;
+    
+    /** Name filter for use in a QFileDialog */
+    AString qFileDialogNameFilter;
 };
 
 #ifdef __DATA_FILE_TYPE_ENUM_DECLARE__

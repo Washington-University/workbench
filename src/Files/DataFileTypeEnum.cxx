@@ -61,6 +61,17 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     if (fileExtensionThree.isEmpty() == false) {
         this->fileExtensions.push_back(fileExtensionThree);
     }
+
+    AString filterText = this->guiName + " Files (";
+    
+    for (std::vector<AString>::const_iterator iter = this->fileExtensions.begin();
+         iter != this->fileExtensions.end();
+         iter++) {
+        filterText += ("*." + *iter);
+    }
+    filterText += ")";
+    
+    this->qFileDialogNameFilter = filterText;
 }
 
 /**
@@ -139,7 +150,7 @@ DataFileTypeEnum::initialize()
                                         9, 
                                         "SURFACE_ANATOMICAL", 
                                         "Surface - Anatomical",
-                                        "surf.gii"));
+                                        "surf\\.gii"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_INFLATED, 
                                         10, 
@@ -328,6 +339,105 @@ DataFileTypeEnum::toIntegerCode(Enum enumValue)
     if (initializedFlag == false) initialize();
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
+}
+
+/**
+ * Get an enumerated value corresponding to its QFileDialog filter name.
+ * @param qFileDialogNameFilter 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+DataFileTypeEnum::Enum 
+DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter, 
+                                        bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue;
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const DataFileTypeEnum& d = *iter;
+        if (d.qFileDialogNameFilter == qFileDialogNameFilter) {
+            enumValue = d.enumValue;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else {
+        CaretAssertMessage(0, AString("qFileDialogNameFilter " + qFileDialogNameFilter + "failed to match enumerated value for type DataFileTypeEnum"));
+    }
+    return enumValue;
+}
+
+/**
+ * Get the file filter text for use in a QFileDialog.
+ *
+ * @param enumValue
+ *     Enumerated type for file filter.
+ * @return
+ *     Text containing file filter.
+ */
+AString 
+DataFileTypeEnum::toQFileDialogFilter(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->qFileDialogNameFilter;
+}
+
+/**
+ * For the filename, match its extension to a DataFileType enumerated type.
+ * @param filename 
+ *     Name of file.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+DataFileTypeEnum::Enum 
+DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    bool validFlag = false;
+    Enum enumValue;
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const DataFileTypeEnum& d = *iter;
+        const std::vector<AString> extensions = iter->fileExtensions;
+        for (std::vector<AString>::const_iterator extIter = extensions.begin();
+             extIter != extensions.end();
+             extIter++) {
+            if (filename.endsWith(*extIter)) {
+                enumValue = d.enumValue;
+                validFlag = true;
+                break;
+            }
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    else {
+        CaretAssertMessage(0, AString("filename " + filename + " has no matching extensions in DataFileTypeEnum"));
+    }
+    return enumValue;
+    
 }
 
 /**

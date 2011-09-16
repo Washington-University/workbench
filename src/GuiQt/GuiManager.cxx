@@ -32,7 +32,6 @@
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
-#include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "SessionManager.h"
 

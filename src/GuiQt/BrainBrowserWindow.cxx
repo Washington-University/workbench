@@ -517,23 +517,68 @@ BrainBrowserWindow::processNewWindow()
 void 
 BrainBrowserWindow::processDataFileOpen()
 {
-    AString name =
-    QFileDialog::getOpenFileName(this,
-                                 "Open Surface File",
-                                 ".",
-                                 "Surfaces (*.surf.gii)");
-    if (name.length() == 0) return;
+    /*
+     * Get all file filters.
+     */
+    std::vector<DataFileTypeEnum::Enum> dataFileTypes;
+    DataFileTypeEnum::getAllEnums(dataFileTypes);
+    QStringList filenameFilterList;
+    filenameFilterList.append("Any File (*)");
+    for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
+         iter != dataFileTypes.end();
+         iter++) {
+        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(*iter));
+    }
     
-    EventDataFileRead loadSurfaceEvent(GuiManager::get()->getBrain(),
-                                       DataFileTypeEnum::SURFACE_ANATOMICAL,
-                                       name);
+    AString errorMessages;
     
-    EventManager::get()->sendEvent(loadSurfaceEvent.getPointer());
-    
-    if (loadSurfaceEvent.isError()) {
+    /*
+     * Setup file selection dialog.
+     */
+    QFileDialog fd(this);
+    fd.setAcceptMode(QFileDialog::AcceptOpen);
+    fd.setNameFilters(filenameFilterList);
+    fd.setFileMode(QFileDialog::AnyFile);
+    fd.setViewMode(QFileDialog::List);
+    if (fd.exec()) {
+        QStringList selectedFiles = fd.selectedFiles();
+        
+        /*
+         * Load each file.
+         */
+        QStringListIterator nameIter(selectedFiles);
+        while (nameIter.hasNext()) {
+            AString name = nameIter.next();
+            bool isValidType = false;
+            DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+            if (isValidType) {
+                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+                                                fileType,
+                                                name);
+                
+                EventManager::get()->sendEvent(loadFileEvent.getPointer());
+                
+                if (loadFileEvent.isError()) {
+                    if (errorMessages.isEmpty() == false) {
+                        errorMessages += "\n";
+                    }
+                    errorMessages += loadFileEvent.getErrorMessage();
+                }
+            }
+            else {
+                if (errorMessages.isEmpty() == false) {
+                    errorMessages += "\n";
+                }
+                errorMessages += ("Extension for " + name + " does not match a Caret file type");
+            }
+        }
+        
+    }
+
+    if (errorMessages.isEmpty() == false) {
         QMessageBox::critical(this, 
                               "ERROR", 
-                              loadSurfaceEvent.getErrorMessage());
+                              errorMessages);
     }
     
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
