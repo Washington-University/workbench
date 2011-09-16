@@ -14,7 +14,7 @@ SET(QT_DONT_USE_QTGUI)
 INCLUDE (${QT_USE_FILE})
 
 #
-# Create the brain library
+# Create the helper library
 #
 ADD_LIBRARY(Helpers
 GeodesicHelper.h

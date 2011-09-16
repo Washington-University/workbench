@@ -115,5 +115,11 @@ ADD_SUBDIRECTORY ( CommandOperations )
 ADD_SUBDIRECTORY ( GuiQt )
 ADD_SUBDIRECTORY ( Desktop )
 ADD_SUBDIRECTORY ( CommandLine )
+ADD_SUBDIRECTORY ( Tests )
 
+#
+#CTest tests
+#
+ENABLE_TESTING()
 
+ADD_TEST(test1 ${CMAKE_CURRENT_BINARY_DIR}/Tests/test1)

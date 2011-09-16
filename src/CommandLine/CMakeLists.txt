@@ -66,6 +66,7 @@ caret_command.cxx
 TARGET_LINK_LIBRARIES(caret_command 
 CommandOperations
 Brain
+Helpers
 Files
 Gifti
 Nifti
@@ -82,6 +83,7 @@ INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/CommandOperations
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
