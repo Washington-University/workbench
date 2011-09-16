@@ -1,5 +1,5 @@
-#ifndef __STRUCTURE_ENUM__H_
-#define __STRUCTURE_ENUM__H_
+#ifndef __SPECIES_ENUM__H_
+#define __SPECIES_ENUM__H_
 
 /*LICENSE_START*/
 /* 
@@ -33,73 +33,47 @@
 namespace caret {
 
 /**
- * \brief Enumerated type for a structure in a brain.
+ * \brief Enumerated type for species.
  *
- * Enumerated types for the individual structures in a brain.
+ * Species enumerated type.
  */
-class StructureEnum {
+class SpeciesEnum {
 
 public:
     /**
      * Enumerated values.
      */
     enum Enum {
-        /** Invalid */
-        INVALID,
-        /** Left Cerebral Cortex */
-        CORTEX_LEFT,
-        /** Right Cerebral Cortex*/
-        CORTEX_RIGHT,
-        /** Left Nucleus Accumbens */
-        ACCUMBENS_LEFT,
-        /** Right Nucleus Accumbens */
-        ACCUMBENS_RIGHT,
-        /** Left Amygdala */
-        AMYGDALA_LEFT,
-        /** Right Amygdala */
-        AMYGDALA_RIGHT,
-        /** Brain Stem */
-        BRAIN_STEM,
-        /** Left Caudate */
-        CAUDATE_LEFT,
-        /** Right Caudate */
-        CAUDATE_RIGHT,
-        /** Cerebellum */
-        CEREBELLUM,
-        /** Left Cerebellum */
-        CEREBELLUM_LEFT,
-        /** Right Cerebellum */
-        CEREBELLUM_RIGHT,
-        /** Left Ventral Diencephalon */
-        DIENCEPHALON_VENTRAL_LEFT,
-        /** Right Ventral Diencephalon */
-        DIENCEPHALON_VENTRAL_RIGHT,
-        /** Left Hippocampus */
-        HIPPOCAMPUS_LEFT,
-        /** Right Hippocampus */
-        HIPPOCAMPUS_RIGHT,
-        /** Left Pallidum */
-        PALLIDUM_LEFT,
-        /** Right Pallidum */
-        PALLIDUM_RIGHT,
-        /** Other structure not specified */
-        OTHER,
-        /** Left Putamen */
-        PUTAMEN_LEFT,
-        /** Right Putamen */
-        PUTAMEN_RIGHT,
-        /** Left Subcortical White Matter */
-        SUBCORTICAL_WHITE_MATTER_LEFT,
-        /** Right Subcortical White Matter */
-        SUBCORTICAL_WHITE_MATTER_RIGHT,
-        /** Left Thalamus */
-        THALAMUS_LEFT,
-        /** Right Thalamus */
-        THALAMUS_RIGHT
+        /// unknown
+        TYPE_UNKNOWN,
+        /// baboon
+        TYPE_BABOON,
+        /// chimpanzee
+        TYPE_CHIMPANZEE,
+        /// ferret
+        TYPE_FERRET,
+        /// galago
+        TYPE_GALAGO,
+        /// gibbon
+        TYPE_GIBBON,
+        /// gorilla
+        TYPE_GORILLA,
+        /// human
+        TYPE_HUMAN,
+        /// macaque monkey
+        TYPE_MACAQUE,
+        /// mouse
+        TYPE_MOUSE,
+        /// orangutan
+        TYPE_ORANGUTAN,
+        /// rat
+        TYPE_RAT,
+        /// other
+        TYPE_OTHER
     };
 
 
-    ~StructureEnum();
+    ~SpeciesEnum();
 
     static AString toName(Enum enumValue);
     
@@ -115,16 +89,20 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
 
+    static void getAllNames(std::vector<AString>& allNames, const bool isSorted);
+
+    static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
+
 private:
-    StructureEnum(const Enum enumValue, 
+    SpeciesEnum(const Enum enumValue, 
                  const int32_t integerCode, 
                  const AString& name,
                  const AString& guiName);
 
-    static const StructureEnum* findData(const Enum enumValue);
+    static const SpeciesEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<StructureEnum> enumData;
+    static std::vector<SpeciesEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -145,10 +123,10 @@ private:
     AString guiName;
 };
 
-#ifdef __STRUCTURE_ENUM_DECLARE__
-std::vector<StructureEnum> StructureEnum::enumData;
-bool StructureEnum::initializedFlag = false;
-#endif // __STRUCTURE_ENUM_DECLARE__
+#ifdef __SPECIES_ENUM_DECLARE__
+std::vector<SpeciesEnum> SpeciesEnum::enumData;
+bool SpeciesEnum::initializedFlag = false;
+#endif // __SPECIES_ENUM_DECLARE__
 
 } // namespace
-#endif  //__STRUCTURE_ENUM__H_
+#endif  //__SPECIES_ENUM__H_

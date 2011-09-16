@@ -52,12 +52,14 @@ namespace caret {
                               const AString& enumClassName,
                               const AString& ifdefName,
                               const AString& ifdefNameStaticDeclaration,
-                              const int32_t numberOfEnumValues);
+                              const int32_t numberOfEnumValues,
+                              const bool isAutoNumber);
         
         void createImplementationFile(const AString& outputFileName,
                                       const AString& enumClassName,
                                       const AString& ifdefNameStaticDeclaration,
-                                      const int32_t numberOfEnumValues);
+                                      const int32_t numberOfEnumValues,
+                                      const bool isAutoNumber);
     };
     
 } // namespace

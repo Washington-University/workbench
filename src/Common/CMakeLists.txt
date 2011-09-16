@@ -46,6 +46,8 @@ MathFunctions.h
 MessageManager.h
 ProgramParameters.h
 ProgramParametersException.h
+SpeciesEnum.h
+StereotaxicSpaceEnum.h
 StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
@@ -78,6 +80,8 @@ MathFunctions.cxx
 MessageManager.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
+SpeciesEnum.cxx
+StereotaxicSpaceEnum.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 )

@@ -68,6 +68,7 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
 {
     const AString enumClassName = parameters.nextString("Enum Class Name");
     const int32_t numberOfEnumValues = parameters.nextInt("Number of Enum Values");
+    const bool isAutoNumber = parameters.nextBoolean("Auto Number (true/false)");
     
     if (enumClassName.isEmpty()) {
         throw CommandException("Enum class name is empty.");
@@ -107,12 +108,14 @@ CommandClassCreateEnum::executeOperation(ProgramParameters& parameters) throw (C
                            enumClassName, 
                            ifndefName, 
                            ifdefNameStaticDeclarations, 
-                           numberOfEnumValues);
+                           numberOfEnumValues,
+                           isAutoNumber);
     
     this->createImplementationFile(implementationFileName,
                                    enumClassName, 
                                    ifdefNameStaticDeclarations, 
-                                   numberOfEnumValues);
+                                   numberOfEnumValues,
+                                   isAutoNumber);
 }
 
 /**
@@ -134,7 +137,8 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
                                          const AString& enumClassName,
                                          const AString& ifndefName,
                                          const AString& ifdefNameStaticDeclaration,
-                                         const int32_t numberOfEnumValues)
+                                         const int32_t numberOfEnumValues,
+                                         const bool isAutoNumber)
 {
     AString t;
 
@@ -191,9 +195,15 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("    static void getAllEnums(std::vector<Enum>& allEnums);\n");
     t += ("\n");
+    t += ("    static void getAllNames(std::vector<AString>& allNames, const bool isSorted);\n");
+    t += ("\n");
+    t += ("    static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);\n");
+    t += ("\n");
     t += ("private:\n");
     t += ("    " + enumClassName + "(const Enum enumValue, \n");
-    t += ("                 const int32_t integerCode, \n");
+    if (isAutoNumber == false) {
+        t += ("                 const int32_t integerCode, \n");
+    }
     t += ("                 const AString& name,\n");
     t += ("                 const AString& guiName);\n");
     t += ("\n");
@@ -208,6 +218,11 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("    /** Indicates instance of enum values and metadata have been initialized */\n");
     t += ("    static bool initializedFlag;\n");
     t += ("    \n");
+    if (isAutoNumber) {
+        t += ("    /** Auto generated integer codes */\n");
+        t += ("    static int32_t integerCodeCounter;\n");
+        t += ("    \n");
+    }
     t += ("    /** The enumerated type value for an instance */\n");
     t += ("    Enum enumValue;\n");
     t += ("\n");
@@ -224,6 +239,9 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("#ifdef " + ifdefNameStaticDeclaration + "\n");
     t += ("std::vector<" + enumClassName + "> " + enumClassName + "::enumData;\n");
     t += ("bool " + enumClassName + "::initializedFlag = false;\n");
+    if (isAutoNumber) {
+        t += ("int32_t " + enumClassName + "::integerCodeCounter = 0; \n");
+    }
     t += ("#endif // " + ifdefNameStaticDeclaration + "\n");
     t += ("\n");
     t += ("} // namespace\n");
@@ -257,12 +275,14 @@ void
 CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
                                                  const AString& enumClassName,
                                                  const AString& ifdefNameStaticDeclaration,
-                                                 const int32_t numberOfEnumValues)
+                                                 const int32_t numberOfEnumValues,
+                                                 const bool isAutoNumber)
 {
     AString t;
     
     t += this->getCopyright();
     
+    t += ("#include <algorithm>\n");
     t += ("#define " + ifdefNameStaticDeclaration + "\n");
     t += ("#include \"" + enumClassName + ".h\"\n");
     t += ("#undef " + ifdefNameStaticDeclaration + "\n");
@@ -276,9 +296,11 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *\n");
     t += (" * @param enumValue\n");
     t += (" *    An enumerated value.\n");
-    t += (" * @param integerCode\n");
-    t += (" *    Integer code for this enumerated value.\n");
-    t += (" *\n");
+    if (isAutoNumber == false) {
+        t += (" * @param integerCode\n");
+        t += (" *    Integer code for this enumerated value.\n");
+        t += (" *\n");
+    }
     t += (" * @param name\n");
     t += (" *    Name of enumerated value.\n");
     t += (" *\n");
@@ -286,12 +308,19 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += (" *    User-friendly name for use in user-interface.\n");
     t += (" */\n");
     t += ("" + enumClassName + "::" + enumClassName + "(const Enum enumValue,\n");
-    t += ("                           const int32_t integerCode,\n");
+    if (isAutoNumber == false) {
+        t += ("                           const int32_t integerCode,\n");
+    }
     t += ("                           const AString& name,\n");
     t += ("                           const AString& guiName)\n");
     t += ("{\n");
     t += ("    this->enumValue = enumValue;\n");
-    t += ("    this->integerCode = integerCode;\n");
+    if (isAutoNumber) {
+        t += ("    this->integerCode = integerCodeCounter++;\n");
+    }
+    else {
+        t += ("    this->integerCode = integerCode;\n");
+    }
     t += ("    this->name = name;\n");
     t += ("    this->guiName = guiName;\n");
     t += ("}\n");
@@ -548,6 +577,60 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("}\n");
     t += ("\n");
 
+    
+    t += ("/**\n");
+    t += (" * Get all of the names of the enumerated type values.\n"); 
+    t += (" *\n");
+    t += (" * @param allNames\n");
+    t += (" *     A vector that is OUTPUT containing all of the names of the enumerated values.\n");
+    t += (" * @param isSorted\n");
+    t += (" *     If true, the names are sorted in alphabetical order.\n");
+    t += (" */\n");
+    t += ("void\n");
+    t += ("" + enumClassName + "::getAllNames(std::vector<AString>& allNames, const bool isSorted)\n");
+    t += ("{\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
+    t += ("    \n");
+    t += ("    allNames.clear();\n");
+    t += ("    \n");
+    t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
+    t += ("         iter != enumData.end();\n");
+    t += ("         iter++) {\n");
+    t += ("        allNames.push_back(" + enumClassName + "::toName(iter->enumValue));\n");
+    t += ("    }\n");
+    t += ("    \n");
+    t += ("    if (isSorted) {\n");
+    t += ("        std::sort(allNames.begin(), allNames.end());\n");
+    t += ("    }\n");
+   t += ("}\n");
+    t += ("\n");
+    
+    t += ("/**\n");
+    t += (" * Get all of the GUI names of the enumerated type values.\n"); 
+    t += (" *\n");
+    t += (" * @param allNames\n");
+    t += (" *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.\n");
+    t += (" * @param isSorted\n");
+    t += (" *     If true, the names are sorted in alphabetical order.\n");
+    t += (" */\n");
+    t += ("void\n");
+    t += ("" + enumClassName + "::getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted)\n");
+    t += ("{\n");
+    t += ("    if (initializedFlag == false) initialize();\n");
+    t += ("    \n");
+    t += ("    allGuiNames.clear();\n");
+    t += ("    \n");
+    t += ("    for (std::vector<" + enumClassName + ">::iterator iter = enumData.begin();\n");
+    t += ("         iter != enumData.end();\n");
+    t += ("         iter++) {\n");
+    t += ("        allGuiNames.push_back(" + enumClassName + "::toGuiName(iter->enumValue));\n");
+    t += ("    }\n");
+    t += ("    \n");
+    t += ("    if (isSorted) {\n");
+    t += ("        std::sort(allGuiNames.begin(), allGuiNames.end());\n");
+    t += ("    }\n");
+    t += ("}\n");
+    t += ("\n");
     
     TextFile tf;
     tf.replaceText(t);
