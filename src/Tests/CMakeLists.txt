@@ -22,6 +22,7 @@ TimerTest.h
 ProgressTest.h
 
 TimerTest.cxx
+ProgressTest.cxx
 )
 
 

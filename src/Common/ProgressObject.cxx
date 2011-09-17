@@ -82,6 +82,7 @@ void ProgressObject::forceFinish()
 
 float ProgressObject::getCurrentProgressFraction()
 {
+   if (m_totalWeight <= 0.0f) return 0.0f;
    return m_currentProgress / m_totalWeight;
 }
 
@@ -118,6 +119,7 @@ LevelProgress ProgressObject::startLevel(const float finishedProgress)
 
 void ProgressObject::updateProgress()
 {
+   if (m_disabled) return;
    if (m_finished)
    {
       return;//nothing to do, finishLevel() should have taken care of everything
@@ -174,7 +176,7 @@ ProgressObject::~ProgressObject()
 
 void LevelProgress::reportProgress(const float currentTotal)
 {
-   float prevProgress = m_progObjRef->m_nonChildProgress;
+   if (m_progObjRef->m_disabled) return;
    float curProgress = currentTotal / m_maximum;
    if (curProgress > 1.0f)
    {

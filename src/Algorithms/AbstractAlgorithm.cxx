@@ -42,7 +42,7 @@ float AbstractAlgorithm::getSubAlgorithmWeight()
    return 0.0f;
 }
 
-float caret::AbstractAlgorithm::getAlgorithmWeight()
+float AbstractAlgorithm::getAlgorithmWeight()
 {
    return getAlgorithmInternalWeight() + getSubAlgorithmWeight();
 }

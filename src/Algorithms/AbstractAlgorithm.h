@@ -30,6 +30,7 @@
 
 namespace caret {
 
+   ///the constructor for algorithms does the processing, because constructor/execute cycles don't make sense for something this simple
    class AbstractAlgorithm
    {
       AbstractAlgorithm();//prevent default construction

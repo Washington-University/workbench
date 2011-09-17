@@ -57,14 +57,31 @@ namespace caret {
       void finishLevel();//moves this progress object to 100%, then updates parent if not NULL
       ProgressObject();
    public:
+      ///fill in weight with the ...Algorithm::getAlgorithmWeight() function at the root level (before starting the first algorithm)
+      ///if using multiple algorithms at the root level (shame!), sum their weights first
       ProgressObject(float weight);
       ~ProgressObject();
-      void forceFinish();//call this after the algorithm returns to ensure it finishes (in case it ignores the object)
+      
+      ///call this after any algorithm returns to ensure it finishes (in case it ignores the object)
+      void forceFinish();
+      
+      ///add an algorithm to this algorithm's progress, and get a pointer to give to that algorithm
+      ///fill in weight with the ...Algorithm::getAlgorithmWeight() function
       ProgressObject* addAlgorithm(float weight);
+      
+      ///call this inside an algorithm after adding subalgorithms info, to correctly activate the progress bar
       LevelProgress startLevel(const float finishedProgress = 1.0);
-      void algorithmStartSentinel();//used in the constructor of 
-      float getCurrentProgressFraction();//in the range [0, 1]
-      float getCurrentProgressPercent();//in range [0, 100]
+      
+      ///DO NOT USE: used by AbstractAlgorithm constructor to check for algorithms that ignore the object
+      void algorithmStartSentinel();
+      
+      ///get progress as a fraction of 1 (in range [0, 1])
+      float getCurrentProgressFraction();
+      
+      ///get progress as percent (in range [0, 100])
+      float getCurrentProgressPercent();
+      
+      ///get the description of the current task
       const AString& getTaskDescription();
       //TODO: make something to return the statuses of all in-progress (nonzero curProgress) tasks for the entire tree, for detailed progress info
       //TODO: set up callbacks so progress changes don't have to be polled for
