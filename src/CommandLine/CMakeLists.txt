@@ -65,6 +65,7 @@ caret_command.cxx
 #
 TARGET_LINK_LIBRARIES(caret_command 
 CommandOperations
+Algorithms
 Brain
 Helpers
 Files
@@ -82,6 +83,7 @@ ${LIBS})
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/CommandOperations
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files

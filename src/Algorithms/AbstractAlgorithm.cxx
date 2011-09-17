@@ -1,6 +1,3 @@
-#ifndef __TIMER_TEST_H__
-#define __TIMER_TEST_H__
-
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -24,16 +21,28 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */ 
-#include "TestInterface.h"
 
-namespace caret {
+#include "AbstractAlgorithm.h"
 
-   class TimerTest : public TestInterface
-   {
-   public:
-      TimerTest(const AString& identifier);
-      virtual void execute();
-   };
+using namespace std;
+using namespace caret;
 
+AbstractAlgorithm::AbstractAlgorithm(ProgressObject* myProgressObject)
+{
+   myProgressObject->algorithmStartSentinel();
 }
-#endif //__TIMER_TEST_H__
+
+float AbstractAlgorithm::getAlgorithmInternalWeight()
+{
+   return 1.0f;
+}
+
+float AbstractAlgorithm::getSubAlgorithmWeight()
+{
+   return 0.0f;
+}
+
+float caret::AbstractAlgorithm::getAlgorithmWeight()
+{
+   return getAlgorithmInternalWeight() + getSubAlgorithmWeight();
+}

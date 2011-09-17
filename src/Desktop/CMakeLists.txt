@@ -54,6 +54,7 @@ ENDIF (APPLE)
 # Libraries that are linked
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
+Algorithms
 GuiQt
 Brain
 Helpers
@@ -98,6 +99,7 @@ ENDIF (APPLE)
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Desktop
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Helpers

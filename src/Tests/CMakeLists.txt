@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Tests
 TestInterface.h
 TimerTest.h
+ProgressTest.h
 
 TimerTest.cxx
 )
@@ -48,6 +49,7 @@ ENDIF (APPLE)
 #
 TARGET_LINK_LIBRARIES(test_driver
 Tests
+Algorithms
 GuiQt
 Brain
 Helpers
@@ -91,6 +93,8 @@ ENDIF (APPLE)
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Tests
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/CommandOperations
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain

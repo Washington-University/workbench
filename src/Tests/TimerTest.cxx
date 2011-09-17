@@ -37,7 +37,7 @@
 
 using namespace caret;
 
-TimerTest::TimerTest(const AString identifier) : TestInterface(identifier)
+TimerTest::TimerTest(const AString& identifier) : TestInterface(identifier)
 {
 }
 

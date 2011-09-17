@@ -1,5 +1,5 @@
-#ifndef __TEST_INTERFACE_H__
-#define __TEST_INTERFACE_H__
+#ifndef __ABSTRACT_ALGORITHM_H__
+#define __ABSTRACT_ALGORITHM_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -24,42 +24,22 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */ 
-#include <AString.h>
+
+//make it easy to use the progress object, don't just forward declare
+#include "ProgressObject.h"
 
 namespace caret {
 
-   class TestInterface
+   class AbstractAlgorithm
    {
-      AString m_identifier, m_failMessage;
-      bool m_failed;
-      TestInterface();//deny construction without arguments
-      TestInterface& operator=(const TestInterface& right);//deny assignment
+      AbstractAlgorithm();//prevent default construction
    protected:
-      void setFailed(const AString failMessage)
-      {
-         m_failed = true;
-         m_failMessage = failMessage;
-      }
-      TestInterface(const AString& identifier) : m_failMessage("")
-      {
-         m_identifier = identifier;
-         m_failed = false;
-      }
+      AbstractAlgorithm(ProgressObject* myProgressObject);
    public:
-      const AString& getIdentifier()
-      {
-         return m_identifier;
-      }
-      bool failed()
-      {
-         return m_failed;
-      }
-      const AString& getFailMessage()
-      {
-         return m_failMessage;
-      }
-      virtual void execute() = 0;//override this
+      static float getAlgorithmWeight();
+      static float getAlgorithmInternalWeight();//override these to make progress bars smooth
+      static float getSubAlgorithmWeight();
    };
 
 }
-#endif //__TEST_INTERFACE_H__
+#endif //__ABSTRACT_ALGORITHM_H__

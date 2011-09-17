@@ -46,6 +46,7 @@ MathFunctions.h
 MessageManager.h
 ProgramParameters.h
 ProgramParametersException.h
+ProgressObject.h
 SpeciesEnum.h
 StereotaxicSpaceEnum.h
 StructureEnum.h
@@ -80,6 +81,7 @@ MathFunctions.cxx
 MessageManager.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
+ProgressObject.cxx
 SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StructureEnum.cxx

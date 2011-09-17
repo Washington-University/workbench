@@ -103,6 +103,7 @@ ENDIF (ZLIB_FOUND)
 #
 # All subdirectories that will be configured for building
 #
+ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Nifti )
@@ -123,3 +124,4 @@ ADD_SUBDIRECTORY ( Tests )
 ENABLE_TESTING()
 
 ADD_TEST(timer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver timer)
+ADD_TEST(progress ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver progress)
