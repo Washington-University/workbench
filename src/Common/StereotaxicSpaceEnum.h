@@ -129,6 +129,12 @@ public:
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
+    static void toDimensions(const Enum enumValue, int32_t dimensionsOut[3]);
+    
+    static void toVoxelSizes(const Enum enumValue, float voxelSizesOut[3]);
+    
+    static void toOrigin(const Enum enumValue, float originOut[3]);
+    
 private:
     StereotaxicSpaceEnum(const Enum enumValue, 
                          const AString& name,
@@ -136,12 +142,12 @@ private:
                          const int32_t dimI,
                          const int32_t dimJ,
                          const int32_t dimK,
-                         const float originX,
-                         const float originY,
-                         const float originZ,
                          const float voxelSizeX,
                          const float voxelSizeY,
-                         const float voxelSizeZ);
+                         const float voxelSizeZ,
+                         const float originX,
+                         const float originY,
+                         const float originZ);
 
     static const StereotaxicSpaceEnum* findData(const Enum enumValue);
 
@@ -168,6 +174,15 @@ private:
     
     /** A user-friendly name that is displayed in the GUI */
     AString guiName;
+    
+    /** Volume Dimensions */
+    int32_t volumeDimensions[3];
+    
+    /** Volume Origin */
+    float volumeOrigin[3];
+    
+    /** Volume Voxel Sizes */
+    float volumeVoxelSizes[3];
 };
 
 #ifdef __STEREOTAXIC_SPACE_ENUM_DECLARE__

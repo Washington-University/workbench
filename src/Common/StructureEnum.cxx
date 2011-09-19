@@ -92,37 +92,37 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(ACCUMBENS_LEFT, 
                                      3, 
                                      "ACCUMBENS_LEFT", 
-                                     "Left Nucleus Accumbens"));
+                                     "AccumbensLeft"));
     
     enumData.push_back(StructureEnum(ACCUMBENS_RIGHT, 
                                      4, 
                                      "ACCUMBENS_RIGHT", 
-                                     "Right Nucleus Accumbens"));
+                                     "AccumbensRight"));
     
     enumData.push_back(StructureEnum(AMYGDALA_LEFT, 
                                      5, 
                                      "AMYGDALA_LEFT", 
-                                     "Left Amygdala"));
+                                     "AmygdalaLeft"));
     
     enumData.push_back(StructureEnum(AMYGDALA_RIGHT, 
                                      6, 
                                      "AMYGDALA_RIGHT", 
-                                     "Right Amygdala"));
+                                     "AmygdalaRight"));
     
     enumData.push_back(StructureEnum(BRAIN_STEM, 
                                      7, 
                                      "BRAIN_STEM", 
-                                     "Brain Stem"));
+                                     "BrainStem"));
     
     enumData.push_back(StructureEnum(CAUDATE_LEFT, 
                                      8, 
                                      "CAUDATE_LEFT", 
-                                     "Left Caudate"));
+                                     "CaudateLeft"));
     
     enumData.push_back(StructureEnum(CAUDATE_RIGHT, 
                                      9, 
                                      "CAUDATE_RIGHT", 
-                                     "Right Caudate"));
+                                     "CaudateRight"));
     
     enumData.push_back(StructureEnum(CEREBELLUM, 
                                      10, 
@@ -132,77 +132,77 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(CEREBELLUM_LEFT, 
                                      11, 
                                      "CEREBELLUM_LEFT", 
-                                     "Left Cerebellum"));
+                                     "CerebellumLeft"));
     
     enumData.push_back(StructureEnum(CEREBELLUM_RIGHT, 
                                      12, 
                                      "CEREBELLUM_RIGHT", 
-                                     "Right Cerebellum"));
+                                     "CerebellumRight"));
     
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_LEFT, 
                                      13, 
                                      "DIENCEPHALON_VENTRAL_LEFT", 
-                                     "Left Ventral Diencephalon"));
+                                     "DiencephalonVentralLeft"));
     
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_RIGHT, 
                                      14, 
                                      "DIENCEPHALON_VENTRAL_RIGHT", 
-                                     "Right Ventral Diencephalon"));
+                                     "DiencephalonVentralRight"));
     
     enumData.push_back(StructureEnum(HIPPOCAMPUS_LEFT, 
                                      15, 
                                      "HIPPOCAMPUS_LEFT", 
-                                     "Left Hippocampus"));
+                                     "HippocampusLeft"));
     
     enumData.push_back(StructureEnum(HIPPOCAMPUS_RIGHT, 
                                      16, 
                                      "HIPPOCAMPUS_RIGHT", 
-                                     "Right Hippocampus"));
+                                     "HippocampusRight"));
     
     enumData.push_back(StructureEnum(PALLIDUM_LEFT, 
                                      17, 
                                      "PALLIDUM_LEFT", 
-                                     "Left Pallidum"));
+                                     "PallidumLeft"));
     
     enumData.push_back(StructureEnum(PALLIDUM_RIGHT, 
                                      18, 
                                      "PALLIDUM_RIGHT", 
-                                     "Right Pallidum"));
+                                     "PallidumRight"));
     
     enumData.push_back(StructureEnum(OTHER, 
                                      19, 
                                      "OTHER", 
-                                     "Other structure not specified"));
+                                     "Other"));
     
     enumData.push_back(StructureEnum(PUTAMEN_LEFT, 
                                      20, 
                                      "PUTAMEN_LEFT", 
-                                     "Left Putamen"));
+                                     "PutamenLeft"));
     
     enumData.push_back(StructureEnum(PUTAMEN_RIGHT, 
                                      21, 
                                      "PUTAMEN_RIGHT", 
-                                     "Right Putamen"));
+                                     "PutamenRight"));
     
     enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_LEFT, 
                                      22, 
                                      "SUBCORTICAL_WHITE_MATTER_LEFT", 
-                                     "Left Subcortical White Matter"));
+                                     "SubcorticalWhiteMatterLeft"));
     
     enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_RIGHT, 
                                      23, 
                                      "SUBCORTICAL_WHITE_MATTER_RIGHT", 
-                                     "Right Subcortical White Matter"));
+                                     "SubcorticalWhiteMatterRight"));
     
     enumData.push_back(StructureEnum(THALAMUS_LEFT, 
                                      24, 
                                      "THALAMUS_LEFT", 
-                                     "Left Thalamus"));
+                                     "ThalamusLeft"));
     
     enumData.push_back(StructureEnum(THALAMUS_RIGHT, 
                                      25, 
                                      "THALAMUS_RIGHT", 
-                                     "Right Thalamus"));
+                                     "ThalamusRight"));
 }
 
 /**
