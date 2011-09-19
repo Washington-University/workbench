@@ -28,6 +28,7 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainOpenGLWidget.h
 GuiManager.h
+WuQFileDialog.h
 WuQMessageBox.h
 WuQWidgetObjectGroup.h
 )
@@ -45,6 +46,8 @@ EventGraphicsUpdateOneWindow.h
 EventUserInterfaceUpdate.h
 GuiManager.h
 ViewModeEnum.h
+WuQFileDialog.h
+WuQFileDialogIcons.h
 WuQMessageBox.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
@@ -59,6 +62,7 @@ EventGraphicsUpdateOneWindow.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 ViewModeEnum.cxx
+WuQFileDialog.cxx
 WuQMessageBox.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx

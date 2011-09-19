@@ -23,7 +23,6 @@
  */
 
 #include <QCloseEvent>
-#include <QFileDialog>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
@@ -39,6 +38,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "WuQFileDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -535,11 +535,11 @@ BrainBrowserWindow::processDataFileOpen()
     /*
      * Setup file selection dialog.
      */
-    QFileDialog fd(this);
-    fd.setAcceptMode(QFileDialog::AcceptOpen);
+    WuQFileDialog fd(this);
+    fd.setAcceptMode(WuQFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(QFileDialog::ExistingFiles);
-    fd.setViewMode(QFileDialog::List);
+    fd.setFileMode(WuQFileDialog::ExistingFiles);
+    fd.setViewMode(WuQFileDialog::List);
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
         
