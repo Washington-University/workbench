@@ -57,6 +57,9 @@ namespace caret {
          */
         virtual void validateDataArraysAfterReading() throw (DataFileException) = 0;
         
+        void verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondDimension,
+                                                  const int32_t maximumSecondDimension) const throw (DataFileException);
+
     public:
         virtual void clear();
         
@@ -73,6 +76,12 @@ namespace caret {
         virtual AString toString() const;
         
         StructureEnum::Enum getStructure() const;
+        
+        /** @return  Number of nodes in the file. */
+        virtual int32_t getNumberOfNodes() const = 0;
+        
+        /** @return  Number of columns (data arrays) in the file. */
+        virtual int32_t getNumberOfColumns() const = 0;
         
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);

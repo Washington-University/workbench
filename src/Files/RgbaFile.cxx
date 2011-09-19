@@ -98,78 +98,7 @@ RgbaFile::validateDataArraysAfterReading() throw (DataFileException)
 {
     this->initializeMembersRgbaFile();
     
-    int numDataArrays = this->giftiFile->getNumberOfDataArrays();
-    if (numDataArrays != 2) {
-        throw DataFileException("Number of data arrays MUST be two in a RgbaFile.");
-    }
-    
-    /*
-     * Find the coordinate and topology data arrays.
-     */
-    /*
-    for (int i = 0; i < numDataArrays; i++) {
-        GiftiDataArray* gda = this->giftiFile->getDataArray(i);
-        if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
-            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
-                if (gda->getNumberOfDimensions() == 2) {
-                    int64_t dim0 = gda->getDimension(0);
-                    int64_t dim1 = gda->getDimension(1);
-                    if ((dim0 > 0) && (dim1 == 3)) {
-                        this->coordinateDataArray = gda;
-                        this->coordinatePointer = gda->getDataPointerFloat();
-                    }
-                }
-            }
-        }
-        else if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_TRIANGLE) {
-            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_INT32) {
-                if (gda->getNumberOfDimensions() == 2) {
-                    int64_t dim0 = gda->getDimension(0);
-                    int64_t dim1 = gda->getDimension(1);
-                    if ((dim0 > 0) && (dim1 == 3)) {
-                        this->triangleDataArray = gda;
-                        this->trianglePointer = gda->getDataPointerInt();
-                    }
-                }
-            }
-        }
-        
-    }
-    
-    AString errorMessage;
-    if (this->coordinateDataArray == NULL) {
-        if (errorMessage.isEmpty() == false) {
-        }
-        errorMessage += "Unable to find coordinate data array which "
-            " contains data type FLOAT32, Intent POINTSET, and two "
-            " dimensions with the second dimension set to three.  ";
-    }
-    if (this->triangleDataArray == NULL) {
-        errorMessage += "Unable to find topology data array which "
-        " contains data type INT32, Intent TRIANGLE, and two "
-        " dimensions with the second dimension set to three.";
-    }
-    if (errorMessage.isEmpty() == false) {
-        throw DataFileException(errorMessage);
-    }
-    
-    this->computeNormals();
-
-    const int64_t numNodes = this->getNumberOfCoordinates();
-    const uint64_t numColorComponents = numNodes * 4;
-    
-    if (numColorComponents != this->nodeColoring.size()) {
-        this->nodeColoring.resize(numColorComponents);
-        
-        for (int64_t i = 0; i < numNodes; i++) {
-            const int64_t i4 = i * 4;
-            this->nodeColoring[i4]   = 0.75f;
-            this->nodeColoring[i4+1] = 0.75f;
-            this->nodeColoring[i4+2] = 0.75f;
-            this->nodeColoring[i4+3] = 1.0f;
-        }
-    }
-    */
+    this->verifyDataArraysHaveSameNumberOfRows(3, 4);
 }
 
 /**
@@ -178,11 +107,30 @@ RgbaFile::validateDataArraysAfterReading() throw (DataFileException)
  * @return
  *    The number of nodes.
  */
-int 
+int32_t
 RgbaFile::getNumberOfNodes() const
 {
-        return 0;
+    int32_t numNodes = 0;
+    int32_t numDataArrays = this->giftiFile->getNumberOfDataArrays();
+    if (numDataArrays > 0) {
+        numNodes = this->giftiFile->getDataArray(0)->getNumberOfRows();
+    }
+    return numNodes;
 }
+
+/**
+ * Get the number of columns.
+ *
+ * @return
+ *   The number of columns.
+ */
+int32_t
+RgbaFile::getNumberOfColumns() const
+{
+    const int32_t numCols = this->giftiFile->getNumberOfDataArrays();
+    return numCols;
+}
+
 
 /**
  * Initialize members of this class.

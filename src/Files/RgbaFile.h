@@ -36,7 +36,7 @@ namespace caret {
     class GiftiDataArray;
     
     /**
-     * A Label data file.
+     * \brief An RGBA data file.
      */
     class RgbaFile : public GiftiTypeFile {
         
@@ -51,8 +51,10 @@ namespace caret {
         
         virtual void clear();
         
-        int getNumberOfNodes() const;
-                
+        virtual int32_t getNumberOfNodes() const;
+        
+        virtual int32_t getNumberOfColumns() const;
+        
     protected:
         /**
          * Validate the contents of the file after it

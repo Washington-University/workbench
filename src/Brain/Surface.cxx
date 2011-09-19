@@ -91,7 +91,7 @@ void
 Surface::getBounds(BoundingBox& boundingBoxOut) const
 {
     boundingBoxOut.set(this->getCoordinate(0), 
-                       this->getNumberOfCoordinates());
+                       this->getNumberOfNodes());
 }
 
 /**

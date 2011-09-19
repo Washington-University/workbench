@@ -36,7 +36,7 @@ namespace caret {
     class GiftiDataArray;
     
     /**
-     * A Label data file.
+     * \brief A Metric data file.
      */
     class MetricFile : public GiftiTypeFile {
         
@@ -51,8 +51,19 @@ namespace caret {
         
         virtual void clear();
         
-        int getNumberOfNodes() const;
-                
+        virtual int32_t getNumberOfNodes() const;
+        
+        virtual int32_t getNumberOfColumns() const;
+        
+        float getValue(const int32_t nodeIndex,
+                       const int32_t columnIndex) const;
+        
+        void setValue(const int32_t nodeIndex,
+                      const int32_t columnIndex,
+                      const float value);
+        
+        const float* getValuePointerForColumn(const int32_t columnIndex) const;
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -66,6 +77,8 @@ namespace caret {
         void initializeMembersMetricFile();
         
     private:
+        /** Points to actual data in each Gifti Data Array */
+        std::vector<float*> columnDataPointers;
     };
 
 } // namespace

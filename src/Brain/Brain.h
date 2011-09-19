@@ -67,6 +67,12 @@ namespace caret {
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
+        void readLabelFile(const AString& filename) throw (DataFileException);
+        
+        void readMetricFile(const AString& filename) throw (DataFileException);
+        
+        void readRgbaFile(const AString& filename) throw (DataFileException);
+        
         void readSurfaceFile(const AString& filename) throw (DataFileException);
         
         std::vector<BrainStructure*> brainStructures;

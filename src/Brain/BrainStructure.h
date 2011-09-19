@@ -32,12 +32,16 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "DataFileException.h"
 #include "StructureEnum.h"
 
 namespace caret {
     
     class Brain;
+    class LabelFile;
+    class MetricFile;
     class ModelDisplayControllerSurface;
+    class RgbaFile;
     class Surface;
     
     /**
@@ -57,7 +61,13 @@ namespace caret {
         BrainStructure& operator=(const BrainStructure& s);
 
     public:
-        bool addSurface(Surface* surface);
+        void addLabelFile(LabelFile* labelFile) throw (DataFileException);
+        
+        void addMetricFile(MetricFile* metricFile) throw (DataFileException);
+        
+        void addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException);
+        
+        void addSurface(Surface* surface) throw (DataFileException);
         
         void deleteSurface(Surface* surface);
         
@@ -71,12 +81,36 @@ namespace caret {
 
         StructureEnum::Enum getStructure() const;
         
+        int32_t getNumberOfLabelFiles() const;
+        
+        LabelFile* getLabelFile(const int32_t fileIndex);
+        
+        const LabelFile* getLabelFile(const int32_t fileIndex) const;
+        
+        int32_t getNumberOfMetricFiles() const;
+        
+        MetricFile* getMetricFile(const int32_t fileIndex);
+        
+        const MetricFile* getMetricFile(const int32_t fileIndex) const;
+        
+        int32_t getNumberOfRgbaFiles() const;
+        
+        RgbaFile* getRgbaFile(const int32_t fileIndex);
+        
+        const RgbaFile* getRgbaFile(const int32_t fileIndex) const;
+        
     private:
         Brain* brain;
         
         StructureEnum::Enum structure;
         
         std::vector<Surface*> surfaces;
+        
+        std::vector<LabelFile*> labelFiles;
+        
+        std::vector<MetricFile*> metricFiles;
+        
+        std::vector<RgbaFile*> rgbaFiles;
         
         /** Maps a surface to its model controller */
         std::map<Surface*, ModelDisplayControllerSurface*> surfaceControllerMap; 

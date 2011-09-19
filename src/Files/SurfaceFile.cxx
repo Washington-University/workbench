@@ -154,7 +154,7 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
     
     this->computeNormals();
 
-    const int64_t numNodes = this->getNumberOfCoordinates();
+    const int64_t numNodes = this->getNumberOfNodes();
     const uint64_t numColorComponents = numNodes * 4;
     
     if (numColorComponents != this->nodeColoring.size()) {
@@ -171,13 +171,13 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
 }
 
 /**
- * Get the number of coordinates.
+ * Get the number of nodes.
  *
  * @return
- *    The number of coordinates.
+ *    The number of nodes.
  */
-int 
-SurfaceFile::getNumberOfCoordinates() const
+int32_t
+SurfaceFile::getNumberOfNodes() const
 {
     if (this->coordinatePointer == NULL) {
         return 0;
@@ -187,20 +187,35 @@ SurfaceFile::getNumberOfCoordinates() const
 }
 
 /**
+ * Get the number of columns.
+ *
+ * @return
+ *   The number of columns.
+ */
+int32_t
+SurfaceFile::getNumberOfColumns() const
+{
+    if (this->getNumberOfNodes() > 0) {
+        return 1;
+    }
+    return 0;
+}
+
+/**
  * Get a coordinate.
  *
  * @param
- *    Index of coordinate.
+ *    nodeIndex of coordinate.
  *
  * @return
  *    Pointer to memory containing the XYZ coordinate.
  */
 const float* 
-SurfaceFile::getCoordinate(const int32_t indx) const
+SurfaceFile::getCoordinate(const int32_t nodeIndex) const
 {
     CaretAssert(this->coordinatePointer);
-    const int32_t offset = indx * 3;
-    CaretAssert((offset >= 0) && (offset < (this->getNumberOfCoordinates() * 3)));
+    const int32_t offset = nodeIndex * 3;
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfNodes() * 3)));
     return &(this->coordinatePointer[offset]);    
 }
 
@@ -274,9 +289,9 @@ SurfaceFile::copyHelperSurfaceFile(const SurfaceFile& sf)
  *    Pointer to memory containing the normal vector.
  */
 const float* 
-SurfaceFile::getNormalVector(const int32_t indx) const
+SurfaceFile::getNormalVector(const int32_t nodeIndex) const
 {
-    const int32_t offset = indx * 3;
+    const int32_t offset = nodeIndex * 3;
     CaretAssert((offset >= 0) && (offset < static_cast<int>(this->normalVectors.size())));
     return &(this->normalVectors[offset]);    
 }
@@ -287,7 +302,7 @@ SurfaceFile::getNormalVector(const int32_t indx) const
 void 
 SurfaceFile::computeNormals()
 {
-    int32_t numCoords = this->getNumberOfCoordinates();
+    int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
         this->normalVectors.resize(numCoords * 3);
     }
@@ -363,7 +378,7 @@ SurfaceFile::computeNormals()
 const float* 
 SurfaceFile::getNodeColor(int32_t nodeIndex) const
 {
-    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfCoordinates()),
+    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()),
                        "Invalid index for node coloring.");
     
     return &this->nodeColoring[nodeIndex * 4];

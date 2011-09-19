@@ -76,7 +76,7 @@ LabelFile::operator=(const LabelFile& sf)
  */
 LabelFile::~LabelFile()
 {
-    
+    this->columnDataPointers.clear();
 }
 
 /**
@@ -86,6 +86,25 @@ void
 LabelFile::clear()
 {
     GiftiTypeFile::clear();
+    this->columnDataPointers.clear();
+}
+
+/** 
+ * @return Return the GIFTI Label Table. 
+ */
+GiftiLabelTable* 
+LabelFile::getLabelTable() 
+{ 
+    return this->giftiFile->getLabelTable(); 
+}
+
+/** 
+ * @return Return the GIFTI Label Table. 
+ */
+const GiftiLabelTable* 
+LabelFile::getLabelTable() const 
+{ 
+    return this->giftiFile->getLabelTable(); 
 }
 
 /**
@@ -96,80 +115,16 @@ LabelFile::clear()
 void 
 LabelFile::validateDataArraysAfterReading() throw (DataFileException)
 {
+    this->columnDataPointers.clear();
+
     this->initializeMembersLabelFile();
     
-    int numDataArrays = this->giftiFile->getNumberOfDataArrays();
-    if (numDataArrays != 2) {
-        throw DataFileException("Number of data arrays MUST be two in a LabelFile.");
-    }
+    this->verifyDataArraysHaveSameNumberOfRows(0, 0);
     
-    /*
-     * Find the coordinate and topology data arrays.
-     */
-    /*
-    for (int i = 0; i < numDataArrays; i++) {
-        GiftiDataArray* gda = this->giftiFile->getDataArray(i);
-        if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
-            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
-                if (gda->getNumberOfDimensions() == 2) {
-                    int64_t dim0 = gda->getDimension(0);
-                    int64_t dim1 = gda->getDimension(1);
-                    if ((dim0 > 0) && (dim1 == 3)) {
-                        this->coordinateDataArray = gda;
-                        this->coordinatePointer = gda->getDataPointerFloat();
-                    }
-                }
-            }
-        }
-        else if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_TRIANGLE) {
-            if (gda->getDataType() == NiftiDataTypeEnum::NIFTI_TYPE_INT32) {
-                if (gda->getNumberOfDimensions() == 2) {
-                    int64_t dim0 = gda->getDimension(0);
-                    int64_t dim1 = gda->getDimension(1);
-                    if ((dim0 > 0) && (dim1 == 3)) {
-                        this->triangleDataArray = gda;
-                        this->trianglePointer = gda->getDataPointerInt();
-                    }
-                }
-            }
-        }
-        
+    const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
+    for (int32_t i = 0; i < numberOfDataArrays; i++) {
+        this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerInt());
     }
-    
-    AString errorMessage;
-    if (this->coordinateDataArray == NULL) {
-        if (errorMessage.isEmpty() == false) {
-        }
-        errorMessage += "Unable to find coordinate data array which "
-            " contains data type FLOAT32, Intent POINTSET, and two "
-            " dimensions with the second dimension set to three.  ";
-    }
-    if (this->triangleDataArray == NULL) {
-        errorMessage += "Unable to find topology data array which "
-        " contains data type INT32, Intent TRIANGLE, and two "
-        " dimensions with the second dimension set to three.";
-    }
-    if (errorMessage.isEmpty() == false) {
-        throw DataFileException(errorMessage);
-    }
-    
-    this->computeNormals();
-
-    const int64_t numNodes = this->getNumberOfCoordinates();
-    const uint64_t numColorComponents = numNodes * 4;
-    
-    if (numColorComponents != this->nodeColoring.size()) {
-        this->nodeColoring.resize(numColorComponents);
-        
-        for (int64_t i = 0; i < numNodes; i++) {
-            const int64_t i4 = i * 4;
-            this->nodeColoring[i4]   = 0.75f;
-            this->nodeColoring[i4+1] = 0.75f;
-            this->nodeColoring[i4+2] = 0.75f;
-            this->nodeColoring[i4+3] = 1.0f;
-        }
-    }
-    */
 }
 
 /**
@@ -178,11 +133,30 @@ LabelFile::validateDataArraysAfterReading() throw (DataFileException)
  * @return
  *    The number of nodes.
  */
-int 
+int32_t
 LabelFile::getNumberOfNodes() const
 {
-        return 0;
+    int32_t numNodes = 0;
+    int32_t numDataArrays = this->giftiFile->getNumberOfDataArrays();
+    if (numDataArrays > 0) {
+        numNodes = this->giftiFile->getDataArray(0)->getNumberOfRows();
+    }
+    return numNodes;
 }
+
+/**
+ * Get the number of columns.
+ *
+ * @return
+ *   The number of columns.
+ */
+int32_t
+LabelFile::getNumberOfColumns() const
+{
+    const int32_t numCols = this->giftiFile->getNumberOfDataArrays();
+    return numCols;
+}
+
 
 /**
  * Initialize members of this class.
@@ -203,5 +177,63 @@ LabelFile::copyHelperLabelFile(const LabelFile& sf)
 {
     this->validateDataArraysAfterReading();
 }
+
+/**
+ * Get label key for a node.
+ * 
+ * @param nodeIndex
+ *     Node index.
+ * @param columnIndex
+ *     Column index.
+ * @return
+ *     Label key at the given node and column indices.
+ */
+int32_t 
+LabelFile::getLabelKey(const int32_t nodeIndex,
+                       const int32_t columnIndex) const
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()), 
+                       "Node Index out of range.");
+    
+    return this->columnDataPointers[columnIndex][nodeIndex];
+}
+
+/**
+ * set label key for a node.
+ * 
+ * @param nodeIndex
+ *     Node index.
+ * @param columnIndex
+ *     Column index.
+ * param labelKey
+ *     Label key inserted at the given node and column indices.
+ */
+void 
+LabelFile::setLabelKey(const int32_t nodeIndex,
+                       const int32_t columnIndex,
+                       const int32_t labelKey)
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()), "Node Index out of range.");
+    
+    this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
+}
+
+/**
+ * Get a pointer to the keys for a label file column.
+ * @param columnIndex
+ *     Index of the column.
+ * @return 
+ *     Pointer to keys for the given column.
+ */
+const int32_t* 
+LabelFile::getLabelKeyPointerForColumn(const int32_t columnIndex) const
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    return this->columnDataPointers[columnIndex];    
+}
+
+
 
 

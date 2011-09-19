@@ -98,8 +98,8 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
          }
          else {
             std::ostringstream str;
-            str << "Root element is \"" << qName.toStdString() << "\" but should be "
-                << GiftiXmlElements::TAG_GIFTI.toStdString();
+            str << "Root element is \"" << qName << "\" but should be "
+                << GiftiXmlElements::TAG_GIFTI;
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
@@ -119,11 +119,11 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
          }
          else {
             std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_GIFTI.toStdString() << " is \"" << qName.toStdString()
+            str << "Child of " << GiftiXmlElements::TAG_GIFTI << " is \"" << qName
                 << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_METADATA.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_DATA_ARRAY.toStdString() << "\n"
-             << "   " << GiftiXmlElements::TAG_LABEL_TABLE.toStdString();
+                << "   " << GiftiXmlElements::TAG_METADATA << "\n"
+                << "   " << GiftiXmlElements::TAG_DATA_ARRAY << "\n"
+             << "   " << GiftiXmlElements::TAG_LABEL_TABLE;
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
@@ -149,18 +149,18 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
          }
          else {
             std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_DATA_ARRAY.toStdString() << " is \"" << qName.toStdString() 
+            str << "Child of " << GiftiXmlElements::TAG_DATA_ARRAY << " is \"" << qName 
                 << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_METADATA.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_DATA.toStdString();
+                << "   " << GiftiXmlElements::TAG_METADATA << "\n"
+                << "   " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX << "\n"
+                << "   " << GiftiXmlElements::TAG_DATA;
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_DATA_ARRAY_DATA:
          {
             std::ostringstream str;
-            str << GiftiXmlElements::TAG_DATA.toStdString() << " has child \"" << qName.toStdString() 
+            str << GiftiXmlElements::TAG_DATA << " has child \"" << qName 
                 << "\" but should not have any child nodes";
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
@@ -177,18 +177,18 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
          }
          else {
             std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX.toStdString() << " is \"" << qName.toStdString() 
+            str << "Child of " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX << " is \"" << qName 
                 << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_DATA_SPACE.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_DATA.toStdString();
+                << "   " << GiftiXmlElements::TAG_MATRIX_DATA_SPACE << "\n"
+                << "   " << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE << "\n"
+                << "   " << GiftiXmlElements::TAG_MATRIX_DATA;
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
          break;
       case STATE_DATA_ARRAY_MATRIX_DATA_SPACE:
          {
             std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_DATA_SPACE.toStdString() << " has child \"" << qName.toStdString() 
+            str << GiftiXmlElements::TAG_MATRIX_DATA_SPACE << " has child \"" << qName 
                 << "\" but should not have any child nodes";
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
@@ -196,7 +196,7 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE:
          {
             std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE.toStdString() << " has child \"" << qName.toStdString() 
+            str << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE << " has child \"" << qName 
                 << "\" but should not have any child nodes";
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }
@@ -204,7 +204,7 @@ GiftiFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_DATA_ARRAY_MATRIX_DATA:
          {
             std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_DATA.toStdString() << " has child \"" << qName.toStdString() 
+            str << GiftiXmlElements::TAG_MATRIX_DATA << " has child \"" << qName 
                 << "\" but should not have any child nodes";
              throw XmlSaxParserException(AString::fromStdString(str.str()));
          }

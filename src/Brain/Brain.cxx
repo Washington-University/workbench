@@ -29,7 +29,10 @@
 #include "CaretLogger.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
+#include "MetricFile.h"
+#include "LabelFile.h"
 #include "PaletteFile.h"
+#include "RgbaFile.h"
 #include "Surface.h"
 #include <algorithm>
 
@@ -143,21 +146,178 @@ Brain::resetBrain()
 void 
 Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
 {
-    Surface* s = new Surface();
-    s->readFile(filename);
+    Surface* surface = new Surface();
+    surface->readFile(filename);
     
-    const StructureEnum::Enum structure = s->getStructure();
+    const StructureEnum::Enum structure = surface->getStructure();
     if (structure == StructureEnum::INVALID) {
-        CaretLogWarning("Structure for surface "
-                        + filename
-                        + " is not valid.");
+        delete surface;
+        AString message = "Structure in "
+        + filename
+        + " is not valid.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
     }
     
     BrainStructure* bs = this->getBrainStructure(structure, true);
     if (bs != NULL) {
-        bs->addSurface(s);
+        bs->addSurface(surface);
+    }
+    else {
+        delete surface;
+        AString message = "Failed to create a BrainStructure for surface with structure "
+        + StructureEnum::toGuiName(structure)
+        + ".";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
     }
 }
+
+/**
+ * Read a label file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readLabelFile(const AString& filename) throw (DataFileException)
+{
+    LabelFile* labelFile = new LabelFile();
+    labelFile->readFile(filename);
+    
+    const StructureEnum::Enum structure = labelFile->getStructure();
+    if (structure == StructureEnum::INVALID) {
+        delete labelFile;
+        AString message = "Structure in "
+        + filename
+        + " is not valid.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+    
+    BrainStructure* bs = this->getBrainStructure(structure, false);
+    if (bs != NULL) {
+        try {
+            bs->addLabelFile(labelFile);
+        }
+        catch (DataFileException e) {
+            delete labelFile;
+            throw e;
+        }
+    }
+    else {
+        delete labelFile;
+        AString message = "Must read a surface with structure "
+        + StructureEnum::toGuiName(structure)
+        + " before reading its label files.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+}
+
+/**
+ * Read a metric file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readMetricFile(const AString& filename) throw (DataFileException)
+{
+    MetricFile* metricFile = new MetricFile();
+    metricFile->readFile(filename);
+    
+    const StructureEnum::Enum structure = metricFile->getStructure();
+    if (structure == StructureEnum::INVALID) {
+        delete metricFile;
+        AString message = "Structure in "
+        + filename
+        + " is not valid.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+    
+    BrainStructure* bs = this->getBrainStructure(structure, false);
+    if (bs != NULL) {
+        try {
+            bs->addMetricFile(metricFile);
+        }
+        catch (DataFileException e) {
+            delete metricFile;
+            throw e;
+        }
+    }
+    else {
+        delete metricFile;
+        AString message = "Must read a surface with structure "
+        + StructureEnum::toGuiName(structure)
+        + " before reading its metric files.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+}
+
+/**
+ * Read an RGBA file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readRgbaFile(const AString& filename) throw (DataFileException)
+{
+    RgbaFile* rgbaFile = new RgbaFile();
+    rgbaFile->readFile(filename);
+    
+    const StructureEnum::Enum structure = rgbaFile->getStructure();
+    if (structure == StructureEnum::INVALID) {
+        delete rgbaFile;
+        AString message = "Structure in "
+                        + filename
+                        + " is not valid.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+    
+    BrainStructure* bs = this->getBrainStructure(structure, false);
+    if (bs != NULL) {
+        try {
+            bs->addRgbaFile(rgbaFile);
+        }
+        catch (DataFileException e) {
+            delete rgbaFile;
+            throw e;
+        }
+    }
+    else {
+        delete rgbaFile;
+        AString message = "Must read a surface with structure "
+        + StructureEnum::toGuiName(structure)
+        + " before reading its RGBA files.";
+        DataFileException e(message);
+        CaretLogThrowing(e);
+        throw e;
+    }
+}
+
+void readLabelFile(const AString& filename) throw (DataFileException);
+
+void readMetricFile(const AString& filename) throw (DataFileException);
+
+void readRgbaFile(const AString& filename) throw (DataFileException);
 
 /**
  * Process a read data file event.
@@ -182,16 +342,16 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
                 readDataFileEvent->setErrorMessage("Reading not implemented for: foci projection");
                 break;
             case DataFileTypeEnum::LABEL:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: label");
+                this->readLabelFile(filename);
                 break;
             case DataFileTypeEnum::METRIC:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: metric");
+                this->readMetricFile(filename);
                 break;
             case DataFileTypeEnum::PALETTE:
                 readDataFileEvent->setErrorMessage("Reading not implemented for: palette");
                 break;
             case DataFileTypeEnum::RGBA:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: rgba");
+                this->readRgbaFile(filename);
                 break;
             case DataFileTypeEnum::SCENE:
                 readDataFileEvent->setErrorMessage("Reading not implemented for: scene");

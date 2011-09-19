@@ -36,7 +36,7 @@ using namespace std;
 GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
 {
    TopologyHelper topoHelpIn(surfaceIn, true, true, false);
-   numNodes = surfaceIn->getNumberOfCoordinates();
+   numNodes = surfaceIn->getNumberOfNodes();
    //allocate
    numNeighbors = new int[numNodes];
    nodeNeighbors = new int*[numNodes];

@@ -229,7 +229,74 @@ GiftiTypeFile::getStructure() const
     StructureEnum::Enum structure = StructureEnum::fromGuiName(structurePrimaryName, &isValid);
     return structure;
 }
-                                                                                
-                                                                                
+    
+/**
+ * Verify that all of the data arrays have the same number of rows.
+ * @throws DataFileException
+ *    If there are data arrays that have a different number of rows.
+ */
+void 
+GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondDimension,
+                                                    const int32_t maximumSecondDimension) const throw (DataFileException)
+{
+    const int32_t numberOfArrays = this->giftiFile->getNumberOfDataArrays();
+    if (numberOfArrays > 1) {
+        /*
+         * Verify all arrays contain the same number of rows.
+         */
+        int64_t numberOfRows = this->giftiFile->getDataArray(0)->getNumberOfRows();        
+        for (int32_t i = 1; i < numberOfArrays; i++) {
+            const int32_t arrayNumberOfRows = this->giftiFile->getDataArray(i)->getNumberOfRows();
+            if (numberOfRows != arrayNumberOfRows) {
+                AString message = "All data arrays (columns) in the file must have the same number of rows.";
+                message += "  The first array (column) contains " + AString::number(numberOfRows) + " rows.";
+                message += "  Array " + AString::number(i + 1) + " contains " + AString::number(arrayNumberOfRows) + " rows.";
+                DataFileException e(message);
+                CaretLogThrowing(e);
+                throw e;                                     
+            }
+        }
+        
+        /*
+         * Verify that second dimensions is within valid range.
+         */
+        for (int32_t i = 0; i < numberOfArrays; i++) {
+            const GiftiDataArray* gda = this->giftiFile->getDataArray(i);
+            const int32_t numberOfDimensions = gda->getNumberOfDimensions();
+            if (numberOfDimensions > 2) {
+                DataFileException e("Data array "
+                                    + AString::number(i + 1)
+                                    + " contains "
+                                    + AString::number(numberOfDimensions)
+                                    + " dimensions.  Two is the maximum allowed.");
+                CaretLogThrowing(e);
+                throw e;
+            }
+            
+            int32_t secondDimension = 0;
+            if (numberOfDimensions > 1) {
+                secondDimension = gda->getDimension(1);
+                if (secondDimension == 1) {
+                    secondDimension = 0;
+                }
+            }
+            
+            if ((secondDimension < minimumSecondDimension) 
+                || (secondDimension > maximumSecondDimension)) {
+                DataFileException e("Data array "
+                                    + AString::number(i + 1)
+                                    + " second dimension is "
+                                    + AString::number(numberOfDimensions)
+                                    + ".  Minimum allowed is "
+                                    + AString::number(minimumSecondDimension)
+                                    + ".  Maximum allowed is "
+                                    + AString::number(maximumSecondDimension));
+                CaretLogThrowing(e);
+                throw e;
+            }
+        }
+    }
+}
+                                                                            
 
 

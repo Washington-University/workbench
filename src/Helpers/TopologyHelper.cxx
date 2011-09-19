@@ -85,7 +85,7 @@ TopologyHelper::TopologyHelper(const SurfaceFile* sf,
       //
       // There may be nodes that have been disconnected and not associated with any tiles
       //
-      maxNodeNum = std::max(maxNodeNum, sf->getNumberOfCoordinates());
+      maxNodeNum = std::max(maxNodeNum, sf->getNumberOfNodes());
       
       //
       // Initialize the node structures

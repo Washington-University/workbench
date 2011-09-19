@@ -51,11 +51,13 @@ namespace caret {
         
         virtual void clear();
         
-        int getNumberOfCoordinates() const;
+        virtual int32_t getNumberOfNodes() const;
         
-        const float* getCoordinate(const int32_t indx) const;
+        virtual int32_t getNumberOfColumns() const;
         
-        const float* getNormalVector(const int32_t indx) const;
+        const float* getCoordinate(const int32_t nodeIndex) const;
+        
+        const float* getNormalVector(const int32_t nodeIndex) const;
         
         int getNumberOfTriangles() const;
         
