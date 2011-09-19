@@ -375,9 +375,11 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
             bool validOffsetFlag = false;
             this->externalFileOffsetForReadingData = offsetString.toLong();
             if (validOffsetFlag == false) {
-                throw XmlSaxParserException("File Offset is not an integer ("
+                XmlSaxParserException e("File Offset is not an integer ("
                                             + offsetString
                                             + ")");
+                CaretLogThrowing(e);
+                throw e;
             }
         }
     }
@@ -552,7 +554,7 @@ GiftiFileSaxReader::warning(const XmlSaxParserException& e) throw (XmlSaxParserE
 void 
 GiftiFileSaxReader::error(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {   
-    CaretLogWarning("XML Parser Error: " + e.whatString());
+    CaretLogSevere("XML Parser Error: " + e.whatString());
     throw e;
 }
 

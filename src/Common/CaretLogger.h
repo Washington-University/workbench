@@ -77,36 +77,54 @@ namespace caret {
  * \def CaretLogSevere
  *
  * Log a message at the SEVERE level.
+ * Severe items typically prevent normal program execution.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogSevere(TEXT) \
 ((caret::CaretLogger::getLogger()->isSevere())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::SEVERE, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::SEVERE, __func__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
  * \def CaretLogWarning
  *
  * Log a message at the WARNING level.
+ * Warning messages indicate potential problems.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogWarning(TEXT) \
 ((caret::CaretLogger::getLogger()->isWarning())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::WARNING, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::WARNING, __func__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
  * \def CaretLogInfo
  *
  * Log a message at the INFO level.
+ * Informational messages that may be helpful to end users.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogInfo(TEXT) \
 ((caret::CaretLogger::getLogger()->isInfo())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::INFO, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::INFO, __func__, __FILE__, __LINE__, (TEXT)) \
+: (void)0)
+
+/**
+ * \def CaretLogConfig
+ *
+ * Log a message at the CONFIG level. 
+ * Configuration messages typically involve versions of 
+ * libraries, operating system, etc, and may help with
+ * issues on specific configurations.
+ * @param text 
+ *    Text that is logged.
+ */
+#define CaretLogConfig(TEXT) \
+((caret::CaretLogger::getLogger()->isConfig())  \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::CONFIG, __func__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 
@@ -114,36 +132,40 @@ namespace caret {
  * \def CaretLogFine
  *
  * Log a message at the FINE level.
+ * Fine messages are for developers such as minor, recoverable failures.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogFine(TEXT) \
     ((caret::CaretLogger::getLogger()->isFine())  \
-    ? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINE, __FILE__, __LINE__, (TEXT)) \
+    ? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINE, __func__, __FILE__, __LINE__, (TEXT)) \
     : (void)0)
 
 /**
  * \def CaretLogFiner
  *
  * Log a message at the FINER level.
+ * Finer messages for for developers to provide detailed tracing messages.
+ * Typically events and exceptions are logged at the this level.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogFiner(TEXT) \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __func__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
  * \def CaretLogFinest
  *
  * Log a message at the FINEST level.
+ * Finest messages are for developers to provide highly detailed tracing messages.
  * @param text 
  *    Text that is logged.
  */
 #define CaretLogFinest(TEXT) \
 ((caret::CaretLogger::getLogger()->isFinest())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINEST, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINEST, __func__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -155,7 +177,7 @@ namespace caret {
  */
 #define CaretLogEntering() \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __FILE__, __LINE__, (AString("Entering function: ").append(__func__))) \
+? caret::CaretLogger::getLogger()->entering(__func__, __FILE__, __LINE__) \
 : (void)0)
 
 /**
@@ -167,7 +189,20 @@ namespace caret {
  */
 #define CaretLogExiting() \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __FILE__, __LINE__, (AString("Exiting function: ").append(__func__))) \
+? caret::CaretLogger::getLogger()->exiting(__func__, __FILE__, __LINE__) \
+: (void)0)
+
+/**
+ * \def CaretLogThrowing
+ *
+ * Log a message at the FINER level for an exception class that is
+ * derived from CaretException.
+ * @param CARET_EXCEPTION 
+ *    CaretException that is logged.
+ */
+#define CaretLogThrowing(CARET_EXCEPTION) \
+((caret::CaretLogger::getLogger()->isFiner())  \
+? caret::CaretLogger::getLogger()->throwingCaretException(__func__, __FILE__, __LINE__, CARET_EXCEPTION) \
 : (void)0)
 
 

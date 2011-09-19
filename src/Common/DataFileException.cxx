@@ -22,7 +22,6 @@
  * 
  */ 
 
-
 #include "DataFileException.h"
 
 #include <cstring>

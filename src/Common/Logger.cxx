@@ -92,10 +92,13 @@ Logger::toString() const
 }
 
 /**
- * Log a message.  Level MAY NOT be ALL or OFF.
+ * Log a message.
  *
  * @param logLevel
- *    Logging level for message.
+ *    Logging level for message.  The levels OFF and ALL
+ *    are not permitted.
+ * @param methodName
+ *    Name of method.
  * @param filename
  *    Name of file that originated the message.
  * @param lineNumber
@@ -106,14 +109,20 @@ Logger::toString() const
  */
 void 
 Logger::log(const LogLevelEnum::Enum logLevel,
-                const AString& filename,
-                const int32_t lineNumber,
-                const AString& text)
+            const AString& methodName,
+            const AString& filename,
+            const int32_t lineNumber,
+            const AString& text)
 {
     switch (logLevel) {
         case LogLevelEnum::OFF:
         case LogLevelEnum::ALL:
-            CaretAssertMessage(0, "Cannot log record with level = OFF or ALL");
+            Logger::log(LogLevelEnum::SEVERE, 
+                        methodName,
+                        filename,
+                        lineNumber,
+                        "Cannot log record with level = OFF or ALL for: "
+                        + text);
             break;
         case LogLevelEnum::FINEST:
             if (this->finestLoggingEnabled == false) return;
@@ -123,6 +132,9 @@ Logger::log(const LogLevelEnum::Enum logLevel,
             break;
         case LogLevelEnum::FINE:
             if (this->fineLoggingEnabled == false) return;
+            break;
+        case LogLevelEnum::CONFIG:
+            if (this->configLoggingEnabled == false) return;
             break;
         case LogLevelEnum::INFO:
             if (this->infoLoggingEnabled == false) return;
@@ -135,6 +147,7 @@ Logger::log(const LogLevelEnum::Enum logLevel,
             break;
     }
     const LogRecord logRecord(logLevel,
+                              methodName,
                               filename,
                               lineNumber,
                               text);
@@ -148,6 +161,77 @@ Logger::log(const LogLevelEnum::Enum logLevel,
         LogHandler* lh = *iter;
         lh->publish(logRecord);
     }
+}
+
+/**
+ * Log throwing of a CaretException derived class.
+ * A log record with the message THROW at the level 
+ * FINER is logged.
+ * @param methodName
+ *    Name of method.
+ * @param filename
+ *    Name of file that originated the message.
+ * @param lineNumber
+ *    Line number of message.
+ * 
+ */
+void 
+Logger::throwingCaretException(const AString& methodName,
+                               const AString& filename,
+                               const int32_t lineNumber,
+                               CaretException& caretException)
+{
+    Logger::log(LogLevelEnum::FINER, 
+                methodName, 
+                filename, 
+                lineNumber, 
+                "THROW " + AString(typeid(caretException).name()) + ": " + caretException.whatString());
+}
+
+/**
+ * Log a method entry.  A log record with
+ * the message ENTRY at the level FINER
+ * is logged.
+ * @param methodName
+ *    Name of method.
+ * @param filename
+ *    Name of file that originated the message.
+ * @param lineNumber
+ *    Line number of message.
+ */
+void 
+Logger::entering(const AString& methodName,
+                 const AString& filename,
+                 const int32_t lineNumber)
+{
+    Logger::log(LogLevelEnum::FINER, 
+                "", 
+                filename, 
+                lineNumber, 
+                "ENTRY: " + methodName);
+}
+
+/**
+ * Log a method return.  A log record with
+ * the message RETURN at the level FINER
+ * is logged.
+ * @param methodName
+ *    Name of method.
+ * @param filename
+ *    Name of file that originated the message.
+ * @param lineNumber
+ *    Line number of message.
+ */
+void 
+Logger::exiting(const AString& methodName,
+                const AString& filename,
+                const int32_t lineNumber)
+{
+    Logger::log(LogLevelEnum::FINER, 
+                "", filename, 
+                lineNumber, 
+                "RETURN: " + 
+                methodName);
 }
 
 /**
@@ -175,6 +259,7 @@ Logger::setLevel(const LogLevelEnum::Enum level)
     this->severeLoggingEnabled  = false;
     this->warningLoggingEnabled = false;
     this->infoLoggingEnabled    = false;
+    this->configLoggingEnabled  = false;
     this->fineLoggingEnabled    = false;
     this->finerLoggingEnabled   = false;
     this->finestLoggingEnabled  = false;
@@ -196,6 +281,8 @@ Logger::setLevel(const LogLevelEnum::Enum level)
             this->finerLoggingEnabled = true;
         case LogLevelEnum::FINE:
             this->fineLoggingEnabled = true;
+        case LogLevelEnum::CONFIG:
+            this->configLoggingEnabled = true;
         case LogLevelEnum::INFO:
             this->infoLoggingEnabled = true;
         case LogLevelEnum::WARNING:

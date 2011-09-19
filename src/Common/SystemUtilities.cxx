@@ -49,9 +49,18 @@ SystemUtilities::~SystemUtilities()
 }
 
 #include <QtCore>
+
+/**
+ * Get the backtrace in a string with each frame
+ * separated by a newline character.
+ *
+ * @return
+ *   String containing the backtrace.
+ */
 AString 
 SystemUtilities::getBackTrace()
 {
+/*
 #ifdef CARET_OS_WINDOWS
     return "";
 #else  // CARET_OS_WINDOWS
@@ -64,8 +73,40 @@ SystemUtilities::getBackTrace()
     }
     return AString::fromStdString(str.str());
 #endif // CARET_OS_WINDOWS
+*/    
+    std::vector<AString> backTrace;
+    SystemUtilities::getBackTrace(backTrace);
+    std::stringstream str;
+    for (std::vector<AString>::const_iterator iter = backTrace.begin();
+         iter != backTrace.end();
+         iter++) {
+        str << *iter << std::endl;
+    }
+    return AString::fromStdString(str.str());
 }
 
+/**
+ * Get the backtrace with the frames in a vector of strings.
+ *
+ * @param backTraceOut
+ *    Vector of string containg the call stack.
+ */
+void 
+SystemUtilities::getBackTrace(std::vector<AString>& backTraceOut)
+{
+    backTraceOut.clear();
+    
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    std::stringstream str;
+    void* callstack[1024];
+    int numFrames = backtrace(callstack, 1024);
+    char** symbols = backtrace_symbols(callstack, numFrames);
+    for (int i = 0; i < numFrames; i++) {
+        backTraceOut.push_back(symbols[i]);
+    }
+#endif // CARET_OS_WINDOWS
+}
 
 /**
  * Get the current directory.

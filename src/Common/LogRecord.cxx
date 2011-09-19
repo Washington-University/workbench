@@ -35,6 +35,8 @@ using namespace caret;
  *
  * @param level
  *    Logging level for message.
+ * @param methodName
+ *    Method that logged the message.
  * @param filename
  *    Name of file that originated the message.
  * @param lineNumber
@@ -43,12 +45,14 @@ using namespace caret;
  *    Text description.
  */
 LogRecord::LogRecord(const LogLevelEnum::Enum level,
+                     const AString& methodName,
                      const AString& filename,
                      const int32_t lineNumber,
                      const AString& text)
 : CaretObject()
 {
     this->level = level;
+    this->methodName = methodName;
     this->filename = filename;
     this->lineNumber = lineNumber;
     this->text = text;
@@ -69,11 +73,19 @@ LogRecord::~LogRecord()
 AString 
 LogRecord::toString() const
 {
-    AString s = 
-    "Level=" + LogLevelEnum::toName(this->level)
-    + " File=" + this->filename
-    + " Line=" + AString::number(this->lineNumber)
-    + " Text=" + this->text;
+    AString s = "Level=" + LogLevelEnum::toName(this->level);
+    if (this->methodName.isEmpty() == false) {
+        s += " Method=" + this->methodName;
+    }
+    if (this->filename.isEmpty() == false) {
+        s += " File=" + this->filename;
+    }
+    if (this->lineNumber >= 0) {
+        s += " Line=" + AString::number(this->lineNumber);
+    }
+    if (this->text.isEmpty() == false) {
+        s += " Text=" + this->text;
+    }
     
     return s;
 }

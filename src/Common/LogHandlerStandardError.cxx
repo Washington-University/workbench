@@ -90,9 +90,12 @@ LogHandlerStandardError::publish(const LogRecord& logRecord)
 {
     std::cerr << std::endl;
     std::cerr << "Level: " << LogLevelEnum::toName(logRecord.getLevel()) << std::endl;
-    std::cerr << "File:  " << logRecord.getFilename() << std::endl;
-    std::cerr << "Line:  " << logRecord.getLineNumber() << std::endl;
-    std::cerr << "Text:  " << logRecord.getText() << std::endl;
+    if (logRecord.getMethodName().isEmpty() == false) {
+        std::cerr << "Method: " << logRecord.getMethodName() << std::endl;        
+    }
+    std::cerr << "File:   " << logRecord.getFilename() << std::endl;
+    std::cerr << "Line:   " << logRecord.getLineNumber() << std::endl;
+    std::cerr << "Text:   " << logRecord.getText() << std::endl;
     std::cerr << std::endl;
 }
 

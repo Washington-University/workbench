@@ -49,6 +49,8 @@ public:
 public:
     static AString getBackTrace();
     
+    static void getBackTrace(std::vector<AString>& backTraceOut);
+    
     static AString getCurrentDirectory();
 
     static void setCurrentDirectory(const AString& path);

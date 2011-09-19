@@ -147,6 +147,11 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
     s->readFile(filename);
     
     const StructureEnum::Enum structure = s->getStructure();
+    if (structure == StructureEnum::INVALID) {
+        CaretLogWarning("Structure for surface "
+                        + filename
+                        + " is not valid.");
+    }
     
     BrainStructure* bs = this->getBrainStructure(structure, true);
     if (bs != NULL) {

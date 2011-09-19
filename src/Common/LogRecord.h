@@ -42,6 +42,7 @@ namespace caret {
         
     public:
         LogRecord(const LogLevelEnum::Enum level,
+                  const AString& methodName,
                   const AString& filename,
                   const int32_t lineNumber,
                   const AString& text);
@@ -50,10 +51,24 @@ namespace caret {
         
         LogLevelEnum::Enum getLevel() const { return level; }
         
+        /**
+         * @return Text message.
+         */
         AString getText() const { return text; }
         
+        /**
+         * @return Method name that logged message.
+         */
+        AString getMethodName() const { return methodName; }
+        
+        /**
+         * @return Filename in which message was logged.
+         */
         AString getFilename() const { return filename; }
         
+        /**
+         * @return Line number at which message was logged.
+         */
         int32_t getLineNumber() const { return lineNumber; }
         
     private:
@@ -68,6 +83,8 @@ namespace caret {
         LogLevelEnum::Enum level;
         
         AString text;
+        
+        AString methodName;
         
         AString filename;
         

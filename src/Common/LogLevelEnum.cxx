@@ -75,19 +75,24 @@ LogLevelEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(LogLevelEnum(SEVERE, 
-                                    700, 
+                                    800, 
                                     "SEVERE", 
                                     "Severe"));
     
     enumData.push_back(LogLevelEnum(WARNING, 
-                                    600, 
+                                    700, 
                                     "WARNING", 
                                     "Warning"));
     
     enumData.push_back(LogLevelEnum(INFO, 
-                                    500, 
+                                    600, 
                                     "INFO", 
                                     "Information"));
+    
+    enumData.push_back(LogLevelEnum(CONFIG, 
+                                    500, 
+                                    "CONFIG", 
+                                    "Configuration"));
     
     enumData.push_back(LogLevelEnum(FINE, 
                                     400, 

@@ -174,7 +174,7 @@ BrainOpenGL::initializeOpenGL()
         //
         const char* versionStr = (char*)(glGetString(GL_VERSION));
         BrainOpenGL::versionOfOpenGL = std::atof(versionStr);
-        CaretLogInfo("OpenGL version: " + AString::number(BrainOpenGL::versionOfOpenGL));
+        CaretLogConfig("OpenGL version: " + AString::number(BrainOpenGL::versionOfOpenGL));
     }
     
     glEnable(GL_DEPTH_TEST);

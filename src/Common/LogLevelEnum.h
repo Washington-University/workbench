@@ -53,6 +53,8 @@ public:
         WARNING,
         /** informational messages */
         INFO,
+        /** configuration messages, versions of libraries etc. */
+        CONFIG,
         /** Detailed information */
         FINE,
         /** More detailed information */

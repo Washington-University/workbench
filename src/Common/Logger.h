@@ -27,6 +27,7 @@
 
 
 #include "CaretObject.h"
+#include "CaretException.h"
 #include "LogLevelEnum.h"
 
 namespace caret {
@@ -51,10 +52,24 @@ namespace caret {
         static Logger* getLogger(const AString& name);
         
         void log(const LogLevelEnum::Enum logLevel,
-                        const AString& filename,
-                        const int32_t lineNumber,
-                        const AString& text);
+                 const AString& methodName,
+                 const AString& filename,
+                 const int32_t lineNumber,
+                 const AString& text);
         
+        void entering(const AString& methodName,
+                      const AString& filename,
+                      const int32_t lineNumber);
+        
+        void exiting(const AString& methodName,
+                     const AString& filename,
+                     const int32_t lineNumber);
+        
+        void throwingCaretException(const AString& methodName,
+                                    const AString& filename,
+                                    const int32_t lineNumber,
+                                    CaretException& caretException);
+                      
         LogLevelEnum::Enum getLevel() const;
         
         void setLevel(const LogLevelEnum::Enum level);
@@ -69,6 +84,9 @@ namespace caret {
         
         /** @return Is info logging enabled? */
         inline bool isInfo() const { return this->infoLoggingEnabled; }
+        
+        /** @return Is config logging enabled? */
+        inline bool isConfig() const { return this->configLoggingEnabled; }
         
         /** @return Is fine logging enabled? */
         inline bool isFine() const { return this->fineLoggingEnabled; }
@@ -96,6 +114,8 @@ namespace caret {
         bool warningLoggingEnabled;
         
         bool infoLoggingEnabled;
+        
+        bool configLoggingEnabled;
         
         bool fineLoggingEnabled;
         

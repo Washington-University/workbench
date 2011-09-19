@@ -24,6 +24,7 @@
 
 
 #include "CaretException.h"
+
 #include "SystemUtilities.h"
 #include <cstring>
 
