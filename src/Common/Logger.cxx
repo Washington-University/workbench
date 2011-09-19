@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <typeinfo>
+
 #define __LOGGER_DECLARE__
 #include "Logger.h"
 #undef __LOGGER_DECLARE__

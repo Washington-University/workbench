@@ -150,7 +150,7 @@ DataFileTypeEnum::initialize()
                                         9, 
                                         "SURFACE_ANATOMICAL", 
                                         "Surface - Anatomical",
-                                        "surf\\.gii"));
+                                        "surf.gii"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE_INFLATED, 
                                         10, 

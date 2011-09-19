@@ -20,9 +20,12 @@ ADD_LIBRARY(Files
 BinaryFile.h
 DataFileTypeEnum.h
 GiftiTypeFile.h
+LabelFile.h
+MetricFile.h
 Palette.h
 PaletteFile.h
 PaletteScalarAndColor.h
+RgbaFile.h
 SurfaceFile.h
 SurfaceTypeEnum.h
 TextFile.h
@@ -30,9 +33,12 @@ TextFile.h
 BinaryFile.cxx
 DataFileTypeEnum.cxx
 GiftiTypeFile.cxx
+LabelFile.cxx
+MetricFile.cxx
 Palette.cxx
 PaletteFile.cxx
 PaletteScalarAndColor.cxx
+RgbaFile.cxx
 SurfaceFile.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
