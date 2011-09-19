@@ -64,6 +64,7 @@ void ProgressObject::algorithmStartSentinel()
 
 void ProgressObject::finishLevel()
 {
+   if (m_finished) return;//don't finish twice
    m_currentProgress = m_totalWeight;
    m_finished = true;
    if (m_parent != NULL)
