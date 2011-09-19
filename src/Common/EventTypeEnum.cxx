@@ -106,6 +106,10 @@ EventTypeEnum::initialize()
                                      "EVENT_USER_INTERFACE_UPDATE", 
                                      "Update the user-interface"));
     
+    enumData.push_back(EventTypeEnum(EVENT_PROGRESS_UPDATE, 
+                                     "EVENT_PROGRESS_UPDATE", 
+                                     "Update the progress amount, text, or finished status"));
+    
     enumData.push_back(EventTypeEnum(EVENT_COUNT, 
                                     "EVENT_COUNT", 
                                     "Count of events"));

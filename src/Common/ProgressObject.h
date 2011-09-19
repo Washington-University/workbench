@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include "stdint.h"
 #include <vector>
 #include "AString.h"
 
@@ -34,6 +35,10 @@ namespace caret {
    //NOTE: this tries to intelligently avoid doing recursive progress updates when the value doesn't change much
    class ProgressObject
    {
+//don't always report progress, in case someone uses this in an inner loop
+      const static float MAX_CHILD_RESOLUTION = 0.002f;//up to 500 calls per child algorithm
+      const static float MAX_INTERNAL_RESOLUTION = 0.001f;//up to 1000 calls during internal processing
+
       struct ProgressInfo
       {
          ProgressObject* progObjRef;//used to clean up the memory on finish()
@@ -47,6 +52,7 @@ namespace caret {
       float m_nonChildProgress;
       float m_currentProgress;
       float m_lastReported;
+      float m_childResolution;
       AString m_description;
       ProgressObject* m_parent;
       int32_t m_parentIndex;//which index in parent's vector this object is
@@ -57,20 +63,20 @@ namespace caret {
       void finishLevel();//moves this progress object to 100%, then updates parent if not NULL
       ProgressObject();
    public:
-      ///fill in weight with the ...Algorithm::getAlgorithmWeight() function at the root level (before starting the first algorithm)
-      ///if using multiple algorithms at the root level (shame!), sum their weights first
-      ProgressObject(float weight);
+      ///fill in weight with the ...Algorithm::getAlgorithmWeight() function at the root level (before starting the algorithm)
+      ///if using multiple algorithms at the root level (shame!), sum their weights first, then use addAlgorithm to get objects for each
+      ProgressObject(const float weight, const float childResolution = MAX_CHILD_RESOLUTION);
       ~ProgressObject();
       
-      ///call this after any algorithm returns to ensure it finishes (in case it ignores the object)
+      ///call this on progress objects you make after an algorithm returns to ensure it finishes (in case it ignores the object)
       void forceFinish();
       
-      ///add an algorithm to this algorithm's progress, and get a pointer to give to that algorithm
+      ///add an algorithm to this algorithm's progress status, and get a pointer to give to that algorithm
       ///fill in weight with the ...Algorithm::getAlgorithmWeight() function
-      ProgressObject* addAlgorithm(float weight);
+      ProgressObject* addAlgorithm(const float weight, const float childResolution = MAX_CHILD_RESOLUTION);
       
       ///call this inside an algorithm after adding subalgorithms info, to correctly activate the progress bar
-      LevelProgress startLevel(const float finishedProgress = 1.0);
+      LevelProgress startLevel(const float finishedProgress = 1.0, const float internalResolution = MAX_INTERNAL_RESOLUTION);
       
       ///DO NOT USE: used by AbstractAlgorithm constructor to check for algorithms that ignore the object
       void algorithmStartSentinel();
@@ -92,11 +98,17 @@ namespace caret {
    {//reports progress on processing done in this level
       float m_maximum;
       float m_lastReported;
+      float m_internalResolution;
       ProgressObject* m_progObjRef;
       LevelProgress();//deny default construction, assignment, because we use the destructor for a specific purpose
       LevelProgress& operator=(const LevelProgress& right);
    public:
+      
+      ///call with the fraction of finishedProgress passed to ProgressObject::startLevel (default 1.0) that this algorithm has done internally
+      ///work done by subalgorithms is automatically added and updated as progress is made, DO NOT call this unless the current algorithm does direct processing
       void reportProgress(const float currentTotal);
+      
+      ///set a description for current task, like the name of the subalgorithm you are about to call
       void setTask(const AString& taskDescription);//yes, this reaches through the class, but it is better to have both reporting functions on the same object
       ~LevelProgress();//automatically finishes level
       friend class ProgressObject;//so that ProgressObject can create a LevelProgress object, but nothing else can

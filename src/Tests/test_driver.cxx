@@ -30,6 +30,7 @@
 #include "TestInterface.h"
 #include "TimerTest.h"
 #include "ProgressTest.h"
+#include "SessionManager.h"
 
 using namespace std;
 using namespace caret;
@@ -44,6 +45,7 @@ void freeTestList(vector<TestInterface*>& mylist)
 
 int main(int argc, char** argv)
 {
+   SessionManager::createSessionManager();
    vector<TestInterface*> mytests;
    mytests.push_back(new TimerTest("timer"));
    mytests.push_back(new ProgressTest("progress"));

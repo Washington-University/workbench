@@ -34,6 +34,7 @@ ElapsedTimer.h
 Event.h
 EventListenerInterface.h
 EventManager.h
+EventProgressUpdate.h
 EventTypeEnum.h
 FileInformation.h
 Logger.h
@@ -69,6 +70,7 @@ DataFileException.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventManager.cxx
+EventProgressUpdate.cxx
 EventTypeEnum.cxx
 FileInformation.cxx
 Logger.cxx

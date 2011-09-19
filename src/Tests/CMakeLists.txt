@@ -7,6 +7,7 @@ PROJECT (Tests)
 # Need XML from Qt
 #
 SET(QT_DONT_USE_QTGUI)
+SET(QT_USE_QTXML TRUE)
 
 #
 # Add QT for includes
@@ -55,6 +56,7 @@ GuiQt
 Brain
 Helpers
 Files
+Cifti
 Gifti
 Nifti
 Xml
@@ -96,11 +98,11 @@ ENDIF (APPLE)
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Tests
 ${CMAKE_SOURCE_DIR}/Algorithms
-${CMAKE_SOURCE_DIR}/CommandOperations
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml

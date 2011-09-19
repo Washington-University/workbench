@@ -60,6 +60,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
         /** Update the User-Interface */
         EVENT_USER_INTERFACE_UPDATE,
+        /** Update the progress amount, text, or finished status */
+        EVENT_PROGRESS_UPDATE,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };

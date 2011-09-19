@@ -20,10 +20,12 @@
  *  along with CARET; if not, write to the Free Software 
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
- */ 
+ */
 
-#include "ProgressTest.h"
 #include <iostream>
+
+#include "EventManager.h"
+#include "ProgressTest.h"
 
 using namespace std;
 using namespace caret;

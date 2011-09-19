@@ -24,15 +24,13 @@
 
 #include "ProgressObject.h"
 #include "CaretAssert.h"
+#include "EventProgressUpdate.h"
+#include "EventManager.h"
 
 using namespace std;
 using namespace caret;
 
-//don't always report progress, in case someone uses this in an inner loop
-const float MAX_CHILD_RESOLUTION = 0.002f;//up to 500 calls per child algorithm
-const float MAX_INTERNAL_RESOLUTION = 0.001f;//up to 1000 calls during internal processing
-
-ProgressObject* ProgressObject::addAlgorithm(float weight)
+ProgressObject* ProgressObject::addAlgorithm(const float weight, const float childResolution)
 {
    CaretAssertMessage(weight > 0.0f, "nonpositive weight in ProgressObject::addAlgorithm");
    if (m_disabled) return this;//disabled short circuits everything, can't track progress if an algorithm ignores and forwards the pointer
@@ -40,7 +38,7 @@ ProgressObject* ProgressObject::addAlgorithm(float weight)
    newInfo.completed = false;
    newInfo.curProgress = 0.0f;
    newInfo.weight = weight;
-   newInfo.progObjRef = new ProgressObject(weight);
+   newInfo.progObjRef = new ProgressObject(weight, childResolution);
    newInfo.progObjRef->m_parent = this;
    newInfo.progObjRef->m_parentIndex = m_children.size();
    m_children.push_back(newInfo);
@@ -73,6 +71,9 @@ void ProgressObject::finishLevel()
       m_parent->m_children[m_parentIndex].completed = true;
       m_parent->updateProgress();
    }
+   EventProgressUpdate myUpdate(this);
+   myUpdate.m_finished = true;
+   EventManager::get()->sendEvent(myUpdate.getPointer());
 }
 
 void ProgressObject::forceFinish()
@@ -96,7 +97,7 @@ const AString& ProgressObject::getTaskDescription()
    return m_description;
 }
 
-ProgressObject::ProgressObject(float weight)
+ProgressObject::ProgressObject(const float weight, const float childResolution)
 {
    m_currentProgress = 0.0f;
    m_disabled = false;
@@ -107,13 +108,15 @@ ProgressObject::ProgressObject(float weight)
    m_parent = NULL;
    m_sentinelPassed = false;
    m_totalWeight = weight;
+   m_childResolution = childResolution;
 }
 
-LevelProgress ProgressObject::startLevel(const float finishedProgress)
+LevelProgress ProgressObject::startLevel(const float finishedProgress, const float internalResolution)
 {
    LevelProgress myret;
    myret.m_maximum = finishedProgress;
    myret.m_progObjRef = this;
+   myret.m_internalResolution = internalResolution;
    return myret;
 }
 
@@ -153,12 +156,15 @@ void ProgressObject::updateProgress()
    if (m_parent != NULL)
    {
       m_parent->m_children[m_parentIndex].curProgress = m_currentProgress;
-      if (m_currentProgress - m_lastReported > MAX_CHILD_RESOLUTION)
+      if (m_currentProgress - m_lastReported > m_childResolution)
       {//don't recurse unless progress has changed more than the resolution specified
          m_lastReported = m_currentProgress;
          m_parent->updateProgress();
       }
    }
+   EventProgressUpdate myUpdate(this);//just send the event, LevelProgress should already have checked if the amount of change was significant
+   myUpdate.m_amountUpdate = true;
+   EventManager::get()->sendEvent(myUpdate.getPointer());
 }
 
 ProgressObject::~ProgressObject()
@@ -187,7 +193,7 @@ void LevelProgress::reportProgress(const float currentTotal)
       curProgress = m_lastReported;
    }
    m_progObjRef->m_nonChildProgress = curProgress;
-   if (curProgress - m_lastReported > MAX_INTERNAL_RESOLUTION)
+   if (curProgress - m_lastReported > m_internalResolution)
    {
       m_lastReported = curProgress;
       m_progObjRef->updateProgress();
@@ -195,8 +201,11 @@ void LevelProgress::reportProgress(const float currentTotal)
 }
 
 void LevelProgress::setTask(const AString& taskDescription)
-{
+{//maybe this be in a setter in m_progObjRef, here for coherence with progress reporting
    m_progObjRef->m_description = taskDescription;
+   EventProgressUpdate myUpdate(m_progObjRef);
+   myUpdate.m_textUpdate = true;
+   EventManager::get()->sendEvent(myUpdate.getPointer());
 }
 
 LevelProgress::LevelProgress()
