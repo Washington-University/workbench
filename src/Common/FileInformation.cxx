@@ -23,13 +23,21 @@
  * 
  */ 
 
+#include <QFileInfo>
+
 #define __FILE_INFORMATION_DECLARE__
 #include "FileInformation.h"
 #undef __FILE_INFORMATION_DECLARE__
 
-#include <sys/stat.h>
-
 using namespace caret;
+
+/**
+ * \class FileInformation
+ *
+ * \brief Information about a file path.
+ *
+ * Provides information about a path (file, directory, etc).
+ */
 
 
 /**
@@ -37,25 +45,42 @@ using namespace caret;
  * @param pathname
  *    Name of path for which information is obtained.
  */
-FileInformation::FileInformation(const AString& pathname)
+FileInformation::FileInformation(const AString& file)
 : CaretObject()
 {
-    this->pathname = pathname;
+    this->file = file;
     
     this->fileSize = 0;
+    
     this->pathExists = false;
+    this->pathIsAbsolute = false;
     this->pathIsDirectory = false;
     this->pathIsFile = false;
+    this->pathIsHidden = false;
+    this->pathIsReadable = false;
+    this->pathIsRelative = false;
     this->pathIsSymbolicLink = false;
+    this->pathIsWritable = false;
+
+    this->fileName = "";
+    this->pathName = "";
     
-    struct stat stats;
-    int result = stat(this->pathname, &stats);    
-    if (result >= 0) {
-        this->pathExists = true;
-        this->fileSize = stats.st_size;
-        this->pathIsDirectory = S_ISDIR(stats.st_mode);
-        this->pathIsFile      = S_ISREG(stats.st_mode);
-        this->pathIsSymbolicLink = S_ISLNK(stats.st_mode);
+    QFileInfo fileInfo(this->file);    
+    this->pathExists = fileInfo.exists();
+    if (this->pathExists) {
+        this->fileSize = fileInfo.size();
+        
+        this->pathIsAbsolute = fileInfo.isAbsolute();
+        this->pathIsDirectory = fileInfo.isDir();
+        this->pathIsFile      = fileInfo.isFile();
+        this->pathIsHidden    = fileInfo.isHidden();
+        this->pathIsReadable = fileInfo.isReadable();
+        this->pathIsRelative = fileInfo.isRelative();
+        this->pathIsSymbolicLink = fileInfo.isSymLink();
+        this->pathIsWritable = fileInfo.isWritable();
+        
+        this->fileName = fileInfo.fileName();
+        this->pathName = fileInfo.path();
     }
 }
 
@@ -74,6 +99,6 @@ FileInformation::~FileInformation()
 AString 
 FileInformation::toString() const
 {
-    return ("FileInformation for " + this->pathname);
+    return ("FileInformation for " + this->file);
 }
 

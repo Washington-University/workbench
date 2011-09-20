@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "CaretFunctionName.h"
 #include "CaretObject.h"
 
 #include "Logger.h"
@@ -83,7 +83,7 @@ namespace caret {
  */
 #define CaretLogSevere(TEXT) \
 ((caret::CaretLogger::getLogger()->isSevere())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::SEVERE, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::SEVERE, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -96,7 +96,7 @@ namespace caret {
  */
 #define CaretLogWarning(TEXT) \
 ((caret::CaretLogger::getLogger()->isWarning())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::WARNING, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::WARNING, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -109,7 +109,7 @@ namespace caret {
  */
 #define CaretLogInfo(TEXT) \
 ((caret::CaretLogger::getLogger()->isInfo())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::INFO, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::INFO, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -124,7 +124,7 @@ namespace caret {
  */
 #define CaretLogConfig(TEXT) \
 ((caret::CaretLogger::getLogger()->isConfig())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::CONFIG, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::CONFIG, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 
@@ -138,7 +138,7 @@ namespace caret {
  */
 #define CaretLogFine(TEXT) \
     ((caret::CaretLogger::getLogger()->isFine())  \
-    ? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINE, __func__, __FILE__, __LINE__, (TEXT)) \
+    ? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINE, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
     : (void)0)
 
 /**
@@ -152,7 +152,7 @@ namespace caret {
  */
 #define CaretLogFiner(TEXT) \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINER, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -165,7 +165,7 @@ namespace caret {
  */
 #define CaretLogFinest(TEXT) \
 ((caret::CaretLogger::getLogger()->isFinest())  \
-? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINEST, __func__, __FILE__, __LINE__, (TEXT)) \
+? caret::CaretLogger::getLogger()->log(caret::LogLevelEnum::FINEST, __CARET_FUNCTION_NAME__, __FILE__, __LINE__, (TEXT)) \
 : (void)0)
 
 /**
@@ -177,7 +177,7 @@ namespace caret {
  */
 #define CaretLogEntering() \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->entering(__func__, __FILE__, __LINE__) \
+? caret::CaretLogger::getLogger()->entering(__CARET_FUNCTION_NAME__, __FILE__, __LINE__) \
 : (void)0)
 
 /**
@@ -189,7 +189,7 @@ namespace caret {
  */
 #define CaretLogExiting() \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->exiting(__func__, __FILE__, __LINE__) \
+? caret::CaretLogger::getLogger()->exiting(__CARET_FUNCTION_NAME__, __FILE__, __LINE__) \
 : (void)0)
 
 /**
@@ -202,7 +202,7 @@ namespace caret {
  */
 #define CaretLogThrowing(CARET_EXCEPTION) \
 ((caret::CaretLogger::getLogger()->isFiner())  \
-? caret::CaretLogger::getLogger()->throwingCaretException(__func__, __FILE__, __LINE__, CARET_EXCEPTION) \
+? caret::CaretLogger::getLogger()->throwingCaretException(__CARET_FUNCTION_NAME__, __FILE__, __LINE__, CARET_EXCEPTION) \
 : (void)0)
 
 

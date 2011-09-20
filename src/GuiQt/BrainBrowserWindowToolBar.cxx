@@ -43,6 +43,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretFunctionName.h"
 #include "CaretLogger.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
@@ -230,7 +231,7 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
 void 
 BrainBrowserWindowToolBar::updateToolBar()
 {
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();
     
@@ -309,7 +310,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->updateVolumeMontageWidget(browserTabContent);
     this->updateVolumePlaneWidget(browserTabContent);
     
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     if (this->updateCounter != 0) {
         CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
@@ -375,7 +376,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
 {
     ModelDisplayControllerTypeEnum::Enum modelType = browserTabContent->getSelectedModelType();
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->viewWidgetGroup->blockSignals(true);
     
@@ -402,7 +403,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
     
     this->viewWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     return modelType;
 }
@@ -626,13 +627,13 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTab
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->orientationWidgetGroup->blockSignals(true);
     
     this->orientationWidgetGroup->blockSignals(false);
         
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -752,13 +753,13 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(true);
     
     this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(false);
     
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -854,13 +855,13 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->volumeIndicesWidgetGroup->blockSignals(true);
     
     this->volumeIndicesWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -906,13 +907,13 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* browserTabConten
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->toolsWidgetGroup->blockSignals(true);
     
     this->toolsWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -965,13 +966,13 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->windowWidgetGroup->blockSignals(true);
     
     this->windowWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -1019,7 +1020,7 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->singleSurfaceSelectionWidgetGroup->blockSignals(true);
     
@@ -1062,7 +1063,7 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     
     this->singleSurfaceSelectionWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -1132,13 +1133,13 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserT
         return;
     }
 
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->volumeMontageWidgetGroup->blockSignals(true);
     
     this->volumeMontageWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -1292,13 +1293,13 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTab
         return;
     }
     
-    this->incrementUpdateCounter(__func__);
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->volumePlaneWidgetGroup->blockSignals(true);
     
     this->volumePlaneWidgetGroup->blockSignals(false);
 
-    this->decrementUpdateCounter(__func__);
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
 /**
@@ -1802,6 +1803,7 @@ BrainBrowserWindowToolBar::toolsToolBoxToolButtonTriggered(bool checked)
 {
     CaretLogEntering(); 
     this->checkUpdateCounter();
+    CaretLogExiting();
 }
 
 void 

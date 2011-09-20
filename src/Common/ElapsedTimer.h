@@ -42,7 +42,7 @@ namespace caret {
 
     //getTimeOfDay() isn't cross-platform, so use some ifdefs for windows
 #ifdef CARET_OS_WINDOWS
-   struct myTimeStore
+   struct MyTimeStore
    {
       uint64_t m_tickCount;//can store return from GetTickCount64() which doesn't reset at 49 days, but is vista and above only
    };//also useful for detecting and correcting for a wrap, can just add (uint64_t)1<<32

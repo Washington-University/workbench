@@ -24,6 +24,7 @@ ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
 CaretException.h
+CaretFunctionName.h
 CaretLogger.h
 CaretMutex.h
 CaretObject.h
