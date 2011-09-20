@@ -36,8 +36,8 @@ namespace caret {
    class ProgressObject
    {
 //don't always report progress, in case someone uses this in an inner loop
-      const static float MAX_CHILD_RESOLUTION = 0.002f;//up to 500 calls per child algorithm
-      const static float MAX_INTERNAL_RESOLUTION = 0.001f;//up to 1000 calls during internal processing
+      const static float MAX_CHILD_RESOLUTION;
+      const static float MAX_INTERNAL_RESOLUTION;
 
       struct ProgressInfo
       {

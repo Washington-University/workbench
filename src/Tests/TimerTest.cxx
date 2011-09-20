@@ -46,7 +46,7 @@ void TimerTest::execute()
    ElapsedTimer mytimer;
    mytimer.start();
 #ifdef CARET_OS_WINDOWS
-   sleep(1000);//milliseconds on windows
+   Sleep(1000);//milliseconds on windows
 #else
    sleep(1);//seconds on *nix
 #endif
