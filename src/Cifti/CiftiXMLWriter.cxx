@@ -26,6 +26,8 @@
 #include "CiftiXMLWriter.h"
 #include "iostream"
 
+using namespace caret;
+
 void writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
 {  
    xml.setAutoFormatting(true);

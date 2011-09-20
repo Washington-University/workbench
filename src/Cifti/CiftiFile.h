@@ -34,6 +34,9 @@
 #include "CiftiMatrix.h"
 
 /// Class for opening, reading, and writing generic Cifti Data
+
+namespace caret {
+
 class CiftiFile {
 public:
    /// Constructor
@@ -79,6 +82,7 @@ protected:
    CiftiMatrix *m_matrix;
    CiftiXML *m_xml;   
    bool m_swapNeeded;
-};   
+};
+}
 
 #endif //__CIFTI_FILE

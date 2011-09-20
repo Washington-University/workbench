@@ -32,6 +32,8 @@
 #include "CiftiByteSwap.h"
 #include <vector>
 
+using namespace caret;
+
 /// Simple Container class for storing Nifti2Header data
 class Nifti2Header {
 public:

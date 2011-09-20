@@ -32,6 +32,9 @@
  * This class contains static methods for byte swapping data, typically used
  * when reading binary data files.
  */
+
+namespace caret {
+
 class ByteSwapping {
 private:
     ByteSwapping() { }
@@ -56,5 +59,7 @@ public:
       static void swapBytes(double* n, const uint64_t numToSwap);
   
 };
+
+}
 
 #endif  // __BYTE_SWAPPING_H__

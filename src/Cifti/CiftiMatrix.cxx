@@ -29,6 +29,7 @@
 #include <unistd.h>
 #endif //ifdef Q_OS_WIN32
 
+using namespace caret;
 /**
  * Constructor
  * 

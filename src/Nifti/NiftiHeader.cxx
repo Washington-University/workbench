@@ -1,50 +1,52 @@
 /*LICENSE_START*/
-/*
- *  Copyright 1995-2011 Washington University School of Medicine
- *
- *  http://brainmap.wustl.edu
- *
- *  This file is part of CARET.
- *
- *  CARET is free software; you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
- *  (at your option) any later version.
- *
- *  CARET is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
- *
- *  You should have received a copy of the GNU General Public License
- *  along with CARET; if not, write to the Free Software
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- *
- */
-/*LICENSE_END*/
-#include "Nifti2Header.h"
+/* 
+ *  Copyright 1995-2011 Washington University School of Medicine 
+ * 
+ *  http://brainmap.wustl.edu 
+ * 
+ *  This file is part of CARET. 
+ * 
+ *  CARET is free software; you can redistribute it and/or modify 
+ *  it under the terms of the GNU General Public License as published by 
+ *  the Free Software Foundation; either version 2 of the License, or 
+ *  (at your option) any later version. 
+ * 
+ *  CARET is distributed in the hope that it will be useful, 
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU General Public License for more details. 
+ * 
+ *  You should have received a copy of the GNU General Public License 
+ *  along with CARET; if not, write to the Free Software 
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * 
+ */ 
+
+#include "NiftiHeader.h"
+
+#include "NiftiHeader.h"
 #include <vector>
 
 using namespace caret;
 
 /**
  * Constructor
- * 
- * Constructor that opens and reads from the specified file 
- * @param inputFileName the name of the input file that starts with the Nifti2Header
+ *
+ * Constructor that opens and reads from the specified file
+ * @param inputFileName the name of the input file that starts with the NiftiHeader
  */
-Nifti2Header::Nifti2Header(const QString& inputFileName) throw (CiftiFileException)
+NiftiHeader::NiftiHeader(const QString& inputFileName) throw (NiftiException)
 {
-   readFile(inputFileName);   
+   readFile(inputFileName);
 }
 
 /**
  * Constructor
- * 
- * Constructor that reads from the specified file handle 
- * @param inputFile the input handle that starts with the Nifti2Header
+ *
+ * Constructor that reads from the specified file handle
+ * @param inputFile the input handle that starts with the NiftiHeader
  */
-Nifti2Header::Nifti2Header(QFile &inputFile) throw (CiftiFileException)
+NiftiHeader::NiftiHeader(QFile &inputFile) throw (NiftiException)
 {
    readFile(inputFile);
 }
@@ -52,134 +54,134 @@ Nifti2Header::Nifti2Header(QFile &inputFile) throw (CiftiFileException)
 
 /**
  * readFile
- * 
- * read Nifti2Header data from file name, closes file when finished loading data
+ *
+ * read NiftiHeader data from file name, closes file when finished loading data
  * @param inputFileName name and path of Nifti2 Header file
  */
-void Nifti2Header::readFile(const QString& inputFileName) throw (CiftiFileException)
+void NiftiHeader::readFile(const QString& inputFileName) throw (NiftiException)
 {
    QFile inputFile;
    inputFile.setFileName(inputFileName);
    inputFile.open(QIODevice::ReadOnly);
    this->readFile(inputFile);
-   inputFile.close(); 
-   
+   inputFile.close();
+
 }
 
 /**
  * getSwapNeed
- * 
+ *
  * determines whether the byte order needs to be swapped, i.e. if
  * the Nifti file is in big endian format, but the machine architecture
  * is little-endian, then a swap would be necessary
  * @return swapNeeded true if swap is needed
  */
-bool Nifti2Header::getSwapNeeded()
+bool NiftiHeader::getSwapNeeded()
 {
    return m_swapNeeded;
 }
 
 /**
  * Constructor
- * 
- * Constructor that takes an input nifti_2_header struct * 
- * @param header 
+ *
+ * Constructor that takes an input nifti_2_header struct *
+ * @param header
  */
-void Nifti2Header::readFile(QFile &inputFile) throw (CiftiFileException)
+void NiftiHeader::readFile(QFile &inputFile) throw (NiftiException)
 {
    int bytes_read = 0;
    m_swapNeeded=false;
    bytes_read = inputFile.read((char *)&m_header, NIFTI2_HEADER_SIZE);
    if(bytes_read < NIFTI2_HEADER_SIZE) {
-      throw CiftiFileException("Error reading Cifti header, file is too short.");
+      throw NiftiException("Error reading Cifti header, file is too short.");
    }
    if(NIFTI2_NEEDS_SWAP(m_header))
    {
       m_swapNeeded = true;
-      CiftiByteSwap::swapBytes(&(m_header.sizeof_hdr),1);
-      CiftiByteSwap::swapBytes(&(m_header.datatype),1);
-      CiftiByteSwap::swapBytes(&(m_header.bitpix),1);
-      CiftiByteSwap::swapBytes(&(m_header.dim[0]),8);      
-      CiftiByteSwap::swapBytes(&(m_header.intent_p1),1);
-      CiftiByteSwap::swapBytes(&(m_header.intent_p2),1);
-      CiftiByteSwap::swapBytes(&(m_header.intent_p3),1);
-      CiftiByteSwap::swapBytes(&(m_header.pixdim[0]),8);
-      CiftiByteSwap::swapBytes(&(m_header.vox_offset),1);
-      CiftiByteSwap::swapBytes(&(m_header.scl_slope),1);
-      CiftiByteSwap::swapBytes(&(m_header.scl_inter),1);
-      CiftiByteSwap::swapBytes(&(m_header.cal_max),1);
-      CiftiByteSwap::swapBytes(&(m_header.cal_min),1);
-      CiftiByteSwap::swapBytes(&(m_header.slice_duration),1);
-      CiftiByteSwap::swapBytes(&(m_header.toffset),1);
-      CiftiByteSwap::swapBytes(&(m_header.slice_start),1);
-      CiftiByteSwap::swapBytes(&(m_header.slice_end),1);
-      CiftiByteSwap::swapBytes(&(m_header.qform_code),1);
-      CiftiByteSwap::swapBytes(&(m_header.sform_code),1);
-      CiftiByteSwap::swapBytes(&(m_header.quatern_b),1);
-      CiftiByteSwap::swapBytes(&(m_header.quatern_c),1);
-      CiftiByteSwap::swapBytes(&(m_header.quatern_d),1);
-      CiftiByteSwap::swapBytes(&(m_header.qoffset_x),1);
-      CiftiByteSwap::swapBytes(&(m_header.qoffset_y),1);
-      CiftiByteSwap::swapBytes(&(m_header.qoffset_z),1);
-      CiftiByteSwap::swapBytes(&(m_header.srow_x[0]),4);
-      CiftiByteSwap::swapBytes(&(m_header.srow_y[0]),4);
-      CiftiByteSwap::swapBytes(&(m_header.srow_z[0]),4);
-      CiftiByteSwap::swapBytes(&(m_header.slice_code),1);
-      CiftiByteSwap::swapBytes(&(m_header.xyzt_units),1);      
-      CiftiByteSwap::swapBytes(&(m_header.intent_code),1);
-      
-      //throw CiftiFileException("The NIFTI standard only supports little-endian byte order.");
+      ByteSwapping::swapBytes(&(m_header.sizeof_hdr),1);
+      ByteSwapping::swapBytes(&(m_header.datatype),1);
+      ByteSwapping::swapBytes(&(m_header.bitpix),1);
+      ByteSwapping::swapBytes(&(m_header.dim[0]),8);
+      ByteSwapping::swapBytes(&(m_header.intent_p1),1);
+      ByteSwapping::swapBytes(&(m_header.intent_p2),1);
+      ByteSwapping::swapBytes(&(m_header.intent_p3),1);
+      ByteSwapping::swapBytes(&(m_header.pixdim[0]),8);
+      ByteSwapping::swapBytes(&(m_header.vox_offset),1);
+      ByteSwapping::swapBytes(&(m_header.scl_slope),1);
+      ByteSwapping::swapBytes(&(m_header.scl_inter),1);
+      ByteSwapping::swapBytes(&(m_header.cal_max),1);
+      ByteSwapping::swapBytes(&(m_header.cal_min),1);
+      ByteSwapping::swapBytes(&(m_header.slice_duration),1);
+      ByteSwapping::swapBytes(&(m_header.toffset),1);
+      ByteSwapping::swapBytes(&(m_header.slice_start),1);
+      ByteSwapping::swapBytes(&(m_header.slice_end),1);
+      ByteSwapping::swapBytes(&(m_header.qform_code),1);
+      ByteSwapping::swapBytes(&(m_header.sform_code),1);
+      ByteSwapping::swapBytes(&(m_header.quatern_b),1);
+      ByteSwapping::swapBytes(&(m_header.quatern_c),1);
+      ByteSwapping::swapBytes(&(m_header.quatern_d),1);
+      ByteSwapping::swapBytes(&(m_header.qoffset_x),1);
+      ByteSwapping::swapBytes(&(m_header.qoffset_y),1);
+      ByteSwapping::swapBytes(&(m_header.qoffset_z),1);
+      ByteSwapping::swapBytes(&(m_header.srow_x[0]),4);
+      ByteSwapping::swapBytes(&(m_header.srow_y[0]),4);
+      ByteSwapping::swapBytes(&(m_header.srow_z[0]),4);
+      ByteSwapping::swapBytes(&(m_header.slice_code),1);
+      ByteSwapping::swapBytes(&(m_header.xyzt_units),1);
+      ByteSwapping::swapBytes(&(m_header.intent_code),1);
+
+      //throw NiftiException("The NIFTI standard only supports little-endian byte order.");
       std::cout <<"It is recommended that Cifti files are stored in little-endian byte order." << std::endl;
    }
    if((NIFTI2_VERSION(m_header))!=2)
    {
-      throw CiftiFileException("This is not a valid Nifti2/Cifti File.");
+      throw NiftiException("This is not a valid Nifti2/Cifti File.");
    }
 }
 
 /**
  * Constructor
- * 
+ *
  * Constructor that takes an input nifti_2_header struct
- * 
- * @param header 
+ *
+ * @param header
  */
-Nifti2Header::Nifti2Header(const nifti_2_header &header) throw (CiftiFileException)
+NiftiHeader::NiftiHeader(const nifti_2_header &header) throw (NiftiException)
 {
-   memcpy((void *)&m_header,&header,sizeof(m_header));   
+   memcpy((void *)&m_header,&header,sizeof(m_header));
 }
 
 /**
  * Default Constructor
- * 
- * Default Constructor 
+ *
+ * Default Constructor
  */
-Nifti2Header::Nifti2Header() throw (CiftiFileException)
+NiftiHeader::NiftiHeader() throw (NiftiException)
 {
    initHeaderStruct(m_header);
 }
 
 /**
  * Destructor
- * 
+ *
  * Destructor
  */
-Nifti2Header::~Nifti2Header()
-{   
+NiftiHeader::~NiftiHeader()
+{
 }
 
 /**
  * getHeaderAsString
- * 
+ *
  * creates a formatted string containing the Nifti2 Header data, this
  * is useful for printing out the Nifti2 Header in a human readable
  * format.
  * @return string containing human readable Nifti 2 Header
  */
-QString *Nifti2Header::getHeaderAsString()
+QString *NiftiHeader::getHeaderAsString()
 {
-   QString *string = new QString;   
-   *string += "header size: " + QString::number (m_header.sizeof_hdr) + "\n";   
+   QString *string = new QString;
+   *string += "header size: " + QString::number (m_header.sizeof_hdr) + "\n";
    *string += "magic : " + QString::fromAscii(m_header.magic) + "\n";
    *string += "Data Type: " + QString::number(m_header.datatype) + "\n";
    *string += "bitpix: " + QString::number(m_header.bitpix) + "\n";
@@ -237,78 +239,78 @@ QString *Nifti2Header::getHeaderAsString()
 
 /**
  * getHeaderStruct
- * 
+ *
  * get the raw nifti_2_header struct, as defined in nifti2.h
  * @param header
  */
-void Nifti2Header::getHeaderStruct(nifti_2_header &header) const throw (CiftiFileException)
-{   
+void NiftiHeader::getHeaderStruct(nifti_2_header &header) const throw (NiftiException)
+{
    memcpy(&header, &m_header, sizeof(m_header));
 }
 
-/** 
+/**
  * setHeaderStruct
- * 
+ *
  * sets the raw nifti_2_header struct, as defined in nifti2.h
  * @param header
  */
-void Nifti2Header::setHeaderStuct(const nifti_2_header &header) throw (CiftiFileException)
+void NiftiHeader::setHeaderStuct(const nifti_2_header &header) throw (NiftiException)
 {
-   memcpy(&m_header, &header, sizeof(m_header));   
+   memcpy(&m_header, &header, sizeof(m_header));
 }
 
-/** 
+/**
  * getCiftiType
- * 
+ *
  * gets the Cifti intent code from the supplied nifti_2_header struct
  * @param header
  * @return int containing the nifti header intent_code
  */
-int Nifti2Header::getCiftiType(const nifti_2_header &header)   const throw (CiftiFileException)
+int NiftiHeader::getCiftiType(const nifti_2_header &header)   const throw (NiftiException)
 {
    return header.intent_code;
 }
 
-/** 
+/**
  * getCiftiType
- * 
+ *
  * gets the Cifti intent code
  * @return int containing the nifti header intent_code
  */
-int Nifti2Header::getCiftiType() const throw (CiftiFileException)
+int NiftiHeader::getCiftiType() const throw (NiftiException)
 {
    return m_header.intent_code;
 }
 
 /**
  * writeFile
- * 
+ *
  * writes the nifti 2 header to the output file handle
  * @param outputFile
  */
-void Nifti2Header::writeFile(QFile &outputFile) const throw (CiftiFileException)
+void NiftiHeader::writeFile(QFile &outputFile) const throw (NiftiException)
 {
-   if(!outputFile.isOpen()) 
-   { 
+   if(!outputFile.isOpen())
+   {
       if(!outputFile.open(QIODevice::WriteOnly))
       {
-            throw CiftiFileException("There was an error opening the file for writing.");
+            throw NiftiException("There was an error opening the file for writing.");
       }
    }
    if(outputFile.write((char *)&m_header,NIFTI2_HEADER_SIZE) != NIFTI2_HEADER_SIZE)
    {
-         throw CiftiFileException("The was an error writing the header.");
+         throw NiftiException("The was an error writing the header.");
    }
    //outputFile.close();
 }
 
 /**
  * writeFile
- * 
+ *
  * writes the nifti 2 header to the output file name
  * @param outputFileName
  */
-void Nifti2Header::writeFile(const QString &outputFileName) const throw (CiftiFileException)
+void NiftiHeader::writeFile(const QString &outputFileName) const throw (NiftiException)
 {
    QFile outputFile;
    outputFile.setFileName(outputFileName);
@@ -316,18 +318,18 @@ void Nifti2Header::writeFile(const QString &outputFileName) const throw (CiftiFi
    outputFile.close();
 }
 
-void Nifti2Header::initHeaderStruct()
+void NiftiHeader::initHeaderStruct()
 {
    initHeaderStruct(this->m_header);
 }
 
 /**
  * initHeaderStruct
- * 
+ *
  * initializes the supplied nifti 2 header struct to sensible defaults for Cifti
  * @param header
  */
-void Nifti2Header::initHeaderStruct(nifti_2_header &header)
+void NiftiHeader::initHeaderStruct(nifti_2_header &header)
 {
    header.sizeof_hdr = NIFTI2_HEADER_SIZE;
    memcpy(header.magic, "n+2\0\r\n\032\n",8);
@@ -382,16 +384,16 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
 
 /**
  * initTimeSeriesHeaderStruct
- * 
+ *
  * initializes the supplied nifti 2 header struct to sensible defaults for Cifti
  * @param header
  */
-void Nifti2Header::initTimeSeriesHeaderStruct()
+void NiftiHeader::initTimeSeriesHeaderStruct()
 {
    initTimeSeriesHeaderStruct(m_header);
 }
 
-void Nifti2Header::initTimeSeriesHeaderStruct(nifti_2_header &header)
+void NiftiHeader::initTimeSeriesHeaderStruct(nifti_2_header &header)
 {
    initHeaderStruct(header);
    header.intent_code = NIFTI_INTENT_CONNECTIVITY_DENSE;
@@ -404,14 +406,14 @@ void Nifti2Header::initTimeSeriesHeaderStruct(nifti_2_header &header)
    strcpy(header.intent_name, "ConnDenseTime\0");
 }
 
-void Nifti2Header::getCiftiDimensions(std::vector< int >& dimensions)
+void NiftiHeader::getCiftiDimensions(std::vector< int >& dimensions)
 {
    if(m_header.dim[5]!=1) dimensions.push_back(m_header.dim[5]);
    if(m_header.dim[6]!=1) dimensions.push_back(m_header.dim[6]);
    if(m_header.dim[7]!=1) dimensions.push_back(m_header.dim[7]);
 }
 
-void Nifti2Header::setCiftiDimensions(std::vector< int >& dimensions)
+void NiftiHeader::setCiftiDimensions(std::vector< int >& dimensions)
 {
    for (int i = 0; i < (int)dimensions.size() && i < 3; ++i)
    {

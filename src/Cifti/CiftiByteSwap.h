@@ -27,6 +27,7 @@
 
 #include <algorithm>
 
+namespace caret {
 
 class CiftiByteSwap {
    public:
@@ -84,4 +85,6 @@ class CiftiByteSwap {
          swapBytes((char *)n,8,numToSwap);
       }  
 };
+
+}
 #endif //__CIFTI_BYTE_SWAP

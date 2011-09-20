@@ -31,6 +31,8 @@
 #include <exception>
 #include <QString>
 
+namespace caret {
+
 class StatisticException;
 
 /// Exception involving data files
@@ -58,6 +60,8 @@ class CiftiFileException : public std::exception {
       
    private:      
 };
+
+}
 
 #endif // __FILE_EXCEPTION_H__
 

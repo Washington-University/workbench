@@ -30,7 +30,7 @@
 #include <vector>
 
 #include <iostream>
-using namespace std;
+using namespace caret;
 
 /**
  * Default Constructor

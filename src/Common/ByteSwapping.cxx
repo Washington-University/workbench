@@ -1,6 +1,7 @@
 
 #include "ByteSwapping.h"
 
+using namespace caret;
 /**
  * Swap bytes for the specified type.
  */

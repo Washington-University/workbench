@@ -28,6 +28,8 @@
 #include "CiftiXMLReader.h"
 #include "CiftiXMLWriter.h"
 #include <QtCore>
+
+namespace caret {
 /// Simple Container class for storing Cifti XML meta data
 class CiftiXML {
 public:
@@ -123,4 +125,6 @@ public:
 protected:
    CiftiRootElement m_root;
 };
+
+}
 #endif//__CIFTI_XML

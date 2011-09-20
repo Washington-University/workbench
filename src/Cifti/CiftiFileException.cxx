@@ -27,6 +27,8 @@
 
 #include "CiftiFileException.h"
 
+using namespace caret;
+
 CiftiFileException::CiftiFileException(const QString& msg) 
 {
    exceptionDescription = msg;

@@ -4,6 +4,8 @@
 #include "iostream"
 #include "CiftiXMLReader.h"
 
+using namespace caret;
+
 void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
 {
    while (!xml.atEnd()  && !xml.hasError()) {

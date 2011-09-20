@@ -28,6 +28,8 @@
 #include <QtCore>
 #include "CiftiXMLElements.h"
 
+namespace caret {
+
 void writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement);
 void writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement);
 void writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData);
@@ -42,4 +44,5 @@ void getModelTypeString(int modelType, QString &modelTypeString);
 void getDataSpaceString(int dataSpace, QString &dataSpaceString);
 void getUnitsXYZString(int UnitsXYZ, QString &unitsXYZString);
 
+}
 #endif //__CIFTI_XML_WRITER_H__

@@ -29,6 +29,8 @@
 #include "nifti2.h"
 /* Cifti Defines */
 
+namespace caret {
+
 /*! ModelType */
 enum ModelType {
    CIFTI_MODEL_TYPE_SURFACE=1,/*!< CIFTI_MODEL_TYPE_SURFACE*/
@@ -128,6 +130,8 @@ public:
    unsigned long m_numberOfMatrices;/*!< Number of Matrices*/
    std::vector<CiftiMatrixElement> m_matrices; /*!< Matrices, currently there is only matrix, but future versions may allow for more */
 };
+
+}
 
 
 #endif //__CIFTI_ELEMENTS

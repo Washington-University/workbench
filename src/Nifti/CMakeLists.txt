@@ -21,6 +21,8 @@ ADD_LIBRARY(Nifti
 Matrix4x4.h
 NiftiDataTypeEnum.h
 NiftiException.h
+NiftiFile.h
+NiftiHeader.h
 NiftiIntentEnum.h
 NiftiSpacingUnitsEnum.h
 NiftiTimeUnitsEnum.h
@@ -32,11 +34,15 @@ PaletteColorMappingSaxReader.h
 PaletteScaleModeEnum.h
 PaletteThresholdTestEnum.h
 PaletteThresholdTypeEnum.h
+nifti1.h
+nifti2.h
 
 
 Matrix4x4.cxx
 NiftiDataTypeEnum.cxx
 NiftiException.cxx
+NiftiFile.cxx
+NiftiHeader.cxx
 NiftiIntentEnum.cxx
 NiftiSpacingUnitsEnum.cxx
 NiftiTimeUnitsEnum.cxx
@@ -54,7 +60,8 @@ PaletteThresholdTypeEnum.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Cifti
+${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml
 )

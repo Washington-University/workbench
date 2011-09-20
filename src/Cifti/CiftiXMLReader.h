@@ -28,6 +28,8 @@
 #include "CiftiXMLElements.h"
 #include <QtCore>
 
+namespace caret {
+
 void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement);
 void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement);
 void parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &matrixElement);
@@ -39,4 +41,5 @@ void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel);
 void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume);
 void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform);
 
+}
 #endif //__CIFTI_XML_READER_H__

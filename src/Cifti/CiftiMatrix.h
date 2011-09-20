@@ -29,6 +29,8 @@
 #include <vector>
 #include <CiftiByteSwap.h>
 
+namespace caret {
+
 enum  CACHE_LEVEL {
   IN_MEMORY,
   ON_DISK
@@ -65,5 +67,7 @@ protected:
    CACHE_LEVEL m_clevel;
    bool m_copyData;
 };
+
+}
 
 #endif //__CIFTI_MATRIX
