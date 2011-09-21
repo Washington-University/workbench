@@ -32,38 +32,64 @@
 
 namespace caret {
 
+   class FloatMatrixRow
+   {//needed to ensure some joker doesn't call mymatrix[1].resize();, while still allowing mymatrix[1][2] = 5; and mymatrix[1] = mymatrix[2];
+      std::vector<float>& m_row;
+      FloatMatrixRow();//disallow default construction, this contains a reference
+   public:
+      FloatMatrixRow(FloatMatrixRow& right);//copy constructor
+      FloatMatrixRow(std::vector<float>& therow);
+      FloatMatrixRow& operator=(const FloatMatrixRow& right);//NOTE: copy row contents!
+      FloatMatrixRow& operator=(const float& right);//NOTE: set all row values!
+      float& operator[](const int64_t& index);//access element
+   };
+   
+   ///class for using single precision matrices (insulates other code from the MatrixFunctions templated header)
+   ///errors will result in a matrix of size 0x0, or an assertion failure if the underlying vector<vector> isn't rectangular
    class FloatMatrix
    {
       std::vector<std::vector<float> > m_matrix;
-      bool checkDimensions();//put this inside asserts at the end of functions
+      bool checkDimensions() const;//put this inside asserts at the end of functions
    public:
       FloatMatrix() { };//to make the compiler happy
+      FloatMatrixRow operator[](const int64_t& index);//allow direct indexing to rows
+      FloatMatrix& operator+=(const FloatMatrix& right);//add to
+      FloatMatrix& operator-=(const FloatMatrix& right);//subtract from
+      FloatMatrix& operator*=(const FloatMatrix& right);//multiply by
+      FloatMatrix& operator+=(const float& right);//add scalar to
+      FloatMatrix& operator-=(const float& right);//subtract scalar from
+      FloatMatrix& operator*=(const float& right);//multiply by scalar
+      FloatMatrix& operator/=(const float& right);//divide by scalar
+      FloatMatrix operator+(const FloatMatrix& right) const;//add
+      FloatMatrix operator-(const FloatMatrix& right) const;//subtract
+      FloatMatrix operator-() const;//negate
+      FloatMatrix operator*(const FloatMatrix& right) const;//multiply
+      bool operator==(const FloatMatrix& right) const;//compare
+      bool operator!=(const FloatMatrix& right) const;//anti-compare
+      ///construct from a simple vector<vector<float> >
       FloatMatrix(const std::vector<std::vector<float> >& matrixIn);
-      std::vector<float>& operator[](const int64_t& index);
-      FloatMatrix& operator+=(const FloatMatrix& right);
-      FloatMatrix& operator-=(const FloatMatrix& right);
-      FloatMatrix& operator*=(const FloatMatrix& right);
-      FloatMatrix& operator+=(const float& right);
-      FloatMatrix& operator-=(const float& right);
-      FloatMatrix& operator*=(const float& right);
-      FloatMatrix& operator/=(const float& right);
-      FloatMatrix operator+(const FloatMatrix& right) const;
-      FloatMatrix operator-(const FloatMatrix& right) const;
-      FloatMatrix operator-() const;
-      FloatMatrix operator*(const FloatMatrix& right) const;
-      bool operator==(const FloatMatrix& right) const;
-      bool operator!=(const FloatMatrix& right) const;
-      FloatMatrix inverse();
-      FloatMatrix reducedRowEchelon();
-      FloatMatrix transpose();
+      ///return the inverse
+      FloatMatrix inverse() const;
+      ///return the reduced row echelon form
+      FloatMatrix reducedRowEchelon() const;
+      ///return the transpose
+      FloatMatrix transpose() const;
+      ///resize the matrix - keeps contents within bounds unless destructive is true (destructive is faster)
       void resize(const int64_t rows, const int64_t cols, const bool destructive = false);
+      ///return a matrix of zeros
       static FloatMatrix zeros(const int64_t rows, const int64_t cols);
+      ///return square identity matrix
       static FloatMatrix identity(const int64_t rows);
-      FloatMatrix getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol);
-      FloatMatrix concatHoriz(const FloatMatrix& right);
-      FloatMatrix concatVert(const FloatMatrix& bottom);
+      ///get the range of values from first until one before afterLast, as a new matrix
+      FloatMatrix getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol) const;
+      ///return a matrix formed by concatenating right to the right of this
+      FloatMatrix concatHoriz(const FloatMatrix& right) const;
+      ///returns a matrix formed by concatenating bottom to the bottom of this
+      FloatMatrix concatVert(const FloatMatrix& bottom) const;
+      ///get the dimensions
       void getDimensions(int64_t& rows, int64_t& cols) const;
-      const std::vector<std::vector<float> >& getMatrix();
+      ///get the matrix as a vector<vector>
+      const std::vector<std::vector<float> >& getMatrix() const;
    };
 
 }

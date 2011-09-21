@@ -24,13 +24,14 @@
  */
 /*LICENSE_END*/
 
+#include "CaretAssert.h"
 #include "FloatMatrix.h"
 #include "MatrixFunctions.h"
 
 using namespace caret;
 using namespace std;
 
-bool caret::FloatMatrix::checkDimensions()
+bool caret::FloatMatrix::checkDimensions() const
 {
    uint64_t rows = m_matrix.size(), cols;
    if (rows == 0) return true;//treat it as fine for now
@@ -70,7 +71,7 @@ FloatMatrix& FloatMatrix::operator*=(const FloatMatrix& right)
    return *this;
 }
 
-FloatMatrix FloatMatrix::concatHoriz(const FloatMatrix& right)
+FloatMatrix FloatMatrix::concatHoriz(const FloatMatrix& right) const
 {
    MatrixFunctions mymf;
    FloatMatrix ret;
@@ -78,7 +79,7 @@ FloatMatrix FloatMatrix::concatHoriz(const FloatMatrix& right)
    return ret;
 }
 
-FloatMatrix FloatMatrix::concatVert(const FloatMatrix& bottom)
+FloatMatrix FloatMatrix::concatVert(const FloatMatrix& bottom) const
 {
    MatrixFunctions mymf;
    FloatMatrix ret;
@@ -86,7 +87,7 @@ FloatMatrix FloatMatrix::concatVert(const FloatMatrix& bottom)
    return ret;
 }
 
-FloatMatrix FloatMatrix::getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol)
+FloatMatrix FloatMatrix::getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol) const
 {
    MatrixFunctions mymf;
    FloatMatrix ret;
@@ -102,7 +103,7 @@ FloatMatrix FloatMatrix::identity(const int64_t rows)
    return ret;
 }
 
-FloatMatrix FloatMatrix::inverse()
+FloatMatrix FloatMatrix::inverse() const
 {
    MatrixFunctions mymf;
    FloatMatrix ret;
@@ -208,12 +209,13 @@ void FloatMatrix::getDimensions(int64_t& rows, int64_t& cols) const
    }
 }
 
-vector<float>& FloatMatrix::operator[](const int64_t& index)
+FloatMatrixRow FloatMatrix::operator[](const int64_t& index)
 {
-   return m_matrix[index];
+   FloatMatrixRow ret(m_matrix[index]);
+   return ret;
 }
 
-FloatMatrix FloatMatrix::reducedRowEchelon()
+FloatMatrix FloatMatrix::reducedRowEchelon() const
 {
    FloatMatrix ret(*this);
    MatrixFunctions mymf;
@@ -227,7 +229,7 @@ void FloatMatrix::resize(const int64_t rows, const int64_t cols, const bool dest
    mymf.resize(rows, cols, m_matrix, destructive);
 }
 
-FloatMatrix FloatMatrix::transpose()
+FloatMatrix FloatMatrix::transpose() const
 {
    FloatMatrix ret;
    MatrixFunctions mymf;
@@ -243,7 +245,7 @@ FloatMatrix FloatMatrix::zeros(const int64_t rows, const int64_t cols)
    return ret;
 }
 
-const vector<vector<float> >& FloatMatrix::getMatrix()
+const vector<vector<float> >& FloatMatrix::getMatrix() const
 {
    return m_matrix;
 }
@@ -255,4 +257,38 @@ FloatMatrix FloatMatrix::operator-() const
    FloatMatrix ret = zeros(rows, cols);
    ret -= *this;
    return ret;
+}
+
+FloatMatrixRow::FloatMatrixRow(vector<float>& therow) : m_row(therow)
+{
+}
+
+FloatMatrixRow& FloatMatrixRow::operator=(const FloatMatrixRow& right)
+{
+   if (this == &right)
+   {//just in case vector isn't smart enough to check self assignment
+      return *this;
+   }
+   CaretAssert(m_row.size() == right.m_row.size());//maybe this should be an exception, not an assertion?
+   m_row = right.m_row;
+   return *this;
+}
+
+FloatMatrixRow& FloatMatrixRow::operator=(const float& right)
+{
+   for (int64_t i = 0; i < (int64_t)m_row.size(); ++i)
+   {
+      m_row[i] = right;
+   }
+   return *this;
+}
+
+float& caret::FloatMatrixRow::operator[](const int64_t& index)
+{
+   CaretAssert(index < (int64_t)m_row.size());//instead of segfaulting, explicitly check in debug
+   return m_row[index];
+}
+
+FloatMatrixRow::FloatMatrixRow(FloatMatrixRow& right) : m_row(right.m_row)
+{
 }
