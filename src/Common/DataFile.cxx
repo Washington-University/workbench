@@ -23,6 +23,7 @@
  */ 
 
 #include "DataFile.h"
+#include "FileInformation.h"
 
 using namespace caret;
 
@@ -103,14 +104,22 @@ DataFile::clear()
 }
 
 /**
- * Get the name of the data file.
- *
- * @return Name of the data file.
+ * @return Name of the data file including any path.
  */
 AString 
 DataFile::getFileName() const
 {
     return this->filename;
+}
+
+/**
+ * @return Name of the data file excluding any path.
+ */
+AString 
+DataFile::getFileNameNoPath() const
+{
+    FileInformation fileInfo(this->filename);
+    return fileInfo.getFileName();
 }
 
 /**

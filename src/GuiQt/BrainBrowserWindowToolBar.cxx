@@ -1044,8 +1044,7 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     for (int32_t i = 0; i < numModels; i++) {
         ModelDisplayControllerSurface* mdcs = allSurfaceModels[i];
 
-        this->surfaceSurfaceSelectionComboBox->addItem(
-                                                       mdcs->getNameForGUI(true),
+        this->surfaceSurfaceSelectionComboBox->addItem(mdcs->getNameForGUI(true),
                                                        qVariantFromValue((void*)mdcs));
         if (mdcs == selectedSurfaceModel) {
             defaultIndex = i;

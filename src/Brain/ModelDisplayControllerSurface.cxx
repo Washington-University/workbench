@@ -83,7 +83,13 @@ ModelDisplayControllerSurface::getSurface()
 AString
 ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) const
 {
-    AString name = this->surface->getFileName();
+    AString name;
+    if (includeStructureFlag) {
+        const StructureEnum::Enum structure = this->surface->getStructure();
+        name += StructureEnum::toGuiName(structure);
+        name += " ";
+    }
+    name += this->surface->getFileNameNoPath();
     return name;
 }
 
