@@ -297,6 +297,47 @@ GiftiTypeFile::verifyDataArraysHaveSameNumberOfRows(const int32_t minimumSecondD
         }
     }
 }
-                                                                            
+   
+/**
+ * Get the name of a file column.
+ * @param columnIndex
+ *    Index of column.
+ * @return
+ *    Name of column.
+ */
+AString 
+GiftiTypeFile::getColumnName(const int columnIndex) const
+{
+    return this->giftiFile->getDataArrayName(columnIndex);
+}
+
+/**
+ * Find the first column with the given column name.
+ * @param columnName
+ *     Name of column.
+ * @return
+ *     Index of column with name or negative if no match.
+ */
+int32_t 
+GiftiTypeFile::getColumnIndexFromColumnName(const AString& columnName) const
+{
+    return this->giftiFile->getDataArrayWithNameIndex(columnName);
+}
+
+/**
+ * Set the name of a column.
+ * @param columnIndex
+ *    Index of column.
+ * @param columnName
+ *    New name for column.
+ */
+void 
+GiftiTypeFile::setColumnName(const int32_t columnIndex,
+                             const AString& columnName)
+{
+    this->giftiFile->setDataArrayName(columnIndex, columnName);
+}
+
+
 
 

@@ -40,7 +40,6 @@ namespace caret {
         
         virtual ~SurfaceOverlaySet();
         
-    private:
         SurfaceOverlaySet(const SurfaceOverlaySet&);
 
         SurfaceOverlaySet& operator=(const SurfaceOverlaySet&);
@@ -51,11 +50,23 @@ namespace caret {
         
         SurfaceOverlay* getOverlay(const int32_t overlayNumber);
         
+        void addDisplayedOverlay();
+        
+        int32_t getNumberOfDisplayedOverlays() const;
+        
+        void removeDisplayedOverlay(const int32_t overlayIndex);
+        
+        void moveDisplayedOverlayUp(const int32_t overlayIndex);
+        
+        void moveDisplayedOverlayDown(const int32_t overlayIndex);
+        
     public:
         virtual AString toString() const;
         
     private:
         SurfaceOverlay overlays[BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS];
+        
+        int32_t numberOfDisplayedOverlays;
     };
     
 #ifdef __SURFACE_OVERLAY_SET_DECLARE__

@@ -48,8 +48,10 @@ BrainOpenGL.h
 BrainStructure.h
 BrowserTabContent.h
 EventBrowserTabDelete.h
+EventBrowserTabGet.h
 EventBrowserTabNew.h
 EventDataFileRead.h
+EventGetNodeDataFiles.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
@@ -71,8 +73,10 @@ BrainOpenGL.cxx
 BrainStructure.cxx
 BrowserTabContent.cxx
 EventBrowserTabDelete.cxx
+EventBrowserTabGet.cxx
 EventBrowserTabNew.cxx
 EventDataFileRead.cxx
+EventGetNodeDataFiles.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx

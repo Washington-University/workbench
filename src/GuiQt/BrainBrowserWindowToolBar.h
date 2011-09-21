@@ -59,6 +59,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                  QAction* toolsToolBoxToolButtonAction,
                                   QWidget* parent = 0);
         
         ~BrainBrowserWindowToolBar();
@@ -278,9 +279,6 @@ namespace caret {
     private:
         QAction* toolsToolBoxToolButtonAction;
     
-    private slots:
-        void toolsToolBoxToolButtonTriggered(bool checked);
-        
     private:
         int32_t browserWindowIndex;
         

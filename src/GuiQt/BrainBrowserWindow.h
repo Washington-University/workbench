@@ -37,7 +37,9 @@ class QMenu;
 
 namespace caret {
     class BrainBrowserWindowToolBar;
+    class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
+    class BrowserTabContent;
     
     /**
      * The brain browser window is the viewer for
@@ -51,6 +53,8 @@ namespace caret {
         virtual ~BrainBrowserWindow();
         
         void receiveEvent(Event* event);
+        
+        BrowserTabContent* getBrowserTabContent();
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -99,6 +103,8 @@ namespace caret {
         QMenu* createMenuVolume();
         QMenu* createMenuWindow();
         QMenu* createMenuHelp();
+        
+        void moveToolBox(Qt::DockWidgetArea area);
         
         /** Index of this window */
         int32_t browserWindowIndex;
@@ -154,6 +160,8 @@ namespace caret {
         QAction* searchHelpOnlineAction;
         
         QMenu* moveTabToThisWindowMenu;
+        
+        BrainBrowserWindowToolBox* topBottomToolBox;
         
         friend class GuiManager;
     };

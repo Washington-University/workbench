@@ -27,9 +27,9 @@
  *
  */
 
+#include <vector>
 #include <stdint.h>
 
-#include <QVector>
 #include <QObject>
 
 namespace caret {
@@ -37,6 +37,7 @@ namespace caret {
     class Brain;
     class BrainBrowserWindow;
     class BrainOpenGL;
+    class BrowserTabContent;
     
     /**
      * Manages the graphical user-interface.
@@ -69,6 +70,8 @@ namespace caret {
         
         BrainOpenGL* getBrainOpenGL();
         
+        BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex);
+        
     public slots:
         void processBringAllWindowsToFront();
         void processShowIdentifyWindow();
@@ -93,7 +96,7 @@ namespace caret {
          * As BrainBrowser windows are closed, some of
          * the elements may be NULL.
          */
-        QVector<BrainBrowserWindow*> brainBrowserWindows;
+        std::vector<BrainBrowserWindow*> brainBrowserWindows;
         
         /** Name of application */
         QString nameOfApplication;

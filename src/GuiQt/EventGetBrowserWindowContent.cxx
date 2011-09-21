@@ -22,66 +22,68 @@
  * 
  */ 
 
-#include "EventGetModelToDrawForWindow.h"
+#include "EventGetBrowserWindowContent.h"
 
 using namespace caret;
 
 /**
  * Constructor.
+ * @param browserWindowIndex
+ *    Index of browser window.
  */
-EventGetModelToDrawForWindow::EventGetModelToDrawForWindow(const int32_t windowIndex)
-: Event(EventTypeEnum::EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW)
+EventGetBrowserWindowContent::EventGetBrowserWindowContent(const int32_t browserWindowIndex)
+: Event(EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT)
 {
-    this->windowIndex = windowIndex;
-    this->windowTabIndex = -1;
+    this->browserWindowIndex = browserWindowIndex;
+    this->windowTabNumber = -1;
     this->modelDisplayController = NULL;
 }
 
 /*
  * Destructor.
  */
-EventGetModelToDrawForWindow::~EventGetModelToDrawForWindow()
+EventGetBrowserWindowContent::~EventGetBrowserWindowContent()
 {
     
 }
 
 /**
- * Get the index of the window that is to be updated.
+ * @return Get the browser window index.
  */
 int32_t 
-EventGetModelToDrawForWindow::getWindowIndex() const 
+EventGetBrowserWindowContent::getBrowserWindowIndex() const 
 { 
-    return this->windowIndex; 
+    return this->browserWindowIndex; 
 }
 
 /**
- * Get window tab index that is being drawn
+ * @return Get window tab number
  */
 int32_t 
-EventGetModelToDrawForWindow::getWindowTabIndex() const 
+EventGetBrowserWindowContent::getWindowTabNumber() const 
 { 
-    return this->windowTabIndex; 
+    return this->windowTabNumber; 
 }
 
 /**
  * Get the model controller being drawn
  */
 ModelDisplayController* 
-EventGetModelToDrawForWindow::getModelDisplayController() 
+EventGetBrowserWindowContent::getModelDisplayController()  
 { 
     return this->modelDisplayController; 
 }
 
 /**
- * Set the window tab index.
+ * Set the window tab number.
  *
- * @param windowTabIndex
- *     Index of tab window.
+ * @param windowTabNumber
+ *     Number of tab window.
  */
 void 
-EventGetModelToDrawForWindow::setWindowTabIndex(const int32_t windowTabIndex)
+EventGetBrowserWindowContent::setWindowTabNumber(const int32_t windowTabNumber)
 {
-    this->windowTabIndex = windowTabIndex;
+    this->windowTabNumber = windowTabNumber;
 }
 
 /**
@@ -91,7 +93,7 @@ EventGetModelToDrawForWindow::setWindowTabIndex(const int32_t windowTabIndex)
  *    The model display controller.
  */
 void 
-EventGetModelToDrawForWindow::setModelDisplayController(ModelDisplayController* modelDisplayController)
+EventGetBrowserWindowContent::setModelDisplayController(ModelDisplayController* modelDisplayController)
 {
     this->modelDisplayController = modelDisplayController;   
 }

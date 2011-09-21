@@ -83,6 +83,13 @@ namespace caret {
         /** @return  Number of columns (data arrays) in the file. */
         virtual int32_t getNumberOfColumns() const = 0;
         
+        virtual AString getColumnName(const int32_t columnIndex) const;
+        
+        int32_t getColumnIndexFromColumnName(const AString& columnName) const;
+        
+        virtual void setColumnName(const int32_t columnIndex,
+                                   const AString& columnName);
+        
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

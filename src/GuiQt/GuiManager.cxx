@@ -32,6 +32,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
 #include "CaretAssert.h"
+#include "EventGetBrowserWindowContent.h"
 #include "EventManager.h"
 #include "SessionManager.h"
 
@@ -298,6 +299,25 @@ GuiManager::exitProgram(QWidget* parent)
 }
 
 /**
+ * Get the browser tab content in a browser window.
+ * @param browserWindowIndex
+ *    Index of browser window.
+ * @return
+ *    Browser tab content in the browser window.
+ */
+BrowserTabContent* 
+GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex)
+{
+    CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
+    BrainBrowserWindow* browserWindow = brainBrowserWindows[browserWindowIndex];
+    CaretAssert(browserWindow);
+    
+    BrowserTabContent* tabContent = browserWindow->getBrowserTabContent();
+    CaretAssert(tabContent);
+    return tabContent;
+}
+
+/**
  * Called when bring all windows to front is selected.
  */
 void 
@@ -328,7 +348,7 @@ GuiManager::processShowDataDisplayWindow()
 
 /**
  * Called when show help online is selected.
- */
+ */ 
 void 
 GuiManager::processShowHelpOnlineWindow()
 {

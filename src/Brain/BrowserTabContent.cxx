@@ -259,7 +259,7 @@ BrowserTabContent::setSelectedSurfaceModel(ModelDisplayControllerSurface* select
  * @return  Surface overlay assignments for this tab.
  */
 SurfaceOverlaySet* 
-BrowserTabContent::getSurfaceOverlayAssignment()
+BrowserTabContent::getSurfaceOverlaySet()
 {
     return &this->surfaceOverlayAssignment;
 }

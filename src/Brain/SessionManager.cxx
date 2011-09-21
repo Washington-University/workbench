@@ -34,6 +34,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabGet.h"
 #include "EventBrowserTabNew.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
@@ -54,6 +55,7 @@ SessionManager::SessionManager()
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
@@ -231,7 +233,6 @@ SessionManager::receiveEvent(Event* event)
         dynamic_cast<EventBrowserTabDelete*>(event);
         CaretAssert(tabEvent);
         
-        tabEvent->setEventProcessed();
         
         BrowserTabContent* tab = tabEvent->getBrowserTab();
         
@@ -239,9 +240,22 @@ SessionManager::receiveEvent(Event* event)
             if (this->browserTabs[i] == tab) {
                 delete this->browserTabs[i];
                 this->browserTabs[i] = NULL;
+                tabEvent->setEventProcessed();
                 break;
             }
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET) {
+        EventBrowserTabGet* tabEvent =
+        dynamic_cast<EventBrowserTabGet*>(event);
+        CaretAssert(tabEvent);
+        
+        tabEvent->setEventProcessed();
+        
+        const int32_t tabNumber = tabEvent->getTabNumber();
+        CaretAssertArrayIndex(this->browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabNumber);
+        
+        tabEvent->setBrowserTab(this->browserTabs[tabNumber]);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
         EventModelDisplayControllerAdd* addModelsEvent =

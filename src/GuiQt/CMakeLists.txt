@@ -26,8 +26,11 @@ INCLUDE(${QT_USE_FILE})
 SET(MOC_INPUT_HEADER_FILES
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
+BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 GuiManager.h
+OverlaySelectionControl.h
+OverlaySelectionControlLayer.h
 WuQFileDialog.h
 WuQMessageBox.h
 WuQWidgetObjectGroup.h
@@ -39,12 +42,15 @@ WuQWidgetObjectGroup.h
 SET(SOURCE_FILES
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
+BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
-EventGetModelToDrawForWindow.h
+EventGetBrowserWindowContent.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventUserInterfaceUpdate.h
 GuiManager.h
+OverlaySelectionControl.h
+OverlaySelectionControlLayer.h
 ViewModeEnum.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
@@ -55,12 +61,15 @@ WuQtUtilities.h
 
 BrainBrowserWindow.cxx
 BrainBrowserWindowToolBar.cxx
+BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
-EventGetModelToDrawForWindow.cxx
+EventGetBrowserWindowContent.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
+OverlaySelectionControl.cxx
+OverlaySelectionControlLayer.cxx
 ViewModeEnum.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx

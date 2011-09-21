@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class GiftiTypeFile;
     
     /// Contains settings for a single surface overlay
     class SurfaceOverlay : public CaretObject {
@@ -52,14 +53,24 @@ namespace caret {
         
         void setOverlayNumber(const int32_t overlayIndex);
         
+        virtual AString toString() const;
+        
+        bool isEnabled() const;
+        
+        void setEnabled(const bool enabled);
+        
+        void getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
+                              GiftiTypeFile* &selectedFileOut,
+                              AString& selectedColumnNameOut,
+                              int32_t& selectedColumnIndexOut);
+        
+        void setSelectionData(GiftiTypeFile* selectedDataFile,
+                              const int32_t selectedColumnIndex);
+        
     private:
         SurfaceOverlay(const SurfaceOverlay&);
 
         SurfaceOverlay& operator=(const SurfaceOverlay&);
-        
-        
-    public:
-        virtual AString toString() const;
         
         /** Name of overlay */
         AString name;
@@ -73,10 +84,17 @@ namespace caret {
         /** opacity for overlay */
         float opacity;
         
-        /** UUID of selected data */
-        AString selectedDataUUID;
+        /** enabled status */
+        bool enabled;
         
-    private:
+        /** available files */
+        std::vector<GiftiTypeFile*> dataFiles;
+        
+        /* selected data file */
+        GiftiTypeFile* selectedDataFile;
+        
+        /* selected data file column */
+        AString selectedColumnName;
     };
     
 #ifdef __SURFACE_OVERLAY_DECLARE__

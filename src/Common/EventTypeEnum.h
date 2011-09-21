@@ -42,12 +42,16 @@ public:
     enum Enum {
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
+        /** Get a new browser tab by tab number */
+        EVENT_BROWSER_TAB_GET,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
-        /** Get the model and other info for drawing a window */
-        EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW,
+        /** Get the content of a browser window */
+        EVENT_GET_BROWSER_WINDOW_CONTENT,
+        /** Get node data files */
+        EVENT_GET_NODE_DATA_FILES,
         /** Update all graphics windows */
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */

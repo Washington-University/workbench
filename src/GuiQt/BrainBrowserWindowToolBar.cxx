@@ -47,7 +47,7 @@
 #include "CaretLogger.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
-#include "EventGetModelToDrawForWindow.h"
+#include "EventGetBrowserWindowContent.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
@@ -67,11 +67,12 @@ using namespace caret;
  *    Parent for this toolbar.
  */
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                                     QAction* toolBoxToolButtonAction,
                                                      QWidget* parent)
 : QToolBar(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->toolsToolBoxToolButtonAction = NULL;
+    this->toolsToolBoxToolButtonAction = toolBoxToolButtonAction;
     this->updateCounter = 0;
     
     /*
@@ -144,7 +145,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     //this->updateViewWidget(NULL);
     this->updateToolBar();
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT);
 }
 
 /**
@@ -872,12 +873,6 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
 QWidget* 
 BrainBrowserWindowToolBar::createToolsWidget()
 {
-    
-    this->toolsToolBoxToolButtonAction = WuQtUtilities::createAction("Toolbox", 
-                                                                     "Show/Hide the Toolbox", 
-                                                                     this, 
-                                                                     this, 
-                                                                     SLOT(toolsToolBoxToolButtonTriggered(bool)));
     QToolButton* toolBoxToolButton = new QToolButton();
     toolBoxToolButton->setDefaultAction(this->toolsToolBoxToolButtonAction);
     
@@ -1795,17 +1790,6 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int i)
     this->checkUpdateCounter();
 }
 
-/**
- * Called when tools toolbox button is toggled.
- */
-void 
-BrainBrowserWindowToolBar::toolsToolBoxToolButtonTriggered(bool checked)
-{
-    CaretLogEntering(); 
-    this->checkUpdateCounter();
-    CaretLogExiting();
-}
-
 void 
 BrainBrowserWindowToolBar::checkUpdateCounter()
 {
@@ -1829,22 +1813,22 @@ BrainBrowserWindowToolBar::decrementUpdateCounter(const char* methodName)
 
 /**
  * Receive events from the event manager.
- * 
+ *  
  * @param event
  *   Event sent by event manager.
  */
 void 
 BrainBrowserWindowToolBar::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW) {
-        EventGetModelToDrawForWindow* getModelEvent =
-            dynamic_cast<EventGetModelToDrawForWindow*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT) {
+        EventGetBrowserWindowContent* getModelEvent =
+            dynamic_cast<EventGetBrowserWindowContent*>(event);
         CaretAssert(getModelEvent);
         
-        if (getModelEvent->getWindowIndex() == this->browserWindowIndex) {
+        if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrowserTabContent* btc = this->getTabContentFromSelectedTab();
             getModelEvent->setModelDisplayController(btc->getDisplayedModelController());
-            getModelEvent->setWindowTabIndex(btc->getTabNumber());
+            getModelEvent->setWindowTabNumber(btc->getTabNumber());
             getModelEvent->setEventProcessed();
         }
     }

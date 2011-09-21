@@ -36,7 +36,7 @@
 #include "CaretAssert.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
-#include "EventGetModelToDrawForWindow.h"
+#include "EventGetBrowserWindowContent.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "GuiManager.h"
@@ -150,7 +150,7 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
-    EventGetModelToDrawForWindow getModelEvent(this->windowIndex);
+    EventGetBrowserWindowContent getModelEvent(this->windowIndex);
     EventManager::get()->sendEvent(getModelEvent.getPointer());
 
     if (getModelEvent.isError()) {
@@ -158,7 +158,7 @@ BrainOpenGLWidget::paintGL()
     }
     
     this->modelController = getModelEvent.getModelDisplayController();
-    this->windowTabIndex  = getModelEvent.getWindowTabIndex();
+    this->windowTabIndex  = getModelEvent.getWindowTabNumber();
     
     this->openGL->drawModel(this->modelController,
                             this->windowTabIndex,

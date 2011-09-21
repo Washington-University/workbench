@@ -22,11 +22,14 @@
  * 
  */ 
 
+#include <algorithm>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
 #include "BrainStructure.h"
 #include "EventManager.h"
+#include "EventGetNodeDataFiles.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
 #include "LabelFile.h"
@@ -48,6 +51,8 @@ BrainStructure::BrainStructure(Brain* brain,
 {
     this->brain = brain;
     this->structure = structure;
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
 }
 
 /**
@@ -55,6 +60,8 @@ BrainStructure::BrainStructure(Brain* brain,
  */
 BrainStructure::~BrainStructure()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     /*
      * Make a copy of all surface pointers since
      * deleting surfaces will alter the actual
@@ -313,6 +320,24 @@ BrainStructure::getSurface(int indx)
 }
 
 /**
+ * Is the surface in this brain structure?
+ * @param surface
+ *   Surface that is tested for being in this brain structure.
+ * @return Returns true if surface in brain structure, else false.
+ */
+bool 
+BrainStructure::containsSurface(const Surface* surface)
+{
+    CaretAssert(surface);
+    if (std::find(this->surfaces.begin(),
+                  this->surfaces.end(),
+                  surface) != this->surfaces.end()) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Get the brain that this brain structure is in.
  */
 Brain* 
@@ -449,5 +474,48 @@ BrainStructure::getRgbaFile(const int32_t fileIndex) const
     return this->rgbaFiles[fileIndex];
 }
 
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+BrainStructure::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_GET_NODE_DATA_FILES) {
+        EventGetNodeDataFiles* dataFilesEvent =
+            dynamic_cast<EventGetNodeDataFiles*>(event);
+        CaretAssert(dataFilesEvent);
+        
+        const Surface* associatedSurface = dataFilesEvent->getSurface();
+        if (associatedSurface != NULL) {
+            if (this->containsSurface(associatedSurface) == false) {
+                return;
+            }
+        }
+        
+        for (std::vector<LabelFile*>::iterator labelIter = this->labelFiles.begin();
+             labelIter != this->labelFiles.end();
+             labelIter++) {
+            dataFilesEvent->addFile(*labelIter);
+        }
+        
+        for (std::vector<MetricFile*>::iterator metricIter = this->metricFiles.begin();
+             metricIter != this->metricFiles.end();
+             metricIter++) {
+            dataFilesEvent->addFile(*metricIter);
+        }
+        
+        for (std::vector<RgbaFile*>::iterator rgbaIter = this->rgbaFiles.begin();
+             rgbaIter != this->rgbaFiles.end();
+             rgbaIter++) {
+            dataFilesEvent->addFile(*rgbaIter);
+        }
+        
+        dataFilesEvent->setEventProcessed();
+    }
+}
 
 

@@ -33,6 +33,7 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
+#include "EventListenerInterface.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -47,13 +48,15 @@ namespace caret {
     /**
      * Maintains view of some type of object.
      */
-    class BrainStructure : public CaretObject {
+    class BrainStructure : public CaretObject, public EventListenerInterface {
         
     public:
         BrainStructure(Brain* brain,
                        StructureEnum::Enum structure);
         
         ~BrainStructure();
+        
+        void receiveEvent(Event* event);
         
     private:
         BrainStructure(const BrainStructure& s);
@@ -74,6 +77,8 @@ namespace caret {
         int getNumberOfSurfaces() const;
         
         Surface* getSurface(const int32_t indx);
+        
+        bool containsSurface(const Surface* surface);
         
         Brain* getBrain();
         

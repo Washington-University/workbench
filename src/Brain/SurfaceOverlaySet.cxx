@@ -38,7 +38,7 @@ using namespace caret;
 SurfaceOverlaySet::SurfaceOverlaySet()
 : CaretObject()
 {
-    
+    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_SURFACE_OVERLAYS;
 }
 
 /**
@@ -79,3 +79,71 @@ SurfaceOverlaySet::toString() const
 {
     return "SurfaceOverlaySet";
 }
+
+/**
+ * Add a displayed overlay.  If the maximum
+ * number of surface overlays is reached,
+ * this method has no effect.
+ */
+void 
+SurfaceOverlaySet::addDisplayedOverlay()
+{
+    this->numberOfDisplayedOverlays++;
+    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS) {
+        this->numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS;
+    }
+}
+
+/**
+ * @return Returns the number of displayed overlays. 
+ */
+int32_t 
+SurfaceOverlaySet::getNumberOfDisplayedOverlays() const
+{
+    return this->numberOfDisplayedOverlays;
+}
+
+/**
+ * Remove a displayed overlay.  This method will have
+ * no effect if the minimum number of overlays are
+ * displayed
+ *
+ * @param overlayIndex 
+ *    Index of overlay for removal from display.
+ */
+void 
+SurfaceOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
+{
+    
+}
+
+/**
+ * Move the overlay at the given index up one level
+ * (swap it with overlayIndex - 1).  This method will
+ * have no effect if the overlay is the top-most overlay.
+ *
+ * @param overlayIndex 
+ *    Index of overlay that is to be moved up.
+ */
+void 
+SurfaceOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
+{
+    
+}
+
+/**
+ * Move the overlay at the given index down one level
+ * (swap it with overlayIndex + 1).  This method will
+ * have no effect if the overlay is the bottom-most overlay.
+ *
+ * @param overlayIndex 
+ *    Index of overlay that is to be moved down.
+ */
+void 
+SurfaceOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
+{
+    
+}
+
+
+

@@ -54,7 +54,7 @@ namespace caret {
         
         void setUserName(const AString& userName);
         
-        SurfaceOverlaySet* getSurfaceOverlayAssignment();
+        SurfaceOverlaySet* getSurfaceOverlaySet();
         
         int32_t getYokeToTabNumber() const;
         
@@ -91,7 +91,7 @@ namespace caret {
         bool isVolumeSliceModelValid() const;
         
         bool isWholeBrainModelValid() const;
-        
+
     private:
         BrowserTabContent(const BrowserTabContent&);
         

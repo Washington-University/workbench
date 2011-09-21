@@ -1,5 +1,5 @@
-#ifndef __EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW_H__
-#define __EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW_H__
+#ifndef __EVENT_GET_BROWSER_WINDOW_CONTENT_H__
+#define __EVENT_GET_BROWSER_WINDOW_CONTENT_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -32,39 +32,39 @@ namespace caret {
 
     class ModelDisplayController;
     
-    /// Event that gets model and information for drawing a window.
-    class EventGetModelToDrawForWindow : public Event {
+    /// Get the content of a browser window
+    class EventGetBrowserWindowContent : public Event {
         
     public:
-        EventGetModelToDrawForWindow(const int32_t windowIndex);
+        EventGetBrowserWindowContent(const int32_t browserWindowIndex);
         
-        virtual ~EventGetModelToDrawForWindow();
+        virtual ~EventGetBrowserWindowContent();
         
-        int32_t getWindowIndex() const;
+        int32_t getBrowserWindowIndex() const;
         
-        int32_t getWindowTabIndex() const;
+        int32_t getWindowTabNumber() const;
         
         ModelDisplayController* getModelDisplayController();
         
-        void setWindowTabIndex(const int32_t windowTabIndex);
+        void setWindowTabNumber(const int32_t windowTabNumber);
         
         void setModelDisplayController(ModelDisplayController* modelDisplayController);
         
     private:
-        EventGetModelToDrawForWindow(const EventGetModelToDrawForWindow&);
+        EventGetBrowserWindowContent(const EventGetBrowserWindowContent&);
         
-        EventGetModelToDrawForWindow& operator=(const EventGetModelToDrawForWindow&);
+        EventGetBrowserWindowContent& operator=(const EventGetBrowserWindowContent&);
         
-        /** index of window for update */
-        int32_t windowIndex;
+        /** index of browswer window */
+        int32_t browserWindowIndex;
         
         /** Model Display Controller for drawing */
         ModelDisplayController* modelDisplayController;
         
-        /** Window tab index */
-        int32_t windowTabIndex;
+        /** Window tab number */
+        int32_t windowTabNumber;
     };
 
 } // namespace
 
-#endif // __EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW_H__
+#endif // __EVENT_GET_BROWSER_WINDOW_CONTENT_H__

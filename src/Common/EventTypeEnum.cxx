@@ -70,17 +70,25 @@ EventTypeEnum::initialize()
                                     "EVENT_BROWSER_TAB_DELETE", 
                                     "Delete a browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET, 
+                                    "EVENT_BROWSER_TAB_GET", 
+                                    "Get a browser tab by number"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW, 
-                                    "EVENT_BROWSER_TAB_NEW", 
-                                    "Create a browser tab"));
+                                     "EVENT_BROWSER_TAB_NEW", 
+                                     "Create a browser tab"));
     
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));
     
-    enumData.push_back(EventTypeEnum(EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW, 
-                                     "EVENT_GET_MODEL_TO_DRAW_FOR_WINDOW", 
-                                     "Get model and information for drawing a window."));
+    enumData.push_back(EventTypeEnum(EVENT_GET_BROWSER_WINDOW_CONTENT, 
+                                     "EVENT_GET_BROWSER_WINDOW_CONTENT", 
+                                     "Get the content in a browser window"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_GET_NODE_DATA_FILES,
+                                     "EVENT_GET_NODE_DATA_FILES",
+                                     "Get node data files"));
     
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
                                      "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 

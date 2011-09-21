@@ -30,6 +30,7 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -74,8 +75,14 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->setCentralWidget(this->openGLWidget);
     
+    this->topBottomToolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
+                                                           "ToolBox",
+                                                           BrainBrowserWindowToolBox::TOP_OR_BOTTOM);
+    this->addDockWidget(Qt::BottomDockWidgetArea,
+                        this->topBottomToolBox);
     
-    this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex);
+    this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
+                                                  this->topBottomToolBox->toggleViewAction());
     this->addToolBar(this->toolbar);
     
     this->createActions();
@@ -396,8 +403,10 @@ BrainBrowserWindow::createMenuViewToolBox()
 {
     QMenu* menu = new QMenu("View", this);
     
-    menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
-    menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
+    QAction* leftAction = menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
+    leftAction->setDisabled(true);
+    QAction* rightAction = menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
+    rightAction->setDisabled(true);
     menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
     menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
     menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
@@ -704,7 +713,7 @@ BrainBrowserWindow::processMoveTabToWindowMenuSelection(QAction*)
 void 
 BrainBrowserWindow::processMoveToolBoxToLeft()
 {
-    
+    this->moveToolBox(Qt::LeftDockWidgetArea);
 }
 
 /**
@@ -713,7 +722,7 @@ BrainBrowserWindow::processMoveToolBoxToLeft()
 void 
 BrainBrowserWindow::processMoveToolBoxToRight()
 {
-    
+    this->moveToolBox(Qt::RightDockWidgetArea);
 }
 
 /**
@@ -722,7 +731,7 @@ BrainBrowserWindow::processMoveToolBoxToRight()
 void 
 BrainBrowserWindow::processMoveToolBoxToTop()
 {
-    
+    this->moveToolBox(Qt::TopDockWidgetArea);
 }
 
 /**
@@ -731,7 +740,7 @@ BrainBrowserWindow::processMoveToolBoxToTop()
 void 
 BrainBrowserWindow::processMoveToolBoxToBottom()
 {
-    
+    this->moveToolBox(Qt::BottomDockWidgetArea);
 }
 
 /**
@@ -740,7 +749,29 @@ BrainBrowserWindow::processMoveToolBoxToBottom()
 void 
 BrainBrowserWindow::processMoveToolBoxToFloat()
 {
-    
+    this->moveToolBox(Qt::NoDockWidgetArea);
+}
+
+void 
+BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
+{
+    switch (area) {
+        case Qt::LeftDockWidgetArea:
+            break;
+        case Qt::RightDockWidgetArea:
+            break;
+        case Qt::TopDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::TopDockWidgetArea, this->topBottomToolBox);
+            break;
+        case Qt::BottomDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::BottomDockWidgetArea, this->topBottomToolBox);
+            break;
+        default:
+            this->topBottomToolBox->setFloating(true);
+            break;
+    }
 }
 
 /**
@@ -765,3 +796,14 @@ BrainBrowserWindow::receiveEvent(Event* event)
         
     }
 }
+
+/**
+ * @return Return the active browser tab content in
+ * this browser window.
+ */
+BrowserTabContent* 
+BrainBrowserWindow::getBrowserTabContent()
+{
+    return this->toolbar->getTabContentFromSelectedTab();
+}
+
