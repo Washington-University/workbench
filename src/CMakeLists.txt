@@ -104,7 +104,6 @@ ENDIF (ZLIB_FOUND)
 #
 # All subdirectories that will be configured for building
 #
-ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Common )
 ADD_SUBDIRECTORY ( Xml )
 ADD_SUBDIRECTORY ( Nifti )
@@ -112,11 +111,12 @@ ADD_SUBDIRECTORY ( Gifti )
 ADD_SUBDIRECTORY ( Cifti )
 ADD_SUBDIRECTORY ( Files )
 ADD_SUBDIRECTORY ( Helpers )
+ADD_SUBDIRECTORY ( Algorithms )
 ADD_SUBDIRECTORY ( Brain )
-ADD_SUBDIRECTORY ( CommandOperations )
 ADD_SUBDIRECTORY ( GuiQt )
-ADD_SUBDIRECTORY ( Desktop )
+ADD_SUBDIRECTORY ( CommandOperations )
 ADD_SUBDIRECTORY ( CommandLine )
+ADD_SUBDIRECTORY ( Desktop )
 ADD_SUBDIRECTORY ( Tests )
 
 #
