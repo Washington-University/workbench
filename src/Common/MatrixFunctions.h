@@ -404,7 +404,7 @@ namespace caret {
       if (inrows)
       {
          incols = (msize_t)left[0].size();
-         if (inrows == right.size() && incols == right[0].size())//short circuit evaluation will protect against segfault
+         if (inrows == (msize_t)right.size() && incols == (msize_t)right[0].size())//short circuit evaluation will protect against segfault
          {
             resize(inrows, incols, (*tresult), true);
             for (msize_t i = 0; i < inrows; ++i)

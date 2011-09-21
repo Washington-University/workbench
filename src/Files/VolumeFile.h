@@ -28,10 +28,11 @@
 
 #include "stdint.h"
 #include <vector>
+#include "DataFile.h"
 
 namespace caret {
    
-   class VolumeFile
+   class VolumeFile : public DataFile
    {
       std::vector<std::vector<float> > m_indexToSpace;
       std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
@@ -55,7 +56,7 @@ namespace caret {
       void reinitialize(const std::vector<float>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace);
       
       ///get the spacing info
-      std::vector<std::vector<float> > getVolumeSpace() { return m_indexToSpace; };
+      const std::vector<std::vector<float> >& getVolumeSpace() { return m_indexToSpace; };
       
       ///returns true if volume space is not skew, and each axis and index is separate
       bool isPlumb();

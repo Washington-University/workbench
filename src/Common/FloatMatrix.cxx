@@ -194,6 +194,7 @@ bool FloatMatrix::operator==(const FloatMatrix& right) const
          }
       }
    }
+   return true;
 }
 
 void FloatMatrix::getDimensions(int64_t& rows, int64_t& cols) const

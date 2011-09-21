@@ -79,7 +79,7 @@ namespace caret {
       static bool m_enableReadSkip;
    public:
       ///sets the minimum size seek to do via seek rather than read and discard, -1 uses default values
-      static void setMinSeek(uint64_t minSeek);
+      static void setMinSeek(int64_t minSeek);
       ///opens a file
       BinaryFileReader(const AString& filename, OpenMode fileMode) throw (DataFileException);
       ///open file for reading

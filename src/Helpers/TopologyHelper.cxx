@@ -381,7 +381,7 @@ TopologyHelper::getNodeNeighborsInROI(const int nodeNum,
       std::vector<int> neighbors = nodes[nodeNum].neighbors;
       //optimization, first, loop through and see any neighbors are outside the roi
       bool neighborOutsideOfRoi = false;
-      for(int i = 0;i<neighbors.size();i++)
+      for(int i = 0;i<(int)neighbors.size();i++)
       {
          if(roiValues[neighbors[i]] == 0.0)
          {
@@ -398,7 +398,7 @@ TopologyHelper::getNodeNeighborsInROI(const int nodeNum,
       {
          neighborsOut.clear();
 
-         for(int i = 0;i<neighbors.size();i++)
+         for(int i = 0;i<(int)neighbors.size();i++)
          {
             if(roiValues[neighbors[i]] == 0.0)//filter out neighbors that are outside of ROI
             {

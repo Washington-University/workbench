@@ -300,4 +300,5 @@ bool VolumeFile::indexValid(const int32_t& indexIn1, const int32_t& indexIn2, co
    if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
    if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
    if (timeIndex < 0 || timeIndex >= m_dimensions[3]) return false;
+   return true;
 }

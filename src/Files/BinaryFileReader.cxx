@@ -31,7 +31,7 @@ using namespace std;
 uint64_t BinaryFileReader::m_minSeek = 2000000;//defaults if BinaryFileReader::setMinSeek(-1) is never called (should probably be called from SessionManager)
 bool BinaryFileReader::m_enableReadSkip = true;
 
-void BinaryFileReader::setMinSeek(uint64_t minSeek)
+void BinaryFileReader::setMinSeek(int64_t minSeek)
 {
    if (minSeek == -1)
    {
@@ -39,7 +39,7 @@ void BinaryFileReader::setMinSeek(uint64_t minSeek)
       m_minSeek = 2000000;//for now, default to 2MB
    } else {
       m_enableReadSkip = (minSeek == 0);
-      m_minSeek = minSeek;
+      m_minSeek = (uint64_t)minSeek;
    }
 }
 
