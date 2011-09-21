@@ -37,6 +37,7 @@ EventGetBrowserWindowContent::EventGetBrowserWindowContent(const int32_t browser
     this->browserWindowIndex = browserWindowIndex;
     this->windowTabNumber = -1;
     this->modelDisplayController = NULL;
+    this->browserWindowIndex = NULL;
 }
 
 /*
@@ -97,3 +98,24 @@ EventGetBrowserWindowContent::setModelDisplayController(ModelDisplayController* 
 {
     this->modelDisplayController = modelDisplayController;   
 }
+
+/**
+ * @return Returns the browser tab content.
+ */
+BrowserTabContent* 
+EventGetBrowserWindowContent::getBrowserTabContent()
+{
+    return this->browserTabContent;
+}
+
+/**
+ * Sets the browser tab content.
+ * @param browserTabContent
+ *    New value for browser tab content.
+ */
+void 
+EventGetBrowserWindowContent::setBrowserTabContent(BrowserTabContent* browserTabContent)
+{
+    this->browserTabContent = browserTabContent;
+}
+

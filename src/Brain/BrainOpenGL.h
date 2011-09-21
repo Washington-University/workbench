@@ -34,6 +34,7 @@
 namespace caret {
     
     class Brain;
+    class BrowserTabContent;
     class Surface;
     class ModelDisplayController;
     
@@ -54,7 +55,8 @@ namespace caret {
         ~BrainOpenGL();
         
         void drawModel(ModelDisplayController* controller,
-                       const int32_t windowTabIndex,
+                       BrowserTabContent* browserTabContent,
+                       const int32_t windowTabNumber,
                        const int32_t viewport[4]);
         
         void initializeOpenGL();
@@ -90,6 +92,9 @@ namespace caret {
         
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
+        
+        /** Content of browser tab being drawn */
+        BrowserTabContent* browserTabContent;
         
         /** Index of window tab */
         int windowTabIndex;

@@ -28,11 +28,14 @@
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "Surface.h"
+#include "StructureEnum.h"
 
 using namespace caret;
 
@@ -54,6 +57,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->userName = "";
     this->yokeToTabNumber = 0;
     this->yokingType = YokingTypeEnum::OFF;
+    
+    this->invalidateSurfaceColoring();
 }
 
 /**
@@ -144,6 +149,7 @@ void
 BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType)
 {
     this->selectedModelType = selectedModelType;
+    this->invalidateSurfaceColoring();
 }
 
 /**
@@ -251,6 +257,7 @@ void
 BrowserTabContent::setSelectedSurfaceModel(ModelDisplayControllerSurface* selectedSurfaceModel)
 {
     this->selectedSurfaceModel = selectedSurfaceModel;
+    this->invalidateSurfaceColoring();
 }
 
 /**
@@ -437,5 +444,102 @@ BrowserTabContent::isWholeBrainModelValid() const
 {
     bool valid = (this->wholeBrainModel != NULL);
     return valid;
+}
+
+/**
+ * Invalidate surface coloring for this browser tab.
+ */
+void 
+BrowserTabContent::invalidateSurfaceColoring()
+{
+    this->surfaceCerebellumLastColored = NULL;
+    this->surfaceLeftLastColored = NULL;
+    this->surfaceRightLastColored = NULL;
+}
+
+/**
+ * Get the surface node coloring for a surface.
+ * @param Surface for coloring.
+ * @return Returns pointer to a float array with 
+ * four elements per node containing the red, green,
+ * blue, and alpha color components.
+ */
+const float* 
+BrowserTabContent::getSurfaceColoring(const Surface* surface)
+{
+    CaretAssert(surface);
+    
+    float tempColor[4] = { 0.0, 0.0, 0.0, 1.0 };
+    Surface* lastSurface;
+    std::vector<float>* nodeColoring = NULL;
+    const StructureEnum::Enum structure = surface->getStructure();
+    switch (structure) {
+        case StructureEnum::CEREBELLUM:
+            nodeColoring = &this->surfaceCerebellumColoringRGBA;
+            lastSurface = this->surfaceCerebellumLastColored;
+            break;
+        case StructureEnum::CORTEX_LEFT:
+            tempColor[0] = 1.0;
+            nodeColoring = &this->surfaceLeftColoringRGBA;
+            lastSurface = this->surfaceLeftLastColored;
+            break;
+        case StructureEnum::CORTEX_RIGHT:
+            tempColor[1] = 1.0;
+            nodeColoring = &this->surfaceRightColoringRGBA;
+            lastSurface = this->surfaceRightLastColored;
+            break;
+        default:
+            CaretLogSevere("Unreconized structure: " + StructureEnum::toGuiName(structure));
+            return NULL;
+            break;
+    }
+    
+    /*
+     * Add nodes to coloring, if necessary, but due not
+     * shrink the size to avoid memory reallocation.
+     */
+    const int32_t numNodes = surface->getNumberOfNodes();
+    const int32_t numberOfColorComponents = numNodes * 4;
+    if (nodeColoring->size() < numberOfColorComponents) {
+        nodeColoring->resize(numberOfColorComponents);
+    }    
+    float* rgba = &(*nodeColoring)[0];
+    
+    /*
+     * If surface for structure has not changed,
+     * then the current coloring is valid.
+     */
+    if (surface == lastSurface) {
+        return rgba;
+    }
+    
+    for (int32_t i = 0; i < numNodes; i++) {
+        const int32_t i4 = i * 4;
+        rgba[i4]   = tempColor[0];
+        rgba[i4+1] = tempColor[1];
+        rgba[i4+2] = tempColor[2];
+        rgba[i4+3] = tempColor[3];
+    }
+    
+    /*
+     * Save surface that was colored.
+     */
+    switch (structure) {
+        case StructureEnum::CEREBELLUM:
+            this->surfaceCerebellumLastColored = (Surface*)surface;
+            break;
+        case StructureEnum::CORTEX_LEFT:
+            this->surfaceLeftLastColored = (Surface*)surface;
+            break;
+        case StructureEnum::CORTEX_RIGHT:
+            this->surfaceRightLastColored = (Surface*)surface;
+            break;
+        default:
+            CaretLogSevere("Unreconized structure: " + StructureEnum::toGuiName(structure));
+            return NULL;
+            break;
+    }
+
+    return rgba;
 }
 

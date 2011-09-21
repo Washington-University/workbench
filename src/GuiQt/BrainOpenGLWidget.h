@@ -37,6 +37,7 @@ class QMouseEvent;
 namespace caret {
 
     class BrainOpenGL;
+    class BrowserTabContent;
     class ModelDisplayController;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
@@ -65,6 +66,8 @@ namespace caret {
         
     private:
         BrainOpenGL* openGL;
+        
+        BrowserTabContent* browserTabContent;
         
         int32_t windowIndex;
         

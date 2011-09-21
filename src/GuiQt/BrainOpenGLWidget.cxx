@@ -157,10 +157,12 @@ BrainOpenGLWidget::paintGL()
         return;
     }
     
+    this->browserTabContent = getModelEvent.getBrowserTabContent();
     this->modelController = getModelEvent.getModelDisplayController();
     this->windowTabIndex  = getModelEvent.getWindowTabNumber();
     
     this->openGL->drawModel(this->modelController,
+                            this->browserTabContent,
                             this->windowTabIndex,
                             viewport);
 }

@@ -1827,6 +1827,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+            getModelEvent->setBrowserTabContent(btc);
             getModelEvent->setModelDisplayController(btc->getDisplayedModelController());
             getModelEvent->setWindowTabNumber(btc->getTabNumber());
             getModelEvent->setEventProcessed();

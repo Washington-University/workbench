@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class BrowserTabContent;
     class ModelDisplayController;
     
     /// Get the content of a browser window
@@ -50,6 +51,10 @@ namespace caret {
         
         void setModelDisplayController(ModelDisplayController* modelDisplayController);
         
+        BrowserTabContent* getBrowserTabContent();
+        
+        void setBrowserTabContent(BrowserTabContent* browserTabContent);
+        
     private:
         EventGetBrowserWindowContent(const EventGetBrowserWindowContent&);
         
@@ -63,6 +68,9 @@ namespace caret {
         
         /** Window tab number */
         int32_t windowTabNumber;
+        
+        /** Tab content active in window */
+        BrowserTabContent* browserTabContent;
     };
 
 } // namespace

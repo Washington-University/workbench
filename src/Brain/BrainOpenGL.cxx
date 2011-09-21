@@ -39,6 +39,7 @@
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Surface.h"
@@ -83,6 +84,8 @@ BrainOpenGL::~BrainOpenGL()
 /**
  * Draw a model.
  *
+ * @param browserTabContent
+ *    Content in the browser' tab.
  * @param modelDisplayController
  *    Model display controller that is drawn (NULL if nothing to draw).
  * @param windowTabIndex
@@ -92,9 +95,11 @@ BrainOpenGL::~BrainOpenGL()
  */
 void 
 BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
+                       BrowserTabContent* browserTabContent,
                        const int32_t windowTabIndex,
                        const int32_t viewport[4])
 {
+    this->browserTabContent = browserTabContent;
     this->windowTabIndex = windowTabIndex;
 
     float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
@@ -269,7 +274,7 @@ BrainOpenGL::drawSurface(const Surface* surface)
     glEnable(GL_DEPTH_TEST);
     
     glEnable(GL_LIGHTING);
-    //glEnable(GL_COLOR_MATERIAL);
+    glEnable(GL_COLOR_MATERIAL);
     
     this->drawSurfaceTriangles(surface);
 }
@@ -277,6 +282,8 @@ BrainOpenGL::drawSurface(const Surface* surface)
 void 
 BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
 {
+    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -285,9 +292,9 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getCoordinate(0)));
     glColorPointer(4, 
-                   GL_UNSIGNED_BYTE, 
+                   GL_FLOAT, 
                    0, 
-                   reinterpret_cast<const GLvoid*>(surface->getNodeColor(0)));
+                   reinterpret_cast<const GLvoid*>(rgbaColoring));
     glNormalPointer(GL_FLOAT, 
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getNormalVector(0)));

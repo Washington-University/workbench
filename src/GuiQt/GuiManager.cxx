@@ -181,7 +181,7 @@ int32_t
 GuiManager::getNumberOfBrainBrowserWindows() const
 {
     int32_t numberOfWindows = 0;
-    for (int i = 0; i < this->brainBrowserWindows.size(); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
         if (this->brainBrowserWindows[i] != NULL) {
             numberOfWindows++;
         }
@@ -200,8 +200,8 @@ GuiManager::getAllBrainBrowserWindows() const
 { 
     QVector<BrainBrowserWindow*> windows;
     
-    int64_t numWindows = this->brainBrowserWindows.size();
-    for (int i = 0; i < numWindows; i++) {
+    int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    for (int32_t i = 0; i < numWindows; i++) {
         if (this->brainBrowserWindows[i] != NULL) {
             windows.push_back(this->brainBrowserWindows[i]);
         }
@@ -218,7 +218,7 @@ GuiManager::newBrainBrowserWindow(QWidget* parent)
 {
     int32_t windowIndex = -1;
     
-    int32_t numWindows = this->brainBrowserWindows.size();
+    int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
         if (this->brainBrowserWindows[i] == NULL) {
             windowIndex = i;

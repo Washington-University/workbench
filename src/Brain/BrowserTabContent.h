@@ -37,6 +37,7 @@ namespace caret {
     class ModelDisplayControllerSurface;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
+    class Surface;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject {
@@ -92,6 +93,9 @@ namespace caret {
         
         bool isWholeBrainModelValid() const;
 
+        void invalidateSurfaceColoring();
+        
+        const float* getSurfaceColoring(const Surface* surface);
     private:
         BrowserTabContent(const BrowserTabContent&);
         
@@ -135,6 +139,23 @@ namespace caret {
         /** The surface overlay assignments */
         SurfaceOverlaySet surfaceOverlayAssignment;
         
+        /** Last cerebellum surface that was colored for this browser tab */
+        Surface* surfaceCerebellumLastColored;
+        
+        /** Last cerebellum surface that was colored for this browser tab  */
+        Surface* surfaceLeftLastColored;
+        
+        /** Last cerebellum surface that was colored for this browser tab  */
+        Surface* surfaceRightLastColored;
+        
+        /** Node coloring for cerebellum surface in this browser tab */
+        std::vector<float> surfaceCerebellumColoringRGBA;
+        
+        /** Node coloring for left surface in this browser tab */
+        std::vector<float> surfaceLeftColoringRGBA;
+        
+        /** Node coloring for right surface in this browser tab */
+        std::vector<float> surfaceRightColoringRGBA;
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__
