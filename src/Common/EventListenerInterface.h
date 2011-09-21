@@ -51,9 +51,9 @@ namespace caret {
     private:
         EventListenerInterface(const EventListenerInterface&) { }
         
-        EventListenerInterface& operator=(const EventListenerInterface& ei) {
+        EventListenerInterface& operator=(const EventListenerInterface& ei); /*{
             return *this;
-        }
+        }//*/  //TSC: removed implementation to prevent "parameter unused" warnings, since it is private in an interface class
         
     public:
         /**
