@@ -29,6 +29,7 @@ RgbaFile.h
 SurfaceFile.h
 SurfaceTypeEnum.h
 TextFile.h
+VolumeFile.h
 
 BinaryFileReader.cxx
 DataFileTypeEnum.cxx
@@ -42,6 +43,7 @@ RgbaFile.cxx
 SurfaceFile.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
+VolumeFile.cxx
 )
 
 

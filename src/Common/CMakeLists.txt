@@ -38,6 +38,7 @@ EventManager.h
 EventProgressUpdate.h
 EventTypeEnum.h
 FileInformation.h
+FloatMatrix.h
 Logger.h
 LogHandler.h
 LogHandlerStandardError.h
@@ -45,6 +46,7 @@ LogLevelEnum.h
 LogManager.h
 LogRecord.h
 MathFunctions.h
+MatrixFunctions.h
 MessageManager.h
 ProgramParameters.h
 ProgramParametersException.h
@@ -74,6 +76,7 @@ EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx
 FileInformation.cxx
+FloatMatrix.cxx
 Logger.cxx
 LogHandler.cxx
 LogHandlerStandardError.cxx

@@ -78,9 +78,9 @@ namespace caret {
       static uint64_t m_minSeek;
       static bool m_enableReadSkip;
    public:
-      ///sets the minimum size seek to do via seek rather than read and discard
+      ///sets the minimum size seek to do via seek rather than read and discard, -1 uses default values
       static void setMinSeek(uint64_t minSeek);
-      ///opens a file, -1 loads default values for minSeek
+      ///opens a file
       BinaryFileReader(const AString& filename, OpenMode fileMode) throw (DataFileException);
       ///open file for reading
       void openRead(const AString& filename) throw (DataFileException);
@@ -96,11 +96,17 @@ namespace caret {
       bool getOpenForWrite() { return m_myFile.getOpenForWrite(); };
       ///seek within the file, taking into account that small seeks aren't faster than sequential read, and don't use pagecache well
       void seekAbsolute(const uint64_t position) throw (DataFileException);
+      ///read from the file at current position
       uint64_t readBytes(byte* dataOut, const uint64_t count) throw (DataFileException);//for now, allow the read to return fewer bytes than requested
+      ///write to the file at current position
       void writeBytes(const byte* dataIn, const uint64_t count) throw (DataFileException);//fstream doesn't let you know number of bytes written
+      ///seek (with readthrough on small forward seek if enabled) and then read from file
       uint64_t readBytes(byte* dataOut, const uint64_t count, const uint64_t position) throw (DataFileException);//convenience methods
+      ///seek (with readthrough on small forward seek if enabled) and then write to file
       void writeBytes(const byte* dataIn, const uint64_t count, const uint64_t position) throw (DataFileException);
+      ///flush changes to file
       void flushFile() throw (DataFileException);
+      ///get initial file size on files opened with reading enabled
       uint64_t getInitialFileSize() { return m_myFile.getInitialFileSize(); };
    };
 } //namespace caret
