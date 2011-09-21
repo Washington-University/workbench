@@ -44,7 +44,7 @@ SurfaceOverlay::SurfaceOverlay()
     this->opacity      = 1.0;
     
     this->name = "Overlay ";
-    this->enabled = false;
+    this->enabled = true;
     
     this->selectedDataFile = NULL;
     this->selectedColumnName = "";

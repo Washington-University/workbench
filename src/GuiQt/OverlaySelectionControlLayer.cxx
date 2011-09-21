@@ -67,6 +67,8 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     
     this->enabledCheckBox = new QCheckBox("");
     this->enabledCheckBox->setVisible(true);
+    QObject::connect(this->enabledCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(enableCheckBoxToggled(bool)));
     
     //const int comboBoxWidth = 200;
     
@@ -96,6 +98,8 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     this->opacityDoubleSpinBox->setSingleStep(0.1);
     this->opacityDoubleSpinBox->setToolTip("Adjust opacity, 0=>transparent, 1=opaque");
     this->opacityDoubleSpinBox->setFixedWidth(60);
+    QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(opacityValueChanged(double)));
     
     this->deleteToolButton = new QToolButton();
     this->deleteToolButton->setText("X");
@@ -131,6 +135,48 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
 OverlaySelectionControlLayer::~OverlaySelectionControlLayer()
 {
     
+}
+
+/**
+ * Called when enable checkbox is toggled.
+ * @param toggled
+ *   New enabled status.
+ */
+void 
+OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
+{
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+    overlay->setEnabled(toggled);
+
+    this->updateControl(browserTabContent);
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
+}
+
+/**
+ * Called when opacity is changed.
+ * @param value
+ *    New value for opacity.
+ */
+void 
+OverlaySelectionControlLayer::opacityValueChanged(double value)
+{
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+    overlay->setOpacity(value);
+
+    this->updateControl(browserTabContent);
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
 }
 
 /**

@@ -78,7 +78,9 @@ namespace caret {
         
         WuQWidgetObjectGroup* widgetGroup;
         
-        public slots:
+    public slots:
+        void enableCheckBoxToggled(bool toggled);
+        void opacityValueChanged(double value);
         void fileSelected(int fileIndex);
         void columnSelected(int columnIndex);
         
