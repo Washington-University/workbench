@@ -30,6 +30,7 @@
 #include "EventGetNodeDataFiles.h"
 #include "EventManager.h"
 #include "GiftiTypeFile.h"
+#include <algorithm>
 
 using namespace caret;
 
