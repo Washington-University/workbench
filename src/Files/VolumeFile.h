@@ -30,10 +30,22 @@
 #include <vector>
 #include "DataFile.h"
 
+class nifti_1_header;
+class nifti_2_header;
+
 namespace caret {
    
    class VolumeFile : public DataFile
    {
+      enum StoredHeaderType
+      {
+         NIFTI_1,
+         NIFTI_2,
+         NONE
+      };
+      nifti_1_header* m_N1Header;
+      nifti_2_header* m_N2Header;
+      StoredHeaderType m_headerType;
       std::vector<std::vector<float> > m_indexToSpace;
       std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
       float* m_data;

@@ -62,7 +62,7 @@ void VolumeFile::reinitialize(const vector<float>& dimensionsIn, const vector<ve
          m_dimensions[3] *= dimensionsIn[i];
       }
    }
-   int64_t totalSize = (int64_t) m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3];
+   int64_t totalSize = ((int64_t)m_dimensions[0]) * m_dimensions[1] * m_dimensions[2] * m_dimensions[3];
    m_data = new float[totalSize];
    CaretAssert(m_data != NULL);
 }
@@ -70,6 +70,9 @@ void VolumeFile::reinitialize(const vector<float>& dimensionsIn, const vector<ve
 VolumeFile::VolumeFile()
 {
    m_data = NULL;
+   m_N1Header = NULL;
+   m_N2Header = NULL;
+   m_headerType = NONE;
    m_dimensions[0] = 0;
    m_dimensions[1] = 0;
    m_dimensions[2] = 0;
@@ -89,6 +92,9 @@ VolumeFile::VolumeFile()
 VolumeFile::VolumeFile(const std::vector< float >& dimensionsIn, const std::vector< std::vector< float > >& indexToSpace)
 {
    m_data = NULL;
+   m_N1Header = NULL;
+   m_N2Header = NULL;
+   m_headerType = NONE;
    reinitialize(dimensionsIn, indexToSpace);
 }
 
