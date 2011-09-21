@@ -30,6 +30,9 @@
 using namespace std;
 using namespace caret;
 
+const float ProgressObject::MAX_CHILD_RESOLUTION = 0.002f;//up to 500 calls per child algorithm
+const float ProgressObject::MAX_INTERNAL_RESOLUTION = 0.001f;//up to 1000 calls during internal processing
+   
 ProgressObject* ProgressObject::addAlgorithm(const float weight, const float childResolution)
 {
    CaretAssertMessage(weight > 0.0f, "nonpositive weight in ProgressObject::addAlgorithm");
