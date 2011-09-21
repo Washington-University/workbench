@@ -49,18 +49,46 @@ SurfaceOverlaySet::~SurfaceOverlaySet()
     
 }
 
+/**
+ * @return Returns the primary overlay.
+ */
 SurfaceOverlay* 
 SurfaceOverlaySet::getPrimaryOverlay()
 {
     return &this->overlays[0];
 }
 
+/**
+ * @return Returns the underlay which is the lowest
+ * displayed overlay.
+ */
 SurfaceOverlay* 
 SurfaceOverlaySet::getUnderlay()
 {
-    return &this->overlays[BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS - 1];
+    return &this->overlays[this->getNumberOfDisplayedOverlays() - 1];
 }
 
+/**
+ * Get the overlay at the specified index.
+ * @param overlayNumber
+ *   Index of the overlay.
+ * @return Overlay at the given index.
+ */
+const SurfaceOverlay* 
+SurfaceOverlaySet::getOverlay(const int32_t overlayNumber) const
+{
+    CaretAssertArrayIndex(this->overlays, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS, 
+                          overlayNumber);
+    return &this->overlays[overlayNumber];    
+}
+
+/**
+ * Get the overlay at the specified index.
+ * @param overlayNumber
+ *   Index of the overlay.
+ * @return Overlay at the given index.
+ */
 SurfaceOverlay* 
 SurfaceOverlaySet::getOverlay(const int32_t overlayNumber)
 {

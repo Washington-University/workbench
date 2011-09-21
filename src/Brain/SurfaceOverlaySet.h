@@ -50,6 +50,8 @@ namespace caret {
         
         SurfaceOverlay* getOverlay(const int32_t overlayNumber);
         
+        const SurfaceOverlay* getOverlay(const int32_t overlayNumber) const;
+        
         void addDisplayedOverlay();
         
         int32_t getNumberOfDisplayedOverlays() const;

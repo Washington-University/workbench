@@ -35,6 +35,7 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "Surface.h"
+#include "SurfaceNodeColoring.h"
 #include "StructureEnum.h"
 
 using namespace caret;
@@ -58,6 +59,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->yokeToTabNumber = 0;
     this->yokingType = YokingTypeEnum::OFF;
     
+    this->surfaceColoring = new SurfaceNodeColoring();
+    
     this->invalidateSurfaceColoring();
 }
 
@@ -66,7 +69,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
  */
 BrowserTabContent::~BrowserTabContent()
 {
-    
+    delete this->surfaceColoring;
+    this->surfaceColoring = NULL;
 }
 
 /**
@@ -512,6 +516,13 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
     if (surface == lastSurface) {
         return rgba;
     }
+    
+    /*
+     * Color the surface nodes.
+     */
+    this->surfaceColoring->colorSurfaceNodes(surface,
+                                             &surfaceOverlayAssignment, 
+                                             rgba);
     
     for (int32_t i = 0; i < numNodes; i++) {
         const int32_t i4 = i * 4;

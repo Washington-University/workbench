@@ -62,6 +62,7 @@ ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
 SessionManager.h
 Surface.h
+SurfaceNodeColoring.h
 SurfaceOverlay.h
 SurfaceOverlayDataTypeEnum.h
 SurfaceOverlaySet.h
@@ -87,6 +88,7 @@ ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
 SessionManager.cxx
 Surface.cxx
+SurfaceNodeColoring.cxx
 SurfaceOverlay.cxx
 SurfaceOverlayDataTypeEnum.cxx
 SurfaceOverlaySet.cxx

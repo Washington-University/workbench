@@ -38,6 +38,7 @@ namespace caret {
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
     class Surface;
+    class SurfaceNodeColoring;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject {
@@ -156,6 +157,9 @@ namespace caret {
         
         /** Node coloring for right surface in this browser tab */
         std::vector<float> surfaceRightColoringRGBA;
+        
+        /** Performs surface node coloring */
+        SurfaceNodeColoring* surfaceColoring;
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__
