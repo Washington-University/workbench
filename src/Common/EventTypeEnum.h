@@ -64,6 +64,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
+        /** Invalidate surface coloring */
+        EVENT_SURFACE_COLORING_INVALIDATE,
         /** Update the User-Interface */
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */

@@ -114,6 +114,10 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SURFACE_COLORING_INVALIDATE, 
+                                     "EVENT_SURFACE_COLORING_INVALIDATE", 
+                                     "Invalidate surface coloring"));
+    
     enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE, 
                                      "EVENT_USER_INTERFACE_UPDATE", 
                                      "Update the user-interface"));

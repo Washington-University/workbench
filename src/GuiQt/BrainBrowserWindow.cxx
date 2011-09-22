@@ -37,6 +37,7 @@
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQFileDialog.h"
@@ -590,6 +591,7 @@ BrainBrowserWindow::processDataFileOpen()
                               errorMessages);
     }
     
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }

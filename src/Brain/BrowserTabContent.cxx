@@ -31,6 +31,7 @@
 #include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
@@ -62,6 +63,8 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->surfaceColoring = new SurfaceNodeColoring();
     
     this->invalidateSurfaceColoring();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -69,6 +72,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
  */
 BrowserTabContent::~BrowserTabContent()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
     delete this->surfaceColoring;
     this->surfaceColoring = NULL;
 }
@@ -544,3 +548,22 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
     return rgba;
 }
 
+/**
+ * Receive an event.
+ * 
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void 
+BrowserTabContent::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* invalidateEvent =
+        dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(invalidateEvent);
+        
+        invalidateEvent->setEventProcessed();
+        
+        this->invalidateSurfaceColoring();
+    }    
+}

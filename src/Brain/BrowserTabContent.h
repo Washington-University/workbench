@@ -27,6 +27,7 @@
 
 
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 #include "ModelDisplayControllerTypeEnum.h"
 #include "SurfaceOverlaySet.h"
 #include "YokingTypeEnum.h"
@@ -41,12 +42,14 @@ namespace caret {
     class SurfaceNodeColoring;
     
     /// Maintains content in a brower's tab
-    class BrowserTabContent : public CaretObject {
+    class BrowserTabContent : public CaretObject, public EventListenerInterface {
         
     public:
         BrowserTabContent(const int32_t tabNumber);
         
         virtual ~BrowserTabContent();
+        
+        virtual void receiveEvent(Event* event);
         
         virtual AString toString() const;
         
