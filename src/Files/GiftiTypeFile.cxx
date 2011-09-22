@@ -24,9 +24,13 @@
 
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
+#include "GiftiDataArray.h"
 #include "GiftiFile.h"
+#include "GiftiMetaData.h"
 #include "GiftiTypeFile.h"
-#include "GiftiMetaDataNames.h"
+#include "GiftiMetaDataXmlElements.h"
+#include "PaletteColorMapping.h"
+#include "PaletteColorMappingSaxReader.h"
 #include "SurfaceFile.h"
 
 using namespace caret;
@@ -218,11 +222,11 @@ GiftiTypeFile::getStructure() const
     if (surfaceFile != NULL) {
         const GiftiDataArray* gda = this->giftiFile->getDataArrayWithIntent(NiftiIntentEnum::NIFTI_INTENT_POINTSET);
         const GiftiMetaData* metadata = gda->getMetaData();
-        structurePrimaryName = metadata->get(GiftiMetaDataNames::ANATOMICAL_STRUCTURE_PRIMARY);
+        structurePrimaryName = metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_PRIMARY);
     }
     else {
         const GiftiMetaData* metadata = this->giftiFile->getMetaData();
-        structurePrimaryName = metadata->get(GiftiMetaDataNames::ANATOMICAL_STRUCTURE_PRIMARY);
+        structurePrimaryName = metadata->get(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_PRIMARY);
     }
     
     bool isValid = false;
@@ -337,6 +341,17 @@ GiftiTypeFile::setColumnName(const int32_t columnIndex,
 {
     this->giftiFile->setDataArrayName(columnIndex, columnName);
 }
+
+/**
+ * @return The palette color mapping for a data column.
+ */
+PaletteColorMapping* 
+GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex)
+{
+    GiftiDataArray* gda = this->giftiFile->getDataArray(columnIndex);
+    return gda->getPaletteColorMapping();
+}
+
 
 
 

@@ -262,8 +262,9 @@ GiftiFile::compareFileForUnitTesting(const GiftiFile* gf,
 void
 GiftiFile::setDataArrayName(const int32_t arrayIndex, const AString& name)
 {
-   dataArrays[arrayIndex]->getMetaData()->set(GiftiXmlElements::TAG_METADATA_NAME, name);
-   setModified();
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
+    dataArrays[arrayIndex]->getMetaData()->set(GiftiXmlElements::TAG_METADATA_NAME, name);
+    setModified();
 }
 
 /**
@@ -369,6 +370,7 @@ GiftiFile::getDataArrayWithIntentIndex(const NiftiIntentEnum::Enum intent) const
 AString
 GiftiFile::getDataArrayName(const int32_t arrayIndex) const
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
    AString s = dataArrays[arrayIndex]->getMetaData()->get(GiftiXmlElements::TAG_METADATA_NAME);
    return s;
 }
@@ -379,6 +381,7 @@ GiftiFile::getDataArrayName(const int32_t arrayIndex) const
 void
 GiftiFile::setDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
     dataArrays[arrayIndex]->getMetaData()->set(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT, comm);
    setModified();
 }
@@ -389,6 +392,7 @@ GiftiFile::setDataArrayComment(const int32_t arrayIndex, const AString& comm)
 void
 GiftiFile::appendToDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
    if (comm.isEmpty() == false) {
       AString s(getDataArrayComment(arrayIndex));
       s.append(comm);
@@ -403,6 +407,7 @@ GiftiFile::appendToDataArrayComment(const int32_t arrayIndex, const AString& com
 void
 GiftiFile::prependToDataArrayComment(const int32_t arrayIndex, const AString& comm)
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
    if (comm.isEmpty() == false) {
       AString s(comm);
       s.append(getDataArrayComment(arrayIndex));
@@ -417,7 +422,8 @@ GiftiFile::prependToDataArrayComment(const int32_t arrayIndex, const AString& co
 AString
 GiftiFile::getDataArrayComment(const int32_t arrayIndex) const
 {
-   AString s;
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
+  AString s;
     (void)dataArrays[arrayIndex]->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_COMMENT);
    return s;
 }
@@ -504,6 +510,7 @@ GiftiFile::checkForDataArraysWithSameName(std::vector<AString>& multipleArrayNam
 void 
 GiftiFile::addDataArray(GiftiDataArray* nda)
 {
+    CaretAssert(nda);
    nda->setMyParentGiftiFile(this);
    dataArrays.push_back(nda);
    
@@ -757,6 +764,7 @@ GiftiFile::addRows(const int32_t numberOfRowsToAdd)
 void 
 GiftiFile::resetDataArray(const int32_t arrayIndex)
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
    dataArrays[arrayIndex]->zeroize();
 }
 
@@ -766,6 +774,7 @@ GiftiFile::resetDataArray(const int32_t arrayIndex)
 void 
 GiftiFile::removeDataArray(const int32_t arrayIndex)
 {
+    CaretAssertVectorIndex(this->dataArrays, arrayIndex);
    int32_t numArrays = getNumberOfDataArrays();
    if ((arrayIndex >= 0) && (arrayIndex < numArrays)) {
       delete dataArrays[arrayIndex];
@@ -782,6 +791,7 @@ GiftiFile::removeDataArray(const int32_t arrayIndex)
 void 
 GiftiFile::removeDataArray(const GiftiDataArray* arrayPointer)
 {
+    CaretAssert(arrayPointer);
    for (int32_t i = 0; i < getNumberOfDataArrays(); i++) {
       if (getDataArray(i) == arrayPointer) {
          removeDataArray(i);

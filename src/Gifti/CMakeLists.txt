@@ -29,8 +29,8 @@ GiftiLabel.h
 GiftiLabelTable.h
 GiftiLabelTableSaxReader.h
 GiftiMetaData.h
-GiftiMetaDataNames.h
 GiftiMetaDataSaxReader.h
+GiftiMetaDataXmlElements.h
 GiftiXmlElements.h
 
 GiftiArrayIndexingOrderEnum.cxx
@@ -44,7 +44,6 @@ GiftiLabel.cxx
 GiftiLabelTable.cxx
 GiftiLabelTableSaxReader.cxx
 GiftiMetaData.cxx
-GiftiMetaDataNames.cxx
 GiftiMetaDataSaxReader.cxx
 GiftiXmlElements.cxx
 )

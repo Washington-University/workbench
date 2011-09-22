@@ -31,6 +31,8 @@
 namespace caret {
 
     class BrainStructure;
+    class Palette;
+    class PaletteColorMapping;
     class Surface;
     class SurfaceOverlay;
     class SurfaceOverlaySet;
@@ -55,6 +57,13 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        enum MetricColorType {
+            METRIC_COLOR_TYPE_NORMAL,
+            METRIC_COLOR_TYPE_POS_THRESH_COLOR,
+            METRIC_COLOR_TYPE_NEG_THRESH_COLOR,
+            METRIC_COLOR_TYPE_DO_NOT_COLOR
+        };        
+        
         bool assignLabelColoring(BrainStructure* brainStructure,
                                  const AString& labelColumnName,
                                  const int32_t numberOfNodes,
@@ -70,7 +79,14 @@ namespace caret {
                                 const int32_t numberOfNodes,
                                 float* rgbv);
         
-    };
+        bool applyColorUsingPalette(PaletteColorMapping* paletteColorMapping,
+                                    float negPosMinMax[4],
+                                    Palette* palette,
+                                    float value,
+                                    float thresholdValue,
+                                    float* rgbaOut,
+                                    int32_t rgbaOffset);
+};
     
 #ifdef __SURFACE_NODE_COLORING_DECLARE__
 #endif // __SURFACE_NODE_COLORING_DECLARE__

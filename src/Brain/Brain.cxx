@@ -313,11 +313,15 @@ Brain::readRgbaFile(const AString& filename) throw (DataFileException)
     }
 }
 
-void readLabelFile(const AString& filename) throw (DataFileException);
+/*
+ * @return The palette file.
+ */
+PaletteFile* 
+Brain::getPaletteFile()
+{
+    return this->paletteFile;
+}
 
-void readMetricFile(const AString& filename) throw (DataFileException);
-
-void readRgbaFile(const AString& filename) throw (DataFileException);
 
 /**
  * Process a read data file event.

@@ -34,6 +34,7 @@
 namespace caret {
 
     class GiftiFile;
+    class PaletteColorMapping;
     
     /// Encapsulates a GiftiFile for use by specific types of GIFTI data files.
     class GiftiTypeFile : public DataFile {
@@ -89,6 +90,8 @@ namespace caret {
         
         virtual void setColumnName(const int32_t columnIndex,
                                    const AString& columnName);
+        
+        PaletteColorMapping* getPaletteColorMapping(const int32_t columnIndex);
         
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);

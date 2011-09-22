@@ -42,6 +42,7 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 #include "NiftiTransformEnum.h"
+#include "PaletteColorMapping.h"
 #include "SystemUtilities.h"
 #include "XmlWriter.h"
 
@@ -61,7 +62,8 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
    dataTypeSize = 0;
    dataPointerFloat = NULL;
    dataPointerInt = NULL;
-   dataPointerUByte = NULL;
+   dataPointerUByte = NULL;    
+   this->paletteColorMapping = NULL;
    clear();
    dataType = dataTypeIn;
    setDimensions(dimensionsIn);
@@ -94,6 +96,7 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
    dataPointerFloat = NULL;
    dataPointerInt = NULL;
    dataPointerUByte = NULL;
+   this->paletteColorMapping = NULL;
    clear();
    dimensions.clear();
    encoding = GiftiEncodingEnum::ASCII;
@@ -109,6 +112,7 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
    
    dataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    getDataTypeAppropriateForIntent(intent, dataType);
+    
 }
 
 /**
@@ -178,6 +182,11 @@ GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
    posMinPctValue = nda.posMinPctValue;
    posMaxPctValue = nda.posMaxPctValue;
    matrices = nda.matrices;
+    
+    this->paletteColorMapping = NULL;
+    if (nda.paletteColorMapping != NULL) {
+        this->paletteColorMapping = new PaletteColorMapping(*nda.paletteColorMapping);
+    }
    setModified();
 }
 
@@ -380,8 +389,8 @@ GiftiDataArray::updateDataPointers()
 void 
 GiftiDataArray::clear()
 {
-    arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
-    encoding = GiftiEncodingEnum::ASCII;
+   arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
+   encoding = GiftiEncodingEnum::ASCII;
    dataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    endian = getSystemEndian();
    dataTypeSize = sizeof(float);
@@ -394,6 +403,10 @@ GiftiDataArray::clear()
    minMaxFloatValuesValid = false;
    minMaxPercentageValuesValid = false;
    
+    if (this->paletteColorMapping != NULL) {
+        delete this->paletteColorMapping;
+        this->paletteColorMapping = NULL;
+    }
    // do not clear
    // parentGiftiDataFile;
    // arrayType;
@@ -933,6 +946,15 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
       }
    }
     
+   /*
+    * Push the palette color mapping into the metadata.
+    */
+    if (this->paletteColorMapping != NULL) {
+        const AString paletteXML = this->paletteColorMapping->encodeInXML();
+        this->getMetaData()->set(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING,
+                                 paletteXML);
+    }
+    
    //
    // External file not supported
    //
@@ -1251,6 +1273,9 @@ void
 GiftiDataArray::clearModified()
 {
     this->modifiedFlag = false;
+    if (this->paletteColorMapping != NULL) {
+        this->paletteColorMapping->clearModified();
+    }
 }
 
 /**
@@ -1262,6 +1287,11 @@ GiftiDataArray::clearModified()
 bool
 GiftiDataArray::isModified() const
 {
+    if (this->paletteColorMapping != NULL) {
+        if (this->paletteColorMapping->isModified()) {
+            return true;
+        }
+    }
     return this->modifiedFlag;
 }
 
@@ -1564,6 +1594,32 @@ GiftiDataArray::removeMatrix(const int32_t indx)
 {
    matrices.erase(matrices.begin() + indx);
    setModified();
+}
+
+/** 
+ * Get the color palette mapping.
+ *
+ * @return
+ *   The palette color mapping.
+ */;
+PaletteColorMapping* 
+GiftiDataArray::getPaletteColorMapping()
+{
+    if (this->paletteColorMapping == NULL) {
+        this->paletteColorMapping = new PaletteColorMapping();
+        const AString paletteString = this->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING);
+        if (paletteString.isEmpty() == false) {
+            try {
+                this->paletteColorMapping->decodeFromStringXML(paletteString);
+            }
+            catch (XmlException e) {
+                this->paletteColorMapping = new PaletteColorMapping();
+                CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
+            }
+        }
+    }
+    
+    return this->paletteColorMapping;
 }
 
 AString 

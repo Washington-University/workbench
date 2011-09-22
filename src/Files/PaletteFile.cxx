@@ -37,6 +37,7 @@ PaletteFile::PaletteFile()
     : DataFile()
 {
     this->initializeMembersPaletteFile();
+    this->addDefaultPalettes();
 }
 
 /**

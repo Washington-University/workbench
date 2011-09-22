@@ -59,6 +59,8 @@ namespace caret {
 
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
+
+        PaletteFile* getPaletteFile();
         
         void resetBrain();
         

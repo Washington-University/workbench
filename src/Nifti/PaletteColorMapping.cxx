@@ -702,8 +702,10 @@ PaletteColorMapping::performThresholdTest(const float value)
     bool showAboveFlag =
     (this->thresholdTest == PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE);
     
+    bool passesFlag = false;
     switch (this->thresholdType) {
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            passesFlag = true;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
             if (showAboveFlag) {
@@ -737,17 +739,18 @@ PaletteColorMapping::performThresholdTest(const float value)
             break;
     }
     
-    bool passesFlag = false;
-    if (value < 0.0f) {
-        if ((value >= negMax) &&
-            (value <= negMin)) {
-            passesFlag = true;
+    if (passesFlag == false) {
+        if (value < 0.0f) {
+            if ((value >= negMax) &&
+                (value <= negMin)) {
+                passesFlag = true;
+            }
         }
-    }
-    else {
-        if ((value >= posMin) &&
-            (value <= posMax)) {
-            passesFlag = true;
+        else {
+            if ((value >= posMin) &&
+                (value <= posMax)) {
+                passesFlag = true;
+            }
         }
     }
     return passesFlag;

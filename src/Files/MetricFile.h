@@ -64,6 +64,23 @@ namespace caret {
         
         const float* getValuePointerForColumn(const int32_t columnIndex) const;
         
+        void getMinMaxValues(const int32_t columnIndex,
+                             float& minValue, 
+                             float& maxValue) const;
+        
+        void getMinMaxValuesFromPercentages(const int32_t columnIndex,
+                                            const float negMaxPct,
+                                            const float negMinPct,
+                                            const float posMinPct,
+                                            const float posMaxPct,
+                                            float& negMaxValueOut,
+                                            float& negMinValueOut,
+                                            float& posMinValueOut,
+                                            float& posMaxValueOut);
+
+        void getMinMaxForColorMapping(int displayColumn,
+                                      float minMaxOut[4]);
+        
     protected:
         /**
          * Validate the contents of the file after it

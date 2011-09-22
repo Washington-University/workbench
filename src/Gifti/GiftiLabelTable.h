@@ -193,6 +193,8 @@ private:
 
     LABELS_MAP labelsMap;
 
+    int32_t generateUnusedKey() const;
+    
     /**tracks modification status */
     bool modifiedFlag;
 

@@ -262,9 +262,35 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
         key = iter->first;
     }
     else {
+        if (key < 0) {
+            key = this->generateUnusedKey();
+        }
         this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
     }
     return key;
+}
+
+/**
+ * Generate an unused key.
+ * @return An unused key.
+ */ 
+int32_t 
+GiftiLabelTable::generateUnusedKey() const
+{
+    std::set<int32_t> keys = getKeys();
+    
+    int32_t newKey = 1;
+    bool found = false;
+    while (found == false) {
+        if (std::find(keys.begin(), keys.end(), newKey) == keys.end()) {
+            found = true;
+        }
+        else {
+            newKey++;
+        }
+    }
+    
+    return newKey;
 }
 
 /**

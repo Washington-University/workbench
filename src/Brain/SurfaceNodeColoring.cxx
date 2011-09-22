@@ -27,12 +27,18 @@
 #include "SurfaceNodeColoring.h"
 #undef __SURFACE_NODE_COLORING_DECLARE__
 
+#include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "Palette.h"
+#include "PaletteColorMapping.h"
+#include "PaletteFile.h"
+#include "PaletteScalarAndColor.h"
 #include "RgbaFile.h"
 #include "Surface.h"
 #include "SurfaceOverlay.h"
@@ -205,42 +211,76 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
     std::vector<MetricFile*> allMetricFiles;
     brainStructure->getMetricFiles(allMetricFiles);
     
-    int32_t columnIndex = -1;
+    int32_t displayColumn = -1;
     MetricFile* metricFile = NULL;
     for (std::vector<MetricFile*>::iterator iter = allMetricFiles.begin();
          iter != allMetricFiles.end();
          iter++) {
         MetricFile* mf = *iter;
-        columnIndex = mf->getColumnIndexFromColumnName(metricColumnName);
-        if (columnIndex >= 0) {
+        displayColumn = mf->getColumnIndexFromColumnName(metricColumnName);
+        if (displayColumn >= 0) {
             metricFile = mf;
             break;
         }
     }
     
-    if (columnIndex < 0) {
+    if (displayColumn < 0) {
         return false;
     }
     
-    const float* data = metricFile->getValuePointerForColumn(columnIndex);
+    PaletteColorMapping* paletteColorMapping = metricFile->getPaletteColorMapping(displayColumn);
     
+    /*
+     * Invalidate all coloring.
+     */
     for (int32_t i = 0; i < numberOfNodes; i++) {
-        const int32_t i4 = i * 4;
-        rgbv[i4]   = 0.0;
-        rgbv[i4+1] = 0.0;
-        rgbv[i4+2] = 0.0;
-        rgbv[i4+3] = 1.0;
-        if (data[i] > 0) {
-            rgbv[i4] = 1.0;
-        }
-        else if (data[i] < 0) {
-            rgbv[i4+1] = 1.0;
-        }
-        else {
-            rgbv[i4+3] = 0.0;
-        }
+        rgbv[i*4+3] = 0.0;
     }   
     
+    /*
+     * Get min/max ranges.
+     */
+    float minMax[4];
+    metricFile->getMinMaxForColorMapping(displayColumn, minMax);
+    
+    int thresholdColumn = metricFile->getColumnIndexFromColumnName(paletteColorMapping->getThresholdDataName());
+    if (thresholdColumn < 0) {
+        thresholdColumn = displayColumn;
+    }
+    Brain* brain = brainStructure->getBrain();
+    const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+    Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
+    if (palette != NULL) {
+        float rgba[4];
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            float metric = metricFile->getValue(i, displayColumn);
+            float thresh = metricFile->getValue(i, thresholdColumn);
+            
+            rgba[0] = -1.0f;
+            rgba[1] = -1.0f;
+            rgba[2] = -1.0f;
+            rgba[3] = -1.0f;
+            bool validFlag = applyColorUsingPalette(
+                                                       paletteColorMapping,
+                                                       minMax,
+                                                       palette,
+                                                       metric,
+                                                       thresh,
+                                                       rgba,
+                                                       0);
+            
+            int32_t i4 = i * 4;
+            if (validFlag) {
+                rgbv[i4]   = rgba[0];
+                rgbv[i4+1] = rgba[1];
+                rgbv[i4+2] = rgba[2];
+                rgbv[i4+3] = 1.0;
+            }
+        }
+    }
+    else {
+        CaretLogSevere("Selected palette for metric is invalid: \"" + paletteName + "\"");
+    }
     return true;
 }
 
@@ -259,4 +299,144 @@ SurfaceNodeColoring::assignRgbaColoring(BrainStructure* brainStructure,
     }
     
     return true;
+}
+
+/**
+ * Color using a palette.
+ *
+ * @param paletteColorMapping  Settings for color mapping with a palette.
+ * @param negPosMinMax  array of four containing, in order, neg-max,
+ *                       neg-min, pos-min, pos-max.
+ * @param palette  the color palette.
+ * @param value  the value whose color is to be determined.
+ * @param thresholdValue  the threshold value
+ * @param rgbaOut  the RGBA values out (4-dim array values ranging 0 to 255
+ * @param rgbaOffset  offset in the rgbaOut Array.
+ * @return true if the color was set.
+ */
+bool 
+SurfaceNodeColoring::applyColorUsingPalette(PaletteColorMapping* paletteColorMapping,
+                                             float negPosMinMax[4],
+                                             Palette* palette,
+                                             float value,
+                                             float thresholdValue,
+                                             float* rgbaOut,
+                                             int rgbaOffset) {
+    
+    MetricColorType colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_NORMAL;
+    
+    bool thresholdTestPassedFlag =
+    paletteColorMapping->performThresholdTest(thresholdValue);
+    if (thresholdTestPassedFlag == false) {
+        colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR;
+        if (paletteColorMapping->isShowThresholdFailureInGreen()) {
+            if (paletteColorMapping->getThresholdType() ==
+                PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
+                if (thresholdValue > 0.0f) {
+                    if ((thresholdValue < paletteColorMapping->getThresholdMappedPositive()) &&
+                        (thresholdValue > paletteColorMapping->getThresholdMappedAverageAreaPositive())) {
+                        colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_POS_THRESH_COLOR;
+                    }
+                }
+                else if (thresholdValue < 0.0f) {
+                    if ((thresholdValue > paletteColorMapping->getThresholdMappedNegative()) &&
+                        (thresholdValue < paletteColorMapping->getThresholdMappedAverageAreaNegative())) {
+                        colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_NEG_THRESH_COLOR;
+                    }
+                }
+            }
+        }
+    }
+    
+    if (value > 0.0f) {
+        if (paletteColorMapping->isDisplayPositiveDataFlag() == false) {
+            colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR;
+        }
+    }
+    else if (value < 0.0f) {
+        if (paletteColorMapping->isDisplayNegativeDataFlag() == false) {
+            colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR;
+        }
+    }
+    else {
+        if (paletteColorMapping->isDisplayZeroDataFlag() == false) {
+            colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR;
+        }
+    }
+    
+    float negMax = negPosMinMax[0];
+    float negMin = negPosMinMax[1];
+    float posMin = negPosMinMax[2];
+    float posMax = negPosMinMax[3];
+    
+    float posThreshColor[4] = {
+        115.0f / 255.0f,
+        255.0f / 255.0f,
+        180.0f / 255.0f,
+        255.0f / 255.0f
+    };
+    float negThreshColor[] = {
+        180.0f / 255.0f,
+        255.0f / 255.0f,
+        115.0f / 255.0f,
+        255.0f / 255.0f
+    };
+    
+    bool colorValidFlag = false;
+    switch (colorType) {
+        case SurfaceNodeColoring::METRIC_COLOR_TYPE_NORMAL:
+        {
+            float normalized = 0.0f;
+            if (value >= posMin) {
+                float numerator = value - posMin;
+                float denominator = posMax - posMin;
+                if (denominator == 0.0f) {
+                    denominator = 1.0f;
+                }
+                normalized = numerator / denominator;
+            }
+            else if (value <= negMin) {
+                float numerator = value - negMin;
+                float denominator = negMax - negMin;
+                if (denominator == 0.0f) {
+                    denominator = 1.0f;
+                }
+                else if (denominator < 0.0f) {
+                    denominator = -denominator;
+                }
+                normalized = numerator / denominator;
+            }
+            
+            float rgba[4];
+            palette->getPaletteColor(normalized,
+                                     paletteColorMapping->isInterpolatePaletteFlag(),
+                                     rgba);
+            if (rgba[3] > 0.0f) {
+                rgbaOut[rgbaOffset]     = rgba[0];
+                rgbaOut[rgbaOffset + 1] = rgba[1];
+                rgbaOut[rgbaOffset + 2] = rgba[2];
+                rgbaOut[rgbaOffset + 3] = rgba[3];
+                colorValidFlag = true;
+            }
+        }
+            break;
+        case SurfaceNodeColoring::METRIC_COLOR_TYPE_POS_THRESH_COLOR:
+            rgbaOut[rgbaOffset]     = posThreshColor[0];
+            rgbaOut[rgbaOffset + 1] = posThreshColor[1];
+            rgbaOut[rgbaOffset + 2] = posThreshColor[2];
+            rgbaOut[rgbaOffset + 3] = posThreshColor[3];
+            colorValidFlag = true;
+            break;
+        case SurfaceNodeColoring::METRIC_COLOR_TYPE_NEG_THRESH_COLOR:
+            rgbaOut[rgbaOffset]     = negThreshColor[0];
+            rgbaOut[rgbaOffset + 1] = negThreshColor[1];
+            rgbaOut[rgbaOffset + 2] = negThreshColor[2];
+            rgbaOut[rgbaOffset + 3] = negThreshColor[3];
+            colorValidFlag = true;
+            break;
+        case SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR:
+            break;
+    }
+    
+    return colorValidFlag;
 }
