@@ -269,6 +269,9 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::auto scale percenter does not contain four values.");
                }
            }
+           else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
+               /* Top level tag, nothing to do */
+           }
            else {
                std::ostringstream str;
                str

@@ -126,7 +126,7 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->interpolatePaletteFlag = false;
     this->displayPositiveDataFlag = true;
     this->displayZeroDataFlag = false;
-    this->displayNegativeDataFlag = false;
+    this->displayNegativeDataFlag = true;
     this->thresholdType = PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF;
     this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE;
     this->thresholdNormalNegative = -1.0f;
