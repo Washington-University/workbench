@@ -49,7 +49,7 @@ namespace caret {
       std::vector<std::vector<float> > m_indexToSpace;
       std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
       float* m_data;
-      int32_t m_dimensions[4];//don't support more than 4d volumes yet
+      int64_t m_dimensions[4];//don't support more than 4d volumes yet
       
    public:
       enum OrientTypes
@@ -79,13 +79,13 @@ namespace caret {
       //not to worry, simple passthrough convenience functions like these get partially optimized to the main one by even -O1, and completely optimized together by -O2 or -O3
       
       ///returns coordinate triplet of an index triplet
-      void indexToSpace(const int32_t* indexIn, float* coordOut);
+      void indexToSpace(const int64_t* indexIn, float* coordOut);
       ///returns coordinate triplet of three indexes
-      void indexToSpace(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, float* coordOut);
+      void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut);
       ///returns three coordinates of an index triplet
-      void indexToSpace(const int32_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3);
+      void indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3);
       ///returns three coordinates of three indexes
-      void indexToSpace(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3);
+      void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3);
       
       ///returns coordinate triplet of a floating point index triplet
       void indexToSpace(const float* indexIn, float* coordOut);
@@ -96,33 +96,33 @@ namespace caret {
       ///returns three coordinates of three floating point indexes
       void indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3);
       
-      ///returns floating point index triplet of a given coordinate triplet - NOT WORKING YET
+      ///returns floating point index triplet of a given coordinate triplet
       void spaceToIndex(const float* coordIn, float* indexOut);
-      ///returns floating point index triplet of three given coordinates - NOT WORKING YET
+      ///returns floating point index triplet of three given coordinates
       void spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float* indexOut);
-      ///returns three floating point indexes of a given coordinate triplet - NOT WORKING YET
+      ///returns three floating point indexes of a given coordinate triplet
       void spaceToIndex(const float* coordIn, float& indexOut1, float& indexOut2, float& indexOut3);
-      ///returns three floating point indexes of three given coordinates - NOT WORKING YET
+      ///returns three floating point indexes of three given coordinates
       void spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float& indexOut1, float& indexOut2, float& indexOut3);
       
-      ///returns integer index triplet of voxel whose center is closest to the coordinate triplet - NOT WORKING YET
-      void closestVoxel(const float* coordIn, int32_t* indexOut);
-      ///returns integer index triplet of voxel whose center is closest to the three coordinates - NOT WORKING YET
-      void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int32_t* indexOut);
-      ///returns integer indexes of voxel whose center is closest to the coordinate triplet - NOT WORKING YET
-      void closestVoxel(const float* coordIn, int32_t& indexOut1, int32_t& indexOut2, int32_t& indexOut3);
-      ///returns integer indexes of voxel whose center is closest to the three coordinates - NOT WORKING YET
-      void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int32_t& indexOut1, int32_t& indexOut2, int32_t& indexOut3);
+      ///returns integer index triplet of voxel whose center is closest to the coordinate triplet
+      void closestVoxel(const float* coordIn, int64_t* indexOut);
+      ///returns integer index triplet of voxel whose center is closest to the three coordinates
+      void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut);
+      ///returns integer indexes of voxel whose center is closest to the coordinate triplet
+      void closestVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3);
+      ///returns integer indexes of voxel whose center is closest to the three coordinates
+      void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3);
       
       ///get a value at an index triplet and optionally timepoint
-      float getValue(const int32_t* indexIn, const int32_t timeIndex = 0);
+      float getValue(const int64_t* indexIn, const int64_t timeIndex = 0);
       ///get a value at three indexes and optionally timepoint
-      float getValue(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex = 0);
+      float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
       
       ///set a value at an index triplet and optionally timepoint
-      void setValue(const float& valueIn, const int32_t* indexIn, const int32_t timeIndex = 0);
+      void setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex = 0);
       ///set a value at an index triplet and optionally timepoint
-      void setValue(const float& valueIn, const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex = 0);
+      void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
       
       ///get the raw voxel data
       float* getVoxelDataRef() { return m_data; };
@@ -133,10 +133,10 @@ namespace caret {
       void getDimensions(float& dimOut1, float& dimOut2, float& dimOut3, float& dimOut4);
       
       ///gets index into data array for three indexes plus time index
-      int64_t getIndex(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex = 0);
+      int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
       
       ///checks if an index is within array dimensions
-      bool indexValid(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex = 0);
+      bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
    };
    
 }

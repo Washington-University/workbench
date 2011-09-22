@@ -49,12 +49,12 @@ int main(int argc, char** argv)
    vector<TestInterface*> mytests;
    mytests.push_back(new TimerTest("timer"));
    mytests.push_back(new ProgressTest("progress"));
-   if (argc < 1)
+   if (argc < 2)
    {
       cout << "No test specified, please specify one of the following:" << endl;
       for (int i = 0; i < (int)mytests.size(); ++i)
       {
-         cout << mytests[i]->getIdentifier();
+         cout << mytests[i]->getIdentifier() << endl;
       }
       freeTestList(mytests);
       return 1;//no test specified, fail

@@ -28,6 +28,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
+#include <algorithm>
 
 #include "XmlWriter.h"
 

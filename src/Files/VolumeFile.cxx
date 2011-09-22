@@ -26,6 +26,8 @@
 #include "CaretAssert.h"
 #include "FloatMatrix.h"
 #include <cmath>
+#include "nifti1.h"
+#include "nifti2.h"
 
 using namespace caret;
 using namespace std;
@@ -62,9 +64,10 @@ void VolumeFile::reinitialize(const vector<float>& dimensionsIn, const vector<ve
          m_dimensions[3] *= dimensionsIn[i];
       }
    }
-   int64_t totalSize = ((int64_t)m_dimensions[0]) * m_dimensions[1] * m_dimensions[2] * m_dimensions[3];
+   int64_t totalSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3];
    m_data = new float[totalSize];
    CaretAssert(m_data != NULL);
+   //TODO: adjust any existing nifti header to match, or remove nifti header?
 }
 
 VolumeFile::VolumeFile()
@@ -139,22 +142,22 @@ void VolumeFile::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spac
    }
 }
 
-void VolumeFile::closestVoxel(const float* coordIn, int32_t* indexOut)
+void VolumeFile::closestVoxel(const float* coordIn, int64_t* indexOut)
 {
    closestVoxel(coordIn[0], coordIn[1], coordIn[2], indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int32_t* indexOut)
+void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut)
 {
    closestVoxel(coordIn1, coordIn2, coordIn3, indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::closestVoxel(const float* coordIn, int32_t& indexOut1, int32_t& indexOut2, int32_t& indexOut3)
+void VolumeFile::closestVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3)
 {
    closestVoxel(coordIn[0], coordIn[1], coordIn[2], indexOut1, indexOut2, indexOut3);
 }
 
-void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int32_t& indexOut1, int32_t& indexOut2, int32_t& indexOut3)
+void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3)
 {
    float tempInd1, tempInd2, tempInd3;
    spaceToIndex(coordIn1, coordIn2, coordIn3, tempInd1, tempInd2, tempInd3);
@@ -163,12 +166,12 @@ void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = (int32_t)floor(0.5f + tempInd3);
 }
 
-float VolumeFile::getValue(const int32_t* indexIn, const int32_t timeIndex)
+float VolumeFile::getValue(const int64_t* indexIn, const int64_t timeIndex)
 {
    return getValue(indexIn[0], indexIn[1], indexIn[2], timeIndex);
 }
 
-float VolumeFile::getValue(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex)
+float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
 {
    //for now, do it the slow way
    CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex));//assert so release version isn't slowed by checking
@@ -190,27 +193,27 @@ void VolumeFile::getDimensions(float& dimOut1, float& dimOut2, float& dimOut3, f
    dimOut4 = m_dimensions[3];
 }
 
-int64_t VolumeFile::getIndex(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex)
+int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
 {
-   return indexIn1 + m_dimensions[0] * (indexIn2 + m_dimensions[1] * (indexIn3 + (int64_t)timeIndex * m_dimensions[2]));
+   return indexIn1 + m_dimensions[0] * (indexIn2 + m_dimensions[1] * (indexIn3 + timeIndex * m_dimensions[2]));
 }
 
-void VolumeFile::indexToSpace(const int32_t* indexIn, float* coordOut)
+void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut)
 {
    indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, float* coordOut)
+void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut)
 {
    indexToSpace(indexIn1, indexIn2, indexIn3, coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const int32_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3)
 {
    indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut1, coordOut2, coordOut3);
 }
 
-void VolumeFile::indexToSpace(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3)
 {
    coordOut1 = m_indexToSpace[0][0] * indexIn1 + m_indexToSpace[0][1] * indexIn2 + m_indexToSpace[0][2] * indexIn3 + m_indexToSpace[0][3];
    coordOut2 = m_indexToSpace[1][0] * indexIn1 + m_indexToSpace[1][1] * indexIn2 + m_indexToSpace[1][2] * indexIn3 + m_indexToSpace[1][3];
@@ -287,12 +290,12 @@ void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = m_spaceToIndex[2][0] * coordIn1 + m_spaceToIndex[2][1] * coordIn2 + m_spaceToIndex[2][2] * coordIn3 + m_spaceToIndex[2][3];
 }
 
-void VolumeFile::setValue(const float& valueIn, const int32_t* indexIn, const int32_t timeIndex)
+void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex)
 {
    setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], timeIndex);
 }
 
-void VolumeFile::setValue(const float& valueIn, const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex)
+void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
 {
    //for now, the slow way
    CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex));//assert so release version isn't slowed by checking
@@ -300,7 +303,7 @@ void VolumeFile::setValue(const float& valueIn, const int32_t& indexIn1, const i
    m_data[index] = valueIn;
 }
 
-bool VolumeFile::indexValid(const int32_t& indexIn1, const int32_t& indexIn2, const int32_t& indexIn3, const int32_t timeIndex)
+bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
 {
    if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
    if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
