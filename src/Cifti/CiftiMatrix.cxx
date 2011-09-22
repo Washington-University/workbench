@@ -23,6 +23,7 @@
  */
 /*LICENSE_END*/
 #include <CiftiMatrix.h>
+#include "ByteSwapping.h"
 #ifdef Q_OS_WIN32
 #include <io.h>
 #else //not Q_OST_WIN32
@@ -103,7 +104,7 @@ CiftiMatrix::~CiftiMatrix()
  */
 void CiftiMatrix::swapByteOrder()
 {
-   CiftiByteSwap::swapBytes(m_matrix,m_length);   
+   ByteSwapping::swapBytes(m_matrix,m_length);
 }
 
 /**

@@ -18,7 +18,7 @@ INCLUDE (${QT_USE_FILE})
 # Create GIFTI Library
 #
 ADD_LIBRARY(Cifti
-CiftiByteSwap.h
+#CiftiByteSwap.h
 CiftiFileException.h
 CiftiFile.h
 CiftiMatrix.h
@@ -26,9 +26,6 @@ CiftiXMLElements.h
 CiftiXML.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
-nifti1.h
-nifti2.h
-Nifti2Header.h
 
 CiftiFile.cxx
 CiftiFileException.cxx
@@ -37,7 +34,6 @@ CiftiXML.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
-Nifti2Header.cxx
 )
 
 #

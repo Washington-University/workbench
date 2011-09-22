@@ -64,7 +64,7 @@ int main(int argc, char** argv)
    {
       for (int j = 0; j < (int)mytests.size(); ++j)
       {
-         if (mytests[j]->getIdentifier() == AString(argv[i]))
+         if (mytests[j]->getIdentifier() == AString(argv[i]) || "all" == AString(argv[i]))
          {
             try
             {

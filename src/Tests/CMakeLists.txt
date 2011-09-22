@@ -17,11 +17,14 @@ INCLUDE (${QT_USE_FILE})
 #
 #The individual tests
 #
-ADD_LIBRARY(Tests
+ADD_LIBRARY(
+Tests
+NiftiTest.h
 TestInterface.h
 TimerTest.h
 ProgressTest.h
 
+NiftiTest.cxx
 TimerTest.cxx
 ProgressTest.cxx
 )

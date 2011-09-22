@@ -27,7 +27,6 @@
 #include <QtCore>
 #include <CiftiFileException.h>
 #include <vector>
-#include <CiftiByteSwap.h>
 
 namespace caret {
 

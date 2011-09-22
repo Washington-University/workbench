@@ -29,7 +29,7 @@
 #include "nifti2.h"
 #include "iostream"
 #include "CiftiFileException.h"
-#include "Nifti2Header.h"
+#include "NiftiHeader.h"
 #include "CiftiXML.h"
 #include "CiftiMatrix.h"
 
@@ -49,12 +49,12 @@ public:
    virtual void openFile(const QString &fileName, CACHE_LEVEL clevel) throw (CiftiFileException);
    /// Write the Cifti File
    virtual void writeFile(const QString &fileName) const throw (CiftiFileException);
-   /// set Nifti2Header
-   virtual void setHeader(const Nifti2Header &header) throw (CiftiFileException);
-   /// get Nifti2Header
-   virtual Nifti2Header * getHeader() throw (CiftiFileException);
-   /// get Nifti2Header
-   virtual void getHeader(Nifti2Header &header) throw (CiftiFileException);
+   /// set NiftiHeader
+   virtual void setHeader(const NiftiHeader &header) throw (CiftiFileException);
+   /// get NiftiHeader
+   virtual NiftiHeader * getHeader() throw (CiftiFileException);
+   /// get NiftiHeader
+   virtual void getHeader(NiftiHeader &header) throw (CiftiFileException);
    /// set CiftiXML
    virtual void setCiftiXML(CiftiXML &ciftixml) throw (CiftiFileException);
    /// get CiftiXML
@@ -78,7 +78,7 @@ protected:
    
    CACHE_LEVEL m_clevel;
    QFile m_inputFile;
-   Nifti2Header *m_nifti2Header;
+   NiftiHeader *m_niftiHeader;
    CiftiMatrix *m_matrix;
    CiftiXML *m_xml;   
    bool m_swapNeeded;
