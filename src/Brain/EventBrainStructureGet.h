@@ -1,6 +1,5 @@
-
-#ifndef __SURFACE_H__
-#define __SURFACE_H__
+#ifndef __EVENT_BRAIN_STRUCTURE_GET_H__
+#define __EVENT_BRAIN_STRUCTURE_GET_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -26,46 +25,36 @@
  * 
  */ 
 
-#include <vector>
-
-#include "SurfaceFile.h"
+#include "Event.h"
 
 namespace caret {
-    
-    class BoundingBox;
 
-    /**
-     * Maintains view of some type of object.
-     */
-    class Surface : public SurfaceFile {
+    class BrainStructure;
+    
+    /// Find a BrainStructure using its brain structure identifier.
+    class EventBrainStructureGet : public Event {
         
     public:
-        Surface();
+        EventBrainStructureGet(const int64_t brainStructureIdentifier);
         
-        ~Surface();
+        virtual ~EventBrainStructureGet();
+        
+        int64_t getbrainStructureIdentifier() const;
 
-        Surface(const Surface& s);
+        BrainStructure* getBrainStructure() const;
         
-        Surface& operator=(const Surface& s);
-        
-        AString getNameForGUI(bool includeStructureFlag) const;
-        
-        void getBounds(BoundingBox& boundingBoxOut) const;
-        
-        int64_t getBrainStructureIdentifier() const;
-        
-        void setBrainStructureIdentifier(const int64_t brainStructureIdentifier);
+        void setBrainStructure(BrainStructure* brainStructure);
         
     private:
-        void initializeMemberSurface();
+        EventBrainStructureGet(const EventBrainStructureGet&);
         
-        void copyHelperSurface(const Surface& s);
-
-        bool defaultScalingInitializedFlag;
+        EventBrainStructureGet& operator=(const EventBrainStructureGet&);
+      
+        BrainStructure* brainStructure;
         
         int64_t brainStructureIdentifier;
     };
 
 } // namespace
 
-#endif // __SURFACE_H__
+#endif // __EVENT_BRAIN_STRUCTURE_GET_H__

@@ -77,6 +77,8 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                      this, SLOT(fileSelected(int)));
     //this->fileSelectionComboBox->setFixedWidth(comboBoxWidth);
     this->columnSelectionComboBox = new QComboBox();
+    QObject::connect(this->columnSelectionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(columnSelected(int)));
     //this->columnSelectionComboBox->setFixedWidth(comboBoxWidth);
     
     this->histogramToolButton = new QToolButton();
@@ -147,6 +149,7 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
     
     SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
     SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
@@ -168,6 +171,7 @@ OverlaySelectionControlLayer::opacityValueChanged(double value)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
     
     SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
     SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
@@ -189,6 +193,7 @@ OverlaySelectionControlLayer::fileSelected(int fileIndex)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
     
     SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
     SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
@@ -213,6 +218,7 @@ OverlaySelectionControlLayer::columnSelected(int columnIndex)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
     
     SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
     SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);

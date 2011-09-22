@@ -100,6 +100,7 @@ Surface::getBounds(BoundingBox& boundingBoxOut) const
 void 
 Surface::initializeMemberSurface()
 {
+    this->brainStructureIdentifier = -1;
 }
 
 /**
@@ -111,3 +112,30 @@ Surface::copyHelperSurface(const Surface& s)
     this->initializeMemberSurface();
     this->computeNormals();
 }
+
+/**
+ * Get the identifier of the brain structure that
+ * contains this surface.  If negative, then
+ * this surface is not within a BrainStructure.
+ * @return The brain structure identifier.
+ */
+int64_t 
+Surface::getBrainStructureIdentifier() const
+{
+    return this->brainStructureIdentifier;
+}
+
+/**
+ * Set the identifier of the brain structure that contains
+ * this surface.
+ *
+ * @param brainStructureIdentifier
+ *    New value for brain structure identifier.
+ */
+void 
+Surface::setBrainStructureIdentifier(const int64_t brainStructureIdentifier)
+{
+    this->brainStructureIdentifier = brainStructureIdentifier;
+}
+
+

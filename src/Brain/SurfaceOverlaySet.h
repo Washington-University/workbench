@@ -32,7 +32,6 @@
 namespace caret {
 
     
-    /// Contains a set of overlay assignments
     class SurfaceOverlaySet : public CaretObject {
         
     public:

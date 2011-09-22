@@ -27,9 +27,12 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 
+#define __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructure.h"
+#undef __BRAIN_STRUCTURE_DEFINE__
+#include "EventBrainStructureGet.h"
 #include "EventManager.h"
-#include "EventGetNodeDataFiles.h"
+#include "EventNodeDataFilesGet.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
 #include "LabelFile.h"
@@ -49,8 +52,12 @@ using namespace caret;
 BrainStructure::BrainStructure(Brain* brain,
                                StructureEnum::Enum structure)
 {
+    this->brainStructureIdentifier = BrainStructure::brainStructureIdentifierCounter++;
+    
     this->brain = brain;
     this->structure = structure;
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
 }
@@ -237,6 +244,8 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
         }
     }
     
+    surface->setBrainStructureIdentifier(this->brainStructureIdentifier);
+    
     this->surfaces.push_back(surface);
 
     /*
@@ -361,6 +370,20 @@ BrainStructure::getNumberOfNodes() const
 }
 
 /**
+ * Get all of the label files.
+ * @param labelFilesOut
+ *    Will contain all label files after this method exits.
+ */
+void 
+BrainStructure::getLabelFiles(std::vector<LabelFile*>& labelFilesOut) const
+{
+    labelFilesOut.clear();
+    labelFilesOut.insert(labelFilesOut.end(),
+                          this->labelFiles.begin(),
+                          this->labelFiles.end());
+}
+
+/**
  * Get the number of label files.
  * @return Number of label files.
  */
@@ -396,6 +419,20 @@ BrainStructure::getLabelFile(const int32_t fileIndex) const
 {
     CaretAssertVectorIndex(this->labelFiles, fileIndex);
     return this->labelFiles[fileIndex];
+}
+
+/**
+ * Get all of the metric files.
+ * @param metricFilesOut
+ *    Will contain all metric files after this method exits.
+ */
+void 
+BrainStructure::getMetricFiles(std::vector<MetricFile*>& metricFilesOut) const
+{
+    metricFilesOut.clear();
+    metricFilesOut.insert(metricFilesOut.end(),
+                          this->metricFiles.begin(),
+                          this->metricFiles.end());
 }
 
 /**
@@ -474,6 +511,20 @@ BrainStructure::getRgbaFile(const int32_t fileIndex) const
     return this->rgbaFiles[fileIndex];
 }
 
+/**
+ * Get all of the rgba files.
+ * @param rgbaFilesOut
+ *    Will contain all rgba files after this method exits.
+ */
+void 
+BrainStructure::getRgbaFiles(std::vector<RgbaFile*>& rgbaFilesOut) const
+{
+    rgbaFilesOut.clear();
+    rgbaFilesOut.insert(rgbaFilesOut.end(),
+                          this->rgbaFiles.begin(),
+                          this->rgbaFiles.end());
+}
+
 
 /**
  * Receive events from the event manager.
@@ -485,8 +536,8 @@ void
 BrainStructure::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_GET_NODE_DATA_FILES) {
-        EventGetNodeDataFiles* dataFilesEvent =
-            dynamic_cast<EventGetNodeDataFiles*>(event);
+        EventNodeDataFilesGet* dataFilesEvent =
+            dynamic_cast<EventNodeDataFilesGet*>(event);
         CaretAssert(dataFilesEvent);
         
         const Surface* associatedSurface = dataFilesEvent->getSurface();
@@ -516,6 +567,25 @@ BrainStructure::receiveEvent(Event* event)
         
         dataFilesEvent->setEventProcessed();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET) {
+        EventBrainStructureGet* brainStructureEvent =
+        dynamic_cast<EventBrainStructureGet*>(event);
+        CaretAssert(brainStructureEvent);
+        
+        if (this->brainStructureIdentifier == brainStructureEvent->getbrainStructureIdentifier()) {
+            brainStructureEvent->setBrainStructure(this);
+            brainStructureEvent->setEventProcessed();
+        }
+    }
+}
+
+/**
+ * @return Return the unique identifier for this brain structure.
+ */
+int64_t 
+BrainStructure::getBrainStructureIdentifier() const
+{
+    return this->brainStructureIdentifier;
 }
 
 

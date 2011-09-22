@@ -201,5 +201,12 @@ MetricFile::setValue(const int32_t nodeIndex,
     this->columnDataPointers[columnIndex][nodeIndex] = value;
 }
 
+const float* 
+MetricFile::getValuePointerForColumn(const int32_t columnIndex) const
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    return this->columnDataPointers[columnIndex];
+}
+
 
 

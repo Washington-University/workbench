@@ -1,5 +1,5 @@
-#ifndef __EVENT_GET_NODE_DATA_FILES_H__
-#define __EVENT_GET_NODE_DATA_FILES_H__
+#ifndef __EVENT_NODE_DATA_FILES_GET_H__
+#define __EVENT_NODE_DATA_FILES_GET_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -37,21 +37,21 @@ namespace caret {
     class Surface;
     
     /// Event that gets all node data files.
-    class EventGetNodeDataFiles : public Event {
+    class EventNodeDataFilesGet : public Event {
         
     public:
-        EventGetNodeDataFiles();
+        EventNodeDataFilesGet();
         
-        EventGetNodeDataFiles(const Surface* surface);
+        EventNodeDataFilesGet(const Surface* surface);
         
-        virtual ~EventGetNodeDataFiles();
+        virtual ~EventNodeDataFilesGet();
         
         void addFile(GiftiTypeFile* nodeDataFile);        
         
         /**
          * @return Returns the surface for which associated data
-         * files are requested.  If NULL, then all node data files
-         * are requested. 
+         * files are requested.  If NULL, then node data files
+         * from all brain structures are requested. 
          */
         const Surface* getSurface() const { return this->surface; }
         
@@ -67,9 +67,9 @@ namespace caret {
         void getAllFiles(std::vector<GiftiTypeFile*>& allFilesOut) const;
         
     private:
-        EventGetNodeDataFiles(const EventGetNodeDataFiles&);
+        EventNodeDataFilesGet(const EventNodeDataFilesGet&);
         
-        EventGetNodeDataFiles& operator=(const EventGetNodeDataFiles&);
+        EventNodeDataFilesGet& operator=(const EventNodeDataFilesGet&);
         
         const Surface* surface;
         
@@ -83,4 +83,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __EVENT_GET_NODE_DATA_FILES_H__
+#endif // __EVENT_NODE_DATA_FILES_GET_H__

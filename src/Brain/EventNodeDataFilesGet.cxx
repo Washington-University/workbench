@@ -25,7 +25,7 @@
 #include <typeinfo>
 
 #include "CaretAssert.h"
-#include "EventGetNodeDataFiles.h"
+#include "EventNodeDataFilesGet.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "RgbaFile.h"
@@ -36,7 +36,7 @@ using namespace caret;
  * Constructor for node data files that are 
  * associated with ANY surface.
  */
-EventGetNodeDataFiles::EventGetNodeDataFiles()
+EventNodeDataFilesGet::EventNodeDataFilesGet()
 : Event(EventTypeEnum::EVENT_GET_NODE_DATA_FILES),
   surface(NULL)
 {
@@ -46,7 +46,7 @@ EventGetNodeDataFiles::EventGetNodeDataFiles()
  * Constructor for node data files that are
  * associated with a specific surface.
  */
-EventGetNodeDataFiles::EventGetNodeDataFiles(const Surface* surfaceIn)
+EventNodeDataFilesGet::EventNodeDataFilesGet(const Surface* surfaceIn)
 : Event(EventTypeEnum::EVENT_GET_NODE_DATA_FILES),
   surface(surfaceIn)
 {
@@ -55,7 +55,7 @@ EventGetNodeDataFiles::EventGetNodeDataFiles(const Surface* surfaceIn)
 /**
  * Destructor.
  */
-EventGetNodeDataFiles::~EventGetNodeDataFiles()
+EventNodeDataFilesGet::~EventNodeDataFilesGet()
 {
     
 }
@@ -66,7 +66,7 @@ EventGetNodeDataFiles::~EventGetNodeDataFiles()
  *    Data file that is added.
  */
 void 
-EventGetNodeDataFiles::addFile(GiftiTypeFile* nodeDataFile)
+EventNodeDataFilesGet::addFile(GiftiTypeFile* nodeDataFile)
 {
     CaretAssert(nodeDataFile);
     if (nodeDataFile->getNumberOfColumns() <= 0) {
@@ -101,7 +101,7 @@ EventGetNodeDataFiles::addFile(GiftiTypeFile* nodeDataFile)
  * @return Returns all data files.
  */
 void 
-EventGetNodeDataFiles::getAllFiles(std::vector<GiftiTypeFile*>& allFilesOut) const
+EventNodeDataFilesGet::getAllFiles(std::vector<GiftiTypeFile*>& allFilesOut) const
 {
     allFilesOut.clear();
     

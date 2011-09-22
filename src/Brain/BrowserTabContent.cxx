@@ -473,7 +473,6 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
 {
     CaretAssert(surface);
     
-    float tempColor[4] = { 0.0, 0.0, 0.0, 1.0 };
     Surface* lastSurface;
     std::vector<float>* nodeColoring = NULL;
     const StructureEnum::Enum structure = surface->getStructure();
@@ -483,12 +482,10 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
             lastSurface = this->surfaceCerebellumLastColored;
             break;
         case StructureEnum::CORTEX_LEFT:
-            tempColor[0] = 1.0;
             nodeColoring = &this->surfaceLeftColoringRGBA;
             lastSurface = this->surfaceLeftLastColored;
             break;
         case StructureEnum::CORTEX_RIGHT:
-            tempColor[1] = 1.0;
             nodeColoring = &this->surfaceRightColoringRGBA;
             lastSurface = this->surfaceRightLastColored;
             break;
@@ -504,7 +501,8 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
      */
     const int32_t numNodes = surface->getNumberOfNodes();
     const int32_t numberOfColorComponents = numNodes * 4;
-    if (nodeColoring->size() < numberOfColorComponents) {
+    const int32_t coloringComponentCount = static_cast<int32_t>(nodeColoring->size());
+    if (coloringComponentCount < numberOfColorComponents) {
         nodeColoring->resize(numberOfColorComponents);
     }    
     float* rgba = &(*nodeColoring)[0];
@@ -523,14 +521,6 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
     this->surfaceColoring->colorSurfaceNodes(surface,
                                              &surfaceOverlayAssignment, 
                                              rgba);
-    
-    for (int32_t i = 0; i < numNodes; i++) {
-        const int32_t i4 = i * 4;
-        rgba[i4]   = tempColor[0];
-        rgba[i4+1] = tempColor[1];
-        rgba[i4+2] = tempColor[2];
-        rgba[i4+3] = tempColor[3];
-    }
     
     /*
      * Save surface that was colored.

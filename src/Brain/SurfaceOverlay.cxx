@@ -23,14 +23,19 @@
  * 
  */ 
 
+#include <algorithm>
+
 #define __SURFACE_OVERLAY_DECLARE__
 #include "SurfaceOverlay.h"
 #undef __SURFACE_OVERLAY_DECLARE__
 
-#include "EventGetNodeDataFiles.h"
+#include "CaretAssert.h"
+#include "EventNodeDataFilesGet.h"
 #include "EventManager.h"
 #include "GiftiTypeFile.h"
-#include <algorithm>
+#include "LabelFile.h"
+#include "MetricFile.h"
+#include "RgbaFile.h"
 
 using namespace caret;
 
@@ -41,7 +46,6 @@ using namespace caret;
 SurfaceOverlay::SurfaceOverlay()
 : CaretObject()
 {
-    this->selectedType = SurfaceOverlayDataTypeEnum::NONE;
     this->opacity      = 1.0;
     
     this->name = "Overlay ";
@@ -69,29 +73,6 @@ void
 SurfaceOverlay::setOverlayNumber(const int32_t overlayIndex)
 {    
     this->name = "Overlay " + AString::number(overlayIndex + 1);
-}
-
-/**
- * Get the selected overlay type.
- 
- * @return The selected overlay type.
- */
-SurfaceOverlayDataTypeEnum::Enum 
-SurfaceOverlay::getSelectedType() const
-{
-    return this->selectedType;
-}
-
-/**
- * Set the selected overlay type.
- *
- * @param selectedType
- *    New type of overlay.
- */
-void 
-SurfaceOverlay::setSelectedType(SurfaceOverlayDataTypeEnum::Enum selectedType)
-{
-    this->selectedType = selectedType;
 }
 
 /**
@@ -155,6 +136,48 @@ SurfaceOverlay::setEnabled(const bool enabled)
 
 /**
  * Return the selection information.
+ * @param selectedDataTypeOut
+ *    Type of data that is selected.
+ * @param selectedColumnNameOut
+ *    Name of column that is selected.
+ */
+void 
+SurfaceOverlay::getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
+                                 AString& selectedColumnNameOut)
+{
+    std::vector<GiftiTypeFile*> dataFiles;
+    GiftiTypeFile* selectedFile;
+    int32_t selectedColumnIndex;
+    this->getSelectionData(dataFiles,
+                           selectedFile,
+                           selectedColumnNameOut,
+                           selectedColumnIndex);
+    
+    selectedDataTypeOut = SurfaceOverlayDataTypeEnum::NONE;
+    
+    if (this->selectedDataFile != NULL) {
+        if (dynamic_cast<LabelFile*>(this->selectedDataFile) != NULL) {
+            selectedDataTypeOut = SurfaceOverlayDataTypeEnum::LABEL;
+        }
+        else if (dynamic_cast<MetricFile*>(this->selectedDataFile) != NULL) {
+            selectedDataTypeOut = SurfaceOverlayDataTypeEnum::METRIC;
+        }
+        else if (dynamic_cast<RgbaFile*>(this->selectedDataFile) != NULL) {
+            selectedDataTypeOut = SurfaceOverlayDataTypeEnum::RGBA;
+        }
+        else {
+            CaretAssertMessage(0, "File type is not supported for surface overlay: " + this->selectedDataFile->toString());
+        }
+    }
+    else {
+        selectedColumnNameOut = "";
+    }
+}
+
+/**
+ * Return the selection information.  This method is typically
+ * called to update the user-interface.
+ *
  * @param dataFilesOut
  *    Contains all data files that can be selected.
  * @param selectedFileOut
@@ -178,7 +201,7 @@ SurfaceOverlay::getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
     /**
      * Get the data files.
      */
-    EventGetNodeDataFiles eventGetDataFiles;
+    EventNodeDataFilesGet eventGetDataFiles;
     EventManager::get()->sendEvent(eventGetDataFiles.getPointer());
     eventGetDataFiles.getAllFiles(dataFilesOut);
     

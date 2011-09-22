@@ -41,10 +41,6 @@ namespace caret {
         
         virtual ~SurfaceOverlay();
         
-        SurfaceOverlayDataTypeEnum::Enum getSelectedType() const;
-        
-        void setSelectedType(SurfaceOverlayDataTypeEnum::Enum selectedType);
-        
         float getOpacity() const;
         
         void setOpacity(const float opacity);
@@ -58,6 +54,9 @@ namespace caret {
         bool isEnabled() const;
         
         void setEnabled(const bool enabled);
+        
+        void getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
+                              AString& selectedColumnNameOut);
         
         void getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
                               GiftiTypeFile* &selectedFileOut,
@@ -74,9 +73,6 @@ namespace caret {
         
         /** Name of overlay */
         AString name;
-        
-        /** Type of selected overlay */
-        SurfaceOverlayDataTypeEnum::Enum selectedType;
         
         /** Index of this overlay */
         int32_t overlayIndex;

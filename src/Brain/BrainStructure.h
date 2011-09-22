@@ -92,17 +92,25 @@ namespace caret {
         
         const LabelFile* getLabelFile(const int32_t fileIndex) const;
         
+        void getLabelFiles(std::vector<LabelFile*>& labelFilesOut) const;
+        
         int32_t getNumberOfMetricFiles() const;
         
         MetricFile* getMetricFile(const int32_t fileIndex);
         
         const MetricFile* getMetricFile(const int32_t fileIndex) const;
         
+        void getMetricFiles(std::vector<MetricFile*>& metricFilesOut) const;
+        
         int32_t getNumberOfRgbaFiles() const;
         
         RgbaFile* getRgbaFile(const int32_t fileIndex);
         
         const RgbaFile* getRgbaFile(const int32_t fileIndex) const;
+        
+        void getRgbaFiles(std::vector<RgbaFile*>& labelFilesOut) const;
+        
+        int64_t getBrainStructureIdentifier() const;
         
     private:
         Brain* brain;
@@ -119,8 +127,19 @@ namespace caret {
         
         /** Maps a surface to its model controller */
         std::map<Surface*, ModelDisplayControllerSurface*> surfaceControllerMap; 
+        
+        /** Unique number assigned to each brain structure. */
+        int64_t brainStructureIdentifier;
+        
+        /** Generates unique number assigned to each brain structure */
+        static int64_t brainStructureIdentifierCounter;
     };
     
+#ifdef __BRAIN_STRUCTURE_DEFINE__
+    int64_t BrainStructure::brainStructureIdentifierCounter = 1;
+#endif // __BRAIN_STRUCTURE_DEFINE__
+
 } // namespace
+
 
 #endif // __BRAIN_STRUCTURE_H__

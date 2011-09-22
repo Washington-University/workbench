@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class BrainStructure;
     class Surface;
     class SurfaceOverlay;
     class SurfaceOverlaySet;
@@ -43,7 +44,7 @@ namespace caret {
         virtual ~SurfaceNodeColoring();
         
         void colorSurfaceNodes(const Surface* surface,
-                               const SurfaceOverlaySet* surfaceOverlaySet,
+                               SurfaceOverlaySet* surfaceOverlaySet,
                                float* rgbaNodeColors);
     private:
         SurfaceNodeColoring(const SurfaceNodeColoring&);
@@ -54,17 +55,20 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void assignLabelColoring(const SurfaceOverlay* surfaceOverlay,
+        bool assignLabelColoring(BrainStructure* brainStructure,
+                                 const AString& labelColumnName,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
-        void assignMetricColoring(const SurfaceOverlay* surfaceOverlay,
-                                 const int32_t numberOfNodes,
-                                 float* rgbv);
+        bool assignMetricColoring(BrainStructure* brainStructure,
+                                  const AString& metricColumnName,
+                                  const int32_t numberOfNodes,
+                                  float* rgbv);
         
-        void assignRgbaColoring(const SurfaceOverlay* surfaceOverlay,
-                                 const int32_t numberOfNodes,
-                                 float* rgbv);
+        bool assignRgbaColoring(BrainStructure* brainStructure,
+                                const AString& rgbaColumnName,
+                                const int32_t numberOfNodes,
+                                float* rgbv);
         
     };
     

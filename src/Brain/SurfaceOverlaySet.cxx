@@ -31,6 +31,20 @@
 
 using namespace caret;
 
+/**
+ * \class SurfaceOverlaySet
+ * \brief Contains a set of overlay assignments
+ *
+ * The maximum number of surface overlays is fixed.  The number
+ * of surface overlays presented to the user varies and is
+ * controlled using the ToolBox in a Browser Window.
+ * 
+ * The primary overlay is always the overlay at index zero.
+ * The underlay is the overlay at (numberOfDisplayedOverlays - 1).
+ * When surfaces are colored, the overlays are assigned 
+ * starting with the underlay and concluding with the primary
+ * overlay.
+ */
 
 /**
  * Constructor.
