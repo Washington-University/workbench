@@ -61,6 +61,7 @@ public:
    void setCiftiDimensions(std::vector <int> &dimensions);
 private:
    nifti_2_header m_header;
+   nifti_1_header m_header1;
    bool m_swapNeeded;
 };
 

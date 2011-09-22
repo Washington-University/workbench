@@ -81,6 +81,8 @@ bool NiftiHeader::getSwapNeeded()
    return m_swapNeeded;
 }
 
+
+
 /**
  * Constructor
  *
@@ -91,6 +93,7 @@ void NiftiHeader::readFile(QFile &inputFile) throw (NiftiException)
 {
    int bytes_read = 0;
    m_swapNeeded=false;
+
    bytes_read = inputFile.read((char *)&m_header, NIFTI2_HEADER_SIZE);
    if(bytes_read < NIFTI2_HEADER_SIZE) {
       throw NiftiException("Error reading Cifti header, file is too short.");
