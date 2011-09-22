@@ -82,3 +82,4 @@ namespace caret {
 }
 
 #endif // __BRAIN_BROWSER_WINDOW_TOOLBOX_H__
+
