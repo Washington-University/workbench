@@ -70,7 +70,6 @@ namespace caret {
         void processToggleMontageTabs();
         void processShowHideToolbar();
         void processViewFullScreen();
-        void processMoveAllTabsInWindowToNewWindows();
         void processMoveAllTabsToOneWindow();
         void processMoveToolBoxToLeft();
         void processMoveToolBoxToRight();
@@ -83,6 +82,7 @@ namespace caret {
         
     private:
         BrainBrowserWindow(const int browserWindowIndex,
+                           BrowserTabContent* browserTabContent,
                            QWidget* parent = 0,
                            Qt::WindowFlags flags = 0);
         

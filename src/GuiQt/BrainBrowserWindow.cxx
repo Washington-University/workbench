@@ -33,6 +33,7 @@
 #include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
@@ -48,12 +49,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserWindowIndex
+ *    Index for this window.
+ * @param browserTabContent  
+ *    If not NULL, this is the tab displayed in the window.
+ *    If NULL, a new tab is created.
  * @param parent
  *    Parent of this object
  * @param flags
  *    Flags for Qt.
  */
 BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
+                                       BrowserTabContent* browserTabContent,
                                        QWidget* parent,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
@@ -83,6 +90,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                         this->topBottomToolBox);
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
+                                                  browserTabContent,
                                                   this->topBottomToolBox->toggleViewAction());
     this->addToolBar(this->toolbar);
     
@@ -280,8 +288,8 @@ BrainBrowserWindow::createActions()
     WuQtUtilities::createAction("Move All Tabs in Current Window to New Windows",
                                 "Move all but the left most tab to new windows",
                                 this,
-                                this,
-                                SLOT(processMoveAllTabsInWindowToNewWindows()));
+                                this->toolbar,
+                                SLOT(moveTabsToNewWindows()));
     
     this->moveTabsFromAllWindowsToOneWindowAction =
     WuQtUtilities::createAction("Move All Tabs From All Windows Into One Window",
@@ -289,6 +297,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processMoveAllTabsToOneWindow()));
+    this->moveTabsFromAllWindowsToOneWindowAction->setEnabled(false);
     
     this->bringAllToFrontAction =
     WuQtUtilities::createAction("Bring All To Front",
@@ -304,6 +313,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processShowIdentifyWindow()));
+    this->identifyWindowAction->setEnabled(false);
     
     this->dataDisplayAction =
     WuQtUtilities::createAction("Data Display...",
@@ -312,6 +322,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processShowDataDisplayWindow()));
+    this->dataDisplayAction->setEnabled(false);
     
     this->helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
@@ -319,6 +330,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processShowHelpOnlineWindow()));
+    this->helpOnlineAction->setEnabled(false);
     
     this->searchHelpOnlineAction =
     WuQtUtilities::createAction("Search Help (Online)...",
@@ -326,6 +338,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processShowSearchHelpOnlineWindow()));
+    this->searchHelpOnlineAction->setEnabled(false);
     
 }
 
@@ -473,6 +486,7 @@ BrainBrowserWindow::createMenuWindow()
                      this, SLOT(processMoveTabToWindowMenuAboutToBeDisplayed()));
     QObject::connect(this->moveTabToThisWindowMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(processMoveTabToWindowMenuSelection(QAction*)));
+    this->moveTabToThisWindowMenu->setEnabled(false);
     
     QMenu* menu = new QMenu("Window", this);
     
@@ -528,7 +542,8 @@ BrainBrowserWindow::processCloseSpecFile()
 void 
 BrainBrowserWindow::processNewWindow()
 {
-    GuiManager::get()->newBrainBrowserWindow(this);
+    EventBrowserWindowNew eventNewBrowser(this, NULL);
+    EventManager::get()->sendEvent(eventNewBrowser.getPointer());
 }
 
 /**
@@ -659,15 +674,6 @@ BrainBrowserWindow::processViewFullScreen()
     else {
         this->showFullScreen();
     }
-}
-
-/**
- * Called when move all tabs in window to new windows is selected.
- */
-void 
-BrainBrowserWindow::processMoveAllTabsInWindowToNewWindows()
-{
-    
 }
 
 /**

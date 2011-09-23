@@ -48,10 +48,12 @@ public:
         EVENT_BROWSER_TAB_GET,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
+        /** Get the content of a browser window */
+        EVENT_BROWSER_WINDOW_CONTENT_GET,
+        /** Create a new browser window */
+        EVENT_BROWSER_WINDOW_NEW,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
-        /** Get the content of a browser window */
-        EVENT_GET_BROWSER_WINDOW_CONTENT,
         /** Get node data files */
         EVENT_GET_NODE_DATA_FILES,
         /** Update all graphics windows */

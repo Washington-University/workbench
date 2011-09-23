@@ -36,7 +36,7 @@
 #include "CaretAssert.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
-#include "EventGetBrowserWindowContent.h"
+#include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "GuiManager.h"
@@ -150,7 +150,7 @@ BrainOpenGLWidget::paintGL()
         this->windowHeight[this->windowIndex]
     };
     
-    EventGetBrowserWindowContent getModelEvent(this->windowIndex);
+    EventBrowserWindowContentGet getModelEvent(this->windowIndex);
     EventManager::get()->sendEvent(getModelEvent.getPointer());
 
     if (getModelEvent.isError()) {

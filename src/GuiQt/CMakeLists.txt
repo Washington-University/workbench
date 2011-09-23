@@ -44,7 +44,8 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
-EventGetBrowserWindowContent.h
+EventBrowserWindowContentGet.h
+EventBrowserWindowNew.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventUserInterfaceUpdate.h
@@ -63,7 +64,8 @@ BrainBrowserWindow.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
-EventGetBrowserWindowContent.cxx
+EventBrowserWindowContentGet.cxx
+EventBrowserWindowNew.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventUserInterfaceUpdate.cxx

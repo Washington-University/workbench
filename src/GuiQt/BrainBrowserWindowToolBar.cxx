@@ -42,6 +42,7 @@
 #include <QTabBar>
 #include <QToolButton>
 
+#include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -49,7 +50,8 @@
 #include "CaretLogger.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabNew.h"
-#include "EventGetBrowserWindowContent.h"
+#include "EventBrowserWindowContentGet.h"
+#include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
@@ -57,6 +59,7 @@
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -65,10 +68,18 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserWindowIndex
+ *    Index of the parent browser window.
+ * @param initialBrowserTabContent
+ *    Content of default tab (may be NULL in which cast
+ *    new content is created).
+ * @param toolBoxToolButtonAction
+ *    Action for the Toolbox button in this toolbar.
  * @param parent
  *    Parent for this toolbar.
  */
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                                     BrowserTabContent* initialBrowserTabContent,
                                                      QAction* toolBoxToolButtonAction,
                                                      QWidget* parent)
 : QToolBar(parent)
@@ -142,12 +153,17 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->addWidget(w);
     
-    this->addNewTab();
+    if (initialBrowserTabContent != NULL) {
+        this->addNewTab(initialBrowserTabContent);
+    }
+    else {
+        this->addNewTab();
+    }
     
     //this->updateViewWidget(NULL);
     this->updateToolBar();
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
 }
 
 /**
@@ -172,11 +188,16 @@ BrainBrowserWindowToolBar::addNewTab()
     EventManager::get()->sendEvent(newTabEvent.getPointer());
     
     if (newTabEvent.isError()) {
+        QMessageBox::critical(this, "", newTabEvent.getErrorMessage());
         return;
     }
-    this->tabBar->blockSignals(true);
     
     BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
+    
+    this->addNewTab(tabContent);
+
+    
+/*
     const int newTabIndex = this->tabBar->addTab("NewTab");
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
@@ -188,6 +209,70 @@ BrainBrowserWindowToolBar::addNewTab()
     this->tabBar->blockSignals(false);
     
     this->tabBar->setCurrentIndex(newTabIndex);
+*/
+}
+
+/**
+ * Add a new tab containing the given content.
+ * @param tabContent
+ *    Content for new tab.
+ */
+void 
+BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
+{
+    CaretAssert(tabContent);
+    
+    this->tabBar->blockSignals(true);
+    
+    const int newTabIndex = this->tabBar->addTab("NewTab");
+    this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
+    
+    const int numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 1);
+    
+    this->tabBar->setTabText(newTabIndex, tabContent->getName());
+    
+    this->tabBar->setCurrentIndex(newTabIndex);
+    
+    this->tabBar->blockSignals(false);
+}
+
+/**
+ * Move all but the current tab to new windows.
+ */
+void 
+BrainBrowserWindowToolBar::moveTabsToNewWindows()
+{
+    int32_t numTabs = this->tabBar->count();
+    if (numTabs > 1) {
+        const int32_t currentIndex = this->tabBar->currentIndex();
+        
+        QWidget* lastParent = this->parentWidget();
+        if (lastParent == NULL) {
+            lastParent = this;
+        }
+        for (int32_t i = (numTabs - 1); i >= 0; i--) {
+            if (i != currentIndex) {
+                void* p = this->tabBar->tabData(i).value<void*>();
+                BrowserTabContent* btc = (BrowserTabContent*)p;
+
+                EventBrowserWindowNew eventNewWindow(lastParent, btc);
+                EventManager::get()->sendEvent(eventNewWindow.getPointer());
+                if (eventNewWindow.isError()) {
+                    QMessageBox::critical(this,
+                                          "",
+                                          eventNewWindow.getErrorMessage());
+                    break;
+                }
+                else {
+                    lastParent = eventNewWindow.getBrowserWindowCreated();
+                    this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+                    this->tabClosed(i);
+                }
+            }
+        }
+        
+    }
 }
 
 /**
@@ -276,12 +361,15 @@ void
 BrainBrowserWindowToolBar::tabClosed(int indx)
 {
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), indx);
-    void* p = this->tabBar->tabData(indx).value<void*>();
-    BrowserTabContent* btc = (BrowserTabContent*)p;
     
-    EventBrowserTabDelete deleteTabEvent(btc);
-    EventManager::get()->sendEvent(deleteTabEvent.getPointer());
-
+    void* p = this->tabBar->tabData(indx).value<void*>();
+    if (p != NULL) {
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+    
+        EventBrowserTabDelete deleteTabEvent(btc);
+        EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+    }
+    
     this->tabBar->blockSignals(true);
     this->tabBar->removeTab(indx);
     this->tabBar->blockSignals(false);
@@ -440,6 +528,8 @@ BrainBrowserWindowToolBar::createViewWidget()
 ModelDisplayControllerTypeEnum::Enum
 BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent)
 {
+    CaretAssert(browserTabContent);
+    
     ModelDisplayControllerTypeEnum::Enum modelType = browserTabContent->getSelectedModelType();
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -1884,9 +1974,9 @@ BrainBrowserWindowToolBar::decrementUpdateCounter(const char* methodName)
 void 
 BrainBrowserWindowToolBar::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT) {
-        EventGetBrowserWindowContent* getModelEvent =
-            dynamic_cast<EventGetBrowserWindowContent*>(event);
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET) {
+        EventBrowserWindowContentGet* getModelEvent =
+            dynamic_cast<EventBrowserWindowContentGet*>(event);
         CaretAssert(getModelEvent);
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {

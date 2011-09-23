@@ -31,8 +31,9 @@
 
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "EventGetBrowserWindowContent.h"
+#include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "SessionManager.h"
 
@@ -53,6 +54,8 @@ GuiManager::GuiManager(QObject* parent)
 {
     this->nameOfApplication = "Connectome Workbench";
     this->brainOpenGL = NULL;
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
 }
 
 /**
@@ -60,6 +63,8 @@ GuiManager::GuiManager(QObject* parent)
  */
 GuiManager::~GuiManager()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     if (this->brainOpenGL != NULL) {
         delete this->brainOpenGL;
         this->brainOpenGL = NULL;
@@ -162,7 +167,7 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
     }
     
     if (isBrowserWindowAllowedToClose) {
-        for (int i = 0; i < this->brainBrowserWindows.size(); i++) {
+        for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
             if (this->brainBrowserWindows[i] == brainBrowserWindow) {
                 this->brainBrowserWindows[i] = NULL;
             }
@@ -212,9 +217,14 @@ GuiManager::getAllBrainBrowserWindows() const
 
 /**
  * Create a new BrainBrowser Window.
+ * @param parent
+ *    Optional parent that is used only for window placement.
+ * @param browserTabContent
+ *    Optional tab for initial windwo tab.
  */
-void 
-GuiManager::newBrainBrowserWindow(QWidget* parent)
+BrainBrowserWindow*
+GuiManager::newBrainBrowserWindow(QWidget* parent,
+                                  BrowserTabContent* browserTabContent)
 {
     int32_t windowIndex = -1;
     
@@ -230,18 +240,21 @@ GuiManager::newBrainBrowserWindow(QWidget* parent)
     
     if (windowIndex < 0) {
         windowIndex = this->brainBrowserWindows.size();
-        bbw = new BrainBrowserWindow(windowIndex);
+        bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
         this->brainBrowserWindows.push_back(bbw);
     }
     else {
-        bbw = new BrainBrowserWindow(windowIndex);
+        bbw = new BrainBrowserWindow(windowIndex, browserTabContent);
         this->brainBrowserWindows[windowIndex] = bbw;
     }
     
     if (parent != NULL) {
         WuQtUtilities::moveWindowToOffset(parent, bbw, 20, 20);
     }
-    bbw->show();    
+    
+    bbw->show(); 
+    
+    return bbw;
 }
 
 /**
@@ -323,8 +336,9 @@ GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowInde
 void 
 GuiManager::processBringAllWindowsToFront()
 {
-    for (int32_t i = 0; i < this->brainBrowserWindows.size(); i++) {
+    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
         this->brainBrowserWindows[i]->show();
+        this->brainBrowserWindows[i]->activateWindow();
     }
 }
 
@@ -368,6 +382,31 @@ QString
 GuiManager::applicationName() const
 {
     return this->nameOfApplication;
+}
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+GuiManager::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_WINDOW_NEW) {
+        EventBrowserWindowNew* eventNewBrowser =
+            dynamic_cast<EventBrowserWindowNew*>(event);
+        CaretAssert(eventNewBrowser);
+        
+        BrainBrowserWindow* bbw = this->newBrainBrowserWindow(eventNewBrowser->getParent(), 
+                                                              eventNewBrowser->getBrowserTabContent());
+        eventNewBrowser->setBrowserWindowCreated(bbw);
+        
+        eventNewBrowser->setEventProcessed();
+    }
+    else {
+        
+    }
 }
 
 

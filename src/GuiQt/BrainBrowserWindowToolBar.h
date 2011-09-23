@@ -59,6 +59,7 @@ namespace caret {
         
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
+                                  BrowserTabContent* initialBrowserTabContent,
                                   QAction* toolsToolBoxToolButtonAction,
                                   QWidget* parent = 0);
         
@@ -153,7 +154,11 @@ namespace caret {
     public slots:
         void addNewTab();
 
+        void addNewTab(BrowserTabContent* browserTabContent);
+        
         void closeSelectedTab();
+
+        void moveTabsToNewWindows();
         
         void nextTab();
         
@@ -162,7 +167,7 @@ namespace caret {
         void renameTab();
         
         void updateToolBar();
-    
+        
     private slots:
         void selectedTabChanged(int indx);
         void tabClosed(int index);

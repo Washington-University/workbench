@@ -32,6 +32,10 @@
 
 #include <QObject>
 
+#include "EventListenerInterface.h"
+
+class QWidget;
+
 namespace caret {
     
     class Brain;
@@ -42,7 +46,7 @@ namespace caret {
     /**
      * Manages the graphical user-interface.
      */
-    class GuiManager : public QObject {
+    class GuiManager : public QObject, public EventListenerInterface {
         
         Q_OBJECT
         
@@ -62,8 +66,6 @@ namespace caret {
         bool allowBrainBrowserWindowToClose(BrainBrowserWindow* bbw,
                                             const int32_t numberOfOpenTabs);
         
-        void newBrainBrowserWindow(QWidget* parent);
-        
         bool exitProgram(QWidget* parent);
         
         QString applicationName() const;
@@ -71,6 +73,8 @@ namespace caret {
         BrainOpenGL* getBrainOpenGL();
         
         BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex);
+        
+        void receiveEvent(Event* event);
         
     public slots:
         void processBringAllWindowsToFront();
@@ -87,6 +91,9 @@ namespace caret {
         
         GuiManager(const GuiManager&);
         GuiManager& operator=(const GuiManager&);
+        
+        BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
+                                                  BrowserTabContent* browserTabContent);
         
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;

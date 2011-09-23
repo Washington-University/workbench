@@ -82,13 +82,17 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_CONTENT_GET, 
+                                     "EVENT_BROWSER_WINDOW_CONTENT_GET", 
+                                     "Get the content in a browser window"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_WINDOW_NEW, 
+                                     "EVENT_BROWSER_WINDOW_NEW", 
+                                     "Create a new browser window"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_GET_BROWSER_WINDOW_CONTENT, 
-                                     "EVENT_GET_BROWSER_WINDOW_CONTENT", 
-                                     "Get the content in a browser window"));
     
     enumData.push_back(EventTypeEnum(EVENT_GET_NODE_DATA_FILES,
                                      "EVENT_GET_NODE_DATA_FILES",

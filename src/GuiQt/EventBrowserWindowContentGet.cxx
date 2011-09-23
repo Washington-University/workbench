@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include "EventGetBrowserWindowContent.h"
+#include "EventBrowserWindowContentGet.h"
 
 using namespace caret;
 
@@ -31,8 +31,8 @@ using namespace caret;
  * @param browserWindowIndex
  *    Index of browser window.
  */
-EventGetBrowserWindowContent::EventGetBrowserWindowContent(const int32_t browserWindowIndex)
-: Event(EventTypeEnum::EVENT_GET_BROWSER_WINDOW_CONTENT)
+EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browserWindowIndex)
+: Event(EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->windowTabNumber = -1;
@@ -42,7 +42,7 @@ EventGetBrowserWindowContent::EventGetBrowserWindowContent(const int32_t browser
 /*
  * Destructor.
  */
-EventGetBrowserWindowContent::~EventGetBrowserWindowContent()
+EventBrowserWindowContentGet::~EventBrowserWindowContentGet()
 {
     
 }
@@ -51,7 +51,7 @@ EventGetBrowserWindowContent::~EventGetBrowserWindowContent()
  * @return Get the browser window index.
  */
 int32_t 
-EventGetBrowserWindowContent::getBrowserWindowIndex() const 
+EventBrowserWindowContentGet::getBrowserWindowIndex() const 
 { 
     return this->browserWindowIndex; 
 }
@@ -60,7 +60,7 @@ EventGetBrowserWindowContent::getBrowserWindowIndex() const
  * @return Get window tab number
  */
 int32_t 
-EventGetBrowserWindowContent::getWindowTabNumber() const 
+EventBrowserWindowContentGet::getWindowTabNumber() const 
 { 
     return this->windowTabNumber; 
 }
@@ -69,7 +69,7 @@ EventGetBrowserWindowContent::getWindowTabNumber() const
  * Get the model controller being drawn
  */
 ModelDisplayController* 
-EventGetBrowserWindowContent::getModelDisplayController()  
+EventBrowserWindowContentGet::getModelDisplayController()  
 { 
     return this->modelDisplayController; 
 }
@@ -81,7 +81,7 @@ EventGetBrowserWindowContent::getModelDisplayController()
  *     Number of tab window.
  */
 void 
-EventGetBrowserWindowContent::setWindowTabNumber(const int32_t windowTabNumber)
+EventBrowserWindowContentGet::setWindowTabNumber(const int32_t windowTabNumber)
 {
     this->windowTabNumber = windowTabNumber;
 }
@@ -93,7 +93,7 @@ EventGetBrowserWindowContent::setWindowTabNumber(const int32_t windowTabNumber)
  *    The model display controller.
  */
 void 
-EventGetBrowserWindowContent::setModelDisplayController(ModelDisplayController* modelDisplayController)
+EventBrowserWindowContentGet::setModelDisplayController(ModelDisplayController* modelDisplayController)
 {
     this->modelDisplayController = modelDisplayController;   
 }
@@ -102,7 +102,7 @@ EventGetBrowserWindowContent::setModelDisplayController(ModelDisplayController* 
  * @return Returns the browser tab content.
  */
 BrowserTabContent* 
-EventGetBrowserWindowContent::getBrowserTabContent()
+EventBrowserWindowContentGet::getBrowserTabContent()
 {
     return this->browserTabContent;
 }
@@ -113,7 +113,7 @@ EventGetBrowserWindowContent::getBrowserTabContent()
  *    New value for browser tab content.
  */
 void 
-EventGetBrowserWindowContent::setBrowserTabContent(BrowserTabContent* browserTabContent)
+EventBrowserWindowContentGet::setBrowserTabContent(BrowserTabContent* browserTabContent)
 {
     this->browserTabContent = browserTabContent;
 }

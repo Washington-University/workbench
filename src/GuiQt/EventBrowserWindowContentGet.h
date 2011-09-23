@@ -1,5 +1,5 @@
-#ifndef __EVENT_GET_BROWSER_WINDOW_CONTENT_H__
-#define __EVENT_GET_BROWSER_WINDOW_CONTENT_H__
+#ifndef __EVENT_BROWSER_WINDOW_CONTENT_GET_H__
+#define __EVENT_BROWSER_WINDOW_CONTENT_GET_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -34,12 +34,12 @@ namespace caret {
     class ModelDisplayController;
     
     /// Get the content of a browser window
-    class EventGetBrowserWindowContent : public Event {
+    class EventBrowserWindowContentGet : public Event {
         
     public:
-        EventGetBrowserWindowContent(const int32_t browserWindowIndex);
+        EventBrowserWindowContentGet(const int32_t browserWindowIndex);
         
-        virtual ~EventGetBrowserWindowContent();
+        virtual ~EventBrowserWindowContentGet();
         
         int32_t getBrowserWindowIndex() const;
         
@@ -56,9 +56,9 @@ namespace caret {
         void setBrowserTabContent(BrowserTabContent* browserTabContent);
         
     private:
-        EventGetBrowserWindowContent(const EventGetBrowserWindowContent&);
+        EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
         
-        EventGetBrowserWindowContent& operator=(const EventGetBrowserWindowContent&);
+        EventBrowserWindowContentGet& operator=(const EventBrowserWindowContentGet&);
         
         /** index of browswer window */
         int32_t browserWindowIndex;
@@ -75,4 +75,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __EVENT_GET_BROWSER_WINDOW_CONTENT_H__
+#endif // __EVENT_BROWSER_WINDOW_CONTENT_GET_H__

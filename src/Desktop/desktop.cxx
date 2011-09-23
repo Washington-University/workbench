@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QGLFormat>
 
+#include "EventBrowserWindowNew.h"
+#include "EventManager.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
@@ -77,8 +79,14 @@ main(int argc, char* argv[])
     
     /*
      * Create and display a main window.
+     * If not done as pointer, the event object is listed as an
+     * object that was not deleted by CaretObject::printListOfObjectsNotDeleted
+     * since it does not go out of scope.
      */
-    GuiManager::get()->newBrainBrowserWindow(NULL);
+    EventBrowserWindowNew* newBrowserWindow = new EventBrowserWindowNew(NULL, NULL);
+    EventManager::get()->sendEvent(newBrowserWindow->getPointer());
+    delete newBrowserWindow;
+    //GuiManager::get()->newBrainBrowserWindow(NULL);
     
     /*
      * Start the app which will launch the main window.

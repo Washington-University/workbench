@@ -19,7 +19,6 @@
 
 #include "BrainBrowserWindowToolBox.h"
 #include "CaretAssert.h"
-#include "EventGetBrowserWindowContent.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "OverlaySelectionControl.h"
@@ -103,9 +102,9 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->dockFloated(false);
 
     QObject::connect(this->layersTabWidget, SIGNAL(currentChanged(int)),
-                     this, SLOT(updateDisplayedPanel()()));
+                     this, SLOT(updateDisplayedPanel()));
     QObject::connect(this->tabWidget, SIGNAL(currentChanged(int)),
-                     this, SLOT(updateDisplayedPanel()()));
+                     this, SLOT(updateDisplayedPanel()));
     
     QObject::connect(this, SIGNAL(topLevelChanged(bool)),
                      this, SLOT(dockFloated(bool)));
