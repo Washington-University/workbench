@@ -84,8 +84,7 @@ namespace caret {
                                     Palette* palette,
                                     float value,
                                     float thresholdValue,
-                                    float* rgbaOut,
-                                    int32_t rgbaOffset);
+                                    float rgbaOut[4]);
 };
     
 #ifdef __SURFACE_NODE_COLORING_DECLARE__

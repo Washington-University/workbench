@@ -33,6 +33,8 @@
 #include "CaretLogger.h"
 #include "EventBrainStructureGet.h"
 #include "EventManager.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "Palette.h"
@@ -191,14 +193,54 @@ SurfaceNodeColoring::assignLabelColoring(BrainStructure* brainStructure,
                                          const int32_t numberOfNodes,
                                          float* rgbv)
 {
-    for (int32_t i = 0; i < numberOfNodes; i++) {
-        const int32_t i4 = i * 4;
-        rgbv[i4]   = 1.0;
-        rgbv[i4+1] = 0.0;
-        rgbv[i4+2] = 0.0;
-        rgbv[i4+3] = 1.0;
+    std::vector<LabelFile*> allLabelFiles;
+    brainStructure->getLabelFiles(allLabelFiles);
+    
+    int32_t displayColumn = -1;
+    LabelFile* labelFile = NULL;
+    for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
+         iter != allLabelFiles.end();
+         iter++) {
+        LabelFile* lf = *iter;
+        displayColumn = lf->getColumnIndexFromColumnName(labelColumnName);
+        if (displayColumn >= 0) {
+            labelFile = lf;
+            break;
+        }
     }
     
+    if (displayColumn < 0) {
+        return false;
+    }
+    
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        rgbv[i*4+3] = 0.0;
+    }   
+    
+    GiftiLabelTable* labelTable = labelFile->getLabelTable();
+    
+    /*
+     * Assign colors from labels to nodes
+     */
+    float labelRGBA[4];
+    for (int i = 0; i < numberOfNodes; i++) {
+        int labelKey= labelFile->getLabelKey(i, displayColumn);
+        const GiftiLabel* gl = labelTable->getLabel(labelKey);
+        if (gl != NULL) {
+            gl->getColor(labelRGBA);
+            if (labelRGBA[3] > 0.0) {
+                const int32_t i4 = i * 4;
+                rgbv[i4]   = labelRGBA[0];
+                rgbv[i4+1] = labelRGBA[1];
+                rgbv[i4+2] = labelRGBA[2];
+                rgbv[i4+3] = 1.0;
+            }
+        }
+    }
+
     return true;
 }
 
@@ -247,30 +289,28 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
     if (thresholdColumn < 0) {
         thresholdColumn = displayColumn;
     }
+    const float* metricDisplayData = metricFile->getValuePointerForColumn(displayColumn);
+    const float* metricThresholdData = metricFile->getValuePointerForColumn(thresholdColumn);
+    
     Brain* brain = brainStructure->getBrain();
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
     Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
     if (palette != NULL) {
         float rgba[4];
         for (int32_t i = 0; i < numberOfNodes; i++) {
-            float metric = metricFile->getValue(i, displayColumn);
-            float thresh = metricFile->getValue(i, thresholdColumn);
-            
             rgba[0] = -1.0f;
             rgba[1] = -1.0f;
             rgba[2] = -1.0f;
             rgba[3] = -1.0f;
-            bool validFlag = applyColorUsingPalette(
-                                                       paletteColorMapping,
-                                                       minMax,
-                                                       palette,
-                                                       metric,
-                                                       thresh,
-                                                       rgba,
-                                                       0);
+            bool validFlag = applyColorUsingPalette(paletteColorMapping,
+                                                    minMax,
+                                                    palette,
+                                                    metricDisplayData[i],
+                                                    metricThresholdData[i],
+                                                    rgba);
             
-            int32_t i4 = i * 4;
             if (validFlag) {
+                const int32_t i4 = i * 4;
                 rgbv[i4]   = rgba[0];
                 rgbv[i4+1] = rgba[1];
                 rgbv[i4+2] = rgba[2];
@@ -310,9 +350,8 @@ SurfaceNodeColoring::assignRgbaColoring(BrainStructure* brainStructure,
  * @param palette  the color palette.
  * @param value  the value whose color is to be determined.
  * @param thresholdValue  the threshold value
- * @param rgbaOut  the RGBA values out (4-dim array values ranging 0 to 255
- * @param rgbaOffset  offset in the rgbaOut Array.
- * @return true if the color was set.
+ * @param rgbaOut  the RGBA values out (4-dim array values ranging 0 to 255)
+ * @return true if the output color is valid.
  */
 bool 
 SurfaceNodeColoring::applyColorUsingPalette(PaletteColorMapping* paletteColorMapping,
@@ -320,8 +359,7 @@ SurfaceNodeColoring::applyColorUsingPalette(PaletteColorMapping* paletteColorMap
                                              Palette* palette,
                                              float value,
                                              float thresholdValue,
-                                             float* rgbaOut,
-                                             int rgbaOffset) {
+                                             float rgbaOut[4]) {
     
     MetricColorType colorType = SurfaceNodeColoring::METRIC_COLOR_TYPE_NORMAL;
     
@@ -412,26 +450,26 @@ SurfaceNodeColoring::applyColorUsingPalette(PaletteColorMapping* paletteColorMap
                                      paletteColorMapping->isInterpolatePaletteFlag(),
                                      rgba);
             if (rgba[3] > 0.0f) {
-                rgbaOut[rgbaOffset]     = rgba[0];
-                rgbaOut[rgbaOffset + 1] = rgba[1];
-                rgbaOut[rgbaOffset + 2] = rgba[2];
-                rgbaOut[rgbaOffset + 3] = rgba[3];
+                rgbaOut[0]     = rgba[0];
+                rgbaOut[1] = rgba[1];
+                rgbaOut[2] = rgba[2];
+                rgbaOut[3] = rgba[3];
                 colorValidFlag = true;
             }
         }
             break;
         case SurfaceNodeColoring::METRIC_COLOR_TYPE_POS_THRESH_COLOR:
-            rgbaOut[rgbaOffset]     = posThreshColor[0];
-            rgbaOut[rgbaOffset + 1] = posThreshColor[1];
-            rgbaOut[rgbaOffset + 2] = posThreshColor[2];
-            rgbaOut[rgbaOffset + 3] = posThreshColor[3];
+            rgbaOut[0]     = posThreshColor[0];
+            rgbaOut[1] = posThreshColor[1];
+            rgbaOut[2] = posThreshColor[2];
+            rgbaOut[3] = posThreshColor[3];
             colorValidFlag = true;
             break;
         case SurfaceNodeColoring::METRIC_COLOR_TYPE_NEG_THRESH_COLOR:
-            rgbaOut[rgbaOffset]     = negThreshColor[0];
-            rgbaOut[rgbaOffset + 1] = negThreshColor[1];
-            rgbaOut[rgbaOffset + 2] = negThreshColor[2];
-            rgbaOut[rgbaOffset + 3] = negThreshColor[3];
+            rgbaOut[0]     = negThreshColor[0];
+            rgbaOut[1] = negThreshColor[1];
+            rgbaOut[2] = negThreshColor[2];
+            rgbaOut[3] = negThreshColor[3];
             colorValidFlag = true;
             break;
         case SurfaceNodeColoring::METRIC_COLOR_TYPE_DO_NOT_COLOR:
