@@ -27,12 +27,14 @@
 #include "OverlaySelectionControlLayer.h"
 #undef __OVERLAY_SELECTION_CONTROL_LAYER_DECLARE__
 
+#include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QToolButton>
 
 #include "BrowserTabContent.h"
+#include "CaretLogger.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GiftiTypeFile.h"
@@ -40,6 +42,7 @@
 #include "SurfaceOverlay.h"
 #include "SurfaceOverlaySet.h"
 #include "WuQWidgetObjectGroup.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -81,17 +84,29 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                      this, SLOT(columnSelected(int)));
     //this->columnSelectionComboBox->setFixedWidth(comboBoxWidth);
     
+    this->histogramAction = WuQtUtilities::createAction("H",
+                                                        "Show histogram of selected data",
+                                                        this,
+                                                        this,
+                                                        SLOT(histogramToolButtonPressed()));
     this->histogramToolButton = new QToolButton();
-    this->histogramToolButton->setText("H");
-    this->histogramToolButton->setToolTip("Show histogram of selected data");
+    this->histogramToolButton->setDefaultAction(this->histogramAction);
     
-    this->paletteToolButton  = new QToolButton();
-    this->paletteToolButton->setText("S");
-    this->paletteToolButton->setToolTip("Show control for adjusting settings that controls data coloring");
+    this->settingsAction = WuQtUtilities::createAction("S",
+                                                        "Show control for adjusting settings that controls data coloring",
+                                                        this,
+                                                        this,
+                                                        SLOT(settingsToolButtonPressed()));
+    this->settingsToolButton  = new QToolButton();
+    this->settingsToolButton->setDefaultAction(this->settingsAction);
     
+    this->metadataAction = WuQtUtilities::createAction("M",
+                                                        "Show metadata for the selected data",
+                                                        this,
+                                                        this,
+                                                        SLOT(metadataToolButtonPressed()));
     this->metadataToolButton  = new QToolButton();
-    this->metadataToolButton->setText("M");
-    this->metadataToolButton->setToolTip("Show metadata for the selected data");
+    this->metadataToolButton->setDefaultAction(this->metadataAction);
     
     this->opacityDoubleSpinBox = new QDoubleSpinBox();
     this->opacityDoubleSpinBox->setMinimum(0.0);
@@ -103,26 +118,38 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     QObject::connect(this->opacityDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(opacityValueChanged(double)));
     
+    this->removeAction = WuQtUtilities::createAction("X",
+                                                        "Remove this layer",
+                                                        this,
+                                                        this,
+                                                        SLOT(removeLayerToolButtonPressed()));
     this->deleteToolButton = new QToolButton();
-    this->deleteToolButton->setText("X");
-    this->deleteToolButton->setToolTip("Remove this layer");
+    this->deleteToolButton->setDefaultAction(this->removeAction);
     
+    this->moveUpAction = WuQtUtilities::createAction("",
+                                                        "Move this layer up",
+                                                        this,
+                                                        this,
+                                                        SLOT(moveLayerUpToolButtonPressed()));
     this->upArrowToolButton = new QToolButton();
-    this->upArrowToolButton->setText("");
+    this->upArrowToolButton->setDefaultAction(this->moveUpAction);
     this->upArrowToolButton->setArrowType(Qt::UpArrow);
-    this->upArrowToolButton->setToolTip("Move this layer up");
     
+    this->moveDownAction = WuQtUtilities::createAction("",
+                                                        "Move this layer down",
+                                                        this,
+                                                        this,
+                                                        SLOT(moveLayerDownToolButtonPressed()));
     this->downArrowToolButton = new QToolButton();
-    this->downArrowToolButton->setText("");
+    this->downArrowToolButton->setDefaultAction(this->moveDownAction);
     this->downArrowToolButton->setArrowType(Qt::DownArrow);
-    this->downArrowToolButton->setToolTip("Move this layer down");
     
     this->widgetGroup = new WuQWidgetObjectGroup(overlaySelectionControl);
     this->widgetGroup->add(this->enabledCheckBox);
     this->widgetGroup->add(this->fileSelectionComboBox);
     this->widgetGroup->add(this->columnSelectionComboBox);
     this->widgetGroup->add(this->histogramToolButton);
-    this->widgetGroup->add(this->paletteToolButton);
+    this->widgetGroup->add(this->settingsToolButton);
     this->widgetGroup->add(this->metadataToolButton);
     this->widgetGroup->add(this->opacityDoubleSpinBox);            
     
@@ -159,6 +186,41 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
     
     EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
     EventManager::get()->sendEvent(updateGraphics.getPointer());
+}
+
+void 
+OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");
+}
+
+void 
+OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");    
+}
+void 
+OverlaySelectionControlLayer::removeLayerToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");
+}
+
+void 
+OverlaySelectionControlLayer::settingsToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");
+}
+
+void 
+OverlaySelectionControlLayer::metadataToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");
+}
+
+void 
+OverlaySelectionControlLayer::histogramToolButtonPressed()
+{
+    CaretLogWarning("Not implmented");
 }
 
 /**

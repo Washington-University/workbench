@@ -206,7 +206,7 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->fileSelectionComboBox, row, 1);
                 gridLayout->addWidget(layer->columnSelectionComboBox, row, 2);
                 gridLayout->addWidget(layer->histogramToolButton, row, 3);
-                gridLayout->addWidget(layer->paletteToolButton, row, 4, Qt::AlignHCenter);
+                gridLayout->addWidget(layer->settingsToolButton, row, 4, Qt::AlignHCenter);
                 gridLayout->addWidget(layer->metadataToolButton, row, 5);
                 gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6);
                 
@@ -235,7 +235,7 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
                 gridLayout->addWidget(layer->opacityDoubleSpinBox, row2, 2, 1, 3);
                 gridLayout->addWidget(layer->histogramToolButton, row3, 2);
-                gridLayout->addWidget(layer->paletteToolButton, row3, 3);
+                gridLayout->addWidget(layer->settingsToolButton, row3, 3);
                 gridLayout->addWidget(layer->metadataToolButton, row3, 4);
                 
                 gridLayout->addWidget(layer->upArrowToolButton, row2, 5, Qt::AlignHCenter);
@@ -258,6 +258,13 @@ OverlaySelectionControl::createLayers()
 void 
 OverlaySelectionControl::addLayer() 
 {
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    surfaceOverlaySet->addDisplayedOverlay();
+    
+    this->updateControl();
     /*
     EventBrowserTabGet eventBrowserTab(windowTabNumber);
     EventManager::get()->sendEvent(eventBrowserTab.getPointer());

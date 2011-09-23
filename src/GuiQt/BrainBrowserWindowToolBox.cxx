@@ -178,8 +178,8 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindowToolBox::updateMySize()
 {
-    QWidget* viewedWidget = this->layersTabWidget->currentWidget();
     /*
+    QWidget* viewedWidget = this->layersTabWidget->currentWidget();
     GuiHelper::shrinkToMinimumSize(viewedWidget);
     GuiHelper::shrinkToMinimumSize(this->layersTabWidget);
     GuiHelper::shrinkToMinimumSize(this->tabWidget);

@@ -30,6 +30,7 @@
 
 #include "OverlaySelectionControl.h"
 
+class QAction;
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
@@ -68,13 +69,20 @@ namespace caret {
         QComboBox* fileSelectionComboBox;
         QComboBox* columnSelectionComboBox;
         QToolButton* histogramToolButton;
-        QToolButton* paletteToolButton;
+        QToolButton* settingsToolButton;
         QToolButton* metadataToolButton;
         QDoubleSpinBox* opacityDoubleSpinBox;            
         
         QToolButton* deleteToolButton;
         QToolButton* upArrowToolButton;
         QToolButton* downArrowToolButton;
+        
+        QAction* histogramAction;
+        QAction* settingsAction;
+        QAction* metadataAction;
+        QAction* moveUpAction;
+        QAction* moveDownAction;
+        QAction* removeAction;
         
         WuQWidgetObjectGroup* widgetGroup;
         
@@ -83,6 +91,13 @@ namespace caret {
         void opacityValueChanged(double value);
         void fileSelected(int fileIndex);
         void columnSelected(int columnIndex);
+        
+        void moveLayerUpToolButtonPressed();
+        void moveLayerDownToolButtonPressed();
+        void removeLayerToolButtonPressed();
+        void settingsToolButtonPressed();
+        void metadataToolButtonPressed();
+        void histogramToolButtonPressed();
         
     private:
         OverlaySelectionControlLayer(const OverlaySelectionControlLayer&);
