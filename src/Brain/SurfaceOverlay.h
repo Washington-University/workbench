@@ -66,6 +66,10 @@ namespace caret {
         void setSelectionData(GiftiTypeFile* selectedDataFile,
                               const int32_t selectedColumnIndex);
         
+        void copyData(const SurfaceOverlay* overlay);
+        
+        void swapData(SurfaceOverlay* overlay);
+        
     private:
         SurfaceOverlay(const SurfaceOverlay&);
 

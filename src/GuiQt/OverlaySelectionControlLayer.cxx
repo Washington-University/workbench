@@ -31,6 +31,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QMessageBox>
 #include <QToolButton>
 
 #include "BrowserTabContent.h"
@@ -64,6 +65,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                       OverlaySelectionControl::DataType dataType,
                                       const int32_t layerIndex)
 {
+    this->overlaySelectionControl = overlaySelectionControl;
     this->browserWindowIndex = browserWindowIndex;
     this->layerIndex = layerIndex;
     this->dataType   = dataType;
@@ -188,39 +190,85 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
     EventManager::get()->sendEvent(updateGraphics.getPointer());
 }
 
+/**
+ * Move this layer up one level.
+ */ 
 void 
 OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    surfaceOverlaySet->moveDisplayedOverlayUp(this->layerIndex);
+    
+    this->updateControl(browserTabContent);
+    
+    this->overlaySelectionControl->updateControl();
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
 }
 
+/**
+ * Move this layer down one level.
+ */ 
 void 
 OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");    
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    surfaceOverlaySet->moveDisplayedOverlayDown(this->layerIndex);
+    
+    this->updateControl(browserTabContent);
+    
+    this->overlaySelectionControl->updateControl();
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
 }
+
+/**
+ * Remove this layer up one level.
+ */ 
 void 
 OverlaySelectionControlLayer::removeLayerToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    browserTabContent->invalidateSurfaceColoring();
+    
+    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+    surfaceOverlaySet->removeDisplayedOverlay(this->layerIndex);
+    
+    this->updateControl(browserTabContent);
+    
+    this->overlaySelectionControl->updateControl();
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
 }
 
 void 
 OverlaySelectionControlLayer::settingsToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");
+    QMessageBox::information(this->overlaySelectionControl, "", "Settings!");
 }
 
 void 
 OverlaySelectionControlLayer::metadataToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");
+    QMessageBox::information(this->overlaySelectionControl, "", "Metadata!");
 }
 
 void 
 OverlaySelectionControlLayer::histogramToolButtonPressed()
 {
-    CaretLogWarning("Not implmented");
+    QMessageBox::information(this->overlaySelectionControl, "", "Histogram!");
 }
 
 /**

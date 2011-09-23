@@ -274,4 +274,34 @@ SurfaceOverlay::setSelectionData(GiftiTypeFile* selectedDataFile,
     this->selectedColumnName = selectedDataFile->getColumnName(selectedColumnIndex);
 }
 
+/**
+ * Copy the data from the given overlay to this overlay.
+ * @param overlay
+ *    Overlay from which data is transferred.
+ */
+void 
+SurfaceOverlay::copyData(const SurfaceOverlay* overlay)
+{
+    this->opacity = overlay->opacity;
+    this->enabled = overlay->enabled;
+    this->dataFiles = overlay->dataFiles;
+    this->selectedDataFile = overlay->selectedDataFile;
+    this->selectedColumnName = overlay->selectedColumnName;
+}
+
+/**
+ * Swap the data from the given overlay to this overlay.
+ * @param overlay
+ *    Overlay from which data is transferred.
+ */
+void 
+SurfaceOverlay::swapData(SurfaceOverlay* overlay)
+{
+    SurfaceOverlay swapOverlay;
+    swapOverlay.copyData(overlay);
+    
+    overlay->copyData(this);
+    this->copyData(&swapOverlay);
+}
+
 

@@ -102,6 +102,9 @@ namespace caret {
     private:
         OverlaySelectionControlLayer(const OverlaySelectionControlLayer&);
         OverlaySelectionControlLayer& operator=(const OverlaySelectionControlLayer&);
+        
+        /** selection control that contains this layer */
+        OverlaySelectionControl* overlaySelectionControl;
     };
 #ifdef __OVERLAY_SELECTION_CONTROL_LAYER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

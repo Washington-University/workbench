@@ -156,7 +156,12 @@ SurfaceOverlaySet::getNumberOfDisplayedOverlays() const
 void 
 SurfaceOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
-    
+    if (this->numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_SURFACE_OVERLAYS) {
+        this->numberOfDisplayedOverlays--;
+        for (int32_t i = overlayIndex; i < this->numberOfDisplayedOverlays; i++) {
+            this->overlays[i].copyData(&this->overlays[i+1]);
+        }
+    }
 }
 
 /**
@@ -170,7 +175,9 @@ SurfaceOverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 void 
 SurfaceOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
-    
+    if (overlayIndex > 0) {
+        this->overlays[overlayIndex].swapData(&this->overlays[overlayIndex - 1]);
+    }
 }
 
 /**
@@ -184,7 +191,10 @@ SurfaceOverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 void 
 SurfaceOverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 {
-    
+    const int32_t nextOverlayIndex = overlayIndex + 1;
+    if (nextOverlayIndex < this->numberOfDisplayedOverlays) {
+        this->overlays[overlayIndex].swapData(&this->overlays[nextOverlayIndex]);
+    }
 }
 
 
