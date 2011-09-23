@@ -100,25 +100,36 @@ Brain::getBrainStructure(const int32_t indx)
 }
 
 /**
- * Get a brain structure that uses the specified structure.
+ * Find, and possibly create, a brain structure that 
+ * models the specified structure.
  *
  * @param structure
  *    The desired structure.
  * @param createIfNotFound
  *    If there is not a matching brain structure, create one.
  * @return
- *    Pointer to brain structure or NULL if no match..
+ *    Pointer to brain structure or NULL if no match.
  */
 BrainStructure* 
 Brain::getBrainStructure(StructureEnum::Enum structure,
                          bool createIfNotFound)
 {
-    if (this->brainStructures.empty()) {
-        BrainStructure* bs = new BrainStructure(this, structure);
-        this->addBrainStructure(bs);
-        CaretLogFine("Creating brain structure for " + StructureEnum::toName(structure));
+    for (std::vector<BrainStructure*>::iterator iter = this->brainStructures.begin();
+         iter != this->brainStructures.end();
+         iter++) {
+        BrainStructure* bs = *iter;
+        if (bs->getStructure() == structure) {
+            return bs;
+        }
     }
-    return this->getBrainStructure(0);
+    
+    if (createIfNotFound) {
+        BrainStructure* bs = new BrainStructure(this, structure);
+        this->brainStructures.push_back(bs);
+        return bs;
+    }
+    
+    return NULL;
 }
 
 /**

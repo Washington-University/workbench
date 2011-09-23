@@ -37,7 +37,6 @@ EventGetBrowserWindowContent::EventGetBrowserWindowContent(const int32_t browser
     this->browserWindowIndex = browserWindowIndex;
     this->windowTabNumber = -1;
     this->modelDisplayController = NULL;
-    this->browserWindowIndex = 0;
 }
 
 /*
