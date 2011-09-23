@@ -133,6 +133,8 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void 
 BrainBrowserWindow::createActions()
 {
+    CaretAssert(this->toolbar);
+    
     GuiManager* guiManager = GuiManager::get();
     
     this->newWindowAction =
@@ -166,6 +168,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileOpenFromSpecFile()));
+    this->openFileViaSpecFileAction->setEnabled(false);
     
     
     this->manageFilesAction =
@@ -175,6 +178,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
+    this->manageFilesAction->setEnabled(false);
     
     this->closeSpecFileAction =
     WuQtUtilities::createAction("Close Spec File",
@@ -182,6 +186,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processCloseSpecFile()));
+    this->closeSpecFileAction->setEnabled(false);
     
     this->closeTabAction =
     WuQtUtilities::createAction("Close Tab",
@@ -205,6 +210,7 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processCaptureImage()));
+    this->captureImageAction->setEnabled(false);
     
     this->exitProgramAction =
     WuQtUtilities::createAction("Exit", 
@@ -224,6 +230,7 @@ BrainBrowserWindow::createActions()
     this->montageTabsAction->setCheckable(true);
     this->montageTabsAction->setChecked(false);
     this->montageTabsAction->blockSignals(false);
+    this->montageTabsAction->setEnabled(false);
     
     this->showToolBarAction =
     WuQtUtilities::createAction("Toolbar", 
@@ -251,23 +258,23 @@ BrainBrowserWindow::createActions()
                                 "Move to the next tab",
                                 Qt::CTRL + Qt::Key_Right,
                                 this,
-                                this,
-                                SLOT(processNextTab()));
+                                this->toolbar,
+                                SLOT(nextTab()));
     
     this->previousTabAction =
     WuQtUtilities::createAction("Previous Tab",
                                 "Move to the previous tab",
                                 Qt::CTRL + Qt::Key_Left,
                                 this,
-                                this,
-                                SLOT(processPreviousTab()));
+                                this->toolbar,
+                                SLOT(previousTab()));
     
     this->renameSelectedTabAction =
     WuQtUtilities::createAction("Rename Selected Tab...",
                                 "Change the name of the selected tab",
                                 this,
-                                this,
-                                SLOT(processRenameSelectedTab()));
+                                this->toolbar,
+                                SLOT(renameTab()));
     
     this->moveTabsInWindowToNewWindowsAction =
     WuQtUtilities::createAction("Move All Tabs in Current Window to New Windows",
@@ -358,6 +365,8 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->manageFilesAction);
     menu->addAction(this->closeSpecFileAction);
     menu->addSeparator();
+    menu->addAction(this->captureImageAction);
+    menu->addSeparator();
     menu->addAction(this->closeTabAction);
     menu->addAction(this->closeWindowAction);
     menu->addSeparator();
@@ -388,7 +397,7 @@ BrainBrowserWindow::createMenuView()
     else {
         CaretLogSevere("Show toolbox action needs to be created (is NULL)");
     }
-    menu->addMenu(this->createMenuViewToolBox());
+    menu->addMenu(this->createMenuViewMoveToolBox());
     menu->addSeparator();
     menu->addAction(this->viewFullScreenAction);
     
@@ -400,17 +409,18 @@ BrainBrowserWindow::createMenuView()
  * @return the toolbox menu.
  */
 QMenu* 
-BrainBrowserWindow::createMenuViewToolBox()
+BrainBrowserWindow::createMenuViewMoveToolBox()
 {
-    QMenu* menu = new QMenu("View", this);
+    QMenu* menu = new QMenu("Move Toolbox", this);
     
+    menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
+    menu->addSeparator();
+    menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
     QAction* leftAction = menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
     leftAction->setDisabled(true);
     QAction* rightAction = menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
     rightAction->setDisabled(true);
     menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
-    menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
-    menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
     
     return menu;
 }
@@ -643,34 +653,12 @@ BrainBrowserWindow::processShowHideToolbar()
 void 
 BrainBrowserWindow::processViewFullScreen()
 {
-    
-}
-
-/**
- * Called when previous tab is selected.
- */
-void 
-BrainBrowserWindow::processPreviousTab()
-{
-    
-}
-
-/**
- * Called when next tab is selected.
- */
-void 
-BrainBrowserWindow::processNextTab()
-{
-    
-}
-
-/**
- * Called when rename selected tab is selected.
- */
-void 
-BrainBrowserWindow::processRenameSelectedTab()
-{
-    
+    if (this->isFullScreen()) {
+        this->showNormal();
+    }
+    else {
+        this->showFullScreen();
+    }
 }
 
 /**

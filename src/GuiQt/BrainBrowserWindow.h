@@ -70,9 +70,6 @@ namespace caret {
         void processToggleMontageTabs();
         void processShowHideToolbar();
         void processViewFullScreen();
-        void processPreviousTab();
-        void processNextTab();
-        void processRenameSelectedTab();
         void processMoveAllTabsInWindowToNewWindows();
         void processMoveAllTabsToOneWindow();
         void processMoveToolBoxToLeft();
@@ -97,7 +94,7 @@ namespace caret {
         
         QMenu* createMenuFile();
         QMenu* createMenuView();
-        QMenu* createMenuViewToolBox();
+        QMenu* createMenuViewMoveToolBox();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
         QMenu* createMenuVolume();

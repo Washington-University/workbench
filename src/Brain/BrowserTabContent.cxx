@@ -127,6 +127,15 @@ BrowserTabContent::setUserName(const AString& userName)
 }
 
 /**
+ * @return The user name.
+ */
+AString 
+BrowserTabContent::getUserName() const
+{
+    return this->userName;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

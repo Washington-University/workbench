@@ -57,6 +57,8 @@ namespace caret {
         
         void setGuiName(const AString& name);
         
+        AString getUserName() const;
+        
         void setUserName(const AString& userName);
         
         SurfaceOverlaySet* getSurfaceOverlaySet();

@@ -155,6 +155,12 @@ namespace caret {
 
         void closeSelectedTab();
         
+        void nextTab();
+        
+        void previousTab();
+        
+        void renameTab();
+        
         void updateToolBar();
     
     private slots:

@@ -33,7 +33,9 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QRadioButton>
 #include <QSpinBox>
@@ -189,14 +191,77 @@ BrainBrowserWindowToolBar::addNewTab()
 }
 
 /**
- * Close the selected tab.
+ * Select the next tab.
+ */
+void 
+BrainBrowserWindowToolBar::nextTab()
+{
+    int32_t numTabs = this->tabBar->count();
+    if (numTabs > 1) {
+        int32_t tabIndex = this->tabBar->currentIndex();
+        tabIndex++;
+        if (tabIndex >= numTabs) {
+            tabIndex = 0;
+        }
+        this->tabBar->setCurrentIndex(tabIndex);
+    }
+}
+
+/**
+ * Select the previous tab.
+ */
+void 
+BrainBrowserWindowToolBar::previousTab()
+{
+    int32_t numTabs = this->tabBar->count();
+    if (numTabs > 1) {
+        int32_t tabIndex = this->tabBar->currentIndex();
+        tabIndex--;
+        if (tabIndex < 0) {
+            tabIndex = numTabs - 1;
+        }
+        this->tabBar->setCurrentIndex(tabIndex);
+    }
+}
+
+/**
+ * Rename the current tab.
+ */
+void 
+BrainBrowserWindowToolBar::renameTab()
+{
+    const int tabIndex = this->tabBar->currentIndex();
+    if (tabIndex >= 0) {
+        void* p = this->tabBar->tabData(tabIndex).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        AString currentName = btc->getUserName();
+        bool ok = false;
+        AString newName = QInputDialog::getText(this,
+                                                "Set Tab Name",
+                                                "New Name (empty to reset)",
+                                                QLineEdit::Normal,
+                                                currentName,
+                                                &ok);
+        if (ok) {
+            btc->setUserName(newName);
+            this->tabBar->setTabText(tabIndex, btc->getName());
+        }
+    }
+
+    
+}
+
+/**
+ * Close the selected tab.  This method is typically
+ * called by the BrowswerWindow's File Menu.
  */
 void 
 BrainBrowserWindowToolBar::closeSelectedTab()
 {
     const int tabIndex = this->tabBar->currentIndex();
     if (this->tabBar->count() > 1) {
-        this->tabBar->removeTab(tabIndex);
+        this->tabClosed(tabIndex);
+        //this->tabBar->removeTab(tabIndex);
     }
 }
 
