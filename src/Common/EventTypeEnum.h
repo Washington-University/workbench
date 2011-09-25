@@ -66,6 +66,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
+        /** Read the selected files in a spec file */
+        EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Update the User-Interface */

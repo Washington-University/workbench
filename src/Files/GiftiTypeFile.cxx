@@ -233,7 +233,34 @@ GiftiTypeFile::getStructure() const
     StructureEnum::Enum structure = StructureEnum::fromGuiName(structurePrimaryName, &isValid);
     return structure;
 }
+
+/**
+ * Set the structure.
+ * @param structure 
+ *    New value for file's structure.
+ */
+void 
+GiftiTypeFile::setStructure(const StructureEnum::Enum structure)
+{
+    const AString structureName = StructureEnum::toGuiName(structure);
+    /*
+     * Surface contains anatomical structure in pointset array.
+     */
+    SurfaceFile* surfaceFile = dynamic_cast<SurfaceFile*>(this);
+    if (surfaceFile != NULL) {
+        GiftiDataArray* gda = this->giftiFile->getDataArrayWithIntent(NiftiIntentEnum::NIFTI_INTENT_POINTSET);
+        GiftiMetaData* metadata = gda->getMetaData();
+        metadata->set(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_PRIMARY,
+                      structureName);
+    }
+    else {
+        GiftiMetaData* metadata = this->giftiFile->getMetaData();
+        metadata->set(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_PRIMARY,
+                      structureName);
+    }
     
+}
+
 /**
  * Verify that all of the data arrays have the same number of rows.
  * @throws DataFileException

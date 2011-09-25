@@ -38,9 +38,11 @@
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "SpecFile.h"
 #include "WuQFileDialog.h"
 #include "WuQtUtilities.h"
 
@@ -587,17 +589,39 @@ BrainBrowserWindow::processDataFileOpen()
             bool isValidType = false;
             DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
             if (isValidType) {
-                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                                fileType,
-                                                name);
-                
-                EventManager::get()->sendEvent(loadFileEvent.getPointer());
-                
-                if (loadFileEvent.isError()) {
-                    if (errorMessages.isEmpty() == false) {
-                        errorMessages += "\n";
+                if (fileType == DataFileTypeEnum::SPECIFICATION) {
+                    SpecFile specFile;
+                    try {
+                        specFile.readFile(name);
                     }
-                    errorMessages += loadFileEvent.getErrorMessage();
+                    catch (DataFileException e) {
+                        errorMessages += e.whatString();
+                    }
+                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                 &specFile);
+                    
+                    EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                    
+                    if (readSpecFileEvent.isError()) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
+                        }
+                        errorMessages += readSpecFileEvent.getErrorMessage();
+                    }
+                }
+                else {
+                    EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+                                                    fileType,
+                                                    name);
+                    
+                    EventManager::get()->sendEvent(loadFileEvent.getPointer());
+                    
+                    if (loadFileEvent.isError()) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
+                        }
+                        errorMessages += loadFileEvent.getErrorMessage();
+                    }
                 }
             }
             else {

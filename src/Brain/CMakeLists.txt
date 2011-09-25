@@ -56,6 +56,7 @@ EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
+EventSpecFileReadDataFiles.h
 EventSurfaceColoringInvalidate.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
@@ -84,6 +85,7 @@ EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
+EventSpecFileReadDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx

@@ -41,6 +41,10 @@ namespace caret {
         
         virtual ~SpecFileDataFile();
         
+        SpecFileDataFile(const SpecFileDataFile& sfdf);
+        
+        SpecFileDataFile& operator=(const SpecFileDataFile& sfdf);
+        
         AString getFileName() const;
         
         StructureEnum::Enum getStructure() const;
@@ -49,15 +53,12 @@ namespace caret {
         
         void setSelected(const bool selected);
         
-    private:
-        SpecFileDataFile(const SpecFileDataFile&);
-
-        SpecFileDataFile& operator=(const SpecFileDataFile&);
-        
     public:
         virtual AString toString() const;
         
     private:
+        void copyHelper(const SpecFileDataFile& sfdf);
+        
         AString filename;
         
         StructureEnum::Enum structure;

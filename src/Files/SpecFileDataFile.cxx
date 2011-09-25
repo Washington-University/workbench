@@ -51,8 +51,49 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
 {
     this->filename  = filename;
     this->structure = structure;
-    this->selected  = false;
+    this->selected  = true;
 }
+
+/**
+ * Copy constructor.
+ * @param sfdf
+ *    Object of this type that is copied.
+ */
+SpecFileDataFile::SpecFileDataFile(const SpecFileDataFile& sfdf)
+{
+    this->copyHelper(sfdf);
+}
+
+/**
+ * Assignment operator.
+ * @parm sfdf
+ *    Object that is assigned to this object.
+ * @return
+ *    Reference to this object.
+ */
+SpecFileDataFile& 
+SpecFileDataFile::operator=(const SpecFileDataFile& sfdf)
+{
+    if (this != &sfdf) {
+        this->copyHelper(sfdf);
+    }
+    
+    return *this;
+}
+
+/**
+ * Copy from the given object to this object.
+ * @param sfdf
+ *    Object from which data is copied.
+ */
+void 
+SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
+{
+    this->filename  = sfdf.filename;
+    this->structure = sfdf.structure;
+    this->selected  = sfdf.selected;    
+}
+
 
 /**
  * Destructor.

@@ -59,8 +59,27 @@ SpecFile::SpecFile()
             // ignore
         }
         else {
-            SpecFileDataFileTypeGroup* dftg = new SpecFileDataFileTypeGroup(dataFileType);
-            this->dataFileTypeGroups.push_back(dftg);
+            const AString typeName = DataFileTypeEnum::toName(dataFileType);
+            if (typeName.startsWith("SURFACE")) {
+                SpecFileDataFileTypeGroup* dftg = new SpecFileDataFileTypeGroup(dataFileType);
+                this->dataFileTypeGroups.push_back(dftg);
+            }
+        }
+    }
+    
+    for (std::vector<DataFileTypeEnum::Enum>::iterator iter = allEnums.begin();
+         iter != allEnums.end();
+         iter++) {
+        DataFileTypeEnum::Enum dataFileType = *iter;
+        if (dataFileType == DataFileTypeEnum::UNKNOWN) {
+            // ignore
+        }
+        else {
+            const AString typeName = DataFileTypeEnum::toName(dataFileType);
+            if (typeName.startsWith("SURFACE") == false) {
+                SpecFileDataFileTypeGroup* dftg = new SpecFileDataFileTypeGroup(dataFileType);
+                this->dataFileTypeGroups.push_back(dftg);
+            }
         }
     }
 }

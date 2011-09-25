@@ -118,6 +118,10 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
+                                     "EVENT_SPEC_FILE_READ_DATA_FILES",
+                                     "Read the selected data files in a spec file"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SURFACE_COLORING_INVALIDATE, 
                                      "EVENT_SURFACE_COLORING_INVALIDATE", 
                                      "Invalidate surface coloring"));

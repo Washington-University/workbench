@@ -28,12 +28,15 @@
 #include "BrainStructure.h"
 #include "CaretLogger.h"
 #include "EventDataFileRead.h"
+#include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "MetricFile.h"
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
 #include "SpecFile.h"
+#include "SpecFileDataFile.h"
+#include "SpecFileDataFileTypeGroup.h"
 #include "Surface.h"
 #include <algorithm>
 
@@ -48,6 +51,7 @@ Brain::Brain()
     this->specFile = new SpecFile();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
 }
 
 /**
@@ -158,11 +162,15 @@ Brain::resetBrain()
  *    If reading failed.
  */
 void 
-Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
+Brain::readSurfaceFile(const AString& filename,
+                       const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     Surface* surface = new Surface();
     surface->readFile(filename);
     
+    if (structureIn != StructureEnum::INVALID) {
+        surface->setStructure(structureIn);
+    }
     const StructureEnum::Enum structure = surface->getStructure();
     if (structure == StructureEnum::INVALID) {
         delete surface;
@@ -198,10 +206,15 @@ Brain::readSurfaceFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readLabelFile(const AString& filename) throw (DataFileException)
+Brain::readLabelFile(const AString& filename,
+                     const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     LabelFile* labelFile = new LabelFile();
     labelFile->readFile(filename);
+    
+    if (structureIn != StructureEnum::INVALID) {
+        labelFile->setStructure(structureIn);
+    }
     
     const StructureEnum::Enum structure = labelFile->getStructure();
     if (structure == StructureEnum::INVALID) {
@@ -244,10 +257,15 @@ Brain::readLabelFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readMetricFile(const AString& filename) throw (DataFileException)
+Brain::readMetricFile(const AString& filename,
+                      const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     MetricFile* metricFile = new MetricFile();
     metricFile->readFile(filename);
+    
+    if (structureIn != StructureEnum::INVALID) {
+        metricFile->setStructure(structureIn);
+    }
     
     const StructureEnum::Enum structure = metricFile->getStructure();
     if (structure == StructureEnum::INVALID) {
@@ -290,10 +308,15 @@ Brain::readMetricFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readRgbaFile(const AString& filename) throw (DataFileException)
+Brain::readRgbaFile(const AString& filename,
+                    const StructureEnum::Enum structureIn) throw (DataFileException)
 {
     RgbaFile* rgbaFile = new RgbaFile();
     rgbaFile->readFile(filename);
+    
+    if (structureIn != StructureEnum::INVALID) {
+        rgbaFile->setStructure(structureIn);
+    }
     
     const StructureEnum::Enum structure = rgbaFile->getStructure();
     if (structure == StructureEnum::INVALID) {
@@ -359,6 +382,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     
     try {
         this->readDataFile(dataFileType,
+                           StructureEnum::INVALID,
                            filename);
     }
     catch (DataFileException e) {
@@ -371,6 +395,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  *
  * @param dataFileType
  *    Type of data file to read.
+ * @param structure
+ *    Struture of file (used if not invalid)
  * @param dataFileName
  *    Name of data file to read.
  * @throws DataFileException
@@ -378,6 +404,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  */
 void 
 Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
+                    const StructureEnum::Enum structure,
                     const AString& dataFileName) throw (DataFileException)
 {
     switch (dataFileType) {
@@ -391,29 +418,29 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             throw DataFileException("Reading not implemented for: foci projection");
             break;
         case DataFileTypeEnum::LABEL:
-            this->readLabelFile(dataFileName);
+            this->readLabelFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::METRIC:
-            this->readMetricFile(dataFileName);
+            this->readMetricFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::PALETTE:
             throw DataFileException("Reading not implemented for: palette");
             break;
         case DataFileTypeEnum::RGBA:
-            this->readRgbaFile(dataFileName);
+            this->readRgbaFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::SCENE:
             throw DataFileException("Reading not implemented for: scene");
             break;
         case DataFileTypeEnum::SPECIFICATION:
-            this->specFile->readFile(dataFileName);
-            CaretLogSevere(this->specFile->toString());
+            CaretLogSevere("Reading not implemented for: spec from Brain::readDataFile()");
+            throw DataFileException("Reading not implemented for: spec from Brain::readDataFile()");
             break;
         case DataFileTypeEnum::SURFACE_ANATOMICAL:
         case DataFileTypeEnum::SURFACE_INFLATED:
         case DataFileTypeEnum::SURFACE_VERY_INFLATED:
         case DataFileTypeEnum::SURFACE_FLAT:
-            this->readSurfaceFile(dataFileName);
+            this->readSurfaceFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::UNKNOWN:
             throw DataFileException("Unable to read files of type");
@@ -430,10 +457,46 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     }    
 }
 
+/**
+ * Load the data files selected in a spec file.
+ * @param readSpecFileDataFilesEvent
+ *    Event containing the spec file.
+ */
 void 
-Brain::loadFilesSelectedInSpecFile(SpecFile* specFile)
+Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent)
 {
+    AString errorMessage;
     
+    SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
+    
+    const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
+    for (int32_t ig = 0; ig < numFileGroups; ig++) {
+        SpecFileDataFileTypeGroup* group = sf->getDataFileTypeGroup(ig);
+        const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
+        const int32_t numFiles = group->getNumberOfFiles();
+        for (int32_t iFile = 0; iFile < numFiles; iFile++) {
+            SpecFileDataFile* fileInfo = group->getFileInformation(iFile);
+            if (fileInfo->isSelected()) {
+                const AString filename = fileInfo->getFileName();
+                const StructureEnum::Enum structure = fileInfo->getStructure();
+                try {
+                    this->readDataFile(dataFileType, 
+                                       structure, 
+                                       filename);
+                }
+                catch (DataFileException e) {
+                    if (errorMessage.isEmpty() == false) {
+                        errorMessage += "\n";
+                    }
+                    errorMessage += e.whatString();
+                }
+            }
+        }
+    }
+    
+    if (errorMessage.isEmpty() == false) {
+        readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
+    }
 }
 
 /**
@@ -450,13 +513,27 @@ Brain::receiveEvent(Event* event)
              dynamic_cast<EventDataFileRead*>(event);
         CaretAssert(readDataFileEvent);
         
-        readDataFileEvent->setEventProcessed();
         
         /*
          * Make sure event is for this brain
          */
         if (readDataFileEvent->getLoadIntoBrain() == this) {
+            readDataFileEvent->setEventProcessed();
             this->processReadDataFileEvent(readDataFileEvent);
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES) {
+        EventSpecFileReadDataFiles* readSpecFileDataFilesEvent =
+        dynamic_cast<EventSpecFileReadDataFiles*>(event);
+        CaretAssert(readSpecFileDataFilesEvent);
+        
+        
+        /*
+         * Make sure event is for this brain
+         */
+        if (readSpecFileDataFilesEvent->getLoadIntoBrain() == this) {
+            readSpecFileDataFilesEvent->setEventProcessed();
+            this->loadFilesSelectedInSpecFile(readSpecFileDataFilesEvent);
         }
     }
 }

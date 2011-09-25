@@ -78,6 +78,8 @@ namespace caret {
         
         StructureEnum::Enum getStructure() const;
         
+        void setStructure(const StructureEnum::Enum structure);
+        
         /** @return  Number of nodes in the file. */
         virtual int32_t getNumberOfNodes() const = 0;
         

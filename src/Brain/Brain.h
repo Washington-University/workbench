@@ -38,6 +38,7 @@ namespace caret {
     
     class BrainStructure;
     class EventDataFileRead;
+    class EventSpecFileReadDataFiles;
     class PaletteFile;
     class SpecFile;
     
@@ -66,7 +67,7 @@ namespace caret {
         
         SpecFile* getSpecFile();
         
-        void loadFilesSelectedInSpecFile(SpecFile* specFile);
+        void loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent);
         
         void resetBrain();
         
@@ -76,15 +77,20 @@ namespace caret {
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
+                          const StructureEnum::Enum structure,
                           const AString& dataFileName) throw (DataFileException);
         
-        void readLabelFile(const AString& filename) throw (DataFileException);
+        void readLabelFile(const AString& filename,
+                           const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readMetricFile(const AString& filename) throw (DataFileException);
+        void readMetricFile(const AString& filename,
+                            const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readRgbaFile(const AString& filename) throw (DataFileException);
+        void readRgbaFile(const AString& filename,
+                          const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readSurfaceFile(const AString& filename) throw (DataFileException);
+        void readSurfaceFile(const AString& filename,
+                             const StructureEnum::Enum structure) throw (DataFileException);
         
         std::vector<BrainStructure*> brainStructures;
         
