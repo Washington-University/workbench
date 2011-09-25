@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "DataFileTypeEnum.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
 #include "StructureEnum.h"
@@ -65,12 +66,17 @@ namespace caret {
         
         SpecFile* getSpecFile();
         
+        void loadFilesSelectedInSpecFile(SpecFile* specFile);
+        
         void resetBrain();
         
         void receiveEvent(Event* event);
         
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
+        
+        void readDataFile(const DataFileTypeEnum::Enum dataFileType,
+                          const AString& dataFileName) throw (DataFileException);
         
         void readLabelFile(const AString& filename) throw (DataFileException);
         

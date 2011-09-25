@@ -59,6 +59,7 @@ Brain::~Brain()
 
     this->resetBrain();
     delete this->paletteFile;
+    delete this->specFile;
 }
 
 /**
@@ -357,58 +358,82 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
     
     try {
-        switch (dataFileType) {
-            case DataFileTypeEnum::BORDER_PROJECTION:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: border projection");
-                break;
-            case DataFileTypeEnum::CIFTI:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: cifti");
-                break;
-            case DataFileTypeEnum::FOCI_PROJECTION:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: foci projection");
-                break;
-            case DataFileTypeEnum::LABEL:
-                this->readLabelFile(filename);
-                break;
-            case DataFileTypeEnum::METRIC:
-                this->readMetricFile(filename);
-                break;
-            case DataFileTypeEnum::PALETTE:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: palette");
-                break;
-            case DataFileTypeEnum::RGBA:
-                this->readRgbaFile(filename);
-                break;
-            case DataFileTypeEnum::SCENE:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: scene");
-                break;
-            case DataFileTypeEnum::SPECIFICATION:
-                this->specFile->readFile(filename);
-                CaretLogSevere(this->specFile->toString());
-                break;
-            case DataFileTypeEnum::SURFACE_ANATOMICAL:
-            case DataFileTypeEnum::SURFACE_INFLATED:
-            case DataFileTypeEnum::SURFACE_VERY_INFLATED:
-            case DataFileTypeEnum::SURFACE_FLAT:
-                this->readSurfaceFile(filename);
-                break;
-            case DataFileTypeEnum::UNKNOWN:
-                readDataFileEvent->setErrorMessage("Unable to read files of type");
-                break;
-            case DataFileTypeEnum::VOLUME_ANATOMY:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: volume anatomy");
-                break;
-            case DataFileTypeEnum::VOLUME_FUNCTIONAL:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: functional");
-                break;
-            case DataFileTypeEnum::VOLUME_LABEL:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: label");
-                break;
-        }
+        this->readDataFile(dataFileType,
+                           filename);
     }
     catch (DataFileException e) {
         readDataFileEvent->setErrorMessage(e.whatString());
     }    
+}
+
+/**
+ * Read a data file.
+ *
+ * @param dataFileType
+ *    Type of data file to read.
+ * @param dataFileName
+ *    Name of data file to read.
+ * @throws DataFileException
+ *    If there is an error reading the file.
+ */
+void 
+Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
+                    const AString& dataFileName) throw (DataFileException)
+{
+    switch (dataFileType) {
+        case DataFileTypeEnum::BORDER_PROJECTION:
+            throw DataFileException("Reading not implemented for: border projection");
+            break;
+        case DataFileTypeEnum::CIFTI:
+            throw DataFileException("Reading not implemented for: cifti");
+            break;
+        case DataFileTypeEnum::FOCI_PROJECTION:
+            throw DataFileException("Reading not implemented for: foci projection");
+            break;
+        case DataFileTypeEnum::LABEL:
+            this->readLabelFile(dataFileName);
+            break;
+        case DataFileTypeEnum::METRIC:
+            this->readMetricFile(dataFileName);
+            break;
+        case DataFileTypeEnum::PALETTE:
+            throw DataFileException("Reading not implemented for: palette");
+            break;
+        case DataFileTypeEnum::RGBA:
+            this->readRgbaFile(dataFileName);
+            break;
+        case DataFileTypeEnum::SCENE:
+            throw DataFileException("Reading not implemented for: scene");
+            break;
+        case DataFileTypeEnum::SPECIFICATION:
+            this->specFile->readFile(dataFileName);
+            CaretLogSevere(this->specFile->toString());
+            break;
+        case DataFileTypeEnum::SURFACE_ANATOMICAL:
+        case DataFileTypeEnum::SURFACE_INFLATED:
+        case DataFileTypeEnum::SURFACE_VERY_INFLATED:
+        case DataFileTypeEnum::SURFACE_FLAT:
+            this->readSurfaceFile(dataFileName);
+            break;
+        case DataFileTypeEnum::UNKNOWN:
+            throw DataFileException("Unable to read files of type");
+            break;
+        case DataFileTypeEnum::VOLUME_ANATOMY:
+            throw DataFileException("Reading not implemented for: volume anatomy");
+            break;
+        case DataFileTypeEnum::VOLUME_FUNCTIONAL:
+            throw DataFileException("Reading not implemented for: functional");
+            break;
+        case DataFileTypeEnum::VOLUME_LABEL:
+            throw DataFileException("Reading not implemented for: label");
+            break;
+    }    
+}
+
+void 
+Brain::loadFilesSelectedInSpecFile(SpecFile* specFile)
+{
+    
 }
 
 /**
