@@ -27,8 +27,8 @@ PaletteFile.h
 PaletteScalarAndColor.h
 RgbaFile.h
 SpecFile.h
-SpecFileGroup.h
-SpecFileGroupFile.h
+SpecFileDataFileTypeGroup.h
+SpecFileDataFile.h
 SpecFileSaxReader.h
 SurfaceFile.h
 SurfaceTypeEnum.h
@@ -45,8 +45,8 @@ PaletteFile.cxx
 PaletteScalarAndColor.cxx
 RgbaFile.cxx
 SpecFile.cxx
-SpecFileGroup.cxx
-SpecFileGroupFile.cxx
+SpecFileDataFileTypeGroup.cxx
+SpecFileDataFile.cxx
 SpecFileSaxReader.cxx
 SurfaceFile.cxx
 SurfaceTypeEnum.cxx

@@ -1,5 +1,5 @@
-#ifndef __SPEC_FILE_GROUP__H_
-#define __SPEC_FILE_GROUP__H_
+#ifndef __SPEC_FILE_DATA_FILE_H__
+#define __SPEC_FILE_DATA_FILE_H__
 
 /*LICENSE_START*/
 /* 
@@ -28,31 +28,48 @@
 
 #include "CaretObject.h"
 
+#include "StructureEnum.h"
+
 namespace caret {
 
     
-    /// <REPLACE WITH DESCRIPTION OF CLASS>
-    class SpecFileGroup : public CaretObject {
+    class SpecFileDataFile : public CaretObject {
         
     public:
-        SpecFileGroup();
+        SpecFileDataFile(const AString& filename,
+                          const StructureEnum::Enum structure);
         
-        virtual ~SpecFileGroup();
+        virtual ~SpecFileDataFile();
+        
+        AString getFileName() const;
+        
+        StructureEnum::Enum getStructure() const;
+        
+        bool isSelected() const;
+        
+        void setSelected(const bool selected);
         
     private:
-        SpecFileGroup(const SpecFileGroup&);
+        SpecFileDataFile(const SpecFileDataFile&);
 
-        SpecFileGroup& operator=(const SpecFileGroup&);
+        SpecFileDataFile& operator=(const SpecFileDataFile&);
         
     public:
         virtual AString toString() const;
         
     private:
+        AString filename;
+        
+        StructureEnum::Enum structure;
+        
+        bool selected;
     };
     
-#ifdef __SPEC_FILE_GROUP_DECLARE__
+#ifdef __SPEC_FILE_GROUP_FILE_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SPEC_FILE_GROUP_DECLARE__
+#endif // __SPEC_FILE_GROUP_FILE_DECLARE__
 
 } // namespace
-#endif  //__SPEC_FILE_GROUP__H_
+
+#endif // __SPEC_FILE_DATA_FILE_H__
+

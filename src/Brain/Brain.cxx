@@ -33,6 +33,7 @@
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SpecFile.h"
 #include "Surface.h"
 #include <algorithm>
 
@@ -44,6 +45,7 @@ using namespace caret;
 Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
+    this->specFile = new SpecFile();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
 }
@@ -333,6 +335,15 @@ Brain::getPaletteFile()
     return this->paletteFile;
 }
 
+/*
+ * @return The spec file.
+ */
+SpecFile* 
+Brain::getSpecFile()
+{
+    return this->specFile;
+}
+
 
 /**
  * Process a read data file event.
@@ -372,7 +383,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
                 readDataFileEvent->setErrorMessage("Reading not implemented for: scene");
                 break;
             case DataFileTypeEnum::SPECIFICATION:
-                readDataFileEvent->setErrorMessage("Reading not implemented for: specification");
+                this->specFile->readFile(filename);
+                CaretLogSevere(this->specFile->toString());
                 break;
             case DataFileTypeEnum::SURFACE_ANATOMICAL:
             case DataFileTypeEnum::SURFACE_INFLATED:

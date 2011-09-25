@@ -25,7 +25,9 @@
 
 #include <sstream>
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "GiftiXmlElements.h"
 #include "SpecFile.h"
 #include "SpecFileSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
@@ -40,11 +42,11 @@ using namespace caret;
  */
 SpecFileSaxReader::SpecFileSaxReader(SpecFile* specFileIn)
 {
+    CaretAssert(specFileIn);
    this->specFile = specFileIn;
    this->state = STATE_NONE;
    this->stateStack.push(this->state);
    this->elementText = "";
-   this->specFileGroup = NULL;
    this->metaDataSaxReader = NULL;
 }
 
@@ -65,144 +67,77 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
                                          const AString& qName,
                                          const XmlAttributes& attributes)  throw (XmlSaxParserException)
 {
-/*
    const STATE previousState = this->state;
    switch (this->state) {
       case STATE_NONE:
-         if (qName == GiftiXmlElements::TAG_GIFTI) {
-            this->state = STATE_GIFTI;
+           if (qName == SpecFile::XML_TAG_SPEC_FILE) {
+            this->state = STATE_SPEC_FILE;
             
             //
             // Check version of file being read
             //
-             const float version = attributes.getValueAsFloat(GiftiXmlElements::ATTRIBUTE_GIFTI_VERSION);
-            if (version > GiftiFile::getCurrentFileVersion()) {
-               std::ostringstream str;
-               str << "File version is " << version << " but this Caret"
-                   << " does not support versions newer than "
-                   << GiftiFile::getCurrentFileVersion() << ".\n"
-                   << "You may need a newer version of Caret.";
-               throw XmlSaxParserException(AString::fromStdString(str.str()));
+             const float version = attributes.getValueAsFloat(SpecFile::XML_ATTRIBUTE_VERSION);
+            if (version > SpecFile::getFileVersion()) {
+                AString msg =
+                   "File version is " 
+                + AString::number(version) 
+                + " but versions newer than "
+                + SpecFile::getFileVersionAsString()
+                + " are not supported.  Update your software.";
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
             }
             else if (version < 1.0) {
-                throw XmlSaxParserException(
-                    "File version is " + AString::number(version) + " but this Caret"
-                    " does not support versions before 1.0");
+                AString msg =
+                "File version is " 
+                + AString::number(version) 
+                + " but versions before"
+                + SpecFile::getFileVersionAsString()
+                + " are not supported.  Update your software.";
+                XmlSaxParserException e(msg);
+                CaretLogThrowing(e);
+                throw e;
             }
          }
          else {
-            std::ostringstream str;
-            str << "Root element is \"" << qName << "\" but should be "
-                << GiftiXmlElements::TAG_GIFTI;
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
+             const AString msg =
+             "Root elements is "
+             + qName
+             + " but should be "
+             + SpecFile::XML_TAG_SPEC_FILE;
+             XmlSaxParserException e(msg);
+             CaretLogThrowing(e);
+             throw e;
          }
          break;
-      case STATE_GIFTI:
+      case STATE_SPEC_FILE:
          if (qName == GiftiXmlElements::TAG_METADATA) {
              this->state = STATE_METADATA;
-             this->metaDataSaxReader = new GiftiMetaDataSaxReader(giftiFile->getMetaData());
+             this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->specFile->getMetaData());
              this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          }
-         else if (qName == GiftiXmlElements::TAG_DATA_ARRAY) {
-            this->state = STATE_DATA_ARRAY;
-             this->createDataArray(attributes);         }
-         else if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
-            this->state = STATE_LABEL_TABLE;
-             this->labelTableSaxReader = new GiftiLabelTableSaxReader(giftiFile->getLabelTable());
-             this->labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+         else if (qName == SpecFile::XML_TAG_FILE) {
+            this->state = STATE_FILE;
+             this->fileAttributeStructureName = attributes.getValue(SpecFile::XML_ATTRIBUTE_STRUCTURE);
+             this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_TYPE);
          }
          else {
-            std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_GIFTI << " is \"" << qName
-                << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_METADATA << "\n"
-                << "   " << GiftiXmlElements::TAG_DATA_ARRAY << "\n"
-             << "   " << GiftiXmlElements::TAG_LABEL_TABLE;
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
+             const AString msg =
+             "Invalid child of "
+             + SpecFile::XML_TAG_SPEC_FILE
+             + " is "
+             + qName;
+             XmlSaxParserException e(msg);
+             CaretLogThrowing(e);
+             throw e;
          }
          break;
       case STATE_METADATA:
            this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
-      case STATE_LABEL_TABLE:
-           this->labelTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+      case STATE_FILE:
            break;
-      case STATE_DATA_ARRAY:
-         if (qName == GiftiXmlElements::TAG_METADATA) {
-             this->state = STATE_METADATA;
-             this->metaDataSaxReader = new GiftiMetaDataSaxReader(dataArray->getMetaData());
-             this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
-         }
-         else if (qName == GiftiXmlElements::TAG_DATA) {
-            this->state = STATE_DATA_ARRAY_DATA;
-         }
-         else if (qName == GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX) {
-            this->state = STATE_DATA_ARRAY_MATRIX;
-            this->dataArray->addMatrix(Matrix4x4());
-            this->matrix = dataArray->getMatrix(dataArray->getNumberOfMatrices() - 1);
-         }
-         else {
-            std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_DATA_ARRAY << " is \"" << qName 
-                << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_METADATA << "\n"
-                << "   " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX << "\n"
-                << "   " << GiftiXmlElements::TAG_DATA;
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_DATA_ARRAY_DATA:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_DATA << " has child \"" << qName 
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_DATA_ARRAY_MATRIX:
-         if (qName == GiftiXmlElements::TAG_MATRIX_DATA_SPACE) {
-            this->state = STATE_DATA_ARRAY_MATRIX_DATA_SPACE;
-         }
-         else if (qName == GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE) {
-            this->state = STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE;
-         }
-         else if (qName == GiftiXmlElements::TAG_MATRIX_DATA) {
-            this->state = STATE_DATA_ARRAY_MATRIX_DATA;
-         }
-         else {
-            std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX << " is \"" << qName 
-                << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_DATA_SPACE << "\n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE << "\n"
-                << "   " << GiftiXmlElements::TAG_MATRIX_DATA;
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_DATA_ARRAY_MATRIX_DATA_SPACE:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_DATA_SPACE << " has child \"" << qName 
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE << " has child \"" << qName 
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_DATA_ARRAY_MATRIX_DATA:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_MATRIX_DATA << " has child \"" << qName 
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
    }
    
    //
@@ -211,7 +146,6 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
    stateStack.push(previousState);
    
    elementText = "";
-*/
 }
 
 /**
@@ -222,11 +156,10 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                                        const AString& localName,
                                        const AString& qName) throw (XmlSaxParserException)
 {
-/*
    switch (this->state) {
       case STATE_NONE:
          break;
-      case STATE_GIFTI:
+      case STATE_SPEC_FILE:
          break;
       case STATE_METADATA:
            this->metaDataSaxReader->endElement(namespaceURI, localName, qName);
@@ -235,44 +168,13 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                this->metaDataSaxReader = NULL;
            }
          break;
-      case STATE_LABEL_TABLE:
-           this->labelTableSaxReader->endElement(namespaceURI, localName, qName);
-           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
-               delete this->labelTableSaxReader;
-               this->labelTableSaxReader = NULL;
-           }
-         break;
-      case STATE_DATA_ARRAY:
-         if (this->dataArray != NULL) {
-            this->giftiFile->addDataArray(this->dataArray);
-            this->dataArray = NULL;
-         }
-         else {
-         }
-         break;
-      case STATE_DATA_ARRAY_DATA:
-           this->processArrayData();
-           break;
-      case STATE_DATA_ARRAY_MATRIX:
-         this->matrix = NULL;
-         break;
-      case STATE_DATA_ARRAY_MATRIX_DATA_SPACE:
-         this->matrix->setDataSpaceName(elementText);
-         break;
-      case STATE_DATA_ARRAY_MATRIX_TRANSFORMED_SPACE:
-         this->matrix->setTransformedSpaceName(elementText);
-         break;
-      case STATE_DATA_ARRAY_MATRIX_DATA:
-         {
-             std::istringstream istr(elementText.toStdString());
-             double m[4][4];
-             for (int i = 0; i < 4; i++) {
-                for (int j = 0; j < 4; j++) {
-                   istr >> m[i][j];
-                }
-             }
-             matrix->setMatrix(m);
-         }
+      case STATE_FILE:
+       {
+           const AString filename = this->elementText.trimmed();
+           this->specFile->addDataFile(this->fileAttributeTypeName, 
+                                       this->fileAttributeStructureName, 
+                                       filename);
+       }
          break;
    }
 
@@ -289,7 +191,6 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
    }
    this->state = stateStack.top();
    this->stateStack.pop();
-*/
 }
 
 /**

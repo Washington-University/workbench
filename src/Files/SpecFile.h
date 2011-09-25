@@ -29,8 +29,13 @@
 #include <AString.h>
 
 #include "DataFile.h"
+#include "DataFileTypeEnum.h"
+#include "StructureEnum.h"
 
 namespace caret {
+    
+    class GiftiMetaData;
+    class SpecFileDataFileTypeGroup;
     
     class SpecFile : public DataFile {
         
@@ -49,6 +54,18 @@ namespace caret {
         
         virtual bool isEmpty() const;
         
+        void addDataFile(const DataFileTypeEnum::Enum dataFileType,
+                         const StructureEnum::Enum structure,
+                         const AString& filename) throw (DataFileException);
+        
+        void addDataFile(const AString& dataFileTypeName,
+                         const AString& structureName,
+                         const AString& filename) throw (DataFileException);
+        
+        int32_t getNumberOfFiles() const;
+        
+        int32_t getNumberOfFilesSelected() const;
+        
         virtual void readFile(const AString& filename) throw (DataFileException);
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
@@ -57,9 +74,54 @@ namespace caret {
         
         AString getText() const;
         
+        int32_t getNumberOfDataFileTypeGroups() const;
+        
+        SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex);
+        
+        SpecFileDataFileTypeGroup* getDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType);
+        
+        void setAllFilesSelected(bool selectionStatus);
+        
+        GiftiMetaData* getMetaData() { return this->metadata; }
+        
+        static float getFileVersion();
+        
+        static AString getFileVersionAsString();
+
+        /** XML Tag for SpecFile element */
+        static const AString XML_TAG_SPEC_FILE;
+        
+        /** XML Tag for File element */
+        static const AString XML_TAG_FILE;
+        
+        /** XML Tag for Structure attribute */
+        static const AString XML_ATTRIBUTE_STRUCTURE;
+        
+        /** XML Tag for Type attribute */
+        static const AString XML_ATTRIBUTE_TYPE;
+        
+        /** XML Tag for Version attribute */
+        static const AString XML_ATTRIBUTE_VERSION;
+        
+        /** Version of this SpecFile */
+        static const float specFileVersion;
+        
     private:
+        std::vector<SpecFileDataFileTypeGroup*> dataFileTypeGroups;
+        
+        GiftiMetaData* metadata;
     };
     
+#ifdef __SPEC_FILE_DEFINE__
+    const AString SpecFile::XML_TAG_SPEC_FILE       = "SpecFile";
+    const AString SpecFile::XML_TAG_FILE            = "File";
+    const AString SpecFile::XML_ATTRIBUTE_STRUCTURE = "Structure";
+    const AString SpecFile::XML_ATTRIBUTE_TYPE      = "Type";
+    const AString SpecFile::XML_ATTRIBUTE_VERSION   = "Version";
+    
+    const float SpecFile::specFileVersion = 1.0;
+#endif // __SPEC_FILE_DEFINE__
 } // namespace
+
 
 #endif // __SPEC_FILE_H__

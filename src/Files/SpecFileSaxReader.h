@@ -38,7 +38,7 @@
 namespace caret {
 
     class SpecFile;
-    class SpecFileGroup;
+    class SpecFileDataFileTypeGroup;
     class GiftiMetaDataSaxReader;
     class XmlAttributes;
     class XmlException;
@@ -81,10 +81,8 @@ namespace caret {
             STATE_SPEC_FILE,
             /// processing MetaData tag
             STATE_METADATA,
-            /// processing SpecFileGroup tag
-            STATE_SPEC_FILE_GROUP,
-            /// processing SpecFileGroupFile tag
-            STATE_SPEC_FILE_GROUP_FILE
+            /// processing File tag
+            STATE_FILE
         };
         
         /// file reading state
@@ -102,11 +100,14 @@ namespace caret {
         /// element text
         AString elementText;
         
-        /// spec file group being read
-        SpecFileGroup* specFileGroup;
-
         /// GIFTI meta data sax reader
         GiftiMetaDataSaxReader* metaDataSaxReader;
+        
+        /** value of File Structure attribute */
+        AString fileAttributeStructureName;
+        
+        /** value of File type attribute */
+        AString fileAttributeTypeName;
     };
 
 } // namespace

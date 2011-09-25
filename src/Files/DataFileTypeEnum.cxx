@@ -269,7 +269,7 @@ DataFileTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type DataFileTypeEnum"));
+        CaretAssertMessage(0, AString("Name \"" + name + "\" failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
 }
@@ -322,7 +322,7 @@ DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type DataFileTypeEnum"));
+        CaretAssertMessage(0, AString("guiName \"" + guiName + "\" failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
 }
@@ -375,7 +375,7 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
         *isValidOut = validFlag;
     }
     else {
-        CaretAssertMessage(0, AString("qFileDialogNameFilter " + qFileDialogNameFilter + "failed to match enumerated value for type DataFileTypeEnum"));
+        CaretAssertMessage(0, AString("qFileDialogNameFilter \"" + qFileDialogNameFilter + " \"failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
 }
@@ -434,7 +434,7 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else {
-        CaretAssertMessage(0, AString("filename " + filename + " has no matching extensions in DataFileTypeEnum"));
+        CaretAssertMessage(0, AString("filename \"" + filename + " \"has no matching extensions in DataFileTypeEnum"));
     }
     return enumValue;
     
@@ -474,7 +474,7 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type DataFileTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code \"" + AString::number(integerCode) + " \"failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
 }

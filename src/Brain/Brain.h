@@ -38,6 +38,7 @@ namespace caret {
     class BrainStructure;
     class EventDataFileRead;
     class PaletteFile;
+    class SpecFile;
     
     class Brain : public CaretObject, public EventListenerInterface {
 
@@ -62,6 +63,8 @@ namespace caret {
 
         PaletteFile* getPaletteFile();
         
+        SpecFile* getSpecFile();
+        
         void resetBrain();
         
         void receiveEvent(Event* event);
@@ -80,6 +83,8 @@ namespace caret {
         std::vector<BrainStructure*> brainStructures;
         
         PaletteFile* paletteFile;
+        
+        SpecFile* specFile;
     };
 
 } // namespace
