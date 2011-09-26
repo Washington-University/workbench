@@ -64,9 +64,13 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
 
     AString filterText = this->guiName + " Files (";
     
+    
     for (std::vector<AString>::const_iterator iter = this->fileExtensions.begin();
          iter != this->fileExtensions.end();
          iter++) {
+        if (iter != fileExtensions.begin()) {
+            filterText += " ";
+        }
         filterText += ("*." + *iter);
     }
     filterText += ")";
@@ -252,7 +256,7 @@ DataFileTypeEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = UNKNOWN;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -305,7 +309,7 @@ DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = UNKNOWN;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -358,7 +362,7 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = UNKNOWN;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -412,7 +416,7 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = UNKNOWN;
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

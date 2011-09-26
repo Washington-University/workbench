@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <memory>
+
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
@@ -239,7 +241,7 @@ void
 SpecFile::readFile(const AString& filename) throw (DataFileException)
 {
     SpecFileSaxReader saxReader(this);
-    XmlSaxParser* parser = XmlSaxParser::createXmlParser();
+    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }
@@ -267,7 +269,6 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
         CaretLogThrowing(dfe);
         throw dfe;
     }
-    delete parser;
 
     this->setFileName(filename);
     

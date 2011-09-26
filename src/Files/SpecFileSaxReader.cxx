@@ -118,7 +118,7 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
              this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          }
          else if (qName == SpecFile::XML_TAG_DATA_FILE) {
-            this->state = STATE_DATA_FILE;
+             this->state = STATE_DATA_FILE;
              this->fileAttributeStructureName = attributes.getValue(SpecFile::XML_ATTRIBUTE_STRUCTURE);
              this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE);
          }
@@ -170,10 +170,17 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
          break;
       case STATE_DATA_FILE:
        {
-           const AString filename = this->elementText.trimmed();
-           this->specFile->addDataFile(this->fileAttributeTypeName, 
-                                       this->fileAttributeStructureName, 
-                                       filename);
+           try {
+               const AString filename = this->elementText.trimmed();
+               this->specFile->addDataFile(this->fileAttributeTypeName, 
+                                           this->fileAttributeStructureName, 
+                                           filename);
+               this->fileAttributeTypeName = "";
+               this->fileAttributeStructureName = "";
+           }
+           catch (DataFileException e) {
+               throw XmlSaxParserException(e);
+           }
        }
          break;
    }
