@@ -352,15 +352,40 @@ OverlaySelectionControlLayer::columnSelected(int columnIndex)
 void 
 OverlaySelectionControlLayer::updateControl(BrowserTabContent* browserTabContent)
 {
+    int numberOfDisplayedLayers = 3;
     this->widgetGroup->blockSignals(true);
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
             this->updateSurfaceControl(browserTabContent);
+            numberOfDisplayedLayers = browserTabContent->getSurfaceOverlaySet()->getNumberOfDisplayedOverlays();
             break;
         case OverlaySelectionControl::VOLUME:
             this->updateVolumeControl(browserTabContent);
             break;
     }
+    if (numberOfDisplayedLayers < 3) {
+        numberOfDisplayedLayers = 3;
+    }
+    
+    int32_t lastDisplayedIndex = numberOfDisplayedLayers - 1;
+    bool isMoveUpEnabled = false;
+    bool isMoveDownEnabled = false;
+    bool isRemoveEnabled = false;
+    
+    if (this->layerIndex > 0) {
+        isMoveUpEnabled = true;
+    }
+    if (this->layerIndex < lastDisplayedIndex) {
+        isMoveDownEnabled = true;
+    }
+    if (numberOfDisplayedLayers > 3) {
+        isRemoveEnabled = true;
+    }
+    
+    this->moveDownAction->setEnabled(isMoveDownEnabled);
+    this->moveUpAction->setEnabled(isMoveUpEnabled);
+    this->removeAction->setEnabled(isRemoveEnabled);
+    
     this->widgetGroup->blockSignals(false);
 }
 
