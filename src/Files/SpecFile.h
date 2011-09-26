@@ -44,11 +44,10 @@ namespace caret {
         
         virtual ~SpecFile();
         
-    private:
         SpecFile(const SpecFile&);
         
         SpecFile& operator=(const SpecFile&);
-        
+                
     public:
         virtual void clear();
         
@@ -107,6 +106,12 @@ namespace caret {
         static const float specFileVersion;
         
     private:
+        void copyHelperSpecFile(const SpecFile& sf);
+        
+        void initializeSpecFile();
+        
+        void clearData();
+        
         std::vector<SpecFileDataFileTypeGroup*> dataFileTypeGroups;
         
         GiftiMetaData* metadata;

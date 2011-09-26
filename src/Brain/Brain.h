@@ -41,6 +41,7 @@ namespace caret {
     class EventSpecFileReadDataFiles;
     class PaletteFile;
     class SpecFile;
+    class VolumeFile;
     
     class Brain : public CaretObject, public EventListenerInterface {
 
@@ -92,11 +93,38 @@ namespace caret {
         void readSurfaceFile(const AString& filename,
                              const StructureEnum::Enum structure) throw (DataFileException);
         
+        void readVolumeAnatomyFile(const AString& filename) throw (DataFileException);
+                            
+        void readVolumeFunctionalFile(const AString& filename) throw (DataFileException);
+        
+        void readVolumeLabelFile(const AString& filename) throw (DataFileException);
+        
+        void readBorderProjectionFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityFile(const AString& filename) throw (DataFileException);
+        
+        void readFociProjectionFile(const AString& filename) throw (DataFileException);
+        
+        void readPaletteFile(const AString& filename) throw (DataFileException);
+        
+        void readSceneFile(const AString& filename) throw (DataFileException);
+        
+        AString updateFileNameForReading(const AString& filename);
+        
         std::vector<BrainStructure*> brainStructures;
         
         PaletteFile* paletteFile;
         
+        AString currentDirectory;
+        
         SpecFile* specFile;
+        
+        std::vector<VolumeFile*> volumeFilesAnatomy;
+        
+        std::vector<VolumeFile*> volumeFilesFunctional;
+        
+        std::vector<VolumeFile*> volumeFilesLabel;
+        
     };
 
 } // namespace

@@ -30,6 +30,7 @@
 #include "EventDataFileRead.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "MetricFile.h"
 #include "LabelFile.h"
 #include "PaletteFile.h"
@@ -38,6 +39,7 @@
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "Surface.h"
+#include "VolumeFile.h"
 #include <algorithm>
 
 using namespace caret;
@@ -149,8 +151,35 @@ Brain::resetBrain()
     for (int32_t i = 0; i < num; i++) {
         delete this->brainStructures[i];
     }
+    
+    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesAnatomy.begin();
+         vfi != this->volumeFilesAnatomy.end();
+         vfi++) {
+        VolumeFile* vf = *vfi;
+        delete vf;
+    }
+    this->volumeFilesAnatomy.clear();
+    
+    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesFunctional.begin();
+         vfi != this->volumeFilesFunctional.end();
+         vfi++) {
+        VolumeFile* vf = *vfi;
+        delete vf;
+    }
+    this->volumeFilesFunctional.clear();
+    
+    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesLabel.begin();
+         vfi != this->volumeFilesLabel.end();
+         vfi++) {
+        VolumeFile* vf = *vfi;
+        delete vf;
+    }
+    this->volumeFilesLabel.clear();
+    
     this->brainStructures.clear();
     this->paletteFile->clear();
+    
+    this->specFile->clear();
 }
 
 /**
@@ -350,6 +379,151 @@ Brain::readRgbaFile(const AString& filename,
     }
 }
 
+/**
+ * Read an anatomy volume file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readVolumeAnatomyFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: volume anatomy");
+/*
+    VolumeFile* volumeFile = new VolumeFile();
+    try {
+        volumeFile->readFile(filename);
+    }
+    catch (DataFileException e) {
+        delete volumeFile;
+        throw e;
+    }
+    this->volumeFilesAnatomy.push_back(volumeFile);
+*/
+}
+
+/**
+ * Read an functional volume file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readVolumeFunctionalFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: volume functional");
+/*    
+    VolumeFile* volumeFile = new VolumeFile();
+    try {
+        volumeFile->readFile(filename);
+    }
+    catch (DataFileException e) {
+        delete volumeFile;
+        throw e;
+    }
+    this->volumeFilesFunctional.push_back(volumeFile);
+*/
+}
+
+/**
+ * Read an label volume file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readVolumeLabelFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: volume label");
+/*
+    VolumeFile* volumeFile = new VolumeFile();
+    try {
+        volumeFile->readFile(filename);
+    }
+    catch (DataFileException e) {
+        delete volumeFile;
+        throw e;
+    }
+    this->volumeFilesLabel.push_back(volumeFile);
+*/
+}
+
+/**
+ * Read a border projection file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readBorderProjectionFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: border projection");
+}
+
+/**
+ * Read a connectivity file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: connectivity");
+}
+
+/**
+ * Read a foci projection file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readFociProjectionFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: foci projection");
+}
+
+/**
+ * Read a palette file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readPaletteFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: palette");
+}
+
+/**
+ * Read a scene file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readSceneFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading not implemented for: scene");
+}
+
 /*
  * @return The palette file.
  */
@@ -397,7 +571,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
  *    Type of data file to read.
  * @param structure
  *    Struture of file (used if not invalid)
- * @param dataFileName
+ * @param dataFileNameIn
  *    Name of data file to read.
  * @throws DataFileException
  *    If there is an error reading the file.
@@ -405,17 +579,19 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 void 
 Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const StructureEnum::Enum structure,
-                    const AString& dataFileName) throw (DataFileException)
+                    const AString& dataFileNameIn) throw (DataFileException)
 {
+    const AString dataFileName = this->updateFileNameForReading(dataFileNameIn);
+    
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER_PROJECTION:
-            throw DataFileException("Reading not implemented for: border projection");
+            this->readBorderProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::CIFTI:
-            throw DataFileException("Reading not implemented for: cifti");
+            this->readConnectivityFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI_PROJECTION:
-            throw DataFileException("Reading not implemented for: foci projection");
+            this->readFociProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
             this->readLabelFile(dataFileName, structure);
@@ -424,17 +600,17 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readMetricFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::PALETTE:
-            throw DataFileException("Reading not implemented for: palette");
+            this->readPaletteFile(dataFileName);
             break;
         case DataFileTypeEnum::RGBA:
             this->readRgbaFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::SCENE:
-            throw DataFileException("Reading not implemented for: scene");
+            this->readSceneFile(dataFileName);
             break;
         case DataFileTypeEnum::SPECIFICATION:
-            CaretLogSevere("Reading not implemented for: spec from Brain::readDataFile()");
-            throw DataFileException("Reading not implemented for: spec from Brain::readDataFile()");
+            CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
+            throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             break;
         case DataFileTypeEnum::SURFACE_ANATOMICAL:
         case DataFileTypeEnum::SURFACE_INFLATED:
@@ -446,13 +622,13 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             throw DataFileException("Unable to read files of type");
             break;
         case DataFileTypeEnum::VOLUME_ANATOMY:
-            throw DataFileException("Reading not implemented for: volume anatomy");
+            this->readVolumeAnatomyFile(dataFileName);
             break;
         case DataFileTypeEnum::VOLUME_FUNCTIONAL:
-            throw DataFileException("Reading not implemented for: functional");
+            this->readVolumeFunctionalFile(dataFileName);
             break;
         case DataFileTypeEnum::VOLUME_LABEL:
-            throw DataFileException("Reading not implemented for: label");
+            this->readVolumeLabelFile(dataFileName);
             break;
     }    
 }
@@ -468,6 +644,16 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     AString errorMessage;
     
     SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
+    CaretAssert(sf);
+    
+    if (this->specFile != NULL) {
+        delete this->specFile;
+    }
+    this->specFile = new SpecFile(*sf);
+    
+    FileInformation fileInfo(sf->getFileName());
+    this->currentDirectory = fileInfo.getPathName();
+    
     
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0; ig < numFileGroups; ig++) {
@@ -497,6 +683,36 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     if (errorMessage.isEmpty() == false) {
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
+}
+
+/**
+ * Given a file name, if the path to the file is relative
+ * prepend it with the current directory for this brain.
+ * 
+ * @param filename
+ *    Name of file.
+ * @return
+ *    Name prepended with path, if availble, and if 
+ *    the input filename was a relative path.
+ */
+AString 
+Brain::updateFileNameForReading(const AString& filename)
+{
+    FileInformation info(filename);
+    if (info.isAbsolute()) {
+        return filename;
+    }
+    
+    if (currentDirectory.isEmpty()) {
+        return filename;
+    }
+    
+    AString fullPathName =
+    this->currentDirectory 
+    + "/"
+    + filename;
+    
+    return fullPathName;
 }
 
 /**

@@ -48,6 +48,55 @@ using namespace caret;
 SpecFile::SpecFile()
 : DataFile()
 {
+    this->initializeSpecFile();
+}
+
+/**
+ * Destructor.
+ */
+SpecFile::~SpecFile()
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        delete *iter;
+    }
+    this->dataFileTypeGroups.clear();
+    delete this->metadata;
+    this->metadata = NULL;
+}
+
+/**
+ * Copy constructor.
+ * @param sf
+ *    Spec file whose data is copied.
+ */
+SpecFile::SpecFile(const SpecFile& sf)
+{
+    this->initializeSpecFile();
+    this->copyHelperSpecFile(sf);
+}
+
+/**
+ * Assignment operator.
+ * @param sf
+ *    Spec file whose data is copied.
+ * @return
+ *    Reference to this file.
+ */
+SpecFile& 
+SpecFile::operator=(const SpecFile& sf)
+{
+    if (this != &sf) {
+        this->copyHelperSpecFile(sf);
+    }
+    
+    return *this;
+}
+
+void 
+SpecFile::initializeSpecFile()
+{
     this->metadata = new GiftiMetaData();
     
     std::vector<DataFileTypeEnum::Enum> allEnums;
@@ -87,18 +136,35 @@ SpecFile::SpecFile()
 }
 
 /**
- * Destructor.
+ * Copy helper.
+ * @param sf
+ *    Spec file whose data is copied.
  */
-SpecFile::~SpecFile()
+void 
+SpecFile::copyHelperSpecFile(const SpecFile& sf)
 {
+    this->clearData();
+    
+    if (this->metadata != NULL) {
+        delete this->metadata;
+    }
+    this->metadata = new GiftiMetaData(*sf.metadata);
+    
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
-        delete *iter;
+        SpecFileDataFileTypeGroup* group = *iter;
+        const int numFiles = group->getNumberOfFiles();
+        for (int32_t i = 0; i < numFiles; i++) {
+            SpecFileDataFile* file = group->getFileInformation(i);
+            this->addDataFile(group->getDataFileType(), 
+                              file->getStructure(), 
+                              file->getFileName());
+        }
     }
-    this->dataFileTypeGroups.clear();
-    delete this->metadata;
-    this->metadata = NULL;
+    
+    this->setFileName(sf.getFileName());
+    this->clearModified();
 }
 
 /**
@@ -171,6 +237,16 @@ void
 SpecFile::clear()
 {
     DataFile::clear();
+    
+    this->clearData();
+}
+
+/**
+ * Clear the spec file's data as if there were no files loaded.
+ */
+void 
+SpecFile::clearData()
+{
     this->metadata->clear();
     
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
@@ -180,7 +256,7 @@ SpecFile::clear()
         dataFileTypeGroup->removeAllFileInformation();
     }
 }
-
+        
 /**
  * Is this file empty?
  *
