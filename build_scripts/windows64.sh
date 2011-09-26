@@ -45,7 +45,7 @@ DIST_DIR=caret@hippocampus:/Volumes/DS4600/caret7_distribution/caret/bin_windows
 
 echo "Copying Files" >> ${ERROR_FILE}
 scp -v build/Desktop/workbench.exe $DIST_DIR  >> ${ERROR_FILE} 2>&1
-scp -v build/Command/caret_command.exe $DIST_DIR >> ${ERROR_FILE} 2>&1
+scp -v build/CommandLine/caret_command.exe $DIST_DIR >> ${ERROR_FILE} 2>&1
 echo "Finished Copying Files" >> ${ERROR_FILE}
 scp ${ERROR_FILE} caret@hippocampus:/Volumes/DS4600/caret_development/windows64
 #

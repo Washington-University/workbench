@@ -74,7 +74,7 @@ cat ${ERROR_FILE}
 #
 DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
 /bin/cp -rv Desktop/workbench.app ${DIST_DIR} >> ${ERROR_FILE} 2>&1
-/bin/cp -v Command/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
+/bin/cp -v CommandLine/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 
 #
 # Send output as email
