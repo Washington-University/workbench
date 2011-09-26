@@ -73,7 +73,7 @@ cat ${ERROR_FILE}
 # Copy to distribution directory
 #
 DIST_DIR=/miniserver/caret7_distribution/caret/bin_linux32
-/bin/cp -v Desktop/desktop ${DIST_DIR} >> ${ERROR_FILE} 2>&1
+/bin/cp -v Desktop/workbench ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 /bin/cp -v Command/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 
 #
