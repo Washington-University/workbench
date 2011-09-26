@@ -244,6 +244,7 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     
     if (this->isContructorFinished) {
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        this->updateGraphicsWindow();
     }
 }
 
