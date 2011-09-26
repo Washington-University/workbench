@@ -49,7 +49,7 @@ namespace caret {
       std::vector<std::vector<float> > m_indexToSpace;
       std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
       float* m_data;
-      int64_t m_dimensions[4];//don't support more than 4d volumes yet
+      int64_t m_dimensions[5];//don't support more than 4d volumes yet
       
    public:
       enum OrientTypes
@@ -62,10 +62,10 @@ namespace caret {
          SUPERIOR_TO_INFERIOR
       };
       VolumeFile();
-      VolumeFile(const std::vector<float>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace);
+      VolumeFile(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
       
       ///recreates the volume file storage with new size and spacing
-      void reinitialize(const std::vector<float>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace);
+      void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
       
       ///get the spacing info
       const std::vector<std::vector<float> >& getVolumeSpace() { return m_indexToSpace; };
@@ -115,28 +115,28 @@ namespace caret {
       void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3);
       
       ///get a value at an index triplet and optionally timepoint
-      float getValue(const int64_t* indexIn, const int64_t timeIndex = 0);
+      float getValue(const int64_t* indexIn, const int64_t timeIndex = 0, const int64_t component = 0);
       ///get a value at three indexes and optionally timepoint
-      float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
+      float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0, const int64_t component = 0);
       
       ///set a value at an index triplet and optionally timepoint
-      void setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex = 0);
+      void setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex = 0, const int64_t component = 0);
       ///set a value at an index triplet and optionally timepoint
-      void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
+      void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0, const int64_t component = 0);
       
       ///get the raw voxel data
       float* getVoxelDataRef() { return m_data; };
       
-      ///gets dimensions, needs space to put 4 values
-      void getDimensions(std::vector<float>& dimOut);
+      ///gets dimensions as a vector of 5 integers, 3 spatial, time, components
+      void getDimensions(std::vector<int64_t>& dimOut);
       ///gets dimensions
-      void getDimensions(float& dimOut1, float& dimOut2, float& dimOut3, float& dimOut4);
+      void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents);
       
       ///gets index into data array for three indexes plus time index
-      int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
+      int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0, const int64_t component = 0);
       
       ///checks if an index is within array dimensions
-      bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0);
+      bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex = 0, const int64_t component = 0);
    };
    
 }

@@ -28,6 +28,7 @@ CaretFunctionName.h
 CaretLogger.h
 CaretMutex.h
 CaretObject.h
+CaretPointer.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h

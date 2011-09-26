@@ -32,7 +32,7 @@
 using namespace caret;
 using namespace std;
 
-void VolumeFile::reinitialize(const vector<float>& dimensionsIn, const vector<vector<float> >& indexToSpace)
+void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
    if (m_data != NULL)
    {
@@ -64,7 +64,8 @@ void VolumeFile::reinitialize(const vector<float>& dimensionsIn, const vector<ve
          m_dimensions[3] *= dimensionsIn[i];
       }
    }
-   int64_t totalSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3];
+   m_dimensions[4] = numComponents;
+   int64_t totalSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
    m_data = new float[totalSize];
    CaretAssert(m_data != NULL);
    //TODO: adjust any existing nifti header to match, or remove nifti header?
@@ -80,6 +81,7 @@ VolumeFile::VolumeFile()
    m_dimensions[1] = 0;
    m_dimensions[2] = 0;
    m_dimensions[3] = 0;
+   m_dimensions[4] = 0;
    m_indexToSpace.resize(3);
    for (int i = 0; i < 3; ++i)
    {
@@ -92,13 +94,13 @@ VolumeFile::VolumeFile()
    m_spaceToIndex = m_indexToSpace;
 }
 
-VolumeFile::VolumeFile(const std::vector< float >& dimensionsIn, const std::vector< std::vector< float > >& indexToSpace)
+VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
    m_data = NULL;
    m_N1Header = NULL;
    m_N2Header = NULL;
    m_headerType = NONE;
-   reinitialize(dimensionsIn, indexToSpace);
+   reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
 
 void VolumeFile::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut)
@@ -166,37 +168,41 @@ void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = (int32_t)floor(0.5f + tempInd3);
 }
 
-float VolumeFile::getValue(const int64_t* indexIn, const int64_t timeIndex)
+float VolumeFile::getValue(const int64_t* indexIn, const int64_t timeIndex, const int64_t numComponents)
 {
-   return getValue(indexIn[0], indexIn[1], indexIn[2], timeIndex);
+   return getValue(indexIn[0], indexIn[1], indexIn[2], timeIndex, numComponents);
 }
 
-float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
+float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t numComponents)
 {
+   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex, numComponents));//assert so release version isn't slowed by checking
    //for now, do it the slow way
-   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex));//assert so release version isn't slowed by checking
-   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex);
+   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex, numComponents);
+   //TODO: use auxiliary arrays to precalcuate offsets or make it indexable as if multidimensional
+   //can have the most influential index first, as an array of float****, which can point to multiple places in a float***, continue until indexing into m_data
    return m_data[index];
 }
 
-void VolumeFile::getDimensions(std::vector< float >& dimOut)
+void VolumeFile::getDimensions(vector<int64_t>& dimOut)
 {
-   dimOut.resize(4);
-   getDimensions(dimOut[0], dimOut[1], dimOut[2], dimOut[3]);
+   dimOut.resize(5);
+   getDimensions(dimOut[0], dimOut[1], dimOut[2], dimOut[3], dimOut[4]);
 }
 
-void VolumeFile::getDimensions(float& dimOut1, float& dimOut2, float& dimOut3, float& dimOut4)
+void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents)
 {
    dimOut1 = m_dimensions[0];
    dimOut2 = m_dimensions[1];
    dimOut3 = m_dimensions[2];
-   dimOut4 = m_dimensions[3];
+   dimTimeOut = m_dimensions[3];
+   numComponents = m_dimensions[4];
 }
 
-int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
-{
-   return indexIn1 + m_dimensions[0] * (indexIn2 + m_dimensions[1] * (indexIn3 + timeIndex * m_dimensions[2]));
-}
+int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
+{//the component is split out, so you have the entire R volume timeseries, then entire G, then entire B, as stored in memory, this will make indexing tricks less memory intensive
+   return indexIn1 + m_dimensions[0] * (indexIn2 + m_dimensions[1] * (indexIn3 + m_dimensions[2] * (timeIndex + m_dimensions[3] * component)));
+}//doesn't seem to have a performance drawback to order them in memory this way
+//NOTE: computing indexes via multiply on every call like this is SLOW, need a better way
 
 void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut)
 {
@@ -290,24 +296,25 @@ void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = m_spaceToIndex[2][0] * coordIn1 + m_spaceToIndex[2][1] * coordIn2 + m_spaceToIndex[2][2] * coordIn3 + m_spaceToIndex[2][3];
 }
 
-void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex)
+void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex, const int64_t component)
 {
-   setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], timeIndex);
+   setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], timeIndex, component);
 }
 
-void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
+void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
 {
+   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex, component));//assert so release version isn't slowed by checking
    //for now, the slow way
-   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex));//assert so release version isn't slowed by checking
-   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex);
+   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex, component);
    m_data[index] = valueIn;
 }
 
-bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex)
+bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
 {
    if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
    if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
    if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
    if (timeIndex < 0 || timeIndex >= m_dimensions[3]) return false;
+   if (component < 0 || component >= m_dimensions[4]) return false;
    return true;
 }
