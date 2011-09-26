@@ -117,10 +117,10 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
              this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->specFile->getMetaData());
              this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          }
-         else if (qName == SpecFile::XML_TAG_FILE) {
-            this->state = STATE_FILE;
+         else if (qName == SpecFile::XML_TAG_DATA_FILE) {
+            this->state = STATE_DATA_FILE;
              this->fileAttributeStructureName = attributes.getValue(SpecFile::XML_ATTRIBUTE_STRUCTURE);
-             this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_TYPE);
+             this->fileAttributeTypeName = attributes.getValue(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE);
          }
          else {
              const AString msg =
@@ -136,7 +136,7 @@ SpecFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_METADATA:
            this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
-      case STATE_FILE:
+      case STATE_DATA_FILE:
            break;
    }
    
@@ -168,7 +168,7 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                this->metaDataSaxReader = NULL;
            }
          break;
-      case STATE_FILE:
+      case STATE_DATA_FILE:
        {
            const AString filename = this->elementText.trimmed();
            this->specFile->addDataFile(this->fileAttributeTypeName, 

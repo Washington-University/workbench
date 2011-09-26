@@ -81,8 +81,8 @@ namespace caret {
             STATE_SPEC_FILE,
             /// processing MetaData tag
             STATE_METADATA,
-            /// processing File tag
-            STATE_FILE
+            /// processing DataFile tag
+            STATE_DATA_FILE
         };
         
         /// file reading state

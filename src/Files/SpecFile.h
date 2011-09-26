@@ -91,14 +91,14 @@ namespace caret {
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
         
-        /** XML Tag for File element */
-        static const AString XML_TAG_FILE;
+        /** XML Tag for DataFile element */
+        static const AString XML_TAG_DATA_FILE;
         
         /** XML Tag for Structure attribute */
         static const AString XML_ATTRIBUTE_STRUCTURE;
         
-        /** XML Tag for Type attribute */
-        static const AString XML_ATTRIBUTE_TYPE;
+        /** XML Tag for DataFileType attribute */
+        static const AString XML_ATTRIBUTE_DATA_FILE_TYPE;
         
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
@@ -113,11 +113,11 @@ namespace caret {
     };
     
 #ifdef __SPEC_FILE_DEFINE__
-    const AString SpecFile::XML_TAG_SPEC_FILE       = "SpecFile";
-    const AString SpecFile::XML_TAG_FILE            = "File";
-    const AString SpecFile::XML_ATTRIBUTE_STRUCTURE = "Structure";
-    const AString SpecFile::XML_ATTRIBUTE_TYPE      = "Type";
-    const AString SpecFile::XML_ATTRIBUTE_VERSION   = "Version";
+    const AString SpecFile::XML_TAG_SPEC_FILE            = "CaretSpecFile";
+    const AString SpecFile::XML_TAG_DATA_FILE            = "DataFile";
+    const AString SpecFile::XML_ATTRIBUTE_STRUCTURE      = "Structure";
+    const AString SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE = "DataFileType";
+    const AString SpecFile::XML_ATTRIBUTE_VERSION        = "Version";
     
     const float SpecFile::specFileVersion = 1.0;
 #endif // __SPEC_FILE_DEFINE__
