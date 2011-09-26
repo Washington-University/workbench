@@ -30,6 +30,7 @@
 
 #include <QMainWindow>
 
+#include "AString.h"
 #include "EventListenerInterface.h"
 
 class QAction;
@@ -159,6 +160,8 @@ namespace caret {
         QMenu* moveTabToThisWindowMenu;
         
         BrainBrowserWindowToolBox* topBottomToolBox;
+        
+        AString previousOpenFileNameFilter;
         
         friend class GuiManager;
     };

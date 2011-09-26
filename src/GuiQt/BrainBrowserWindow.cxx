@@ -554,6 +554,11 @@ BrainBrowserWindow::processNewWindow()
 void 
 BrainBrowserWindow::processDataFileOpen()
 {
+    if (this->previousOpenFileNameFilter.isEmpty()) {
+        this->previousOpenFileNameFilter = 
+            DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION);
+    }
+    
     /*
      * Get all file filters.
      */
@@ -564,7 +569,8 @@ BrainBrowserWindow::processDataFileOpen()
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
          iter != dataFileTypes.end();
          iter++) {
-        filenameFilterList.append(DataFileTypeEnum::toQFileDialogFilter(*iter));
+        AString filterName = DataFileTypeEnum::toQFileDialogFilter(*iter);
+        filenameFilterList.append(filterName);
     }
     
     AString errorMessages;
@@ -577,8 +583,11 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFiles);
     fd.setViewMode(WuQFileDialog::List);
+    fd.selectFilter(this->previousOpenFileNameFilter);
+    
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
+        this->previousOpenFileNameFilter = fd.selectedFilter();
         
         /*
          * Load each file.
