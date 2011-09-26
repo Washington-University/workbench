@@ -295,6 +295,8 @@ namespace caret {
         
     private:
         friend class BrainBrowserWindow;
+        
+        bool isContructorFinished;
     };
 }
 

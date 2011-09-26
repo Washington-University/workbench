@@ -178,11 +178,23 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
-    overlay->setEnabled(toggled);
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+            overlay->setEnabled(toggled);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
 
     this->updateControl(browserTabContent);
     
@@ -198,10 +210,23 @@ OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    surfaceOverlaySet->moveDisplayedOverlayUp(this->layerIndex);
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            surfaceOverlaySet->moveDisplayedOverlayUp(this->layerIndex);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
+    
     
     this->updateControl(browserTabContent);
     
@@ -219,10 +244,24 @@ OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
+
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            surfaceOverlaySet->moveDisplayedOverlayDown(this->layerIndex);
+            
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    surfaceOverlaySet->moveDisplayedOverlayDown(this->layerIndex);
     
     this->updateControl(browserTabContent);
     
@@ -240,10 +279,23 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
+
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            surfaceOverlaySet->removeDisplayedOverlay(this->layerIndex);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    surfaceOverlaySet->removeDisplayedOverlay(this->layerIndex);
     
     this->updateControl(browserTabContent);
     
@@ -256,18 +308,57 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
 void 
 OverlaySelectionControlLayer::settingsToolButtonPressed()
 {
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
+    
     QMessageBox::information(this->overlaySelectionControl, "", "Settings!");
 }
 
 void 
 OverlaySelectionControlLayer::metadataToolButtonPressed()
 {
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
+    
     QMessageBox::information(this->overlaySelectionControl, "", "Metadata!");
 }
 
 void 
 OverlaySelectionControlLayer::histogramToolButtonPressed()
 {
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
+    
     QMessageBox::information(this->overlaySelectionControl, "", "Histogram!");
 }
 
@@ -281,11 +372,24 @@ OverlaySelectionControlLayer::opacityValueChanged(double value)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
+
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+            overlay->setOpacity(value);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
-    overlay->setOpacity(value);
 
     this->updateControl(browserTabContent);
     
@@ -303,14 +407,27 @@ OverlaySelectionControlLayer::fileSelected(int fileIndex)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
-    browserTabContent->invalidateSurfaceColoring();
+
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            browserTabContent->invalidateSurfaceColoring();
+            
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+            
+            void* pointer = this->fileSelectionComboBox->itemData(fileIndex).value<void*>();
+            GiftiTypeFile* file = (GiftiTypeFile*)pointer;
+            overlay->setSelectionData(file, 0);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
-    
-    void* pointer = this->fileSelectionComboBox->itemData(fileIndex).value<void*>();
-    GiftiTypeFile* file = (GiftiTypeFile*)pointer;
-    overlay->setSelectionData(file, 0);
     
     this->updateControl(browserTabContent);
     
@@ -328,15 +445,28 @@ OverlaySelectionControlLayer::columnSelected(int columnIndex)
 {
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+
+    switch (this->dataType) {
+        case OverlaySelectionControl::SURFACE:
+        {
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
+            
+            const int32_t fileIndex = this->fileSelectionComboBox->currentIndex();
+            void* pointer = this->fileSelectionComboBox->itemData(fileIndex).value<void*>();
+            GiftiTypeFile* file = (GiftiTypeFile*)pointer;
+            overlay->setSelectionData(file, columnIndex);
+        }
+            break;
+        case OverlaySelectionControl::VOLUME:
+        {
+            
+        }
+            break;
+    }
+    
     browserTabContent->invalidateSurfaceColoring();
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(this->layerIndex);
-    
-    const int32_t fileIndex = this->fileSelectionComboBox->currentIndex();
-    void* pointer = this->fileSelectionComboBox->itemData(fileIndex).value<void*>();
-    GiftiTypeFile* file = (GiftiTypeFile*)pointer;
-    overlay->setSelectionData(file, columnIndex);
     
     this->updateControl(browserTabContent);
     

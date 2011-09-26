@@ -89,6 +89,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolsToolBoxToolButtonAction = toolBoxToolButtonAction;
     this->updateCounter = 0;
     
+    this->isContructorFinished = false;
+    
     /*
      * Create tab bar that displays models.
      */
@@ -164,6 +166,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     //this->updateViewWidget(NULL);
     this->updateToolBar();
     
+    this->isContructorFinished = true;
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
@@ -237,6 +241,10 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     this->tabBar->setCurrentIndex(newTabIndex);
     
     this->tabBar->blockSignals(false);
+    
+    if (this->isContructorFinished) {
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    }
 }
 
 /**
@@ -275,6 +283,8 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
         }
         
     }
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

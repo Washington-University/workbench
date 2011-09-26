@@ -546,6 +546,7 @@ BrainBrowserWindow::processNewWindow()
 {
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**
