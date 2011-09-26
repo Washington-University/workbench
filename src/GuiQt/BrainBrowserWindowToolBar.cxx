@@ -53,6 +53,7 @@
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayController.h"
@@ -164,6 +165,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->updateToolBar();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -350,10 +352,15 @@ BrainBrowserWindowToolBar::closeSelectedTab()
     }
 }
 
+/**
+ * Called when the selected tab is changed.
+ * @param index
+ *    Index of selected tab.
+ */
 void 
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
-    this->updateToolBar();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     this->updateGraphicsWindow();
 }
 
@@ -1986,6 +1993,15 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
             getModelEvent->setWindowTabNumber(btc->getTabNumber());
             getModelEvent->setEventProcessed();
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+        uiEvent->setEventProcessed();
+        
+        this->updateToolBar();
     }
     else {
         
