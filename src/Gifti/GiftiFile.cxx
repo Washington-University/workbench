@@ -23,6 +23,7 @@
  */
 /*LICENSE_END*/
 
+#include <memory>
 #include <set>
 #include <sstream>
 
@@ -809,7 +810,7 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
     this->setFileName(filename);
     
     GiftiFileSaxReader saxReader(this);
-    XmlSaxParser* parser = XmlSaxParser::createXmlParser();
+    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
     try {
         parser->parseFile(filename, &saxReader);
     }
@@ -833,7 +834,6 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
             << e.whatString().toStdString();
         throw DataFileException(AString::fromStdString(str.str()));
     }
-    delete parser;
     
 /*
    const bool readWithStreamReader = true;
