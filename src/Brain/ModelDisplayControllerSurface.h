@@ -42,6 +42,10 @@ namespace caret {
         
         virtual ~ModelDisplayControllerSurface();
         
+        virtual void resetView(const int32_t windowTabNumber);
+        
+        void lateralView(const int32_t windowTabNumber);
+        
     private:
         ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);
         

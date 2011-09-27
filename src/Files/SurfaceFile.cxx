@@ -25,6 +25,7 @@
 #include "CaretAssert.h"
 
 #include "GiftiFile.h"
+#include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
 
@@ -383,3 +384,36 @@ SurfaceFile::getNodeColor(int32_t nodeIndex) const
     
     return &this->nodeColoring[nodeIndex * 4];
 }
+
+/**
+ * @return The type of this surface.
+ */
+SurfaceTypeEnum::Enum 
+SurfaceFile::getSurfaceType() const
+{
+    if (this->coordinateDataArray == NULL) {
+        return SurfaceTypeEnum::SURFACE_TYPE_UNKNOWN;
+    }
+    
+    const AString geometricTypeName = 
+        this->coordinateDataArray->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_GEOMETRIC_TYPE);
+    SurfaceTypeEnum::Enum surfaceType = SurfaceTypeEnum::fromGiftiName(geometricTypeName, NULL);
+    return surfaceType;
+}
+
+/**
+ * Sets the type of this surface.
+ * @param surfaceType 
+ *    New type for surface.
+ */
+void 
+SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
+{
+    if (this->coordinateDataArray == NULL) {
+        return;
+    }
+    const AString geometricTypeName = SurfaceTypeEnum::toGiftiName(surfaceType);
+    this->coordinateDataArray->getMetaData()->set(GiftiMetaDataXmlElements::METADATA_NAME_GEOMETRIC_TYPE,
+                                        geometricTypeName);
+}
+

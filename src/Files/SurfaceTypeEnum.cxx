@@ -38,14 +38,15 @@ using namespace caret;
  *    Name of enumberated value.
  */
 SurfaceTypeEnum::SurfaceTypeEnum(const Enum e,
-                           const int32_t integerCode,
-                           const QString& name,
-                           const QString& guiName)
+                                 const AString& name,
+                                 const AString& guiName,
+                                 const AString& giftiName)
 {
     this->e = e;
-    this->integerCode = integerCode;
+    this->integerCode = SurfaceTypeEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
+    this->giftiName = giftiName;
 }
 
 /**
@@ -66,27 +67,42 @@ SurfaceTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_UNKNOWN, 
-                                    0, 
-                                    "SURFACE_TYPE_UNKNOWN", 
-                                    "Unknown"));
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_RECONSTRUCTION, 
+                                       "SURFACE_TYPE_RECONSTRUCTION", 
+                                       "Reconstruction",
+                                       "Reconstruction"));
     enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_ANATOMICAL, 
-                                       1, 
                                        "SURFACE_TYPE_ANATOMICAL", 
+                                       "Anatomical",
                                        "Anatomical"));
     enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_INFLATED, 
-                                       2, 
                                        "SURFACE_TYPE_INFLATED", 
+                                       "Inflated",
                                        "Inflated"));
     enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_VERY_INFLATED, 
-                                       3, 
                                        "SURFACE_TYPE_VERY_INFLATED", 
-                                       "Very Inflated"));
+                                       "VeryInflated",
+                                       "VeryInflated"));
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_SPHERICAL, 
+                                       "SURFACE_TYPE_SPHERICAL", 
+                                       "Spherical",
+                                       "Spherical"));
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_SEMI_SPHERICAL, 
+                                       "SURFACE_TYPE_SEMI_SPHERICAL", 
+                                       "SemiSpherical",
+                                       "SemiSpherical"));
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_ELLIPSOID, 
+                                       "SURFACE_TYPE_ELLIPSOID", 
+                                       "Ellipsoid",
+                                       "Ellipsoid"));
     enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_FLAT, 
-                                       4, 
                                        "SURFACE_TYPE_FLAT", 
+                                       "Flat",
                                        "Flat"));
-    
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_HULL, 
+                                       "SURFACE_TYPE_HULL", 
+                                       "Hull",
+                                       "Hull"));    
 }
 
 /**
@@ -119,7 +135,7 @@ SurfaceTypeEnum::findData(const Enum e)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 SurfaceTypeEnum::toName(Enum e) {
     initialize();
     
@@ -138,12 +154,12 @@ SurfaceTypeEnum::toName(Enum e) {
  *     Enumerated value.
  */
 SurfaceTypeEnum::Enum 
-SurfaceTypeEnum::fromName(const QString& s, bool* isValidOut)
+SurfaceTypeEnum::fromName(const AString& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = SURFACE_TYPE_UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -169,7 +185,7 @@ SurfaceTypeEnum::fromName(const QString& s, bool* isValidOut)
  * @return 
  *     String representing enumerated value.
  */
-QString 
+AString 
 SurfaceTypeEnum::toGuiName(Enum e) {
     initialize();
     
@@ -188,12 +204,12 @@ SurfaceTypeEnum::toGuiName(Enum e) {
  *     Enumerated value.
  */
 SurfaceTypeEnum::Enum 
-SurfaceTypeEnum::fromGuiName(const QString& s, bool* isValidOut)
+SurfaceTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = SURFACE_TYPE_UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -251,6 +267,56 @@ SurfaceTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
         const SurfaceTypeEnum& ndt = *iter;
         if (ndt.integerCode == integerCode) {
             e = ndt.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a GIFTI Name string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+SurfaceTypeEnum::toGiftiName(Enum e) {
+    initialize();
+    
+    const SurfaceTypeEnum* st = findData(e);
+    return st->giftiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its GIFTI name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+SurfaceTypeEnum::Enum 
+SurfaceTypeEnum::fromGiftiName(const AString& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e = SURFACE_TYPE_UNKNOWN;
+    
+    for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SurfaceTypeEnum& d = *iter;
+        if (d.giftiName == s) {
+            e = d.e;
             validFlag = true;
             break;
         }

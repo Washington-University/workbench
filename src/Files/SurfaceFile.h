@@ -30,6 +30,7 @@
 #include <stdint.h>
 
 #include "GiftiTypeFile.h"
+#include "SurfaceTypeEnum.h"
 
 namespace caret {
 
@@ -66,6 +67,10 @@ namespace caret {
         void computeNormals();
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
+        
+        SurfaceTypeEnum::Enum getSurfaceType() const;
+        
+        void setSurfaceType(const SurfaceTypeEnum::Enum surfaceType);
         
     protected:
         /**

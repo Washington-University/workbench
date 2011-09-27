@@ -88,19 +88,19 @@ namespace caret {
         void setScaling(const int32_t windowTabNumber,
                         const float s);
         
-        void resetView(const int32_t windowTabNumber);
+        virtual void resetView(const int32_t windowTabNumber);
         
-        void rightView(const int32_t windowTabNumber);
+        virtual void rightView(const int32_t windowTabNumber);
         
-        void leftView(const int32_t windowTabNumber);
+        virtual void leftView(const int32_t windowTabNumber);
         
-        void anteriorView(const int32_t windowTabNumber);
+        virtual void anteriorView(const int32_t windowTabNumber);
         
-        void posteriorView(const int32_t windowTabNumber);
+        virtual void posteriorView(const int32_t windowTabNumber);
         
-        void dorsalView(const int32_t windowTabNumber);
+        virtual void dorsalView(const int32_t windowTabNumber);
         
-        void ventralView(const int32_t windowTabNumber);
+        virtual void ventralView(const int32_t windowTabNumber);
         
         void setTransformation(const int32_t windowTabNumber,
                                const std::vector<float>& transformationData);
@@ -110,7 +110,7 @@ namespace caret {
         virtual AString toDescriptiveString() const;
         
     private:
-        void initializeTransformations();
+        void resetViewPrivate(const int windowTabNumber);
         
     protected:
         float defaultModelScaling;

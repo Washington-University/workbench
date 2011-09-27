@@ -42,9 +42,11 @@ ModelDisplayController::ModelDisplayController(const YokingAllowedType allowsYok
     : CaretObject()
 {
     this->initializeMembersModelDisplayController();
-    this->initializeTransformations();
     this->allowsYokingStatus = allowsYokingStatus;
     this->allowsRotationStatus   = allowsRotationStatus;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->resetViewPrivate(i);
+    }
 }
 
 /**
@@ -59,20 +61,6 @@ ModelDisplayController::initializeMembersModelDisplayController()
 {
     this->defaultModelScaling = 1.0f;
 }
-
-/**
- * Initialize the transformation matrices.
- *
- */
-void
-ModelDisplayController::initializeTransformations()
-{
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->resetView(i);
-    }
-}
-
-
 
 /**
  * See if this controller allows rotation.
@@ -258,19 +246,37 @@ ModelDisplayController::setScaling(
 }
 
 /**
+ * Resets the view to the default view.
+ * 
+ * Since is resetView() is virtual and overridden by subclasses,
+ * resetView() cannot be called by the constructor of this class.
+ * So this methed, resetViewPrivate() is used to reset the view and
+ * to initialize the views inside of the constructor.
+ *
  * @param  windowTabNumber  Window for which view is requested
  * reset the view.
- *
  */
-void
-ModelDisplayController::resetView(const int32_t windowTabNumber)
+void 
+ModelDisplayController::resetViewPrivate(const int windowTabNumber)
 {
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     this->setTranslation(windowTabNumber, 0.0f, 0.0f, 0.0f);
     this->viewingRotationMatrix[windowTabNumber].identity();
-    this->setScaling(windowTabNumber, this->defaultModelScaling);
+    this->setScaling(windowTabNumber, this->defaultModelScaling);    
+}
+
+/**
+ * Reset the view to the default view.
+ *
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayController::resetView(const int32_t windowTabNumber)
+{
+    this->resetViewPrivate(windowTabNumber);
 }
 
 /**

@@ -113,7 +113,7 @@ namespace GiftiMetaDataXmlElements {
     /** metadata value for NIFTI_INTENT_POINTSET's Geometric Type
  representing true anatomical structure.
 */
-     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_ANATOMICAL = "Anatomica";
+     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_ANATOMICAL = "Anatomical";
 
     /** metadata value for NIFTI_INTENT_POINTSET's Geometric Type
  for inflated surface.
@@ -128,12 +128,12 @@ namespace GiftiMetaDataXmlElements {
     /** metadata value for NIFTI_INTENT_POINTSET's Geometric Type
  spherical surface.
 */
-     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_SPHERICAL = "SPHERICA";
+     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_SPHERICAL = "Spherical";
 
     /** metadata value for NIFTI_INTENT_POINTSET's Geometric Type
  semi-spherical surface with one half flattened.
 */
-     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_SEMI_SPHERICAL = "SemiSpherica";
+     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_SEMI_SPHERICAL = "SemiSpherical";
 
     /** metadata value for NIFTI_INTENT_POINTSET's Geometric Type
  ellipsoid surface.
@@ -149,7 +149,7 @@ namespace GiftiMetaDataXmlElements {
  hull surface (eg: wrapping around cortex with sulci filled but
  not necessarily convex).
 */
-     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_HULL = "Hul";
+     static const AString METADATA_NAME_GEOMETRIC_TYPE_VALUE_HULL = "Hull";
 
     /**metadata name for NIFTI Intent label found in functional data arrays. */
      static const AString METADATA_NAME_INTENT_CODE = "Intent_code";

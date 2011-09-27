@@ -28,7 +28,7 @@
 
 #include <stdint.h>
 #include <vector>
-#include <QString>
+#include "AString.h"
 
 namespace caret {
 
@@ -44,26 +44,40 @@ public:
     enum Enum {
         /** UNKNOWN */
         SURFACE_TYPE_UNKNOWN,
+        /** Reconstruction (raw) */
+        SURFACE_TYPE_RECONSTRUCTION,
         /** Anatomical */
         SURFACE_TYPE_ANATOMICAL,
         /** Inflated */
         SURFACE_TYPE_INFLATED,
         /** Very Inflated */
         SURFACE_TYPE_VERY_INFLATED,
+        /** Spherical */
+        SURFACE_TYPE_SPHERICAL,
+        /** Semi-Spherical (CMW) */
+        SURFACE_TYPE_SEMI_SPHERICAL,
+        /** Ellipsoid */
+        SURFACE_TYPE_ELLIPSOID,
         /** Flat */
-        SURFACE_TYPE_FLAT
+        SURFACE_TYPE_FLAT,
+        /** Hull */
+        SURFACE_TYPE_HULL
     };
 
 
     ~SurfaceTypeEnum();
 
-    static QString toName(Enum e);
+    static AString toName(Enum e);
     
-    static Enum fromName(const QString& s, bool* isValidOut);
+    static Enum fromName(const AString& s, bool* isValidOut);
     
-    static QString toGuiName(Enum e);
+    static AString toGuiName(Enum e);
     
-    static Enum fromGuiName(const QString& s, bool* isValidOut);
+    static Enum fromGuiName(const AString& s, bool* isValidOut);
+    
+    static AString toGiftiName(Enum e);
+    
+    static Enum fromGiftiName(const AString& s, bool* isValidOut);
     
     static int32_t toIntegerCode(Enum e);
     
@@ -71,9 +85,9 @@ public:
 
 private:
     SurfaceTypeEnum(const Enum e, 
-                 const int32_t integerCode, 
-                 const QString& name,
-                 const QString& guiName);
+                    const AString& name,
+                    const AString& guiName,
+                    const AString& giftiName);
 
     static const SurfaceTypeEnum* findData(const Enum e);
 
@@ -83,18 +97,23 @@ private:
 
     static bool initializedFlag;
 
+    static int32_t integerCodeGenerator;
+    
     Enum e;
 
     int32_t integerCode;
 
-    QString name;
+    AString name;
     
-    QString guiName;
+    AString guiName;
+    
+    AString giftiName;
 };
 
 #ifdef __SURFACE_TYPE_ENUM_DECLARE__
-std::vector<SurfaceTypeEnum> SurfaceTypeEnum::enumData;
-bool SurfaceTypeEnum::initializedFlag = false;
+    std::vector<SurfaceTypeEnum> SurfaceTypeEnum::enumData;
+    bool SurfaceTypeEnum::initializedFlag = false;
+    int32_t SurfaceTypeEnum::integerCodeGenerator = 0;
 #endif // __SURFACE_TYPE_ENUM_DECLARE__
 
 } // namespace

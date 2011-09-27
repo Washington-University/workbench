@@ -27,6 +27,7 @@
 
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
+#include "CaretAssert.h"
 #include "ModelDisplayControllerSurface.h"
 
 #include "Brain.h"
@@ -44,8 +45,12 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Surface* surface)
     : ModelDisplayController(YOKING_ALLOWED_YES,
                              ROTATION_ALLOWED_YES)
 {
+    CaretAssert(surface);
     this->initializeMembersModelDisplayControllerSurface();
     this->surface = surface;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->lateralView(i);
+    }
 }
 
 /**
@@ -112,4 +117,44 @@ ModelDisplayControllerSurface::setDefaultScalingToFitWindow()
         this->setScaling(i, this->defaultModelScaling);
     }
 }
+
+/**
+ * Reset view.  For left and right hemispheres, the default
+ * view is a lateral view.
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayControllerSurface::resetView(const int32_t windowTabNumber)
+{
+    ModelDisplayController::resetView(windowTabNumber);
+    this->lateralView(windowTabNumber);    
+}
+
+/**
+ * Switch to a lateral view.  This method only affects
+ * surfaces that are the left or right cerebral cortex and
+ * are not flat.
+ *
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
+{
+    if (this->surface->getSurfaceType() != SurfaceTypeEnum::SURFACE_TYPE_FLAT) {
+        switch (this->surface->getStructure()) {
+            case StructureEnum::CORTEX_LEFT:
+                this->leftView(windowTabNumber);
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                this->rightView(windowTabNumber);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+
 
