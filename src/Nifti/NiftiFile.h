@@ -28,7 +28,7 @@
 #include "nifti2.h"
 #include "iostream"
 #include "NiftiException.h"
-#include "NiftiHeader.h"
+#include "NiftiHeaderIO.h"
 #include "ByteSwapping.h"
 #include "CiftiMatrix.h"
 #include "CiftiXML.h"

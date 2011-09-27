@@ -17,12 +17,14 @@ INCLUDE (${QT_USE_FILE})
 #
 # Create the NIFTI library
 #
-ADD_LIBRARY(Nifti 
+ADD_LIBRARY(Nifti
 Matrix4x4.h
 NiftiDataTypeEnum.h
 NiftiException.h
 NiftiFile.h
-NiftiHeader.h
+NiftiHeaderIO.h
+Nifti1Header.h
+Nifti2Header.h
 NiftiIntentEnum.h
 NiftiSpacingUnitsEnum.h
 NiftiTimeUnitsEnum.h
@@ -42,7 +44,9 @@ Matrix4x4.cxx
 NiftiDataTypeEnum.cxx
 NiftiException.cxx
 NiftiFile.cxx
-NiftiHeader.cxx
+NiftiHeaderIO.cxx
+Nifti1Header.cxx
+Nifti2Header.cxx
 NiftiIntentEnum.cxx
 NiftiSpacingUnitsEnum.cxx
 NiftiTimeUnitsEnum.cxx

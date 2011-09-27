@@ -22,27 +22,36 @@
  * 
  */ 
 
-#ifndef NIFTITEST_H
-#define NIFTITEST_H
+#ifndef NIFTI_HEADER_H
+#define NIFTI_HEADER_H
 
-#include "TestInterface.h"
-#include "Nifti1Header.h"
+#include <QtCore>
+#include "nifti1.h"
+#include "iostream"
+#include "NiftiException.h"
+#include "ByteSwapping.h"
+#include <vector>
+
+#define NIFTI1_HEADER_SIZE 348
 
 namespace caret {
 
-   class NiftiTest : public TestInterface
-   {
-   public:
-      NiftiTest(const AString& identifier);
-      virtual void execute();
-   };
+/// Simple Container class for storing Nifti1Header data
+class Nifti1Header {
+public:
+   Nifti1Header() throw (NiftiException);
 
-   class NiftiHeaderTest : public TestInterface
-   {
-   public:
-       NiftiHeaderTest(const AString& identifier);
-       virtual void execute();
-   };
-}
+   Nifti1Header(const nifti_1_header &header) throw (NiftiException);
+   ~Nifti1Header();
+   void getHeaderStruct(nifti_1_header &header) const throw (NiftiException);
+   void setHeaderStuct(const nifti_1_header &header) throw (NiftiException);
+   QString *getHeaderAsString();
+   void initHeaderStruct(nifti_1_header &header);
+   void initHeaderStruct();
+private:
+   nifti_1_header m_header;
+};
 
-#endif // NIFTITEST_H
+} // namespace caret
+
+#endif // NIFTI_HEADER_H

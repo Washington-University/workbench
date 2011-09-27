@@ -29,7 +29,7 @@
 #include "nifti2.h"
 #include "iostream"
 #include "CiftiFileException.h"
-#include "NiftiHeader.h"
+#include "NiftiHeaderIO.h"
 #include "CiftiXML.h"
 #include "CiftiMatrix.h"
 

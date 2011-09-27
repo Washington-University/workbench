@@ -35,34 +35,19 @@
 
 namespace caret {
 
-/// Simple Container class for storing NiftiHeader data
-class NiftiHeader {
+/// Simple Container class for storing Nifti2Header data
+class Nifti2Header {
 public:
-   NiftiHeader() throw (NiftiException);
-   NiftiHeader(const QString &inputFileName) throw (NiftiException);
-   NiftiHeader(QFile &inputFile) throw (NiftiException);
-   NiftiHeader(const nifti_2_header &header) throw (NiftiException);
-   ~NiftiHeader();
-   void readFile(const QString &inputFileName) throw (NiftiException);
-   void readFile(QFile &inputFile) throw (NiftiException);
+   Nifti2Header() throw (NiftiException);
+   Nifti2Header(const nifti_2_header &header) throw (NiftiException);
+   ~Nifti2Header();
    void getHeaderStruct(nifti_2_header &header) const throw (NiftiException);
    void setHeaderStuct(const nifti_2_header &header) throw (NiftiException);
-   int getCiftiType(const nifti_2_header &header) const throw (NiftiException);
-   int getCiftiType() const throw (NiftiException);
-   void writeFile(QFile &outputFile) const throw (NiftiException);
-   void writeFile(const QString &outputFileName) const throw (NiftiException);
    QString *getHeaderAsString();
    void initHeaderStruct(nifti_2_header &header);
    void initHeaderStruct();
-   void initTimeSeriesHeaderStruct(nifti_2_header &header);
-   void initTimeSeriesHeaderStruct();
-   bool getSwapNeeded();
-   void getCiftiDimensions(std::vector <int> &dimensions);
-   void setCiftiDimensions(std::vector <int> &dimensions);
 private:
    nifti_2_header m_header;
-   nifti_1_header m_header1;
-   bool m_swapNeeded;
 };
 
 } // namespace caret
