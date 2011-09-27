@@ -242,7 +242,8 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     const int numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
     
-    this->tabBar->setTabText(newTabIndex, tabContent->getName());
+    //this->tabBar->setTabText(newTabIndex, tabContent->getName());
+    this->updateTabName(newTabIndex);
     
     this->tabBar->setCurrentIndex(newTabIndex);
     
@@ -374,6 +375,7 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         if (surfaceController != NULL) {
             btc->setSelectedSurfaceModel(surfaceController);
         }
+        this->updateTabName(tabIndex);
         
         tabIndex++;
     }
@@ -475,11 +477,30 @@ BrainBrowserWindowToolBar::renameTab()
                                                 &ok);
         if (ok) {
             btc->setUserName(newName);
-            this->tabBar->setTabText(tabIndex, btc->getName());
+            this->updateTabName(tabIndex);
         }
     }
 
     
+}
+
+/**
+ * Update the name of the tab at the given index.  The 
+ * name is obtained from the tabs browser content.
+ *
+ * @param tabIndex
+ *   Index of tab.
+ */
+void 
+BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
+{
+    int32_t tabIndexForUpdate = tabIndex;
+    if (tabIndexForUpdate < 0) {
+        tabIndexForUpdate = this->tabBar->currentIndex();
+    }
+    void* p = this->tabBar->tabData(tabIndexForUpdate).value<void*>();
+    BrowserTabContent* btc = (BrowserTabContent*)p;    
+    this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
 }
 
 /**
@@ -504,6 +525,7 @@ BrainBrowserWindowToolBar::closeSelectedTab()
 void 
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
+    this->updateTabName(indx);
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     this->updateGraphicsWindow();
 }
@@ -1734,7 +1756,8 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
-    this->updateToolBar();    
+    this->updateToolBar();   
+    this->updateTabName(-1);
 }
 
 /**
@@ -2069,6 +2092,8 @@ BrainBrowserWindowToolBar::surfaceSurfaceSelectionComboBoxIndexChanged(int selec
         this->updateGraphicsWindow();
     }
 
+    this->updateTabName(-1);
+    
     this->checkUpdateCounter();
 }
 

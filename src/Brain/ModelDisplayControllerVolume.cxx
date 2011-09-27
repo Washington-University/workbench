@@ -66,6 +66,16 @@ ModelDisplayControllerVolume::getNameForGUI(const bool includeStructureFlag) con
 }
 
 /**
+ * @return The name that should be displayed in the tab
+ * displaying this model controller.
+ */
+AString 
+ModelDisplayControllerVolume::getNameForBrowserTab() const
+{
+    return "Volume";
+}
+
+/**
  * Get the brain that created this controller.
  * @return The brain.
  */

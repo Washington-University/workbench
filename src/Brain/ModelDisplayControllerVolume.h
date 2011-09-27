@@ -55,6 +55,8 @@ namespace caret {
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
+        virtual AString getNameForBrowserTab() const;
+        
     private:
         /** Brain which contains the volumes */
         Brain* brain;

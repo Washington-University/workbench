@@ -55,7 +55,7 @@ namespace caret {
         
         AString getName() const;
         
-        void setGuiName(const AString& name);
+        //void setGuiName(const AString& name);
         
         AString getUserName() const;
         
@@ -76,6 +76,8 @@ namespace caret {
         ModelDisplayControllerTypeEnum::Enum getSelectedModelType() const;
         
         void setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType);
+        
+        const ModelDisplayController* getDisplayedModelController() const;
         
         ModelDisplayController* getDisplayedModelController();
         

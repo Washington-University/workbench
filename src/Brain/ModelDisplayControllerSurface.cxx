@@ -100,6 +100,18 @@ ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) co
 }
 
 /**
+ * @return The name that should be displayed in the tab
+ * displaying this model controller.
+ */
+AString 
+ModelDisplayControllerSurface::getNameForBrowserTab() const
+{
+    const StructureEnum::Enum structure = this->surface->getStructure();
+    const AString name = StructureEnum::toGuiName(structure);
+    return name;
+}
+
+/**
  * Set the scaling so that the model fills the window.
  *
  */

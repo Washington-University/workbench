@@ -92,8 +92,13 @@ BrowserTabContent::getName() const
     if (this->userName.isEmpty() == false) {
         s += userName;
     }
-    else if (this->guiName.isEmpty() == false) {
-        s += this->guiName;   
+    else {
+        const ModelDisplayController* displayedController =
+            this->getDisplayedModelController();
+        if (displayedController != NULL) {
+            const AString name = displayedController->getNameForBrowserTab();
+            s += name;
+        }
     }
     
     return s;
@@ -106,12 +111,13 @@ BrowserTabContent::getName() const
  *
  * @param guiName
  *    New name for tab.
- */
+ *
 void 
 BrowserTabContent::setGuiName(const AString& guiName)
 {
     this->guiName = guiName;
 }
+*/
 
 /**
  * Set the user name of this tab.  The user name
@@ -166,7 +172,7 @@ void
 BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType)
 {
     this->selectedModelType = selectedModelType;
-    this->invalidateSurfaceColoring();
+    this->invalidateSurfaceColoring();    
 }
 
 /**
@@ -177,6 +183,34 @@ BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum sel
  */   
 ModelDisplayController* 
 BrowserTabContent::getDisplayedModelController()
+{
+    ModelDisplayController* mdc = NULL;
+    
+    switch (this->selectedModelType) {
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+            mdc = this->selectedSurfaceModel;
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+            mdc = this->volumeModel;
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+            mdc = this->wholeBrainModel;
+            break;
+    }
+    
+    return mdc;
+}
+
+/**
+ * Get the displayed model controller.
+ * 
+ * @return  Pointer to displayed controller or NULL
+ *          if none are available.
+ */   
+const ModelDisplayController* 
+BrowserTabContent::getDisplayedModelController() const
 {
     ModelDisplayController* mdc = NULL;
     

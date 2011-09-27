@@ -91,6 +91,7 @@ namespace caret {
                             ModelDisplayController* controller);
 
         void updateGraphicsWindow();
+        void updateTabName(const int32_t tabIndex);
         
         QWidget* createViewWidget();
         QWidget* createOrientationWidget();

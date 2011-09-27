@@ -65,6 +65,8 @@ namespace caret {
         
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
+        virtual AString getNameForBrowserTab() const = 0;
+        
         bool isRotationAllowed() const;
         
         bool isYokeable() const;

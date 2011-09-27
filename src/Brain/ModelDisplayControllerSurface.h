@@ -59,6 +59,8 @@ namespace caret {
         
         AString getNameForGUI(const bool includeStructureFlag) const;
         
+        virtual AString getNameForBrowserTab() const;
+        
         void setDefaultScalingToFitWindow();
         
     private:

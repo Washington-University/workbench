@@ -55,6 +55,8 @@ namespace caret {
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
         
+        virtual AString getNameForBrowserTab() const;
+        
     private:
         /** Brain to which this controller belongs */
         Brain* brain;

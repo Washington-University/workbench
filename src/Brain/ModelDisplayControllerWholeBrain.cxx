@@ -76,3 +76,13 @@ ModelDisplayControllerWholeBrain::getNameForGUI(const bool includeStructureFlag)
     return "ModelDisplayControllerWholeBrain::getNameForGUI_NEEDS_IMPLEMENTATION";
 }
 
+/**
+ * @return The name that should be displayed in the tab
+ * displaying this model controller.
+ */
+AString 
+ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
+{
+    return "Whole Brain";
+}
+
