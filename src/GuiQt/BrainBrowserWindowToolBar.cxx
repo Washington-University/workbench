@@ -113,7 +113,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->toolsWidget = this->createToolsWidget();
     this->windowWidget = this->createWindowWidget();
-    this->singleSurfaceVerticalBarWidget = WuQtUtilities::createVerticalLineWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
@@ -132,7 +131,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->wholeBrainSurfaceOptionsWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->singleSurfaceVerticalBarWidget, 0, Qt::AlignLeft);
     this->toolbarWidgetLayout->addWidget(this->singleSurfaceSelectionWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumePlaneWidget, 0, Qt::AlignLeft);
@@ -456,7 +454,6 @@ BrainBrowserWindowToolBar::updateToolBar()
      */
     this->orientationWidget->setVisible(false);
     this->wholeBrainSurfaceOptionsWidget->setVisible(false);
-    this->singleSurfaceVerticalBarWidget->setVisible(false);
     this->singleSurfaceSelectionWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
@@ -471,7 +468,6 @@ BrainBrowserWindowToolBar::updateToolBar()
     
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
-    this->singleSurfaceVerticalBarWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->updateGeometry();
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
@@ -1206,7 +1202,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
 
     QWidget* w = this->createToolWidget("Selection", 
                                         widget, 
-                                        WIDGET_PLACEMENT_NONE, 
+                                        WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP, 
                                         100);
     w->setVisible(false);
@@ -1564,7 +1560,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
             CaretAssert(0);
     }
     layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
-/*    
+    
     const bool addVerticalBarOnLeftSide = (verticalBarPlacement == WIDGET_PLACEMENT_LEFT);
     const bool addVerticalBarOnRightSide = (verticalBarPlacement == WIDGET_PLACEMENT_RIGHT);
     
@@ -1584,7 +1580,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         }
         w = w2;
     }
-*/    
+ 
     return w;
 }
 

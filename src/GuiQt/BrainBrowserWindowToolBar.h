@@ -119,7 +119,6 @@ namespace caret {
         QWidget* volumeIndicesWidget;
         QWidget* toolsWidget;
         QWidget* windowWidget;
-        QWidget* singleSurfaceVerticalBarWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
