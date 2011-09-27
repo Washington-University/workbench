@@ -32,16 +32,18 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain Brain to which this controller belongs.
+ * @param controllerType Type of this controller.
  * @param allowsYokingFlag  This controller can be yoked.
  * @param allowsRotationFlag This controller can be rotated.
  *
  */
-ModelDisplayController::ModelDisplayController(const YokingAllowedType allowsYokingStatus,
+ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
+                                               const YokingAllowedType allowsYokingStatus,
                                                const RotationAllowedType allowsRotationStatus)
     : CaretObject()
 {
     this->initializeMembersModelDisplayController();
+    this->controllerType = controllerType;
     this->allowsYokingStatus = allowsYokingStatus;
     this->allowsRotationStatus   = allowsRotationStatus;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -60,6 +62,15 @@ void
 ModelDisplayController::initializeMembersModelDisplayController()
 {
     this->defaultModelScaling = 1.0f;
+}
+
+/**
+ * @return The type of model controller.
+ */
+ModelDisplayControllerTypeEnum::Enum 
+ModelDisplayController::getControllerType() const
+{
+    return this->controllerType; 
 }
 
 /**

@@ -33,7 +33,8 @@ using namespace caret;
  *
  */
 ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
-: ModelDisplayController(YOKING_ALLOWED_NO,
+: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+                         YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_YES)
 {
     this->initializeMembersModelDisplayControllerWholeBrain();

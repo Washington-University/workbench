@@ -42,8 +42,9 @@ using namespace caret;
  *
  */
 ModelDisplayControllerSurface::ModelDisplayControllerSurface(Surface* surface)
-    : ModelDisplayController(YOKING_ALLOWED_YES,
-                             ROTATION_ALLOWED_YES)
+: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE,
+                         YOKING_ALLOWED_YES,
+                         ROTATION_ALLOWED_YES)
 {
     CaretAssert(surface);
     this->initializeMembersModelDisplayControllerSurface();

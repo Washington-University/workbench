@@ -42,8 +42,10 @@
 #include <QTabBar>
 #include <QToolButton>
 
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFunctionName.h"
@@ -56,10 +58,12 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "Surface.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -248,6 +252,133 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         this->updateGraphicsWindow();
     }
+}
+
+/**
+ * Add the default tabs after loading a spec file.
+ */
+void 
+BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
+{
+    EventModelDisplayControllerGetAll eventAllControllers;
+    EventManager::get()->sendEvent(eventAllControllers.getPointer());
+    
+    const std::vector<ModelDisplayController*> allControllers =
+       eventAllControllers.getModelDisplayControllers();
+
+    ModelDisplayControllerSurface* leftSurfaceController = NULL;
+    int32_t leftSurfaceTypeCode = 1000000;
+    
+    ModelDisplayControllerSurface* rightSurfaceController = NULL;
+    int32_t rightSurfaceTypeCode = 1000000;
+
+    ModelDisplayControllerSurface* cerebellumSurfaceController = NULL;
+    int32_t cerebellumSurfaceTypeCode = 1000000;
+    
+    ModelDisplayControllerVolume* volumeController = NULL;
+    ModelDisplayControllerWholeBrain* wholeBrainController = NULL;
+    
+    for (std::vector<ModelDisplayController*>::const_iterator iter = allControllers.begin();
+         iter != allControllers.end();
+         iter++) {
+        ModelDisplayControllerSurface* surfaceController =
+            dynamic_cast<ModelDisplayControllerSurface*>(*iter);
+        if (surfaceController != NULL) {
+            Surface* surface = surfaceController->getSurface();
+            StructureEnum::Enum structure = surface->getStructure();
+            SurfaceTypeEnum::Enum surfaceType = surface->getSurfaceType();
+            const int32_t surfaceTypeCode = SurfaceTypeEnum::toIntegerCode(surfaceType);
+            
+            switch (structure) {
+                case StructureEnum::CEREBELLUM:
+                    if (surfaceTypeCode < cerebellumSurfaceTypeCode) {
+                        cerebellumSurfaceController = surfaceController;
+                        cerebellumSurfaceTypeCode = surfaceTypeCode;
+                    }
+                    break;
+                case StructureEnum::CORTEX_LEFT:
+                    if (surfaceTypeCode < leftSurfaceTypeCode) {
+                        leftSurfaceController = surfaceController;
+                        leftSurfaceTypeCode = surfaceTypeCode;
+                    }
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    if (surfaceTypeCode < rightSurfaceTypeCode) {
+                        rightSurfaceController = surfaceController;
+                        rightSurfaceTypeCode = surfaceTypeCode;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        else if (dynamic_cast<ModelDisplayControllerVolume*>(*iter) != NULL) {
+            volumeController = dynamic_cast<ModelDisplayControllerVolume*>(*iter);
+        }
+        else if (dynamic_cast<ModelDisplayControllerWholeBrain*>(*iter) != NULL) {
+            wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(*iter);
+        }
+        else {
+            CaretAssertMessage(0, AString("Unknow controller type: ") + (*iter)->getNameForGUI(true));
+        }
+    }
+    
+    int32_t tabIndex = 0;
+    
+    tabIndex = loadIntoTab(tabIndex,
+                           leftSurfaceController);
+    tabIndex = loadIntoTab(tabIndex,
+                           rightSurfaceController);
+    tabIndex = loadIntoTab(tabIndex,
+                           cerebellumSurfaceController);
+    tabIndex = loadIntoTab(tabIndex,
+                           volumeController);
+    tabIndex = loadIntoTab(tabIndex,
+                           wholeBrainController);
+    
+    if (this->tabBar->count() > 0) {
+        this->tabBar->setCurrentIndex(0);
+    }
+}
+
+/**
+ * Load a controller into the tab with the given index.
+ * @param tabIndexIn
+ *   Index of tab into which controller is loaded.  A
+ *   new tab will be created, if needed.
+ * @param controller
+ *   Controller that is to be displayed in the tab.  If
+ *   NULL, this method does nothing.
+ * @return
+ *   Index of next tab after controller is displayed.
+ *   If the input controller was NULL, the returned 
+ *   value is identical to the input tab index.
+ */
+int32_t 
+BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
+                                       ModelDisplayController* controller)
+{
+    int32_t tabIndex = tabIndexIn;
+    
+    if (controller != NULL) {
+        if (tabIndex >= this->tabBar->count()) {
+            this->addNewTab();
+            tabIndex = this->tabBar->count() - 1;
+        }
+        void* p = this->tabBar->tabData(tabIndex).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        btc->setSelectedModelType(controller->getControllerType());
+        
+        ModelDisplayControllerSurface* surfaceController =
+        dynamic_cast<ModelDisplayControllerSurface*>(controller);
+        if (surfaceController != NULL) {
+            btc->setSelectedSurfaceModel(surfaceController);
+        }
+        
+        tabIndex++;
+    }
+ 
+    return tabIndex;
 }
 
 /**

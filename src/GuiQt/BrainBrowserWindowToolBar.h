@@ -67,6 +67,8 @@ namespace caret {
         
         QAction* getShowToolBoxAction();
         
+        void addDefaultTabsAfterLoadingSpecFile();
+        
         void receiveEvent(Event* event);
         
     private:        
@@ -85,6 +87,9 @@ namespace caret {
         
         ModelDisplayController* getDisplayedModelController();
         
+        int32_t loadIntoTab(const int32_t tabIndex,
+                            ModelDisplayController* controller);
+
         void updateGraphicsWindow();
         
         QWidget* createViewWidget();

@@ -633,6 +633,8 @@ BrainBrowserWindow::processDataFileOpen()
                         errorMessages += loadFileEvent.getErrorMessage();
                     }
                 }
+                
+                this->toolbar->addDefaultTabsAfterLoadingSpecFile();
             }
             else {
                 if (errorMessages.isEmpty() == false) {

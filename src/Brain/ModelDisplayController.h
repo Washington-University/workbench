@@ -27,6 +27,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
+#include "ModelDisplayControllerTypeEnum.h"
 
 #include "Matrix4x4.h"
 
@@ -46,7 +47,8 @@ namespace caret {
             ROTATION_ALLOWED_NO
         };
         
-        ModelDisplayController(const YokingAllowedType allowsYokingStatus,
+        ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
+                               const YokingAllowedType allowsYokingStatus,
                                const RotationAllowedType allowsRotationStatus);
         
         virtual ~ModelDisplayController();
@@ -59,6 +61,8 @@ namespace caret {
         void initializeMembersModelDisplayController();
         
     public:
+        ModelDisplayControllerTypeEnum::Enum getControllerType() const;
+        
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
         bool isRotationAllowed() const;
@@ -125,6 +129,8 @@ namespace caret {
         float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
+        ModelDisplayControllerTypeEnum::Enum controllerType;
+        
         YokingAllowedType allowsYokingStatus;
         
         RotationAllowedType allowsRotationStatus;

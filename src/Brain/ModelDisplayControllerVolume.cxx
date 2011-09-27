@@ -32,7 +32,8 @@ using namespace caret;
  *
  */
 ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
-: ModelDisplayController(YOKING_ALLOWED_NO,
+: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+                         YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_NO)
 {
     this->initializeMembersModelDisplayControllerVolume();
