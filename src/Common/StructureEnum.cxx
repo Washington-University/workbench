@@ -46,12 +46,11 @@ using namespace caret;
  *    User-friendly name for use in user-interface.
  */
 StructureEnum::StructureEnum(const Enum enumValue,
-                           const int32_t integerCode,
                            const AString& name,
                            const AString& guiName)
 {
     this->enumValue = enumValue;
-    this->integerCode = integerCode;
+    this->integerCode = StructureEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
 }
@@ -75,132 +74,110 @@ StructureEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(StructureEnum(INVALID, 
-                                     0, 
                                      "INVALID", 
                                      "Invalid"));
     
+    enumData.push_back(StructureEnum(ALL, 
+                                     "ALL", 
+                                     "All"));
+    
     enumData.push_back(StructureEnum(CORTEX_LEFT, 
-                                     1, 
                                      "CORTEX_LEFT", 
                                      "CortexLeft"));
     
     enumData.push_back(StructureEnum(CORTEX_RIGHT, 
-                                     2, 
                                      "CORTEX_RIGHT", 
                                      "CortexRight"));
     
     enumData.push_back(StructureEnum(ACCUMBENS_LEFT, 
-                                     3, 
                                      "ACCUMBENS_LEFT", 
                                      "AccumbensLeft"));
     
     enumData.push_back(StructureEnum(ACCUMBENS_RIGHT, 
-                                     4, 
                                      "ACCUMBENS_RIGHT", 
                                      "AccumbensRight"));
     
     enumData.push_back(StructureEnum(AMYGDALA_LEFT, 
-                                     5, 
                                      "AMYGDALA_LEFT", 
                                      "AmygdalaLeft"));
     
     enumData.push_back(StructureEnum(AMYGDALA_RIGHT, 
-                                     6, 
                                      "AMYGDALA_RIGHT", 
                                      "AmygdalaRight"));
     
     enumData.push_back(StructureEnum(BRAIN_STEM, 
-                                     7, 
                                      "BRAIN_STEM", 
                                      "BrainStem"));
     
     enumData.push_back(StructureEnum(CAUDATE_LEFT, 
-                                     8, 
                                      "CAUDATE_LEFT", 
                                      "CaudateLeft"));
     
     enumData.push_back(StructureEnum(CAUDATE_RIGHT, 
-                                     9, 
                                      "CAUDATE_RIGHT", 
                                      "CaudateRight"));
     
     enumData.push_back(StructureEnum(CEREBELLUM, 
-                                     10, 
                                      "CEREBELLUM", 
                                      "Cerebellum"));
     
     enumData.push_back(StructureEnum(CEREBELLUM_LEFT, 
-                                     11, 
                                      "CEREBELLUM_LEFT", 
                                      "CerebellumLeft"));
     
     enumData.push_back(StructureEnum(CEREBELLUM_RIGHT, 
-                                     12, 
                                      "CEREBELLUM_RIGHT", 
                                      "CerebellumRight"));
     
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_LEFT, 
-                                     13, 
                                      "DIENCEPHALON_VENTRAL_LEFT", 
                                      "DiencephalonVentralLeft"));
     
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_RIGHT, 
-                                     14, 
                                      "DIENCEPHALON_VENTRAL_RIGHT", 
                                      "DiencephalonVentralRight"));
     
     enumData.push_back(StructureEnum(HIPPOCAMPUS_LEFT, 
-                                     15, 
                                      "HIPPOCAMPUS_LEFT", 
                                      "HippocampusLeft"));
     
     enumData.push_back(StructureEnum(HIPPOCAMPUS_RIGHT, 
-                                     16, 
                                      "HIPPOCAMPUS_RIGHT", 
                                      "HippocampusRight"));
     
     enumData.push_back(StructureEnum(PALLIDUM_LEFT, 
-                                     17, 
                                      "PALLIDUM_LEFT", 
                                      "PallidumLeft"));
     
     enumData.push_back(StructureEnum(PALLIDUM_RIGHT, 
-                                     18, 
                                      "PALLIDUM_RIGHT", 
                                      "PallidumRight"));
     
     enumData.push_back(StructureEnum(OTHER, 
-                                     19, 
                                      "OTHER", 
                                      "Other"));
     
     enumData.push_back(StructureEnum(PUTAMEN_LEFT, 
-                                     20, 
                                      "PUTAMEN_LEFT", 
                                      "PutamenLeft"));
     
     enumData.push_back(StructureEnum(PUTAMEN_RIGHT, 
-                                     21, 
                                      "PUTAMEN_RIGHT", 
                                      "PutamenRight"));
     
     enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_LEFT, 
-                                     22, 
                                      "SUBCORTICAL_WHITE_MATTER_LEFT", 
                                      "SubcorticalWhiteMatterLeft"));
     
     enumData.push_back(StructureEnum(SUBCORTICAL_WHITE_MATTER_RIGHT, 
-                                     23, 
                                      "SUBCORTICAL_WHITE_MATTER_RIGHT", 
                                      "SubcorticalWhiteMatterRight"));
     
     enumData.push_back(StructureEnum(THALAMUS_LEFT, 
-                                     24, 
                                      "THALAMUS_LEFT", 
                                      "ThalamusLeft"));
     
     enumData.push_back(StructureEnum(THALAMUS_RIGHT, 
-                                     25, 
                                      "THALAMUS_RIGHT", 
                                      "ThalamusRight"));
 }
@@ -392,7 +369,8 @@ StructureEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  * as parameters to toXXX() methods to get associated metadata.
  *
  * @param allEnums
- *     A vector that is OUTPUT containing all of the enumerated values.
+ *     A vector that is OUTPUT containing all of the enumerated values
+ *     except ALL.
  */
 void
 StructureEnum::getAllEnums(std::vector<StructureEnum::Enum>& allEnums)
@@ -404,7 +382,13 @@ StructureEnum::getAllEnums(std::vector<StructureEnum::Enum>& allEnums)
     for (std::vector<StructureEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allEnums.push_back(iter->enumValue);
+        StructureEnum::Enum value =iter->enumValue;
+        if (value == ALL) {
+            // nothing
+        }
+        else {
+            allEnums.push_back(iter->enumValue);
+        }
     }
 }
 

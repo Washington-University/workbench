@@ -46,10 +46,8 @@ public:
     enum Enum {
         /** Invalid */
         INVALID,
-        /** Left Cerebral Cortex */
-        CORTEX_LEFT,
-        /** Right Cerebral Cortex*/
-        CORTEX_RIGHT,
+        /** All Strucures */
+        ALL,
         /** Left Nucleus Accumbens */
         ACCUMBENS_LEFT,
         /** Right Nucleus Accumbens */
@@ -70,6 +68,10 @@ public:
         CEREBELLUM_LEFT,
         /** Right Cerebellum */
         CEREBELLUM_RIGHT,
+        /** Left Cerebral Cortex */
+        CORTEX_LEFT,
+        /** Right Cerebral Cortex*/
+        CORTEX_RIGHT,
         /** Left Ventral Diencephalon */
         DIENCEPHALON_VENTRAL_LEFT,
         /** Right Ventral Diencephalon */
@@ -117,7 +119,6 @@ public:
 
 private:
     StructureEnum(const Enum enumValue, 
-                 const int32_t integerCode, 
                  const AString& name,
                  const AString& guiName);
 
@@ -131,6 +132,8 @@ private:
 
     /** Indicates instance of enum values and metadata have been initialized */
     static bool initializedFlag;
+    
+    static int32_t integerCodeGenerator;
     
     /** The enumerated type value for an instance */
     Enum enumValue;
@@ -148,6 +151,7 @@ private:
 #ifdef __STRUCTURE_ENUM_DECLARE__
 std::vector<StructureEnum> StructureEnum::enumData;
 bool StructureEnum::initializedFlag = false;
+    int32_t StructureEnum::integerCodeGenerator = 0;
 #endif // __STRUCTURE_ENUM_DECLARE__
 
 } // namespace
