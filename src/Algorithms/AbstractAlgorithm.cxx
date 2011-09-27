@@ -30,7 +30,12 @@ using namespace caret;
 AbstractAlgorithm::AbstractAlgorithm(ProgressObject* myProgressObject)
 {
    m_progObj = myProgressObject;
+   m_finish = true;
    myProgressObject->algorithmStartSentinel();
+   if (myProgressObject->isDisabled())
+   {
+      m_finish = false;//don't let a subalgorithm finish the progress bar if the main algorithm ignores it
+   }
 }
 
 float AbstractAlgorithm::getAlgorithmInternalWeight()
@@ -50,5 +55,8 @@ float AbstractAlgorithm::getAlgorithmWeight()
 
 AbstractAlgorithm::~AbstractAlgorithm()
 {
-   m_progObj->forceFinish();
+   if (m_finish)
+   {
+      m_progObj->forceFinish();
+   }
 }

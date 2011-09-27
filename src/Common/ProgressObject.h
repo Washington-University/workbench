@@ -75,8 +75,8 @@ namespace caret {
       ///fill in weight with the ...Algorithm::getAlgorithmWeight() function
       ProgressObject* addAlgorithm(const float weight, const float childResolution = MAX_CHILD_RESOLUTION);
       
-      ///call this inside an algorithm after adding subalgorithms info, to correctly activate the progress bar
-      LevelProgress startLevel(const float finishedProgress = 1.0, const float internalResolution = MAX_INTERNAL_RESOLUTION);
+      ///call this inside an algorithm AFTER ALL addAlgorithm CALLS, to correctly activate the progress bar
+      LevelProgress startLevel(const float finishedProgress = 1.0, const float internalWeight = 1.0, const float internalResolution = MAX_INTERNAL_RESOLUTION);
       
       ///DO NOT USE: used by AbstractAlgorithm constructor to check for algorithms that ignore the object
       void algorithmStartSentinel();
@@ -89,6 +89,9 @@ namespace caret {
       
       ///get the description of the current task
       const AString& getTaskDescription();
+      
+      ///true if algorithmStartSentinel disabled the object
+      bool isDisabled();
       //TODO: make something to return the statuses of all in-progress (nonzero curProgress) tasks for the entire tree, for detailed progress info
       //TODO: set up callbacks so progress changes don't have to be polled for
       friend class LevelProgress;//so that LevelProgress can report progress, but nothing else can

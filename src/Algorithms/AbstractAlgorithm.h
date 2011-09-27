@@ -33,14 +33,16 @@ namespace caret {
    ///the constructor for algorithms does the processing, because constructor/execute cycles don't make sense for something this simple
    class AbstractAlgorithm
    {
-      ProgressObject* m_progObj;
+      ProgressObject* m_progObj;//so that the destructor can make sure the bar finishes
+      bool m_finish;
       AbstractAlgorithm();//prevent default construction
-      static float getAlgorithmInternalWeight();//override these to make progress bars smooth
-      static float getSubAlgorithmWeight();//private so that people don't try to use them to set progress weights
    protected:
+      static float getSubAlgorithmWeight();//protected so that people don't try to use them to set algorithm weights
+      static float getAlgorithmInternalWeight();//override these to make progress bars smooth
       AbstractAlgorithm(ProgressObject* myProgressObject);
       virtual ~AbstractAlgorithm();
    public:
+      ///use this to set the weight parameter of a ProgressObject
       static float getAlgorithmWeight();
    };
 

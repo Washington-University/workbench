@@ -51,7 +51,7 @@ ProgressObject* ProgressObject::addAlgorithm(const float weight, const float chi
    {
       childWeight += iter->weight;
    }
-   m_nonChildWeight = m_totalWeight - childWeight;//if this goes negative, the function to update progress will simply ignore the component
+   m_totalWeight = childWeight + m_nonChildWeight;
    return newInfo.progObjRef;
 }
 
@@ -115,8 +115,17 @@ ProgressObject::ProgressObject(const float weight, const float childResolution)
    m_childResolution = childResolution;
 }
 
-LevelProgress ProgressObject::startLevel(const float finishedProgress, const float internalResolution)
+LevelProgress ProgressObject::startLevel(const float finishedProgress, const float internalWeight, const float internalResolution)
 {
+   CaretAssertMessage(internalWeight > 0.0f, "nonpositive weight in ProgressObject::startLevel");
+   m_nonChildWeight = internalWeight;
+   float childWeight = 0.0f;
+   vector<ProgressInfo>::iterator myend = m_children.end();
+   for (vector<ProgressInfo>::iterator iter = m_children.begin(); iter != myend; ++iter)
+   {
+      childWeight += iter->weight;
+   }
+   m_totalWeight = childWeight + m_nonChildWeight;
    LevelProgress myret;
    myret.m_maximum = finishedProgress;
    myret.m_progObjRef = this;
@@ -142,7 +151,7 @@ void ProgressObject::updateProgress()
          totalWeightComplete += iter->curProgress * iter->weight;
       }
    }
-   if (m_nonChildWeight > 0.0f)
+   if (m_nonChildProgress > 0.0f && m_nonChildWeight > 0.0f)
    {
       totalWeightComplete += m_nonChildProgress * m_nonChildWeight;
    }
@@ -169,6 +178,11 @@ void ProgressObject::updateProgress()
    EventProgressUpdate myUpdate(this);//just send the event, LevelProgress should already have checked if the amount of change was significant
    myUpdate.m_amountUpdate = true;
    EventManager::get()->sendEvent(myUpdate.getPointer());
+}
+
+bool ProgressObject::isDisabled()
+{
+   return m_disabled;
 }
 
 ProgressObject::~ProgressObject()
