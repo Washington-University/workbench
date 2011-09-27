@@ -37,6 +37,13 @@ namespace caret {
       TestAlgorithm(ProgressObject* myproginfo, bool testOver);
    };
 
+   class TestAlgorithm2 : public AbstractAlgorithm
+   {
+   public:
+      bool m_failed;
+      TestAlgorithm2(ProgressObject* myproginfo);
+   };
+
    class ProgressTest : public TestInterface
    {
    public:

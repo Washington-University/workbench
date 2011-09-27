@@ -29,6 +29,7 @@ using namespace caret;
 
 AbstractAlgorithm::AbstractAlgorithm(ProgressObject* myProgressObject)
 {
+   m_progObj = myProgressObject;
    myProgressObject->algorithmStartSentinel();
 }
 
@@ -45,4 +46,9 @@ float AbstractAlgorithm::getSubAlgorithmWeight()
 float AbstractAlgorithm::getAlgorithmWeight()
 {
    return getAlgorithmInternalWeight() + getSubAlgorithmWeight();
+}
+
+AbstractAlgorithm::~AbstractAlgorithm()
+{
+   m_progObj->forceFinish();
 }

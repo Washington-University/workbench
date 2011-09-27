@@ -74,27 +74,37 @@ TestAlgorithm::TestAlgorithm(ProgressObject* myproginfo, bool testOver) : Abstra
    }
 }
 
+TestAlgorithm2::TestAlgorithm2(ProgressObject* myproginfo): AbstractAlgorithm(myproginfo)
+{
+   //do nothing, simulate ignoring the object
+}
+
 ProgressTest::ProgressTest(const AString& identifier): TestInterface(identifier)
 {
 }
 
 void ProgressTest::execute()
 {
-   ProgressObject myprog1(TestAlgorithm::getAlgorithmWeight()), myprog2(TestAlgorithm::getAlgorithmWeight());
+   ProgressObject myprog1(TestAlgorithm::getAlgorithmWeight()), myprog2(TestAlgorithm::getAlgorithmWeight()), myprog3(TestAlgorithm2::getAlgorithmWeight());
    TestAlgorithm myalg(&myprog1, false);
    if (myprog1.getCurrentProgressFraction() != 1.0f || myprog1.getCurrentProgressPercent() != 100.0f)
    {
       setFailed(AString("Finished state reports ") + AString::number(myprog1.getCurrentProgressFraction()) + AString(" and ") + AString::number(myprog1.getCurrentProgressPercent()) + AString("%"));
    }
-   myprog1.forceFinish();//not needed because this algorithm uses the object, but just for example
    if (myalg.m_failed)
    {
       setFailed("Algorithm reported failure internally");
    }
    TestAlgorithm myalg2(&myprog2, true);
-   myprog2.forceFinish();//again, example of correct usage
    if (myalg2.m_failed)
    {
       setFailed("Algorithm reported failure internally");
+   }
+   {
+      TestAlgorithm2 myalg3(&myprog3);
+   }
+   if (myprog3.getCurrentProgressFraction() != 1.0f || myprog3.getCurrentProgressPercent() != 100.0f)
+   {
+      setFailed("ignored progress object does not register as completed upon algorithm destruction");
    }
 }
