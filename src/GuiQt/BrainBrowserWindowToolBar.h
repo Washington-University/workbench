@@ -110,7 +110,8 @@ namespace caret {
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
                                   const WidgetPlacement verticalBarPlacement,
-                                  const WidgetPlacement contentPlacement);
+                                  const WidgetPlacement contentPlacement,
+                                  const int horizontalStretching);
         
         QWidget* viewWidget;
         QWidget* orientationWidget;
@@ -118,10 +119,11 @@ namespace caret {
         QWidget* volumeIndicesWidget;
         QWidget* toolsWidget;
         QWidget* windowWidget;
+        QWidget* singleSurfaceVerticalBarWidget;
         QWidget* singleSurfaceSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
-        QWidget* spacerWidget;
+        //QWidget* spacerWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
         WuQWidgetObjectGroup* orientationWidgetGroup;

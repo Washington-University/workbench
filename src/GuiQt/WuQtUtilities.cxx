@@ -315,7 +315,7 @@ WuQtUtilities::matchWidgetHeights(QWidget* w1,
 }
 
 void 
-WuQtUtilities::setLayoutMargins(QBoxLayout* layout,
+WuQtUtilities::setLayoutMargins(QLayout* layout,
                                 const int spacing,
                                 const int margin,
                                 const int contentsMargin)

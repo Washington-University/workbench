@@ -113,10 +113,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->volumeIndicesWidget = this->createVolumeIndicesWidget();
     this->toolsWidget = this->createToolsWidget();
     this->windowWidget = this->createWindowWidget();
+    this->singleSurfaceVerticalBarWidget = WuQtUtilities::createVerticalLineWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
-    this->spacerWidget = new QWidget;
+    //this->spacerWidget = new QWidget;
     
     /*
      * Layout the toolbar's widgets.
@@ -131,6 +132,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->wholeBrainSurfaceOptionsWidget, 0, Qt::AlignLeft);
     
+    this->toolbarWidgetLayout->addWidget(this->singleSurfaceVerticalBarWidget, 0, Qt::AlignLeft);
     this->toolbarWidgetLayout->addWidget(this->singleSurfaceSelectionWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumePlaneWidget, 0, Qt::AlignLeft);
@@ -139,11 +141,13 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->toolbarWidgetLayout->addWidget(this->volumeMontageWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->spacerWidget, 0, Qt::AlignLeft);
+    //this->toolbarWidgetLayout->addWidget(this->spacerWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->toolsWidget, 0, Qt::AlignRight);
+    this->toolbarWidgetLayout->addWidget(this->toolsWidget, 0, Qt::AlignLeft);
     
-    this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignRight);
+    this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addStretch();
 
     /*
      * Arrange the tabbar and the toolbar vertically.
@@ -452,6 +456,7 @@ BrainBrowserWindowToolBar::updateToolBar()
      */
     this->orientationWidget->setVisible(false);
     this->wholeBrainSurfaceOptionsWidget->setVisible(false);
+    this->singleSurfaceVerticalBarWidget->setVisible(false);
     this->singleSurfaceSelectionWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
@@ -459,14 +464,16 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->toolsWidget->setVisible(false);
     this->windowWidget->setVisible(false);
     
-    this->toolbarWidgetLayout->setStretchFactor(this->singleSurfaceSelectionWidget, 
-                                              singleSurfaceWidgetStretchFactor);
-    this->toolbarWidgetLayout->setStretchFactor(this->spacerWidget, 
-                                              spacerWidgetStretchFactor);
+    //this->toolbarWidgetLayout->setStretchFactor(this->singleSurfaceSelectionWidget, 
+    //                                          singleSurfaceWidgetStretchFactor);
+    //this->toolbarWidgetLayout->setStretchFactor(this->spacerWidget, 
+    //                                          spacerWidgetStretchFactor);
     
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
+    this->singleSurfaceVerticalBarWidget->setVisible(showSingleSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
+    this->singleSurfaceSelectionWidget->updateGeometry();
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
     this->volumeMontageWidget->setVisible(showVolumeMontageWidget);
@@ -476,11 +483,11 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->updateOrientationWidget(browserTabContent);
     this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
     this->updateVolumeIndicesWidget(browserTabContent);
-    this->updateToolsWidget(browserTabContent);
-    this->updateWindowWidget(browserTabContent);
     this->updateSingleSurfaceOptionsWidget(browserTabContent);
     this->updateVolumeMontageWidget(browserTabContent);
     this->updateVolumePlaneWidget(browserTabContent);
+    this->updateToolsWidget(browserTabContent);
+    this->updateWindowWidget(browserTabContent);
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
@@ -531,7 +538,11 @@ BrainBrowserWindowToolBar::createViewWidget()
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
     this->viewWidgetGroup->add(this->viewModeWholeBrainRadioButton);
     
-    QWidget* w = this->createToolWidget("View", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("View", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_NONE, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     return w;
 }
 
@@ -782,7 +793,11 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonMenu);
 
-    QWidget* orientWidget = this->createToolWidget("Orientation", w, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* orientWidget = this->createToolWidget("Orientation", 
+                                                   w, 
+                                                   WIDGET_PLACEMENT_LEFT, 
+                                                   WIDGET_PLACEMENT_TOP,
+                                                   0);
     orientWidget->setVisible(false);
     
     return orientWidget;
@@ -909,7 +924,11 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationLeftRightSpinBox);
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationCerebellumSpinBox);
     
-    QWidget* w = this->createToolWidget("Surface Options", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Surface Options", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     w->setVisible(false);
     return w;
 }
@@ -1011,7 +1030,11 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialCheckBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialSpinBox);
     
-    QWidget* w = this->createToolWidget("Volume Indices", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Volume Indices", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     w->setVisible(false);
     return w;
 }
@@ -1058,7 +1081,11 @@ BrainBrowserWindowToolBar::createToolsWidget()
     this->toolsWidgetGroup = new WuQWidgetObjectGroup(this);
     this->toolsWidgetGroup->add(this->toolsToolBoxToolButtonAction);
     
-    QWidget* w = this->createToolWidget("Tools", widget, WIDGET_PLACEMENT_LEFT, WIDGET_PLACEMENT_BOTTOM);
+    QWidget* w = this->createToolWidget("Tools", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_BOTTOM,
+                                        0);
     return w;
 }
 
@@ -1117,7 +1144,11 @@ BrainBrowserWindowToolBar::createWindowWidget()
     this->windowWidgetGroup->add(this->windowYokeToTabComboBox);
     this->windowWidgetGroup->add(this->windowYokeMirroredCheckBox);
     
-    QWidget* w = this->createToolWidget("Window", widget, WIDGET_PLACEMENT_LEFT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Window", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     return w;
 }
 
@@ -1160,17 +1191,24 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
                      this, SLOT(surfaceSurfaceSelectionComboBoxIndexChanged(int)));
 
     QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
     WuQtUtilities::setLayoutMargins(layout, 6, 2, 2);
-    layout->addWidget(structureSurfaceLabel);
-    layout->addWidget(this->surfaceSurfaceSelectionComboBox);
-    layout->addStretch();
+    layout->addWidget(structureSurfaceLabel, 0, 0);
+    layout->addWidget(this->surfaceSurfaceSelectionComboBox, 1, 0, 1, 2);
     
+    //QLabel* selectionLabel = new QLabel("Selection");
+    //layout->addWidget(selectionLabel, 2, 0, 1, 2);
     
     this->singleSurfaceSelectionWidgetGroup = new WuQWidgetObjectGroup(this);
     this->singleSurfaceSelectionWidgetGroup->add(this->surfaceSurfaceSelectionComboBox);
 
-    QWidget* w = this->createToolWidget("Selection", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Selection", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_NONE, 
+                                        WIDGET_PLACEMENT_TOP, 
+                                        100);
     w->setVisible(false);
     return w;
 }
@@ -1229,6 +1267,8 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     }
     
     this->singleSurfaceSelectionWidgetGroup->blockSignals(false);
+    
+    this->surfaceSurfaceSelectionComboBox->updateGeometry();    
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1282,7 +1322,11 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     this->volumeMontageWidgetGroup->add(this->montageColumnsSpinBox);
     this->volumeMontageWidgetGroup->add(this->montageSpacingSpinBox);
     
-    QWidget* w = this->createToolWidget("Montage", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Montage", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     w->setVisible(false);
     return w;
 }
@@ -1442,7 +1486,11 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     this->volumePlaneWidgetGroup->add(this->volumePlaneActionGroup);
     this->volumePlaneWidgetGroup->add(this->volumePlaneResetToolButtonAction);
     
-    QWidget* w = this->createToolWidget("Plane", widget, WIDGET_PLACEMENT_RIGHT, WIDGET_PLACEMENT_TOP);
+    QWidget* w = this->createToolWidget("Plane", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP,
+                                        0);
     w->setVisible(false);
     return w;
 }
@@ -1488,28 +1536,35 @@ QWidget*
 BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             QWidget* childWidget,
                                             const WidgetPlacement verticalBarPlacement,
-                                            const WidgetPlacement contentPlacement)
+                                            const WidgetPlacement contentPlacement,
+                                            const int horizontalStretching)
 {
     //QLabel* nameLabel = new QLabel("<html><b>" + name + "<b></html>");
     QLabel* nameLabel = new QLabel("<html>" + name + "</html>");
     
     QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
+    QGridLayout* layout = new QGridLayout(w);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);    
     WuQtUtilities::setLayoutMargins(layout, 2, 2, 0);
     switch (contentPlacement) {
         case WIDGET_PLACEMENT_BOTTOM:
-            layout->addStretch();
-            layout->addWidget(childWidget);
+            //layout->addStretch();
+            layout->setRowStretch(0, 100);
+            layout->setRowStretch(1, 0);
+            layout->addWidget(childWidget, 1, 0, 1, 2);
             break;
         case WIDGET_PLACEMENT_TOP:
-            layout->addWidget(childWidget);
-            layout->addStretch();
+            layout->setRowStretch(1, 100);
+            layout->setRowStretch(0, 0);
+            layout->addWidget(childWidget, 0, 0, 1, 2);
+            //layout->addStretch();
             break;
         default:
             CaretAssert(0);
     }
-    layout->addWidget(nameLabel, 0, Qt::AlignHCenter);
-    
+    layout->addWidget(nameLabel, 2, 0, 1, 2, Qt::AlignHCenter);
+/*    
     const bool addVerticalBarOnLeftSide = (verticalBarPlacement == WIDGET_PLACEMENT_LEFT);
     const bool addVerticalBarOnRightSide = (verticalBarPlacement == WIDGET_PLACEMENT_RIGHT);
     
@@ -1529,7 +1584,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         }
         w = w2;
     }
-    
+*/    
     return w;
 }
 

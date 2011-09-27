@@ -87,7 +87,7 @@ namespace caret {
                                        QWidget* w9 = 0,
                                        QWidget* w10 = 0);
         
-        static void setLayoutMargins(QBoxLayout* layout,
+        static void setLayoutMargins(QLayout* layout,
                                      const int spacing,
                                      const int margin,
                                      const int contentsMargin);

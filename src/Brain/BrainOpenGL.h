@@ -65,7 +65,7 @@ namespace caret {
                              const int32_t width, 
                              const int32_t height);
 
-        static float getModelViewingHalfWindowHeight() { return 125.0f; }
+        static float getModelViewingHalfWindowHeight() { return 100.0f; }
         
     private:
         void initializeMembersBrainOpenGL();

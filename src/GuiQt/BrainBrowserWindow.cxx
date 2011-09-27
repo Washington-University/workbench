@@ -78,8 +78,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->openGLWidget = new BrainOpenGLWidget(this,
                                                browserWindowIndex);
     
-    const int openGLSizeX = 512;
-    const int openGLSizeY = 512;
+    const int openGLSizeX = 500;
+    const int openGLSizeY = 375;
     this->openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);
     
