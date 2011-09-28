@@ -60,6 +60,7 @@ EventSpecFileReadDataFiles.h
 EventSurfaceColoringInvalidate.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
+ModelDisplayControllerSurfaceSelector.h
 ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
@@ -89,6 +90,7 @@ EventSpecFileReadDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx
+ModelDisplayControllerSurfaceSelector.cxx
 ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx

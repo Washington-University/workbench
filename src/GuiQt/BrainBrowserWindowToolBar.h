@@ -32,6 +32,7 @@
 
 #include "EventListenerInterface.h"
 #include "ModelDisplayControllerTypeEnum.h"
+#include "StructureEnum.h"
 
 class QAbstractButton;
 class QActionGroup;
@@ -51,6 +52,8 @@ namespace caret {
     
     class BrowserTabContent;
     class ModelDisplayController;
+    class ModelDisplayControllerSurface;
+    class StructureSurfaceSelectionControl;
     class WuQWidgetObjectGroup;
     
     class BrainBrowserWindowToolBar : public QToolBar, public EventListenerInterface   {
@@ -263,10 +266,11 @@ namespace caret {
         void windowYokeMirroredCheckBoxStateChanged(int state);
         
     private:
-        QComboBox* surfaceSurfaceSelectionComboBox;
+        StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;
         
     private slots:
-        void surfaceSurfaceSelectionComboBoxIndexChanged(int indx);
+        void surfaceSelectionControlChanged(const StructureEnum::Enum,
+                                            ModelDisplayControllerSurface*);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;

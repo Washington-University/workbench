@@ -31,6 +31,7 @@ BrainOpenGLWidget.h
 GuiManager.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+StructureSurfaceSelectionControl.h
 WuQFileDialog.h
 WuQMessageBox.h
 WuQWidgetObjectGroup.h
@@ -52,6 +53,7 @@ EventUserInterfaceUpdate.h
 GuiManager.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+StructureSurfaceSelectionControl.h
 ViewModeEnum.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
@@ -72,6 +74,7 @@ EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
+StructureSurfaceSelectionControl.cxx
 ViewModeEnum.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx

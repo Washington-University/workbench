@@ -61,9 +61,11 @@
 #include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "Surface.h"
+#include "StructureSurfaceSelectionControl.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -373,7 +375,7 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         ModelDisplayControllerSurface* surfaceController =
         dynamic_cast<ModelDisplayControllerSurface*>(controller);
         if (surfaceController != NULL) {
-            btc->setSelectedSurfaceModel(surfaceController);
+            btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
         }
         this->updateTabName(tabIndex);
         
@@ -1333,25 +1335,23 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
 {
     QLabel* structureSurfaceLabel = new QLabel("Brain Structure and Surface: ");
     
-    this->surfaceSurfaceSelectionComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->surfaceSurfaceSelectionComboBox,
-                                          "Select the displayed surface");
-    QObject::connect(this->surfaceSurfaceSelectionComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(surfaceSurfaceSelectionComboBoxIndexChanged(int)));
-
-    QWidget* widget = new QWidget();
-    QGridLayout* layout = new QGridLayout(widget);
-    layout->setColumnStretch(0, 0);
-    layout->setColumnStretch(1, 100);
-    WuQtUtilities::setLayoutMargins(layout, 6, 2, 2);
-    layout->addWidget(structureSurfaceLabel, 0, 0);
-    layout->addWidget(this->surfaceSurfaceSelectionComboBox, 1, 0, 1, 2);
+    this->surfaceSurfaceSelectionControl = new StructureSurfaceSelectionControl(false);
+    QObject::connect(this->surfaceSurfaceSelectionControl, 
+                     SIGNAL(selectionChanged(const StructureEnum::Enum,
+                                             ModelDisplayControllerSurface*)),
+                     this,
+                     SLOT(surfaceSelectionControlChanged(const StructureEnum::Enum,
+                                                         ModelDisplayControllerSurface*)));
     
-    //QLabel* selectionLabel = new QLabel("Selection");
-    //layout->addWidget(selectionLabel, 2, 0, 1, 2);
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(layout, 6, 2, 2);
+    layout->addWidget(structureSurfaceLabel);
+    layout->addWidget(this->surfaceSurfaceSelectionControl);
+    layout->addStretch();
     
     this->singleSurfaceSelectionWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->singleSurfaceSelectionWidgetGroup->add(this->surfaceSurfaceSelectionComboBox);
+    this->singleSurfaceSelectionWidgetGroup->add(this->surfaceSurfaceSelectionControl);
 
     QWidget* w = this->createToolWidget("Selection", 
                                         widget, 
@@ -1379,46 +1379,10 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     
     this->singleSurfaceSelectionWidgetGroup->blockSignals(true);
     
-
-    /*
-     * Get all surfaces
-     */
-    std::vector<ModelDisplayControllerSurface*> allSurfaceModels =
-        browserTabContent->getAllSurfaceModels();
-    
-    /*
-     * Find the selected surface.
-     */
-    ModelDisplayControllerSurface* selectedSurfaceModel = browserTabContent->getSelectedSurfaceModel();
-
-    /*
-     * Remove all from the combo box.
-     */
-    this->surfaceSurfaceSelectionComboBox->clear();
-    
-    /*
-     * Find surface models and add them to the combo box.
-     */
-    int defaultIndex = -1;
-    const int32_t numModels = static_cast<int32_t>(allSurfaceModels.size());
-    for (int32_t i = 0; i < numModels; i++) {
-        ModelDisplayControllerSurface* mdcs = allSurfaceModels[i];
-
-        this->surfaceSurfaceSelectionComboBox->addItem(mdcs->getNameForGUI(true),
-                                                       qVariantFromValue((void*)mdcs));
-        if (mdcs == selectedSurfaceModel) {
-            defaultIndex = i;
-        }
-    }
-    
-    if (defaultIndex >= 0) {
-        this->surfaceSurfaceSelectionComboBox->setCurrentIndex(defaultIndex);
-    }
+    this->surfaceSurfaceSelectionControl->updateControl(browserTabContent->getSurfaceModelSelector());
     
     this->singleSurfaceSelectionWidgetGroup->blockSignals(false);
     
-    this->surfaceSurfaceSelectionComboBox->updateGeometry();    
-
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 
@@ -2073,28 +2037,29 @@ BrainBrowserWindowToolBar::windowYokeMirroredCheckBoxStateChanged(int state)
 }
 
 /**
- * Called when single surface selection combo box is changed.
- * @param selectedIndex
- *    Index that was selected.
+ * Called when a single surface control is changed.
+ * @param structure
+ *      Structure that is selected.
+ * @param surfaceController
+ *     Controller that is selected.
  */
 void 
-BrainBrowserWindowToolBar::surfaceSurfaceSelectionComboBoxIndexChanged(int selectedIndex)
+BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
+                                    const StructureEnum::Enum structure,
+                                    ModelDisplayControllerSurface* surfaceController)
 {
-    ModelDisplayControllerSurface* selectedSurfaceModel = NULL;
-    if (selectedIndex >= 0) {
-        void* pointer = this->surfaceSurfaceSelectionComboBox->itemData(selectedIndex).value<void*>();
-        selectedSurfaceModel = (ModelDisplayControllerSurface*)pointer;
-    }
-    
-    if (selectedSurfaceModel != NULL) {
+    if (surfaceController != NULL) {
         BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-        btc->setSelectedSurfaceModel(selectedSurfaceModel);
+        ModelDisplayControllerSurfaceSelector* surfaceModelSelector = btc->getSurfaceModelSelector();
+        surfaceModelSelector->setSelectedStructure(structure);
+        surfaceModelSelector->setSelectedSurfaceController(surfaceController);
+        btc->invalidateSurfaceColoring();
         this->updateGraphicsWindow();
     }
-
+    
     this->updateTabName(-1);
     
-    this->checkUpdateCounter();
+    this->checkUpdateCounter();    
 }
 
 /**

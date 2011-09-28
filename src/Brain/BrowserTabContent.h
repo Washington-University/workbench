@@ -36,6 +36,7 @@ namespace caret {
 
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
+    class ModelDisplayControllerSurfaceSelector;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
     class Surface;
@@ -89,9 +90,7 @@ namespace caret {
         
         const std::vector<ModelDisplayControllerSurface*> getAllSurfaceModels() const;
         
-        ModelDisplayControllerSurface* getSelectedSurfaceModel();
-        
-        void setSelectedSurfaceModel(ModelDisplayControllerSurface* selectedSurfaceModel);
+        ModelDisplayControllerSurfaceSelector* getSurfaceModelSelector();
         
         void update(const std::vector<ModelDisplayController*> modelDisplayControllers);
         
@@ -113,7 +112,7 @@ namespace caret {
         int32_t tabNumber;
         
         /** Selected surface model */
-        ModelDisplayControllerSurface* selectedSurfaceModel;
+        ModelDisplayControllerSurfaceSelector* surfaceModelSelector;
         
         /** Selected model type */
         ModelDisplayControllerTypeEnum::Enum selectedModelType;

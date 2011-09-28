@@ -33,6 +33,7 @@
 #include "EventManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "Surface.h"
@@ -51,7 +52,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 : CaretObject()
 {
     this->tabNumber = tabNumber;
-    this->selectedSurfaceModel = NULL;
+    this->surfaceModelSelector = new ModelDisplayControllerSurfaceSelector();
     this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
@@ -75,6 +76,8 @@ BrowserTabContent::~BrowserTabContent()
     EventManager::get()->removeAllEventsFromListener(this);
     delete this->surfaceColoring;
     this->surfaceColoring = NULL;
+    delete this->surfaceModelSelector;
+    this->surfaceModelSelector = NULL;
 }
 
 /**
@@ -190,7 +193,7 @@ BrowserTabContent::getDisplayedModelController()
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
-            mdc = this->selectedSurfaceModel;
+            mdc = this->surfaceModelSelector->getSelectedSurfaceController();
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
@@ -218,7 +221,7 @@ BrowserTabContent::getDisplayedModelController() const
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
-            mdc = this->selectedSurfaceModel;
+            mdc = this->surfaceModelSelector->getSelectedSurfaceController();
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
@@ -287,28 +290,14 @@ BrowserTabContent::getAllSurfaceModels() const
     return this->allSurfaceModels;
 }
 
-
 /**
- * Get the selected surface model.
- * 
- * @return  Pointer to selected surface model.
- */   
-ModelDisplayControllerSurface* 
-BrowserTabContent::getSelectedSurfaceModel()
+ * @return The surface model selector used to 
+ * select a surface and structure.
+ */
+ModelDisplayControllerSurfaceSelector* 
+BrowserTabContent::getSurfaceModelSelector()
 {
-    return this->selectedSurfaceModel;
-}
-
-/**
- * Set the selected surface model.
- * @param selectedSurfaceModel
- *    New selected surface model.
- */   
-void 
-BrowserTabContent::setSelectedSurfaceModel(ModelDisplayControllerSurface* selectedSurfaceModel)
-{
-    this->selectedSurfaceModel = selectedSurfaceModel;
-    this->invalidateSurfaceColoring();
+    return this->surfaceModelSelector;
 }
 
 /**
@@ -385,13 +374,13 @@ BrowserTabContent::getTabNumber() const
 void 
 BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDisplayControllers)
 {
+    this->surfaceModelSelector->updateSelector(modelDisplayControllers);
+    
     const int32_t numModels = static_cast<int32_t>(modelDisplayControllers.size());
     
     this->allSurfaceModels.clear();
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
-    
-    bool foundSelectedSurfaceModel = false;
     
     for (int i = 0; i < numModels; i++) {
         ModelDisplayController* mdc = modelDisplayControllers[i];
@@ -401,10 +390,7 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
         ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
         
         if (mdcs != NULL) {
-            this->allSurfaceModels.push_back(mdcs);
-            if (mdcs == this->selectedSurfaceModel) {
-                foundSelectedSurfaceModel = true;
-            }
+            /* nothing to do since the surface model selector handles surfaces */
         }
         else if (mdcv != NULL) {
             CaretAssertMessage((this->volumeModel == NULL), "There is more than one volume model.");
@@ -419,20 +405,11 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
         }
     }
     
-    if (foundSelectedSurfaceModel == false) {
-        if (this->allSurfaceModels.empty() == false) {
-            this->selectedSurfaceModel = this->allSurfaceModels[0];
-        }
-        else {
-            this->selectedSurfaceModel = NULL;
-        }
-    }
-    
     switch (this->selectedModelType) {
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
-            if (this->selectedSurfaceModel == NULL) {
+            if (this->surfaceModelSelector->getSelectedSurfaceController() == NULL) {
                 this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
@@ -452,7 +429,7 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
         if (this->wholeBrainModel != NULL) {
             this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
         }
-        else if (this->selectedSurfaceModel != NULL) {
+        else if (this->surfaceModelSelector->getSelectedSurfaceController() != NULL) {
             this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE;
         }
         else if (this->volumeModel != NULL) {
