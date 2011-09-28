@@ -31,6 +31,7 @@
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayControllerSurface.h"
 #include "Surface.h"
+#include <algorithm>
 
 using namespace caret;
 
