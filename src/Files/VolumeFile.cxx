@@ -34,11 +34,7 @@ using namespace std;
 
 void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
-   if (m_data != NULL)
-   {
-      delete[] m_data;
-      m_data = NULL;
-   }
+   freeMemory();
    CaretAssert(dimensionsIn.size() >= 3);
    CaretAssert(indexToSpace.size() >= 3);//support using the 3x4 part of a 4x4 matrix
    CaretAssert(indexToSpace[0].size() == 4);
@@ -68,6 +64,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
    int64_t totalSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
    m_data = new float[totalSize];
    CaretAssert(m_data != NULL);
+   setupIndexing();
    //TODO: adjust any existing nifti header to match, or remove nifti header?
 }
 
@@ -77,6 +74,7 @@ VolumeFile::VolumeFile()
    m_N1Header = NULL;
    m_N2Header = NULL;
    m_headerType = NONE;
+   m_indexRef = NULL;
    m_dimensions[0] = 0;
    m_dimensions[1] = 0;
    m_dimensions[2] = 0;
@@ -100,6 +98,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
    m_N1Header = NULL;
    m_N2Header = NULL;
    m_headerType = NONE;
+   m_indexRef = NULL;
    reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
 
@@ -168,19 +167,15 @@ void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = (int32_t)floor(0.5f + tempInd3);
 }
 
-float VolumeFile::getValue(const int64_t* indexIn, const int64_t timeIndex, const int64_t numComponents)
+float VolumeFile::getValue(const int64_t* indexIn, const int64_t brickIndex, const int64_t component)
 {
-   return getValue(indexIn[0], indexIn[1], indexIn[2], timeIndex, numComponents);
+   return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
 }
 
-float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t numComponents)
+float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
 {
-   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex, numComponents));//assert so release version isn't slowed by checking
-   //for now, do it the slow way
-   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex, numComponents);
-   //TODO: use auxiliary arrays to precalcuate offsets or make it indexable as if multidimensional
-   //can have the most influential index first, as an array of float****, which can point to multiple places in a float***, continue until indexing into m_data
-   return m_data[index];
+   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
+   return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
 }
 
 void VolumeFile::getDimensions(vector<int64_t>& dimOut)
@@ -189,20 +184,21 @@ void VolumeFile::getDimensions(vector<int64_t>& dimOut)
    getDimensions(dimOut[0], dimOut[1], dimOut[2], dimOut[3], dimOut[4]);
 }
 
-void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents)
+void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimBricksOut, int64_t& numComponents)
 {
    dimOut1 = m_dimensions[0];
    dimOut2 = m_dimensions[1];
    dimOut3 = m_dimensions[2];
-   dimTimeOut = m_dimensions[3];
+   dimBricksOut = m_dimensions[3];
    numComponents = m_dimensions[4];
 }
 
-int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
+int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
 {//the component is split out, so you have the entire R volume timeseries, then entire G, then entire B, as stored in memory, this will make indexing tricks less memory intensive
-   return indexIn1 + m_dimensions[0] * (indexIn2 + m_dimensions[1] * (indexIn3 + m_dimensions[2] * (timeIndex + m_dimensions[3] * component)));
+   //return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
+   //HACK: use pointer math and the indexing array to get the index
+   return (m_indexRef[component][brickIndex][indexIn3][indexIn2] + indexIn1) - m_data;
 }//doesn't seem to have a performance drawback to order them in memory this way
-//NOTE: computing indexes via multiply on every call like this is SLOW, need a better way
 
 void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut)
 {
@@ -221,6 +217,7 @@ void VolumeFile::indexToSpace(const int64_t* indexIn, float& coordOut1, float& c
 
 void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3)
 {
+   //do we want an assert here?  I think it is okay to find the theoretical coordinates of an undefined voxel
    coordOut1 = m_indexToSpace[0][0] * indexIn1 + m_indexToSpace[0][1] * indexIn2 + m_indexToSpace[0][2] * indexIn3 + m_indexToSpace[0][3];
    coordOut2 = m_indexToSpace[1][0] * indexIn1 + m_indexToSpace[1][1] * indexIn2 + m_indexToSpace[1][2] * indexIn3 + m_indexToSpace[1][3];
    coordOut3 = m_indexToSpace[2][0] * indexIn1 + m_indexToSpace[2][1] * indexIn2 + m_indexToSpace[2][2] * indexIn3 + m_indexToSpace[2][3];
@@ -296,25 +293,113 @@ void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
    indexOut3 = m_spaceToIndex[2][0] * coordIn1 + m_spaceToIndex[2][1] * coordIn2 + m_spaceToIndex[2][2] * coordIn3 + m_spaceToIndex[2][3];
 }
 
-void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t timeIndex, const int64_t component)
+void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex, const int64_t component)
 {
-   setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], timeIndex, component);
+   setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
 }
 
-void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
+void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t& brickIndex, const int64_t component)
 {
-   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, timeIndex, component));//assert so release version isn't slowed by checking
-   //for now, the slow way
-   int64_t index = getIndex(indexIn1, indexIn2, indexIn3, timeIndex, component);
-   m_data[index] = valueIn;
+   CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
+   m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
 }
 
-bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t timeIndex, const int64_t component)
+bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
 {
    if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
    if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
    if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
-   if (timeIndex < 0 || timeIndex >= m_dimensions[3]) return false;
+   if (brickIndex < 0 || brickIndex >= m_dimensions[3]) return false;
    if (component < 0 || component >= m_dimensions[4]) return false;
    return true;
+}
+
+void VolumeFile::freeMemory()
+{
+   if (m_data != NULL)
+   {
+      delete[] m_data;
+      m_data = NULL;
+   }
+   if (m_indexRef != NULL)
+   {//assume the entire thing exists
+      delete[] m_indexRef[0][0][0];//they were actually allocated as only 4 flat arrays
+      delete[] m_indexRef[0][0];
+      delete[] m_indexRef[0];
+      delete[] m_indexRef;
+      m_indexRef = NULL;
+   }
+}
+
+void VolumeFile::setupIndexing()
+{//must have valid m_dimensions and m_data before calling this, and already have the previous indexing freed
+   int64_t dim43 = m_dimensions[4] * m_dimensions[3];//sizes for the reverse indexing lookup arrays
+   int64_t dim432 = dim43 * m_dimensions[2];
+   int64_t dim4321 = dim432 * m_dimensions[1];
+   int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
+   /*int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
+   int64_t dim0123 = dim012 * m_dimensions[3];//*/ //size of a timeseries (single component)
+   m_indexRef = new float****[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
+   m_indexRef[0] = new float***[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
+   m_indexRef[0][0] = new float**[dim432];
+   m_indexRef[0][0][0] = new float*[dim4321];
+   /*m_cMult.resize(m_dimensions[4]);//these aren't the size of the lookup arrays because we can do the math manually and take less memory
+   m_bMult.resize(m_dimensions[3]);//it is probably slightly slower to do the math manually than to do lookups, so have both
+   m_kMult.resize(m_dimensions[2]);//its possible we could hack getIndex to use the indexing array and pointer math from m_data, but that would be a brutal hack...though it would make them the same...
+   m_jMult.resize(m_dimensions[1]);//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
+   for (int64_t i = 0; i < m_dimensions[1]; ++i)
+   {
+      m_jMult[i] = i * m_dimensions[0];
+   }
+   for (int64_t i = 0; i < m_dimensions[2]; ++i)
+   {
+      m_kMult[i] = i * dim01;
+   }
+   for (int64_t i = 0; i < m_dimensions[3]; ++i)
+   {
+      m_bMult[i] = i * dim012;
+   }//*/ //TSC: commented out but preserved in case the pointer math getIndex hack is frowned on
+   //
+   //EXPLANATION TIME
+   //
+   //Apologies for the oddity below, it is highly obtuse due to the effort of avoiding a large number of multiplies
+   //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_indexRef[0][0] with a skip of dim[2], etc
+   //at the final level, it indexes into m_data with a skip of dim[0]
+   //what this accomplishes is that the lookup m_indexRef[component][brick[k][j][i] will be the data value and the index (i, j, k, brick, component), with no multiplications whatsoever
+   //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it simpler to get a value from the array at an index
+   //as long as the final dimension is large, it takes relatively little memory to accomplish, compared to the entire volume
+   //
+   //if this is too much of a hassle, the trick of precalculating the multiples of dim[0], dim[0] * dim[1], etc, for all values of each of the dimensions is nearly as fast and easy to use, while being more intuitive
+   //the code for this is above, commented out, plus a line in the outer loop below
+   int64_t cbase = 0;
+   for (int64_t c = 0; c < m_dimensions[4]; ++c)
+   {
+      //m_cMult[c] = c * dim0123;//NOTE: this line is for precalculating multiples for a different way of calculating indexes than the simple formula
+      m_indexRef[c] = m_indexRef[0] + cbase;//pointer math, redundant for [0], but [0][1], etc needs to get set, so it is easier to loop including 0
+      int64_t bbase = cbase * m_dimensions[2];
+      for (int64_t b = 0; b < m_dimensions[3]; ++b)
+      {
+         m_indexRef[c][b] = m_indexRef[0][0] + bbase;
+         int64_t kbase = bbase * m_dimensions[1];
+         int64_t jbase = kbase * m_dimensions[0];//treat this one specially to avoid multiplies at the slice level
+         for (int64_t k = 0; k < m_dimensions[2]; ++k)
+         {
+            m_indexRef[c][b][k] = m_indexRef[0][0][0] + kbase;
+            for (int64_t j = 0; j < m_dimensions[1]; ++j)
+            {//because l looks like 1
+               m_indexRef[c][b][k][j] = m_data + jbase;//NOTE: this last pointer math is into m_data on purpose! this is why you can access the data through m_indexRef
+               jbase += m_dimensions[0];
+            }
+            kbase += m_dimensions[1];
+            jbase += dim01;//increment by this to avoid multiply by dim[0] inside k loop
+         }
+         bbase += m_dimensions[2];
+      }
+      cbase += m_dimensions[3];
+   }
+}
+
+VolumeFile::~VolumeFile()
+{
+   freeMemory();
 }
