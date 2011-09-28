@@ -539,7 +539,8 @@ OverlaySelectionControlLayer::updateSurfaceControl(BrowserTabContent* browserTab
     GiftiTypeFile* selectedFile = NULL;
     AString selectedColumnName = "";
     int32_t selectedColumnIndex = -1;
-    so->getSelectionData(dataFiles, 
+    so->getSelectionData(browserTabContent,
+                         dataFiles, 
                          selectedFile, 
                          selectedColumnName, 
                          selectedColumnIndex);

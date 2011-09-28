@@ -542,7 +542,8 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
     /*
      * Color the surface nodes.
      */
-    this->surfaceColoring->colorSurfaceNodes(surface,
+    this->surfaceColoring->colorSurfaceNodes(this,
+                                             surface,
                                              &surfaceOverlayAssignment, 
                                              rgba);
     

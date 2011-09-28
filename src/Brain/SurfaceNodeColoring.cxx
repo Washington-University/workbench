@@ -79,6 +79,8 @@ SurfaceNodeColoring::toString() const
 /**
  * Assign color components to surface nodes. 
  *
+ * @param browserTabContent
+ *    Tab in which this coloring is applied.
  * @param surface
  *    Surface that has its nodes colored.
  * @param surfaceOverlaySet
@@ -87,7 +89,8 @@ SurfaceNodeColoring::toString() const
  *    RGBA color components that are set by this method.
  */
 void 
-SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
+SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
+                                       const Surface* surface,
                                        SurfaceOverlaySet* surfaceOverlaySet,
                                        float* rgbaNodeColors)
 {
@@ -118,7 +121,8 @@ SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
         if (overlay->isEnabled()) {
             SurfaceOverlayDataTypeEnum::Enum overlayType;
             AString selectedColumnName;
-            overlay->getSelectionData(overlayType,
+            overlay->getSelectionData(browserTabContent,
+                                      overlayType,
                                       selectedColumnName);
             
             bool isColoringValid = false;

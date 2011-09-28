@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class BrowserTabContent;
     class GiftiTypeFile;
     
     /// Contains settings for a single surface overlay
@@ -55,10 +56,12 @@ namespace caret {
         
         void setEnabled(const bool enabled);
         
-        void getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
                               AString& selectedColumnNameOut);
         
-        void getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              std::vector<GiftiTypeFile*>& dataFilesOut,
                               GiftiTypeFile* &selectedFileOut,
                               AString& selectedColumnNameOut,
                               int32_t& selectedColumnIndexOut);

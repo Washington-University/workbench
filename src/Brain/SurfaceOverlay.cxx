@@ -29,13 +29,17 @@
 #include "SurfaceOverlay.h"
 #undef __SURFACE_OVERLAY_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventManager.h"
 #include "GiftiTypeFile.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceSelector.h"
 #include "RgbaFile.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -135,6 +139,8 @@ SurfaceOverlay::setEnabled(const bool enabled)
 }
 
 /**
+ * @param browserTabContent
+ *    Tab in which this overlay is applied.
  * Return the selection information.
  * @param selectedDataTypeOut
  *    Type of data that is selected.
@@ -142,13 +148,15 @@ SurfaceOverlay::setEnabled(const bool enabled)
  *    Name of column that is selected.
  */
 void 
-SurfaceOverlay::getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
+SurfaceOverlay::getSelectionData(BrowserTabContent* browserTabContent,
+                                 SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
                                  AString& selectedColumnNameOut)
 {
     std::vector<GiftiTypeFile*> dataFiles;
     GiftiTypeFile* selectedFile;
     int32_t selectedColumnIndex;
-    this->getSelectionData(dataFiles,
+    this->getSelectionData(browserTabContent,
+                           dataFiles,
                            selectedFile,
                            selectedColumnNameOut,
                            selectedColumnIndex);
@@ -178,6 +186,8 @@ SurfaceOverlay::getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataT
  * Return the selection information.  This method is typically
  * called to update the user-interface.
  *
+ * @param browserTabContent
+ *    Tab in which this overlay is applied.
  * @param dataFilesOut
  *    Contains all data files that can be selected.
  * @param selectedFileOut
@@ -188,7 +198,8 @@ SurfaceOverlay::getSelectionData(SurfaceOverlayDataTypeEnum::Enum& selectedDataT
  *    Index of selected column.
  */
 void 
-SurfaceOverlay::getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
+SurfaceOverlay::getSelectionData(BrowserTabContent* browserTabContent,
+                                 std::vector<GiftiTypeFile*>& dataFilesOut,
                                  GiftiTypeFile* &selectedFileOut,
                                  AString& selectedColumnNameOut,
                                  int32_t& selectedColumnIndexOut)
@@ -201,9 +212,36 @@ SurfaceOverlay::getSelectionData(std::vector<GiftiTypeFile*>& dataFilesOut,
     /**
      * Get the data files.
      */
+    std::vector<GiftiTypeFile*> allDataFiles;
     EventNodeDataFilesGet eventGetDataFiles;
     EventManager::get()->sendEvent(eventGetDataFiles.getPointer());
-    eventGetDataFiles.getAllFiles(dataFilesOut);
+    eventGetDataFiles.getAllFiles(allDataFiles);
+
+    /*
+     * Get the structure for the browser content
+     */
+    ModelDisplayControllerSurfaceSelector* surfaceSelector = browserTabContent->getSurfaceModelSelector();
+    const StructureEnum::Enum selectedStructure = surfaceSelector->getSelectedStructure();
+    bool useAllFlag = (selectedStructure == StructureEnum::ALL);
+    
+    /*
+     * Use only those data files that match the selected structure.
+     */
+    for (std::vector<GiftiTypeFile*>::iterator iter = allDataFiles.begin();
+         iter != allDataFiles.end();
+         iter++) {
+        GiftiTypeFile* giftiFile = *iter;
+        bool useIt = false;
+        if (useAllFlag) {
+            useIt = true;
+        }
+        else if (selectedStructure == giftiFile->getStructure()) {
+            useIt = true;
+        }
+        if (useIt) {
+            dataFilesOut.push_back(giftiFile);
+        }
+    }
     
     /*
      * Does selected data file still no longer exist?

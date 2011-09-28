@@ -31,6 +31,7 @@
 namespace caret {
 
     class BrainStructure;
+    class BrowserTabContent;
     class Palette;
     class PaletteColorMapping;
     class Surface;
@@ -45,7 +46,8 @@ namespace caret {
         
         virtual ~SurfaceNodeColoring();
         
-        void colorSurfaceNodes(const Surface* surface,
+        void colorSurfaceNodes(BrowserTabContent* browserTabContent,
+                               const Surface* surface,
                                SurfaceOverlaySet* surfaceOverlaySet,
                                float* rgbaNodeColors);
     private:
