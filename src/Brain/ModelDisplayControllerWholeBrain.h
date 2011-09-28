@@ -44,12 +44,37 @@ namespace caret {
         
         Brain* getBrain();
         
-        void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum> surfaceTypesOut);
+        void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut);
         
         SurfaceTypeEnum::Enum getSelectedSurfaceType(const int32_t windowTabNumber);
         
         void setSelectedSurfaceType(const int32_t windowTabNumber,
                                     const SurfaceTypeEnum::Enum surfaceType);
+        
+        bool isLeftEnabled(const int32_t windowTabNumber) const;
+        
+        void setLeftEnabled(const int32_t windowTabNumber,
+                            const bool enabled);
+        
+        bool isRightEnabled(const int32_t windowTabNumber) const;
+        
+        void setRightEnabled(const int32_t windowTabNumber,
+                             const bool enabled);
+        
+        bool isCerebellumEnabled(const int32_t windowTabNumber) const;
+        
+        void setCerebellumEnabled(const int32_t windowTabNumber,
+                                  const bool enabled);
+        
+        float getLeftRightSeparation(const int32_t windowTabNumber) const;
+        
+        void setLeftRightSeparation(const int32_t windowTabNumber,
+                                    const float separation);
+        
+        float getCerebellumSeparation(const int32_t windowTabNumber) const;
+        
+        void setCerebellumSeparation(const int32_t windowTabNumber,
+                                    const float separation);
         
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
@@ -75,6 +100,16 @@ namespace caret {
         
         /** Available surface types */
         std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
+        
+        bool leftEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool rightEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool cerebellumEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float leftRightSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace

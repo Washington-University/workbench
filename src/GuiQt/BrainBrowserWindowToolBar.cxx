@@ -1029,12 +1029,16 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
                      this, SLOT(wholeBrainSurfaceCerebellumCheckBoxStateChanged(int)));
     
     this->wholeBrainSurfaceSeparationLeftRightSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMinimum(-100000.0);
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMaximum(100000.0);
     WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceSeparationLeftRightSpinBox,
                                           "Adjust the separation of the left and right cortical surfaces");
     QObject::connect(this->wholeBrainSurfaceSeparationLeftRightSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double)));
     
     this->wholeBrainSurfaceSeparationCerebellumSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMinimum(-100000.0);
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMaximum(100000.0);
     WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceSeparationCerebellumSpinBox,
                                           "Adjust the separation of the cerebellum from the left and right cortical surfaces");
     QObject::connect(this->wholeBrainSurfaceSeparationCerebellumSpinBox, SIGNAL(valueChanged(double)),
@@ -1097,10 +1101,42 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     if (this->wholeBrainSurfaceOptionsWidget->isHidden()) {
         return;
     }
-    
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
+ 
+    //const int tabIndex = this->tabBar->currentIndex();
+    ModelDisplayControllerWholeBrain* wholeBrainController = browserTabContent->getSelectedWholeBrainModel();
+    const int32_t tabNumber = browserTabContent->getTabNumber();
     
     this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(true);
+    
+    std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
+    wholeBrainController->getAvailableSurfaceTypes(availableSurfaceTypes);
+    
+    const SurfaceTypeEnum::Enum selectedSurfaceType = wholeBrainController->getSelectedSurfaceType(tabNumber);
+    
+    int32_t defaultIndex = 0;
+    this->wholeBrainSurfaceTypeComboBox->clear();
+    int32_t numSurfaceTypes = static_cast<int32_t>(availableSurfaceTypes.size());
+    for (int32_t i = 0; i < numSurfaceTypes; i++) {
+        const SurfaceTypeEnum::Enum st = availableSurfaceTypes[i];
+        if (st == selectedSurfaceType) {
+            defaultIndex = this->wholeBrainSurfaceTypeComboBox->count();
+        }
+        const AString name = SurfaceTypeEnum::toGuiName(st);
+        const int integerCode = SurfaceTypeEnum::toIntegerCode(st);
+        this->wholeBrainSurfaceTypeComboBox->addItem(name,
+                                                     integerCode);
+    }
+    if (defaultIndex < this->wholeBrainSurfaceTypeComboBox->count()) {
+        this->wholeBrainSurfaceTypeComboBox->setCurrentIndex(defaultIndex);
+    }
+    
+    this->wholeBrainSurfaceLeftCheckBox->setChecked(wholeBrainController->isLeftEnabled(tabNumber));
+    this->wholeBrainSurfaceRightCheckBox->setChecked(wholeBrainController->isRightEnabled(tabNumber));
+    this->wholeBrainSurfaceCerebellumCheckBox->setChecked(wholeBrainController->isCerebellumEnabled(tabNumber));
+    
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(wholeBrainController->getLeftRightSeparation(tabNumber));
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(wholeBrainController->getCerebellumSeparation(tabNumber));
     
     this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(false);
     
@@ -1908,6 +1944,26 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int indx)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+
+    int32_t comboBoxIndex = this->wholeBrainSurfaceTypeComboBox->currentIndex();
+    if (comboBoxIndex >= 0) {
+        const int32_t integerCode = this->wholeBrainSurfaceTypeComboBox->itemData(comboBoxIndex).toInt();
+        bool isValid = false;
+        const SurfaceTypeEnum::Enum surfaceType = SurfaceTypeEnum::fromIntegerCode(integerCode, &isValid);
+        if (isValid) {
+            wholeBrainController->setSelectedSurfaceType(tabIndex, surfaceType);
+            //this->updateUserInterface();
+            this->updateGraphicsWindow();
+        }
+    }
 }
 
 /**
@@ -1918,7 +1974,19 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int state)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+    
+    wholeBrainController->setLeftEnabled(tabIndex, this->wholeBrainSurfaceLeftCheckBox->isChecked());
+    this->updateGraphicsWindow();
 }
+
 void 
 BrainBrowserWindowToolBar::wholeBrainSurfaceLeftMenuTriggered(QAction*)
 {
@@ -1948,6 +2016,17 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int state)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+    
+    wholeBrainController->setRightEnabled(tabIndex, this->wholeBrainSurfaceRightCheckBox->isChecked());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -1958,6 +2037,17 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int s
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+    
+    wholeBrainController->setCerebellumEnabled(tabIndex, this->wholeBrainSurfaceCerebellumCheckBox->isChecked());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -1968,6 +2058,18 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+    
+    wholeBrainController->setLeftRightSeparation(tabIndex, 
+                                                  this->wholeBrainSurfaceSeparationLeftRightSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -1978,6 +2080,18 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController == NULL) {
+        return;
+    }
+    
+    wholeBrainController->setCerebellumSeparation(tabIndex, 
+                                                 this->wholeBrainSurfaceSeparationCerebellumSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**

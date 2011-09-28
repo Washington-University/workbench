@@ -43,6 +43,7 @@ ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
                          YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_YES)
 {
+    this->brain = brain;
     this->initializeMembersModelDisplayControllerWholeBrain();
 }
 
@@ -53,11 +54,19 @@ ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
 {
 }
 
+/**
+ * Initialize members of this class.
+ */
 void
 ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBrain()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->selectedSurfaceType[i] = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;
+        this->cerebellumEnabled[i] = true;
+        this->leftEnabled[i] = true;
+        this->rightEnabled[i] = true;
+        this->leftRightSeparation[i] = 0.0;
+        this->cerebellumSeparation[i] = 0.0;
     }
 }
 
@@ -71,8 +80,13 @@ ModelDisplayControllerWholeBrain::getBrain()
     return this->brain;
 }
 
+/**
+ * Get the available surface types.
+ * @param surfaceTypesOut
+ *    Output loaded with the available surface types.
+ */
 void 
-ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum> surfaceTypesOut)
+ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut)
 {
     this->updateController();
     
@@ -81,6 +95,9 @@ ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTy
                            this->availableSurfaceTypes.begin(),
                            this->availableSurfaceTypes.end());
 }
+/**
+ *
+ */
 
 SurfaceTypeEnum::Enum 
 ModelDisplayControllerWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
@@ -89,6 +106,9 @@ ModelDisplayControllerWholeBrain::getSelectedSurfaceType(const int32_t windowTab
     return this->selectedSurfaceType[windowTabNumber];    
 }
 
+/**
+ * Update this controller.
+ */
 void 
 ModelDisplayControllerWholeBrain::updateController()
 {
@@ -135,7 +155,6 @@ ModelDisplayControllerWholeBrain::updateController()
     for (int i = 0; i < numEnumTypes; i++) {
         if (surfaceTypeValid[i]) {
             this->availableSurfaceTypes.push_back(allSurfaceTypes[i]);
-            break;
         }
     }
     
@@ -156,6 +175,13 @@ ModelDisplayControllerWholeBrain::updateController()
     }
 }
 
+/**
+ * Set the selected surface type.
+ * @param windowTabNumber
+ *    Index of window tab.
+ * @param surfaceType
+ *    New surface type.
+ */
 void 
 ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
                                                          const SurfaceTypeEnum::Enum surfaceType)
@@ -163,6 +189,122 @@ ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTab
     this->selectedSurfaceType[windowTabNumber] = surfaceType;
     this->updateController();
 }
+
+/**
+ * @return Enabled status for left cerebral cortex.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isLeftEnabled(const int32_t windowTabNumber) const
+{
+    return this->leftEnabled[windowTabNumber];
+}
+
+/**
+ * Set the enabled status for the left hemisphere.
+ * @param windowTabNumber
+ *    Index of window tab.
+ * @param enabled
+ *    New enabled status.
+ */
+void 
+ModelDisplayControllerWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
+                                                 const bool enabled)
+{
+    this->leftEnabled[windowTabNumber] = enabled;
+}
+
+/**
+ * @return Enabled status for right cerebral cortex.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isRightEnabled(const int32_t windowTabNumber) const
+{
+    return this->rightEnabled[windowTabNumber];    
+}
+
+/**
+ * Set the enabled status for the right hemisphere.
+ * @param windowTabNumber
+ *    Index of window tab.
+ * @param enabled
+ *    New enabled status.
+ */
+void 
+ModelDisplayControllerWholeBrain::setRightEnabled(const int32_t windowTabNumber,
+                                                  const bool enabled)
+{
+    this->rightEnabled[windowTabNumber] = enabled;
+}
+
+/**
+ * @return Enabled status for cerebellum.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isCerebellumEnabled(const int32_t windowTabNumber) const
+{
+    return this->cerebellumEnabled[windowTabNumber];
+}
+
+/**
+ * Set the enabled status for the cerebellum.
+ * @param windowTabNumber
+ *    Index of window tab.
+ * @param enabled
+ *    New enabled status.
+ */
+void 
+ModelDisplayControllerWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
+                                                       const bool enabled)
+{
+    this->cerebellumEnabled[windowTabNumber] = enabled;
+}
+
+/**
+ * @return The separation between the left and right surfaces.
+ */
+float 
+ModelDisplayControllerWholeBrain::getLeftRightSeparation(const int32_t windowTabNumber) const
+{
+    return this->leftRightSeparation[windowTabNumber];
+}
+
+/**
+ * Set the separation between the cerebellum and the left/right surfaces.
+ * @param windowTabNumber
+ *     Index of window tab.
+ * @param separation
+ *     New value for separation.
+ */
+void 
+ModelDisplayControllerWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
+                            const float separation)
+{
+    this->leftRightSeparation[windowTabNumber] = separation;
+}
+
+/**
+ * @return The separation between the left/right surfaces.
+ */
+float 
+ModelDisplayControllerWholeBrain::getCerebellumSeparation(const int32_t windowTabNumber) const
+{
+    return this->cerebellumSeparation[windowTabNumber];
+}
+
+/**
+ * Set the separation between the cerebellum and the eft and right surfaces.
+ * @param windowTabNumber
+ *     Index of window tab.
+ * @param separation
+ *     New value for separation.
+ */
+void 
+ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
+                                                         const float separation)
+{
+    this->cerebellumSeparation[windowTabNumber] = separation;
+}
+
 
 /**
  * Get the name for use in a GUI.

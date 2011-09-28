@@ -38,6 +38,8 @@
 #define __BRAIN_OPENGL_DEFINE_H
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
+
+#include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
@@ -149,10 +151,12 @@ BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
             this->drawSurface(surfaceController->getSurface());
         }
         else if (volumeController != NULL) {
-            this->drawVolume(volumeController);
+            this->drawVolume(browserTabContent,
+                             volumeController);
         }
         else if (wholeBrainController != NULL) {
-            this->drawWholeBrain(wholeBrainController);
+            this->drawWholeBrain(browserTabContent,
+                                 wholeBrainController);
         }
         else {
             CaretAssertMessage(0, "Unknown type of model display controller for drawing");
@@ -322,24 +326,75 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
 
 /**
  * Draw the volume slices.
+ * @param browserTabContent
+ *    Content of the window.
  * @param volumeController
  *    Controller for slices.
  */
 void 
-BrainOpenGL::drawVolume(const ModelDisplayControllerVolume* volumeController)
+BrainOpenGL::drawVolume(BrowserTabContent* browserTabContent,
+                        ModelDisplayControllerVolume* volumeController)
 {
     
 }
 
 /**
  * Draw the whole brain.
+ * @param browserTabContent
+ *    Content of the window.
  * @param wholeBrainController
  *    Controller for whole brain.
  */
 void 
-BrainOpenGL::drawWholeBrain(const ModelDisplayControllerWholeBrain* wholeBrainController)
+BrainOpenGL::drawWholeBrain(BrowserTabContent* browserTabContent,
+                            ModelDisplayControllerWholeBrain* wholeBrainController)
 {
+    const int32_t tabNumberIndex = browserTabContent->getTabNumber();
+    const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
     
+    
+    Brain* brain = wholeBrainController->getBrain();
+    const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numberOfBrainStructures; i++) {
+        BrainStructure* brainStructure = brain->getBrainStructure(i);
+        const int32_t numberOfSurfaces = brainStructure->getNumberOfSurfaces();
+        for (int32_t j = 0; j < numberOfSurfaces; j++) {
+            const Surface* surface = brainStructure->getSurface(j);
+                        
+            if (surface->getSurfaceType() == surfaceType) {
+                
+                float dx = 0.0;
+                float dy = 0.0;
+                float dz = 0.0;
+                
+                bool drawIt = false;
+                const StructureEnum::Enum structure = surface->getStructure();
+                switch (structure) {
+                    case StructureEnum::CORTEX_LEFT:
+                        drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
+                        dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                        break;
+                    case StructureEnum::CORTEX_RIGHT:
+                        drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
+                        dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                        break;
+                    case StructureEnum::CEREBELLUM:
+                        drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);
+                        dy = wholeBrainController->getCerebellumSeparation(tabNumberIndex);
+                        break;
+                    default:
+                        break;
+                }
+                
+                if (drawIt) {
+                    glPushMatrix();
+                    glTranslatef(dx, dy, dz);
+                    this->drawSurface(surface);
+                    glPopMatrix();
+                }
+            }
+        }
+    }
 }
 
 /**

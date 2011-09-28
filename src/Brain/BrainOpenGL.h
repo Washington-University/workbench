@@ -76,9 +76,11 @@ namespace caret {
         
         void drawSurfaceTriangles(const Surface* surface);
         
-        void drawVolume(const ModelDisplayControllerVolume* volumeController);
+        void drawVolume(BrowserTabContent* browserTabContent,
+                        ModelDisplayControllerVolume* volumeController);
         
-        void drawWholeBrain(const ModelDisplayControllerWholeBrain* wholeBrainController);
+        void drawWholeBrain(BrowserTabContent* browserTabContent,
+                            ModelDisplayControllerWholeBrain* wholeBrainController);
         
         void checkForOpenGLError();
         
