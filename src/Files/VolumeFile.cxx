@@ -298,7 +298,7 @@ void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const in
    setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
 }
 
-void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t& brickIndex, const int64_t component)
+void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
 {
    CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
    m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
