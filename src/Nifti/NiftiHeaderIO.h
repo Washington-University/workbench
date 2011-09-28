@@ -47,12 +47,13 @@ public:
    void writeFile(QFile &outputFile) const throw (NiftiException);
    void writeFile(const QString &outputFileName) const throw (NiftiException);
 
-   void getHeader(NiftiHeaderIO &header) const throw (NiftiException);
-   void setHeader(const NiftiHeaderIO &header) throw (NiftiException);
+   void getHeader(Nifti1Header &header) const throw (NiftiException);
+   void setHeader(const Nifti1Header &header) throw (NiftiException);
 
    void getHeader(Nifti2Header &header) const throw (NiftiException);
    void setHeader(const Nifti2Header &header) throw (NiftiException);
    bool getSwapNeeded();
+   int getNiftiVersion();
 
 private:
     int niftiVersion;

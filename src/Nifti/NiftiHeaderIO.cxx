@@ -39,6 +39,8 @@ using namespace caret;
  */
 NiftiHeaderIO::NiftiHeaderIO(const QString& inputFileName) throw (NiftiException)
 {
+    //test to see if file exists
+    if(!QFile::exists(inputFileName)) throw NiftiException("File " + AString(inputFileName) +" does not exist.\n");
     readFile(inputFileName);
 }
 
@@ -101,7 +103,7 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
     if(bytes_read < NIFTI2_HEADER_SIZE) {
         throw NiftiException("Error reading Nifti header, file is too short.");
     }
-    if(NIFTI2_VERSION(header)==1)
+    if((NIFTI2_VERSION(header))==1)
     {
         niftiVersion = 1;
         inputFile.seek(0);
@@ -143,7 +145,7 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
             ByteSwapping::swapBytes(&(header.intent_code),1);
         }
         nifti1Header.setHeaderStuct(header);
-    } else if(NIFTI2_VERSION(header)==2)
+    } else if((NIFTI2_VERSION(header))==2)
     {
         niftiVersion = 2;
         if(NIFTI2_NEEDS_SWAP(header))
@@ -230,6 +232,17 @@ void NiftiHeaderIO::writeFile(QFile &outputFile) const throw (NiftiException)
 }
 
 /**
+  *
+  * returns the niftiVersion of the Header, either 1 or 2.  In the event that a Nifti file
+  * hasn't been read, 0 is returned.
+  * @return niftiVersion
+  */
+int NiftiHeaderIO::getNiftiVersion()
+{
+    return niftiVersion;
+}
+
+/**
  * writeFile
  *
  * writes the nifti 2 header to the output file name
@@ -243,4 +256,28 @@ void NiftiHeaderIO::writeFile(const QString &outputFileName) const throw (NiftiE
     outputFile.close();
 }
 
+/**
+  * getHeader
+  *
+  * gets a nifti 1 Header, throws an exception if the version does not match.
+  * @param header
+  **/
+void NiftiHeaderIO::getHeader(Nifti1Header &header) const throw (NiftiException)
+{
+    if(this->niftiVersion !=1) throw NiftiException("Nifti1Header requested, this version is not loaded.");
 
+    header = this->nifti1Header;
+}
+
+/**
+  * getHeader
+  *
+  * gets a nifti 2 Header, throws an exception if the version does not match.
+  * @param header
+  **/
+void NiftiHeaderIO::getHeader(Nifti2Header &header) const throw (NiftiException)
+{
+    if(this->niftiVersion !=2) throw NiftiException("Nifti1Header requested, this version is not loaded.");
+
+    header = this->nifti2Header;
+}

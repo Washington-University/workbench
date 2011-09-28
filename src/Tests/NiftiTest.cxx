@@ -40,6 +40,38 @@ NiftiHeaderTest::NiftiHeaderTest(const AString &identifier) : TestInterface(iden
 
 void NiftiHeaderTest::execute()
 {
-    //Nifti1Header *header = new Nifti1Header("../../wb_files/Nifti/");
+ {   NiftiHeaderIO *headerIO = new NiftiHeaderIO("../../../wb_files/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii");
+    //test version check
+    if(headerIO->getNiftiVersion() == 1)
+    {
+        Nifti1Header header;
+        headerIO->getHeader(header);
+        std::cout << header.getHeaderAsString()->toStdString() << std::endl;
+    }
+    else
+    {
+        //report error
+        AString message;
+        message = AString("Incorrect Nifti version detected, expected version 1, got ") + AString::number(headerIO->getNiftiVersion()) + AString(".\n");
+        setFailed(message);
+    }
+
+}
+       NiftiHeaderIO *headerIO = new NiftiHeaderIO("../../../wb_files/nifti/test.cii");
+
+    if(headerIO->getNiftiVersion() == 2)
+    {
+        Nifti2Header header;
+        headerIO->getHeader(header);
+        std::cout << header.getHeaderAsString()->toStdString() << std::endl;
+    }
+    else
+    {
+        //report error
+        AString message;
+        message = AString("Incorrect Nifti version detected, expected version 2, got ") + AString::number(headerIO->getNiftiVersion()) + AString(".\n");
+        setFailed(message);
+    }
+
 }
 

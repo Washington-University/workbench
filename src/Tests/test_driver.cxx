@@ -28,6 +28,7 @@
 #include <iostream>
 #include <vector>
 #include "TestInterface.h"
+#include "NiftiTest.h"
 #include "TimerTest.h"
 #include "ProgressTest.h"
 #include "SessionManager.h"
@@ -49,6 +50,8 @@ int main(int argc, char** argv)
     vector<TestInterface*> mytests;
     mytests.push_back(new TimerTest("timer"));
     mytests.push_back(new ProgressTest("progress"));
+    mytests.push_back(new NiftiTest("nifti"));
+    mytests.push_back(new NiftiHeaderTest("niftiheader"));
     if (argc < 2)
     {
         cout << "No test specified, please specify one of the following:" << endl;
