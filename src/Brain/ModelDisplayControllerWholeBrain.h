@@ -25,9 +25,9 @@
  * 
  */ 
 
-
+#include "BrainConstants.h"
 #include "ModelDisplayController.h"
-
+#include "SurfaceTypeEnum.h"
 
 
 namespace caret {
@@ -44,6 +44,13 @@ namespace caret {
         
         Brain* getBrain();
         
+        void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum> surfaceTypesOut);
+        
+        SurfaceTypeEnum::Enum getSelectedSurfaceType(const int32_t windowTabNumber);
+        
+        void setSelectedSurfaceType(const int32_t windowTabNumber,
+                                    const SurfaceTypeEnum::Enum surfaceType);
+        
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
@@ -51,6 +58,8 @@ namespace caret {
         
     private:
         void initializeMembersModelDisplayControllerWholeBrain();
+        
+        void updateController();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;
@@ -61,6 +70,11 @@ namespace caret {
         /** Brain to which this controller belongs */
         Brain* brain;
         
+        /** Type of surface for display */
+        mutable SurfaceTypeEnum::Enum selectedSurfaceType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Available surface types */
+        std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
     };
 
 } // namespace

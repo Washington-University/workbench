@@ -44,6 +44,8 @@
 #include "CaretLogger.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include <cstdlib>
 
 using namespace caret;
@@ -141,8 +143,16 @@ BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                  scale);
         
         ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
+        ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
+        ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
         if (surfaceController != NULL) {
             this->drawSurface(surfaceController->getSurface());
+        }
+        else if (volumeController != NULL) {
+            this->drawVolume(volumeController);
+        }
+        else if (wholeBrainController != NULL) {
+            this->drawWholeBrain(wholeBrainController);
         }
         else {
             CaretAssertMessage(0, "Unknown type of model display controller for drawing");
@@ -308,6 +318,28 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+/**
+ * Draw the volume slices.
+ * @param volumeController
+ *    Controller for slices.
+ */
+void 
+BrainOpenGL::drawVolume(const ModelDisplayControllerVolume* volumeController)
+{
+    
+}
+
+/**
+ * Draw the whole brain.
+ * @param wholeBrainController
+ *    Controller for whole brain.
+ */
+void 
+BrainOpenGL::drawWholeBrain(const ModelDisplayControllerWholeBrain* wholeBrainController)
+{
+    
 }
 
 /**

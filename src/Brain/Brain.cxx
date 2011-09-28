@@ -28,10 +28,13 @@
 #include "BrainStructure.h"
 #include "CaretLogger.h"
 #include "EventDataFileRead.h"
+#include "EventModelDisplayControllerAdd.h"
+#include "EventModelDisplayControllerDelete.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
@@ -51,6 +54,7 @@ Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
+    this->wholeBrainController = NULL;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
@@ -66,6 +70,9 @@ Brain::~Brain()
     this->resetBrain();
     delete this->paletteFile;
     delete this->specFile;
+    if (this->wholeBrainController != NULL) {
+        delete this->wholeBrainController;
+    }
 }
 
 /**
@@ -180,6 +187,8 @@ Brain::resetBrain()
     this->paletteFile->clear();
     
     this->specFile->clear();
+    
+    this->updateWholeBrainController();
 }
 
 /**
@@ -542,6 +551,31 @@ Brain::getSpecFile()
     return this->specFile;
 }
 
+void 
+Brain::updateWholeBrainController()
+{
+    bool isValid = false;
+    if (this->getNumberOfBrainStructures() > 0) {
+        isValid = true;
+    }
+     
+    if (isValid) {
+        if (this->wholeBrainController == NULL) {
+            this->wholeBrainController = new ModelDisplayControllerWholeBrain(this);
+            EventModelDisplayControllerAdd eventAddModel(this->wholeBrainController);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+        }
+    }
+    else {
+        if (this->wholeBrainController != NULL) {
+            EventModelDisplayControllerDelete eventDeleteModel(this->wholeBrainController);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete this->wholeBrainController;
+            this->wholeBrainController = NULL;
+        }
+    }
+    
+}
 
 /**
  * Process a read data file event.
@@ -631,6 +665,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readVolumeLabelFile(dataFileName);
             break;
     }    
+    
+    this->updateWholeBrainController();
 }
 
 /**

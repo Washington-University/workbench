@@ -1729,6 +1729,20 @@ void
 BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 {
     CaretLogEntering();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    if (this->viewModeSurfaceRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE);
+    }
+    else if (this->viewModeVolumeRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES);
+    }
+    else if (this->viewModeWholeBrainRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN);
+    }
+    else {
+        btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID);
+    }
+    
     this->checkUpdateCounter();
     this->updateToolBar();   
     this->updateTabName(-1);

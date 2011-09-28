@@ -39,6 +39,7 @@ namespace caret {
     class BrainStructure;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
+    class ModelDisplayControllerWholeBrain;
     class PaletteFile;
     class SpecFile;
     class VolumeFile;
@@ -111,6 +112,8 @@ namespace caret {
         
         AString updateFileNameForReading(const AString& filename);
         
+        void updateWholeBrainController();
+        
         std::vector<BrainStructure*> brainStructures;
         
         PaletteFile* paletteFile;
@@ -124,6 +127,8 @@ namespace caret {
         std::vector<VolumeFile*> volumeFilesFunctional;
         
         std::vector<VolumeFile*> volumeFilesLabel;
+        
+        ModelDisplayControllerWholeBrain* wholeBrainController;
         
     };
 

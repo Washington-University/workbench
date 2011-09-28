@@ -37,6 +37,8 @@ namespace caret {
     class BrowserTabContent;
     class Surface;
     class ModelDisplayController;
+    class ModelDisplayControllerVolume;
+    class ModelDisplayControllerWholeBrain;
     
     /**
      * Performs drawing of graphics using OpenGL.
@@ -73,6 +75,10 @@ namespace caret {
         void drawSurface(const Surface* surface);
         
         void drawSurfaceTriangles(const Surface* surface);
+        
+        void drawVolume(const ModelDisplayControllerVolume* volumeController);
+        
+        void drawWholeBrain(const ModelDisplayControllerWholeBrain* wholeBrainController);
         
         void checkForOpenGLError();
         

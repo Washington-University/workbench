@@ -22,7 +22,13 @@
  * 
  */ 
 
+#include <algorithm>
+
+#include "EventManager.h"
+#include "EventModelDisplayControllerGetAll.h"
+#include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -50,6 +56,9 @@ ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
 void
 ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBrain()
 {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->selectedSurfaceType[i] = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;
+    }
 }
 
 /**
@@ -60,6 +69,99 @@ Brain*
 ModelDisplayControllerWholeBrain::getBrain()
 {
     return this->brain;
+}
+
+void 
+ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum> surfaceTypesOut)
+{
+    this->updateController();
+    
+    surfaceTypesOut.clear();
+    surfaceTypesOut.insert(surfaceTypesOut.end(),
+                           this->availableSurfaceTypes.begin(),
+                           this->availableSurfaceTypes.end());
+}
+
+SurfaceTypeEnum::Enum 
+ModelDisplayControllerWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
+{
+    this->updateController();
+    return this->selectedSurfaceType[windowTabNumber];    
+}
+
+void 
+ModelDisplayControllerWholeBrain::updateController()
+{
+    /*
+     * Get all model controllers to find loaded surface types.
+     */
+    EventModelDisplayControllerGetAll eventGetControllers;
+    EventManager::get()->sendEvent(eventGetControllers.getPointer());
+    const std::vector<ModelDisplayController*> allControllers =
+        eventGetControllers.getModelDisplayControllers();
+
+    /*
+     * Get ALL possible surface types.
+     */
+    std::vector<SurfaceTypeEnum::Enum> allSurfaceTypes;
+    SurfaceTypeEnum::getAllEnums(allSurfaceTypes);
+    const int32_t numEnumTypes = static_cast<int32_t>(allSurfaceTypes.size());
+    std::vector<bool> surfaceTypeValid(numEnumTypes, false);
+    
+    /*
+     * Find surface types that are actually used.
+     */
+    for (std::vector<ModelDisplayController*>::const_iterator iter = allControllers.begin();
+         iter != allControllers.end();
+         iter++) {
+        ModelDisplayControllerSurface* surfaceController = 
+            dynamic_cast<ModelDisplayControllerSurface*>(*iter);
+        if (surfaceController != NULL) {
+            SurfaceTypeEnum::Enum surfaceType = surfaceController->getSurface()->getSurfaceType();
+            
+            for (int i = 0; i < numEnumTypes; i++) {
+                if (allSurfaceTypes[i] == surfaceType) {
+                    surfaceTypeValid[i] = true;
+                    break;
+                }
+            }
+        }
+    }
+    
+    /*
+     * Set the available surface types.
+     */
+    this->availableSurfaceTypes.clear();
+    for (int i = 0; i < numEnumTypes; i++) {
+        if (surfaceTypeValid[i]) {
+            this->availableSurfaceTypes.push_back(allSurfaceTypes[i]);
+            break;
+        }
+    }
+    
+    /*
+     * Update the selected surface type.
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        if (std::find(this->availableSurfaceTypes.begin(),
+                      this->availableSurfaceTypes.end(),
+                      this->selectedSurfaceType[i]) == availableSurfaceTypes.end()) {
+            if (this->availableSurfaceTypes.empty() == false) {
+                this->selectedSurfaceType[i] = this->availableSurfaceTypes[0];
+            }
+            else {
+                this->selectedSurfaceType[i] = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;
+            }
+        }
+    }
+}
+
+void 
+ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
+                                                         const SurfaceTypeEnum::Enum surfaceType)
+{
+    this->selectedSurfaceType[windowTabNumber] = surfaceType;
+    this->updateController();
 }
 
 /**

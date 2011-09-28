@@ -379,6 +379,7 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
     const int32_t numModels = static_cast<int32_t>(modelDisplayControllers.size());
     
     this->allSurfaceModels.clear();
+    this->surfaceModelSelector->getSelectableSurfaceControllers(allSurfaceModels);
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
     

@@ -40,6 +40,7 @@
 #include "EventModelDisplayControllerDelete.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "LogManager.h"
+#include "ModelDisplayControllerWholeBrain.h"
 
 using namespace caret;
 

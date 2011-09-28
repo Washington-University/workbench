@@ -83,6 +83,8 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
+    static void getAllEnums(std::vector<Enum>& allEnums);
+    
 private:
     SurfaceTypeEnum(const Enum e, 
                     const AString& name,
