@@ -253,6 +253,12 @@ int32_t
 GiftiLabelTable::addLabel(const GiftiLabel* glIn)
 {
     int32_t key = glIn->getKey();
+    if (key < 0) {
+        key = this->generateUnusedKey();
+        this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
+        return key;
+    }
+    
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         GiftiLabel* gl = iter->second;
@@ -263,9 +269,6 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
         key = iter->first;
     }
     else {
-        if (key < 0) {
-            key = this->generateUnusedKey();
-        }
         this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
     }
     return key;
@@ -361,14 +364,20 @@ GiftiLabelTable::deleteUnusedLabels(const std::set<int32_t>& usedLabelKeys)
 
 /**
  * Insert the label using the labels key.
- * @param label - Label to insert (replaces an existing label
+ * @param labelIn - Label to insert (replaces an existing label
  *    with the same key).
  *
  */
 void
-GiftiLabelTable::insertLabel(const GiftiLabel* label)
+GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
 {
-    this->labelsMap.insert(std::make_pair(label->getKey(), new GiftiLabel(*label)));
+    GiftiLabel* label = new GiftiLabel(*labelIn);
+    int32_t key = label->getKey();
+    if (key < 0) {
+        key = this->generateUnusedKey();
+        label->setKey(key);
+    }
+    this->labelsMap.insert(std::make_pair(label->getKey(), label));
     this->setModified();
 }
 
