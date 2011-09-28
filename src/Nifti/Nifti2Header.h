@@ -1,4 +1,4 @@
-/*LICENSE_START*/ 
+/*LICENSE_START*/
 /* 
  *  Copyright 1995-2011 Washington University School of Medicine 
  * 
@@ -22,8 +22,8 @@
  * 
  */ 
 
-#ifndef NIFTI_HEADER_H
-#define NIFTI_HEADER_H
+#ifndef NIFTI2_HEADER_H
+#define NIFTI2_HEADER_H
 
 #include <QtCore>
 #include "nifti1.h"

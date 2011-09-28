@@ -60,7 +60,8 @@ NiftiFile::NiftiFile(const QString &fileName,CACHE_LEVEL clevel) throw (NiftiExc
 
 void NiftiFile::init()
 {
-   this->m_niftiHeader = NULL;
+   //this->nifti1Header = NULL;
+   //this->nifti2Header = NULL;
    this->m_clevel = IN_MEMORY;
    //this->m_matrix = NULL;
    this->m_swapNeeded = false;
@@ -148,7 +149,7 @@ void NiftiFile::writeFile(const QString &fileName) const throw (NiftiException)
  */
 NiftiFile::~NiftiFile()
 {
-   if(m_niftiHeader) delete m_niftiHeader;
+   //TODOif(m_niftiHeader) delete m_niftiHeader;
 }
 
 /**
@@ -159,17 +160,17 @@ NiftiFile::~NiftiFile()
  * @param header
  */
 // Header IO
-void NiftiFile::setHeader(const NiftiHeader &header) throw (NiftiException)
+void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
 {
-   if(m_niftiHeader) delete m_niftiHeader;
-   m_niftiHeader = new NiftiHeader(header);
+   if(m_nifti1Header) delete m_nifti1Header;
+   m_nifti1Header = new Nifti1Header(header);
 }
 
 
 void NiftiFile::readHeader() throw (NiftiException)
 {
-   if(m_niftiHeader != NULL) delete m_niftiHeader;
-   m_niftiHeader = new NiftiHeader(m_inputFile);
+   //if(m_nifti1Header != NULL) delete m_nifti1Header;
+   //TODO m_nifti1Header = new Nifti1Header(m_inputFile);
 }
 
 /**
@@ -179,11 +180,11 @@ void NiftiFile::readHeader() throw (NiftiException)
  *
  * @return NiftiHeader*
  */
-NiftiHeader *NiftiFile::getHeader() throw (NiftiException)
+/*Nifti1Header *NiftiFile::getHeader() throw (NiftiException)
 {
-   if(m_niftiHeader == NULL) readHeader();
-   return new NiftiHeader(*m_niftiHeader);
-}
+   if(m_nifti1Header == NULL) readHeader();
+   return new Nifti1Header(*m_nifti1Header);
+}*/
 
 /**
  *
@@ -192,10 +193,51 @@ NiftiHeader *NiftiFile::getHeader() throw (NiftiException)
  *
  * @param header
  */
-void NiftiFile::getHeader(NiftiHeader &header) throw (NiftiException)
+void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
 {
-   if(m_niftiHeader == NULL) readHeader();
-   header = *m_niftiHeader;
+   if(m_nifti1Header == NULL) readHeader();
+   header = *m_nifti1Header;
+}
+
+/**
+ *
+ *
+ * set the NiftiHeader
+ *
+ * @param header
+ */
+// Header IO
+void NiftiFile::setHeader(const Nifti2Header &header) throw (NiftiException)
+{
+   if(m_nifti2Header) delete m_nifti2Header;
+   m_nifti2Header = new Nifti2Header(header);
+}
+
+
+/**
+ *
+ *
+ * get a newly allocated copy of the NiftiHeader
+ *
+ * @return NiftiHeader*
+ */
+/*NiftiHeader *NiftiFile::getHeader() throw (NiftiException)
+{
+   if(m_nifti2Header == NULL) readHeader();
+   return new Nifti2Header(*m_nifti2Header);
+}*/
+
+/**
+ *
+ *
+ * get a copy of the NiftiHeader
+ *
+ * @param header
+ */
+void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
+{
+   if(m_nifti2Header == NULL) readHeader();
+   header = *m_nifti2Header;
 }
 
 // Matrix IO

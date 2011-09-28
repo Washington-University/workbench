@@ -52,12 +52,13 @@ public:
 
    void getHeader(Nifti2Header &header) const throw (NiftiException);
    void setHeader(const Nifti2Header &header) throw (NiftiException);
+   bool getSwapNeeded();
 
 private:
     int niftiVersion;
     bool m_swapNeeded;
-    Nifti1Header n1header;
-    Nifti2Header n2header;
+    Nifti1Header nifti1Header;
+    Nifti2Header nifti2Header;
 };
 
 } // namespace caret

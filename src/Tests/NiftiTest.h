@@ -26,7 +26,7 @@
 #define NIFTITEST_H
 
 #include "TestInterface.h"
-#include "Nifti1Header.h"
+#include "NiftiHeaderIO.h"
 
 namespace caret {
 

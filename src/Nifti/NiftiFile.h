@@ -53,14 +53,20 @@ public:
    /// Write the Nifti File
    virtual void writeFile(const QString &fileName) const throw (NiftiException);
    /// set NiftiHeader
-   virtual void setHeader(const NiftiHeader &header) throw (NiftiException);
+   virtual void setHeader(const Nifti1Header &header) throw (NiftiException);
    /// get NiftiHeader
-   virtual NiftiHeader * getHeader() throw (NiftiException);
+   //Nifti1Header * getHeader() throw (NiftiException);
    /// get NiftiHeader
-   virtual void getHeader(NiftiHeader &header) throw (NiftiException);
-   /// set CiftiMatrix
+   void getHeader(Nifti1Header &header) throw (NiftiException);
+   /// set NiftiHeader
+   virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
+   /// get NiftiHeader
+   //Nifti2Header * getHeader() throw (NiftiException);
+   /// get NiftiHeader
+   void getHeader(Nifti2Header &header) throw (NiftiException);
+   /// set NiftiMatrix
    virtual void setNiftiMatrix(CiftiMatrix &matrix) throw (NiftiException);
-   /// get CiftiMatrix
+   /// get NiftiMatrix
    virtual CiftiMatrix * getNiftiMatrix() throw (NiftiException);
    /// Destructor
    virtual ~NiftiFile();
@@ -73,7 +79,8 @@ protected:
    bool m_copyMatrix;
 
    QFile m_inputFile;
-   NiftiHeader *m_niftiHeader;
+   Nifti1Header *m_nifti1Header;
+   Nifti2Header *m_nifti2Header;
 
    bool m_swapNeeded;
 };

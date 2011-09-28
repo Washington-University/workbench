@@ -40,6 +40,6 @@ NiftiHeaderTest::NiftiHeaderTest(const AString &identifier) : TestInterface(iden
 
 void NiftiHeaderTest::execute()
 {
-    NiftiHeader *header = new Nifti1Header("../../wb_files/Nifti/");
+    //Nifti1Header *header = new Nifti1Header("../../wb_files/Nifti/");
 }
 
