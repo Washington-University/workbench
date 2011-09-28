@@ -94,6 +94,7 @@ namespace caret {
                             ModelDisplayController* controller);
 
         void updateGraphicsWindow();
+        void updateUserInterface();
         void updateTabName(const int32_t tabIndex);
         
         QWidget* createViewWidget();

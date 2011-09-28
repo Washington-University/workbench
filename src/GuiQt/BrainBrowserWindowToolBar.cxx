@@ -252,7 +252,7 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     this->tabBar->blockSignals(false);
     
     if (this->isContructorFinished) {
-        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
 }
@@ -375,6 +375,7 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         ModelDisplayControllerSurface* surfaceController =
         dynamic_cast<ModelDisplayControllerSurface*>(controller);
         if (surfaceController != NULL) {
+            btc->getSurfaceModelSelector()->setSelectedStructure(surfaceController->getSurface()->getStructure());
             btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
         }
         this->updateTabName(tabIndex);
@@ -422,7 +423,7 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
         
     }
     
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    this->updateUserInterface();
 }
 
 /**
@@ -528,7 +529,7 @@ void
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
     this->updateTabName(indx);
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    this->updateUserInterface();
     this->updateGraphicsWindow();
 }
 
@@ -1713,6 +1714,15 @@ BrainBrowserWindowToolBar::updateGraphicsWindow()
 }
 
 /**
+ * Update the user-interface.
+ */
+void 
+BrainBrowserWindowToolBar::updateUserInterface()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
  * Called when a view mode is selected.
  */
 void 
@@ -2054,6 +2064,7 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
         surfaceModelSelector->setSelectedStructure(structure);
         surfaceModelSelector->setSelectedSurfaceController(surfaceController);
         btc->invalidateSurfaceColoring();
+        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
     
