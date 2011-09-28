@@ -25,6 +25,7 @@
 #include <sstream>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
@@ -42,6 +43,7 @@ GiftiLabelTable::GiftiLabelTable()
     : CaretObject()
 {
     this->initializeMembersGiftiLabelTable();
+    clear();//actually adds the 0: ??? label
 }
 
 /**
@@ -258,7 +260,10 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
         this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
         return key;
     }
-    
+    if (key == 0)
+    {
+       CaretLogWarning("Label 0 overridden!");
+    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         GiftiLabel* gl = iter->second;
@@ -281,7 +286,39 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
 int32_t 
 GiftiLabelTable::generateUnusedKey() const
 {
-    std::set<int32_t> keys = getKeys();
+   int32_t numKeys = labelsMap.size();
+   LABELS_MAP_CONST_ITERATOR myend = labelsMap.end();
+   if (labelsMap.upper_bound(numKeys - 1) == myend)
+   {//returns a valid iterator only if there is no strictly greater key - zero key is assumed to exist, being the ??? special palette, no negatives exist
+      return numKeys;//keys are therefore compact, return the next one
+   }
+   if (labelsMap.find(0) == myend && labelsMap.upper_bound(numKeys) == myend)
+   {//similar check, but in case label 0 doesn't exist (but don't override it)
+      return numKeys + 1;
+   }
+   std::vector<int> scratch;
+   scratch.resize(numKeys);//guaranteed to have at least one missing spot within this range other than zero, or one of above tests would have returned
+   for (int32_t i = 0; i < numKeys; ++i)
+   {
+      scratch[i] = 0;
+   }
+   for (LABELS_MAP_CONST_ITERATOR iter = labelsMap.begin(); iter != myend; ++iter)
+   {
+      if (iter->first < numKeys)
+      {//dont try to mark above the range
+         scratch[iter->first] = 1;
+      }
+   }
+   for (int32_t i = 1; i < numKeys; ++i)
+   {//NOTE: start at 1! 0 is reserved (sort of)
+      if (scratch[i] == 0)
+      {
+         return i;
+      }
+   }
+   CaretAssertMessage(false, "generateUnusedKey() failed for unknown reasons");
+   return 0;//should never happen
+    /*std::set<int32_t> keys = getKeys();
     
     int32_t newKey = 1;
     bool found = false;
@@ -294,7 +331,7 @@ GiftiLabelTable::generateUnusedKey() const
         }
     }
     
-    return newKey;
+    return newKey;//*/
 }
 
 /**
@@ -305,6 +342,10 @@ GiftiLabelTable::generateUnusedKey() const
 void
 GiftiLabelTable::deleteLabel(const int32_t key)
 {
+   if (key == 0)
+   {//key 0 is reserved (sort of)
+      CaretLogWarning("Label 0 DELETED!");
+   }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         this->labelsMap.erase(iter);
@@ -323,6 +364,10 @@ GiftiLabelTable::deleteLabel(const int32_t key)
 void
 GiftiLabelTable::deleteLabel(const GiftiLabel* label)
 {
+   if (label->getKey() == 0)
+   {//key 0 is reserved (sort of)
+      CaretLogWarning("Label 0 DELETED!");
+   }
     for (LABELS_MAP_ITERATOR iter = this->labelsMap.begin();
          iter != this->labelsMap.end();
          iter++) {
@@ -350,7 +395,7 @@ GiftiLabelTable::deleteUnusedLabels(const std::set<int32_t>& usedLabelKeys)
          iter++) {
         int32_t key = iter->first;
         GiftiLabel* gl = iter->second;
-        if (usedLabelKeys.find(key) != usedLabelKeys.end()) {
+        if (key == 0 || usedLabelKeys.find(key) != usedLabelKeys.end()) {//label 0 is reserved (sort of), and gets a free pass
             newMap.insert(std::make_pair(key, gl));
         }
         else {
@@ -376,6 +421,10 @@ GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
     if (key < 0) {
         key = this->generateUnusedKey();
         label->setKey(key);
+    }
+    if (key == 0)
+    {//key 0 is reserved (sort of)
+       CaretLogWarning("Label 0 DELETED!");
     }
     this->labelsMap.insert(std::make_pair(label->getKey(), label));
     this->setModified();
@@ -531,6 +580,10 @@ GiftiLabelTable::setLabelName(
                    const int32_t key,
                    const AString& name)
 {
+    if (key == 0)
+    {
+        CaretLogWarning("Label 0 modified!");
+    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         iter->second->setName(name);
@@ -558,6 +611,10 @@ GiftiLabelTable::setLabel(
                    const float blue,
                    const float alpha)
 {
+    if (key == 0)
+    {
+        CaretLogWarning("Label 0 modified!");
+    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         GiftiLabel* gl = iter->second;
@@ -597,6 +654,10 @@ GiftiLabelTable::setLabel(const int32_t key,
                           const float y,
                           const float z)
 {
+    if (key == 0)
+    {
+        CaretLogWarning("Label 0 modified!");
+    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         GiftiLabel* gl = iter->second;
@@ -706,6 +767,10 @@ GiftiLabelTable::setLabelColor(
                    const int32_t key,
                    const float color[])
 {
+    if (key == 0)
+    {
+        CaretLogWarning("Label 0 modified!");
+    }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         GiftiLabel* gl = iter->second;
