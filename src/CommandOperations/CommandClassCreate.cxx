@@ -171,12 +171,6 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     t += ("namespace caret {\n");
     t += ("\n");
 
-    t += ("    \n");
-    t += ("    /**\n");
-    t += ("     * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
-    t += ("     *\n");
-    t += ("     * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
-    t += ("     */\n");
     t += ("    class " + className + derivedFromDeclaration + " {\n");
     t += ("        \n");
     if (derivedFromClassName.startsWith("Q")) {
@@ -268,7 +262,13 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("using namespace caret;\n");
     t += ("\n");
     t += ("\n");
-    
+    t += ("    \n");
+    t += ("/**\n");
+    t += (" * \\class " + className + " \n");
+    t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    t += (" *\n");
+    t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
+    t += (" */\n");    
     t += ("/**\n");
     t += (" * Constructor.\n");
     t += (" */\n");

@@ -58,6 +58,12 @@ EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfaceColoringInvalidate.h
+IdentificationItemDataTypeEnum.h
+IdentificationItem.h
+IdentificationItemSurfaceNode.h
+IdentificationItemSurfaceTriangle.h
+IdentificationManager.h
+IdentificationWithColor.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
 ModelDisplayControllerSurfaceSelector.h
@@ -88,6 +94,12 @@ EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
+IdentificationItemDataTypeEnum.cxx
+IdentificationItem.cxx
+IdentificationItemSurfaceNode.cxx
+IdentificationItemSurfaceTriangle.cxx
+IdentificationManager.cxx
+IdentificationWithColor.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx
 ModelDisplayControllerSurfaceSelector.cxx

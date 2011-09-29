@@ -153,11 +153,6 @@ CommandClassCreateEnum::createHeaderFile(const AString& outputFileName,
     t += ("\n");
     t += ("namespace caret {\n");
     t += ("\n");
-    t += ("/**\n");
-    t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
-    t += (" *\n");
-    t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
-    t += (" */\n");
     t += ("class " + enumClassName + " {\n");
     t += ("\n");
     t += ("public:\n");
@@ -291,6 +286,13 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     t += ("\n");
     t += ("using namespace caret;\n");
     t += ("\n");
+    t += ("    \n");
+    t += ("/**\n");
+    t += (" * \\class " + enumClassName + " \n");
+    t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
+    t += (" *\n");
+    t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
+    t += (" */\n");
     t += ("/**\n");
     t += (" * Constructor.\n");
     t += (" *\n");
@@ -350,7 +352,9 @@ CommandClassCreateEnum::createImplementationFile(const AString& outputFileName,
     
     for (int32_t indx = 0; indx < numberOfEnumValues; indx++) {
         t += ("    enumData.push_back(" + enumClassName + "(, \n");
-        t += ("                                    " + AString::number(indx) + ", \n");
+        if (isAutoNumber == false) {
+            t += ("                                    " + AString::number(indx) + ", \n");
+        }
         t += ("                                    \"\", \n");
         t += ("                                    \"\"));\n");
         t += ("    \n");
