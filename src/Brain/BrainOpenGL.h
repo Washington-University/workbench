@@ -36,6 +36,7 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class IdentificationManager;
+    class IdentificationWithColor;
     class Surface;
     class ModelDisplayController;
     class ModelDisplayControllerVolume;
@@ -82,6 +83,9 @@ namespace caret {
 
         static float getModelViewingHalfWindowHeight() { return 100.0f; }
         
+        IdentificationManager* getIdentificationManager();
+
+        
     private:
         void initializeMembersBrainOpenGL();
         
@@ -102,6 +106,10 @@ namespace caret {
         void checkForOpenGLError(const ModelDisplayController* modelController,
                                  const AString& msg);
         
+        void enableLighting();
+        
+        void disableLighting();
+        
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;
         
@@ -120,8 +128,17 @@ namespace caret {
         /** Index of window tab */
         int windowTabIndex;
         
-        /** mode of operation */
+        /** mode of operation draw/select/etc*/
         Mode mode;
+        
+        /** Identification manager */
+        IdentificationManager* identificationManager;
+        
+        int32_t mouseX;
+        int32_t mouseY;
+        
+        /** Identify using color */
+        IdentificationWithColor* colorIdentification;
         
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;

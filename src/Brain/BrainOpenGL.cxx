@@ -44,6 +44,8 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "IdentificationWithColor.h"
+#include "IdentificationManager.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
@@ -57,7 +59,8 @@ using namespace caret;
  */
 BrainOpenGL::BrainOpenGL()
 {
-    
+    this->identificationManager = new IdentificationManager();
+    this->colorIdentification   = new IdentificationWithColor();
 }
 
 /**
@@ -82,16 +85,59 @@ BrainOpenGL::getBrainOpenGL()
  */
 BrainOpenGL::~BrainOpenGL()
 {
+    delete this->identificationManager;
+    this->identificationManager = NULL;
     
+    delete this->colorIdentification;
+    this->colorIdentification = NULL;
+}
+
+/**
+ * Selection on a model.
+ *
+ * @param modelDisplayController
+ *    Model display controller that is drawn (NULL if nothing to draw).
+ * @param browserTabContent
+ *    Content in the browser' tab.
+ * @param windowTabIndex
+ *    Index of window TAB in which controller is drawn.
+ * @param viewport
+ *    Viewport for drawing.
+ * @param mouseX
+ *    X position of mouse click
+ * @param mouseY
+ *    Y position of mouse click
+ */
+void 
+BrainOpenGL::selectModel(ModelDisplayController* controller,
+                 BrowserTabContent* browserTabContent,
+                 const int32_t windowTabIndex,
+                 const int32_t viewport[4],
+                 const int32_t mouseX,
+                 const int32_t mouseY)
+{
+    this->mode = MODE_IDENTIFICATION;
+    
+    this->identificationManager->reset();
+    
+    this->browserTabContent = browserTabContent;
+    this->windowTabIndex = windowTabIndex;
+
+    glViewport(viewport[0], 
+               viewport[1], 
+               viewport[2], 
+               viewport[3]);
+    this->mouseX = mouseX;
+    this->mouseY = mouseY;
 }
 
 /**
  * Draw a model.
  *
- * @param browserTabContent
- *    Content in the browser' tab.
  * @param modelDisplayController
  *    Model display controller that is drawn (NULL if nothing to draw).
+ * @param browserTabContent
+ *    Content in the browser' tab.
  * @param windowTabIndex
  *    Index of window TAB in which controller is drawn.
  * @param viewport
@@ -103,6 +149,8 @@ BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                        const int32_t windowTabIndex,
                        const int32_t viewport[4])
 {
+    this->mode = MODE_DRAWING;
+    
     this->browserTabContent = browserTabContent;
     this->windowTabIndex = windowTabIndex;
 
@@ -263,36 +311,65 @@ BrainOpenGL::updateOrthoSize(const int32_t windowIndex,
 }
 
 /**
+ * Enable lighting based upon the current mode.
+ */
+void 
+BrainOpenGL::enableLighting()
+{
+    if (this->mode == MODE_DRAWING) {
+        glPushMatrix();
+        glLoadIdentity();
+        float lightPosition[] = { 0.0f, 0.0f, 1000.0f, 0.0f };
+        glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+        glEnable(GL_LIGHT0);
+        
+        //
+        // Light 1 position is opposite of light 0
+        //
+        lightPosition[0] = -lightPosition[0];
+        lightPosition[1] = -lightPosition[1];
+        lightPosition[2] = -lightPosition[2];
+        glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);      
+        glEnable(GL_LIGHT1);
+        glPopMatrix();
+        
+        glEnable(GL_LIGHTING);
+        glEnable(GL_COLOR_MATERIAL);
+    }
+}
+
+/**
+ * Disable lighting.
+ */
+void 
+BrainOpenGL::disableLighting()
+{
+    glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
+}
+
+/**
  * Draw a surface.
  */
 void 
 BrainOpenGL::drawSurface(const Surface* surface)
 {
     glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    float lightPosition[] = { 0.0f, 0.0f, 1000.0f, 0.0f };
-    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-    glEnable(GL_LIGHT0);
-    
-    //
-    // Light 1 position is opposite of light 0
-    //
-    lightPosition[0] = -lightPosition[0];
-    lightPosition[1] = -lightPosition[1];
-    lightPosition[2] = -lightPosition[2];
-    glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);      
-    glEnable(GL_LIGHT1);
-    glPopMatrix();
     
     glEnable(GL_DEPTH_TEST);
     
-    glEnable(GL_LIGHTING);
-    glEnable(GL_COLOR_MATERIAL);
+    this->enableLighting();
     
     this->drawSurfaceTriangles(surface);
+    
+    this->disableLighting();
 }
 
+/**
+ * Draw a surface using triangles.
+ * @param surface
+ *    Surface that is drawn.
+ */
 void 
 BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
 {
@@ -459,4 +536,14 @@ BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
         CaretLogSevere(msg);
     }
 }
+
+/**
+ * @return The identification manager.
+ */
+IdentificationManager* 
+BrainOpenGL::getIdentificationManager()
+{
+    return this->identificationManager;
+}
+
 
