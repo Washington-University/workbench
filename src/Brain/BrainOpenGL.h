@@ -35,6 +35,7 @@ namespace caret {
     
     class Brain;
     class BrowserTabContent;
+    class IdentificationManager;
     class Surface;
     class ModelDisplayController;
     class ModelDisplayControllerVolume;
@@ -46,6 +47,11 @@ namespace caret {
     class BrainOpenGL : public CaretObject {
         
     private:
+        enum Mode {
+            MODE_DRAWING,
+            MODE_IDENTIFICATION
+        };
+        
         BrainOpenGL();
 
         BrainOpenGL(const BrainOpenGL&);
@@ -60,6 +66,13 @@ namespace caret {
                        BrowserTabContent* browserTabContent,
                        const int32_t windowTabNumber,
                        const int32_t viewport[4]);
+        
+        void selectModel(ModelDisplayController* controller,
+                         BrowserTabContent* browserTabContent,
+                         const int32_t windowTabNumber,
+                         const int32_t viewport[4],
+                         const int32_t mouseX,
+                         const int32_t mouseY);
         
         void initializeOpenGL();
         
@@ -106,6 +119,9 @@ namespace caret {
         
         /** Index of window tab */
         int windowTabIndex;
+        
+        /** mode of operation */
+        Mode mode;
         
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;
