@@ -529,6 +529,16 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     void* p = this->tabBar->tabData(tabIndexForUpdate).value<void*>();
     BrowserTabContent* btc = (BrowserTabContent*)p;    
     this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
+
+    /*
+    QIcon coronalIcon;
+    const bool coronalIconValid =
+    WuQtUtilities::loadIcon(":/view-plane-coronal.png", 
+                            coronalIcon);
+    if (coronalIconValid) {
+        this->tabBar->setTabIcon(tabIndex, coronalIcon);
+    }
+    */
 }
 
 /**
