@@ -188,8 +188,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     int mouseY = this->windowHeight[this->windowIndex] - me->y();
     
     
-    const int dx = std::abs(mouseX - this->lastMouseX);
-    const int dy = std::abs(mouseY - this->lastMouseY);
+    const int dx = std::abs((float)(mouseX - this->lastMouseX));//HACK: linux cmath thinks abs(int) is ambiguous
+    const int dy = std::abs((float)(mouseY - this->lastMouseY));
     
     if ((dx < 2) && (dy < 2)) {
         int viewport[4] = {
