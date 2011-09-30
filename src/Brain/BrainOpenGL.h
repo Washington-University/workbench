@@ -98,13 +98,13 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
-        void drawSurface(const Surface* surface);
+        void drawSurface(Surface* surface);
         
-        void drawSurfaceNodes(const Surface* surface);
+        void drawSurfaceNodes(Surface* surface);
         
         void drawSurfaceTrianglesWithVertexArrays(const Surface* surface);
         
-        void drawSurfaceTriangles(const Surface* surface);
+        void drawSurfaceTriangles(Surface* surface);
         
         void drawVolume(BrowserTabContent* browserTabContent,
                         ModelDisplayControllerVolume* volumeController);
@@ -123,9 +123,11 @@ namespace caret {
         
         void disableLighting();
         
-        int32_t getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
-                                           const int32_t y);
+                                           const int32_t y,
+                                           int32_t& indexOut,
+                                           float& depthOut);
                                            
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;

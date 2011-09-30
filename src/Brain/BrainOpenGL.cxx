@@ -396,7 +396,7 @@ BrainOpenGL::disableLighting()
  *    Surface that is drawn.
  */
 void 
-BrainOpenGL::drawSurface(const Surface* surface)
+BrainOpenGL::drawSurface(Surface* surface)
 {
     glMatrixMode(GL_MODELVIEW);
     
@@ -423,7 +423,7 @@ BrainOpenGL::drawSurface(const Surface* surface)
  *    Surface that is drawn.
  */
 void 
-BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
+BrainOpenGL::drawSurfaceTriangles(Surface* surface)
 {
     const int numTriangles = surface->getNumberOfTriangles();
     
@@ -479,9 +479,19 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
     glEnd();
     
     if (isSelect) {
-        const int triangleIndex = this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, this->mouseX, this->mouseY);
-        
-        CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
+        int32_t triangleIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, 
+                                         this->mouseX, 
+                                         this->mouseY,
+                                         triangleIndex,
+                                         depth);
+        if (triangleIndex >= 0) {
+            triangleID->setSurface(surface);
+            triangleID->setTriangleNumber(triangleIndex);
+            triangleID->setScreenDepth(depth);
+            CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
+        }
         
     }
 }
@@ -492,7 +502,7 @@ BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
  *    Surface that is drawn.
  */
 void 
-BrainOpenGL::drawSurfaceNodes(const Surface* surface)
+BrainOpenGL::drawSurfaceNodes(Surface* surface)
 {
     const int numNodes = surface->getNumberOfNodes();
     
@@ -535,10 +545,19 @@ BrainOpenGL::drawSurfaceNodes(const Surface* surface)
     glEnd();
     
     if (isSelect) {
-        const int nodeIndex = this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE, this->mouseX, this->mouseY);
-        
-        CaretLogFine("Selected Node: " + QString::number(nodeIndex));
-        
+        int nodeIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE, 
+                                         this->mouseX, 
+                                         this->mouseY,
+                                         nodeIndex,
+                                         depth);
+        if (nodeIndex >= 0) {
+            nodeID->setSurface(surface);
+            nodeID->setNodeNumber(nodeIndex);
+            nodeID->setScreenDepth(depth);
+            CaretLogFine("Selected Node: " + QString::number(nodeIndex));   
+        }
     }
 }
 
@@ -614,7 +633,7 @@ BrainOpenGL::drawWholeBrain(BrowserTabContent* browserTabContent,
         BrainStructure* brainStructure = brain->getBrainStructure(i);
         const int32_t numberOfSurfaces = brainStructure->getNumberOfSurfaces();
         for (int32_t j = 0; j < numberOfSurfaces; j++) {
-            const Surface* surface = brainStructure->getSurface(j);
+            Surface* surface = brainStructure->getSurface(j);
                         
             if (surface->getSurfaceType() == surfaceType) {
                 
@@ -724,10 +743,12 @@ BrainOpenGL::getIdentificationManager()
     return this->identificationManager;
 }
 
-int32_t 
+void
 BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
-                                        const int32_t y)
+                                        const int32_t y,
+                                        int32_t& indexOut,
+                                        float& depthOut)
 {
     // Figure out item was picked using color in color buffer
     //
@@ -744,30 +765,28 @@ BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dat
                     GL_UNSIGNED_BYTE,
                     pixels);
     
-    int32_t itemIndex = -1;
+    indexOut = -1;
+    depthOut = -1.0;
     
     CaretLogFine("ID color is "
                  + QString::number(pixels[0]) + ", "
                  + QString::number(pixels[1]) + ", "
                  + QString::number(pixels[2]));
     
-    this->colorIdentification->getItem(pixels, dataType, &itemIndex);
+    this->colorIdentification->getItem(pixels, dataType, &indexOut);
     
-    if (itemIndex >= 0) {
+    if (indexOut >= 0) {
         /*
          * Get depth from depth buffer
          */
         glPixelStorei(GL_PACK_ALIGNMENT, 4);
-        float depth;
         glReadPixels(x,
                      y,
                         1,
                         1,
                         GL_DEPTH_COMPONENT,
                         GL_FLOAT,
-                        &depth);
+                        &depthOut);
     }
-
-    return itemIndex;
 }
 
