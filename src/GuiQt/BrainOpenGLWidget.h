@@ -55,6 +55,8 @@ namespace caret {
         
         void mousePressEvent(QMouseEvent* e);
         
+        void mouseReleaseEvent(QMouseEvent* e);
+        
         void receiveEvent(Event* event);
         
     protected:

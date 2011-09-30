@@ -27,6 +27,7 @@
 
 
 #include "CaretObject.h"
+#include "IdentificationItemDataTypeEnum.h"
 
 namespace caret {
 
@@ -37,12 +38,14 @@ namespace caret {
         
         virtual ~IdentificationWithColor();
         
-        void addItem(int8_t rgbOut[3],
+        void addItem(uint8_t rgbOut[3],
+                     const IdentificationItemDataTypeEnum::Enum dataType,
                      const int32_t index1,
                      const int32_t index2 = -1,
                      const int32_t index3 = -1);
         
-        void getItem(const int8_t rgb[3],
+        void getItem(const uint8_t rgb[3],
+                     const IdentificationItemDataTypeEnum::Enum dataType,
                      int32_t* index1Out,
                      int32_t* index2Out = NULL,
                      int32_t* index3Out = NULL) const;
@@ -56,9 +59,9 @@ namespace caret {
         IdentificationWithColor& operator=(const IdentificationWithColor&);
         
         static void encodeIntegerIntoRGB(const int32_t integerValue,
-                          int8_t rgbOut[3]);
+                          uint8_t rgbOut[3]);
         
-        static int32_t decodeIntegerFromRGB(const int8_t rgb[3]);
+        static int32_t decodeIntegerFromRGB(const uint8_t rgb[3]);
                                  
                           
     public:
@@ -67,7 +70,8 @@ namespace caret {
     private:
         class Item {
         public:
-            int8_t rgb[3];
+            IdentificationItemDataTypeEnum::Enum dataType;
+            uint8_t rgb[3];
             int32_t index1;
             int32_t index2;
             int32_t index3;

@@ -34,12 +34,16 @@
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "GuiManager.h"
+#include "IdentificationManager.h"
+#include "IdentificationItemSurfaceTriangle.h"
+#include "IdentificationItemSurfaceNode.h"
 #include "Matrix4x4.h"
 #include "Surface.h"
 #include "ModelDisplayController.h"
@@ -170,9 +174,46 @@ BrainOpenGLWidget::paintGL()
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
-    this->lastMouseX = me->x();
-    this->lastMouseY = me->y();
+    int mouseX = me->x();
+    int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    
+    this->lastMouseX = mouseX;
+    this->lastMouseY = mouseY;
 }
+
+void 
+BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
+{
+    int mouseX = me->x();
+    int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    
+    
+    const int dx = std::abs(mouseX - this->lastMouseX);
+    const int dy = std::abs(mouseY - this->lastMouseY);
+    
+    if ((dx < 2) && (dy < 2)) {
+        int viewport[4] = {
+            0,
+            0,
+            this->windowWidth[this->windowIndex],
+            this->windowHeight[this->windowIndex]
+        };
+        
+        this->makeCurrent();
+        CaretLogFine("Performing selection");
+        IdentificationManager* idManager = this->openGL->getIdentificationManager();
+        idManager->reset();
+        idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
+        idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
+        this->openGL->selectModel(this->modelController, 
+                                  this->browserTabContent, 
+                                  this->windowTabIndex, 
+                                  viewport, 
+                                  mouseX, 
+                                  mouseY);
+    }
+}
+
 
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
@@ -247,8 +288,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         }
     }
     
-    lastMouseX = x;
-    lastMouseY = y;
+    this->lastMouseX = x;
+    this->lastMouseY = y;
 }
 
 /**

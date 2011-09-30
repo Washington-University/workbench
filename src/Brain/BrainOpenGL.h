@@ -30,6 +30,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
+#include "IdentificationItemDataTypeEnum.h"
 
 namespace caret {
     
@@ -87,9 +88,21 @@ namespace caret {
 
         
     private:
+        bool isIdentifyMode() const { return this->mode == MODE_IDENTIFICATION; }
+        
+        void drawModelInternal(Mode mode,
+                               ModelDisplayController* controller,
+                       BrowserTabContent* browserTabContent,
+                       const int32_t windowTabNumber,
+                       const int32_t viewport[4]);
+        
         void initializeMembersBrainOpenGL();
         
         void drawSurface(const Surface* surface);
+        
+        void drawSurfaceNodes(const Surface* surface);
+        
+        void drawSurfaceTrianglesWithVertexArrays(const Surface* surface);
         
         void drawSurfaceTriangles(const Surface* surface);
         
@@ -110,6 +123,10 @@ namespace caret {
         
         void disableLighting();
         
+        int32_t getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+                                           const int32_t x,
+                                           const int32_t y);
+                                           
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;
         

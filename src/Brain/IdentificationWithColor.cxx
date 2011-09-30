@@ -75,7 +75,8 @@ IdentificationWithColor::~IdentificationWithColor()
  *    Optional third index of item.
  */
 void 
-IdentificationWithColor::addItem(int8_t rgbOut[3],
+IdentificationWithColor::addItem(uint8_t rgbOut[3],
+                                 const IdentificationItemDataTypeEnum::Enum dataType,
              const int32_t index1,
              const int32_t index2,
              const int32_t index3)
@@ -87,12 +88,15 @@ IdentificationWithColor::addItem(int8_t rgbOut[3],
                                                   rgbOut);
     
     Item& item = this->items[this->itemCounter];
+    item.dataType = dataType;
     item.rgb[0] = rgbOut[0];
     item.rgb[1] = rgbOut[1];
     item.rgb[2] = rgbOut[2];
     item.index1 = index1;
     item.index2 = index2;
     item.index3 = index3;
+    
+    itemCounter++;
 }
 
 /**
@@ -107,7 +111,8 @@ IdentificationWithColor::addItem(int8_t rgbOut[3],
  *    may be NULL;
  */
 void 
-IdentificationWithColor::getItem(const int8_t rgb[3],
+IdentificationWithColor::getItem(const uint8_t rgb[3],
+                                 const IdentificationItemDataTypeEnum::Enum dataType,
              int32_t* index1Out,
              int32_t* index2Out,
              int32_t* index3Out) const
@@ -116,13 +121,28 @@ IdentificationWithColor::getItem(const int8_t rgb[3],
     
     const int32_t integerValue = IdentificationWithColor::decodeIntegerFromRGB(rgb);
     
-    const Item& item = this->items[integerValue];
-    *index1Out = item.index1;
+    *index1Out = -1;
     if (index2Out != NULL) {
-        *index2Out = item.index2;
+        *index2Out = -1;
     }
     if (index3Out != NULL) {
-        *index3Out = item.index3;
+        *index3Out = -1;
+    }
+
+    if ((integerValue < 0) ||
+        (integerValue >= this->itemCounter)) {
+        return;
+    }
+    
+    const Item& item = this->items[integerValue];
+    if (dataType == item.dataType) {
+        *index1Out = item.index1;
+        if (index2Out != NULL) {
+            *index2Out = item.index2;
+        }
+        if (index3Out != NULL) {
+            *index3Out = item.index3;
+        }
     }
 }
 
@@ -151,11 +171,11 @@ IdentificationWithColor::reset(const int32_t estimatedNumberOfItems)
  */
 void 
 IdentificationWithColor::encodeIntegerIntoRGB(const int32_t integerValue,
-                         int8_t rgbOut[3])
+                         uint8_t rgbOut[3])
 {
-    rgbOut[2] = (int8_t)(integerValue         & 0xff);
-    rgbOut[1] = (int8_t)((integerValue >> 8)  & 0xff);
-    rgbOut[0] = (int8_t)((integerValue >> 16) & 0xff);    
+    rgbOut[2] = (uint8_t)(integerValue         & 0xff);
+    rgbOut[1] = (uint8_t)((integerValue >> 8)  & 0xff);
+    rgbOut[0] = (uint8_t)((integerValue >> 16) & 0xff);    
 }
 
 /**
@@ -165,7 +185,7 @@ IdentificationWithColor::encodeIntegerIntoRGB(const int32_t integerValue,
  * @return The integer value.
  */
 int32_t 
-IdentificationWithColor::decodeIntegerFromRGB(const int8_t rgb[3])
+IdentificationWithColor::decodeIntegerFromRGB(const uint8_t rgb[3])
 {            
     int32_t r = rgb[0] & 0xff;
     int32_t g = rgb[1] & 0xff;

@@ -44,6 +44,8 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
 #include "Surface.h"
@@ -109,26 +111,24 @@ BrainOpenGL::~BrainOpenGL()
  *    Y position of mouse click
  */
 void 
-BrainOpenGL::selectModel(ModelDisplayController* controller,
+BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
                  BrowserTabContent* browserTabContent,
                  const int32_t windowTabIndex,
                  const int32_t viewport[4],
                  const int32_t mouseX,
                  const int32_t mouseY)
 {
-    this->mode = MODE_IDENTIFICATION;
-    
-    this->identificationManager->reset();
-    
-    this->browserTabContent = browserTabContent;
-    this->windowTabIndex = windowTabIndex;
-
-    glViewport(viewport[0], 
-               viewport[1], 
-               viewport[2], 
-               viewport[3]);
     this->mouseX = mouseX;
     this->mouseY = mouseY;
+    
+    //this->identificationManager->reset();
+    this->colorIdentification->reset();
+
+    this->drawModelInternal(MODE_IDENTIFICATION,
+                            modelDisplayController, 
+                            browserTabContent, 
+                            windowTabIndex, 
+                            viewport);
 }
 
 /**
@@ -149,16 +149,53 @@ BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                        const int32_t windowTabIndex,
                        const int32_t viewport[4])
 {
-    this->mode = MODE_DRAWING;
+    this->drawModelInternal(MODE_DRAWING,
+                            modelDisplayController, 
+                            browserTabContent, 
+                            windowTabIndex, 
+                            viewport);
+}
+    
+/**
+ * Draw a model.
+ *
+ * @param mode
+ *    The mode of operations (draw, select, etc).
+ * @param modelDisplayController
+ *    Model display controller that is drawn (NULL if nothing to draw).
+ * @param browserTabContent
+ *    Content in the browser' tab.
+ * @param windowTabIndex
+ *    Index of window TAB in which controller is drawn.
+ * @param viewport
+ *    Viewport for drawing.
+ */
+void 
+BrainOpenGL::drawModelInternal(Mode mode,
+                               ModelDisplayController* modelDisplayController,
+                       BrowserTabContent* browserTabContent,
+                       const int32_t windowTabIndex,
+                       const int32_t viewport[4])
+{
+    this->mode = mode;
     
     this->browserTabContent = browserTabContent;
     this->windowTabIndex = windowTabIndex;
-
-    float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-    glClearColor(backgroundColor[0],
-                 backgroundColor[1],
-                 backgroundColor[2],
-                 backgroundColor[3]);
+    
+    if (this->mode == MODE_IDENTIFICATION) {
+        /*
+         * For identification, set the background
+         * to white.
+         */
+        glClearColor(1.0, 1.0, 1.0, 0.0);
+    }
+    else {
+        float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        glClearColor(backgroundColor[0],
+                     backgroundColor[1],
+                     backgroundColor[2],
+                     backgroundColor[3]);
+    }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
@@ -316,25 +353,30 @@ BrainOpenGL::updateOrthoSize(const int32_t windowIndex,
 void 
 BrainOpenGL::enableLighting()
 {
-    if (this->mode == MODE_DRAWING) {
-        glPushMatrix();
-        glLoadIdentity();
-        float lightPosition[] = { 0.0f, 0.0f, 1000.0f, 0.0f };
-        glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-        glEnable(GL_LIGHT0);
-        
-        //
-        // Light 1 position is opposite of light 0
-        //
-        lightPosition[0] = -lightPosition[0];
-        lightPosition[1] = -lightPosition[1];
-        lightPosition[2] = -lightPosition[2];
-        glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);      
-        glEnable(GL_LIGHT1);
-        glPopMatrix();
-        
-        glEnable(GL_LIGHTING);
-        glEnable(GL_COLOR_MATERIAL);
+    float lightPosition[] = { 0.0f, 0.0f, 1000.0f, 0.0f };
+    switch (this->mode) {
+        case MODE_DRAWING:
+            glPushMatrix();
+            glLoadIdentity();
+            glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+            glEnable(GL_LIGHT0);
+            
+            //
+            // Light 1 position is opposite of light 0
+            //
+            lightPosition[0] = -lightPosition[0];
+            lightPosition[1] = -lightPosition[1];
+            lightPosition[2] = -lightPosition[2];
+            glLightfv(GL_LIGHT1, GL_POSITION, lightPosition);      
+            glEnable(GL_LIGHT1);
+            glPopMatrix();
+            
+            glEnable(GL_LIGHTING);
+            glEnable(GL_COLOR_MATERIAL);
+            break;
+        case MODE_IDENTIFICATION:
+            this->disableLighting();
+            break;
     }
 }
 
@@ -350,6 +392,8 @@ BrainOpenGL::disableLighting()
 
 /**
  * Draw a surface.
+ * @param surface
+ *    Surface that is drawn.
  */
 void 
 BrainOpenGL::drawSurface(const Surface* surface)
@@ -360,18 +404,152 @@ BrainOpenGL::drawSurface(const Surface* surface)
     
     this->enableLighting();
     
-    this->drawSurfaceTriangles(surface);
+    switch (this->mode) {
+        case MODE_DRAWING:
+            this->drawSurfaceTrianglesWithVertexArrays(surface);
+            break;
+        case MODE_IDENTIFICATION:
+            this->drawSurfaceNodes(surface);
+            this->drawSurfaceTriangles(surface);
+            break;
+    }
     
     this->disableLighting();
 }
 
 /**
- * Draw a surface using triangles.
+ * Draw a surface as individual triangles.
  * @param surface
  *    Surface that is drawn.
  */
 void 
 BrainOpenGL::drawSurfaceTriangles(const Surface* surface)
+{
+    const int numTriangles = surface->getNumberOfTriangles();
+    
+    const int32_t* triangles = surface->getTriangle(0);
+    const float* coordinates = surface->getCoordinate(0);
+    const float* normals     = surface->getNormalVector(0);
+    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+
+    IdentificationItemSurfaceTriangle* triangleID = 
+        this->identificationManager->getSurfaceTriangleIdentification();
+    bool isSelect = false;
+    if (this->isIdentifyMode()) {
+        if (triangleID->isEnabledForSelection()) {
+            isSelect = true;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+        else {
+            return;
+        }
+    }
+    
+    uint8_t rgb[3];
+    
+    glBegin(GL_TRIANGLES);
+    for (int32_t i = 0; i < numTriangles; i++) {
+        const int32_t i3 = i * 3;
+        const int32_t n1 = triangles[i3];
+        const int32_t n2 = triangles[i3+1];
+        const int32_t n3 = triangles[i3+2];
+        
+        if (isSelect) {
+            this->colorIdentification->addItem(rgb, IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, i);
+            glColor3ubv(rgb);
+            glNormal3fv(&normals[n1*3]);
+            glVertex3fv(&coordinates[n1*3]);
+            glNormal3fv(&normals[n2*3]);
+            glVertex3fv(&coordinates[n2*3]);
+            glNormal3fv(&normals[n3*3]);
+            glVertex3fv(&coordinates[n3*3]);
+        }
+        else {
+            glColor4fv(&rgbaColoring[n1*4]);
+            glNormal3fv(&normals[n1*3]);
+            glVertex3fv(&coordinates[n1*3]);
+            glColor4fv(&rgbaColoring[n2*4]);
+            glNormal3fv(&normals[n2*3]);
+            glVertex3fv(&coordinates[n2*3]);
+            glColor4fv(&rgbaColoring[n3*4]);
+            glNormal3fv(&normals[n3*3]);
+            glVertex3fv(&coordinates[n3*3]);
+        }
+    }
+    glEnd();
+    
+    if (isSelect) {
+        const int triangleIndex = this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE, this->mouseX, this->mouseY);
+        
+        CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
+        
+    }
+}
+
+/**
+ * Draw a surface as individual nodes.
+ * @param surface
+ *    Surface that is drawn.
+ */
+void 
+BrainOpenGL::drawSurfaceNodes(const Surface* surface)
+{
+    const int numNodes = surface->getNumberOfNodes();
+    
+    const float* coordinates = surface->getCoordinate(0);
+    const float* normals     = surface->getNormalVector(0);
+    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+    
+    IdentificationItemSurfaceNode* nodeID = 
+    this->identificationManager->getSurfaceNodeIdentification();
+    bool isSelect = false;
+    if (this->isIdentifyMode()) {
+        if (nodeID->isEnabledForSelection()) {
+            isSelect = true;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+        }
+        else {
+            return;
+        }
+    }
+    
+    uint8_t rgb[3];
+    
+    glPointSize(2.0);
+    glBegin(GL_POINTS);
+    for (int32_t i = 0; i < numNodes; i++) {
+        const int32_t i3 = i * 3;
+        
+        if (isSelect) {
+            this->colorIdentification->addItem(rgb, IdentificationItemDataTypeEnum::SURFACE_NODE, i);
+            glColor3ubv(rgb);
+            glNormal3fv(&normals[i3]);
+            glVertex3fv(&coordinates[i3]);
+        }
+        else {
+            glColor4fv(&rgbaColoring[i*4]);
+            glNormal3fv(&normals[i3]);
+            glVertex3fv(&coordinates[i3]);
+        }
+    }
+    glEnd();
+    
+    if (isSelect) {
+        const int nodeIndex = this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE, this->mouseX, this->mouseY);
+        
+        CaretLogFine("Selected Node: " + QString::number(nodeIndex));
+        
+    }
+}
+
+
+/**
+ * Draw a surface triangles with vertex arrays.
+ * @param surface
+ *    Surface that is drawn.
+ */
+void 
+BrainOpenGL::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
 {
     const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
     
@@ -546,4 +724,50 @@ BrainOpenGL::getIdentificationManager()
     return this->identificationManager;
 }
 
+int32_t 
+BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+                                        const int32_t x,
+                                        const int32_t y)
+{
+    // Figure out item was picked using color in color buffer
+    //
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    uint8_t pixels[3];
+    glReadPixels((int)x,
+                    (int)y,
+                    1,
+                    1,
+                    GL_RGB,
+                    GL_UNSIGNED_BYTE,
+                    pixels);
+    
+    int32_t itemIndex = -1;
+    
+    CaretLogFine("ID color is "
+                 + QString::number(pixels[0]) + ", "
+                 + QString::number(pixels[1]) + ", "
+                 + QString::number(pixels[2]));
+    
+    this->colorIdentification->getItem(pixels, dataType, &itemIndex);
+    
+    if (itemIndex >= 0) {
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        float depth;
+        glReadPixels(x,
+                     y,
+                        1,
+                        1,
+                        GL_DEPTH_COMPONENT,
+                        GL_FLOAT,
+                        &depth);
+    }
+
+    return itemIndex;
+}
 
