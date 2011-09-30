@@ -41,6 +41,7 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QHBoxLayout;
+class QIcon;
 class QLabel;
 class QMenu;
 class QRadioButton;
@@ -309,6 +310,8 @@ namespace caret {
         friend class BrainBrowserWindow;
         
         bool isContructorFinished;
+        
+        QIcon* tabSelectedIcon;
     };
 }
 

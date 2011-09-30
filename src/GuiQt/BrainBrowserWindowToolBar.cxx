@@ -91,6 +91,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                                      QWidget* parent)
 : QToolBar(parent)
 {
+    this->tabSelectedIcon = NULL;
     this->browserWindowIndex = browserWindowIndex;
     this->toolsToolBoxToolButtonAction = toolBoxToolButtonAction;
     this->updateCounter = 0;
@@ -101,6 +102,9 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * Create tab bar that displays models.
      */
     this->tabBar = new QTabBar();
+    //this->tabBar->setStyleSheet("QTabBar::tab:selected { margin-left: -4px;"
+    //                            "margin-right: -4px }");
+    this->tabBar->setDocumentMode(true);
     this->tabBar->setShape(QTabBar::RoundedNorth);
 #ifdef Q_OS_MACX
     this->tabBar->setStyle(new QCleanlooksStyle());
@@ -164,6 +168,15 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->addWidget(w);
     
+    
+    this->tabSelectedIcon = new QIcon();
+    const bool iconValid =
+    WuQtUtilities::loadIcon(":/view-plane-coronal.png", 
+                            *this->tabSelectedIcon);
+    if (iconValid == false) {
+        delete this->tabSelectedIcon;
+    }
+
     if (initialBrowserTabContent != NULL) {
         this->addNewTab(initialBrowserTabContent);
     }
@@ -189,6 +202,11 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
+    }
+    
+    if (this->tabSelectedIcon != NULL) {
+        delete this->tabSelectedIcon;
+        this->tabSelectedIcon = NULL;
     }
 }
 
@@ -497,6 +515,34 @@ BrainBrowserWindowToolBar::renameTab()
 void 
 BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
 {
+/*
+    int32_t tabIndexForUpdate = tabIndex;
+    if (tabIndexForUpdate < 0) {
+        tabIndexForUpdate = this->tabBar->currentIndex();
+    }
+    void* p = this->tabBar->tabData(tabIndexForUpdate).value<void*>();
+    BrowserTabContent* btc = (BrowserTabContent*)p;    
+    this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
+*/    
+    const int32_t numTabs = this->tabBar->count();
+    const int32_t selectedTabIndex = this->tabBar->currentIndex();
+    for (int32_t i = 0; i < numTabs; i++) {
+        void* p = this->tabBar->tabData(i).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p; 
+        AString tabName = btc->getName();
+        if (i == selectedTabIndex) {
+            this->tabBar->setTabIcon(i, *this->tabSelectedIcon);
+        }
+        else {
+            this->tabBar->setTabIcon(i, QIcon());
+        }
+        this->tabBar->setTabText(i, tabName);
+    }
+}
+/*
+void 
+BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
+{
     int32_t tabIndexForUpdate = tabIndex;
     if (tabIndexForUpdate < 0) {
         tabIndexForUpdate = this->tabBar->currentIndex();
@@ -505,7 +551,7 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     BrowserTabContent* btc = (BrowserTabContent*)p;    
     this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
 }
-
+*/
 /**
  * Close the selected tab.  This method is typically
  * called by the BrowswerWindow's File Menu.
