@@ -38,9 +38,16 @@ using namespace caret;
  *    An enumerated value.
  * @param name
  *    Name of enumberated value.
+ * @param guiName
+ *    Name displayed in the user-interface
+ * @param fileExtensionOne
+ *    File extension
+ * @param fileExtensionTwo
+ *    Additional File extension
+ * @param fileExtensionThree
+ *    Additional File extension
  */
 DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
-                                   const int32_t integerCode,
                                    const AString& name,
                                    const AString& guiName,
                                    const AString& fileExtensionOne,
@@ -48,7 +55,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const AString& fileExtensionThree)
 {
     this->enumValue = enumValue;
-    this->integerCode = integerCode;
+    this->integerCode = DataFileTypeEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
     
@@ -97,109 +104,66 @@ DataFileTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(DataFileTypeEnum(BORDER_PROJECTION, 
-                                        0, 
                                         "BORDER_PROJECTION", 
                                         "Border Projection",
                                         "borderproj"));
     
     enumData.push_back(DataFileTypeEnum(CIFTI, 
-                                        1, 
                                         "CIFTI", 
                                         "Connectivity",
                                         "cii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI_PROJECTION, 
-                                        2, 
                                         "FOCI_PROJECTION", 
                                         "Foci Projection",
                                         "fociproj"));
     
     enumData.push_back(DataFileTypeEnum(LABEL, 
-                                        3, 
                                         "LABEL", 
                                         "Label",
                                         "label.gii"));
     
     enumData.push_back(DataFileTypeEnum(METRIC, 
-                                        4, 
                                         "METRIC", 
                                         "Metric",
                                         "func.gii"));
     
     enumData.push_back(DataFileTypeEnum(PALETTE, 
-                                        5, 
                                         "PALETTE", 
                                         "Palette",
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
-                                        6, 
                                         "RGBA", 
                                         "RGBA",
                                         "rgba.gii"));
     
     enumData.push_back(DataFileTypeEnum(SCENE, 
-                                        7, 
                                         "SCENE", 
                                         "Scene",
                                         "scene"));
     
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
-                                        8, 
                                         "SPECIFICATION", 
                                         "Specification",
                                         "spec"));
     
-    enumData.push_back(DataFileTypeEnum(SURFACE_ANATOMICAL, 
-                                        9, 
-                                        "SURFACE_ANATOMICAL", 
-                                        "Surface - Anatomical",
-                                        "surf.gii"));
-    
-    enumData.push_back(DataFileTypeEnum(SURFACE_INFLATED, 
-                                        10, 
-                                        "SURFACE_INFLATED", 
-                                        "Surface - Inflated",
-                                        "surf.gii"));
-    
-    enumData.push_back(DataFileTypeEnum(SURFACE_VERY_INFLATED, 
-                                        11, 
-                                        "SURFACE_VERY_INFLATED", 
-                                        "Surface - Very Inflated",
-                                        "surf.gii"));
-    
-    enumData.push_back(DataFileTypeEnum(SURFACE_FLAT, 
-                                        12, 
-                                        "SURFACE_FLAT", 
-                                        "Surface - Flat",
-                                        "surf.gii"));
+    enumData.push_back(DataFileTypeEnum(SURFACE, 
+                                        "SURFACE", 
+                                        "Surface",
+                                        "surf.gii"));    
     
     enumData.push_back(DataFileTypeEnum(UNKNOWN, 
-                                        13, 
                                         "UNKNOWN", 
                                         "Unknown",
                                         "unknown"));
     
-    enumData.push_back(DataFileTypeEnum(VOLUME_ANATOMY, 
-                                        14, 
-                                        "VOLUME_ANATOMY", 
-                                        "Volume - Anatomy",
+    enumData.push_back(DataFileTypeEnum(VOLUME, 
+                                        "VOLUME", 
+                                        "Volume",
                                         "nii",
                                         "nii.gz"));
     
-    enumData.push_back(DataFileTypeEnum(VOLUME_FUNCTIONAL, 
-                                        15, 
-                                        "VOLUME_FUNCTIONAL", 
-                                        "Volume - Functional",
-                                        "nii",
-                                        "nii.gz"));
-    
-    enumData.push_back(DataFileTypeEnum(VOLUME_LABEL, 
-                                        16, 
-                                        "VOLUME_LABEL", 
-                                        "Volume - Label",
-                                        "nii",
-                                        "nii.gz"));
 }
 
 /**
@@ -251,12 +215,17 @@ DataFileTypeEnum::toName(Enum enumValue) {
  *     Enumerated value.
  */
 DataFileTypeEnum::Enum 
-DataFileTypeEnum::fromName(const AString& name, bool* isValidOut)
+DataFileTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
 {
+    AString name = nameIn;
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = UNKNOWN;
+    
+    if (name.startsWith("SURFACE_")) {
+        name = "SURFACE";
+    }
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

@@ -58,22 +58,12 @@ public:
         SCENE,
         /** Specification */
         SPECIFICATION,
-        /**  Anatomical Surface */
-        SURFACE_ANATOMICAL,
-        /**  Inflated Surface */
-        SURFACE_INFLATED,
-        /**  Very Inflated Surface */
-        SURFACE_VERY_INFLATED,
-        /**  Flat Surface */
-        SURFACE_FLAT,
+        /**  Surface */
+        SURFACE,
         /** Unknown */
         UNKNOWN,
-        /** Anatomy Volume */
-        VOLUME_ANATOMY,
-        /** Functional Volume */
-        VOLUME_FUNCTIONAL,
-        /** Label Volume */
-        VOLUME_LABEL
+        /** Volume */
+        VOLUME
     };
     
     ~DataFileTypeEnum();
@@ -100,7 +90,6 @@ public:
     
 private:
     DataFileTypeEnum(const Enum enumValue, 
-                     const int32_t integerCode, 
                      const AString& name,
                      const AString& guiName,
                      const AString& fileExtensionOne,
@@ -117,6 +106,9 @@ private:
 
     /** Indicates instance of enum values and metadata have been initialized */
     static bool initializedFlag;
+    
+    /** Automatically generates the integer code */
+    static int32_t integerCodeGenerator;
     
     /** The enumerated type value for an instance */
     Enum enumValue;
@@ -140,6 +132,7 @@ private:
 #ifdef __DATA_FILE_TYPE_ENUM_DECLARE__
 std::vector<DataFileTypeEnum> DataFileTypeEnum::enumData;
 bool DataFileTypeEnum::initializedFlag = false;
+    int32_t DataFileTypeEnum::integerCodeGenerator = 0;
 #endif // __DATA_FILE_TYPE_ENUM_DECLARE__
 
 } // namespace

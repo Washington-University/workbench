@@ -94,12 +94,8 @@ namespace caret {
         void readSurfaceFile(const AString& filename,
                              const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readVolumeAnatomyFile(const AString& filename) throw (DataFileException);
+        void readVolumeFile(const AString& filename) throw (DataFileException);
                             
-        void readVolumeFunctionalFile(const AString& filename) throw (DataFileException);
-        
-        void readVolumeLabelFile(const AString& filename) throw (DataFileException);
-        
         void readBorderProjectionFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityFile(const AString& filename) throw (DataFileException);
@@ -122,11 +118,7 @@ namespace caret {
         
         SpecFile* specFile;
         
-        std::vector<VolumeFile*> volumeFilesAnatomy;
-        
-        std::vector<VolumeFile*> volumeFilesFunctional;
-        
-        std::vector<VolumeFile*> volumeFilesLabel;
+        std::vector<VolumeFile*> volumeFiles;
         
         ModelDisplayControllerWholeBrain* wholeBrainController;
         

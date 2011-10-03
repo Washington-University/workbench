@@ -159,29 +159,13 @@ Brain::resetBrain()
         delete this->brainStructures[i];
     }
     
-    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesAnatomy.begin();
-         vfi != this->volumeFilesAnatomy.end();
+    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFiles.begin();
+         vfi != this->volumeFiles.end();
          vfi++) {
         VolumeFile* vf = *vfi;
         delete vf;
     }
-    this->volumeFilesAnatomy.clear();
-    
-    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesFunctional.begin();
-         vfi != this->volumeFilesFunctional.end();
-         vfi++) {
-        VolumeFile* vf = *vfi;
-        delete vf;
-    }
-    this->volumeFilesFunctional.clear();
-    
-    for (std::vector<VolumeFile*>::iterator vfi = this->volumeFilesLabel.begin();
-         vfi != this->volumeFilesLabel.end();
-         vfi++) {
-        VolumeFile* vf = *vfi;
-        delete vf;
-    }
-    this->volumeFilesLabel.clear();
+    this->volumeFiles.clear();
     
     this->brainStructures.clear();
     this->paletteFile->clear();
@@ -389,7 +373,7 @@ Brain::readRgbaFile(const AString& filename,
 }
 
 /**
- * Read an anatomy volume file.
+ * Read a volume file.
  *
  * @param filename
  *    Name of the file.
@@ -397,69 +381,17 @@ Brain::readRgbaFile(const AString& filename,
  *    If reading failed.
  */
 void 
-Brain::readVolumeAnatomyFile(const AString& filename) throw (DataFileException)
+Brain::readVolumeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading not implemented for: volume anatomy");
-
-    VolumeFile* volumeFile = new VolumeFile();
+    VolumeFile* vf = new VolumeFile();
     try {
-        volumeFile->readFile(filename);
+        vf->readFile(filename);
     }
     catch (DataFileException e) {
-        delete volumeFile;
+        delete vf;
         throw e;
     }
-    this->volumeFilesAnatomy.push_back(volumeFile);
-}
-
-/**
- * Read an functional volume file.
- *
- * @param filename
- *    Name of the file.
- * @throws DataFileException
- *    If reading failed.
- */
-void 
-Brain::readVolumeFunctionalFile(const AString& filename) throw (DataFileException)
-{
-    throw DataFileException("Reading not implemented for: volume functional");
-/*    
-    VolumeFile* volumeFile = new VolumeFile();
-    try {
-        volumeFile->readFile(filename);
-    }
-    catch (DataFileException e) {
-        delete volumeFile;
-        throw e;
-    }
-    this->volumeFilesFunctional.push_back(volumeFile);
-*/
-}
-
-/**
- * Read an label volume file.
- *
- * @param filename
- *    Name of the file.
- * @throws DataFileException
- *    If reading failed.
- */
-void 
-Brain::readVolumeLabelFile(const AString& filename) throw (DataFileException)
-{
-    throw DataFileException("Reading not implemented for: volume label");
-/*
-    VolumeFile* volumeFile = new VolumeFile();
-    try {
-        volumeFile->readFile(filename);
-    }
-    catch (DataFileException e) {
-        delete volumeFile;
-        throw e;
-    }
-    this->volumeFilesLabel.push_back(volumeFile);
-*/
+    this->volumeFiles.push_back(vf);
 }
 
 /**
@@ -645,23 +577,14 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             CaretLogSevere("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             break;
-        case DataFileTypeEnum::SURFACE_ANATOMICAL:
-        case DataFileTypeEnum::SURFACE_INFLATED:
-        case DataFileTypeEnum::SURFACE_VERY_INFLATED:
-        case DataFileTypeEnum::SURFACE_FLAT:
+        case DataFileTypeEnum::SURFACE:
             this->readSurfaceFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::UNKNOWN:
             throw DataFileException("Unable to read files of type");
             break;
-        case DataFileTypeEnum::VOLUME_ANATOMY:
-            this->readVolumeAnatomyFile(dataFileName);
-            break;
-        case DataFileTypeEnum::VOLUME_FUNCTIONAL:
-            this->readVolumeFunctionalFile(dataFileName);
-            break;
-        case DataFileTypeEnum::VOLUME_LABEL:
-            this->readVolumeLabelFile(dataFileName);
+        case DataFileTypeEnum::VOLUME:
+            this->readVolumeFile(dataFileName);
             break;
     }    
     
