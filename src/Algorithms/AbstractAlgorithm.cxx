@@ -31,6 +31,11 @@ AbstractAlgorithm::AbstractAlgorithm(ProgressObject* myProgressObject)
 {
    m_progObj = myProgressObject;
    m_finish = true;
+   if (myProgressObject == NULL)
+   {
+       m_finish = false;
+       return;
+   }
    myProgressObject->algorithmStartSentinel();
    if (myProgressObject->isDisabled())
    {
@@ -55,7 +60,7 @@ float AbstractAlgorithm::getAlgorithmWeight()
 
 AbstractAlgorithm::~AbstractAlgorithm()
 {
-   if (m_finish)
+   if ((m_progObj != NULL) && m_finish)
    {
       m_progObj->forceFinish();
    }

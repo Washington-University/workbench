@@ -177,7 +177,12 @@ ProgramParameters::nextInt(const AString& parameterName)
             throw (ProgramParametersException)
 {
     AString s = this->nextString(parameterName);
-    int32_t i = s.toInt();
+    bool ok = false;
+    int32_t i = s.toInt(&ok);
+    if (!ok)
+    {
+        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".")
+    }
     return i;
 }
 
@@ -195,7 +200,12 @@ ProgramParameters::nextLong(const AString& parameterName)
             throw (ProgramParametersException)
 {
     AString s = this->nextString(parameterName);
-    int64_t i = s.toLong();
+    bool ok = false;
+    int64_t i = s.toLong(&ok);
+    if (!ok)
+    {
+        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".")
+    }
     return i;
 }
 
@@ -213,7 +223,12 @@ ProgramParameters::nextFloat(const AString& parameterName)
             throw (ProgramParametersException)
 {
     AString s = this->nextString(parameterName);
-    float f = s.toFloat();
+    bool ok = false;
+    float f = s.toFloat(&ok);
+    if (!ok)
+    {
+        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".")
+    }
     return f;
 }
 
@@ -231,7 +246,12 @@ ProgramParameters::nextDouble(const AString& parameterName)
             throw (ProgramParametersException)
 {
     AString s = this->nextString(parameterName);
-    double d = s.toDouble();
+    bool ok = false;
+    double d = s.toDouble(&ok);
+    if (!ok)
+    {
+        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".")
+    }
     return d;
 }
 
