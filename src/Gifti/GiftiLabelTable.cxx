@@ -262,7 +262,9 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     }
     if (key == 0)
     {
-       CaretLogWarning("Label 0 overridden!");
+        if (glIn->getName() != "???") {
+            CaretLogWarning("Label 0 overridden!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -582,7 +584,9 @@ GiftiLabelTable::setLabelName(
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        if (name != "???") {
+            CaretLogWarning("Label 0 modified!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
