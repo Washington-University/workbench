@@ -111,12 +111,12 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->tabBar = new QTabBar();
     this->tabBar->setStyleSheet("QTabBar::tab:selected {"
-                        "    font: bold 14px;"
-                                "    text-decoration: underline; "
-                        "}  " 
-                        //"QTabBar::tab:!selected {"
-                        "QTabBar::tab {"
-                        "    font: italic"
+                                "    font: bold 14px;"
+                                //"    text-decoration: underline; "
+                                "}  " 
+                                //"QTabBar::tab:!selected {"
+                                "QTabBar::tab {"
+                                "    font: italic"
                                 "}");
     /*
                                 "QTabBar::tab:close-button {"
