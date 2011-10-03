@@ -29,9 +29,8 @@
 #include "stdint.h"
 #include <vector>
 #include "DataFile.h"
-
-class nifti_1_header;
-class nifti_2_header;
+#include "Nifti1Header.h"
+#include "Nifti2Header.h"
 
 namespace caret {
    
@@ -43,8 +42,8 @@ namespace caret {
          NIFTI_2,
          NONE
       };
-      nifti_1_header* m_N1Header;
-      nifti_2_header* m_N2Header;
+      Nifti1Header m_N1Header;
+      Nifti2Header m_N2Header;
       StoredHeaderType m_headerType;
       std::vector<std::vector<float> > m_indexToSpace;
       std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
@@ -144,13 +143,13 @@ namespace caret {
       ///checks if an index is within array dimensions
       bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0);
 
-       virtual void readFile(const AString& filename) throw (DataFileException);
+      virtual void readFile(const AString& filename) throw (DataFileException);
        
-       virtual void writeFile(const AString& filename) throw (DataFileException);
+      virtual void writeFile(const AString& filename) throw (DataFileException);
        
-       virtual bool isEmpty() const;
+      virtual bool isEmpty() const;
        
-};
+   };
    
 }
 
