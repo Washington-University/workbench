@@ -38,10 +38,10 @@ namespace caret {
 /// Class for determining Nifti Header version and return correct (nifti 1 or 2) Header version
 class NiftiHeaderIO {
 public:
-   NiftiHeaderIO() throw (NiftiException);
+   NiftiHeaderIO() throw (NiftiException) { };
    NiftiHeaderIO(const QString &inputFileName) throw (NiftiException);
    NiftiHeaderIO(QFile &inputFile) throw (NiftiException);
-   ~NiftiHeaderIO();
+   ~NiftiHeaderIO() { };
    void readFile(const QString &inputFileName) throw (NiftiException);
    void readFile(QFile &inputFile) throw (NiftiException);
    void writeFile(QFile &outputFile) const throw (NiftiException);
