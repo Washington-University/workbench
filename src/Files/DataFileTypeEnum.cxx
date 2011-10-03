@@ -458,9 +458,12 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
+ * @param includeUNKNOWN
+ *     If true, the UNKNOWN enum is included.
  */
 void
-DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums)
+DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
+                              const bool includeUnknown)
 {
     if (initializedFlag == false) initialize();
     
@@ -469,7 +472,14 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums)
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        allEnums.push_back(iter->enumValue);
+        if (iter->enumValue == UNKNOWN) {
+            if (includeUnknown) {
+                allEnums.push_back(iter->enumValue);
+            }
+        }
+        else {
+            allEnums.push_back(iter->enumValue);
+        }
     }
 }
 

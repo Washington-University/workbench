@@ -80,7 +80,8 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
-    static void getAllEnums(std::vector<Enum>& allEnums);
+    static void getAllEnums(std::vector<Enum>& allEnums,
+                            const bool includeUnknown = false);
 
     static Enum fromQFileDialogFilter(const AString& qFileDialogNameFilter, bool* isValidOut);
     

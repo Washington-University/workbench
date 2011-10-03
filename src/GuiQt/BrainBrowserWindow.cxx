@@ -570,10 +570,8 @@ BrainBrowserWindow::processDataFileOpen()
     for (std::vector<DataFileTypeEnum::Enum>::const_iterator iter = dataFileTypes.begin();
          iter != dataFileTypes.end();
          iter++) {
-        if (*iter != DataFileTypeEnum::UNKNOWN) {
-            AString filterName = DataFileTypeEnum::toQFileDialogFilter(*iter);
-            filenameFilterList.append(filterName);
-        }
+        AString filterName = DataFileTypeEnum::toQFileDialogFilter(*iter);
+        filenameFilterList.append(filterName);
     }
     
     AString errorMessages;
