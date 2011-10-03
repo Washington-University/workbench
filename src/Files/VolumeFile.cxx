@@ -23,7 +23,6 @@
  */ 
 
 #include "VolumeFile.h"
-#include "CaretAssert.h"
 #include "FloatMatrix.h"
 #include <cmath>
 #include "nifti1.h"
@@ -164,17 +163,6 @@ void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, cons
     indexOut3 = (int32_t)floor(0.5f + tempInd3);
 }
 
-float VolumeFile::getValue(const int64_t* indexIn, const int64_t brickIndex, const int64_t component)
-{
-    return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
-}
-
-float VolumeFile::getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
-{
-    CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-    return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
-}
-
 void VolumeFile::getDimensions(vector<int64_t>& dimOut)
 {
     dimOut.resize(5);
@@ -288,27 +276,6 @@ void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, cons
     indexOut1 = m_spaceToIndex[0][0] * coordIn1 + m_spaceToIndex[0][1] * coordIn2 + m_spaceToIndex[0][2] * coordIn3 + m_spaceToIndex[0][3];
     indexOut2 = m_spaceToIndex[1][0] * coordIn1 + m_spaceToIndex[1][1] * coordIn2 + m_spaceToIndex[1][2] * coordIn3 + m_spaceToIndex[1][3];
     indexOut3 = m_spaceToIndex[2][0] * coordIn1 + m_spaceToIndex[2][1] * coordIn2 + m_spaceToIndex[2][2] * coordIn3 + m_spaceToIndex[2][3];
-}
-
-void VolumeFile::setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex, const int64_t component)
-{
-    setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
-}
-
-void VolumeFile::setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
-{
-    CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-    m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
-}
-
-bool VolumeFile::indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
-{
-    if (indexIn1 < 0 || indexIn1 >= m_dimensions[0]) return false;
-    if (indexIn2 < 0 || indexIn2 >= m_dimensions[1]) return false;
-    if (indexIn3 < 0 || indexIn3 >= m_dimensions[2]) return false;
-    if (brickIndex < 0 || brickIndex >= m_dimensions[3]) return false;
-    if (component < 0 || component >= m_dimensions[4]) return false;
-    return true;
 }
 
 void VolumeFile::freeMemory()
