@@ -403,3 +403,36 @@ VolumeFile::~VolumeFile()
 {
    freeMemory();
 }
+
+/**
+ * Is the file empty (contains no data)?
+ *
+ * @return 
+ *    true if the file is empty, else false.
+ */
+bool
+VolumeFile::isEmpty() const
+{
+    return false;
+}
+
+void 
+VolumeFile::readFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading of volume files not implemented.");
+}
+
+/**
+ * Write the data file.
+ *
+ * @param filename
+ *    Name of the data file.
+ * @throws DataFileException
+ *    If the file was not successfully written.
+ */
+void 
+VolumeFile::writeFile(const AString& filename) throw (DataFileException)
+{
+    throw DataFileException("Reading of volume files not implemented.");
+}
+

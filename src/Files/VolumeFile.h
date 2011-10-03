@@ -143,7 +143,14 @@ namespace caret {
       
       ///checks if an index is within array dimensions
       bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0);
-   };
+
+       virtual void readFile(const AString& filename) throw (DataFileException);
+       
+       virtual void writeFile(const AString& filename) throw (DataFileException);
+       
+       virtual bool isEmpty() const;
+       
+};
    
 }
 

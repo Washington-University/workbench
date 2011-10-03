@@ -400,7 +400,7 @@ void
 Brain::readVolumeAnatomyFile(const AString& filename) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: volume anatomy");
-/*
+
     VolumeFile* volumeFile = new VolumeFile();
     try {
         volumeFile->readFile(filename);
@@ -410,7 +410,6 @@ Brain::readVolumeAnatomyFile(const AString& filename) throw (DataFileException)
         throw e;
     }
     this->volumeFilesAnatomy.push_back(volumeFile);
-*/
 }
 
 /**

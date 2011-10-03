@@ -32,6 +32,7 @@ CaretPointer.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
+DataFileInterface.h
 ElapsedTimer.h
 Event.h
 EventListenerInterface.h
