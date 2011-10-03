@@ -181,7 +181,7 @@ ProgramParameters::nextInt(const AString& parameterName)
     int32_t i = s.toInt(&ok);
     if (!ok)
     {
-        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".")
+        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".");
     }
     return i;
 }
@@ -204,7 +204,7 @@ ProgramParameters::nextLong(const AString& parameterName)
     int64_t i = s.toLong(&ok);
     if (!ok)
     {
-        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".")
+        throw ProgramParametersException(parameterName + " needs an integer, got \"" + s + "\".");
     }
     return i;
 }
@@ -227,7 +227,7 @@ ProgramParameters::nextFloat(const AString& parameterName)
     float f = s.toFloat(&ok);
     if (!ok)
     {
-        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".")
+        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".");
     }
     return f;
 }
@@ -250,7 +250,7 @@ ProgramParameters::nextDouble(const AString& parameterName)
     double d = s.toDouble(&ok);
     if (!ok)
     {
-        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".")
+        throw ProgramParametersException(parameterName + " needs a floating point, got \"" + s + "\".");
     }
     return d;
 }
