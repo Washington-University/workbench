@@ -18,8 +18,10 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmParameters.h
 
 AbstractAlgorithm.cxx
+AlgorithmParameters.cxx
 )
 
 #
@@ -30,6 +32,7 @@ ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common

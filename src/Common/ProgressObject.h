@@ -35,9 +35,6 @@ namespace caret {
    //NOTE: this tries to intelligently avoid doing recursive progress updates when the value doesn't change much
    class ProgressObject
    {
-//don't always report progress, in case someone uses this in an inner loop
-      const static float MAX_CHILD_RESOLUTION;
-      const static float MAX_INTERNAL_RESOLUTION;
 
       struct ProgressInfo
       {
@@ -63,6 +60,9 @@ namespace caret {
       void finishLevel();//moves this progress object to 100%, then updates parent if not NULL
       ProgressObject();
    public:
+//don't always report progress, in case someone uses this in an inner loop
+      const static float MAX_CHILD_RESOLUTION;
+      const static float MAX_INTERNAL_RESOLUTION;
       ///fill in weight with the ...Algorithm::getAlgorithmWeight() function at the root level (before starting the algorithm)
       ///if using multiple algorithms at the root level (shame!), sum their weights first, then use addAlgorithm to get objects for each
       ProgressObject(const float weight, const float childResolution = MAX_CHILD_RESOLUTION);
@@ -103,9 +103,9 @@ namespace caret {
       float m_lastReported;
       float m_internalResolution;
       ProgressObject* m_progObjRef;
-      LevelProgress();//deny default construction, assignment, because we use the destructor for a specific purpose
-      LevelProgress& operator=(const LevelProgress& right);
+      LevelProgress& operator=(const LevelProgress& right);//deny assignment, because we use the destructor for a specific purpose
    public:
+      LevelProgress();
       
       ///call with the fraction of finishedProgress passed to ProgressObject::startLevel (default 1.0) that this algorithm has done internally
       ///work done by subalgorithms is automatically added and updated as progress is made, DO NOT call this unless the current algorithm does direct processing

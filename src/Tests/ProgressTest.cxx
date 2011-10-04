@@ -95,10 +95,12 @@ void ProgressTest::execute()
    {
       setFailed("Algorithm reported failure internally");
    }
-   TestAlgorithm myalg2(&myprog2, true);
-   if (myalg2.m_failed)
    {
-      setFailed("Algorithm reported failure internally");
+      TestAlgorithm myalg2(&myprog2, true);
+      if (myalg2.m_failed)
+      {
+          setFailed("Algorithm reported failure internally");
+      }
    }
    {
       TestAlgorithm2 myalg3(&myprog3);
