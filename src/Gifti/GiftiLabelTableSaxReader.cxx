@@ -32,7 +32,7 @@
 #include "GiftiLabelTableSaxReader.h"
 #include "GiftiXmlElements.h"
 
-#include "NiftiIntentEnum.h"
+#include "NiftiEnums.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"
 

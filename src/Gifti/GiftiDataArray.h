@@ -41,8 +41,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "Matrix4x4.h"
-#include "NiftiDataTypeEnum.h"
-#include "NiftiIntentEnum.h"
+#include "NiftiEnums.h"
 #include "TracksModificationInterface.h"
 
 

@@ -30,8 +30,7 @@
 #include "DataFile.h"
 #include "GiftiDataArray.h"
 #include "GiftiLabelTable.h"
-#include "NiftiDataTypeEnum.h"
-#include "NiftiIntentEnum.h"
+#include "NiftiEnums.h"
 #include "TracksModificationInterface.h"
 
 namespace caret { 

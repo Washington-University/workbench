@@ -41,7 +41,7 @@
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
-#include "NiftiTransformEnum.h"
+#include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
 #include "SystemUtilities.h"
 #include "XmlWriter.h"

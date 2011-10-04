@@ -34,7 +34,7 @@
 #include "GiftiArrayIndexingOrderEnum.h"
 #include "GiftiEndianEnum.h"
 #include "GiftiEncodingEnum.h"
-#include "NiftiDataTypeEnum.h"
+#include "NiftiEnums.h"
 #include "XmlSaxParserException.h"
 #include "XmlSaxParserHandlerInterface.h"
 

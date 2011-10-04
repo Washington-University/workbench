@@ -29,7 +29,7 @@
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
-#include "NiftiIntentEnum.h"
+#include "NiftiEnums.h"
 #include "XmlAttributes.h"
 #include "XmlException.h"
 

@@ -19,18 +19,13 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Nifti
 Matrix4x4.h
-NiftiDataTypeEnum.h
+NiftiEnums.h
 NiftiException.h
 NiftiFile.h
 NiftiHeaderIO.h
 Nifti1Header.h
 Nifti2Header.h
-NiftiIntentEnum.h
-NiftiSpacingUnitsEnum.h
-NiftiTimeUnitsEnum.h
-NiftiTransformEnum.h
 NiftiUtilities.h
-NiftiVersionEnum.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteScaleModeEnum.h
@@ -41,18 +36,13 @@ nifti2.h
 
 
 Matrix4x4.cxx
-NiftiDataTypeEnum.cxx
+NiftiEnums.cxx
 NiftiException.cxx
 NiftiFile.cxx
 NiftiHeaderIO.cxx
 Nifti1Header.cxx
 Nifti2Header.cxx
-NiftiIntentEnum.cxx
-NiftiSpacingUnitsEnum.cxx
-NiftiTimeUnitsEnum.cxx
-NiftiTransformEnum.cxx
 NiftiUtilities.cxx
-NiftiVersionEnum.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteScaleModeEnum.cxx
