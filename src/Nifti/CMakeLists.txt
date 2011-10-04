@@ -25,7 +25,7 @@ NiftiFile.h
 NiftiHeaderIO.h
 Nifti1Header.h
 Nifti2Header.h
-NiftiUtilities.h
+#NiftiUtilities.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteEnums.h
@@ -40,7 +40,7 @@ NiftiFile.cxx
 NiftiHeaderIO.cxx
 Nifti1Header.cxx
 Nifti2Header.cxx
-NiftiUtilities.cxx
+#NiftiUtilities.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx
