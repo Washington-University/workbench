@@ -29,9 +29,7 @@
 
 #include "CaretObject.h"
 
-#include "PaletteScaleModeEnum.h"
-#include "PaletteThresholdTestEnum.h"
-#include "PaletteThresholdTypeEnum.h"
+#include "PaletteEnums.h"
 #include "XmlException.h"
 
 namespace caret {

@@ -28,9 +28,7 @@ Nifti2Header.h
 NiftiUtilities.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
-PaletteScaleModeEnum.h
-PaletteThresholdTestEnum.h
-PaletteThresholdTypeEnum.h
+PaletteEnums.h
 nifti1.h
 nifti2.h
 
@@ -45,9 +43,8 @@ Nifti2Header.cxx
 NiftiUtilities.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
-PaletteScaleModeEnum.cxx
-PaletteThresholdTestEnum.cxx
-PaletteThresholdTypeEnum.cxx
+PaletteEnums.cxx
+
 )
 
 #

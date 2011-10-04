@@ -435,8 +435,6 @@ namespace caret {
       
    };
    
-   
-   
 #ifdef __NIFTI_ENUMS_DECLARE__
    std::vector<NiftiDataTypeEnum> NiftiDataTypeEnum::dataTypes;
    bool NiftiDataTypeEnum::dataTypesCreatedFlag = false;
