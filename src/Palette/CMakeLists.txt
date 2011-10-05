@@ -1,7 +1,7 @@
 #
 # The NIFTI Project
 #
-project (Nifti)
+project (Palette)
 
 #
 # Need XML from Qt
@@ -17,33 +17,23 @@ INCLUDE (${QT_USE_FILE})
 #
 # Create the NIFTI library
 #
-ADD_LIBRARY(Nifti
-Matrix4x4.h
-NiftiEnums.h
-NiftiException.h
-NiftiFile.h
-NiftiHeaderIO.h
-Nifti1Header.h
-Nifti2Header.h
-nifti1.h
-nifti2.h
+ADD_LIBRARY(Palette
+PaletteColorMapping.h
+PaletteColorMappingSaxReader.h
+PaletteEnums.h
 
+PaletteColorMapping.cxx
+PaletteColorMappingSaxReader.cxx
+PaletteEnums.cxx
 
-Matrix4x4.cxx
-NiftiEnums.cxx
-NiftiException.cxx
-NiftiFile.cxx
-NiftiHeaderIO.cxx
-Nifti1Header.cxx
-Nifti2Header.cxx
 )
 
 #
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Palette
+${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml

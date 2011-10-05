@@ -69,6 +69,7 @@ Algorithms
 Brain
 Helpers
 Files
+Palette
 Gifti
 Nifti
 Xml
@@ -85,6 +86,7 @@ ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/CommandOperations
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
