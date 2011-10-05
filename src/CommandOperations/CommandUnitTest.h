@@ -42,6 +42,8 @@ namespace caret {
             throw (CommandException,
                    ProgramParametersException);
         
+        AString getHelpInformation(const AString& programName) { return ""; };
+            
     private:
         
         CommandUnitTest(const CommandUnitTest&);

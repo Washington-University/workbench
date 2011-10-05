@@ -37,10 +37,11 @@ namespace caret {
 
     class CommandParser : public CommandOperation, AlgorithmParserInterface
     {
+        int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
         struct OutputAssoc
         {//how the output is stored is up to the parser, in the GUI it should load into memory without writing to disk
             AString m_fileName;
-            AbstractParameter::parameterType m_type;
+            AlgorithmParametersEnum::Enum m_type;
             int32_t m_outputKey;
         };
         void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters);
@@ -48,9 +49,17 @@ namespace caret {
         bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters);
         void parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters);
         void writeOutput(AlgorithmParameters* myAlgParams, const std::vector<OutputAssoc>& outAssociation);
+        AString getIndentString(int desired);
+        void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
+        void addHelpOptions(AString& info, ParameterComponent* myAlgParams, int curIndent);
+        void addHelpProse(AString& info, AlgorithmParameters* myAlgParams, int curIndent);
+        void addComponentDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
+        void addOptionDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
+        AString formatString(const AString& in, int curIndent, bool addIndent);
     public:
         CommandParser(AutoAlgorithmInterface* myAutoAlg);
         void executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
+        AString getHelpInformation(const AString& programName);
     };
 
 };

@@ -19,9 +19,11 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
 AlgorithmParameters.h
+AlgorithmParametersEnum.h
 
 AbstractAlgorithm.cxx
 AlgorithmParameters.cxx
+AlgorithmParametersEnum.cxx
 )
 
 #

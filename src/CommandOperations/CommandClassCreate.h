@@ -41,6 +41,8 @@ namespace caret {
         virtual void executeOperation(ProgramParameters& parameters) 
             throw (CommandException,
                    ProgramParametersException);
+            
+        AString getHelpInformation(const AString& programName) { return ""; };
         
     private:
         

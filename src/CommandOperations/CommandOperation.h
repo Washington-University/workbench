@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 #include "CommandException.h"
 #include "ProgramParametersException.h"
+#include "AString.h"
 
 namespace caret {
 
@@ -73,6 +74,8 @@ namespace caret {
         AString getOperationShortDescription() const;
         
         AString getCommandLineSwitch() const;
+        
+        virtual AString getHelpInformation(const AString& programName) = 0;
         
     private:
         /** Short description listing commands purpose */
