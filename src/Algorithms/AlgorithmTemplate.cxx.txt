@@ -1,0 +1,82 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "AlgorithmTemplate.h"
+
+using namespace caret;
+using namespace std;
+
+AString AlgorithmName::getCommandSwitch()
+{
+    return "-algorithm-name";
+}
+
+AString AlgorithmName::getShortDescription()
+{
+    return "SHORT DESCRIPTION";
+}
+
+AlgorithmParameters* AlgorithmName::getParameters()
+{
+    AlgorithmParameters* ret = new AlgorithmParameters();
+    //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
+    //ret->addMetricOutputParameter(2, "metric", "the output metric");
+    ret->setHelpText(
+        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
+        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
+        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+    );
+    return ret;
+}
+
+void AlgorithmName::useParameters(AlgorithmParameters* myParams, ProgressObject* myProgObj)
+{
+    //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface from key 1
+    //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric from key 2
+    AlgorithmName(myProgObj /*INSERT PARAMETERS HERE*/);//executes the algorithm
+}
+
+AlgorithmName::AlgorithmName(ProgressObject* myProgObj /*INSERT PARAMETERS HERE*/) : AbstractAlgorithm(myProgObj)
+{
+    LevelProgress myProgress;
+    //ProgressObject* subAlgProgress1 = NULL;//uncomment these if you use another algorithm inside here
+    if (myProgObj != NULL)
+    {
+        //subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
+        myProgress = myProgObj->startLevel(1.0f, getAlgorithmInternalWeight());
+    }
+    //myProgress.reportProgress(0.5f);//this is how you say you are halfway done with the INTERNAL work of the algorithm
+    //will report finished automatically when this function ends (myProgress goes out of scope, destructor triggers finish)
+}
+
+float AlgorithmName::getAlgorithmInternalWeight()
+{
+    return 1.0f;//override this if needed, if the progress bar isn't smooth
+}
+
+float caret::AlgorithmName::getSubAlgorithmWeight()
+{
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
+    return 0.0f;
+}

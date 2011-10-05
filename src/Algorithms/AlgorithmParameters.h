@@ -82,31 +82,55 @@ namespace caret {
         ///add a parameter to get next item as a string
         void addStringParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a string with a key
+        const AString& getString(const int32_t key);
+        
         ///add a parameter to get next item as an int32
         void addIntParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get an integer with a key
+        int64_t getInt(const int32_t key);
         
         ///add a parameter to get next item as a double
         void addDoubleParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a double with a key
+        double getDouble(const int32_t key);
+        
         ///add a parameter to get next item as a surface
         void addSurfaceParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a surface with a key
+        SurfaceFile* getSurface(const int32_t key);
         
         ///add a parameter to get next item as a volume
         void addVolumeParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a volume with a key
+        VolumeFile* getVolume(const int32_t key);
+        
         ///add a parameter to get next item as a functional file (metric)
-        void addFuncParameter(const int32_t key, const AString& name, const AString& description);
+        void addMetricParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a metric with a key
+        MetricFile* getMetric(const int32_t key);
         
         ///add a parameter to get next item as a label file
         void addLabelParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a label with a key
+        LabelFile* getLabel(const int32_t key);
+        
         ///add a parameter to get next item as a cifti file - TODO: make methods for different cifti types?
         void addCiftiParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a cifti with a key
+        CiftiFile* getCifti(const int32_t key);
         
         ///add a preconstructed optional parameter
         void addOptionalParameter(OptionalParameter* param);
         
-        ///return pointer to an input
+        ///return pointer to an input parameter
         AbstractParameter* getInputParameter(const int32_t key, const AbstractParameter::parameterType type);
         
         ///return pointer to an option
@@ -152,26 +176,50 @@ namespace caret {
         ///add a parameter to get next item as a string
         void addStringOutputParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a string with a key
+        AString* getOutputString(const int32_t key);
+        
         ///add a parameter to get next item as an int32
         void addIntOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get an integer with a key
+        int64_t* getOutputInt(const int32_t key);
         
         ///add a parameter to get next item as a double
         void addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a double with a key
+        double* getOutputDouble(const int32_t key);
+        
         ///add a parameter to get next item as a surface
         void addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a surface with a key
+        SurfaceFile* getOutputSurface(const int32_t key);
         
         ///add a parameter to get next item as a volume
         void addVolumeOutputParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a volume with a key
+        VolumeFile* getOutputVolume(const int32_t key);
+        
         ///add a parameter to get next item as a functional file (metric)
-        void addFuncOutputParameter(const int32_t key, const AString& name, const AString& description);
+        void addMetricOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a metric with a key
+        MetricFile* getOutputMetric(const int32_t key);
         
         ///add a parameter to get next item as a label file
         void addLabelOutputParameter(const int32_t key, const AString& name, const AString& description);
         
+        ///get a label with a key
+        LabelFile* getOutputLabel(const int32_t key);
+        
         ///add a parameter to get next item as a cifti file - TODO: make methods for different cifti types?
         void addCiftiOutputParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a cifti with a key
+        CiftiFile* getOutputCifti(const int32_t key);
         
         ///return pointer to an output
         AbstractParameter* getOutputParameter(const int32_t key, const AbstractParameter::parameterType type);

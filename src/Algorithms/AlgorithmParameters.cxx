@@ -122,7 +122,7 @@ void ParameterComponent::addDoubleParameter(const int32_t key, const AString& na
     m_paramList.push_back(new DoubleParameter(key, name, description));
 }
 
-void ParameterComponent::addFuncParameter(const int32_t key, const AString& name, const AString& description)
+void ParameterComponent::addMetricParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_paramList.push_back(new MetricParameter(key, name, description));
 }
@@ -169,7 +169,7 @@ void AlgorithmParameters::addDoubleOutputParameter(const int32_t key, const AStr
     m_outputList.push_back(new DoubleParameter(key, name, description));
 }
 
-void AlgorithmParameters::addFuncOutputParameter(const int32_t key, const AString& name, const AString& description)
+void AlgorithmParameters::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     MetricParameter* myParam = new MetricParameter(key, name, description);
     myParam->m_parameter = new MetricFile();
@@ -214,4 +214,84 @@ const AString& AlgorithmParameters::getHelpText()
 
 AbstractParameter::~AbstractParameter()
 {
+}
+
+CiftiFile* ParameterComponent::getCifti(const int32_t key)
+{
+    return ((CiftiParameter*)getInputParameter(key, AbstractParameter::CIFTI))->m_parameter;
+}
+
+double ParameterComponent::getDouble(const int32_t key)
+{
+    return ((DoubleParameter*)getInputParameter(key, AbstractParameter::DOUBLE))->m_parameter;
+}
+
+int64_t ParameterComponent::getInt(const int32_t key)
+{
+    return ((IntParameter*)getInputParameter(key, AbstractParameter::INT))->m_parameter;
+}
+
+LabelFile* ParameterComponent::getLabel(const int32_t key)
+{
+    return ((LabelParameter*)getInputParameter(key, AbstractParameter::LABEL))->m_parameter;
+}
+
+MetricFile* ParameterComponent::getMetric(const int32_t key)
+{
+    return ((MetricParameter*)getInputParameter(key, AbstractParameter::METRIC))->m_parameter;
+}
+
+const AString& ParameterComponent::getString(const int32_t key)
+{
+    return ((StringParameter*)getInputParameter(key, AbstractParameter::STRING))->m_parameter;
+}
+
+SurfaceFile* ParameterComponent::getSurface(const int32_t key)
+{
+    return ((SurfaceParameter*)getInputParameter(key, AbstractParameter::SURFACE))->m_parameter;
+}
+
+VolumeFile* ParameterComponent::getVolume(const int32_t key)
+{
+    return ((VolumeParameter*)getInputParameter(key, AbstractParameter::VOLUME))->m_parameter;
+}
+
+CiftiFile* AlgorithmParameters::getOutputCifti(const int32_t key)
+{
+    return ((CiftiParameter*)getOutputParameter(key, AbstractParameter::CIFTI))->m_parameter;
+}
+
+double* AlgorithmParameters::getOutputDouble(const int32_t key)
+{
+    return &(((DoubleParameter*)getOutputParameter(key, AbstractParameter::DOUBLE))->m_parameter);
+}
+
+int64_t* AlgorithmParameters::getOutputInt(const int32_t key)
+{
+    return &(((IntParameter*)getOutputParameter(key, AbstractParameter::INT))->m_parameter);
+}
+
+LabelFile* AlgorithmParameters::getOutputLabel(const int32_t key)
+{
+    return ((LabelParameter*)getOutputParameter(key, AbstractParameter::LABEL))->m_parameter;
+}
+
+AString* AlgorithmParameters::getOutputString(const int32_t key)
+{
+    return &(((StringParameter*)getOutputParameter(key, AbstractParameter::STRING))->m_parameter);
+}
+
+SurfaceFile* AlgorithmParameters::getOutputSurface(const int32_t key)
+{
+    return ((SurfaceParameter*)getOutputParameter(key, AbstractParameter::SURFACE))->m_parameter;
+}
+
+VolumeFile* AlgorithmParameters::getOutputVolume(const int32_t key)
+{
+    return ((VolumeParameter*)getOutputParameter(key, AbstractParameter::VOLUME))->m_parameter;
+}
+
+MetricFile* AlgorithmParameters::getOutputMetric(const int32_t key)
+{
+    return ((MetricParameter*)getOutputParameter(key, AbstractParameter::METRIC))->m_parameter;
 }

@@ -25,13 +25,12 @@
  *
  */
 
-//make it easy to use the progress object, don't just forward declare
+//make it easy to use these in an algorithm class, don't just forward declare them
 #include "ProgressObject.h"
 #include "CaretAssert.h"
+#include "AlgorithmParameters.h"
 
 namespace caret {
-
-    class AlgorithmParameters;
 
     ///the constructor for algorithms does the processing, because constructor/execute cycles don't make sense for something this simple
     class AbstractAlgorithm
@@ -55,6 +54,12 @@ namespace caret {
 
         ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
         static void useParameters(AlgorithmParameters*, ProgressObject*) { CaretAssert(false); };
+        
+        ///override this to set the command switch
+        static AString getCommandSwitch() { CaretAssert(false); return ""; };
+        
+        ///override this to set the short description
+        static AString getShortDescription() { CaretAssert(false); return ""; };
     };
 
     ///interface class for algorithm parsers
@@ -69,12 +74,16 @@ namespace caret {
     struct TemplateAutoAlgorithm : public AutoAlgorithmInterface
     {
         AString m_switch, m_shortInfo;
-        TemplateAutoAlgorithm(const AString& switchIn, const AString& shortInfo) : m_switch(switchIn), m_shortInfo(shortInfo) { };
+        TemplateAutoAlgorithm()
+        {
+            m_switch = T::getCommandSwitch();
+            m_shortInfo = T::getShortDescription();
+        };
         AlgorithmParameters* getParameters() { return T::getParameters(); };
         void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParemeters(a, b); };
     };
 
-    ///templated interface class for parsers to inherit from
+    ///interface class for parsers to inherit from
     class AlgorithmParserInterface
     {
         AutoAlgorithmInterface* m_dummy;
