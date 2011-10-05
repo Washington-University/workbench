@@ -27,7 +27,7 @@
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
 
-#include "NiftiUtilities.h"
+//#include "NiftiUtilities.h"
 
 #include "GiftiXmlElements.h"
 #include "XmlWriter.h"
