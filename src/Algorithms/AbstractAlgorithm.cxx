@@ -68,5 +68,5 @@ AbstractAlgorithm::~AbstractAlgorithm()
 
 AlgorithmParserInterface::~AlgorithmParserInterface()
 {
-    delete m_dummy;
+    delete m_autoAlg;
 }

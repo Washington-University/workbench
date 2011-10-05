@@ -218,7 +218,7 @@ AbstractParameter::~AbstractParameter()
 
 CiftiFile* ParameterComponent::getCifti(const int32_t key)
 {
-    return ((CiftiParameter*)getInputParameter(key, AbstractParameter::CIFTI))->m_parameter;
+    return ((CiftiParameter*)getInputParameter(key, AbstractParameter::CIFTI))->m_parameter.getPointer();
 }
 
 double ParameterComponent::getDouble(const int32_t key)
@@ -233,12 +233,12 @@ int64_t ParameterComponent::getInt(const int32_t key)
 
 LabelFile* ParameterComponent::getLabel(const int32_t key)
 {
-    return ((LabelParameter*)getInputParameter(key, AbstractParameter::LABEL))->m_parameter;
+    return ((LabelParameter*)getInputParameter(key, AbstractParameter::LABEL))->m_parameter.getPointer();
 }
 
 MetricFile* ParameterComponent::getMetric(const int32_t key)
 {
-    return ((MetricParameter*)getInputParameter(key, AbstractParameter::METRIC))->m_parameter;
+    return ((MetricParameter*)getInputParameter(key, AbstractParameter::METRIC))->m_parameter.getPointer();
 }
 
 const AString& ParameterComponent::getString(const int32_t key)
@@ -248,17 +248,17 @@ const AString& ParameterComponent::getString(const int32_t key)
 
 SurfaceFile* ParameterComponent::getSurface(const int32_t key)
 {
-    return ((SurfaceParameter*)getInputParameter(key, AbstractParameter::SURFACE))->m_parameter;
+    return ((SurfaceParameter*)getInputParameter(key, AbstractParameter::SURFACE))->m_parameter.getPointer();
 }
 
 VolumeFile* ParameterComponent::getVolume(const int32_t key)
 {
-    return ((VolumeParameter*)getInputParameter(key, AbstractParameter::VOLUME))->m_parameter;
+    return ((VolumeParameter*)getInputParameter(key, AbstractParameter::VOLUME))->m_parameter.getPointer();
 }
 
 CiftiFile* AlgorithmParameters::getOutputCifti(const int32_t key)
 {
-    return ((CiftiParameter*)getOutputParameter(key, AbstractParameter::CIFTI))->m_parameter;
+    return ((CiftiParameter*)getOutputParameter(key, AbstractParameter::CIFTI))->m_parameter.getPointer();
 }
 
 double* AlgorithmParameters::getOutputDouble(const int32_t key)
@@ -273,7 +273,7 @@ int64_t* AlgorithmParameters::getOutputInt(const int32_t key)
 
 LabelFile* AlgorithmParameters::getOutputLabel(const int32_t key)
 {
-    return ((LabelParameter*)getOutputParameter(key, AbstractParameter::LABEL))->m_parameter;
+    return ((LabelParameter*)getOutputParameter(key, AbstractParameter::LABEL))->m_parameter.getPointer();
 }
 
 AString* AlgorithmParameters::getOutputString(const int32_t key)
@@ -283,15 +283,15 @@ AString* AlgorithmParameters::getOutputString(const int32_t key)
 
 SurfaceFile* AlgorithmParameters::getOutputSurface(const int32_t key)
 {
-    return ((SurfaceParameter*)getOutputParameter(key, AbstractParameter::SURFACE))->m_parameter;
+    return ((SurfaceParameter*)getOutputParameter(key, AbstractParameter::SURFACE))->m_parameter.getPointer();
 }
 
 VolumeFile* AlgorithmParameters::getOutputVolume(const int32_t key)
 {
-    return ((VolumeParameter*)getOutputParameter(key, AbstractParameter::VOLUME))->m_parameter;
+    return ((VolumeParameter*)getOutputParameter(key, AbstractParameter::VOLUME))->m_parameter.getPointer();
 }
 
 MetricFile* AlgorithmParameters::getOutputMetric(const int32_t key)
 {
-    return ((MetricParameter*)getOutputParameter(key, AbstractParameter::METRIC))->m_parameter;
+    return ((MetricParameter*)getOutputParameter(key, AbstractParameter::METRIC))->m_parameter.getPointer();
 }

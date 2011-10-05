@@ -22,6 +22,7 @@ CommandClassCreateBase.h
 CommandClassCreateEnum.h
 CommandOperation.h
 CommandOperationManager.h
+CommandParser.h
 CommandException.h
 CommandUnitTest.h
 
@@ -30,6 +31,7 @@ CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
+CommandParser.cxx
 CommandException.cxx
 CommandUnitTest.cxx
 )
@@ -44,6 +46,7 @@ ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Gifti
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common

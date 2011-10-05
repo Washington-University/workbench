@@ -62,11 +62,13 @@ namespace caret {
         static AString getShortDescription() { CaretAssert(false); return ""; };
     };
 
-    ///interface class for algorithm parsers
+    ///interface class for use by algorithm parsers
     struct AutoAlgorithmInterface
     {
         virtual AlgorithmParameters* getParameters() = 0;
         virtual void useParameters(AlgorithmParameters* a, ProgressObject* b) = 0;
+        virtual const AString& getCommandSwitch() = 0;
+        virtual const AString& getShortDescription() = 0;
     };
 
     ///templated interface class to pass through to something that inherits from AbstractAlgorithm (or implements equivalent functions)
@@ -74,22 +76,21 @@ namespace caret {
     struct TemplateAutoAlgorithm : public AutoAlgorithmInterface
     {
         AString m_switch, m_shortInfo;
-        TemplateAutoAlgorithm()
-        {
-            m_switch = T::getCommandSwitch();
-            m_shortInfo = T::getShortDescription();
-        };
+        TemplateAutoAlgorithm() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { };
         AlgorithmParameters* getParameters() { return T::getParameters(); };
         void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParemeters(a, b); };
+        const AString& getCommandSwitch() { return m_switch; };
+        const AString& getShortDescription() { return m_shortInfo; };
     };
 
     ///interface class for parsers to inherit from
     class AlgorithmParserInterface
     {
-        AutoAlgorithmInterface* m_dummy;
-        AlgorithmParserInterface();//must take an interface object, for its vtable to the real algorithm
+        AlgorithmParserInterface();//must take an interface object, for its vtable to the real algorithm, so deny default construction
+    protected:
+        AutoAlgorithmInterface* m_autoAlg;
     public:
-        AlgorithmParserInterface(AutoAlgorithmInterface* dummy) : m_dummy(dummy) { };
+        AlgorithmParserInterface(AutoAlgorithmInterface* myAutoAlg) : m_autoAlg(myAutoAlg) { };
         virtual ~AlgorithmParserInterface();
     };
 }

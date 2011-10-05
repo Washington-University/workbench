@@ -28,6 +28,7 @@
 #include "AString.h"
 #include <vector>
 #include "stdint.h"
+#include "CaretPointer.h"
 
 namespace caret {
 
@@ -38,6 +39,7 @@ namespace caret {
     class CiftiFile;
     
     class AlgorithmParserInterface;
+    class AutoAlgorithmInterface;
     struct AbstractOutputParameter;
     struct OptionalParameter;
     
@@ -66,12 +68,11 @@ namespace caret {
         virtual ~AbstractParameter();
     };
     
-    class ParameterComponent
-    {
+    struct ParameterComponent
+    {//sadly, inheriting from a friend class doesn't give you access to private members, so these are entirely public so parsers can use them
         std::vector<AbstractParameter*> m_paramList;//mandatory arguments
         std::vector<OptionalParameter*> m_optionList;//optional arguments
         
-    public:
         ///constructor
         ParameterComponent();
         
@@ -136,7 +137,6 @@ namespace caret {
         ///return pointer to an option
         OptionalParameter* getOptionalParameter(const int32_t key);
         
-        friend class AlgorithmParserInterface;
     };
     
     struct OptionalParameter : public ParameterComponent
@@ -154,12 +154,11 @@ namespace caret {
         }
     };
     
-    class AlgorithmParameters : public ParameterComponent
+    struct AlgorithmParameters : public ParameterComponent
     {
         std::vector<AbstractParameter*> m_outputList;//should this be a different type? input and output parameters are very similar, just pointers to files
         AString m_helpText;//formatted by the parser object for display in terminal or modal window
 
-    public:
         ///constructor
         AlgorithmParameters();
         
@@ -224,7 +223,6 @@ namespace caret {
         ///return pointer to an output
         AbstractParameter* getOutputParameter(const int32_t key, const AbstractParameter::parameterType type);
         
-        friend class AlgorithmParserInterface;
     };
 
     //templates for the common cases
@@ -232,11 +230,11 @@ namespace caret {
     struct PointerTemplateParameter : public AbstractParameter
     {
         virtual parameterType getType() { return TYPE; };
-        T* m_parameter;
+        CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
         PointerTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_parameter = NULL;
-        };//constructor is mostly for convenience, members are public
+        };
     };
     
     template<typename T, AbstractParameter::parameterType TYPE>
@@ -247,7 +245,7 @@ namespace caret {
         PrimitiveTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_parameter = 0;
-        };//constructor is mostly for convenience, members are public
+        };
     };
     
     //some friendlier names
@@ -264,7 +262,7 @@ namespace caret {
     class AlgParamParserInterface
     {
     public:
-        AlgParamParserInterface();
+        AlgParamParserInterface(AutoAlgorithmInterface* myAutoAlg);
     };
 }
 
