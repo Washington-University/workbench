@@ -49,9 +49,9 @@ namespace caret {
       GeodesicHelperBase& operator=(const GeodesicHelperBase& right);//can't assign
       GeodesicHelperBase(const GeodesicHelperBase& right);//can't use copy constructor
       float** distances, **distances2;//use primitives for speed, and they don't need to change size
-      int** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
-      int* numNeighbors, *numNeighbors2;
-      int numNodes;
+      int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
+      int32_t* numNeighbors, *numNeighbors2;
+      int32_t numNodes;
       static void crossProd(const float in1[3], const float in2[3], float out[3]);//DO NOT PASS AN INPUT AS OUT
       static float dotProd(const float in1[3], const float in2[3]);
       static float normalize(float in[3]);
@@ -62,7 +62,7 @@ namespace caret {
          if (numNeighbors) {
             delete[] numNeighbors;
             delete[] numNeighbors2;
-            for (int i = 0; i < numNodes; ++i)
+            for (int32_t i = 0; i < numNodes; ++i)
             {
                delete[] nodeNeighbors[i];
                delete[] nodeNeighbors2[i];
@@ -84,17 +84,17 @@ namespace caret {
       {//yes, I know its in the stl algorithms, sue me
          struct data
          {
-            int node;
+            int32_t node;
             float dist;
          };
          std::vector<data> store;
       public:
          inline bool isEmpty() { return store.empty(); };
-         inline int pop()
+         inline int32_t pop()
          {
-            int ret = store[0].node;
-            int prev = 0, next = 1, next1 = 2, size = store.size();
-            int last = size - 1;
+            int32_t ret = store[0].node;
+            int32_t prev = 0, next = 1, next1 = 2, size = store.size();
+            int32_t last = size - 1;
             if (next1 < size && store[next].dist > store[next1].dist) next = next1;
             while (next < size && store[last].dist > store[next].dist)
             {
@@ -108,14 +108,14 @@ namespace caret {
             store.pop_back();
             return ret;
          };
-         inline void push(int node, float dist)
+         inline void push(int32_t node, float dist)
          {
-            int prev = store.size();
+            int32_t prev = store.size();
             data mydata;
             mydata.node = node;
             mydata.dist = dist;
             store.push_back(mydata);//placeholder
-            int next = (prev - 1) >> 1;
+            int32_t next = (prev - 1) >> 1;
             while (prev > 0 && store[next].dist > dist)
             {
                store[prev] = store[next];
@@ -127,16 +127,16 @@ namespace caret {
          inline void clear() { store.clear(); };
       };
       float* output, **distances, **distances2;//use primitives for speed, and they don't need to change size
-      int** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
-      int* numNeighbors, *numNeighbors2, *marked, *changed, *parent;
-      int numNodes;
+      int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
+      int32_t* numNeighbors, *numNeighbors2, *marked, *changed, *parent;
+      int32_t numNodes;
       GeodesicHelper();//Don't allow construction without arguments
       GeodesicHelper& operator=(const GeodesicHelper& right);//can't assign
       GeodesicHelper(const GeodesicHelperBase&);//can't use copy constructor
-      void dijkstra(const int root, const float maxdist, std::vector<int>& nodes, std::vector<float>& dists, bool smooth);//geodesic distance restricted
-      void dijkstra(const int root, bool smooth);//full surface
-      void alltoall(float** out, int** parents, bool smooth);//must be fully allocated
-      void dijkstra(const int root, const std::vector<int>& interested, bool smooth);//partial surface
+      void dijkstra(const int32_t root, const float maxdist, std::vector<int32_t>& nodes, std::vector<float>& dists, bool smooth);//geodesic distance restricted
+      void dijkstra(const int32_t root, bool smooth);//full surface
+      void alltoall(float** out, int32_t** parents, bool smooth);//must be fully allocated
+      void dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth);//partial surface
       CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
    public:
       GeodesicHelper(GeodesicHelperBase& baseIn);
@@ -149,28 +149,28 @@ namespace caret {
          }
       };
       /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
-      void getNodesToGeoDist(const int node, const float maxdist, std::vector<int>& neighborsOut, std::vector<float>& distsOut, const bool smoothflag = true);
+      void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, const bool smoothflag = true);
       
       /// Get distances from root node, up to a geodesic distance cutoff, and also return their parents (root node has itself as parent)
-      void getNodesToGeoDist(const int node, const float maxdist, std::vector<int>& neighborsOut, std::vector<float>& distsOut, std::vector<int>& parentsOut, const bool smoothflag = true);
+      void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, std::vector<int32_t>& parentsOut, const bool smoothflag = true);
       
       /// Get distances from root node to entire surface - fastest method for full surface for only one node, but allocate the array first
-      void getGeoFromNode(const int node, float* valuesOut, const bool smoothflag = true);//MUST be already allocated to number of nodes
+      void getGeoFromNode(const int32_t node, float* valuesOut, const bool smoothflag = true);//MUST be already allocated to number of nodes
 
       /// Get distances from root node to entire surface, vector method (not as fast)
-      void getGeoFromNode(const int node, std::vector<float>& valuesOut, const bool smoothflag = true);
+      void getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, const bool smoothflag = true);
       
       /// Get distances from root node to entire surface and parents - fastest method with parents for full surface, single node, allocate both arrays first (root node has self as parent)
-      void getGeoFromNode(const int node, float* valuesOut, int* parentsOut, const bool smoothflag = true);
+      void getGeoFromNode(const int32_t node, float* valuesOut, int32_t* parentsOut, const bool smoothflag = true);
       
       /// Get distances from root node to entire surface, and their parents, vector method (not as fast, root node has self as parent)
-      void getGeoFromNode(const int node, std::vector<float>& valuesOut, std::vector<int>& parentsOut, const bool smoothflag = true);
+      void getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag = true);
       
       /// Get distances from all nodes to all nodes, passes back NULL if cannot allocate, if successful you must eventually delete the memory
       float** getGeoAllToAll(const bool smooth = true);//i really don't think this needs an overloaded function that outputs parents
       
       /// Get distances to a restricted set of nodes - output vector is in the SAME ORDER and same size as the input vector ofInterest
-      void getGeoToTheseNodes(const int root, const std::vector<int>& ofInterest, std::vector<float>& distsOut, bool smoothflag = true);
+      void getGeoToTheseNodes(const int32_t root, const std::vector<int32_t>& ofInterest, std::vector<float>& distsOut, bool smoothflag = true);
    };
 
    inline void GeodesicHelperBase::crossProd(const float in1[3], const float in2[3], float out[3])

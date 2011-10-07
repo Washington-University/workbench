@@ -22,14 +22,15 @@
  *
  */
 
-#include "AlgorithmTemplate.h"
+#include "AlgorithmName.h"
+#include "AlgorithmException.h"
 
 using namespace caret;
 using namespace std;
 
 AString AlgorithmName::getCommandSwitch()
 {
-    return "-algorithm-name";
+    return "-command-switch";
 }
 
 AString AlgorithmName::getShortDescription()

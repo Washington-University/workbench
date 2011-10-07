@@ -86,6 +86,8 @@ namespace caret {
         /** @return  Number of columns (data arrays) in the file. */
         virtual int32_t getNumberOfColumns() const = 0;
         
+        //virtual void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns) = 0;
+        
         virtual AString getColumnName(const int32_t columnIndex) const;
         
         int32_t getColumnIndexFromColumnName(const AString& columnName) const;

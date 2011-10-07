@@ -60,6 +60,7 @@ namespace caret {
         CommandParser(AutoAlgorithmInterface* myAutoAlg);
         void executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
         AString getHelpInformation(const AString& programName);
+        bool takesParameters();
     };
 
 };

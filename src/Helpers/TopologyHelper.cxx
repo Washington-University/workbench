@@ -35,7 +35,7 @@ using namespace caret;
  * Comparison operator for EdgeInfo
  */
 bool 
-operator<(const TopologyEdgeInfo& e1, const TopologyEdgeInfo& e2)
+caret::operator<(const TopologyEdgeInfo& e1, const TopologyEdgeInfo& e2)
 {
    if (e1.node1 == e2.node1) {
       return (e1.node2 < e2.node2);

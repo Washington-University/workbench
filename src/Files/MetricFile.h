@@ -55,6 +55,8 @@ namespace caret {
         
         virtual int32_t getNumberOfColumns() const;
         
+        virtual void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
+
         float getValue(const int32_t nodeIndex,
                        const int32_t columnIndex) const;
         

@@ -26,10 +26,16 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "AlgorithmMetricSmoothing.h"
+
+#include "CommandParser.h"
+
 #include "CommandClassCreate.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
+
+#include <iostream>
 
 using namespace caret;
 
@@ -66,6 +72,8 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
+    
     this->commandOperations.push_back(new CommandClassCreate());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandUnitTest());
@@ -127,8 +135,13 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
         if (operation == NULL) {
             throw CommandException("Command \"" + commandSwitch + "\" not found.");
         }
-        
-        operation->execute(parameters);
+
+        if (!parameters.hasNext() && operation->takesParameters())
+        {
+            std::cout << operation->getHelpInformation(parameters.getProgramName()) << std::endl;
+        } else {
+            operation->execute(parameters);
+        }
     }
     catch (ProgramParametersException& e) {
         throw CommandException(e);

@@ -38,18 +38,18 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
    TopologyHelper topoHelpIn(surfaceIn, true, true, false);
    numNodes = surfaceIn->getNumberOfNodes();
    //allocate
-   numNeighbors = new int[numNodes];
-   nodeNeighbors = new int*[numNodes];
+   numNeighbors = new int32_t[numNodes];
+   nodeNeighbors = new int32_t*[numNodes];
    distances = new float*[numNodes];
    //const float* coords = surfaceIn->getCoordinate(0);//hack previously needed for old code, before it used edgeInfo
    float d[3], g[3], ac[3], abhat[3], abmag, ad[3], efhat[3], efmag, ea[3], cdmag, eg[3], eh[3], ah[3], tempvec[3], tempf;
-   for (int i = 0; i < numNodes; ++i)
+   for (int32_t i = 0; i < numNodes; ++i)
    {//get neighbors
-      const int* neighbors = topoHelpIn.getNodeNeighbors(i, numNeighbors[i]);
+      const int32_t* neighbors = topoHelpIn.getNodeNeighbors(i, numNeighbors[i]);
       const float* baseCoord = surfaceIn->getCoordinate(i);
-      nodeNeighbors[i] = new int[numNeighbors[i]];
+      nodeNeighbors[i] = new int32_t[numNeighbors[i]];
       distances[i] = new float[numNeighbors[i]];
-      for (int j = 0; j < numNeighbors[i]; ++j)
+      for (int32_t j = 0; j < numNeighbors[i]; ++j)
       {
          nodeNeighbors[i][j] = neighbors[j];
          const float* neighCoord = surfaceIn->getCoordinate(neighbors[j]);
@@ -57,13 +57,13 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
          distances[i][j] = std::sqrt(tempvec[0] * tempvec[0] + tempvec[1] * tempvec[1] + tempvec[2] * tempvec[2]);//precompute for speed in other calls
       }//so few floating point operations, this should turn out symmetric
    }
-   std::vector<int> tempneigh2;
+   std::vector<int32_t> tempneigh2;
    std::vector<float> tempdist2;
-   nodeNeighbors2 = new int*[numNodes];
-   numNeighbors2 = new int[numNodes];
+   nodeNeighbors2 = new int32_t*[numNodes];
+   numNeighbors2 = new int32_t[numNodes];
    distances2 = new float*[numNodes];
    //begin edge info based code
-   vector<vector<int> > nodeNeighbors2Vec;
+   vector<vector<int32_t> > nodeNeighbors2Vec;
    vector<vector<float> > distances2Vec;
    nodeNeighbors2Vec.resize(numNodes);
    distances2Vec.resize(numNodes);
@@ -71,7 +71,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
    set<TopologyEdgeInfo>::const_iterator myiter, myend = myEdgeInfo.end();
    for (myiter = myEdgeInfo.begin(); myiter != myend; ++myiter)
    {
-      int neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
+      int32_t neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
       myiter->getTiles(tile1, tile2);
       if (tile2 == -1)
       {
@@ -82,7 +82,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
       const float* neigh2Coord = surfaceIn->getCoordinate(neigh2Node);
       const int32_t* triangle1 = surfaceIn->getTriangle(tile1);
       const int32_t* triangle2 = surfaceIn->getTriangle(tile2);
-      for (int i = 0; i < 3; ++i)
+      for (int32_t i = 0; i < 3; ++i)
       {
          if (triangle1[i] != neigh1Node && triangle1[i] != neigh2Node)
          {
@@ -90,7 +90,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
             break;
          }
       }
-      for (int i = 0; i < 3; ++i)
+      for (int32_t i = 0; i < 3; ++i)
       {
          if (triangle2[i] != neigh1Node && triangle2[i] != neigh2Node)
          {
@@ -100,7 +100,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
       }
       const float* baseCoord = surfaceIn->getCoordinate(baseNode);
       const float* farCoord = surfaceIn->getCoordinate(farNode);
-      const int num_reserve = 8;//uses 8 in case it is used on a mesh with haphazard topology, these vectors go away when the constructor terminates anyway
+      const int32_t num_reserve = 8;//uses 8 in case it is used on a mesh with haphazard topology, these vectors go away when the constructor terminates anyway
       nodeNeighbors2Vec[baseNode].reserve(num_reserve);//reserve should be fast if capacity is already num_reserve, and better than reallocating at 2 and 4, if vector allocation is naive doubling
       nodeNeighbors2Vec[farNode].reserve(num_reserve);//in the extremely rare case of a node with more than num_reserve neighbors, a second allocation plus copy isn't much of a cost
       distances2Vec[baseNode].reserve(num_reserve);
@@ -148,12 +148,12 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
       nodeNeighbors2Vec[baseNode].push_back(farNode);
       distances2Vec[baseNode].push_back(tempf);
    }
-   for (int i = 0; i < numNodes; ++i)
+   for (int32_t i = 0; i < numNodes; ++i)
    {//copy it from vector into straight dynamic array, because now it won't change again, to use a bit less memory, and not redirect through vector operator overloads
       numNeighbors2[i] = nodeNeighbors2Vec[i].size();
-      nodeNeighbors2[i] = new int[numNeighbors2[i]];
+      nodeNeighbors2[i] = new int32_t[numNeighbors2[i]];
       distances2[i] = new float[numNeighbors2[i]];
-      for (int j = 0; j < numNeighbors2[i]; ++j)
+      for (int32_t j = 0; j < numNeighbors2[i]; ++j)
       {
          nodeNeighbors2[i][j] = nodeNeighbors2Vec[i][j];
          distances2[i][j] = distances2Vec[i][j];
@@ -161,20 +161,20 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
    }
    //end edge info based code
    //begin old manual tile search based code
-   /*std::vector<int> maintiles, neightiles;
-   int farnode, farbase, coordbase, neigh2base, neighbase;
-   for (int i = 0; i < numNodes; ++i)
+   /*std::vector<int32_t> maintiles, neightiles;
+   int32_t farnode, farbase, coordbase, neigh2base, neighbase;
+   for (int32_t i = 0; i < numNodes; ++i)
    {//find shared neighbors, for smoothed dijkstra
       tempneigh2.clear();
       tempdist2.clear();
       coordbase = i * 3;//precompute the multiplicative part of the coordinate index, for efficiency
       topoHelpIn.getNodeTiles(i, maintiles);
-      for (int j = 0; j < (int)maintiles.size(); ++j)
+      for (int32_t j = 0; j < (int32_t)maintiles.size(); ++j)
       {
          const int32_t* tile1 = surfaceIn->getTriangle(maintiles[j]);
-         int myneigh = -1;
-         int myneigh2 = -1;
-         for (int k = 0; k < 3; ++k)
+         int32_t myneigh = -1;
+         int32_t myneigh2 = -1;
+         for (int32_t k = 0; k < 3; ++k)
          {
             if (tile1[k] != i)
             {
@@ -190,11 +190,11 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
          neighbase = myneigh * 3;
          neigh2base = myneigh2 * 3;
          topoHelpIn.getNodeTiles(myneigh, neightiles);
-         for (int k = 0; k < (int)neightiles.size(); ++k)
+         for (int32_t k = 0; k < (int32_t)neightiles.size(); ++k)
          {
-            const int* tile2 = surfaceIn->getTriangle(neightiles[k]);
+            const int32_t* tile2 = surfaceIn->getTriangle(neightiles[k]);
             farnode = -1;
-            int m;
+            int32_t m;
             for (m = 0; m < 3; ++m)
             {
                if (tile2[m] == i) break;//discard both tiles that have the root node
@@ -267,9 +267,9 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
          }
       }
       numNeighbors2[i] = tempneigh2.size();
-      nodeNeighbors2[i] = new int[numNeighbors2[i]];
+      nodeNeighbors2[i] = new int32_t[numNeighbors2[i]];
       distances2[i] = new float[numNeighbors2[i]];
-      for (int j = 0; j < numNeighbors2[i]; ++j)
+      for (int32_t j = 0; j < numNeighbors2[i]; ++j)
       {
          nodeNeighbors2[i][j] = tempneigh2[j];
          distances2[i][j] = tempdist2[j];
@@ -289,16 +289,16 @@ GeodesicHelper::GeodesicHelper(GeodesicHelperBase& baseIn)
    nodeNeighbors2 = baseIn.nodeNeighbors2;
    //allocate private scratch space
    output = new float[numNodes];
-   marked = new int[numNodes];
-   changed = new int[numNodes];
-   parent = new int[numNodes];
-   for (int i = 0; i < numNodes; ++i)
+   marked = new int32_t[numNodes];
+   changed = new int32_t[numNodes];
+   parent = new int32_t[numNodes];
+   for (int32_t i = 0; i < numNodes; ++i)
    {
       marked[i] = 0;//initialize once, each internal function (dijkstra methods) tracks elements changed, and resets only those (except in the case of whole surface)
    }//the idea is to make it faster for the more likely case of small areas of the surface for functions that have limits, by removing the runtime term based solely on surface size
 }
 
-void GeodesicHelper::getNodesToGeoDist(const int node, const float maxdist, std::vector<int>& nodesOut, std::vector<float>& distsOut, const bool smoothflag)
+void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& nodesOut, std::vector<float>& distsOut, const bool smoothflag)
 {//public methods sanity check, private methods process
    nodesOut.clear();
    distsOut.clear();
@@ -307,25 +307,25 @@ void GeodesicHelper::getNodesToGeoDist(const int node, const float maxdist, std:
    dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
 }
 
-void GeodesicHelper::getNodesToGeoDist(const int node, const float maxdist, std::vector<int>& nodesOut, std::vector<float>& distsOut, std::vector<int>& parentsOut, const bool smoothflag)
+void GeodesicHelper::getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& nodesOut, std::vector<float>& distsOut, std::vector<int32_t>& parentsOut, const bool smoothflag)
 {//public methods sanity check, private methods process
    nodesOut.clear();
    distsOut.clear();
    if (node >= numNodes || maxdist < 0.0f || node < 0) return;
    CaretMutexLocker locked(&inUse);//we need the parents array to stay put, so don't scope this
    dijkstra(node, maxdist, nodesOut, distsOut, smoothflag);
-   int mysize = (int)nodesOut.size();
+   int32_t mysize = (int32_t)nodesOut.size();
    parentsOut.resize(mysize);
-   for (int i = 0; i < mysize; ++i)
+   for (int32_t i = 0; i < mysize; ++i)
    {
       parentsOut[i] = parent[nodesOut[i]];
    }
 }
 
-void GeodesicHelper::dijkstra(const int root, const float maxdist, std::vector<int>& nodes, std::vector<float>& dists, bool smooth)
+void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vector<int32_t>& nodes, std::vector<float>& dists, bool smooth)
 {
-   int i, j, whichnode, whichneigh, numNeigh, numChanged = 0;
-   int* neighbors;
+   int32_t i, j, whichnode, whichneigh, numNeigh, numChanged = 0;
+   int32_t* neighbors;
    float tempf;
    output[root] = 0.0f;
    marked[root] |= 4;
@@ -401,10 +401,10 @@ void GeodesicHelper::dijkstra(const int root, const float maxdist, std::vector<i
    }
 }
 
-void GeodesicHelper::dijkstra(const int root, bool smooth)
+void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
 {//straightforward dijkstra, no cutoffs, full surface
-   int i, j, whichnode, whichneigh, numNeigh;
-   int* neighbors;
+   int32_t i, j, whichnode, whichneigh, numNeigh;
+   int32_t* neighbors;
    float tempf;
    output[root] = 0.0f;
    parent[root] = root;//idiom for end of path
@@ -469,7 +469,7 @@ void GeodesicHelper::dijkstra(const int root, bool smooth)
 
 float** GeodesicHelper::getGeoAllToAll(const bool smooth)
 {
-   long long bytes = (((long long)numNodes) * numNodes * (sizeof(float) + sizeof(int)) + numNodes * (sizeof(float*) + sizeof(int*))) * 100;//fixed point
+   long long bytes = (((long long)numNodes) * numNodes * (sizeof(float) + sizeof(int32_t)) + numNodes * (sizeof(float*) + sizeof(int32_t*))) * 100;//fixed point
    short index = 0;
    static const char *labels[9] = {" Bytes", " Kilobytes", " Megabytes", " Gigabytes", " Terabytes", " Petabytes", " Exabytes", " Zettabytes", " Yottabytes"};
    while (index < 8 && bytes > 80000)
@@ -480,10 +480,10 @@ float** GeodesicHelper::getGeoAllToAll(const bool smooth)
    CaretMutexLocker locked(&inUse);//don't sit there with memory allocated but locked out of computation, lock early - also before status messages
    std::cout << "attempting to allocate " << bytes / 100 << "." << bytes % 100 << labels[index] << "...";
    std::cout.flush();
-   int i = -1, j;
+   int32_t i = -1, j;
    bool fail = false;
    float** ret = NULL;
-   int** parents = NULL;
+   int32_t** parents = NULL;
    try
    {
       ret = new float*[numNodes];
@@ -517,12 +517,12 @@ float** GeodesicHelper::getGeoAllToAll(const bool smooth)
    i = -1;
    try
    {
-      parents = new int*[numNodes];
+      parents = new int32_t*[numNodes];
       if (parents != NULL)
       {
          for (i = 0; i < numNodes; ++i)
          {
-            parents[i] = new int[numNodes];
+            parents[i] = new int32_t[numNodes];
             if (parents[i] == NULL)
             {
                fail = true;
@@ -556,10 +556,10 @@ float** GeodesicHelper::getGeoAllToAll(const bool smooth)
    return ret;
 }
 
-void GeodesicHelper::alltoall(float** out, int** parents, bool smooth)
+void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
 {//propagates info about shortest paths not containing root to other roots, hopefully making the problem tractable
-   int root, i, j, whichnode, whichneigh, numNeigh, remain, myparent, myparent2, myparent3, prevdots = 0, dots;
-   int* neighbors;
+   int32_t root, i, j, whichnode, whichneigh, numNeigh, remain, myparent, myparent2, myparent3, prevdots = 0, dots;
+   int32_t* neighbors;
    float tempf, tempf2;
    myheap active;
    for (i = 0; i < numNodes; ++i)
@@ -710,7 +710,7 @@ void GeodesicHelper::alltoall(float** out, int** parents, bool smooth)
    }
 }
 
-void GeodesicHelper::getGeoFromNode(const int node, float* valuesOut, const bool smoothflag)
+void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, const bool smoothflag)
 {
    if (node < 0 || node >= numNodes || !valuesOut)
    {
@@ -723,7 +723,7 @@ void GeodesicHelper::getGeoFromNode(const int node, float* valuesOut, const bool
    output = temp;//restore the pointer to the original memory
 }
 
-void GeodesicHelper::getGeoFromNode(const int node, float* valuesOut, int* parentsOut, const bool smoothflag)
+void GeodesicHelper::getGeoFromNode(const int32_t node, float* valuesOut, int32_t* parentsOut, const bool smoothflag)
 {
    if (node < 0 || node >= numNodes || !valuesOut || !parentsOut)
    {
@@ -731,7 +731,7 @@ void GeodesicHelper::getGeoFromNode(const int node, float* valuesOut, int* paren
    }
    CaretMutexLocker locked(&inUse);//don't screw with member variables while in use
    float* temp = output;//swap out the output pointer to avoid allocation
-   int* tempi = parent;
+   int32_t* tempi = parent;
    output = valuesOut;
    parent = parentsOut;
    dijkstra(node, smoothflag);
@@ -739,7 +739,7 @@ void GeodesicHelper::getGeoFromNode(const int node, float* valuesOut, int* paren
    parent = tempi;
 }
 
-void GeodesicHelper::getGeoFromNode(const int node, std::vector<float>& valuesOut, const bool smoothflag)
+void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, const bool smoothflag)
 {
    if (node < 0 || node >= numNodes)
    {
@@ -748,13 +748,13 @@ void GeodesicHelper::getGeoFromNode(const int node, std::vector<float>& valuesOu
    CaretMutexLocker locked(&inUse);
    dijkstra(node, smoothflag);
    valuesOut.resize(numNodes);
-   for (int i = 0; i < numNodes; ++i)
+   for (int32_t i = 0; i < numNodes; ++i)
    {
       valuesOut[i] = output[i];
    }
 }
 
-void GeodesicHelper::getGeoFromNode(const int node, std::vector<float>& valuesOut, std::vector<int>& parentsOut, const bool smoothflag)
+void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag)
 {
    if (node < 0 || node >= numNodes)
    {
@@ -764,17 +764,17 @@ void GeodesicHelper::getGeoFromNode(const int node, std::vector<float>& valuesOu
    dijkstra(node, smoothflag);
    valuesOut.resize(numNodes);
    parentsOut.resize(numNodes);
-   for (int i = 0; i < numNodes; ++i)
+   for (int32_t i = 0; i < numNodes; ++i)
    {
       valuesOut[i] = output[i];
       parentsOut[i] = parent[i];
    }
 }
 
-void GeodesicHelper::dijkstra(const int root, const std::vector<int>& interested, bool smooth)
+void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth)
 {
-   int i, j, whichnode, whichneigh, numNeigh, numChanged = 0, remain = 0;
-   int* neighbors;
+   int32_t i, j, whichnode, whichneigh, numNeigh, numChanged = 0, remain = 0;
+   int32_t* neighbors;
    float tempf;
    j = interested.size();
    for (i = 0; i < j; ++i)
@@ -865,14 +865,14 @@ void GeodesicHelper::dijkstra(const int root, const std::vector<int>& interested
    }
 }
 
-void GeodesicHelper::getGeoToTheseNodes(const int root, const std::vector<int>& ofInterest, std::vector<float>& distsOut, bool smoothflag)
+void GeodesicHelper::getGeoToTheseNodes(const int32_t root, const std::vector<int32_t>& ofInterest, std::vector<float>& distsOut, bool smoothflag)
 {
    if (root < 0 || root >= numNodes)
    {
       distsOut.clear();//empty array is error condition
       return;
    }
-   int i, mysize = ofInterest.size(), node;
+   int32_t i, mysize = ofInterest.size(), node;
    for (i = 0; i < mysize; ++i)
    {//needs to do a linear scan of this array later anyway, so lets sanity check it
       node = ofInterest[i];

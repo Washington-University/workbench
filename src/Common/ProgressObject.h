@@ -103,7 +103,6 @@ namespace caret {
       float m_lastReported;
       float m_internalResolution;
       ProgressObject* m_progObjRef;
-      LevelProgress& operator=(const LevelProgress& right);//deny assignment, because we use the destructor for a specific purpose
    public:
       LevelProgress();
       

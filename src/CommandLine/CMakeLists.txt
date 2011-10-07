@@ -71,6 +71,7 @@ Helpers
 Files
 Palette
 Gifti
+Cifti
 Nifti
 Xml
 Common

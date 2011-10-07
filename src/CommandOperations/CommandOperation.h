@@ -77,6 +77,8 @@ namespace caret {
         
         virtual AString getHelpInformation(const AString& programName) = 0;
         
+        virtual bool takesParameters();
+        
     private:
         /** Short description listing commands purpose */
         AString operationShortDescription;

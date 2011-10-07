@@ -28,7 +28,7 @@
 
 using namespace caret;
 
-void writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
+void caret::writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
 {  
    xml.setAutoFormatting(true);
    xml.writeStartElement("CIFTI");
@@ -45,7 +45,7 @@ void writeCiftiXML(QXmlStreamWriter &xml, CiftiRootElement &rootElement)
    
 }
 
-void writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement)
+void caret::writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement)
 { 
    xml.writeStartElement("Matrix");
    if(matrixElement.m_userMetaData.count() > 0) writeMetaData(xml,matrixElement.m_userMetaData);
@@ -60,7 +60,7 @@ void writeMatrixElement(QXmlStreamWriter &xml, CiftiMatrixElement &matrixElement
    xml.writeEndElement();//Matrix
 }
 
-void writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData)
+void caret::writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData)
 {     
    xml.writeStartElement("MetaData");
    
@@ -73,7 +73,7 @@ void writeMetaData(QXmlStreamWriter &xml, QHash<QString, QString> &metaData)
    xml.writeEndElement();
 }
 
-void writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value)
+void caret::writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QString &value)
 {     
    xml.writeStartElement("MD");
    
@@ -88,7 +88,7 @@ void writeMetaDataElement(QXmlStreamWriter &xml, const QString &name, const QStr
    xml.writeEndElement();//MD
 }
 
-void writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &labelElement)
+void caret::writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &labelElement)
 {     
    xml.writeStartElement("LabelTable");
    
@@ -100,7 +100,7 @@ void writeLabelTable(QXmlStreamWriter &xml, std::vector <CiftiLabelElement> &lab
    xml.writeEndElement();
 }
 
-void writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
+void caret::writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
 {     
    xml.writeStartElement("Label");
    
@@ -116,7 +116,7 @@ void writeLabel(QXmlStreamWriter &xml, CiftiLabelElement &label)
    xml.writeEndElement();
 }
 
-void writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
+void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
 {     
    xml.writeStartElement("MatrixIndicesMap");
    //TODO
@@ -160,7 +160,7 @@ void writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapElement &
    xml.writeEndElement();   
 }
 
-void writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel)
+void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel)
 {     
    xml.writeStartElement("BrainModel");
    
@@ -214,7 +214,7 @@ void writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brainModel)
    xml.writeEndElement();
 }
 
-void writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
+void caret::writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
 {     
    xml.writeStartElement("Volume");
    
@@ -228,7 +228,7 @@ void writeVolume(QXmlStreamWriter &xml, CiftiVolumeElement &volume)
    xml.writeEndElement();   
 }
 
-void writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {     
    xml.writeStartElement("TransformationMatrixVoxelIndicesIJKtoXYZ");
    
@@ -254,13 +254,13 @@ void writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml, Transf
    
 }
 
-void getModelTypeString(int modelType, QString &modelTypeString)
+void caret::getModelTypeString(int modelType, QString &modelTypeString)
 {
    if(modelType == CIFTI_MODEL_TYPE_SURFACE) modelTypeString = "CIFTI_MODEL_TYPE_SURFACE";
    else if(modelType == CIFTI_MODEL_TYPE_VOXELS) modelTypeString = "CIFTI_MODEL_TYPE_VOXELS";
 }
 
-void getDataSpaceString(int dataSpace, QString &dataSpaceString)
+void caret::getDataSpaceString(int dataSpace, QString &dataSpaceString)
 {
    if(dataSpace == NIFTI_XFORM_UNKNOWN) dataSpaceString = "NIFTI_XFORM_UNKNOWN";
    else if(dataSpace == NIFTI_XFORM_SCANNER_ANAT) dataSpaceString = "NIFTI_XFORM_SCANNER_ANAT";
@@ -269,7 +269,7 @@ void getDataSpaceString(int dataSpace, QString &dataSpaceString)
    else if(dataSpace == NIFTI_XFORM_MNI_152) dataSpaceString = "NIFTI_XFORM_MNI_152";   
 }
 
-void getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
+void caret::getUnitsXYZString(int unitsXYZ, QString &unitsXYZString)
 {
    if(unitsXYZ == NIFTI_UNITS_MM) unitsXYZString = "NIFTI_UNITS_MM";
    else if(unitsXYZ == NIFTI_UNITS_MICRON) unitsXYZString = "NIFTI_UNITS_MICRON";

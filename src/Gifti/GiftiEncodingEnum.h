@@ -44,7 +44,7 @@ public:
         ASCII,
         /** THe data is binary data that is encoded as text using the Base64 Algorithm   */
         BASE64_BINARY,
-        /** The data is binary encoded as Base64 and then compressed using the GZIP algorithm   */
+        /** The data is binary compressed using the GZIP algorithm and then encoded as Base64   */
         GZIP_BASE64_BINARY,
         /** The data is stored in a separate, uncompressed, binary data file   */
         EXTERNAL_FILE_BINARY

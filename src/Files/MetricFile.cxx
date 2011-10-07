@@ -322,3 +322,15 @@ MetricFile::getMinMaxForColorMapping(int displayColumn,
     minMaxOut[3] = posMax;
 }
 
+void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
+{
+    giftiFile->clear();
+    std::vector<int64_t> dimensions;
+    dimensions.push_back(nodes);
+    for (int32_t i = 0; i < columns; ++i)
+    {
+        giftiFile->addDataArray(new GiftiDataArray(giftiFile, NiftiIntentEnum::NIFTI_INTENT_NONE, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, dimensions, GiftiEncodingEnum::GZIP_BASE64_BINARY));
+        columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerFloat());
+    }
+    setModified();
+}

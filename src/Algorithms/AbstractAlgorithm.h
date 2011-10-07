@@ -60,6 +60,9 @@ namespace caret {
         
         ///override this to set the short description
         static AString getShortDescription() { CaretAssert(false); return ""; };
+        
+        ///override this if the algorithm doesn't take parameters
+        static bool takesParameters() { return true; };
     };
 
     ///interface class for use by algorithm parsers
@@ -69,6 +72,7 @@ namespace caret {
         virtual void useParameters(AlgorithmParameters* a, ProgressObject* b) = 0;
         virtual const AString& getCommandSwitch() = 0;
         virtual const AString& getShortDescription() = 0;
+        virtual bool takesParameters() = 0;
     };
 
     ///templated interface class to pass through to something that inherits from AbstractAlgorithm (or implements equivalent functions)
@@ -78,9 +82,10 @@ namespace caret {
         AString m_switch, m_shortInfo;
         TemplateAutoAlgorithm() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { };
         AlgorithmParameters* getParameters() { return T::getParameters(); };
-        void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParemeters(a, b); };
+        void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParameters(a, b); };
         const AString& getCommandSwitch() { return m_switch; };
         const AString& getShortDescription() { return m_shortInfo; };
+        bool takesParameters() { return T::takesParameters(); };
     };
 
     ///interface class for parsers to inherit from

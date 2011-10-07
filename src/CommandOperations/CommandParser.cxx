@@ -45,10 +45,15 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     AlgorithmParameters* myAlgParams = m_autoAlg->getParameters();
     vector<OutputAssoc> myOutAssoc;
     
-    parseComponent(myAlgParams, parameters);//parsing block
-    parseOutputAssoc(myAlgParams, parameters, myOutAssoc);
-    parseRemainingOptions(myAlgParams, parameters);
-    
+    try
+    {
+        parseComponent(myAlgParams, parameters);//parsing block
+        parseOutputAssoc(myAlgParams, parameters, myOutAssoc);
+        parseRemainingOptions(myAlgParams, parameters);
+    } catch (ProgramParametersException e) {
+        delete myAlgParams;
+        throw e;
+    }
     //code to show what arguments map to what parameters should go here
     
     m_autoAlg->useParameters(myAlgParams, NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
@@ -73,16 +78,17 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             } else {
                 //if we reach the end of a component and the next thing is an option, it could be either an option in THIS component, or an option in the component ABOVE this
                 //so, test if we finished this component when we find an option that this component doesn't recognize
-                if (i == myComponent->m_paramList.size() - 1)
-                {
-                    parameters.backup();//put the option switch back as the next parameter
-                    return;//let the next level up handle it (or let output try to find it and fail there instead)
-                    //this way, we don't need this function to know if it is top level or not
-                } else {//unknown option while more arguments are required for this component is always an error
+                if (i < myComponent->m_paramList.size())
+                {//unknown option while more arguments required is an error
                     throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
                         ">, option switch is either incorrect, or incorrectly placed");
                 }
             }
+        }
+        if (i == myComponent->m_paramList.size())
+        {
+            parameters.backup();
+            return;
         }
         switch (myComponent->m_paramList[i]->getType())
         {
@@ -325,8 +331,10 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
             if (haveAddedBreak)
             {
                 curIndentString = getIndentString(curIndent + m_indentIncrement);
+                charMax = m_maxWidth - curIndent - m_indentIncrement;
             } else {
                 curIndentString = getIndentString(curIndent);
+                charMax = m_maxWidth - curIndent;
             }
         }
         int endIndex = curIndex;
@@ -352,10 +360,10 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                 }
                 if (in[endIndex] == ' ')
                 {//found a space, break line at the space
-                while (endIndex > curIndex && in[endIndex] == ' ')
-                {//don't print any of the spaces
-                    --endIndex;
-                }
+                    while (endIndex > curIndex && in[endIndex] == ' ')
+                    {//don't print any of the spaces
+                        ++endIndex;
+                    }
                 haveAddedBreak = true;
                 ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
                 } else {//hyphenate
@@ -394,11 +402,16 @@ void CommandParser::addOptionDescriptions(AString& info, ParameterComponent* myC
     }
 }
 
-AString caret::CommandParser::getIndentString(int desired)
+AString CommandParser::getIndentString(int desired)
 {
     AString space(" ");
     int num = desired;
     if (num > m_maxIndent) num = m_maxIndent;
     if (num < m_minIndent) num = m_minIndent;
     return space.repeated(num);
+}
+
+bool CommandParser::takesParameters()
+{
+    return CommandOperation::takesParameters();
 }

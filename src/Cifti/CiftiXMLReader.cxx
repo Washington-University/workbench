@@ -6,7 +6,7 @@
 
 using namespace caret;
 
-void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
+void caret::parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
 {
    while (!xml.atEnd()  && !xml.hasError()) {
       xml.readNext();
@@ -39,7 +39,7 @@ void parseCiftiXML(QXmlStreamReader &xml, CiftiRootElement &rootElement)
    }
 }
 
-void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement)
+void caret::parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement)
 {
    QString test = xml.name().toString();
    
@@ -76,7 +76,7 @@ void parseMatrixElement(QXmlStreamReader &xml, CiftiMatrixElement &matrixElement
       xml.raiseError("Matrix end tag not found.");
 }
 
-void parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMetaData)
+void caret::parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMetaData)
 {
    while (!(xml.isEndElement()  && (xml.name().toString() == "MetaData")) && !xml.hasError()) {// && xml.name() == "MetaData") {      
       xml.readNext();
@@ -95,7 +95,7 @@ void parseMetaData(QXmlStreamReader &xml, QHash<QString, QString> &userMetaData)
       xml.raiseError("MetaData end tag not found.");
 }
 
-void parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &userMetaData)
+void caret::parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &userMetaData)
 {
    QString name;
    QString value;
@@ -138,7 +138,7 @@ void parseMetaDataElement(QXmlStreamReader &xml, QHash<QString,QString> &userMet
       xml.raiseError("End element for MD tag not found");  
 }
 
-void parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement> &labelTable)
+void caret::parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement> &labelTable)
 {
    while (!(xml.isEndElement() && (xml.name().toString() == "LabelTable"))&& !xml.hasError()) {// && xml.name() == "Matrix") {
       xml.readNext();
@@ -161,7 +161,7 @@ void parseLabelTable(QXmlStreamReader &xml, std::vector<CiftiLabelElement> &labe
    
 }
 
-void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
+void caret::parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
 {
    if(!(xml.name().toString() == "Label")) xml.raiseError("Error parsing Label\n");
    QXmlStreamAttributes attributes = xml.attributes();
@@ -206,7 +206,7 @@ void parseLabel(QXmlStreamReader &xml, CiftiLabelElement &label)
    }   
 }
 
-void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
+void caret::parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &matrixIndicesMap)
 {
    QXmlStreamAttributes attributes = xml.attributes();
    
@@ -266,7 +266,7 @@ void parseMatrixIndicesMap(QXmlStreamReader &xml, CiftiMatrixIndicesMapElement &
    }
 }
 
-void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel)
+void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel)
 {
    QXmlStreamAttributes attributes = xml.attributes();
    
@@ -362,7 +362,7 @@ void parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brainModel)
    }
 }
 
-void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
+void caret::parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
 {
    QXmlStreamAttributes attributes = xml.attributes();
    
@@ -398,7 +398,7 @@ void parseVolume(QXmlStreamReader &xml, CiftiVolumeElement &volume)
    }
 }
 
-void parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
+void caret::parseTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamReader &xml, TransformationMatrixVoxelIndicesIJKtoXYZElement &transform)
 {
    QXmlStreamAttributes attributes = xml.attributes();
    

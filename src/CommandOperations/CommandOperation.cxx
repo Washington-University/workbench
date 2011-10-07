@@ -68,6 +68,11 @@ CommandOperation::execute(ProgramParameters& parameters) throw (CommandException
     }
 }
 
+bool CommandOperation::takesParameters()
+{
+    return true;
+}
+
 /**
  * Get the short description of the operation.
  */
