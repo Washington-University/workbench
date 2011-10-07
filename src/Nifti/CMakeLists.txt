@@ -25,6 +25,7 @@ NiftiFile.h
 NiftiHeaderIO.h
 Nifti1Header.h
 Nifti2Header.h
+NiftiMatrix.h
 nifti1.h
 nifti2.h
 
@@ -36,6 +37,7 @@ NiftiFile.cxx
 NiftiHeaderIO.cxx
 Nifti1Header.cxx
 Nifti2Header.cxx
+NiftiMatrix.cxx
 )
 
 #

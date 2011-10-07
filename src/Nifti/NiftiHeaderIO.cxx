@@ -99,10 +99,12 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
     m_swapNeeded=false;
     niftiVersion = 0;
     nifti_2_header header;
-    bytes_read = inputFile.read((char *)&header, NIFTI2_HEADER_SIZE);
-    if(bytes_read < NIFTI2_HEADER_SIZE) {
-        throw NiftiException("Error reading Nifti header, file is too short.");
-    }
+    bytes_read = inputFile.read((char *)&header, NIFTI1_HEADER_SIZE);
+        if(bytes_read < NIFTI1_HEADER_SIZE)
+        {
+            throw NiftiException("Error reading Nifti header, file is too short.");
+        }
+
     if((NIFTI2_VERSION(header))==1)
     {
         niftiVersion = 1;
@@ -221,7 +223,7 @@ void NiftiHeaderIO::writeFile(QFile &outputFile) const throw (NiftiException)
     }
     else if(this->niftiVersion == 2)
     {
-        if(outputFile.write((char *)&nifti2Header,NIFTI1_HEADER_SIZE) != NIFTI1_HEADER_SIZE)
+        if(outputFile.write((char *)&nifti2Header,NIFTI2_HEADER_SIZE) != NIFTI2_HEADER_SIZE)
         {
             throw NiftiException("The was an error writing the header.");
         }
@@ -281,3 +283,29 @@ void NiftiHeaderIO::getHeader(Nifti2Header &header) const throw (NiftiException)
 
     header = this->nifti2Header;
 }
+
+/**
+  * setHeader
+  *
+  * sets a nifti 1 Header, throws an exception if the header is invalid
+  * @param header
+  **/
+void NiftiHeaderIO::setHeader(const Nifti1Header &header) throw (NiftiException)
+{
+    niftiVersion = 1;
+    this->nifti1Header = header;
+}
+
+/**
+  * setHeader
+  *
+  * sets a nifti 2 Header, throws an exception if the header is invalid
+  * @param header
+  **/
+
+void NiftiHeaderIO::setHeader(const Nifti2Header &header) throw (NiftiException)
+{
+    niftiVersion = 2;
+    this->nifti2Header = header;
+}
+

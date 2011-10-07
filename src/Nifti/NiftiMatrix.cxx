@@ -1,5 +1,5 @@
 /*LICENSE_START*/
-/* 
+/*
  *  Copyright 1995-2011 Washington University School of Medicine
  *
  *  http://brainmap.wustl.edu
@@ -21,34 +21,72 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+#if 0
+#include "NiftiMatrix.h"
 
-#ifndef NIFTITEST_H
-#define NIFTITEST_H
+using namespace caret;
 
-#include "TestInterface.h"
-#include "NiftiHeaderIO.h"
-
-namespace caret {
-
-class NiftiTest : public TestInterface
+NiftiMatrix::NiftiMatrix()
 {
-public:
-    NiftiTest(const AString& identifier);
-    virtual void execute();
-};
+}
 
-class NiftiHeaderTest : public TestInterface
+NiftiMatrix::NiftiMatrix(const AString filename) throw (NiftiException)
 {
-public:
-    NiftiHeaderTest(const AString& identifier);
-    virtual void execute();
-    void readNifti1Header(AString filename, Nifti1Header &header);
-    void readNifti2Header(AString filename, Nifti2Header &header);
-    void writeNifti1Header(AString filename, Nifti1Header &header);
-    void writeNifti2Header(AString filename, Nifti2Header &header);
-};
+    if(!QFile.exists(filename))
+
+}
+
+NiftiMatrix::NiftiMatrix(Astring filename, int64_t offset)
+{
 
 
 }
 
-#endif // NIFTITEST_H
+NiftiMatrix::NiftiMatrix(QFile file)
+{
+
+
+}
+
+NiftiMatrix::NiftiMatrix(QFile file, int64_t offset)
+{
+
+
+}
+
+void NiftiMatrix::getDataType(NiftiDataTypeEnum &type)
+{
+
+
+}
+
+void NiftiMatrix::setDataType(NiftiDataTypeEnum type)
+{
+
+
+}
+
+void NiftiMatrix::getVolumeFrame(int64_t time, double &frame)
+{
+
+
+}
+
+void NiftiMatrix::setVolumeFrame(int64_t time, const double &frame)
+{
+
+
+}
+
+void NiftiMatrix::getVolumeFrame(int64_t time, float &frame)
+{
+
+
+}
+
+void NiftiMatrix::setVolumeFrame(int64_t time, const float &frame)
+{
+
+
+}
+#endif
