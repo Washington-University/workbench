@@ -28,30 +28,43 @@
 #include "NiftiException.h"
 #include "QFile"
 #include "AString.h"
+#include "VolumeFile.h"
 namespace caret {
 
 class NiftiMatrix
 {
 public:
     NiftiMatrix();
-    NiftiMatrix(const QFile file) throw (NiftiException);
-    NiftiMatrix(const AString filename) throw (NiftiException);
-    NiftiMatrix(const Astring filename, int64_t offset) throw (NiftiException);
-    NiftiMatrix(QFile file, const int64_t offset) throw (NiftiException);
+    NiftiMatrix(const QFile &filein) throw (NiftiException);
+    NiftiMatrix(const AString &filename) throw (NiftiException);
+    NiftiMatrix(const Astring &filename, int64_t offsetin) throw (NiftiException);
+    NiftiMatrix(QFile &filein, const int64_t &offsetin) throw (NiftiException);
     ~NiftiMatrix();
 
-    void setMatrixOffset(const int64_t offset) throw (NiftiException);
-    void setDataType(const NiftiDataTypeEnum type) throw (NiftiException);
-    void getDataType(NiftiDataTypeEnum &type) const throw (NiftiException);
+    void setMatrixOffset(const int64_t &offsetin) throw (NiftiException);
+    void setDataType(const NiftiDataTypeEnum &typein) throw (NiftiException);
+    void getDataType(NiftiDataTypeEnum &typeout) const throw (NiftiException);
 
+    void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
+    void setVolumeFrame(const VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
 
+    //will remove this once it becomes more clear what subset of nifti header info is required
+    void setNiftiHeader(Nifti1Header &headerin) throw (NiftiException)
+    {
+        n1Header = headerin;
+        niftiVersion = 1;
+    }
 
-    //
+    void setNiftiHeader(Nifti2Header &headerin) throw (NiftiException)
+    {
+        n2Header = headerin;
+        niftiVersion = 2;
+    }
 
-    void translateVoxel(const int64_t i, const int64_t j, const int64_t k, const int64_t time, const int64_t frame_size, int64_t &index) const throw (NiftiException);
-    float getComponent(const int64_t index, const int32_t component_index) const throw (NiftiException);
-    void setComponent(const int64_t index, const int32_t component_index, const float value) throw (NiftiException);
-
+private:
+    void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, const int64_t &time, const int64_t &frame_size, int64_t &index) const throw (NiftiException);
+    float getComponent(const int64_t &index, const int32_t &component_index) const throw (NiftiException);
+    void setComponent(const int64_t &index, const int32_t &component_index, const float &value) throw (NiftiException);
 
 #if 0
     array index, byte swap, cast, then data scaling
@@ -81,8 +94,16 @@ public:
 private:
     QFile file;
     int64_t matrixStartOffset;
+    NiftiDataTypeEnum niftiDataType;
+    std::vector <int> dimensions;
+    Nifti1Header n1Header;
+    Nifti2Header n2Header;
+    int niftiVersion;
+    float_t *matrix;
+    int64_t matrixSize;
 };
 
 }
 #endif // NIFTIMATRIX_H
+
 #endif

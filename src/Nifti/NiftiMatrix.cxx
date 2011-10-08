@@ -30,63 +30,90 @@ NiftiMatrix::NiftiMatrix()
 {
 }
 
-NiftiMatrix::NiftiMatrix(const AString filename) throw (NiftiException)
+NiftiMatrix::NiftiMatrix(const AString &filename) throw (NiftiException)
 {
-    if(!QFile.exists(filename))
+    if(!QFile.exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
+    file.setFileName(filename);
+    offset = 0;
+}
+
+NiftiMatrix::NiftiMatrix(Astring &filename, int64_t &offsetin)
+{
+    if(!QFile.exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
+    file.setFileName(filename);
+    offset = offsetin;
+}
+
+NiftiMatrix::NiftiMatrix(QFile &filein)
+{
+    if(!QFile.exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
+    file.setFileName(filename);
+    offset = 0;
+}
+
+NiftiMatrix::NiftiMatrix(QFile &filein, int64_t &offsetin) throw (NiftiException)
+{
+    file = filein;
+    offset = offsetin;
+}
+
+void NiftiMatrix::getDataType(NiftiDataTypeEnum &typeout) const throw (NiftiException)
+{
+    typeout = niftiDataType;
+}
+
+void NiftiMatrix::setDataType(NiftiDataTypeEnum &typein) throw (NiftiException)
+{
+    niftiDataType = typein;
+}
+
+void NiftiMatrix::getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException)
+{
 
 }
 
-NiftiMatrix::NiftiMatrix(Astring filename, int64_t offset)
+void NiftiMatrix::setVolumeFrame(const VolumeFile &volume, int64_t &timeslice) throw (NiftiException)
 {
-
 
 }
 
-NiftiMatrix::NiftiMatrix(QFile file)
+void NiftiMatrix::translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, const int64_t &time, const int64_t &frame_size, int64_t &index) const throw (NiftiException)
 {
-
 
 }
 
-NiftiMatrix::NiftiMatrix(QFile file, int64_t offset)
+float NiftiMatrix::getComponent(const int64_t &index, const int32_t &component_index) const throw (NiftiException)
 {
-
 
 }
 
-void NiftiMatrix::getDataType(NiftiDataTypeEnum &type)
+void NiftiMatrix::setComponent(const int64_t &index, const int32_t &component_index, const float &value) throw (NiftiException)
 {
-
 
 }
 
-void NiftiMatrix::setDataType(NiftiDataTypeEnum type)
-{
+#if 0
+array index, byte swap, cast, then data scaling
 
+0000 1000 0100 1100 0200 1200 0010 1010 0110 1110 0210 1210 0001
 
-}
+index = 0;
+for t = 0:dim4
+        for k = 0:dim3
+                for j = 0:dim2
+                        for i = 0:dim1
+                                translateVoxel(i, j, k, t, frame, index);
+                                ++index;
+                        end
+                end
+        end
+end
 
-void NiftiMatrix::getVolumeFrame(int64_t time, double &frame)
-{
-
-
-}
-
-void NiftiMatrix::setVolumeFrame(int64_t time, const double &frame)
-{
-
-
-}
-
-void NiftiMatrix::getVolumeFrame(int64_t time, float &frame)
-{
-
-
-}
-
-void NiftiMatrix::setVolumeFrame(int64_t time, const float &frame)
-{
-
-
-}
+void translateVoxel(i, j, k, t, frame, index)
+        for c = 0:components
+                float temp = getComponent(index, component);
+                myVolume.setValue(temp, i, j, k, t, c);
+        end
+end
+#endif
 #endif

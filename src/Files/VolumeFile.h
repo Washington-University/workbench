@@ -76,7 +76,7 @@ namespace caret {
         ///get the spacing info
         const std::vector<std::vector<float> >& getVolumeSpace() {
             return m_indexToSpace;
-        };
+        }
 
         ///returns true if volume space is not skew, and each axis and index is separate
         bool isPlumb();
@@ -126,30 +126,30 @@ namespace caret {
         inline float getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
-        };
+        }
         ///get a value at three indexes and optionally timepoint
         inline float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
-        };
+        }
 
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
-        };
+        }
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
-        };
+        }
 
         ///get the raw voxel data
         float* getVoxelDataRef() {
             return m_data;
-        };
+        }
 
         ///gets dimensions as a vector of 5 integers, 3 spatial, time, components
         void getDimensions(std::vector<int64_t>& dimOut);
@@ -168,7 +168,7 @@ namespace caret {
             if (brickIndex < 0 || brickIndex >= m_dimensions[3]) return false;
             if (component < 0 || component >= m_dimensions[4]) return false;
             return true;
-        };
+        }
 
         virtual void readFile(const AString& filename) throw (DataFileException);
 
