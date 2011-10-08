@@ -362,10 +362,11 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                 {//found a space, break line at the space
                     while (endIndex > curIndex && in[endIndex] == ' ')
                     {//don't print any of the spaces
-                        ++endIndex;
+                        --endIndex;
                     }
-                haveAddedBreak = true;
-                ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
+                    ++endIndex;//print the character before the space
+                    haveAddedBreak = true;
+                    ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
                 } else {//hyphenate
                     endIndex = savedEnd - 1;
                     haveAddedBreak = true;
