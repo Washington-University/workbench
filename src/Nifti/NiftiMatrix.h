@@ -22,7 +22,6 @@
  *
  */
 
-#if 0
 #ifndef NIFTIMATRIX_H
 #define NIFTIMATRIX_H
 #include "NiftiEnums.h"
@@ -36,87 +35,96 @@ class NiftiMatrix
 {
 public:
     NiftiMatrix();
-    NiftiMatrix(const QFile &filein) throw (NiftiException);
+    NiftiMatrix(const QFile &filename) throw (NiftiException);
     NiftiMatrix(const AString &filename) throw (NiftiException);
-    NiftiMatrix(const Astring &filename, int64_t offsetin) throw (NiftiException);
-    NiftiMatrix(QFile &filein, const int64_t &offsetin) throw (NiftiException);
+    NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
+    NiftiMatrix(QFile &filein);
+    NiftiMatrix(QFile &filein, const int64_t &offsetin);
     ~NiftiMatrix();
 
     void init();
 
+    void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
+    void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
 
-    void setSwapNeeded(bool &swapNeededIn) { swapNeeded = swapNeededIn; }
-    void getSwapNeeed(bool &swapNeededOut) const { swapNeededOut = swapNeeded; }
+    // Below are low level functions for operating on generic matrix files, currently used by Nifti
+
+    // !!! NIFTI SPECIFIC nifti specific will, move to Nifti file !!!
+    void setNiftiHeader(Nifti1Header &headerin);
+    void setNiftiHeader(Nifti2Header &headerin);
+
+    void getLayoutFromNiftiHeader(const Nifti1Header &headerIn);
+    void getLayoutFromNiftiHeader(const Nifti2Header &headerIn);
+    // !!! END NIFTI SPECIFIC !!!
+
+    // !!!SECTION 1: matrix reader set up!!!
+    /*use functions below to setup layout first before reading a frame, so that the matrix reader "knows" how interpret/load/format the data into the internal matrix
+      it's flexible, but the recommended usage is:
+      1. setMatrixOffset(if non-zero)
+      2. setDataType (the data type as it is stored on disk)
+      3. setMatrixLayoutOnDisk();*/
 
     void setMatrixOffset(const int64_t &offsetin) throw (NiftiException);
-    void setDataType(const NiftiDataTypeEnum &typein) throw (NiftiException);
-    void getDataType(NiftiDataTypeEnum &typeout) const throw (NiftiException);
 
-    void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    void setVolumeFrame(const VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
+    //these two are a bit redundant, since one can get this info from set/getMatrixLayoutOnDisk
+    void setneedsSwapping(bool &needsSwappingIn) { needsSwapping = needsSwappingIn; }
+    void getSwapNeeed(bool &needsSwappingOut) const { needsSwappingOut = needsSwapping; }
 
-    //will remove this once it becomes more clear what subset of nifti header info is required
-    void setNiftiHeader(Nifti1Header &headerin) throw (NiftiException)
-    {
-        n1Header = headerin;
-        niftiVersion = 1;
-    }
+    void setDataType(const NiftiDataTypeEnum::Enum &typein);
+    void getDataType(NiftiDataTypeEnum::Enum &typeout) const;
+    void getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const;
+    void setMatrixLayoutOnDisk(const std::vector<int32_t> &dimensionsIn, const int &componentDimensionsIn,const  int &valueByteSizeIn, const bool &needsSwappingIn );
 
-    void setNiftiHeader(Nifti2Header &headerin) throw (NiftiException)
-    {
-        n2Header = headerin;
-        niftiVersion = 2;
-    }
+    // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
+    //after setting matrix layout, a frame may be read.
+    void readFrame(int64_t timeSlice=0L);//for loading a frame at a time
+    void setFrame(float *matrixIn, int64_t &matrixLengthIn, int64_t timeSlice = 0L)  throw(NiftiException);
+    void writeFrame(int64_t &timeSlice) throw(NiftiException);
+    // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
+    //void readMatrix() {}//for loading the entire matrix, not implemented
+    //void setMatrix...
+    //void writeMatrix...
 
-    void LoadFrame(int64_t timeSlice);//for loading a frame at a time
-    void LoadMatrix();//for loading the entire matrix
-private:
-    void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, const int64_t &time, const int64_t &frame_size, int64_t &index) const throw (NiftiException);
-    float getComponent(const int64_t &index, const int32_t &component_index) const throw (NiftiException);
-    void setComponent(const int64_t &index, const int32_t &component_index, const float &value) throw (NiftiException);
+    // !!!SECTION 3: after frame has been loaded, use functions below to manipulate frame data
+    //once a frame has been loaded, use the functions below to manipulate it
+    void translateVoxel(const uint64_t &i, const uint64_t &j, const uint64_t &k, uint64_t &index) const;
+    float getComponent(const uint64_t &index, const uint32_t &componentIndex) const throw (NiftiException);
+    void setComponent(const uint64_t &index, const uint32_t &componentIndex, const float &value) throw (NiftiException);
 
-#if 0
-    array index, byte swap, cast, then data scaling
+    private:
+    void reAllocateMatrixIfNeeded();
+    //frames represent brain volumes on disk, the matrix is the internal storage for the matrix after it has been loaded from the file.
+    uint64_t calculateFrameLength(const std::vector<int> &dimensionsIn) const;
+    uint64_t calculateFrameSizeInBytes(const uint64_t &frameLengthIn, const uint32_t &valueByteSizeIn, const uint32_t &componentDimensionsIn) const;
+    uint64_t calculateMatrixLength(const uint64_t &frameLengthIn, const uint64_t &componentDimensionsIn) const;
+    uint64_t calculateMatrixSizeInBytes(const uint64_t &frameSizeIn, const uint64_t &componentDimensionsIn) const;
 
-    0000 1000 0100 1100 0200 1200 0010 1010 0110 1110 0210 1210 0001
-
-    index = 0;
-    for t = 0:dim4
-            for k = 0:dim3
-                    for j = 0:dim2
-                            for i = 0:dim1
-                                    translateVoxel(i, j, k, t, frame, index);
-                                    ++index;
-                            end
-                    end
-            end
-    end
-
-    void translateVoxel(i, j, k, t, frame, index)
-            for c = 0:components
-                    float temp = getComponent(index, component);
-                    myVolume.setValue(temp, i, j, k, t, c);
-            end
-    end
-#endif
-
-private:
     QFile file;
     int64_t matrixStartOffset;
-    NiftiDataTypeEnum niftiDataType;
-    std::vector <int> dimensions;
+
+    //nifti specific
     Nifti1Header n1Header;
     Nifti2Header n2Header;
     int niftiVersion;
-    bool swapNeeded;
 
-    // new approach
+    //non-nifti specific
+    bool layoutSet;
+    bool needsSwapping;
+    uint32_t componentDimensions;
+    std::vector <int> dimensions;
+    NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
+    uint32_t valueByteSize;
+    uint64_t frameLength;
+    uint64_t frameSize;
+    bool frameLoaded;
+
+    // matrix data
     int64_t currentTime;
     float_t *matrix;
-    int64_t matrixSize;
+    int64_t matrixLength;//length of array
+    bool matrixLoaded;
 };
 
 }
 #endif // NIFTIMATRIX_H
 
-#endif

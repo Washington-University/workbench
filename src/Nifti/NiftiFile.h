@@ -21,18 +21,18 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+#if 0
 #ifndef NIFTIFILE_H
 #define NIFTIFILE_H
 
 #include <QtCore>
-#include "nifti2.h"
 #include "iostream"
 #include "NiftiException.h"
 #include "NiftiHeaderIO.h"
 #include "ByteSwapping.h"
 #include "CiftiMatrix.h"
 #include "CiftiXML.h"
-
+#include "nifti2.h"
 /// Class for opening, reading, and writing generic Nifti1/2 Data
 
 namespace caret {
@@ -89,3 +89,4 @@ protected:
 }
 
 #endif // NIFTIFILE_H
+#endif

@@ -21,9 +21,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */ 
-
-#include "Nifti1Header.h"
-
 #include "Nifti1Header.h"
 #include <vector>
 
@@ -215,4 +212,59 @@ void Nifti1Header::initHeaderStruct(nifti_1_header &header)
    header.intent_code = NIFTI_INTENT_NONE;
    memset(header.intent_name,0x00,16);
    header.dim_info = 0;
+   needsSwapping = false;
+   needsSwappingSet = false;
+}
+
+void Nifti1Header::getDimensions(std::vector< int > &dimensionsOut) const
+{
+    dimensionsOut.clear();
+    dimensionsOut.resize(m_header.dim[0]);
+    for(int i = 0;i<dimensionsOut.size();i++)
+    {
+        dimensionsOut[i]=m_header.dim[i+1];
+    }
+}
+
+void Nifti1Header::setDimensions(const std::vector<int32_t> &dimensionsIn) throw (NiftiException)
+{
+    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
+    m_header.dim[0] = dimensionsIn.size();
+    for(int i =0;i<dimensionsIn.size();i++)
+    {
+        m_header.dim[i+1]=dimensionsIn[i];
+    }
+}
+void Nifti1Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
+{
+    bool isValid;
+    enumOut = NiftiDataTypeEnum::fromIntegerCode( m_header.datatype,&isValid);
+}
+void Nifti1Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
+{
+    m_header.datatype = (short) NiftiDataTypeEnum::toIntegerCode(enumIn);
+}
+
+void Nifti1Header::getComponentDimensions(uint32_t &componentDimensionsOut) const
+{
+    componentDimensionsOut = 1;
+    if(m_header.datatype == NIFTI_TYPE_RGB24) componentDimensionsOut = 3;
+}
+
+void Nifti1Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException)
+{
+    //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
+    switch(m_header.datatype) {
+    case NIFTI_TYPE_FLOAT32:
+        valueByteSizeOut = sizeof(float_t);
+        break;
+    case NIFTI_TYPE_FLOAT64:
+        valueByteSizeOut = sizeof(double_t);
+        break;
+    case NIFTI_TYPE_RGB24:
+        valueByteSizeOut = 1;
+        break;
+    default:
+        throw NiftiException("Unsupported Data Type.");
+    }
 }

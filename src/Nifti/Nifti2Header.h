@@ -26,12 +26,13 @@
 #define NIFTI2_HEADER_H
 
 #include <QtCore>
-#include "nifti1.h"
-#include "nifti2.h"
 #include "iostream"
 #include "NiftiException.h"
+#include "NiftiEnums.h"
 #include "ByteSwapping.h"
 #include <vector>
+#include "nifti1.h"
+#include "nifti2.h"
 
 namespace caret {
 
@@ -46,10 +47,25 @@ public:
    QString *getHeaderAsString();
    void initHeaderStruct(nifti_2_header &header);
    void initHeaderStruct();
+   void getDimensions(std::vector <int> &dimensionsOut) const;
+   void setDimensions(const std::vector <int> &dimensionsIn) throw (NiftiException) ;
+   void getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const;
+   void setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn);
+   void getComponentDimensions(uint32_t &componentDimensionsOut) const;
+   void getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException);
+   void getNeedsSwapping(bool &needsSwappingOut) const {needsSwappingOut = needsSwapping; }
+   void setNeedsSwapping(bool &needsSwappingIn) throw (NiftiException) {
+       if(needsSwappingSet) throw NiftiException("This attribute is read-only, and can only be set when reading the header.");
+       needsSwappingSet = true;
+       needsSwapping = needsSwappingIn;
+   }
 private:
    nifti_2_header m_header;
+   //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user
+   //would need to call a separate function to set byte order reading, which is error prone
+   bool needsSwapping;
+   bool needsSwappingSet;//this can only be set once, making it essentially a read only attribute since we don't support big-endian byte order writing, only reading
 };
-
 } // namespace caret
 
 #endif // NIFTI_HEADER_H

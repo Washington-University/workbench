@@ -26,13 +26,12 @@
 #ifndef __CIFTI_FILE
 #define __CIFTI_FILE
 #include <QtCore>
-#include "nifti2.h"
 #include "iostream"
 #include "CiftiFileException.h"
 #include "NiftiHeaderIO.h"
 #include "CiftiXML.h"
 #include "CiftiMatrix.h"
-
+#include "nifti2.h"
 /// Class for opening, reading, and writing generic Cifti Data
 
 namespace caret {

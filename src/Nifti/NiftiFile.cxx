@@ -22,7 +22,7 @@
  *
  */
 #include "NiftiFile.h"
-#include "NiftiFile.h"
+#if 0
 
 #include <algorithm>
 #include <vector>
@@ -240,6 +240,7 @@ void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
    header = *m_nifti2Header;
 }
 
+
 // Matrix IO
 /**
  *
@@ -302,3 +303,4 @@ void NiftiFile::readNiftiMatrix() throw (NiftiException)
    if(m_swapNeeded) m_matrix->swapByteOrder();
 }
 */
+#endif

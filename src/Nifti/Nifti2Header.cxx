@@ -22,10 +22,8 @@
  * 
  */ 
 
-#include "Nifti2Header.h"
-
-#include "Nifti2Header.h"
 #include <vector>
+#include "Nifti2Header.h"
 
 using namespace caret;
 
@@ -41,6 +39,8 @@ using namespace caret;
 Nifti2Header::Nifti2Header(const nifti_2_header &header) throw (NiftiException)
 {
    memcpy((void *)&m_header,&header,sizeof(m_header));
+   needsSwapping = false;
+   needsSwappingSet = false;
 }
 
 /**
@@ -213,4 +213,59 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
    memset(header.intent_name,0x00,16);
    header.dim_info = 0;
    memset(header.unused_str,0x00,15);
+   needsSwapping = false;
+   needsSwappingSet = false;
+}
+
+void Nifti2Header::getDimensions(std::vector <int> &dimensionsOut) const
+{
+    dimensionsOut.clear();
+    dimensionsOut.resize(m_header.dim[0]);
+    for(int i = 0;i<dimensionsOut.size();i++)
+    {
+        dimensionsOut[i]=m_header.dim[i+1];
+    }
+}
+
+void Nifti2Header::setDimensions(const std::vector < int > &dimensionsIn) throw (NiftiException)
+{
+    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
+    m_header.dim[0] = dimensionsIn.size();
+    for(int i =0;i<dimensionsIn.size();i++)
+    {
+        m_header.dim[i+1]=dimensionsIn[i];
+    }
+}
+void Nifti2Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
+{
+    bool isValid;
+    enumOut = NiftiDataTypeEnum::fromIntegerCode(m_header.datatype, &isValid);
+}
+void Nifti2Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
+{
+    m_header.datatype = NiftiDataTypeEnum::toIntegerCode(enumIn);
+}
+
+void Nifti2Header::getComponentDimensions(uint32_t &componentDimensionsOut) const
+{
+    componentDimensionsOut = 1;
+    if(m_header.datatype == NIFTI_TYPE_RGB24) componentDimensionsOut = 3;
+}
+
+void Nifti2Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException)
+{
+    //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
+    switch(m_header.datatype) {
+    case NIFTI_TYPE_FLOAT32:
+        valueByteSizeOut = sizeof(float_t);
+        break;
+    case NIFTI_TYPE_FLOAT64:
+        valueByteSizeOut = sizeof(double_t);
+        break;
+    case NIFTI_TYPE_RGB24:
+        valueByteSizeOut = 1;
+        break;
+    default:
+        throw NiftiException("Unsupported Data Type.");
+    }
 }

@@ -26,10 +26,8 @@
 #define NIFTI_HEADER_IO_H
 
 #include <QtCore>
-#include "nifti1.h"
-#include "iostream"
+#include <iostream>
 #include "NiftiException.h"
-#include "NiftiHeaderIO.h"
 #include "Nifti1Header.h"
 #include "Nifti2Header.h"
 

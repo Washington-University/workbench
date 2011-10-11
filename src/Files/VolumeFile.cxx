@@ -25,8 +25,6 @@
 #include "VolumeFile.h"
 #include "FloatMatrix.h"
 #include <cmath>
-#include "nifti1.h"
-#include "nifti2.h"
 #include "NiftiHeaderIO.h"
 
 using namespace caret;

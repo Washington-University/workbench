@@ -23,10 +23,7 @@
  */
 
 #include <QtCore>
-#include "nifti1.h"
 #include "iostream"
-#include "NiftiException.h"
-#include "Nifti1Header.h"
 #include "NiftiHeaderIO.h"
 #include <QFile>
 
@@ -147,6 +144,7 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
             ByteSwapping::swapBytes(&(header.intent_code),1);
         }
         nifti1Header.setHeaderStuct(header);
+        nifti1Header.setNeedsSwapping(m_swapNeeded)        ;
     } else if((NIFTI2_VERSION(header))==2)
     {
         niftiVersion = 2;
@@ -192,6 +190,7 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
             ByteSwapping::swapBytes(&(header.intent_code),1);
         }
         nifti2Header.setHeaderStuct(header);
+        nifti2Header.setNeedsSwapping(m_swapNeeded);
     }
     else
     {
