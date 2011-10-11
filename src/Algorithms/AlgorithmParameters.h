@@ -61,6 +61,7 @@ namespace caret {
     struct ParameterComponent
     {//sadly, inheriting from a friend class doesn't give you access to private members, so these are entirely public so parsers can use them
         std::vector<AbstractParameter*> m_paramList;//mandatory arguments
+        std::vector<AbstractParameter*> m_outputList;//should this be a different type? input and output parameters are very similar, just pointers to files
         std::vector<OptionalParameter*> m_optionList;//optional arguments
         
         ///constructor
@@ -121,47 +122,6 @@ namespace caret {
         ///add a preconstructed optional parameter
         void addOptionalParameter(OptionalParameter* param);
         
-        ///return pointer to an input parameter
-        AbstractParameter* getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
-        
-        ///return pointer to an option
-        OptionalParameter* getOptionalParameter(const int32_t key);
-        
-    };
-    
-    struct OptionalParameter : public ParameterComponent
-    {
-        int32_t m_key;//uniquely identifies this option
-        AString m_optionSwitch, m_shortName, m_description;
-        bool m_present;//to be filled by parser
-        OptionalParameter(int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description) :
-        m_key(key),
-        m_optionSwitch(optionSwitch),
-        m_shortName(shortName),
-        m_description(description)
-        {
-            m_present = false;
-        }
-    };
-    
-    struct AlgorithmParameters : public ParameterComponent
-    {
-        std::vector<AbstractParameter*> m_outputList;//should this be a different type? input and output parameters are very similar, just pointers to files
-        AString m_helpText;//formatted by the parser object for display in terminal or modal window
-
-        ///constructor
-        AlgorithmParameters();
-        
-        ///destructor
-        ~AlgorithmParameters();
-        
-        ///set the help text of the algorithm - you DO NOT need to add newlines within paragraphs or list the parameters, or give a description of each parameter! describe ONLY what it does, plus any quirks
-        void setHelpText(const AString& textIn);
-        
-        ///get the unformatted help text, without command or arguments descriptions, to be formatted by the argument parser
-        AString& getHelpText();
-        
-        //convenience methods for algorithms to use to easily specify parameters
         ///add a parameter to get next item as a string
         void addStringOutputParameter(const int32_t key, const AString& name, const AString& description);
         
@@ -210,8 +170,47 @@ namespace caret {
         ///get a cifti with a key
         CiftiFile* getOutputCifti(const int32_t key);
         
+        ///return pointer to an input parameter
+        AbstractParameter* getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
+        
         ///return pointer to an output
         AbstractParameter* getOutputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
+        
+        ///return pointer to an option
+        OptionalParameter* getOptionalParameter(const int32_t key);
+        
+    };
+    
+    struct OptionalParameter : public ParameterComponent
+    {
+        int32_t m_key;//uniquely identifies this option
+        AString m_optionSwitch, m_shortName, m_description;
+        bool m_present;//to be filled by parser
+        OptionalParameter(int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description) :
+        m_key(key),
+        m_optionSwitch(optionSwitch),
+        m_shortName(shortName),
+        m_description(description)
+        {
+            m_present = false;
+        }
+    };
+    
+    struct AlgorithmParameters : public ParameterComponent
+    {
+        AString m_helpText;//formatted by the parser object for display in terminal or modal window
+
+        ///constructor
+        AlgorithmParameters();
+        
+        ///destructor
+        ~AlgorithmParameters();
+        
+        ///set the help text of the algorithm - you DO NOT need to add newlines within paragraphs or list the parameters, or give a description of each parameter! describe ONLY what it does, plus any quirks
+        void setHelpText(const AString& textIn);
+        
+        ///get the unformatted help text, without command or arguments descriptions, to be formatted by the argument parser
+        AString& getHelpText();
         
     };
 
@@ -249,11 +248,6 @@ namespace caret {
     typedef PrimitiveTemplateParameter<AString, AlgorithmParametersEnum::STRING> StringParameter;
     typedef PrimitiveTemplateParameter<bool, AlgorithmParametersEnum::BOOL> BooleanParameter;
     
-    class AlgParamParserInterface
-    {
-    public:
-        AlgParamParserInterface(AutoAlgorithmInterface* myAutoAlg);
-    };
 }
 
 #endif //__ALGORITHM_PARAMETERS_H__

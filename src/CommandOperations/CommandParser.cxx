@@ -47,9 +47,8 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     
     try
     {
-        parseComponent(myAlgParams, parameters);//parsing block
-        parseOutputAssoc(myAlgParams, parameters, myOutAssoc);
-        parseRemainingOptions(myAlgParams, parameters);
+        parseComponent(myAlgParams, parameters, myOutAssoc);//parsing block
+        parseRemainingOptions(myAlgParams, parameters, myOutAssoc);
     } catch (ProgramParametersException e) {
         delete myAlgParams;
         throw e;
@@ -63,7 +62,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     delete myAlgParams;
 }
 
-void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters)
+void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
 {
     uint32_t i = 0;
     while (true)//so that we can get suboptions that are placed on the end of an option (and its degenerate case, options that contain only suboptions and no required arguments)
@@ -71,7 +70,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         AString nextArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myComponent, parameters);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
             if (success)
             {
                 continue;//so skip trying to parse it as a required argument
@@ -88,7 +87,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         if (i == myComponent->m_paramList.size())
         {
             parameters.backup();
-            return;
+            break;//continue to output parsing section
         }
         switch (myComponent->m_paramList[i]->getType())
         {
@@ -156,30 +155,12 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         };
         ++i;//next required parameter
     }
-}
-
-bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters)
-{
-    for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
-    {
-        if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
-        {
-            myComponent->m_optionList[i]->m_present = true;
-            parseComponent(myComponent->m_optionList[i], parameters);
-            return true;
-        }
-    }
-    return false;
-}
-
-void CommandParser::parseOutputAssoc(AlgorithmParameters* myAlgParams, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
-{
-    for (uint32_t i = 0; i < myAlgParams->m_outputList.size(); ++i)
-    {
-        AString nextArg = parameters.nextString(myAlgParams->m_outputList[i]->m_shortName);
+    for (i = 0; i < myComponent->m_outputList.size(); ++i)
+    {//parse the output options of this component
+        AString nextArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myAlgParams, parameters);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
             if (!success)
             {//we don't currently have optional outputs, so this must be the base level, failure to parse an argument on base level is fatal
                 throw ProgramParametersException("Unknown option: " + nextArg);
@@ -189,20 +170,34 @@ void CommandParser::parseOutputAssoc(AlgorithmParameters* myAlgParams, ProgramPa
         }
         OutputAssoc tempItem;
         tempItem.m_fileName = nextArg;
-        tempItem.m_type = myAlgParams->m_outputList[i]->getType();
-        tempItem.m_outputKey = myAlgParams->m_outputList[i]->m_key;
+        tempItem.m_type = myComponent->m_outputList[i]->getType();
+        tempItem.m_outputKey = myComponent->m_outputList[i]->m_key;
         outAssociation.push_back(tempItem);
     }
 }
 
-void CommandParser::parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters)
+bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+{
+    for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
+    {
+        if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
+        {
+            myComponent->m_optionList[i]->m_present = true;
+            parseComponent(myComponent->m_optionList[i], parameters, outAssociation);
+            return true;
+        }
+    }
+    return false;
+}
+
+void CommandParser::parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
 {
     while (parameters.hasNext())
     {
         AString nextArg = parameters.nextString("option");
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myAlgParams, parameters);
+            bool success = parseOption(nextArg, myAlgParams, parameters, outAssociation);
             if (!success)
             {//we don't currently have optional outputs, so this must be the base level, failure to parse an argument on base level is fatal
                 throw ProgramParametersException("Unknown option: " + nextArg);
@@ -267,26 +262,10 @@ AString CommandParser::getHelpInformation(const AString& programName)
     ret += getIndentString(curIndent) + programName + " " + getCommandLineSwitch() + "\n";//DO NOT format the command that people may want to copy and paste, added hyphens would be disastrous
     curIndent += m_indentIncrement;
     AlgorithmParameters* myAlgParams = m_autoAlg->getParameters();
-    for (int i = 0; i < (int)myAlgParams->m_paramList.size(); ++i)
-    {
-        ret += formatString("<" + myAlgParams->m_paramList[i]->m_shortName + ">", curIndent, true);
-    }
-    for (int i = 0; i < (int)myAlgParams->m_outputList.size(); ++i)
-    {
-        ret += formatString("<" + myAlgParams->m_outputList[i]->m_shortName + ">", curIndent, true);
-    }
-    addHelpOptions(ret, myAlgParams, curIndent);
+    addHelpComponent(ret, myAlgParams, curIndent);
     addHelpProse(ret, myAlgParams, curIndent);
     ret += getIndentString(curIndent) + "Description of parameters and options:\n\n";
-    for (int i = 0; i < (int)myAlgParams->m_paramList.size(); ++i)
-    {
-        ret += formatString(myAlgParams->m_paramList[i]->m_shortName + " - " + myAlgParams->m_paramList[i]->m_description, curIndent, true);
-    }
-    for (int i = 0; i < (int)myAlgParams->m_outputList.size(); ++i)
-    {
-        ret += formatString(myAlgParams->m_outputList[i]->m_shortName + " - out - " + myAlgParams->m_outputList[i]->m_description, curIndent, true);
-    }
-    addOptionDescriptions(ret, myAlgParams, curIndent);
+    addComponentDescriptions(ret, myAlgParams, curIndent);
     delete myAlgParams;
     return ret;
 }
@@ -296,6 +275,10 @@ void CommandParser::addHelpComponent(AString& info, ParameterComponent* myCompon
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
         info += formatString("<" + myComponent->m_paramList[i]->m_shortName + ">", curIndent, true);
+    }
+    for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
+    {
+        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + ">", curIndent, true);
     }
     addHelpOptions(info, myComponent, curIndent);
 }
@@ -390,6 +373,10 @@ void CommandParser::addComponentDescriptions(AString& info, ParameterComponent* 
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
         info += formatString("<" + myComponent->m_paramList[i]->m_shortName + "> - " + myComponent->m_paramList[i]->m_description, curIndent, true);
+    }
+    for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
+    {
+        info += formatString(myComponent->m_outputList[i]->m_shortName + " - out - " + myComponent->m_outputList[i]->m_description, curIndent, true);
     }
     addOptionDescriptions(info, myComponent, curIndent);
 }

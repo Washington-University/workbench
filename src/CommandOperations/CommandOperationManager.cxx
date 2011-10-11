@@ -111,10 +111,10 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
             
             std::cout 
             << op->getCommandLineSwitch() 
-            << " "
+            << "   "
             << op->getOperationShortDescription()
             << std::endl;
-        }
+        }//TODO: try to align/space these better, switch order, indent?
     
         return;
     }

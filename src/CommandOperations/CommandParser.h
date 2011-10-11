@@ -44,10 +44,9 @@ namespace caret {
             AlgorithmParametersEnum::Enum m_type;
             int32_t m_outputKey;
         };
-        void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters);
-        void parseOutputAssoc(AlgorithmParameters* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation);
-        bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters);
-        void parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters);
+        void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation);
+        bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation);
+        void parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation);
         void writeOutput(AlgorithmParameters* myAlgParams, const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
