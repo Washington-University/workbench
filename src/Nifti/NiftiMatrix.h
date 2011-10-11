@@ -21,6 +21,7 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
+
 #if 0
 #ifndef NIFTIMATRIX_H
 #define NIFTIMATRIX_H
@@ -40,6 +41,12 @@ public:
     NiftiMatrix(const Astring &filename, int64_t offsetin) throw (NiftiException);
     NiftiMatrix(QFile &filein, const int64_t &offsetin) throw (NiftiException);
     ~NiftiMatrix();
+
+    void init();
+
+
+    void setSwapNeeded(bool &swapNeededIn) { swapNeeded = swapNeededIn; }
+    void getSwapNeeed(bool &swapNeededOut) const { swapNeededOut = swapNeeded; }
 
     void setMatrixOffset(const int64_t &offsetin) throw (NiftiException);
     void setDataType(const NiftiDataTypeEnum &typein) throw (NiftiException);
@@ -61,6 +68,8 @@ public:
         niftiVersion = 2;
     }
 
+    void LoadFrame(int64_t timeSlice);//for loading a frame at a time
+    void LoadMatrix();//for loading the entire matrix
 private:
     void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, const int64_t &time, const int64_t &frame_size, int64_t &index) const throw (NiftiException);
     float getComponent(const int64_t &index, const int32_t &component_index) const throw (NiftiException);
@@ -99,6 +108,10 @@ private:
     Nifti1Header n1Header;
     Nifti2Header n2Header;
     int niftiVersion;
+    bool swapNeeded;
+
+    // new approach
+    int64_t currentTime;
     float_t *matrix;
     int64_t matrixSize;
 };
