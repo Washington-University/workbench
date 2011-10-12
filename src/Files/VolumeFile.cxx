@@ -368,6 +368,7 @@ VolumeFile::~VolumeFile()
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    throw DataFileException("Reading of volume files not implemented.");
     NiftiHeaderIO myHeadIO;
     myHeadIO.readFile(filename);
     int myver = myHeadIO.getNiftiVersion();
@@ -384,7 +385,6 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         default:
             break;
     };
-    throw DataFileException("Reading of volume files not implemented.");
 }
 
 /**
@@ -410,6 +410,29 @@ VolumeFile::isEmpty() const
 void 
 VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading of volume files not implemented.");
+    throw DataFileException("Writing of volume files not implemented.");
 }
 
+void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component)
+{
+    int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
+    int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];
+    int64_t outIndex = 0;//could use memcpy, but this is more obvious and should get optimized
+    for (int64_t myIndex = startIndex; myIndex < endIndex; ++myIndex)
+    {
+        frameOut[outIndex] = m_data[myIndex];
+        ++outIndex;
+    }
+}
+
+void VolumeFile::setFrame(const float* frameIn, const int64_t brickIndex, const int64_t component)
+{
+    int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
+    int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];
+    int64_t inIndex = 0;//could use memcpy, but this is more obvious and should get optimized
+    for (int64_t myIndex = startIndex; myIndex < endIndex; ++myIndex)
+    {
+        m_data[myIndex] = frameIn[inIndex];
+        ++inIndex;
+    }
+}

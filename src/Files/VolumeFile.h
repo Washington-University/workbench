@@ -134,6 +134,9 @@ namespace caret {
             return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
         }
 
+        ///get a frame
+        void getFrame(float* frameOut, const int64_t brickIndex = 0, const int64_t component = 0);
+        
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
         {
@@ -145,6 +148,9 @@ namespace caret {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
         }
+        
+        ///set a frame
+        void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0);
 
         ///get the raw voxel data
         float* getVoxelDataRef() {
