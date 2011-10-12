@@ -223,8 +223,14 @@ DataFileTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
     bool validFlag = false;
     Enum enumValue = UNKNOWN;
     
+    /*
+     * Maintain compatibility with early spec files
+     */
     if (name.startsWith("SURFACE_")) {
         name = "SURFACE";
+    }
+    else if (name.startsWith("VOLUME_")) {
+        name = "VOLUME";
     }
     
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();

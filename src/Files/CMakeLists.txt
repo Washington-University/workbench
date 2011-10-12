@@ -34,6 +34,7 @@ SurfaceFile.h
 SurfaceTypeEnum.h
 TextFile.h
 VolumeFile.h
+VolumeTypeEnum.h
 
 BinaryFileReader.cxx
 DataFileTypeEnum.cxx
@@ -52,6 +53,7 @@ SurfaceFile.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 VolumeFile.cxx
+VolumeTypeEnum.cxx
 )
 
 
