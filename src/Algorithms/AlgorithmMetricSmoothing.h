@@ -74,11 +74,12 @@ namespace caret {
         std::vector<WeightList> m_weightLists;
         AlgorithmMetricSmoothing();
         void precomputeWeights(SurfaceFile* mySurf, double myKernel);
+        void precomputeWeightsROI(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, int64_t columnNum);
+        AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi = NULL, int64_t columnNum = -1);
         static AlgorithmParameters* getParameters();
         static void useParameters(AlgorithmParameters*, ProgressObject*);
         static AString getCommandSwitch();

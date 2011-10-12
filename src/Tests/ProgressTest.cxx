@@ -34,7 +34,7 @@ TestAlgorithm::TestAlgorithm(ProgressObject* myproginfo, bool testOver) : Abstra
 {
    m_failed = false;
    const float oddEndWeight = 17.0f;
-   LevelProgress myLevel = myproginfo->startLevel(oddEndWeight);//to test strange values
+   LevelProgress myLevel(myproginfo, oddEndWeight);//to test strange values
    if (myproginfo->getCurrentProgressFraction() != 0.0f || myproginfo->getCurrentProgressPercent() != 0.0f)
    {
       cout << "initial timer progress is not zero!" << endl;

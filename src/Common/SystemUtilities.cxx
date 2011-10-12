@@ -105,6 +105,7 @@ SystemUtilities::getBackTrace(std::vector<AString>& backTraceOut)
     for (int i = 0; i < numFrames; i++) {
         backTraceOut.push_back(symbols[i]);
     }
+    free(symbols);
 #endif // CARET_OS_WINDOWS
 }
 

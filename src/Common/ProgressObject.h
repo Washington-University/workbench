@@ -58,6 +58,7 @@ namespace caret {
       bool m_finished;
       void updateProgress();//used by LevelProgress to report changes
       void finishLevel();//moves this progress object to 100%, then updates parent if not NULL
+      void setInternalWeight(const float& myInternalWeight);//used by LevelProgress when you start a level
       ProgressObject();
    public:
 //don't always report progress, in case someone uses this in an inner loop
@@ -74,9 +75,6 @@ namespace caret {
       ///add an algorithm to this algorithm's progress status, and get a pointer to give to that algorithm
       ///fill in weight with the ...Algorithm::getAlgorithmWeight() function
       ProgressObject* addAlgorithm(const float weight, const float childResolution = MAX_CHILD_RESOLUTION);
-      
-      ///call this inside an algorithm AFTER ALL addAlgorithm CALLS, to correctly activate the progress bar
-      LevelProgress startLevel(const float finishedProgress = 1.0, const float internalWeight = 1.0, const float internalResolution = MAX_INTERNAL_RESOLUTION);
       
       ///DO NOT USE: used by AbstractAlgorithm constructor to check for algorithms that ignore the object
       void algorithmStartSentinel();
@@ -103,8 +101,9 @@ namespace caret {
       float m_lastReported;
       float m_internalResolution;
       ProgressObject* m_progObjRef;
-   public:
       LevelProgress();
+   public:
+      LevelProgress(ProgressObject* myProgObj, const float finishedProgress = 1.0f, const float internalWeight = 1.0f, const float internalResolution = ProgressObject::MAX_INTERNAL_RESOLUTION);
       
       ///call with the fraction of finishedProgress passed to ProgressObject::startLevel (default 1.0) that this algorithm has done internally
       ///work done by subalgorithms is automatically added and updated as progress is made, DO NOT call this unless the current algorithm does direct processing
@@ -113,7 +112,6 @@ namespace caret {
       ///set a description for current task, like the name of the subalgorithm you are about to call
       void setTask(const AString& taskDescription);//yes, this reaches through the class, but it is better to have both reporting functions on the same object
       ~LevelProgress();//automatically finishes level
-      friend class ProgressObject;//so that ProgressObject can create a LevelProgress object, but nothing else can
    };
    
 }

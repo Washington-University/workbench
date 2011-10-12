@@ -115,10 +115,22 @@ ProgressObject::ProgressObject(const float weight, const float childResolution)
     m_childResolution = childResolution;
 }
 
-LevelProgress ProgressObject::startLevel(const float finishedProgress, const float internalWeight, const float internalResolution)
+LevelProgress::LevelProgress(ProgressObject* myProgObj, const float finishedProgress, const float internalWeight, const float internalResolution)
 {
     CaretAssertMessage(internalWeight > 0.0f, "nonpositive weight in ProgressObject::startLevel");
-    m_nonChildWeight = internalWeight;
+    m_lastReported = 0.0f;
+    m_maximum = finishedProgress;
+    m_progObjRef = myProgObj;
+    m_internalResolution = internalResolution;
+    if (m_progObjRef != NULL)
+    {
+        m_progObjRef->setInternalWeight(internalWeight);
+    }
+}
+
+void ProgressObject::setInternalWeight(const float& myInternalWeight)
+{
+    m_nonChildWeight = myInternalWeight;
     float childWeight = 0.0f;
     vector<ProgressInfo>::iterator myend = m_children.end();
     for (vector<ProgressInfo>::iterator iter = m_children.begin(); iter != myend; ++iter)
@@ -126,11 +138,6 @@ LevelProgress ProgressObject::startLevel(const float finishedProgress, const flo
         childWeight += iter->weight;
     }
     m_totalWeight = childWeight + m_nonChildWeight;
-    LevelProgress myret;
-    myret.m_maximum = finishedProgress;
-    myret.m_progObjRef = this;
-    myret.m_internalResolution = internalResolution;
-    return myret;
 }
 
 void ProgressObject::updateProgress()
@@ -225,12 +232,6 @@ void LevelProgress::setTask(const AString& taskDescription)
     EventProgressUpdate myUpdate(m_progObjRef);
     myUpdate.m_textUpdate = true;
     EventManager::get()->sendEvent(myUpdate.getPointer());
-}
-
-LevelProgress::LevelProgress()
-{
-    m_lastReported = 0.0f;
-    m_progObjRef = NULL;
 }
 
 LevelProgress::~LevelProgress()

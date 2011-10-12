@@ -43,6 +43,8 @@ AlgorithmParameters* AlgorithmName::getParameters()
     AlgorithmParameters* ret = new AlgorithmParameters();
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
     //ret->addMetricOutputParameter(2, "metric", "the output metric");
+    //OptionalParameter* columnSelect = new OptionalParameter(5, "-column", "column select", "select a single column to smooth");
+    //columnSelect->addIntParameter(6, "column-number", "the column number to smooth");
     ret->setHelpText(
         AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
         "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
@@ -60,13 +62,12 @@ void AlgorithmName::useParameters(AlgorithmParameters* myParams, ProgressObject*
 
 AlgorithmName::AlgorithmName(ProgressObject* myProgObj /*INSERT PARAMETERS HERE*/) : AbstractAlgorithm(myProgObj)
 {
-    LevelProgress myProgress;
-    //ProgressObject* subAlgProgress1 = NULL;//uncomment these if you use another algorithm inside here
+    /*ProgressObject* subAlgProgress1 = NULL;//uncomment these if you use another algorithm inside here
     if (myProgObj != NULL)
     {
-        //subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
-        myProgress = myProgObj->startLevel(1.0f, getAlgorithmInternalWeight());
-    }
+        subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
+    }//*/
+    LevelProgress myProgress(myProgObj);
     //myProgress.reportProgress(0.5f);//this is how you say you are halfway done with the INTERNAL work of the algorithm
     //will report finished automatically when this function ends (myProgress goes out of scope, destructor triggers finish)
 }

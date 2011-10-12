@@ -53,9 +53,13 @@ AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
     OptionalParameter* columnSelect = new OptionalParameter(5, "-column", "column select", "select a single column to smooth");
     columnSelect->addIntParameter(6, "column-number", "the column number to smooth");
     ret->addOptionalParameter(columnSelect);
+    OptionalParameter* roiOption = new OptionalParameter(7, "-roi", "region of interest", "select an area to smooth");
+    roiOption->addMetricParameter(8, "roi-metric", "the roi to smooth, as a metric");
+    ret->addOptionalParameter(roiOption);
     ret->setHelpText(
-        AString("Smooth a metric file on a surface.  By default, smooths all input columns, specify -column to smooth ") +
-        "only one column."
+        AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
+        "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
+        "to compute the smoothed values."
     );
     return ret;
 }
@@ -73,16 +77,19 @@ void AlgorithmMetricSmoothing::useParameters(AlgorithmParameters* myParams, Prog
     {
         columnNum = columnSelect->getInt(6);//todo: add one for 1-based conventions?
     }
-    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myMetricOut, myKernel, columnNum);
+    MetricFile* myRoi = NULL;
+    OptionalParameter* roiOption = myParams->getOptionalParameter(7);
+    if (roiOption->m_present)
+    {
+        myRoi = roiOption->getMetric(8);
+    }
+    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myMetricOut, myKernel, myRoi, columnNum);
 }
 
-AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, int64_t columnNum) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi, int64_t columnNum) : AbstractAlgorithm(myProgObj)
 {
-    LevelProgress myProgress;
-    if (myProgObj != NULL)
-    {
-        myProgress = myProgObj->startLevel(1.1f, getAlgorithmInternalWeight());
-    }
+    const float precomputeWeightWork = 0.1f;//maybe should be a member variable?
+    LevelProgress myProgress(myProgObj, 1.0f + precomputeWeightWork);
     int32_t numNodes = mySurf->getNumberOfNodes();
     if (numNodes != myMetric->getNumberOfNodes())
     {
@@ -94,8 +101,13 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         throw AlgorithmException("invalid column number");
     }
     myProgress.setTask("Precomputing Smoothing Weights");
-    precomputeWeights(mySurf, myKernel);
-    myProgress.reportProgress(0.1f);
+    if (myRoi == NULL)
+    {
+        precomputeWeights(mySurf, myKernel);
+    } else {
+        precomputeWeightsROI(mySurf, myKernel, myRoi);
+    }
+    myProgress.reportProgress(precomputeWeightWork);
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
@@ -104,28 +116,40 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
             myProgress.setTask("Smoothing Column " + AString::number(col));
             for (int32_t i = 0; i < numNodes; ++i)
             {
-                float sum = 0.0f;
-                int32_t numWeights = m_weightLists[i].m_nodes.size();
-                for (int32_t j = 0; j < numWeights; ++j)
+                if (myRoi == NULL || myRoi->getValue(i, 0) > 0.0f)
                 {
-                    sum += m_weightLists[i].m_weights[j] * myMetric->getValue(m_weightLists[i].m_nodes[j], col);
+                    float sum = 0.0f;
+                    WeightList& myWeightRef = m_weightLists[i];
+                    int32_t numWeights = myWeightRef.m_nodes.size();
+                    for (int32_t j = 0; j < numWeights; ++j)
+                    {
+                        sum += myWeightRef.m_weights[j] * myMetric->getValue(myWeightRef.m_nodes[j], col);
+                    }
+                    myMetricOut->setValue(i, col, sum / myWeightRef.m_weightSum);
+                } else {
+                    myMetricOut->setValue(i, col, 0.0f);//zero other stuff
                 }
-                myMetricOut->setValue(i, col, sum / m_weightLists[i].m_weightSum);
             }
-            myProgress.reportProgress(0.1f + ((float)col) / numCols);
+            myProgress.reportProgress(precomputeWeightWork + ((float)col) / numCols);
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         myProgress.setTask("Smoothing Column " + AString::number(columnNum));
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            float sum = 0.0f;
-            int32_t numWeights = m_weightLists[i].m_nodes.size();
-            for (int32_t j = 0; j < numWeights; ++j)
+            if (myRoi == NULL || myRoi->getValue(i, 0) > 0.0f)
             {
-                sum += m_weightLists[i].m_weights[j] * myMetric->getValue(m_weightLists[i].m_nodes[j], columnNum);
+                float sum = 0.0f;
+                WeightList& myWeightRef = m_weightLists[i];
+                int32_t numWeights = myWeightRef.m_nodes.size();
+                for (int32_t j = 0; j < numWeights; ++j)
+                {
+                    sum += myWeightRef.m_weights[j] * myMetric->getValue(myWeightRef.m_nodes[j], columnNum);
+                }
+                myMetricOut->setValue(i, 0, sum / myWeightRef.m_weightSum);
+            } else {
+                myMetricOut->setValue(i, 0, 0.0f);//zero other stuff
             }
-            myMetricOut->setValue(i, 0, sum / m_weightLists[i].m_weightSum);
         }//should go incredibly fast, don't worry about progress for one column
     }
 }
@@ -144,9 +168,10 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
     for (int32_t i = 0; i < numNodes; ++i)
     {
         myGeoHelp.getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
-        if (distances.size() < 6)
+        if (distances.size() < 7)
         {
             myTopoHelp.getNodeNeighbors(i, m_weightLists[i].m_nodes);
+            m_weightLists[i].m_nodes.push_back(i);
             myGeoHelp.getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
         }
         int32_t numNeigh = (int32_t)distances.size();
@@ -157,6 +182,45 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
             float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
             m_weightLists[i].m_weights[j] = weight;
             m_weightLists[i].m_weightSum += weight;
+        }
+    }
+}
+
+void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi)
+{
+    GeodesicHelperBase myGeoBase(mySurf);
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myKernelF = myKernel;
+    float myGeoDist = myKernelF * 4.0f;
+    float gaussianDenom = -0.5f / myKernelF / myKernelF;
+    m_weightLists.resize(numNodes);
+    TopologyHelper myTopoHelp(mySurf, false, true, false);
+    GeodesicHelper myGeoHelp(myGeoBase);
+    vector<float> distances;
+    vector<int32_t> nodes;
+    for (int32_t i = 0; i < numNodes; ++i)
+    {
+        myGeoHelp.getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+        if (distances.size() < 7)
+        {
+            myTopoHelp.getNodeNeighbors(i, nodes);
+            nodes.push_back(i);
+            myGeoHelp.getGeoToTheseNodes(i, nodes, distances, true);
+        }
+        int32_t numNeigh = (int32_t)distances.size();
+        m_weightLists[i].m_weights.reserve(numNeigh);
+        m_weightLists[i].m_nodes.reserve(numNeigh);
+        m_weightLists[i].m_weightSum = 0.0f;
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            if (theRoi->getValue(nodes[j], 0) > 0.0f)
+            {
+                float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                m_weightLists[i].m_weights.push_back(weight);
+                m_weightLists[i].m_nodes.push_back(nodes[j]);
+                m_weightLists[i].m_weightSum += weight;
+                
+            }
         }
     }
 }

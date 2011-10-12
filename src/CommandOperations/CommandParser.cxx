@@ -264,7 +264,7 @@ AString CommandParser::getHelpInformation(const AString& programName)
     AlgorithmParameters* myAlgParams = m_autoAlg->getParameters();
     addHelpComponent(ret, myAlgParams, curIndent);
     addHelpProse(ret, myAlgParams, curIndent);
-    ret += getIndentString(curIndent) + "Description of parameters and options:\n\n";
+    ret += getIndentString(curIndent) + "Descriptions of parameters and options:\n\n";
     addComponentDescriptions(ret, myAlgParams, curIndent);
     delete myAlgParams;
     return ret;
