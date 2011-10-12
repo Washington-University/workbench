@@ -1,5 +1,5 @@
-#ifndef __SURFACE_OVERLAY_SET__H_
-#define __SURFACE_OVERLAY_SET__H_
+#ifndef __OVERLAY_SET__H_
+#define __OVERLAY_SET__H_
 
 /*LICENSE_START*/
 /* 
@@ -27,25 +27,18 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "SurfaceOverlay.h"
+#include "Overlay.h"
 
 namespace caret {
 
+    class SurfaceOverlaySet;
     
-    class SurfaceOverlaySet : public CaretObject {
+    class OverlaySet : public CaretObject {
         
     public:
-        SurfaceOverlaySet();
+        static SurfaceOverlaySet* newInstanceSurfaceOverlaySet();
         
-        virtual ~SurfaceOverlaySet();
-        
-        SurfaceOverlay* getPrimaryOverlay();
-        
-        SurfaceOverlay* getUnderlay();
-        
-        SurfaceOverlay* getOverlay(const int32_t overlayNumber);
-        
-        const SurfaceOverlay* getOverlay(const int32_t overlayNumber) const;
+        virtual ~OverlaySet();
         
         void addDisplayedOverlay();
         
@@ -56,23 +49,41 @@ namespace caret {
         void moveDisplayedOverlayUp(const int32_t overlayIndex);
         
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
+
+    protected:
+        enum OverlaySetType {
+            OVERLAY_SET_SURFACE,
+            OVERLAY_SET_VOLUME
+        };
+        
+        OverlaySet(const OverlaySetType overlaySetType);
+        
+        Overlay* getPrimaryOverlayGeneric();
+        
+        Overlay* getUnderlayGeneric();
+        
+        Overlay* getOverlayGeneric(const int32_t overlayNumber);
+        
+        const Overlay* getOverlayGeneric(const int32_t overlayNumber) const;
         
     public:
         virtual AString toString() const;
         
     private:
-        SurfaceOverlaySet(const SurfaceOverlaySet&);
+        OverlaySet(const OverlaySet&);
         
-        SurfaceOverlaySet& operator=(const SurfaceOverlaySet&);
+        OverlaySet& operator=(const OverlaySet&);
         
-        SurfaceOverlay overlays[BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS];
+        OverlaySetType overlaySetType;
+        
+        Overlay* overlays;
         
         int32_t numberOfDisplayedOverlays;
     };
     
-#ifdef __SURFACE_OVERLAY_SET_DECLARE__
+#ifdef __OVERLAY_SET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SURFACE_OVERLAY_SET_DECLARE__
+#endif // __OVERLAY_SET_DECLARE__
 
 } // namespace
-#endif  //__SURFACE_OVERLAY_SET__H_
+#endif  //__OVERLAY_SET__H_

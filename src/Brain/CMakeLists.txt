@@ -70,12 +70,15 @@ ModelDisplayControllerSurfaceSelector.h
 ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
+Overlay.h
+OverlaySet.h
 SessionManager.h
 Surface.h
 SurfaceNodeColoring.h
 SurfaceOverlay.h
 SurfaceOverlayDataTypeEnum.h
 SurfaceOverlaySet.h
+VolumeOverlayDataTypeEnum.h
 YokingTypeEnum.h
 
 Brain.cxx
@@ -106,12 +109,15 @@ ModelDisplayControllerSurfaceSelector.cxx
 ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
+Overlay.cxx
+OverlaySet.cxx
 SessionManager.cxx
 Surface.cxx
 SurfaceNodeColoring.cxx
 SurfaceOverlay.cxx
 SurfaceOverlayDataTypeEnum.cxx
 SurfaceOverlaySet.cxx
+VolumeOverlayDataTypeEnum.cxx
 YokingTypeEnum.cxx
 )
 

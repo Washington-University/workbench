@@ -25,7 +25,7 @@
  * 
  */ 
 
-#include "CaretObject.h"
+#include "Overlay.h"
 
 #include "SurfaceOverlayDataTypeEnum.h"
 
@@ -34,27 +34,15 @@ namespace caret {
     class BrowserTabContent;
     class GiftiTypeFile;
     
-    /// Contains settings for a single surface overlay
-    class SurfaceOverlay : public CaretObject {
+    /// Contains settings for an overlay
+    class SurfaceOverlay : public Overlay {
         
     public:
         SurfaceOverlay();
         
         virtual ~SurfaceOverlay();
         
-        float getOpacity() const;
-        
-        void setOpacity(const float opacity);
-        
-        AString getName() const;
-        
-        void setOverlayNumber(const int32_t overlayIndex);
-        
         virtual AString toString() const;
-        
-        bool isEnabled() const;
-        
-        void setEnabled(const bool enabled);
         
         void getSelectionData(BrowserTabContent* browserTabContent,
                               SurfaceOverlayDataTypeEnum::Enum& selectedDataTypeOut,
@@ -68,27 +56,14 @@ namespace caret {
         
         void setSelectionData(GiftiTypeFile* selectedDataFile,
                               const int32_t selectedColumnIndex);
-        
-        void copyData(const SurfaceOverlay* overlay);
-        
-        void swapData(SurfaceOverlay* overlay);
+
+    protected:
+        virtual void copyOverlayData(const Overlay* overlay);
         
     private:
         SurfaceOverlay(const SurfaceOverlay&);
 
         SurfaceOverlay& operator=(const SurfaceOverlay&);
-        
-        /** Name of overlay */
-        AString name;
-        
-        /** Index of this overlay */
-        int32_t overlayIndex;
-        
-        /** opacity for overlay */
-        float opacity;
-        
-        /** enabled status */
-        bool enabled;
         
         /** available files */
         std::vector<GiftiTypeFile*> dataFiles;

@@ -31,6 +31,7 @@
 
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventManager.h"
 #include "GiftiTypeFile.h"
@@ -48,13 +49,8 @@ using namespace caret;
  * Constructor.
  */
 SurfaceOverlay::SurfaceOverlay()
-: CaretObject()
+: Overlay()
 {
-    this->opacity      = 1.0;
-    
-    this->name = "Overlay ";
-    this->enabled = true;
-    
     this->selectedDataFile = NULL;
     this->selectedColumnName = "";
 }
@@ -68,47 +64,6 @@ SurfaceOverlay::~SurfaceOverlay()
 }
 
 /**
- * Set the number of this overlay.
- * 
- * @param overlayIndex
- *    Index for this overlay.
- */
-void 
-SurfaceOverlay::setOverlayNumber(const int32_t overlayIndex)
-{    
-    this->name = "Overlay " + AString::number(overlayIndex + 1);
-}
-
-/**
- * Get the opacity.
- * 
- * @return  The opacity.
- */
-float 
-SurfaceOverlay::getOpacity() const
-{
-    return this->opacity;
-}
-
-/**
- * Set the opacity.
- *
- * @param opacity
- *    New value for opacity.
- */
-void 
-SurfaceOverlay::setOpacity(const float opacity)
-{
-    this->opacity = opacity;
-}
-
-AString 
-SurfaceOverlay::getName() const
-{
-    return this->name;
-}
-
-/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -116,26 +71,6 @@ AString
 SurfaceOverlay::toString() const
 {
     return "SurfaceOverlay";
-}
-
-/**
- * @return Enabled status for this surface overlay.
- */
-bool 
-SurfaceOverlay::isEnabled() const
-{
-    return this->enabled;
-}
-
-/**
- * Set the enabled status for this surface overlay.
- * @param enabled
- *    New status.
- */
-void 
-SurfaceOverlay::setEnabled(const bool enabled)
-{
-    this->enabled = enabled;
 }
 
 /**
@@ -313,33 +248,22 @@ SurfaceOverlay::setSelectionData(GiftiTypeFile* selectedDataFile,
 }
 
 /**
- * Copy the data from the given overlay to this overlay.
+ * Copy the overlay's data to "this" overlay.
+ * Will need to cast the input overlay.
+ * 
  * @param overlay
- *    Overlay from which data is transferred.
+ *    Overlay that is copied.
  */
 void 
-SurfaceOverlay::copyData(const SurfaceOverlay* overlay)
+SurfaceOverlay::copyOverlayData(const Overlay* overlay)
 {
-    this->opacity = overlay->opacity;
-    this->enabled = overlay->enabled;
-    this->dataFiles = overlay->dataFiles;
-    this->selectedDataFile = overlay->selectedDataFile;
-    this->selectedColumnName = overlay->selectedColumnName;
-}
-
-/**
- * Swap the data from the given overlay to this overlay.
- * @param overlay
- *    Overlay from which data is transferred.
- */
-void 
-SurfaceOverlay::swapData(SurfaceOverlay* overlay)
-{
-    SurfaceOverlay swapOverlay;
-    swapOverlay.copyData(overlay);
+    const SurfaceOverlay* so = dynamic_cast<const SurfaceOverlay*>(overlay);
+    CaretAssert(so);
+    if (so == NULL) {
+        CaretLogSevere("Overlay parameter is NOT a SurfaceOverlay!!!");
+    }
     
-    overlay->copyData(this);
-    this->copyData(&swapOverlay);
+    this->dataFiles = so->dataFiles;
+    this->selectedDataFile = so->selectedDataFile;
+    this->selectedColumnName = so->selectedColumnName;
 }
-
-
