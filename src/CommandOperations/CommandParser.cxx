@@ -47,8 +47,16 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     
     try
     {
-        parseComponent(myAlgParams, parameters, myOutAssoc);//parsing block
-        parseRemainingOptions(myAlgParams, parameters, myOutAssoc);
+        bool success = parseComponent(myAlgParams, parameters, myOutAssoc);//parsing block
+        if (!success)
+        {
+            if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
+            {
+                AString nextArg = parameters.nextString("option");
+                throw ProgramParametersException("Option \"" + nextArg + "\" is unknown or incorrectly placed");
+            }
+            throw ProgramParametersException("Unknown error while parsing the command line");
+        }
     } catch (ProgramParametersException e) {
         delete myAlgParams;
         throw e;
@@ -62,32 +70,22 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     delete myAlgParams;
 }
 
-void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
 {
-    uint32_t i = 0;
-    while (true)//so that we can get suboptions that are placed on the end of an option (and its degenerate case, options that contain only suboptions and no required arguments)
+    uint32_t i;
+    for (i = 0; i < myComponent->m_paramList.size(); ++i)
     {
         AString nextArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
         if (nextArg[0] == '-')
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
-            if (success)
+            if (!success)
             {
-                continue;//so skip trying to parse it as a required argument
-            } else {
-                //if we reach the end of a component and the next thing is an option, it could be either an option in THIS component, or an option in the component ABOVE this
-                //so, test if we finished this component when we find an option that this component doesn't recognize
-                if (i < myComponent->m_paramList.size())
-                {//unknown option while more arguments required is an error
-                    throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
-                        ">, option switch is either incorrect, or incorrectly placed");
-                }
+                throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
+                    ">, option switch is either incorrect, or incorrectly placed");
             }
-        }
-        if (i == myComponent->m_paramList.size())
-        {
-            parameters.backup();
-            break;//continue to output parsing section
+            --i;
+            continue;//so skip trying to parse it as a required argument
         }
         switch (myComponent->m_paramList[i]->getType())
         {
@@ -153,7 +151,6 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 CaretAssertMessage(false, "Parsing of this parameter type has not been implemented in this parser");//assert instead of throw because this is a code error, not a user error
                 throw CommandException("Internal parsing error, please let the developers know what you just tried to do");//but don't let release pass by it either
         };
-        ++i;//next required parameter
     }
     for (i = 0; i < myComponent->m_outputList.size(); ++i)
     {//parse the output options of this component
@@ -162,8 +159,9 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         {
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
             if (!success)
-            {//we don't currently have optional outputs, so this must be the base level, failure to parse an argument on base level is fatal
-                throw ProgramParametersException("Unknown option: " + nextArg);
+            {
+                throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
+                ">, option switch is either incorrect, or incorrectly placed");
             }
             --i;//options do not set required arguments
             continue;//so rewind the index and skip trying to parse it as a required argument
@@ -174,6 +172,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         tempItem.m_outputKey = myComponent->m_outputList[i]->m_key;
         outAssociation.push_back(tempItem);
     }
+    bool success = parseRemainingOptions(myComponent, parameters, outAssociation);
+    return success;
 }
 
 bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
@@ -182,6 +182,10 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
     {
         if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
         {
+            if (myComponent->m_optionList[i]->m_present)
+            {
+                throw ProgramParametersException("Option \"" + mySwitch + "\" specified more than once");
+            }
             myComponent->m_optionList[i]->m_present = true;
             parseComponent(myComponent->m_optionList[i], parameters, outAssociation);
             return true;
@@ -190,7 +194,7 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
     return false;
 }
 
-void CommandParser::parseRemainingOptions(AlgorithmParameters* myAlgParams, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+bool CommandParser::parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
 {
     while (parameters.hasNext())
     {
@@ -199,13 +203,16 @@ void CommandParser::parseRemainingOptions(AlgorithmParameters* myAlgParams, Prog
         {
             bool success = parseOption(nextArg, myAlgParams, parameters, outAssociation);
             if (!success)
-            {//we don't currently have optional outputs, so this must be the base level, failure to parse an argument on base level is fatal
-                throw ProgramParametersException("Unknown option: " + nextArg);
+            {
+                parameters.backup();
+                return false;
             }
         } else {
-            throw ProgramParametersException("Unexpected non-option parameter: \"" + nextArg +"\"");
+            parameters.backup();
+            return false;
         }
     }
+    return true;
 }
 
 void CommandParser::writeOutput(AlgorithmParameters* myAlgParams, const vector<OutputAssoc>& outAssociation)
