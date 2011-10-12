@@ -170,6 +170,9 @@ namespace caret {
         ///get a cifti with a key
         CiftiFile* getOutputCifti(const int32_t key);
         
+        ///convenience method to create, add, and return an optional parameter
+        OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description);
+        
         ///return pointer to an input parameter
         AbstractParameter* getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
         

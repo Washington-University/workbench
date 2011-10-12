@@ -69,6 +69,13 @@ void ParameterComponent::addOptionalParameter(OptionalParameter* param)
     m_optionList.push_back(param);
 }
 
+OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description)
+{
+    OptionalParameter* ret = new OptionalParameter(key, optionSwitch, shortName, description);
+    addOptionalParameter(ret);
+    return ret;
+}
+
 AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type)
 {
     uint32_t i;

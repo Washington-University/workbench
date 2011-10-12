@@ -50,12 +50,10 @@ AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
     ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
-    OptionalParameter* columnSelect = new OptionalParameter(5, "-column", "column select", "select a single column to smooth");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(5, "-column", "column select", "select a single column to smooth");
     columnSelect->addIntParameter(6, "column-number", "the column number to smooth");
-    ret->addOptionalParameter(columnSelect);
-    OptionalParameter* roiOption = new OptionalParameter(7, "-roi", "region of interest", "select an area to smooth");
+    OptionalParameter* roiOption = ret->createOptionalParameter(7, "-roi", "region of interest", "select an area to smooth");
     roiOption->addMetricParameter(8, "roi-metric", "the roi to smooth, as a metric");
-    ret->addOptionalParameter(roiOption);
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
