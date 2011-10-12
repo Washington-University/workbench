@@ -115,6 +115,8 @@ OverlaySelectionControl::~OverlaySelectionControl()
 QWidget*
 OverlaySelectionControl::createLayers()
 {
+    const bool smallArrowButtonsFlag = true;
+    
     QGroupBox* gridWidget = new QGroupBox("Grid");
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     gridLayout->setVerticalSpacing(0);
@@ -139,9 +141,15 @@ OverlaySelectionControl::createLayers()
             gridLayout->addWidget(new QLabel("Settings"), row, 4);
             gridLayout->addWidget(new QLabel("Meta"), row, 5);
             gridLayout->addWidget(new QLabel("Opacity"), row, 6);
-            
-            gridLayout->addWidget(new QLabel("Move"), row, 7, 1, 2, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Remove"), row, 9);
+
+            if (smallArrowButtonsFlag) {
+                gridLayout->addWidget(new QLabel("Move"), row, 7, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 8);
+            }
+            else {            
+                gridLayout->addWidget(new QLabel("Move"), row, 7, 1, 2, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 9);
+            }
             
             gridLayout->setColumnStretch(0, 0);
             gridLayout->setColumnStretch(1, 100);
@@ -152,7 +160,10 @@ OverlaySelectionControl::createLayers()
             gridLayout->setColumnStretch(6, 0);
             gridLayout->setColumnStretch(7, 0);
             gridLayout->setColumnStretch(8, 0);
-            gridLayout->setColumnStretch(9, 0);
+
+            if (smallArrowButtonsFlag == false) {
+                gridLayout->setColumnStretch(9, 0);
+            }
         }
             break;
         case VERTICAL:
@@ -191,6 +202,11 @@ OverlaySelectionControl::createLayers()
             break;
     }
     
+    const Qt::Alignment ALIGN_LEFT_VERTICAL_CENTER = Qt::AlignLeft | Qt::AlignVCenter;
+    const Qt::Alignment ALIGN_TOP_HORIZONTAL_CENTER = Qt::AlignTop | Qt::AlignHCenter;
+    const Qt::Alignment ALIGN_BOTTOM_HORIZONTAL_CENTER = Qt::AlignBottom | Qt::AlignHCenter;
+    
+    
     for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_LAYERS; i++) {
         OverlaySelectionControlLayer* layer = new OverlaySelectionControlLayer(this->browserWindowIndex,
                                  this, this->dataType, 
@@ -199,7 +215,28 @@ OverlaySelectionControl::createLayers()
         
         switch (orientation) {
             case HORIZONTAL:
-            {
+            if (smallArrowButtonsFlag) {
+                QSize arrowButtonSize = layer->upArrowToolButton->sizeHint();
+                arrowButtonSize.setWidth(arrowButtonSize.width() / 2);
+                arrowButtonSize.setHeight(arrowButtonSize.height() / 2);
+                layer->upArrowToolButton->setFixedSize(arrowButtonSize);
+                layer->downArrowToolButton->setFixedSize(arrowButtonSize);
+                
+                int row = gridLayout->rowCount();
+                
+                gridLayout->addWidget(layer->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
+                gridLayout->addWidget(layer->fileSelectionComboBox, row, 1, 2, 1);
+                gridLayout->addWidget(layer->columnSelectionComboBox, row, 2, 2, 1);
+                gridLayout->addWidget(layer->histogramToolButton, row, 3, 2, 1, Qt::AlignCenter);
+                gridLayout->addWidget(layer->settingsToolButton, row, 4, 2, 1, Qt::AlignCenter);
+                gridLayout->addWidget(layer->metadataToolButton, row, 5, 2, 1, Qt::AlignCenter);
+                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6, 2, 1, ALIGN_LEFT_VERTICAL_CENTER);
+                
+                gridLayout->addWidget(layer->upArrowToolButton, row, 7, ALIGN_TOP_HORIZONTAL_CENTER);
+                gridLayout->addWidget(layer->downArrowToolButton, row + 1, 7, ALIGN_BOTTOM_HORIZONTAL_CENTER);
+                gridLayout->addWidget(layer->deleteToolButton, row, 8, 2, 1, Qt::AlignCenter);
+            }
+            else {
                 int row = gridLayout->rowCount();
                 
                 gridLayout->addWidget(layer->enabledCheckBox, row, 0);

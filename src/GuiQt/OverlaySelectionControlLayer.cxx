@@ -78,10 +78,12 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     //const int comboBoxWidth = 200;
     
     this->fileSelectionComboBox = new QComboBox();
+    //this->fileSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToMinimumContentsLength);
     QObject::connect(this->fileSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(fileSelected(int)));
     //this->fileSelectionComboBox->setFixedWidth(comboBoxWidth);
     this->columnSelectionComboBox = new QComboBox();
+    //this->columnSelectionComboBox->setSizeAdjustPolicy(QComboBox::AdjustToContents);
     QObject::connect(this->columnSelectionComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(columnSelected(int)));
     //this->columnSelectionComboBox->setFixedWidth(comboBoxWidth);
