@@ -43,8 +43,8 @@ AlgorithmParameters* AlgorithmName::getParameters()
     AlgorithmParameters* ret = new AlgorithmParameters();
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
     //ret->addMetricOutputParameter(2, "metric", "the output metric");
-    //OptionalParameter* columnSelect = new OptionalParameter(5, "-column", "column select", "select a single column to smooth");
-    //columnSelect->addIntParameter(6, "column-number", "the column number to smooth");
+    //OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "column select", "select a single column");
+    //columnSelect->addIntParameter(4, "column-number", "the column number");
     ret->setHelpText(
         AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
         "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
@@ -55,8 +55,14 @@ AlgorithmParameters* AlgorithmName::getParameters()
 
 void AlgorithmName::useParameters(AlgorithmParameters* myParams, ProgressObject* myProgObj)
 {
-    //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface from key 1
-    //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric from key 2
+    //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface with key 1
+    //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric with key 2
+    //OptionalParameter* columnSelect = myParams->getOptionalParameter(3);//gets optional parameter with key 3
+    //int64_t columnNum = -1;
+    /*if (columnSelect->m_present)
+    {//set up to use the single column
+        columnNum = columnSelect->getInt(4);get the integer argument to the option
+    }//*/
     AlgorithmName(myProgObj /*INSERT PARAMETERS HERE*/);//executes the algorithm
 }
 
@@ -67,7 +73,7 @@ AlgorithmName::AlgorithmName(ProgressObject* myProgObj /*INSERT PARAMETERS HERE*
     {
         subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
     }//*/
-    LevelProgress myProgress(myProgObj);
+    LevelProgress myProgress(myProgObj);//this line sets the algorithm up to use the progress object, and will finish the progress object automatically when the algorithm terminates
     //myProgress.reportProgress(0.5f);//this is how you say you are halfway done with the INTERNAL work of the algorithm
     //will report finished automatically when this function ends (myProgress goes out of scope, destructor triggers finish)
 }

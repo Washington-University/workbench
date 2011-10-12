@@ -25,38 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only":
-
-AlgorithmMetricSmoothing     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_METRIC_SMOOTHING    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--metric-smoothing   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-SMOOTH A METRIC FILE : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-next, make AlgorithmMetricSmoothing.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmMetricSmoothing/g' | sed 's/-[c]ommand-switch/-metric-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A METRIC FILE/g' > AlgorithmMetricSmoothing.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmMetricSmoothing/g' | sed 's/-[c]ommand-switch/-metric-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A METRIC FILE/g' > Algorithms/AlgorithmMetricSmoothing.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmMetricSmoothing/g' | sed 's/-[c]ommand-switch/-metric-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A METRIC FILE/g' > src/Algorithms/AlgorithmMetricSmoothing.cxx
-
-or manually copy and replace, and implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-afterwards, place the following lines into CommandOperations/CommandOperationManager.cxx
-
-#include "AlgorithmMetricSmoothing.h"        //near the top
-this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));          //in CommandOperationManager()
-
-and add these into Algorithms/CMakeLists.txt
-
-AlgorithmMetricSmoothing.h
-
-AlgorithmMetricSmoothing.cxx
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 #include "stdint.h"
 #include <vector>
