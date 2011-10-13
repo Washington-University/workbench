@@ -283,6 +283,16 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 }
 
 /**
+ * Shows/hides the toolbar.
+ */
+void 
+BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
+{
+    this->toolbarWidget->setVisible(showIt);
+}
+
+
+/**
  * Add the default tabs after loading a spec file.
  */
 void 

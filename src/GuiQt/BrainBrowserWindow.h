@@ -69,7 +69,6 @@ namespace caret {
         void processCloseSpecFile();
         void processExitProgram();
         void processToggleMontageTabs();
-        void processShowHideToolbar();
         void processViewFullScreen();
         void processMoveAllTabsToOneWindow();
         void processMoveToolBoxToLeft();

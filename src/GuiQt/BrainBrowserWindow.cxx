@@ -246,8 +246,8 @@ BrainBrowserWindow::createActions()
     WuQtUtilities::createAction("Toolbar", 
                                 "Show or hide the toolbar",
                                 this,
-                                this,
-                                SLOT(processShowHideToolbar()));
+                                this->toolbar,
+                                SLOT(showHideToolBar(bool)));
     this->showToolBarAction->setCheckable(true);
     this->showToolBarAction->setChecked(true);
     
@@ -685,15 +685,6 @@ BrainBrowserWindow::processExitProgram()
  */
 void 
 BrainBrowserWindow::processToggleMontageTabs()
-{
-    
-}
-
-/**
- * Called when show toolbar is selected.
- */
-void 
-BrainBrowserWindow::processShowHideToolbar()
 {
     
 }

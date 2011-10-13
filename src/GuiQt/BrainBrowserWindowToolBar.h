@@ -179,6 +179,8 @@ namespace caret {
         
         void updateToolBar();
         
+        void showHideToolBar(bool showIt);
+        
     private slots:
         void selectedTabChanged(int indx);
         void tabClosed(int index);
