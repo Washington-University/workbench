@@ -22,12 +22,15 @@
  * 
  */ 
 
+#include "SurfaceFile.h"
 #include "CaretAssert.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
-#include "SurfaceFile.h"
+
+//TODO: figure out if we should allow this circular dependency (currently used for computeNormals with neighbor averaging)
+#include "TopologyHelper.h"
 
 using namespace caret;
 
@@ -301,7 +304,7 @@ SurfaceFile::getNormalVector(const int32_t nodeIndex) const
  * Compute surface normals.
  */
 void 
-SurfaceFile::computeNormals()
+SurfaceFile::computeNormals(const bool averageNormals)
 {
     int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
@@ -352,15 +355,54 @@ SurfaceFile::computeNormals()
         
         float normal[3];
         for (int32_t i = 0; i < numCoords; i++) {
+            const int32_t i3 = i * 3;
             if (numContribute[i] > 0.0) {
-                const int32_t i3 = i * 3;
-                normal[0] = normalPointer[i3 + 0] / numContribute[i];
-                normal[1] = normalPointer[i3 + 1] / numContribute[i];
-                normal[2] = normalPointer[i3 + 2] / numContribute[i];
-                MathFunctions::normalizeVector(normal);
+                normal[0] = normalPointer[i3 + 0];// / numContribute[i];//TSC: this is not needed if you normalize the vector afterwards, save a few flops
+                normal[1] = normalPointer[i3 + 1];// / numContribute[i];
+                normal[2] = normalPointer[i3 + 2];// / numContribute[i];
+                MathFunctions::normalizeVector(normal);//this function should probably be changed to accept a float*
                 normalPointer[i3 + 0] = normal[0];
                 normalPointer[i3 + 1] = normal[1];
                 normalPointer[i3 + 2] = normal[2];
+            } else {
+                normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
+                normalPointer[i3 + 1] = 0.0f;
+                normalPointer[i3 + 2] = 0.0f;
+            }
+        }
+        if (averageNormals)
+        {
+            std::vector<float> avgTemp;
+            std::vector<int32_t> neighbors;
+            float tempVec[3];
+            TopologyHelper myTopoHelp(this);
+            avgTemp.resize(numCoords * 3);
+            for (int32_t i = 0; i < numCoords; ++i)
+            {
+                int32_t i3 = i * 3;
+                tempVec[0] = 0.0f;
+                tempVec[1] = 0.0f;
+                tempVec[2] = 0.0f;
+                myTopoHelp.getNodeNeighbors(i, neighbors);
+                int32_t numNeigh = (int32_t)neighbors.size();
+                for (int32_t j = 0; j < numNeigh; ++j)
+                {
+                    int32_t j3 = j * 3;
+                    tempVec[0] += normalPointer[j3];
+                    tempVec[1] += normalPointer[j3 + 1];
+                    tempVec[2] += normalPointer[j3 + 2];
+                }
+                MathFunctions::normalizeVector(tempVec);
+                avgTemp[i3] = tempVec[0];
+                avgTemp[i3 + 1] = tempVec[1];
+                avgTemp[i3 + 2] = tempVec[2];
+            }
+            for (int32_t i = 0; i < numCoords; ++i)
+            {
+                int32_t i3 = i * 3;
+                normalPointer[i3] = avgTemp[i3];
+                normalPointer[i3 + 1] = avgTemp[i3 + 1];
+                normalPointer[i3 + 2] = avgTemp[i3 + 2];
             }
         }
     }

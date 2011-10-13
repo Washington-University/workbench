@@ -45,69 +45,60 @@ caret::operator<(const TopologyEdgeInfo& e1, const TopologyEdgeInfo& e2)
 
 /**
  * Constructor.  This will contruct the topological information for the TopologyFile.
- *   "buildEdgeInfo" will allow queries to be made about which tiles are used by an edge.
- *   "buildNodeInfo" will allow queries to be made about the tiles and node neighbors of
- *   nodes.  If "sortNodeInfo" is also set the tiles and node neighbors will be sorted
+ *   If "sortNodeInfo" is set the tiles and node neighbors will be sorted
  *   around each node.
  */
 TopologyHelper::TopologyHelper(const SurfaceFile* sf,
-                               const bool buildEdgeInfo,
-                               const bool buildNodeInfo,
                                const bool sortNodeInfo)
 {
-   nodeSortedInfoBuilt = false;
-   nodeInfoBuilt       = false;
-   edgeInfoBuilt = false;
-   
-   const int numTiles = sf->getNumberOfTriangles();
-   if (numTiles <= 0) {
-      return;
-   }
-   
-   if (buildNodeInfo) {
-      int maxNodeNum = -1;
-   
-         //
-      // Get the number of nodes
-      //
-      for (int j = 0; j < numTiles; j++) {
-         const int32_t* tribase = sf->getTriangle(j);
-         if (tribase[0] > maxNodeNum) maxNodeNum = tribase[0];
-         if (tribase[1] > maxNodeNum) maxNodeNum = tribase[1];
-         if (tribase[2] > maxNodeNum) maxNodeNum = tribase[2];
-      }
-      
-      //
-      // Node indices start at zero so need to increment
-      //
-      maxNodeNum++; 
-      
-      //
-      // There may be nodes that have been disconnected and not associated with any tiles
-      //
-      maxNodeNum = std::max(maxNodeNum, sf->getNumberOfNodes());
-      
-      //
-      // Initialize the node structures
-      //
-      nodes.reserve(maxNodeNum);
-      for (int i = 0; i < maxNodeNum; i++) {
-         nodes.push_back(NodeInfo(i));
-      }
-   }
-   
-   //
-   // Keep track of the tiles
-   //
-   for (int j = 0; j < numTiles; j++) {
-      const int32_t* tribase = sf->getTriangle(j);
-      if (buildNodeInfo) {
-         if (sortNodeInfo) {
+    nodeSortedInfoBuilt = false;
+
+    const int numTiles = sf->getNumberOfTriangles();
+    if (numTiles <= 0) {
+        return;
+    }
+
+    int maxNodeNum = -1;
+
+    //
+    // Get the number of nodes
+    //
+    for (int j = 0; j < numTiles; j++) {
+        const int32_t* tribase = sf->getTriangle(j);
+        if (tribase[0] > maxNodeNum) maxNodeNum = tribase[0];
+        if (tribase[1] > maxNodeNum) maxNodeNum = tribase[1];
+        if (tribase[2] > maxNodeNum) maxNodeNum = tribase[2];
+    }
+
+    //
+    // Node indices start at zero so need to increment
+    //
+    maxNodeNum++;
+
+    //
+    // There may be nodes that have been disconnected and not associated with any tiles
+    //
+    maxNodeNum = std::max(maxNodeNum, sf->getNumberOfNodes());
+
+    //
+    // Initialize the node structures
+    //
+    nodes.reserve(maxNodeNum);
+    for (int i = 0; i < maxNodeNum; i++) {
+        nodes.push_back(NodeInfo(i));
+    }
+
+    //
+    // Keep track of the tiles
+    //
+    for (int j = 0; j < numTiles; j++) {
+        const int32_t* tribase = sf->getTriangle(j);
+        if (sortNodeInfo) {
             nodes[tribase[0]].addNeighbors(j, tribase[1], tribase[2]);
             nodes[tribase[1]].addNeighbors(j, tribase[2], tribase[0]);
             nodes[tribase[2]].addNeighbors(j, tribase[0], tribase[1]);
-         }
-         else {
+        }
+        else {
             nodes[tribase[0]].addNeighbor(tribase[1]);
             nodes[tribase[0]].addNeighbor(tribase[2]);
             nodes[tribase[1]].addNeighbor(tribase[0]);
@@ -117,29 +108,19 @@ TopologyHelper::TopologyHelper(const SurfaceFile* sf,
             nodes[tribase[0]].addTile(j);
             nodes[tribase[1]].addTile(j);
             nodes[tribase[2]].addTile(j);
-         }
-      }
-      
-      if (buildEdgeInfo) {
-         addEdgeInfo(j, tribase[0], tribase[1]);
-         addEdgeInfo(j, tribase[1], tribase[2]);
-         addEdgeInfo(j, tribase[2], tribase[0]);
-      }
-   }
+        }
 
-   if (buildEdgeInfo) {
-      edgeInfoBuilt = true;
-   }
-   
-   if (buildNodeInfo) {
-      nodeInfoBuilt = true;
-      if (sortNodeInfo) {
-         nodeSortedInfoBuilt = true;
-         for (unsigned int k = 0; k < nodes.size(); k++) {
+        addEdgeInfo(j, tribase[0], tribase[1]);
+        addEdgeInfo(j, tribase[1], tribase[2]);
+        addEdgeInfo(j, tribase[2], tribase[0]);
+    }
+
+    if (sortNodeInfo) {
+        nodeSortedInfoBuilt = true;
+        for (unsigned int k = 0; k < nodes.size(); k++) {
             nodes[k].sortNeighbors();
-         }
-      }
-   }
+        }
+    }
 }
 
 /**

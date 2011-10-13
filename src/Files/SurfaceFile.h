@@ -64,7 +64,7 @@ namespace caret {
         
         const int32_t* getTriangle(const int32_t) const;
         
-        void computeNormals();
+        void computeNormals(bool averageNormals = false);
                 
         const float* getNodeColor(const int32_t nodeIndex) const;
         

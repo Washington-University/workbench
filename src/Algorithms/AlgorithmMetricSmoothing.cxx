@@ -159,7 +159,7 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    TopologyHelper myTopoHelp(mySurf, false, true, false);
+    TopologyHelper myTopoHelp(mySurf);
     GeodesicHelper myGeoHelp(myGeoBase);
     vector<float> distances;
     for (int32_t i = 0; i < numNodes; ++i)
@@ -191,7 +191,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double 
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    TopologyHelper myTopoHelp(mySurf, false, true, false);
+    TopologyHelper myTopoHelp(mySurf);
     GeodesicHelper myGeoHelp(myGeoBase);
     vector<float> distances;
     vector<int32_t> nodes;

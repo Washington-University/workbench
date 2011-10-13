@@ -117,9 +117,7 @@ namespace caret {
       public:
          /// Constructor for use with a Caret Topology File
          TopologyHelper(const SurfaceFile* sfIn,
-                        const bool buildEdgeInfo,
-                        const bool buildNodeInfo,
-                        const bool sortNodeInfo);
+                        const bool sortNodeInfo = false);
          
          /// Destructor
          ~TopologyHelper();
@@ -173,12 +171,6 @@ namespace caret {
          
          /// Get the tiles used by a node
          void getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) const;
-         
-         /// get edge info validity
-         bool getEdgeInfoValid() const { return edgeInfoBuilt; }
-         
-         /// get node info validity
-         bool getNodeInfoValid() const { return nodeInfoBuilt; }
          
          /// get node sorted info validity
          bool getNodeSortedInfoValid() const { return nodeSortedInfoBuilt; }
@@ -291,12 +283,6 @@ namespace caret {
          
          /// add information about an edge
          void addEdgeInfo(const int tileNum, const int node1, const int node2);
-         
-         /// edge info was built
-         bool edgeInfoBuilt;
-
-         /// node info was built
-         bool nodeInfoBuilt;
          
          /// node sorted info built
          bool nodeSortedInfoBuilt;
