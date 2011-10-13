@@ -25,13 +25,19 @@
  * 
  */ 
 
-#include <iosfwd>
+#include <fstream>
 
 #include "CaretObject.h"
 #include "GiftiFile.h"
+#include "GiftiEncodingEnum.h"
 
 namespace caret {
 
+    class GiftiDataArray;
+    class GiftiMetaData;
+    class GiftiLabelTable;
+    class XmlWriter;
+    
     class GiftiFileWriter : public CaretObject {
         
     public:
@@ -71,10 +77,10 @@ namespace caret {
         
     private:
         /** The file output stream for the XML file. */
-        std::ostream* xmlFileOutputStream;
+        std::ofstream* xmlFileOutputStream;
         
         /** The file output stream for the external data file. */
-        std::ostream* externalFileOutputStream; 
+        std::ofstream* externalFileOutputStream; 
         
         /** The number of data arrays in the file being written. */
         int numberOfDataArrays;

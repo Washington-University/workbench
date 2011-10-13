@@ -35,8 +35,8 @@
 #include "GiftiFile.h"
 #undef __GIFTI_FILE_MAIN__
 #include "GiftiFileSaxReader.h"
-#include "GiftiFileWriter.h"
 #include "GiftiMetaDataXmlElements.h"
+#include "GiftiFileWriter.h"
 #include "GiftiXmlElements.h"
 
 #include "XmlSaxParser.h"
@@ -59,6 +59,7 @@ GiftiFile::GiftiFile(const AString& descriptiveName,
    dataAreIndicesIntoLabelTable = dataAreIndicesIntoLabelTableIn;
     this->defaultExtension = defaultExtension;
    numberOfNodesForSparseNodeIndexFile = 0;
+    this->encodingForWriting = GiftiFile::defaultEncodingForWriting;
 }
 
 /**
@@ -73,6 +74,7 @@ GiftiFile::GiftiFile()
     dataAreIndicesIntoLabelTable = false;
     numberOfNodesForSparseNodeIndexFile = 0;
     this->defaultExtension = ".gii";
+    this->encodingForWriting = GiftiFile::defaultEncodingForWriting;
 }
 
 /**
@@ -119,6 +121,7 @@ GiftiFile::copyHelperGiftiFile(const GiftiFile& nndf)
     for (std::size_t i = 0; i < nndf.dataArrays.size(); i++) {
       addDataArray(new GiftiDataArray(*nndf.dataArrays[i]));
    }
+    this->encodingForWriting = nndf.encodingForWriting;
 }
       
 /**
@@ -860,7 +863,7 @@ GiftiFile::writeFile(const AString& filename) throw (DataFileException)
         // Create a GIFTI Data Array File Writer
         //
         GiftiFileWriter giftiFileWriter(filename,
-                            GiftiEncodingEnum::GZIP_BASE64_BINARY);
+                            this->encodingForWriting);
         
         //
         // Start writing the file
@@ -1169,6 +1172,19 @@ GiftiFile::procesNiftiIntentNodeIndexArrays() throw (GiftiException)
         }
         return false;
     }
+
+/**
+ * Set the encoding for writing the file.
+ * @param encoding
+ *    New encoding.
+ */
+void 
+GiftiFile::setEncodingForWriting(const GiftiEncodingEnum::Enum encoding)
+{
+    this->encodingForWriting = encoding;
+}
+
+
     
 /**
  * Validate the data arrays (optional for subclasses).

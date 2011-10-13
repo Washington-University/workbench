@@ -23,7 +23,7 @@
  * 
  */ 
 
-#include <pfstream>
+#include <fstream>
 #include <memory>
 
 #define __GIFTI_FILE_WRITER_DECLARE__
@@ -106,7 +106,7 @@ GiftiFileWriter::start(const int numberOfDataArrays,
         // Open the file
         //
         this->xmlFileOutputStream = new std::ofstream(this->filename.c_str());
-        if (! (*this->xmlFileOutputStream->bad)) {
+        if (! (*this->xmlFileOutputStream)) {
             delete this->xmlFileOutputStream;
             AString msg = "Unable to open " + this->filename + " for writing.";
             throw GiftiException(msg);

@@ -29,6 +29,7 @@
 
 #include "DataFile.h"
 #include "GiftiDataArray.h"
+#include "GiftiEncodingEnum.h"
 #include "GiftiLabelTable.h"
 #include "NiftiEnums.h"
 #include "TracksModificationInterface.h"
@@ -187,6 +188,11 @@ class GiftiFile : public DataFile {
     
     bool getReadMetaDataOnlyFlag() const { return false; }
     
+    /** @return The encoding used to write the file. */
+    GiftiEncodingEnum::Enum getEncodingForWriting() const { return this->encodingForWriting; }
+    
+    void setEncodingForWriting(const GiftiEncodingEnum::Enum encoding);
+    
     virtual void clearModified();
     
     virtual bool isModified() const;
@@ -218,6 +224,8 @@ class GiftiFile : public DataFile {
       /// the file's metadata
       GiftiMetaData metaData;
       
+      GiftiEncodingEnum::Enum encodingForWriting;
+    
       /// the default data type
       NiftiDataTypeEnum::Enum defaultDataType;
       
@@ -233,6 +241,9 @@ class GiftiFile : public DataFile {
       /// number of nodes in sparse node index files (NIFTI_INTENT_NODE_INDEX array)
       int32_t numberOfNodesForSparseNodeIndexFile;
       
+    /** The default encoding for writing a GIFTI file. */
+    static GiftiEncodingEnum::Enum defaultEncodingForWriting;
+    
       /*!!!! be sure to update copyHelperGiftiFile if new member added !!!!*/
    
    // 
@@ -240,9 +251,12 @@ class GiftiFile : public DataFile {
    //
 };
 
-#endif // __GIFTI_FILE_H__
+#ifdef __GIFTI_FILE_MAIN__
+    GiftiEncodingEnum::Enum GiftiFile::defaultEncodingForWriting = GiftiEncodingEnum::GZIP_BASE64_BINARY;
+#endif // __GIFTI_FILE_MAIN__
+    
 
 } // namespace 
 
-#ifdef __GIFTI_FILE_MAIN__
-#endif // __GIFTI_FILE_MAIN__
+#endif // __GIFTI_FILE_H__
+
