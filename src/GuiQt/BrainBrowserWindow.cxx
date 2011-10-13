@@ -674,6 +674,9 @@ BrainBrowserWindow::processManageSaveLoadedFiles()
     
 }
 
+/**
+ * Exit the program.
+ */
 void 
 BrainBrowserWindow::processExitProgram()
 {
@@ -690,6 +693,46 @@ BrainBrowserWindow::processToggleMontageTabs()
 }
 
 /**
+ * Restore the status of window components.
+ * @param wcs
+ *    Window component status that is restored.
+ */
+void 
+BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
+{
+    if (this->showToolBarAction->isChecked() != wcs.isToolBarDisplayed) {
+        this->showToolBarAction->trigger();
+    }
+    if (this->topBottomToolBox->toggleViewAction()->isChecked() != wcs.isTopBottomToolBoxDisplayed) {
+        this->topBottomToolBox->toggleViewAction()->trigger();
+    }
+}
+
+/**
+ * Save the status of window components.
+ * @param wcs
+ *    Will contains status after exit.
+ * @param hideComponents
+ *    If true, any components (toolbar/toolbox) will be hidden.
+ */
+void 
+BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs,
+                                              bool hideComponents)
+{
+    wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
+    wcs.isTopBottomToolBoxDisplayed = this->topBottomToolBox->toggleViewAction()->isChecked();
+    
+    if (hideComponents) {
+        if (wcs.isToolBarDisplayed) {
+            this->showToolBarAction->trigger();
+        }
+        if (wcs.isTopBottomToolBoxDisplayed) {
+            this->topBottomToolBox->toggleViewAction()->trigger();
+        }
+    }
+}
+
+/**
  * Called when view full screen is selected.
  */
 void 
@@ -697,9 +740,11 @@ BrainBrowserWindow::processViewFullScreen()
 {
     if (this->isFullScreen()) {
         this->showNormal();
+        this->restoreWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus);
     }
     else {
         this->showFullScreen();
+        this->saveWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus, true);
     }
 }
 

@@ -81,6 +81,12 @@ namespace caret {
         void processMoveTabToWindowMenuSelection(QAction*);
         
     private:
+        // Contains status of components such as enter/exit full screen
+        struct WindowComponentStatus {
+            bool isTopBottomToolBoxDisplayed;
+            bool isToolBarDisplayed;
+        };
+        
         BrainBrowserWindow(const int browserWindowIndex,
                            BrowserTabContent* browserTabContent,
                            QWidget* parent = 0,
@@ -102,6 +108,10 @@ namespace caret {
         QMenu* createMenuHelp();
         
         void moveToolBox(Qt::DockWidgetArea area);
+        
+        void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
+        void saveWindowComponentStatus(WindowComponentStatus& wcs,
+                                       bool hideComponents);
         
         /** Index of this window */
         int32_t browserWindowIndex;
@@ -161,6 +171,8 @@ namespace caret {
         BrainBrowserWindowToolBox* topBottomToolBox;
         
         AString previousOpenFileNameFilter;
+        
+        WindowComponentStatus fullScreenEnteredWindowComponentStatus;
         
         friend class GuiManager;
     };
