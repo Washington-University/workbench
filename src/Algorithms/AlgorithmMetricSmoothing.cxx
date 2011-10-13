@@ -50,10 +50,10 @@ AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
     ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
-    OptionalParameter* columnSelect = ret->createOptionalParameter(5, "-column", "column select", "select a single column to smooth");
-    columnSelect->addIntParameter(6, "column-number", "the column number to smooth");
-    OptionalParameter* roiOption = ret->createOptionalParameter(7, "-roi", "region of interest", "select an area to smooth");
-    roiOption->addMetricParameter(8, "roi-metric", "the roi to smooth, as a metric");
+    OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "region of interest", "select an area to smooth");
+    roiOption->addMetricParameter(6, "roi-metric", "the roi to smooth within, as a metric");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "column select", "select a single column to smooth");
+    columnSelect->addIntParameter(8, "column-number", "the column number to smooth");
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
@@ -68,18 +68,17 @@ void AlgorithmMetricSmoothing::useParameters(AlgorithmParameters* myParams, Prog
     MetricFile* myMetric = myParams->getMetric(2);
     double myKernel = myParams->getDouble(3);
     MetricFile* myMetricOut = myParams->getOutputMetric(4);
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(5);
-    bool singleColumn = columnSelect->m_present;
-    int64_t columnNum = -1;
-    if (singleColumn)
-    {
-        columnNum = columnSelect->getInt(6);//todo: add one for 1-based conventions?
-    }
     MetricFile* myRoi = NULL;
-    OptionalParameter* roiOption = myParams->getOptionalParameter(7);
+    OptionalParameter* roiOption = myParams->getOptionalParameter(5);
     if (roiOption->m_present)
     {
-        myRoi = roiOption->getMetric(8);
+        myRoi = roiOption->getMetric(6);
+    }
+    int64_t columnNum = -1;
+    OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
+    if (columnSelect->m_present)
+    {
+        columnNum = columnSelect->getInt(8);//todo: subtract one for 1-based conventions?
     }
     AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myMetricOut, myKernel, myRoi, columnNum);
 }
@@ -228,7 +227,7 @@ float AlgorithmMetricSmoothing::getAlgorithmInternalWeight()
     return 1.0f;
 }
 
-float caret::AlgorithmMetricSmoothing::getSubAlgorithmWeight()
+float AlgorithmMetricSmoothing::getSubAlgorithmWeight()
 {
     return 0.0f;
 }

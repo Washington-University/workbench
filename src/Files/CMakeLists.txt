@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Files
 BinaryFileReader.h
 DataFileTypeEnum.h
+GeodesicHelper.h
 GiftiTypeFile.h
 LabelFile.h
 MetricFile.h
@@ -33,10 +34,12 @@ SpecFileSaxReader.h
 SurfaceFile.h
 SurfaceTypeEnum.h
 TextFile.h
+TopologyHelper.h
 VolumeFile.h
 
 BinaryFileReader.cxx
 DataFileTypeEnum.cxx
+GeodesicHelper.cxx
 GiftiTypeFile.cxx
 LabelFile.cxx
 MetricFile.cxx
@@ -51,6 +54,7 @@ SpecFileSaxReader.cxx
 SurfaceFile.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
+TopologyHelper.cxx
 VolumeFile.cxx
 )
 

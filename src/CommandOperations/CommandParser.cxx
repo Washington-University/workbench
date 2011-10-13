@@ -194,14 +194,14 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
     return false;
 }
 
-bool CommandParser::parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+bool CommandParser::parseRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
 {
     while (parameters.hasNext())
     {
         AString nextArg = parameters.nextString("option");
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myAlgParams, parameters, outAssociation);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
             if (!success)
             {
                 parameters.backup();
@@ -345,7 +345,7 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
             {
                 int savedEnd = endIndex;
                 while (endIndex > curIndex && in[endIndex] != ' ')
-                {//crawl in reverse until a space, or reaching curIndex
+                {//crawl in reverse until a space, or reaching curIndex - change this if you want hyphenation to take place more often than lines without any spaces
                     --endIndex;
                 }
                 if (in[endIndex] == ' ')
@@ -354,7 +354,7 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                     {//don't print any of the spaces
                         --endIndex;
                     }
-                    ++endIndex;//print the character before the space
+                    if (endIndex > curIndex) ++endIndex;//print the character before the space
                     haveAddedBreak = true;
                     ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
                 } else {//hyphenate

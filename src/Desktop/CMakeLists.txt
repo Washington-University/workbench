@@ -57,7 +57,6 @@ TARGET_LINK_LIBRARIES(${EXE_NAME}
 Algorithms
 GuiQt
 Brain
-Helpers
 Files
 Palette
 Gifti
@@ -103,7 +102,6 @@ ${CMAKE_SOURCE_DIR}/Desktop
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
-${CMAKE_SOURCE_DIR}/Helpers
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
