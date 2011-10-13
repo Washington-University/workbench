@@ -20,11 +20,13 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(
 Tests
 NiftiTest.h
+NiftiMatrixTest.h
 TestInterface.h
 TimerTest.h
 ProgressTest.h
 
 NiftiTest.cxx
+NiftiMatrixTest.cxx
 TimerTest.cxx
 ProgressTest.cxx
 )

@@ -44,6 +44,7 @@ namespace caret {
       {
          m_identifier = identifier;
          m_failed = false;
+         m_default_path = "../../../wb_files";
       }
    public:
       const AString& getIdentifier()
@@ -59,6 +60,7 @@ namespace caret {
          return m_failMessage;
       }
       virtual void execute() = 0;//override this
+      AString m_default_path;
    };
 
 }

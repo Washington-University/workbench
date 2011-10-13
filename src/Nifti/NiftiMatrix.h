@@ -36,8 +36,8 @@ class NiftiMatrix
 public:
     NiftiMatrix();
     NiftiMatrix(const QFile &filename) throw (NiftiException);
-    NiftiMatrix(const AString &filename) throw (NiftiException);
-    NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
+    //NiftiMatrix(const AString &filename) throw (NiftiException);
+    //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
     NiftiMatrix(QFile &filein);
     NiftiMatrix(QFile &filein, const int64_t &offsetin);
     ~NiftiMatrix();

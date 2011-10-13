@@ -31,7 +31,7 @@ NiftiMatrix::NiftiMatrix()
 {
 }
 
-NiftiMatrix::NiftiMatrix(const AString &filename) throw (NiftiException)
+/*NiftiMatrix::NiftiMatrix(const AString &filename) throw (NiftiException)
 {
     if(!QFile::exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
     file.setFileName(filename);
@@ -43,7 +43,7 @@ NiftiMatrix::NiftiMatrix(const AString &filename, int64_t &offsetin) throw (Nift
     if(!QFile::exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
     file.setFileName(filename);
     matrixStartOffset = offsetin;
-}
+}*/
 
 NiftiMatrix::NiftiMatrix(QFile &filein)
 {
