@@ -98,6 +98,8 @@ namespace caret {
          */
         AString getPathName() const { return this->pathName; }
         
+        bool remove();
+        
     private:
         FileInformation(const FileInformation&);
 

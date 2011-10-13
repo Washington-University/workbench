@@ -29,10 +29,13 @@
 
 #include "CaretAssert.h"
 
+#include "FileInformation.h"
+#include "GiftiEncodingEnum.h"
 #define __GIFTI_FILE_MAIN__
 #include "GiftiFile.h"
 #undef __GIFTI_FILE_MAIN__
 #include "GiftiFileSaxReader.h"
+#include "GiftiFileWriter.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
 
@@ -834,130 +837,57 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
             << e.whatString().toStdString();
         throw DataFileException(AString::fromStdString(str.str()));
     }
-    
-/*
-   const bool readWithStreamReader = true;
-   
-   if (readWithStreamReader) {
-      GiftiFileStreamReader streamReader(&file, this);
-      streamReader.readData();
-   }
-   else {   
-      QXmlSimpleReader reader;
-      GiftiFileSaxReader saxReader(this);
-      reader.setContentHandler(&saxReader);
-      reader.setErrorHandler(&saxReader);
-    
-      //
-      // Some constant to determine how to read a file based upon the file's size
-      //
-      const int32_t oneMegaByte = 1048576;
-      const qint64 bigFileSize = 25 * oneMegaByte;
-      
-      if (file.size() < bigFileSize) {
-         //
-         // This call reads the entire file at once but this is a problem
-         // since the XML files can be very large and will cause the 
-         // QT XML parsing to crash
-         //
-         if (reader.parse(&file) == false) {
-            throw GiftiException(filename, saxReader.getErrorMessage());
-         }
-      }
-      else {
-         //
-         // The following code reads the XML file in pieces
-         // and hopefully will prevent QT from crashing when
-         // reading large files
-         //
-         
-         //
-         // Create a data stream
-         //   
-         QDataStream stream(&file);
-		 stream.setVersion(QDataStream::Qt_4_3);
-         
-         //
-         // buffer for data read
-         //
-         const int32_t bufferSize = oneMegaByte;
-         char buffer[bufferSize];
-         
-         //
-         // the XML input source
-         //
-         QXmlInputSource xmlInput;
-
-         int32_t totalRead = 0;
-         
-         bool firstTime = true;
-         while (stream.atEnd() == false) {
-            int32_t numRead = stream.readRawData(buffer, bufferSize);
-            totalRead += numRead;
-            if (DebugControl::getDebugOn()) {
-               std::cout << "GIFTI large file read, total: " << numRead << ", " << totalRead << std::endl;
-            }
-            
-            //
-            // Place the input data into the XML input
-            //
-            xmlInput.setData(QByteArray(buffer, numRead));
-            
-            //
-            // Process the data that was just read
-            //
-            if (firstTime) {
-               if (reader.parse(&xmlInput, true) == false) {
-                  throw GiftiException(filename, saxReader.getErrorMessage());            
-               }
-            }
-            else {
-               if (reader.parseContinue() == false) {
-                  throw GiftiException(filename, saxReader.getErrorMessage());
-               }
-            }
-            
-            firstTime = false;
-         }
-         
-         //
-         // Tells parser that there is no more data
-         //
-         xmlInput.setData(QByteArray());
-         if (reader.parseContinue() == false) {
-            throw GiftiException(filename, saxReader.getErrorMessage());
-         }
-      }
-   }
-    
-   //
-   // Transfer MetaData
-   //
-   const GiftiMetaData::MetaDataContainer* data = metaData.getMetaData();
-   for (GiftiMetaData::ConstMetaDataIterator iter = data->begin(); iter != data->end(); iter++) {
-      setHeaderTag(iter->first, iter->second);
-   }
-
-   //
-   // Some GIFTI Label files have just a few labels with very large indices
-   // which causes many empty indices in the LabelTable.  Cleaning up
-   // the label table compacts these into sequential indices starting
-   // at zero.
-   //
-   //PaintFile* pf = dynamic_cast<PaintFile*>(this);
-   //if (pf != NULL) {
-   //   if (pf->getNumberOfPaintNames() > 1000) {
-   //      pf->cleanUpPaintNames();
-   //   }
-   //}
-    */
 }
+
 /**
  * write the file. 
  */
 void 
 GiftiFile::writeFile(const AString& filename) throw (DataFileException)
 {
+    try {
+        this->setFileName(filename);
+        
+        FileInformation fileInfo(filename);
+        if (fileInfo.exists()) {
+            //if (GiftiDataArrayFile.isFileOverwriteAllowed() == false) {
+            //    throw new GiftiException(
+            //                             "Overwriting of existing files is currently prohibited");
+            //}
+        }
+        
+        //
+        // Create a GIFTI Data Array File Writer
+        //
+        GiftiFileWriter giftiFileWriter(filename,
+                            GiftiEncodingEnum::GZIP_BASE64_BINARY);
+        
+        //
+        // Start writing the file
+        //
+        int numberOfDataArrays = this->getNumberOfDataArrays();
+        giftiFileWriter.start(numberOfDataArrays,
+                              &this->metaData,
+                              &this->labelTable);
+        
+        //
+        // Write the data arrays
+        //
+        for (int i = 0; i < numberOfDataArrays; i++) {
+            giftiFileWriter.writeDataArray(this->getDataArray(i));
+        }
+        
+        //
+        // Finish writing the file
+        //
+        giftiFileWriter.finish();
+    }
+    catch (GiftiException e) {
+        throw new DataFileException(e);
+    }
+    
+    this->clearModified();
+    
 /*
    //
    // Get how the array data should be encoded

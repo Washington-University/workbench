@@ -25,6 +25,7 @@ GiftiEndianEnum.h
 GiftiException.h
 GiftiFile.h
 GiftiFileSaxReader.h
+GiftiFileWriter.h
 GiftiLabel.h
 GiftiLabelTable.h
 GiftiLabelTableSaxReader.h
@@ -40,6 +41,7 @@ GiftiEndianEnum.cxx
 GiftiException.cxx
 GiftiFile.cxx
 GiftiFileSaxReader.cxx
+GiftiFileWriter.cxx
 GiftiLabel.cxx
 GiftiLabelTable.cxx
 GiftiLabelTableSaxReader.cxx

@@ -93,6 +93,19 @@ FileInformation::~FileInformation()
 }
 
 /**
+ * Removes the file.
+ * @return
+ *    true if file deleted successfully.
+ */
+bool 
+FileInformation::remove()
+{
+    bool result = QFile::remove(this->file);
+    return result;
+}
+
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
