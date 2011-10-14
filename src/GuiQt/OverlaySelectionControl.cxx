@@ -344,9 +344,22 @@ OverlaySelectionControl::updateControl()
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    const int32_t numberOfDisplayedOverlays = surfaceOverlaySet->getNumberOfDisplayedOverlays();
+    int32_t numberOfDisplayedOverlays = 0;
     
+    switch (dataType) {
+        case SURFACE:
+        {
+            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
+            numberOfDisplayedOverlays = surfaceOverlaySet->getNumberOfDisplayedOverlays();
+        }
+            break;
+        case VOLUME:
+        {
+            //VolumeOverlaySet* volumeOverlaySet = browserTabContent->getVolumeOverlaySet();
+            //numberOfDisplayedOverlays = volumeOverlaySet->getNumberOfDisplayedOverlays();
+        }
+            break;
+    }
     for (int32_t i = 0; i < this->layers.size(); i++) {
         if (i < numberOfDisplayedOverlays) {
             this->layers[i]->setVisible(true);
