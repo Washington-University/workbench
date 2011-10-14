@@ -31,7 +31,18 @@
 #include "VolumeFile.h"
 namespace caret {
 
-class NiftiMatrix
+struct  LayoutType {
+bool layoutSet;
+bool needsSwapping;
+uint32_t componentDimensions;
+std::vector <int> dimensions;
+NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
+uint32_t valueByteSize;//redundant, and derivable from Nifti
+};
+
+
+
+class NiftiMatrix : public LayoutType //so we don't have to qualify layouts
 {
 public:
     NiftiMatrix();
@@ -71,6 +82,8 @@ public:
 
     void setDataType(const NiftiDataTypeEnum::Enum &typein);
     void getDataType(NiftiDataTypeEnum::Enum &typeout) const;
+    void getMatrixLayoutOnDisk(LayoutType &layout);
+    void setMatrixLayoutOnDisk(LayoutType &layout);
     void getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const;
     void setMatrixLayoutOnDisk(const std::vector<int32_t> &dimensionsIn, const int &componentDimensionsIn,const  int &valueByteSizeIn, const bool &needsSwappingIn );
 
@@ -90,6 +103,9 @@ public:
     float getComponent(const uint64_t &index, const uint32_t &componentIndex) const throw (NiftiException);
     void setComponent(const uint64_t &index, const uint32_t &componentIndex, const float &value) throw (NiftiException);
 
+    // !!!SECTION 4: convenient getter/setters
+    uint64_t getFrameSize() { return frameSize;}
+    uint64_t getFrameLength() { return frameLength; }
     private:
     void reAllocateMatrixIfNeeded();
     void clearMatrix();
@@ -108,12 +124,8 @@ public:
     int niftiVersion;
 
     //non-nifti specific
-    bool layoutSet;
-    bool needsSwapping;
-    uint32_t componentDimensions;
-    std::vector <int> dimensions;
-    NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
-    uint32_t valueByteSize;
+    //layout
+
     uint64_t frameLength;
     uint64_t frameSize;
     bool frameLoaded;

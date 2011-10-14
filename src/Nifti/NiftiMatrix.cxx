@@ -145,7 +145,16 @@ void NiftiMatrix::setVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (
             }
 }
 
+void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
+{
 
+    layout = (*this);
+}
+
+void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
+{
+    static_cast <LayoutType> (*this) = layout;
+}
 
 void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const
 {

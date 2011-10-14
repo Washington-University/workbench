@@ -34,6 +34,14 @@ class NiftiMatrixTest : public TestInterface
 {
 public:
     NiftiMatrixTest(const AString& identifier);
+    void LoadMatrix(AString &matrixfile, LayoutType &layout,NiftiMatrix &matrix );
+    void getFrame(NiftiMatrix &matrix,int64_t &timeSlice, float *&frame);
+    void printFrame(LayoutType &layout, float *&frame);
+
+    //printfloat(
+    //printdouble(AString &matrixfile);
+    //printfloatbe(AString &matrixfile);//big endian
+    //printdoublebe(AString &matrixfile);//big endian
     virtual void execute();
 };
 
