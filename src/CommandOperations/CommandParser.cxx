@@ -42,35 +42,46 @@ CommandParser::CommandParser(AutoAlgorithmInterface* myAutoAlg) :
 
 void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
-    AlgorithmParameters* myAlgParams = m_autoAlg->getParameters();
+    CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
-    try
+    bool success = parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
+    if (!success)
     {
-        bool success = parseComponent(myAlgParams, parameters, myOutAssoc);//parsing block
-        if (!success)
+        if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
         {
-            if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
-            {
-                AString nextArg = parameters.nextString("option");
-                throw ProgramParametersException("Option \"" + nextArg + "\" is unknown or incorrectly placed");
-            }
-            throw ProgramParametersException("Unknown error while parsing the command line");
+            AString nextArg = parameters.nextString("option");
+            throw ProgramParametersException("Argument \"" + nextArg + "\" is unknown or incorrectly placed");
         }
-    } catch (ProgramParametersException e) {
-        delete myAlgParams;
-        throw e;
+        throw ProgramParametersException("Unknown error while parsing the command line");
     }
     //code to show what arguments map to what parameters should go here
     
-    m_autoAlg->useParameters(myAlgParams, NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
+    m_autoAlg->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
     
-    writeOutput(myAlgParams, myOutAssoc);//TODO: some way of having outputs that are only optional? probably would make parsing harder to get right
+    writeOutput(myAlgParams.getPointer(), myOutAssoc);//TODO: some way of having outputs that are only optional? probably would make parsing harder to get right
     
-    delete myAlgParams;
 }
 
-bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
+{
+    CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
+    vector<OutputAssoc> myOutAssoc;
+    
+    bool success = parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc, true);//parsing block
+    if (!success)
+    {
+        if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
+        {
+            AString nextArg = parameters.nextString("option");
+            throw ProgramParametersException("Argument \"" + nextArg + "\" is unknown or incorrectly placed");
+        }
+        throw ProgramParametersException("Unknown error while parsing the command line");
+    }
+    //don't execute or write parsed output
+}
+
+bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
 {
     uint32_t i;
     for (i = 0; i < myComponent->m_paramList.size(); ++i)
@@ -78,7 +89,7 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         AString nextArg = parameters.nextString(myComponent->m_paramList[i]->m_shortName);
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
                 throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
@@ -93,6 +104,11 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 parameters.backup();
                 ((BooleanParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextBoolean(myComponent->m_paramList[i]->m_shortName);
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                    cout << (((BooleanParameter*)myComponent->m_paramList[i])->m_parameter ? "true" : "false") << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::CIFTI:
@@ -100,18 +116,33 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 CiftiFile* myFile = new CiftiFile();
                 myFile->openFile(nextArg);
                 ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::DOUBLE:
             {
                 parameters.backup();
                 ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextDouble(myComponent->m_paramList[i]->m_shortName);
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                    cout << ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::INT:
             {
                 parameters.backup();
                 ((IntParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                    cout << ((IntParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::LABEL:
@@ -119,6 +150,11 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 LabelFile* myFile = new LabelFile();
                 myFile->readFile(nextArg);
                 ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::METRIC:
@@ -126,11 +162,21 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 MetricFile* myFile = new MetricFile();
                 myFile->readFile(nextArg);
                 ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::STRING:
             {
                 ((StringParameter*)myComponent->m_paramList[i])->m_parameter = nextArg;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
+                    cout << ((StringParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::SURFACE:
@@ -138,6 +184,11 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 SurfaceFile* myFile = new SurfaceFile();
                 myFile->readFile(nextArg);
                 ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
                 break;
             }
             case AlgorithmParametersEnum::VOLUME:
@@ -145,6 +196,11 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 VolumeFile* myFile = new VolumeFile();
                 myFile->readFile(nextArg);
                 ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
+                if (debug)
+                {
+                    cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> opened file with name ";
+                    cout << nextArg << endl;
+                }
                 break;
             }
             default:
@@ -157,7 +213,7 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         AString nextArg = parameters.nextString(myComponent->m_outputList[i]->m_shortName);
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
                 throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
@@ -168,40 +224,52 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         }
         OutputAssoc tempItem;
         tempItem.m_fileName = nextArg;
-        tempItem.m_type = myComponent->m_outputList[i]->getType();
-        tempItem.m_outputKey = myComponent->m_outputList[i]->m_key;
+        tempItem.m_param = myComponent->m_outputList[i];
         outAssociation.push_back(tempItem);
+        if (debug)
+        {
+            cout << "Output parameter <" << tempItem.m_param->m_shortName << "> given output name ";
+            cout << tempItem.m_fileName << endl;
+        }
     }
-    bool success = parseRemainingOptions(myComponent, parameters, outAssociation);
+    bool success = parseRemainingOptions(myComponent, parameters, outAssociation, debug);
     return success;
 }
 
-bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
 {
     for (uint32_t i = 0; i < myComponent->m_optionList.size(); ++i)
     {
         if (mySwitch == myComponent->m_optionList[i]->m_optionSwitch)
         {
+            if (debug)
+            {
+                cout << "Now parsing option " << myComponent->m_optionList[i]->m_optionSwitch << endl;
+            }
             if (myComponent->m_optionList[i]->m_present)
             {
                 throw ProgramParametersException("Option \"" + mySwitch + "\" specified more than once");
             }
             myComponent->m_optionList[i]->m_present = true;
-            parseComponent(myComponent->m_optionList[i], parameters, outAssociation);
-            return true;
+            bool success = parseComponent(myComponent->m_optionList[i], parameters, outAssociation, debug);
+            if (debug)
+            {
+                cout << "Finished parsing option " << myComponent->m_optionList[i]->m_optionSwitch << endl;
+            }
+            return success;
         }
     }
     return false;
 }
 
-bool CommandParser::parseRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation)
+bool CommandParser::parseRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
 {
     while (parameters.hasNext())
     {
         AString nextArg = parameters.nextString("option");
         if (nextArg[0] == '-')
         {
-            bool success = parseOption(nextArg, myComponent, parameters, outAssociation);
+            bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
                 parameters.backup();
@@ -219,8 +287,8 @@ void CommandParser::writeOutput(AlgorithmParameters* myAlgParams, const vector<O
 {
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
-        AbstractParameter* myParam = myAlgParams->getOutputParameter(outAssociation[i].m_outputKey, outAssociation[i].m_type);
-        switch (outAssociation[i].m_type)
+        AbstractParameter* myParam = outAssociation[i].m_param;
+        switch (myParam->getType())
         {
             case AlgorithmParametersEnum::BOOL://ignores the name you give the output for now, but what gives primitive type output and how is it used?
                 cout << "Output Boolean \"" << myParam->m_shortName << "\" value is " << ((BooleanParameter*)myParam)->m_parameter << endl;
@@ -354,7 +422,10 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                     {//don't print any of the spaces
                         --endIndex;
                     }
-                    if (endIndex > curIndex) ++endIndex;//print the character before the space
+                    if (endIndex > curIndex)
+                    {
+                        ++endIndex;//print the character before the space
+                    }
                     haveAddedBreak = true;
                     ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
                 } else {//hyphenate

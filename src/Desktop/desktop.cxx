@@ -83,9 +83,16 @@ main(int argc, char* argv[])
      * object that was not deleted by CaretObject::printListOfObjectsNotDeleted
      * since it does not go out of scope.
      */
-    EventBrowserWindowNew* newBrowserWindow = new EventBrowserWindowNew(NULL, NULL);
+    /*EventBrowserWindowNew* newBrowserWindow = new EventBrowserWindowNew(NULL, NULL);
     EventManager::get()->sendEvent(newBrowserWindow->getPointer());
-    delete newBrowserWindow;
+    delete newBrowserWindow;//*/
+    
+    //TSC: do this with explicit scoping instead of new, so that it does go out of scope.
+    //Better idea would be to have EVERYTHING except CaretObject::printListOfObjectsNotDeleted(true); in a single explicit scope
+    {
+        EventBrowserWindowNew newBrowserWindow(NULL, NULL);
+        EventManager::get()->sendEvent(newBrowserWindow.getPointer());
+    }
     //GuiManager::get()->newBrainBrowserWindow(NULL);
     
     /*
