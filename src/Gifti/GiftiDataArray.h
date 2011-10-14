@@ -57,15 +57,13 @@ namespace caret {
         
     public:            
         // constructor
-        GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                       const NiftiIntentEnum::Enum intentIn,
+        GiftiDataArray(const NiftiIntentEnum::Enum intentIn,
                        const NiftiDataTypeEnum::Enum dataTypeIn,
                        const std::vector<int64_t>& dimensionsIn,
                        const GiftiEncodingEnum::Enum encodingIn = GiftiEncodingEnum::ASCII);
         
         // constructor used when reading data
-        GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                       const NiftiIntentEnum::Enum intentIn);
+        GiftiDataArray(const NiftiIntentEnum::Enum intentIn);
         
         // copy constructor
         GiftiDataArray(const GiftiDataArray& nda);
@@ -90,9 +88,6 @@ namespace caret {
         
         // reset column
         virtual void clear();
-        
-        /// set the node data file of which I am a member
-        void setMyParentGiftiFile(GiftiFile* ndf) { parentGiftiFile = ndf; }
         
         /// get the number of dimensions
         int32_t getNumberOfDimensions() const { return dimensions.size(); }
@@ -127,7 +122,8 @@ namespace caret {
                           const std::vector<int64_t>& dimensionsForReading,
                           const GiftiEncodingEnum::Enum encodingForReading,
                           const AString& externalFileNameForReading,
-                          const int64_t externalFileOffsetForReading) throw (GiftiException);
+                          const int64_t externalFileOffsetForReading,
+                          const bool isReadOnlyMetaData) throw (GiftiException);
         
         // write the data as XML
         void writeAsXML(std::ostream& stream, 
@@ -343,9 +339,6 @@ namespace caret {
         
         /// the metadata not written to file (mainly for file specific data array meta data)
         GiftiMetaData nonWrittenMetaData;
-        
-        /// data array file of which this is a member
-        GiftiFile* parentGiftiFile;
         
         /// dimensions of the data
         std::vector<int64_t> dimensions;

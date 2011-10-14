@@ -51,13 +51,11 @@ using namespace caret;
 /**
  * constructor.
  */
-GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                               const NiftiIntentEnum::Enum intentIn,
+GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn,
                                const NiftiDataTypeEnum::Enum dataTypeIn,
                                const std::vector<int64_t>& dimensionsIn,
                                const GiftiEncodingEnum::Enum encodingIn)
 {
-   parentGiftiFile = parentGiftiFileIn;
    intent = intentIn;
    dataTypeSize = 0;
    dataPointerFloat = NULL;
@@ -87,10 +85,8 @@ GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
 /**
  * constructor.
  */
-GiftiDataArray::GiftiDataArray(GiftiFile* parentGiftiFileIn,
-                               const NiftiIntentEnum::Enum intentIn)
+GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn)
 {
-   parentGiftiFile = parentGiftiFileIn;
    intent = intentIn;
    dataTypeSize = 0;
    dataPointerFloat = NULL;
@@ -157,7 +153,6 @@ GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
    //dataLocation = nda.dataLocation;
    dataTypeSize = nda.dataTypeSize;
    endian = nda.endian;
-   parentGiftiFile = NULL;  // caused modified to be set !! nda.parentGiftiFile;
    dimensions = nda.dimensions;
    allocateData();
    data = nda.data;
@@ -566,13 +561,14 @@ GiftiDataArray::transferLabelIndices(const std::map<int32_t,int32_t>& indexConve
  */
 void 
 GiftiDataArray::readFromText(const AString text,
-            const GiftiEndianEnum::Enum dataEndianForReading,
-            const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
-            const NiftiDataTypeEnum::Enum dataTypeForReading,
-            const std::vector<int64_t>& dimensionsForReading,
-            const GiftiEncodingEnum::Enum encodingForReading,
-            const AString& externalFileNameForReading,
-            const int64_t externalFileOffsetForReading) throw (GiftiException)
+                             const GiftiEndianEnum::Enum dataEndianForReading,
+                             const GiftiArrayIndexingOrderEnum::Enum arraySubscriptingOrderForReading,
+                             const NiftiDataTypeEnum::Enum dataTypeForReading,
+                             const std::vector<int64_t>& dimensionsForReading,
+                             const GiftiEncodingEnum::Enum encodingForReading,
+                             const AString& externalFileNameForReading,
+                             const int64_t externalFileOffsetForReading,
+                             const bool isReadOnlyMetaData) throw (GiftiException)
 {
    const NiftiDataTypeEnum::Enum requiredDataType = dataType;
    dataType = dataTypeForReading;
@@ -588,7 +584,7 @@ GiftiDataArray::readFromText(const AString text,
    //
    // If NOT metadata only
    //
-   if (parentGiftiFile->getReadMetaDataOnlyFlag() == false) {
+   if (isReadOnlyMetaData == false) {
       //
       // Total number of elements in Data Array
       //
@@ -702,7 +698,7 @@ GiftiDataArray::readFromText(const AString text,
                delete[] dataBuffer;
                
                //
-               // Is byte swapping needed ?
+               // Is byte swapping needed ? 
                //
                if (endian != getSystemEndian()) {
                   byteSwapData(getSystemEndian());

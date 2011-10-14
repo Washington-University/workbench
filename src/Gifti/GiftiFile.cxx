@@ -518,7 +518,6 @@ void
 GiftiFile::addDataArray(GiftiDataArray* nda)
 {
     CaretAssert(nda);
-   nda->setMyParentGiftiFile(this);
    dataArrays.push_back(nda);
    
    setModified();
@@ -562,7 +561,6 @@ GiftiFile::append(const GiftiFile& gf) throw (GiftiException)
        if (copyDataArrayFlag) {
            gda = new GiftiDataArray(*(gf.dataArrays[i]));
        }
-       gda->setMyParentGiftiFile(this);
        if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
            gda->transferLabelIndices(labelIndexConverter);
        }
@@ -620,7 +618,6 @@ GiftiFile::append(const GiftiFile& gf,
            GiftiDataArray* gda = gf.dataArrays[i];
            if (copyDataArrayFlag) {
                gda = new GiftiDataArray(*gda);
-               gda->setMyParentGiftiFile(this);
                if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
                    gda->transferLabelIndices(labelIndexConverter);
                }

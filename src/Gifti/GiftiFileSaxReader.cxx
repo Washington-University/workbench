@@ -498,8 +498,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                      + subscriptOrderString);
    }
          
-   this->dataArray = new GiftiDataArray(this->giftiFile,
-                                  intent);
+   this->dataArray = new GiftiDataArray(intent);
     
     /*
      * Indicate that data has not been read.
@@ -529,7 +528,8 @@ GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
                            dimensionsForReadingArrayData,
                            encodingForReadingArrayData,
                            externalFileNameForReadingData,
-                           externalFileOffsetForReadingData);
+                           externalFileOffsetForReadingData,
+                              this->giftiFile->getReadMetaDataOnlyFlag());
    }
    catch (GiftiException& e) {
        throw XmlSaxParserException(e.whatString());
