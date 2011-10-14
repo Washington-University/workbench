@@ -131,7 +131,8 @@ namespace caret {
         
         // write the data as XML
         void writeAsXML(std::ostream& stream, 
-                        std::ostream* externalBinaryOutputStream) throw (GiftiException);
+                        std::ostream* externalBinaryOutputStream,
+                        GiftiEncodingEnum::Enum encodingForWriting) throw (GiftiException);
         
         /// get endian
         GiftiEndianEnum::Enum getEndian() const { return endian; }

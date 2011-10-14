@@ -163,6 +163,9 @@ namespace caret {
         
         /// external file offset
         int64_t externalFileOffsetForReadingData;
+        
+        /// tracks if data has been read since external binary may not have DATA tag
+        bool dataArrayDataHasBeenRead;
     };
 
 } // namespace

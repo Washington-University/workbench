@@ -710,8 +710,9 @@ GiftiDataArray::readFromText(const AString text,
                   throw GiftiException("External file name is empty.");
                }
                
-                std::ifstream extBinFile(externalFileName.toStdString().c_str());
-                if (!extBinFile) {
+                std::ifstream extBinFile(externalFileName.toStdString().c_str(),
+                                         std::ifstream::in);
+                if (extBinFile.good() == false) {
                         throw GiftiException("Error opening \""
                                             + externalFileName
                                             + "\"");
@@ -721,6 +722,13 @@ GiftiDataArray::readFromText(const AString text,
                   // Move to the offset of the data
                   //
                   extBinFile.seekg(externalFileOffset, std::ios::beg);
+                  if (extBinFile.good() == false) {
+                        throw GiftiException("Error seeking to \""
+                                             + AString::number(externalFileOffset)
+                                             + "\" in \""
+                                             + externalFileName
+                                             + "\"");
+                  }
                     
                   //
                   // Set the number of bytes that must be read
@@ -747,9 +755,9 @@ GiftiDataArray::readFromText(const AString text,
                   //
                   // Read the data
                   //
-                  extBinFile.read((char*)&pointerToForReadingData,
+                  extBinFile.read((char*)pointerToForReadingData,
                                     numberOfBytesToRead);
-                  if(extBinFile.fail()) {
+                  if(extBinFile.good() == false) {
                      throw GiftiException("Tried to read "
                                          + AString::number((int64_t)numberOfBytesToRead)
                                          + " from "
@@ -923,12 +931,21 @@ GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
 
 /**
  * write the data as XML.
+ * @param stream
+ *    Stream for XML.
+ * @param externalBinaryOutputStream
+ *    Stream for external binary file.
+ * @param encodingForWriting
+ *    GIFTI encoding used when writing the data.
  */
 void 
 GiftiDataArray::writeAsXML(std::ostream& stream, 
-                           std::ostream* externalBinaryOutputStream) 
+                           std::ostream* externalBinaryOutputStream,
+                           GiftiEncodingEnum::Enum encodingForWriting) 
                                                 throw (GiftiException)
 {
+    this->encoding = encodingForWriting;
+    
     //
     // Do not write if data array is isEmpty()
     //
@@ -1001,21 +1018,21 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    }
    
    //
-   // Write the data element opening tag
-   //
-    xmlWriter.writeStartElement(GiftiXmlElements::TAG_DATA);
-   
-   //
    // NOTE: for the base64 and ZLIB-Base64 data, it is important that there are
    // no spaces between the <DATA> and </DATA> tags.
    //
    switch (encoding) {
        case GiftiEncodingEnum::ASCII:
          {
+             //
+             // Write the start element.
+             //
+             xmlWriter.writeStartElement(GiftiXmlElements::TAG_DATA);
+             
             //
             // Newline after <DATA> tag (only do this for ASCII !!!)
             //
-            stream << "\n";
+            //stream << "\n";
             
             //
             // determine the number of items per row (node)
@@ -1030,6 +1047,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             //
             int32_t offset = 0;
             for (int32_t i = 0; i < numRows; i++) {
+                xmlWriter.writeCharacters("      ");
                switch (dataType) {
                   case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                      for (int64_t j = 0; j < numItemsPerRow; j++) {
@@ -1056,6 +1074,12 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                xmlWriter.writeCharacters("\n");
                offset += numItemsPerRow;
             }
+             
+             //
+             // Write the closing Data tag
+             //
+             xmlWriter.writeEndElement();
+             
          }
          break;
        case GiftiEncodingEnum::BASE64_BINARY:
@@ -1079,9 +1103,9 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             buffer[compressedLength] = '\0';
             
             //
-            // Write the data
+            // Write the data  MUST BE NO space around data
             //
-            stream << buffer;
+            xmlWriter.writeElementNoSpace(GiftiXmlElements::TAG_DATA, buffer);
             
             //
             // Free memory
@@ -1114,10 +1138,11 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
                                           (unsigned char*)buffer);
             buffer[compressedLength] = '\0';
             
-            //
-            // Write the data
-            //
-            stream << buffer;
+             //
+             // Write the data  MUST BE NO space around data
+             //
+             xmlWriter.writeElementNoSpace(GiftiXmlElements::TAG_DATA, buffer);
+             
             
             //
             // Free memory
@@ -1133,14 +1158,14 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
             if (externalBinaryOutputStream->bad()) {
                throw GiftiException("Output stream for external file reports its status as bad.");
             }
+            //
+            // Write the empty data
+            //
+            xmlWriter.writeElementNoSpace(GiftiXmlElements::TAG_DATA, "");
+             
          }
          break;
    }
-   
-   //
-   // Write the closing Data tag
-   //
-    xmlWriter.writeEndElement();
    
    //
    // write the closing data array tag

@@ -252,7 +252,7 @@ class GiftiFile : public DataFile {
 };
 
 #ifdef __GIFTI_FILE_MAIN__
-    GiftiEncodingEnum::Enum GiftiFile::defaultEncodingForWriting = GiftiEncodingEnum::ASCII;
+    GiftiEncodingEnum::Enum GiftiFile::defaultEncodingForWriting = GiftiEncodingEnum::GZIP_BASE64_BINARY;
 #endif // __GIFTI_FILE_MAIN__
     
 

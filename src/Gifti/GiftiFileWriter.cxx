@@ -215,7 +215,8 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         // Write data array
         //
         gda->writeAsXML(*this->xmlFileOutputStream, 
-                        this->externalFileOutputStream);
+                        this->externalFileOutputStream,
+                        this->encoding);
         
         //
         // Increment counter of data arrays written

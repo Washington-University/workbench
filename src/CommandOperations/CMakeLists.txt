@@ -20,6 +20,7 @@ ADD_LIBRARY(CommandOperations
 CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
+CommandGiftiConvert.h
 CommandOperation.h
 CommandOperationManager.h
 CommandParser.h
@@ -29,6 +30,7 @@ CommandUnitTest.h
 CommandClassCreate.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
+CommandGiftiConvert.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx
 CommandParser.cxx

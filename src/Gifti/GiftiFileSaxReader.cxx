@@ -53,6 +53,7 @@ GiftiFileSaxReader::GiftiFileSaxReader(GiftiFile* giftiFileIn)
    this->labelTable = NULL;
     this->labelTableSaxReader = NULL;
     this->metaDataSaxReader = NULL;
+    this->dataArrayDataHasBeenRead = false;
 }
 
 /**
@@ -248,8 +249,17 @@ GiftiFileSaxReader::endElement(const AString& namespaceURI,
          break;
       case STATE_DATA_ARRAY:
          if (this->dataArray != NULL) {
-            this->giftiFile->addDataArray(this->dataArray);
-            this->dataArray = NULL;
+             /*
+              * An external binary file may not have a DATA tag
+              * so this will handle reading in that case.
+              */
+             if (this->encodingForReadingArrayData == GiftiEncodingEnum::EXTERNAL_FILE_BINARY) {
+                 if (this->dataArrayDataHasBeenRead == false) {
+                     this->processArrayData();
+                 }
+             }
+             this->giftiFile->addDataArray(this->dataArray);
+             this->dataArray = NULL;
          }
          else {
          }
@@ -371,9 +381,9 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
    this->externalFileOffsetForReadingData = 0;
     if (encodingForReadingArrayData == GiftiEncodingEnum::EXTERNAL_FILE_BINARY) {
         const AString offsetString = attributes.getValue(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_OFFSET);
-        if (offsetString.isEmpty() == false) {
+        //if (offsetString.isEmpty() == false) {
             bool validOffsetFlag = false;
-            this->externalFileOffsetForReadingData = offsetString.toLong();
+            this->externalFileOffsetForReadingData = offsetString.toLong(&validOffsetFlag);
             if (validOffsetFlag == false) {
                 XmlSaxParserException e("File Offset is not an integer ("
                                             + offsetString
@@ -381,7 +391,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
                 CaretLogThrowing(e);
                 throw e;
             }
-        }
+        //}
     }
    
    //
@@ -473,6 +483,11 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
          
    this->dataArray = new GiftiDataArray(this->giftiFile,
                                   intent);
+    
+    /*
+     * Indicate that data has not been read.
+     */
+    dataArrayDataHasBeenRead = false;
 }
 
 /**
@@ -481,6 +496,7 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
 void 
 GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
 {
+    this->dataArrayDataHasBeenRead = true;
    //
    // Should the data arrays be read ?
    //
