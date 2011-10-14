@@ -214,6 +214,9 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         //
         // Write data array
         //
+        const int64_t fileOffset = this->externalFileOutputStream->tellp();
+        gda->setExternalFileInformation(this->getExternalFileNameForWriting(),
+                                        fileOffset);
         gda->writeAsXML(*this->xmlFileOutputStream, 
                         this->externalFileOutputStream,
                         this->encoding);

@@ -23,6 +23,7 @@
  * 
  */ 
 
+#include <QDir>
 #include <QFileInfo>
 
 #define __FILE_INFORMATION_DECLARE__
@@ -42,12 +43,15 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param pathname
+ * @param file
  *    Name of path for which information is obtained.
  */
 FileInformation::FileInformation(const AString& file)
 : CaretObject()
 {
+    QFileInfo fileInfo(file);
+    this->initialize(fileInfo);
+/*
     this->file = file;
     
     this->fileSize = 0;
@@ -82,6 +86,23 @@ FileInformation::FileInformation(const AString& file)
         this->fileName = fileInfo.fileName();
         this->pathName = fileInfo.path();
     }
+ */
+}
+
+/**
+ * Constructor.
+ * @param path
+ *    Directory containing the file.
+ * @param file
+ *    Name of path for which information is obtained.
+ */
+FileInformation::FileInformation(const AString& path,
+                                 const AString& file)
+{
+    QDir dir(path);
+    QFileInfo fileInfo(dir, file);
+    
+    this->initialize(fileInfo);
 }
 
 /**
@@ -92,6 +113,48 @@ FileInformation::~FileInformation()
     
 }
 
+void 
+FileInformation::initialize(const QFileInfo& fileInfo)
+{
+    //this->file = file;
+    
+    this->fileSize = 0;
+    
+    this->pathExists = false;
+    this->pathIsAbsolute = false;
+    this->pathIsDirectory = false;
+    this->pathIsFile = false;
+    this->pathIsHidden = false;
+    this->pathIsReadable = false;
+    this->pathIsRelative = false;
+    this->pathIsSymbolicLink = false;
+    this->pathIsWritable = false;
+    
+    this->fileName = "";
+    this->pathName = "";
+    this->filePath = "";
+    
+    this->pathExists = fileInfo.exists();
+    if (this->pathExists) {
+        this->fileSize = fileInfo.size();
+        
+        this->pathIsAbsolute = fileInfo.isAbsolute();
+        this->pathIsDirectory = fileInfo.isDir();
+        this->pathIsFile      = fileInfo.isFile();
+        this->pathIsHidden    = fileInfo.isHidden();
+        this->pathIsReadable = fileInfo.isReadable();
+        this->pathIsRelative = fileInfo.isRelative();
+        this->pathIsSymbolicLink = fileInfo.isSymLink();
+        this->pathIsWritable = fileInfo.isWritable();
+        
+        this->fileName = fileInfo.fileName();
+        this->pathName = fileInfo.path();
+        
+        this->filePath = fileInfo.absoluteFilePath();
+    }
+    
+}
+
 /**
  * Removes the file.
  * @return
@@ -99,8 +162,10 @@ FileInformation::~FileInformation()
  */
 bool 
 FileInformation::remove()
-{
-    bool result = QFile::remove(this->file);
+{   bool result = false;
+    if (this->pathExists) {
+        result = QFile::remove(this->filePath);
+    }
     return result;
 }
 
@@ -112,6 +177,6 @@ FileInformation::remove()
 AString 
 FileInformation::toString() const
 {
-    return ("FileInformation for " + this->file);
+    return ("FileInformation for " + this->filePath);
 }
 

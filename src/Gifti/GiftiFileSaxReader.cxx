@@ -26,6 +26,7 @@
 #include <sstream>
 
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "GiftiEndianEnum.h"
 #include "GiftiLabel.h"
 #include "GiftiFile.h"
@@ -374,6 +375,22 @@ GiftiFileSaxReader::createDataArray(const XmlAttributes& attributes) throw (XmlS
    // External File Name
    //
    this->externalFileNameForReadingData = attributes.getValue(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME);
+   
+    /*
+     * Update external file with path to XML file
+     */
+    FileInformation extBinInfo(this->externalFileNameForReadingData);
+    if (extBinInfo.isAbsolute() == false) {
+        FileInformation xmlInfo(this->giftiFile->getFileName());
+        AString path = xmlInfo.getPathName();
+        if (path.isEmpty() == false) {
+            FileInformation fi(path, this->externalFileNameForReadingData);
+            AString newName = fi.getFilePath();
+            if (newName.isEmpty() == false) {
+                this->externalFileNameForReadingData = newName;
+            }
+        }
+    }
    
    //
    // External File Offset

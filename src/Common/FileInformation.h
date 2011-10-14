@@ -28,6 +28,8 @@
 
 #include "CaretObject.h"
 
+class QFileInfo;
+
 namespace caret {
 
     
@@ -35,6 +37,9 @@ namespace caret {
         
     public:
         FileInformation(const AString& file);
+        
+        FileInformation(const AString& path,
+                        const AString& file);
         
         virtual ~FileInformation();
         
@@ -98,6 +103,11 @@ namespace caret {
          */
         AString getPathName() const { return this->pathName; }
         
+        /**
+         * @return The full path to the file. 
+         */
+        AString getFilePath() const { return this->filePath; }
+        
         bool remove();
         
     private:
@@ -109,7 +119,11 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        AString file;
+        void initialize(const QFileInfo& fileInfo);
+        
+        //AString file;
+        
+        AString filePath;
         
         bool pathExists;
         
