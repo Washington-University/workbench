@@ -245,10 +245,10 @@ NiftiIntentEnum::NiftiIntentEnum(Enum e,
    this->p3Name = p3Name;
 }
 
-NiftiIntentEnum::NiftiIntentEnum()
-{
-   
-}
+//NiftiIntentEnum::NiftiIntentEnum()
+//{
+//   
+//}
 
 NiftiIntentEnum::~NiftiIntentEnum()
 {
@@ -263,8 +263,8 @@ NiftiIntentEnum::initializeIntents()
    }
    intentsCreatedFlag = true;
    
-   intents.push_back(
-      NiftiIntentEnum());
+   //intents.push_back(
+   //   NiftiIntentEnum());
    
    intents.push_back(NiftiIntentEnum(NIFTI_INTENT_NONE,"NIFTI_INTENT_NONE", 0,"None","","",""));
    intents.push_back(NiftiIntentEnum(NIFTI_INTENT_CORREL,"NIFTI_INTENT_CORREL", 2,"Correlation Statistic","DOF","",""));

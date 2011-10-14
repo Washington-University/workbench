@@ -197,7 +197,12 @@ bool
 GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum intent,
                                                   NiftiDataTypeEnum::Enum& dataTypeOut)
 {
-    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
+   //
+   // Default to float
+   //
+   dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
+    
+   if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
       dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    }
    else if (intent == NiftiIntentEnum::NIFTI_INTENT_TIME_SERIES) {
@@ -222,12 +227,12 @@ GiftiDataArray::getDataTypeAppropriateForIntent(const NiftiIntentEnum::Enum inte
    else if (intent == NiftiIntentEnum::NIFTI_INTENT_TRIANGLE) {
       dataTypeOut = NiftiDataTypeEnum::NIFTI_TYPE_INT32;
    }
-   else {
-       CaretLogWarning("Unrecogized NIFTI intent \""
-                       + NiftiIntentEnum::toName(intent)
-                       + " in GiftiDataArray::getDataTypeAppropriateForIntent().");
-      return false;
-   }
+//   else {
+//       CaretLogFine("Unrecogized NIFTI intent \""
+//                       + NiftiIntentEnum::toName(intent)
+//                       + "\" in GiftiDataArray::getDataTypeAppropriateForIntent().");
+//      return false;
+//   }
    return true;
 }
       

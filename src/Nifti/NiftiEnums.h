@@ -220,7 +220,7 @@ namespace caret {
                       const AString& p2Name,
                       const AString& p3Name);
       
-      NiftiIntentEnum();
+      //NiftiIntentEnum();
       
       Enum e;
       AString enumName;
