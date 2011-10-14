@@ -34,19 +34,22 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 {
     freeMemory();
     CaretAssert(dimensionsIn.size() >= 3);
-    CaretAssert(indexToSpace.size() >= 3);//support using the 3x4 part of a 4x4 matrix
+    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using the 3x4 part of a 4x4 matrix
     CaretAssert(indexToSpace[0].size() == 4);
     CaretAssert(indexToSpace[1].size() == 4);
     CaretAssert(indexToSpace[2].size() == 4);
     m_indexToSpace = indexToSpace;
-    m_indexToSpace.resize(3);//drop the fourth row if it exists
+    m_indexToSpace.resize(4);//ensure row 4 exists
+    m_indexToSpace[3].resize(4);//give it the right length
+    m_indexToSpace[3][0] = 0.0f;//and overwrite it
+    m_indexToSpace[3][1] = 0.0f;
+    m_indexToSpace[3][2] = 0.0f;
+    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
     FloatMatrix temp(m_indexToSpace);
-    FloatMatrix temp2 = temp.getRange(0, 0, 3, 3);//get the multiplicative part
-    FloatMatrix temp3 = temp.getRange(0, 3, 3, 4);//get the additive part
-    temp = temp2.inverse();//invert multiplicative part
-    temp2 = temp * -temp3;//multiply the reversed vector by the inverse of the spacing to get the reverse origin
-    temp3 = temp.concatHoriz(temp2);//concatenate reverse origin with inverse spacing to get inverted affine
-    m_spaceToIndex = temp3.getMatrix();
+    FloatMatrix temp2 = temp.inverse();//get the multiplicative part
+    m_spaceToIndex = temp2.getMatrix();
+    m_indexToSpace.resize(3);//reduce them both back to 3x4
+    m_spaceToIndex.resize(3);
     m_dimensions[0] = dimensionsIn[0];
     m_dimensions[1] = dimensionsIn[1];
     m_dimensions[2] = dimensionsIn[2];
@@ -298,7 +301,7 @@ void VolumeFile::setupIndexing()
     int64_t dim43 = m_dimensions[4] * m_dimensions[3];//sizes for the reverse indexing lookup arrays
     int64_t dim432 = dim43 * m_dimensions[2];
     int64_t dim4321 = dim432 * m_dimensions[1];
-    int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
+    //int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
     /*int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
     int64_t dim0123 = dim012 * m_dimensions[3];//*/ //size of a timeseries (single component)
     m_indexRef = new float****[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
@@ -353,7 +356,6 @@ void VolumeFile::setupIndexing()
                     jbase += m_dimensions[0];
                 }
                 kbase += m_dimensions[1];
-                jbase += dim01;//increment by this to avoid multiply by dim[0] inside k loop
             }
             bbase += m_dimensions[2];
         }

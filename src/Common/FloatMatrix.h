@@ -32,15 +32,15 @@
 
 namespace caret {
 
-   class FloatMatrixRow
+   class FloatMatrixRowRef
    {//needed to ensure some joker doesn't call mymatrix[1].resize();, while still allowing mymatrix[1][2] = 5; and mymatrix[1] = mymatrix[2];
       std::vector<float>& m_row;
-      FloatMatrixRow();//disallow default construction, this contains a reference
+      FloatMatrixRowRef();//disallow default construction, this contains a reference
    public:
-      FloatMatrixRow(FloatMatrixRow& right);//copy constructor
-      FloatMatrixRow(std::vector<float>& therow);
-      FloatMatrixRow& operator=(const FloatMatrixRow& right);//NOTE: copy row contents!
-      FloatMatrixRow& operator=(const float& right);//NOTE: set all row values!
+      FloatMatrixRowRef(FloatMatrixRowRef& right);//copy constructor
+      FloatMatrixRowRef(std::vector<float>& therow);
+      FloatMatrixRowRef& operator=(const FloatMatrixRowRef& right);//NOTE: copy row contents!
+      FloatMatrixRowRef& operator=(const float& right);//NOTE: set all row values!
       float& operator[](const int64_t& index);//access element
    };
    
@@ -52,7 +52,7 @@ namespace caret {
       bool checkDimensions() const;//put this inside asserts at the end of functions
    public:
       FloatMatrix() { };//to make the compiler happy
-      FloatMatrixRow operator[](const int64_t& index);//allow direct indexing to rows
+      FloatMatrixRowRef operator[](const int64_t& index);//allow direct indexing to rows
       FloatMatrix& operator+=(const FloatMatrix& right);//add to
       FloatMatrix& operator-=(const FloatMatrix& right);//subtract from
       FloatMatrix& operator*=(const FloatMatrix& right);//multiply by

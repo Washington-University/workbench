@@ -38,7 +38,7 @@ namespace caret {
       void setFailed(const AString failMessage)
       {
          m_failed = true;
-         m_failMessage = failMessage;
+         m_failMessage += failMessage + "\n";//append to previous messages
       }
       TestInterface(const AString& identifier) : m_failMessage("")
       {

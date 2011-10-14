@@ -209,9 +209,9 @@ void FloatMatrix::getDimensions(int64_t& rows, int64_t& cols) const
    }
 }
 
-FloatMatrixRow FloatMatrix::operator[](const int64_t& index)
+FloatMatrixRowRef FloatMatrix::operator[](const int64_t& index)
 {
-   FloatMatrixRow ret(m_matrix[index]);
+   FloatMatrixRowRef ret(m_matrix[index]);
    return ret;
 }
 
@@ -259,11 +259,11 @@ FloatMatrix FloatMatrix::operator-() const
    return ret;
 }
 
-FloatMatrixRow::FloatMatrixRow(vector<float>& therow) : m_row(therow)
+FloatMatrixRowRef::FloatMatrixRowRef(vector<float>& therow) : m_row(therow)
 {
 }
 
-FloatMatrixRow& FloatMatrixRow::operator=(const FloatMatrixRow& right)
+FloatMatrixRowRef& FloatMatrixRowRef::operator=(const FloatMatrixRowRef& right)
 {
    if (this == &right)
    {//just in case vector isn't smart enough to check self assignment
@@ -274,7 +274,7 @@ FloatMatrixRow& FloatMatrixRow::operator=(const FloatMatrixRow& right)
    return *this;
 }
 
-FloatMatrixRow& FloatMatrixRow::operator=(const float& right)
+FloatMatrixRowRef& FloatMatrixRowRef::operator=(const float& right)
 {
    for (int64_t i = 0; i < (int64_t)m_row.size(); ++i)
    {
@@ -283,12 +283,12 @@ FloatMatrixRow& FloatMatrixRow::operator=(const float& right)
    return *this;
 }
 
-float& caret::FloatMatrixRow::operator[](const int64_t& index)
+float& caret::FloatMatrixRowRef::operator[](const int64_t& index)
 {
    CaretAssert(index < (int64_t)m_row.size());//instead of segfaulting, explicitly check in debug
    return m_row[index];
 }
 
-FloatMatrixRow::FloatMatrixRow(FloatMatrixRow& right) : m_row(right.m_row)
+FloatMatrixRowRef::FloatMatrixRowRef(FloatMatrixRowRef& right) : m_row(right.m_row)
 {
 }
