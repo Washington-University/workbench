@@ -660,13 +660,17 @@ GiftiDataArray::readFromText(const AString text,
                // Decode the Base64 data using VTK's algorithm
                //
                unsigned char* dataBuffer = new unsigned char[data.size()];
-               // crashes const char* textChars = text.toAscii().constData();
+               //const char* textChars = text.toAscii().constData();
                const uint64_t numDecoded =
                      Base64::decode((unsigned char*)text.toStdString().c_str(),
                                                 data.size(),
                                                 dataBuffer);
                if (numDecoded == 0) {
-                  throw GiftiException("Decoding of GZip Base64 Binary data failed.");
+                   std::ostringstream str;
+                   str << "Decoding of GZip Base64 Binary data failed."
+                   << "Decoded " << AString::number(numDecoded).toStdString() << " bytes but should be "
+                   << AString::number(static_cast<int>(data.size())).toStdString() << " bytes.";
+                   throw GiftiException(AString::fromStdString(str.str()));
                }
                
                
@@ -928,7 +932,7 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
     //
     // Do not write if data array is isEmpty()
     //
-    const int64_t numRows = dimensions[0];
+    const int64_t numRows = this->dimensions[0];
     if (numRows <= 0) {
         return;
     }
@@ -939,12 +943,13 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    // are one with the exception of the first dimension
    //   e.g.:   dimension = [73730, 1]  becomes [73730]
    //
-   const int32_t dimensionality = static_cast<int32_t>(dimensions.size());
-   for (int32_t i = (dimensionality - 1); i >= 1; i--) {
+   int64_t dimensionality = static_cast<int64_t>(dimensions.size());
+   for (int64_t i = (dimensionality - 1); i >= 1; i--) {
       if (dimensions[i] <= 1) {
          dimensions.resize(i);
       }
    }
+   dimensionality = static_cast<int64_t>(dimensions.size());
     
    /*
     * Push the palette color mapping into the metadata.
@@ -968,7 +973,11 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INTENT, NiftiIntentEnum::toName(this->intent));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DATA_TYPE, NiftiDataTypeEnum::toName(this->dataType));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_INDEXING_ORDER, GiftiArrayIndexingOrderEnum::toGiftiName(this->arraySubscriptingOrder));
-    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY, this->dimensions, ",");
+    dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIMENSIONALITY, dimensionality);
+    for (int64_t i = 0; i < dimensionality; i++) {
+        const AString dimName = GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_DIM_PREFIX + AString::number(i);
+        dataAtt.addAttribute(dimName, this->dimensions[i]);
+    }
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENCODING, GiftiEncodingEnum::toGiftiName(this->encoding));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_ENDIAN, GiftiEndianEnum::toGiftiName(this->endian));
     dataAtt.addAttribute(GiftiXmlElements::ATTRIBUTE_DATA_ARRAY_EXTERNAL_FILE_NAME, externalFileName);

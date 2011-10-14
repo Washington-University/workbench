@@ -168,10 +168,11 @@ NiftiDataTypeEnum::findData(Enum e)
    
    for (std::vector<NiftiDataTypeEnum>::iterator iter = dataTypes.begin();
         iter != dataTypes.end();
-   iter++) {
-      const NiftiDataTypeEnum& ndt = *iter;
-      if(ndt.e == e)
-      return &ndt;
+        iter++) {
+       const NiftiDataTypeEnum& ndt = *iter;
+       if (ndt.e == e) {
+           return &ndt;
+       }
    }    
    return NULL;
 }
@@ -343,7 +344,7 @@ NiftiIntentEnum::toName(Enum e) {
    initializeIntents();
    
    const NiftiIntentEnum* ni = findData(e);
-   return ni->name;
+   return ni->enumName;
 }
 
 /**
@@ -397,7 +398,9 @@ NiftiIntentEnum::findData(Enum e)
         iter != intents.end();
    iter++) {
       const NiftiIntentEnum& intent = *iter;
-      return &intent;
+       if (intent.e == e) {
+          return &intent;
+       }
    }
    
    CaretAssertMessage(0, "Intent enum failed to match.");
@@ -604,6 +607,9 @@ NiftiSpacingUnitsEnum::findData(Enum e)
         iter != spacingUnits.end();
    iter++) {
       const NiftiSpacingUnitsEnum& nsu = *iter;
+       if (nsu.e == e) {
+           return &nsu;
+       }
       return &nsu;
    }
    
