@@ -965,6 +965,7 @@ GiftiLabelTable::writeAsXML(XmlWriter& xmlWriter) throw (GiftiException)
                                         rgba[2]);
                 attributes.addAttribute(GiftiXmlElements::ATTRIBUTE_LABEL_ALPHA,
                                         rgba[3]);
+                delete[] rgba;
                 
                 xmlWriter.writeElementCData(GiftiXmlElements::TAG_LABEL,
                                             attributes, label->getName());
