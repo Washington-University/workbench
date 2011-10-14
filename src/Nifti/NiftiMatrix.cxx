@@ -29,6 +29,7 @@ using namespace caret;
 
 NiftiMatrix::NiftiMatrix()
 {
+    init();
 }
 
 /*NiftiMatrix::NiftiMatrix(const AString &filename) throw (NiftiException)
@@ -45,15 +46,15 @@ NiftiMatrix::NiftiMatrix(const AString &filename, int64_t &offsetin) throw (Nift
     matrixStartOffset = offsetin;
 }*/
 
-NiftiMatrix::NiftiMatrix(QFile &filein)
+NiftiMatrix::NiftiMatrix(const QFile &filein)
 {
-    file.setFileName(filein.fileName());
-    matrixStartOffset = 0;
-
+    init();
+    file.setFileName(filein.fileName());    
 }
 
-NiftiMatrix::NiftiMatrix(QFile &filein, const int64_t &offsetin)
+NiftiMatrix::NiftiMatrix(const QFile &filein, const int64_t &offsetin)
 {
+    init();
     file.setFileName(filein.fileName());
     matrixStartOffset = offsetin;
 }
@@ -63,6 +64,9 @@ void NiftiMatrix::init()
     needsSwapping = false;
     niftiVersion = 0;
     matrixStartOffset = 0;
+    matrix = NULL;
+    matrixLength = 0;
+    layoutSet = false;
 }
 
 void NiftiMatrix::setNiftiHeader(Nifti1Header &headerin)
@@ -161,6 +165,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int32_t> &dimensionsI
     needsSwapping = needsSwappingIn;
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    layoutSet = true;
 }
 
 void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti1Header &headerIn)
@@ -172,6 +177,7 @@ void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti1Header &headerIn)
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    layoutSet = true;
 }
 
 void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti2Header &headerIn)
@@ -183,6 +189,13 @@ void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti2Header &headerIn)
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    layoutSet = true;
+}
+
+void NiftiMatrix::clearMatrix()
+{
+    if(matrix) delete matrix;
+    matrixLength = 0;
 }
 
 void NiftiMatrix::reAllocateMatrixIfNeeded()
@@ -194,7 +207,7 @@ void NiftiMatrix::reAllocateMatrixIfNeeded()
     }
 }
 
-void NiftiMatrix::readFrame(int64_t timeSlice)
+void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     if(frameLoaded && timeSlice==currentTime) return;
@@ -225,6 +238,7 @@ void NiftiMatrix::readFrame(int64_t timeSlice)
         for(int i;i<matrixLength;i++) matrix[i] = bytes[i];
         break;
     default:
+        throw NiftiException("Unrecognized Nifti Data found when reading frame.");
         break;
     }
     //cleanup

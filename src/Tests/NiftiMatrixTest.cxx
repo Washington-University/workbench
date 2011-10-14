@@ -27,6 +27,7 @@
 using namespace caret;
 
 
+
 NiftiMatrixTest::NiftiMatrixTest(const AString &identifier) : TestInterface(identifier)
 {
 
@@ -40,7 +41,45 @@ void NiftiMatrixTest::execute()
     AString path = m_default_path + "/nifti";
     NiftiMatrix matrix(path+"/testmatrix.float");
 
+    matrix.setDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+    std::vector <int32_t> dim = {4,10,8,6,4};
+    matrix.setMatrixLayoutOnDisk(dim,1,sizeof(float),false);
+    uint64_t index = 0;
+    float result = 0.0f;
+    /*for(int t = 0;t<4;t++)
+    {
+        std::cout << "time slice" << t << std::endl;
+        matrix.readFrame(t);
+        for(int i = 0;i<8*6;i++)
+        {
+            for(int j = i*10;j<(i+1)*10;j++)
+            {
+                std::cout << matrix.getComponent(j,0) << ",";
+            }
+            std::cout << " "<< std::endl;
+        }
 
+    }*/
 
+    std::cout << "start of voxel reading code." << std::endl;
+    for(int t = 0;t<dim[dim[0]];t++)
+    {
+        std::cout << "time slice: " << t << std::endl;
+        matrix.readFrame(t);
+        for(int k = 0;k<dim[3];k++)
+        {
+            std::cout << "k dimension: " << k << std::endl;
+            for(int j = 0;j<dim[2];j++)
+            {
+                for(int i = 0;i<dim[1];i++)
+                {
+                    matrix.translateVoxel(i,j,k,index);
 
+                    result = matrix.getComponent(index,0);
+                    std::cout << index << ":" << result << ",";
+                }
+                std::cout << std::endl;
+            }
+        }
+    }
 }

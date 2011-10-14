@@ -170,6 +170,7 @@ NiftiDataTypeEnum::findData(Enum e)
         iter != dataTypes.end();
    iter++) {
       const NiftiDataTypeEnum& ndt = *iter;
+      if(ndt.e == e)
       return &ndt;
    }    
    return NULL;

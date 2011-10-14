@@ -35,12 +35,11 @@ class NiftiMatrix
 {
 public:
     NiftiMatrix();
-    NiftiMatrix(const QFile &filename) throw (NiftiException);
     //NiftiMatrix(const AString &filename) throw (NiftiException);
     //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
-    NiftiMatrix(QFile &filein);
-    NiftiMatrix(QFile &filein, const int64_t &offsetin);
-    ~NiftiMatrix();
+    NiftiMatrix(const QFile &filein);
+    NiftiMatrix(const QFile &filein, const int64_t &offsetin);
+    ~NiftiMatrix() { clearMatrix();};
 
     void init();
 
@@ -77,7 +76,7 @@ public:
 
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
-    void readFrame(int64_t timeSlice=0L);//for loading a frame at a time
+    void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
     void setFrame(float *matrixIn, int64_t &matrixLengthIn, int64_t timeSlice = 0L)  throw(NiftiException);
     void writeFrame(int64_t &timeSlice) throw(NiftiException);
     // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
@@ -93,6 +92,7 @@ public:
 
     private:
     void reAllocateMatrixIfNeeded();
+    void clearMatrix();
     //frames represent brain volumes on disk, the matrix is the internal storage for the matrix after it has been loaded from the file.
     uint64_t calculateFrameLength(const std::vector<int> &dimensionsIn) const;
     uint64_t calculateFrameSizeInBytes(const uint64_t &frameLengthIn, const uint32_t &valueByteSizeIn, const uint32_t &componentDimensionsIn) const;
