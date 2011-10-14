@@ -29,9 +29,6 @@
 #include "GiftiMetaDataXmlElements.h"
 #include "MathFunctions.h"
 
-//TODO: figure out if we should allow this circular dependency (currently used for computeNormals with neighbor averaging)
-#include "TopologyHelper.h"
-
 using namespace caret;
 
 /**
@@ -90,6 +87,8 @@ void
 SurfaceFile::clear()
 {
     GiftiTypeFile::clear();
+    invalidateGeoHelpers();
+    invalidateTopoHelpers();
 }
 
 /**
@@ -269,6 +268,8 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->coordinatePointer   = NULL;
     this->triangleDataArray   = NULL;
     this->trianglePointer     = NULL;
+    invalidateGeoHelpers();
+    invalidateTopoHelpers();
 }
 
 /**
@@ -375,7 +376,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
             std::vector<float> avgTemp;
             std::vector<int32_t> neighbors;
             float tempVec[3];
-            TopologyHelper myTopoHelp(this);
+            CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();
             avgTemp.resize(numCoords * 3);
             for (int32_t i = 0; i < numCoords; ++i)
             {
@@ -383,7 +384,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
                 tempVec[0] = 0.0f;
                 tempVec[1] = 0.0f;
                 tempVec[2] = 0.0f;
-                myTopoHelp.getNodeNeighbors(i, neighbors);
+                myTopoHelp->getNodeNeighbors(i, neighbors);
                 int32_t numNeigh = (int32_t)neighbors.size();
                 for (int32_t j = 0; j < numNeigh; ++j)
                 {
@@ -459,3 +460,57 @@ SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
                                         geometricTypeName);
 }
 
+CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper()
+{
+    if (m_geoBase == NULL)
+    {
+        m_geoHelpers.clear();//just to be sure
+        m_geoHelperIndex = 0;
+        m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));
+    }
+    int32_t myIndex = m_geoHelperIndex;
+    int32_t myEnd = m_geoHelpers.size();
+    for (int32_t i = 0; i < myEnd; ++i)
+    {
+        if (myIndex > myEnd) myIndex = 0;
+        if (m_geoHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
+        {
+            return m_geoHelpers[myIndex];
+        }
+        ++myIndex;
+    }
+    CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
+    m_geoHelpers.push_back(ret);
+    return ret;
+}
+
+CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted)
+{
+    int32_t myIndex = m_topoHelperIndex;
+    int32_t myEnd = m_topoHelpers.size();
+    for (int32_t i = 0; i < myEnd; ++i)
+    {
+        if (myIndex > myEnd) myIndex = 0;
+        if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
+        {//NOTE: assumes not asking for sorted info can use sorted info, but it would have to be REALLY broken to require a specific unsorted ordering that can't be changed
+            return m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+        }
+        ++myIndex;
+    }
+    CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));
+    m_topoHelpers.push_back(ret);
+    return ret;
+}
+
+void SurfaceFile::invalidateGeoHelpers()
+{
+    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
+    m_geoHelperIndex = 0;
+    m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+}
+
+void caret::SurfaceFile::invalidateTopoHelpers()
+{
+    m_topoHelperIndex = 0;
+    m_topoHelpers.clear();
+}

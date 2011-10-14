@@ -153,23 +153,22 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
 
 void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myKernel)
 {
-    GeodesicHelperBase myGeoBase(mySurf);
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    TopologyHelper myTopoHelp(mySurf);
-    GeodesicHelper myGeoHelp(myGeoBase);
+    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+    CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
     vector<float> distances;
     for (int32_t i = 0; i < numNodes; ++i)
     {
-        myGeoHelp.getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
+        myGeoHelp->getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
         if (distances.size() < 7)
         {
-            myTopoHelp.getNodeNeighbors(i, m_weightLists[i].m_nodes);
+            myTopoHelp->getNodeNeighbors(i, m_weightLists[i].m_nodes);
             m_weightLists[i].m_nodes.push_back(i);
-            myGeoHelp.getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
+            myGeoHelp->getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
         }
         int32_t numNeigh = (int32_t)distances.size();
         m_weightLists[i].m_weights.resize(numNeigh);
@@ -185,24 +184,23 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
 
 void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi)
 {
-    GeodesicHelperBase myGeoBase(mySurf);
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    TopologyHelper myTopoHelp(mySurf);
-    GeodesicHelper myGeoHelp(myGeoBase);
+    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+    CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
     vector<float> distances;
     vector<int32_t> nodes;
     for (int32_t i = 0; i < numNodes; ++i)
     {
-        myGeoHelp.getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+        myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
         if (distances.size() < 7)
         {
-            myTopoHelp.getNodeNeighbors(i, nodes);
+            myTopoHelp->getNodeNeighbors(i, nodes);
             nodes.push_back(i);
-            myGeoHelp.getGeoToTheseNodes(i, nodes, distances, true);
+            myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
         }
         int32_t numNeigh = (int32_t)distances.size();
         m_weightLists[i].m_weights.reserve(numNeigh);

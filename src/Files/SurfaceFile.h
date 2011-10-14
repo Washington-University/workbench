@@ -31,6 +31,9 @@
 
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
+#include "CaretPointer.h"
+#include "TopologyHelper.h"
+#include "GeodesicHelper.h"
 
 namespace caret {
 
@@ -72,6 +75,10 @@ namespace caret {
         
         void setSurfaceType(const SurfaceTypeEnum::Enum surfaceType);
         
+        CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false);
+        
+        CaretPointer<GeodesicHelper> getGeodesicHelper();
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -102,6 +109,25 @@ namespace caret {
 
         /** The node coloring. */
         std::vector<float> nodeColoring;
+        
+        ///tracks allocated TopologyHelpers for this class
+        std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
+        
+        ///used to search through topology helpers without starting from 0 every time, wraps around
+        int32_t m_topoHelperIndex;
+        
+        ///the geodesic base for this surface
+        CaretPointer<GeodesicHelperBase> m_geoBase;
+        
+        ///tracks allocated geodesic helpers for this class
+        std::vector<CaretPointer<GeodesicHelper> > m_geoHelpers;
+        
+        ///used to search through geodesic helpers without starting from 0 every time, wraps around
+        int32_t m_geoHelperIndex;
+        
+        ///used to track when the surface file gets changed
+        void invalidateGeoHelpers();
+        void invalidateTopoHelpers();
     };
 
 } // namespace
