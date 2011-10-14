@@ -129,12 +129,12 @@ OverlaySelectionControl::createLayers()
             gridLayout->addWidget(new QLabel("On"), row, 0);
             switch (dataType) {
                 case SURFACE:
-                    gridLayout->addWidget(new QLabel("File"), row, 1);
-                    gridLayout->addWidget(new QLabel("Column"), row, 2);
+                    gridLayout->addWidget(new QLabel("File"), row, 1, Qt::AlignHCenter);
+                    gridLayout->addWidget(new QLabel("Map"), row, 2, Qt::AlignHCenter);
                     break;
                 case VOLUME:
-                    gridLayout->addWidget(new QLabel("Type"), row, 1);
-                    gridLayout->addWidget(new QLabel("Volume"), row, 2);
+                    gridLayout->addWidget(new QLabel("Volume"), row, 1, Qt::AlignHCenter);
+                    gridLayout->addWidget(new QLabel("Type"), row, 2, Qt::AlignHCenter);
                     break;
             }
             gridLayout->addWidget(new QLabel("Hist"), row, 3);
@@ -172,10 +172,10 @@ OverlaySelectionControl::createLayers()
             gridLayout->addWidget(new QLabel("On"), row, 0);
             switch (dataType) {
                 case SURFACE:
-                    gridLayout->addWidget(new QLabel("File/Column"), row, 1);
+                    gridLayout->addWidget(new QLabel("File/Map"), row, 1, Qt::AlignHCenter);
                     break;
                 case VOLUME:
-                    gridLayout->addWidget(new QLabel("Type/Volume"), row, 1);
+                    gridLayout->addWidget(new QLabel("Volume/Type"), row, 1, Qt::AlignHCenter);
                     break;
             }
             gridLayout->addWidget(new QLabel("Adjust"), row, 2, 1, 3, Qt::AlignHCenter);

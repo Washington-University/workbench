@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 
@@ -35,7 +36,7 @@ using namespace caret;
  * Constructor.
  */
 SurfaceFile::SurfaceFile()
-: GiftiTypeFile()
+: GiftiTypeFile(DataFileTypeEnum::SURFACE)
 {
     this->initializeMembersSurfaceFile();
 }

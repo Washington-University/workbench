@@ -66,12 +66,6 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->surfaceOverlayControl = this->createSurfaceLayersWidget(overlayControlOrientation);
     this->volumeOverlayControl  = this->createVolumeLayersWidget(overlayControlOrientation);
     
-    this->layersTabWidget = new QTabWidget();
-    this->layersTabWidget->setUsesScrollButtons(true);
-    this->layersTabWidget->addTab(this->surfaceOverlayControl, "Surface");
-    this->layersTabWidget->addTab(this->volumeOverlayControl, "Volume");
-
-    
     
     //this->connectivityWidget   = this->createConnectivityWidget();
     //this->metricWidget   = this->createMetricWidget();
@@ -79,7 +73,8 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     this->tabWidget = new QTabWidget();
     this->tabWidget->setUsesScrollButtons(true);
-    this->tabWidget->addTab(this->layersTabWidget, "Layers");
+    this->tabWidget->addTab(this->surfaceOverlayControl, "Surface");
+    this->tabWidget->addTab(this->volumeOverlayControl, "Volume");
     //this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->labelWidget, "Label");
     //this->tabWidget->addTab(this->metricWidget, "Metric");
@@ -101,8 +96,6 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     }
     this->dockFloated(false);
 
-    QObject::connect(this->layersTabWidget, SIGNAL(currentChanged(int)),
-                     this, SLOT(updateDisplayedPanel()));
     QObject::connect(this->tabWidget, SIGNAL(currentChanged(int)),
                      this, SLOT(updateDisplayedPanel()));
     
@@ -156,9 +149,9 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
     //surfaceWidgetIndex = 0;
     
     if (surfaceWidgetIndex >= 0) {
-        QWidget* viewedWidget = this->layersTabWidget->currentWidget();
+        QWidget* viewedWidget = this->tabWidget->currentWidget();
                 
-        this->layersTabWidget->setCurrentWidget(viewedWidget);
+        this->tabWidget->setCurrentWidget(viewedWidget);
         
         /*
         std::cout << "Widget index: " << surfaceWidgetIndex << std::endl;
@@ -354,17 +347,11 @@ void
 BrainBrowserWindowToolBox::updateDisplayedPanel()
 {
     const QWidget* selectedTopLevelWidget = this->tabWidget->currentWidget();
-    if (selectedTopLevelWidget == this->layersTabWidget) {
-        const QWidget* selectedLayerWidget = this->layersTabWidget->currentWidget();
-        if (selectedLayerWidget == this->surfaceOverlayControl) {
-            this->surfaceOverlayControl->updateControl();
-        }
-        else if (selectedLayerWidget == this->volumeOverlayControl) {
-            this->volumeOverlayControl->updateControl();
-        }
-        else {
-            CaretAssertMessage(0, "Invalid layers widget in ToolBox.");
-        }
+    if (selectedTopLevelWidget == this->surfaceOverlayControl) {
+        this->surfaceOverlayControl->updateControl();
+    }
+    else if (selectedTopLevelWidget == this->volumeOverlayControl) {
+        this->volumeOverlayControl->updateControl();
     }
     else {
         CaretAssertMessage(0, "Invalid top level widget in ToolBox.");

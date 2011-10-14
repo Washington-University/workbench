@@ -24,6 +24,7 @@
 
 #include "CaretAssert.h"
 
+#include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
@@ -35,7 +36,7 @@ using namespace caret;
  * Constructor.
  */
 MetricFile::MetricFile()
-: GiftiTypeFile()
+: GiftiTypeFile(DataFileTypeEnum::METRIC)
 {
     this->initializeMembersMetricFile();
 }

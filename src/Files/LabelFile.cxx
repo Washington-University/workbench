@@ -24,6 +24,7 @@
 
 #include "CaretAssert.h"
 
+#include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
 #include "LabelFile.h"
@@ -34,7 +35,7 @@ using namespace caret;
  * Constructor.
  */
 LabelFile::LabelFile()
-: GiftiTypeFile()
+: GiftiTypeFile(DataFileTypeEnum::LABEL)
 {
     this->initializeMembersLabelFile();
 }

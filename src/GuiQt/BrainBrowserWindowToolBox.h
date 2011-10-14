@@ -61,8 +61,6 @@ namespace caret {
         
         QTabWidget* tabWidget;
         
-        QTabWidget* layersTabWidget;
-        
         OverlaySelectionControl* surfaceOverlayControl;
         
         OverlaySelectionControl* volumeOverlayControl;

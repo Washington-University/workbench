@@ -554,7 +554,11 @@ OverlaySelectionControlLayer::updateSurfaceControl(BrowserTabContent* browserTab
     const int32_t numFiles = static_cast<int32_t>(dataFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
         GiftiTypeFile* dataFile = dataFiles[i];
-        this->fileSelectionComboBox->addItem(dataFile->getFileNameNoPath(),
+        
+        AString name = DataFileTypeEnum::toName(dataFile->getDataFileType())
+        + " "
+        + dataFile->getFileNameNoPath();
+        this->fileSelectionComboBox->addItem(name,
                                              qVariantFromValue((void*)dataFile));
         if (dataFile == selectedFile) {
             selectedFileIndex = i;

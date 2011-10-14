@@ -38,8 +38,8 @@ using namespace caret;
 /**
  * Constructor.
  */
-GiftiTypeFile::GiftiTypeFile()
-: DataFile()
+GiftiTypeFile::GiftiTypeFile(const DataFileTypeEnum::Enum dataFileType)
+: CaretDataFile(dataFileType)
 {
     this->initializeMembersGiftiTypeFile();   
 }
@@ -62,7 +62,7 @@ GiftiTypeFile::~GiftiTypeFile()
  *    File that is copied.
  */
 GiftiTypeFile::GiftiTypeFile(const GiftiTypeFile& gtf)
-: DataFile(gtf)
+: CaretDataFile(gtf)
 {
     this->copyHelperGiftiTypeFile(gtf);
 }
@@ -259,6 +259,24 @@ GiftiTypeFile::setStructure(const StructureEnum::Enum structure)
                       structureName);
     }
     
+}
+
+/**
+ * @return Get access to the file's metadata.
+ */
+GiftiMetaData* 
+GiftiTypeFile::getFileMetaData()
+{
+    return this->giftiFile->getMetaData();
+}
+
+/**
+ * @return Get access to unmodifiable file's metadata.
+ */
+const GiftiMetaData* 
+GiftiTypeFile::getFileMetaData() const
+{
+    return this->giftiFile->getMetaData();
 }
 
 /**

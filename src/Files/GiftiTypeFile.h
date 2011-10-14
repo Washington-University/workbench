@@ -28,7 +28,7 @@
 
 #include <AString.h>
 
-#include "DataFile.h"
+#include "CaretDataFile.h"
 #include "StructureEnum.h"
 
 namespace caret {
@@ -37,10 +37,10 @@ namespace caret {
     class PaletteColorMapping;
     
     /// Encapsulates a GiftiFile for use by specific types of GIFTI data files.
-    class GiftiTypeFile : public DataFile {
+    class GiftiTypeFile : public CaretDataFile {
         
     protected:
-        GiftiTypeFile();
+        GiftiTypeFile(const DataFileTypeEnum::Enum dataFileType);
         
         virtual ~GiftiTypeFile();
 
@@ -76,9 +76,13 @@ namespace caret {
         
         virtual AString toString() const;
         
-        StructureEnum::Enum getStructure() const;
+        virtual GiftiMetaData* getFileMetaData();
         
-        void setStructure(const StructureEnum::Enum structure);
+        virtual const GiftiMetaData* getFileMetaData() const;
+        
+        virtual StructureEnum::Enum getStructure() const;
+        
+        virtual void setStructure(const StructureEnum::Enum structure);
         
         /** @return  Number of nodes in the file. */
         virtual int32_t getNumberOfNodes() const = 0;
