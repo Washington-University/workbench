@@ -28,15 +28,34 @@
 #include "TestInterface.h"
 #include "NiftiMatrix.h"
 
+
 namespace caret {
 
 class NiftiMatrixTest : public TestInterface
 {
 public:
     NiftiMatrixTest(const AString& identifier);
-    void LoadMatrix(AString &matrixfile, LayoutType &layout,NiftiMatrix &matrix );
-    void getFrame(NiftiMatrix &matrix,int64_t &timeSlice, float *&frame);
-    void printFrame(LayoutType &layout, float *&frame);
+    void testReader();
+    void setupReaderMatrices(NiftiMatrix &floatMatrix,
+                      NiftiMatrix &floatMatrixBE,
+                      NiftiMatrix &doubleMatrix,
+                      NiftiMatrix &doubleMatrixBE);
+    void setupWriterMatrices(NiftiMatrix &floatMatrix,
+                      NiftiMatrix &floatMatrixBE,
+                      NiftiMatrix &doubleMatrix,
+                      NiftiMatrix &doubleMatrixBE);
+    void setupLayouts(NiftiMatrix &floatMatrix,
+                      NiftiMatrix &floatMatrixBE,
+                      NiftiMatrix &doubleMatrix,
+                      NiftiMatrix &doubleMatrixBE);
+    void testWriter();
+
+    void getFrame(NiftiMatrix &matrix,uint64_t &timeSlice, float *frame);
+    void printFrame(NiftiMatrix &matrix, float *frame);
+    void compareMatrices(std::vector <NiftiMatrix *> &matrices);
+
+
+    void setFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame);
 
     //printfloat(
     //printdouble(AString &matrixfile);

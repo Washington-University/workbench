@@ -67,6 +67,14 @@ void NiftiMatrix::init()
     matrix = NULL;
     matrixLength = 0;
     layoutSet = false;
+    frameLoaded = false;
+    currentTime = 0;
+}
+
+void NiftiMatrix::setMatrixFile(const QFile &filein){
+    this->clearMatrix();
+    init();
+    file.setFileName(filein.fileName());
 }
 
 void NiftiMatrix::setNiftiHeader(Nifti1Header &headerin)
@@ -149,11 +157,17 @@ void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
 {
 
     layout = (*this);
+    frameLength = calculateFrameLength(dimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    layoutSet = true;
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
 {
-    static_cast <LayoutType> (*this) = layout;
+    *(static_cast <LayoutType *> (this)) = layout;
+    frameLength = calculateFrameLength(dimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    layoutSet = true;
 }
 
 void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const
@@ -203,14 +217,14 @@ void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti2Header &headerIn)
 
 void NiftiMatrix::clearMatrix()
 {
-    if(matrix) delete matrix;
+    if(matrix) delete []matrix;
     matrixLength = 0;
 }
 
 void NiftiMatrix::reAllocateMatrixIfNeeded()
 {
     if(matrixLength != calculateMatrixLength(frameLength,componentDimensions)) {
-        if(matrix) delete matrix;
+        if(matrix) delete []matrix;
         matrixLength = calculateMatrixLength(frameLength,componentDimensions);
         matrix = new float[matrixLength];
     }
@@ -223,11 +237,20 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
     uint64_t frameOffset = matrixStartOffset+frameSize*timeSlice;
     uint8_t *bytes = NULL;
     bytes = new uint8_t[frameSize];
-
+    if(!bytes) {
+        throw NiftiException("There was an error allocating memory for reading.");
+        return;
+    }
+    try {
     file.open(QIODevice::ReadOnly);
     file.seek(frameOffset);
     file.read((char *)bytes,frameSize);
     file.close();
+    }
+    catch (...) {
+        std::cout << "Exception reading from:" << file.fileName() << std::endl;
+        //std::cout << file.FileError << std::endl;
+    }
     //convert to floats
     //for the special case of RGB, we convert each byte in an RGB array to floats so that we can use the same float matrix for all other functions
 
@@ -241,10 +264,10 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
         break;
     case NIFTI_TYPE_FLOAT64:
         if(needsSwapping) ByteSwapping::swapBytes((double *)bytes, frameLength);
-        for(int i;i<matrixLength;i++) matrix[i] = ((double *)bytes)[i];
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((double *)bytes)[i];
         break;
     case NIFTI_TYPE_RGB24:
-        for(int i;i<matrixLength;i++) matrix[i] = bytes[i];
+        for(int i=0;i<matrixLength;i++) matrix[i] = bytes[i];
         break;
     default:
         throw NiftiException("Unrecognized Nifti Data found when reading frame.");
@@ -252,7 +275,7 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
     }
     //cleanup
     frameLoaded = true;
-    delete bytes;
+    delete [] bytes;
 }
 
 void NiftiMatrix::writeFrame(int64_t &timeSlice) throw(NiftiException)
@@ -271,7 +294,7 @@ void NiftiMatrix::writeFrame(int64_t &timeSlice) throw(NiftiException)
             bytes[i]=matrix[i];
         }
         file.write((char *)bytes,frameLength);
-        delete bytes;
+        delete [] bytes;
     }
     else //for now, for all other types, we convert to float32, will discuss with John if we want to preserve
          //data type for writing, or if we will have situations where we want to modify nifti files inline

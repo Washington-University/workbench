@@ -36,22 +36,152 @@ NiftiMatrixTest::NiftiMatrixTest(const AString &identifier) : TestInterface(iden
 
 }
 
-void initMatrix(AString &matrixfile,LayoutType &layout)
-{
-    NiftiMatrix matrix(matrixfile);
-    matrix.setMatrixLayoutOnDisk(layout);
-}
-
-void getFrame(NiftiMatrix &matrix, int64_t timeSlice, float *&frame)
+void NiftiMatrixTest::getFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame)
 {
     matrix.readFrame(timeSlice);
 
     //for purposes of comparison I will be returning the entire frame
     uint64_t frameLength = matrix.getFrameLength();
-    for(uint64_t i = 0;i<frameLength;i++) frame[(int)i] = matrix.getComponent(i,0);
+    for(uint64_t i = 0;i<frameLength;i++) frame[i] = matrix.getComponent(i,0);
 }
 
-void printFrame(NiftiMatrix &matrix, float * &frame)
+void NiftiMatrixTest::testWriter()
+{
+
+}
+
+
+void NiftiMatrixTest::execute()
+{
+    testReader();
+    //testWriter();
+
+
+}
+
+void NiftiMatrixTest::setupLayouts(NiftiMatrix &floatMatrix,
+                               NiftiMatrix &floatMatrixBE,
+                               NiftiMatrix &doubleMatrix,
+                               NiftiMatrix &doubleMatrixBE
+)
+{
+    //define layouts matrix layout is 10,8,6,4
+    std::vector <int32_t> dim(5,0);
+    dim[0]=4;dim[1]=10;dim[2]=8;dim[3]=6;dim[4]=4;
+
+    // below we define four layouts
+    LayoutType floatLayout;
+    floatLayout.dimensions = dim;
+    floatLayout.componentDimensions = 1;
+    floatLayout.layoutSet = true;
+    floatLayout.needsSwapping = false;
+    floatLayout.niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
+    floatLayout.valueByteSize = 4;
+    LayoutType floatLayoutBE( floatLayout);
+    floatLayoutBE.needsSwapping = true;
+    LayoutType doubleLayout(floatLayout);
+    doubleLayout.niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT64;
+    doubleLayout.valueByteSize = 8;
+    LayoutType doubleLayoutBE(doubleLayout);
+    doubleLayoutBE.needsSwapping = true;
+
+    floatMatrix.setMatrixLayoutOnDisk(floatLayout);
+    floatMatrixBE.setMatrixLayoutOnDisk(floatLayoutBE);
+    doubleMatrix.setMatrixLayoutOnDisk(doubleLayout);
+    doubleMatrixBE.setMatrixLayoutOnDisk(doubleLayoutBE);
+
+}
+
+//tecnically any matrix can be read/written from, however, this are ONLY read from
+void NiftiMatrixTest::setupReaderMatrices(NiftiMatrix &floatMatrix,
+NiftiMatrix &floatMatrixBE,
+NiftiMatrix &doubleMatrix,
+NiftiMatrix &doubleMatrixBE)
+{
+    //define file paths
+    AString path = m_default_path + "/nifti";
+    floatMatrix.setMatrixFile( path+"/testmatrix.float");
+    floatMatrixBE.setMatrixFile( path+"/testmatrix.floatbe");
+    doubleMatrix.setMatrixFile( path+"/testmatrix.double");
+    doubleMatrixBE.setMatrixFile( path+"/testmatrix.doublebe");
+    setupLayouts(floatMatrix,floatMatrixBE,doubleMatrix,doubleMatrixBE);
+}
+
+//we copy data from the "read" matrices using the api, then test to make sure data has
+//been read/written properly
+void NiftiMatrixTest::setupWriterMatrices(NiftiMatrix &floatMatrix,
+NiftiMatrix &floatMatrixBE,
+NiftiMatrix &doubleMatrix,
+NiftiMatrix &doubleMatrixBE)
+{
+    //define file paths
+    AString path = m_default_path + "/nifti";
+    floatMatrix.setMatrixFile( path+"/testmatrix.float");
+    floatMatrixBE.setMatrixFile( path+"/testmatrix.floatbe");
+    doubleMatrix.setMatrixFile( path+"/testmatrix.double");
+    doubleMatrixBE.setMatrixFile( path+"/testmatrix.doublebe");
+    setupLayouts(floatMatrix,floatMatrixBE,doubleMatrix,doubleMatrixBE);
+}
+
+void NiftiMatrixTest::testReader()
+{
+    NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
+    setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
+    std::vector <NiftiMatrix *> matrices;
+    matrices.push_back( &floatMatrix);
+    matrices.push_back(&floatMatrixBE);
+    matrices.push_back(&doubleMatrix);
+    matrices.push_back(&doubleMatrixBE);
+    int size = matrices.size();
+    compareMatrices(matrices);
+}
+
+void NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
+{
+    //below we load frames, note that all values are stored as floats,
+    //the word double denotes what file on disk it was stored as.
+    //need better sanity checking in the future, such as comparing layouts, not just frame lengths
+    NiftiMatrix *mat = matrices[0];
+    uint64_t frameLength = matrices[0]->getFrameLength();
+    for(uint32_t i = 0;i<matrices.size();i++)
+    {
+        if(frameLength!=matrices[i]->getFrameLength())
+        {
+            setFailed("Error comparing matrices, they do not have the same frame size.");
+            return;
+        }
+    }
+    std::vector<float *> frames;
+    for(uint i = 0;i<matrices.size();i++)
+    {
+        frames.push_back(new float[frameLength]);
+    }
+    LayoutType layout;
+    mat->getMatrixLayoutOnDisk(layout);
+    std::vector <int32_t> dim = layout.dimensions;
+
+
+    for(uint64_t t=0;t<dim[4];t++)
+    {
+        for(uint i = 0;i < matrices.size();i++)
+        {
+            this->getFrame(*(matrices[i]),t,(float *)(frames[i]));
+        }
+
+        for(uint i=0;i<(matrices.size()-1);i++)
+        {
+            if(memcmp(frames[i],frames[i+1],frameLength*sizeof(float)))
+            {
+                setFailed("Error reading frames using NiftiMatrix");
+                return;
+            }
+        }
+        std::cout << "reading time slice "<< t << " was successful for all supported formats" << std::endl;
+    }
+}
+
+// below should only be used when troubleshooting test problems, as it generates a lot of output
+void NiftiMatrixTest::printFrame(NiftiMatrix &matrix, float * frame)
 {
     LayoutType layout;
     matrix.getMatrixLayoutOnDisk(layout);
@@ -72,114 +202,6 @@ void printFrame(NiftiMatrix &matrix, float * &frame)
     }
 }
 
-/*
-void printMatrix(NiftiMatrix &matrix)
-{
-
-    uint64_t index = 0;
-    float result = 0.0f;
-
-
-    std::cout << "start of voxel reading code." << std::endl;
-    for(int t = 0;t<dim[dim[0]];t++)
-    {
-        std::cout << "time slice: " << t << std::endl;
-    uint64_t index = 0;
-    float result = 0.0f;
-
-
-    std::cout << "start of voxel reading code." << std::endl;
-    for(int t = 0;t<dim[dim[0]];t++)
-    {
-        std::cout << "time slice: " << t << std::endl;
-        matrix.readFrame(t);
-        for(int k = 0;k<dim[3];k++)
-        {
-            std::cout << "k dimension: " << k << std::endl;
-            for(int j = 0;j<dim[2];j++)
-            {
-                for(int i = 0;i<dim[1];i++)
-                {
-                    matrix.translateVoxel(i,j,k,index);
-
-                    result = matrix.getComponent(index,0);
-                    std::cout << index << ":" << result << ",";
-                }
-                std::cout << std::endl;
-            }
-        }
-    }
-    }
-}*/
 
 
 
-/*
-void NiftiMatrix::get(AString &matrixfile)
-{
-
-    NiftiMatrix matrix(filename);
-
-    matrix.setDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
-    //std::vector <int32_t> dim = {4,10,8,6,4}; c++0x specific
-    std::vector <int32_t> dim(5,0);
-
-    {//this get's less ugly the longer the list is...
-        int32_t dim2[] = {4,10,8,6,4};
-        for(uint32_t i=0;i<sizeof(dim2)/sizeof(int32_t);i++)dim.push_back(dim2[i]);
-    }
-    matrix.setMatrixLayoutOnDisk(dim,1,sizeof(float),false);
-    uint64_t index = 0;
-    float result = 0.0f;
-
-
-    std::cout << "start of voxel reading code." << std::endl;
-    for(int t = 0;t<dim[dim[0]];t++)
-    {
-        std::cout << "time slice: " << t << std::endl;
-        matrix.readFrame(t);
-        for(int k = 0;k<dim[3];k++)
-        {
-            std::cout << "k dimension: " << k << std::endl;
-            for(int j = 0;j<dim[2];j++)
-            {
-                for(int i = 0;i<dim[1];i++)
-                {
-                    matrix.translateVoxel(i,j,k,index);
-
-                    result = matrix.getComponent(index,0);
-                    std::cout << index << ":" << result << ",";
-                }
-                std::cout << std::endl;
-            }
-        }
-    }
-}*/
-
-void NiftiMatrixTest::execute()
-{
-    //matrix layout is 10,8,6,4
-    AString path = m_default_path + "/nifti";
-    AString filename = path+"/testmatrix.float";
-
-
-}
-
-
-
-
-//dead code
-/*for(int t = 0;t<4;t++)
-{
-    std::cout << "time slice" << t << std::endl;
-    matrix.readFrame(t);
-    for(int i = 0;i<8*6;i++)
-    {
-        for(int j = i*10;j<(i+1)*10;j++)
-        {
-            std::cout << matrix.getComponent(j,0) << ",";
-        }
-        std::cout << " "<< std::endl;
-    }
-
-}*/

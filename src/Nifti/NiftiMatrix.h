@@ -50,8 +50,9 @@ public:
     //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
     NiftiMatrix(const QFile &filein);
     NiftiMatrix(const QFile &filein, const int64_t &offsetin);
-    ~NiftiMatrix() { clearMatrix();};
+    ~NiftiMatrix() { clearMatrix();}
 
+    void setMatrixFile(const QFile &filein);
     void init();
 
     void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
