@@ -27,6 +27,7 @@
  */
 #include <QVector>
 #include <QWidget>
+#include <stdint.h>
 
 class QPushButton;
 

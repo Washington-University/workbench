@@ -23,6 +23,7 @@
  */ 
 #include "Nifti1Header.h"
 #include <vector>
+#include "stdint.h"
 
 using namespace caret;
 
@@ -256,10 +257,10 @@ void Nifti1Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(Nift
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     switch(m_header.datatype) {
     case NIFTI_TYPE_FLOAT32:
-        valueByteSizeOut = sizeof(float_t);
+        valueByteSizeOut = sizeof(float);
         break;
     case NIFTI_TYPE_FLOAT64:
-        valueByteSizeOut = sizeof(double_t);
+        valueByteSizeOut = sizeof(double);
         break;
     case NIFTI_TYPE_RGB24:
         valueByteSizeOut = 1;

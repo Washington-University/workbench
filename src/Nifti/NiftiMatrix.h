@@ -29,6 +29,7 @@
 #include "QFile"
 #include "AString.h"
 #include "VolumeFile.h"
+#include "stdint.h"
 namespace caret {
 
 struct  LayoutType {
@@ -133,7 +134,7 @@ public:
 
     // matrix data
     int64_t currentTime;
-    float_t *matrix;
+    float *matrix;
     int64_t matrixLength;//length of array
     bool matrixLoaded;
 };

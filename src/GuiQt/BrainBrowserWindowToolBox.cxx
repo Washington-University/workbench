@@ -329,7 +329,7 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(uiEvent);
+        dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
         uiEvent->setEventProcessed();
