@@ -67,9 +67,12 @@ namespace caret {
     signals:
         void layersChanged();
         
+        /** Emitted when a control is removed and container should shrink */
+        void controlRemoved();
+        
     private slots:
         void addLayer();
-        
+
     private:
         OverlaySelectionControl(const OverlaySelectionControl&);
         OverlaySelectionControl& operator=(const OverlaySelectionControl&);

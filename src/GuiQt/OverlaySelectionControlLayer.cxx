@@ -303,6 +303,8 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
     
     this->overlaySelectionControl->updateControl();
     
+    emit controlRemoved();
+    
     EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
     EventManager::get()->sendEvent(updateGraphics.getPointer());
 }

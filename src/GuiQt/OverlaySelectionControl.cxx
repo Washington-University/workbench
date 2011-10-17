@@ -117,7 +117,7 @@ OverlaySelectionControl::createLayers()
 {
     const bool smallArrowButtonsFlag = true;
     
-    QGroupBox* gridWidget = new QGroupBox("Grid");
+    QGroupBox* gridWidget = new QGroupBox("");
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     gridLayout->setVerticalSpacing(0);
     gridLayout->setContentsMargins(0, 0, 0, 0);
@@ -212,6 +212,9 @@ OverlaySelectionControl::createLayers()
                                  this, this->dataType, 
                                  i);
         this->layers.append(layer);
+        
+        QObject::connect(layer, SIGNAL(controlRemoved()),
+                         this, SIGNAL(controlRemoved()));
         
         switch (orientation) {
             case HORIZONTAL:

@@ -80,6 +80,8 @@ namespace caret {
         void processMoveTabToWindowMenuAboutToBeDisplayed();
         void processMoveTabToWindowMenuSelection(QAction*);
         
+        void shrinkToolbox();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {

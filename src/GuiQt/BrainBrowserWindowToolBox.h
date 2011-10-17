@@ -31,6 +31,9 @@ namespace caret {
         ~BrainBrowserWindowToolBox();
         
         void receiveEvent(Event* event);
+
+    signals:
+        void controlRemoved();
         
     private slots:
         void dockFloated(bool);

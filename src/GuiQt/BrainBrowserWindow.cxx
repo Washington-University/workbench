@@ -89,7 +89,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                                            "ToolBox",
                                                            BrainBrowserWindowToolBox::TOP_OR_BOTTOM);
     this->addDockWidget(Qt::BottomDockWidgetArea,
-                        this->topBottomToolBox);
+                        this->topBottomToolBox,
+                        Qt::Horizontal);
+    QObject::connect(this->topBottomToolBox, SIGNAL(controlRemoved()),
+                     this, SLOT(shrinkToolbox()));
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
@@ -830,6 +833,48 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
             break;
         case Qt::TopDockWidgetArea:
             this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::TopDockWidgetArea, 
+                                this->topBottomToolBox,
+                                Qt::Horizontal);
+            break;
+        case Qt::BottomDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::BottomDockWidgetArea, 
+                                this->topBottomToolBox,
+                                Qt::Horizontal);
+            break;
+        default:
+            this->topBottomToolBox->setFloating(true);
+            break;
+    }
+    
+    this->shrinkToolbox();
+    /*
+     * This code will allow the region of the main window
+     * containing the dock widget to shrink without changing 
+     * the vertical size of the OpenGL graphics widget
+     * and without changing the width of the main window.
+     *
+    const int centralMinHeight = this->centralWidget()->minimumHeight();
+    const int centralMaxHeight = this->centralWidget()->maximumHeight();
+    this->centralWidget()->setFixedHeight(this->centralWidget()->height());
+    const int minWidth = this->minimumWidth();
+    const int maxWidth = this->maximumWidth();
+    this->setFixedWidth(this->width());
+    this->adjustSize();
+    this->setMinimumWidth(minWidth);
+    this->setMaximumWidth(maxWidth);
+    this->centralWidget()->setMinimumHeight(centralMinHeight);
+    this->centralWidget()->setMaximumHeight(centralMaxHeight);
+*/
+    /*
+    switch (area) {
+        case Qt::LeftDockWidgetArea:
+            break;
+        case Qt::RightDockWidgetArea:
+            break;
+        case Qt::TopDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
             this->addDockWidget(Qt::TopDockWidgetArea, this->topBottomToolBox);
             break;
         case Qt::BottomDockWidgetArea:
@@ -840,6 +885,55 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
             this->topBottomToolBox->setFloating(true);
             break;
     }
+*/
+}
+
+/**
+ * Shrink the toolbox after a control is removed.
+ */
+void 
+BrainBrowserWindow::shrinkToolbox()
+{
+    switch (this->dockWidgetArea(this->topBottomToolBox)) {
+        case Qt::LeftDockWidgetArea:
+            break;
+        case Qt::RightDockWidgetArea:
+            break;
+        case Qt::TopDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::TopDockWidgetArea, 
+                                this->topBottomToolBox,
+                                Qt::Horizontal);
+            break;
+        case Qt::BottomDockWidgetArea:
+            this->topBottomToolBox->setFloating(false);
+            this->addDockWidget(Qt::BottomDockWidgetArea, 
+                                this->topBottomToolBox,
+                                Qt::Horizontal);
+            break;
+        default:
+            this->topBottomToolBox->setFloating(true);
+            break;
+    }
+     /*
+     * This code will allow the region of the main window
+     * containing the dock widget to shrink without changing 
+     * the vertical size of the OpenGL graphics widget
+     * and without changing the width of the main window.
+     */
+     const int centralMinHeight = this->centralWidget()->minimumHeight();
+     const int centralMaxHeight = this->centralWidget()->maximumHeight();
+     this->centralWidget()->setFixedHeight(this->centralWidget()->height());
+     const int minWidth = this->minimumWidth();
+     const int maxWidth = this->maximumWidth();
+     this->setFixedWidth(this->width());
+     this->topBottomToolBox->adjustSize();
+     this->setFixedWidth(this->width());
+     this->adjustSize();
+     this->setMinimumWidth(minWidth);
+     this->setMaximumWidth(maxWidth);
+     this->centralWidget()->setMinimumHeight(centralMinHeight);
+     this->centralWidget()->setMaximumHeight(centralMaxHeight);
 }
 
 /**

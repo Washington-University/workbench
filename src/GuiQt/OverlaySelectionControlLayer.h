@@ -86,6 +86,10 @@ namespace caret {
         
         WuQWidgetObjectGroup* widgetGroup;
         
+    signals:
+        /** Emitted when a control is removed and container should shrink */
+        void controlRemoved();
+        
     public slots:
         void enableCheckBoxToggled(bool toggled);
         void opacityValueChanged(double value);

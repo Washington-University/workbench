@@ -12,6 +12,7 @@
 #include <QLayout>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <QSizePolicy>
 #include <QStackedWidget>
 #include <QStringList>
 #include <QTabWidget>
@@ -103,6 +104,8 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
                      this, SLOT(dockFloated(bool)));
     QObject::connect(this, SIGNAL(dockLocationChanged(Qt::DockWidgetArea)),
                      this, SLOT(dockMoved(Qt::DockWidgetArea)));
+    
+    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 }
 
 BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
@@ -120,6 +123,8 @@ BrainBrowserWindowToolBox::dockFloated(bool isFloated)
     }
     
     this->setWindowTitle(text);
+    
+    this->updateMySize();
 }
 
 void 
@@ -165,18 +170,28 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
     }
     
     this->updateMySize();
-    this->updateGeometry();
+    //this->updateGeometry();
 }
 
 void 
 BrainBrowserWindowToolBox::updateMySize()
 {
+//    this->adjustSize();
+//    this->setFixedHeight(this->sizeHint().height());
+
+/*
+    this->resize(this->minimumSizeHint());
+    this->updateGeometry();
+    this->adjustSize();
+    this->updateGeometry();
+ */
     /*
     QWidget* viewedWidget = this->layersTabWidget->currentWidget();
     GuiHelper::shrinkToMinimumSize(viewedWidget);
     GuiHelper::shrinkToMinimumSize(this->layersTabWidget);
     GuiHelper::shrinkToMinimumSize(this->tabWidget);
     */
+    /*    
     this->updateGeometry();
     
     switch (this->dockWidgetArea) {
@@ -193,6 +208,7 @@ BrainBrowserWindowToolBox::updateMySize()
             break;
     }
     this->updateGeometry();
+*/
 }
 
 OverlaySelectionControl* 
@@ -206,6 +222,9 @@ BrainBrowserWindowToolBox::createSurfaceLayersWidget(const OverlaySelectionContr
     QObject::connect(overlaySelectionControl, SIGNAL(layersChanged()),
                      this, SLOT(updateMySize()));
     
+    QObject::connect(overlaySelectionControl, SIGNAL(controlRemoved()),
+                     this, SIGNAL(controlRemoved()));
+    
     return overlaySelectionControl;
 }
 
@@ -218,6 +237,8 @@ BrainBrowserWindowToolBox::createVolumeLayersWidget(const OverlaySelectionContro
                                 OverlaySelectionControl::VOLUME);
     QObject::connect(overlaySelectionControl, SIGNAL(layersChanged()),
                      this, SLOT(updateMySize()));
+    QObject::connect(overlaySelectionControl, SIGNAL(controlRemoved()),
+                     this, SIGNAL(controlRemoved()));
     
     return overlaySelectionControl;
 }
