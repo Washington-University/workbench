@@ -32,20 +32,6 @@ NiftiMatrix::NiftiMatrix()
     init();
 }
 
-/*NiftiMatrix::NiftiMatrix(const AString &filename) throw (NiftiException)
-{
-    if(!QFile::exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
-    file.setFileName(filename);
-    matrixStartOffset = 0;
-}
-
-NiftiMatrix::NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException)
-{
-    if(!QFile::exists(filename)) throw NiftiException("Need a valid Nifti file to read/write to!");
-    file.setFileName(filename);
-    matrixStartOffset = offsetin;
-}*/
-
 NiftiMatrix::NiftiMatrix(const QFile &filein)
 {
     init();
@@ -62,7 +48,6 @@ NiftiMatrix::NiftiMatrix(const QFile &filein, const int64_t &offsetin)
 void NiftiMatrix::init()
 {
     needsSwapping = false;
-    niftiVersion = 0;
     matrixStartOffset = 0;
     matrix = NULL;
     matrixLength = 0;
@@ -77,53 +62,6 @@ void NiftiMatrix::setMatrixFile(const QFile &filein){
     init();
     file.setFileName(filein.fileName());
 }
-
-void NiftiMatrix::setNiftiHeader(Nifti1Header &headerin)
-{
-    niftiVersion = 1;
-    n1Header = headerin;
-}
-
-void NiftiMatrix::setNiftiHeader(Nifti2Header &headerin)
-{
-    niftiVersion = 2;
-    n2Header = headerin;
-}
-
-void NiftiMatrix::getDataType(NiftiDataTypeEnum::Enum &typeout) const
-{
-    typeout = niftiDataType;
-}
-
-void NiftiMatrix::setDataType(const NiftiDataTypeEnum::Enum &typein)
-{
-    niftiDataType = typein;
-}
-
-#if 0
-    array index, byte swap, cast, then data scaling
-
-    0000 1000 0100 1100 0200 1200 0010 1010 0110 1110 0210 1210 0001
-
-    index = 0;
-    for t = 0:dim4
-            for k = 0:dim3
-                    for j = 0:dim2
-                            for i = 0:dim1
-                                    translateVoxel(i, j, k, t, frame, index);
-                                    ++index;
-                            end
-                    end
-            end
-    end
-
-    void translateVoxel(i, j, k, t, frame, index)
-            for c = 0:components
-                    float temp = getComponent(index, component);
-                    myVolume.setValue(temp, i, j, k, t, c);
-            end
-    end
-#endif
 
 void NiftiMatrix::getVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (NiftiException)
 {
@@ -192,7 +130,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int32_t> &dimensionsI
     layoutSet = true;
 }
 
-void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti1Header &headerIn)
+void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     headerIn.getDimensions(this->dimensions);
@@ -204,7 +142,7 @@ void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti1Header &headerIn)
     layoutSet = true;
 }
 
-void NiftiMatrix::getLayoutFromNiftiHeader(const Nifti2Header &headerIn)
+void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     headerIn.getDimensions(this->dimensions);
@@ -294,32 +232,6 @@ void NiftiMatrix::flushCurrentFrame()
     if(!frameNeedsWriting) return;
     this->writeFrame();
 }
-
-/*
-void NiftiMatrix::writeFrame() throw(NiftiException)
-{
-    if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
-    uint64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
-    file.open(QIODevice::WriteOnly);
-    file.seek(frameOffset);
-    if(niftiDataType==NIFTI_TYPE_RGB24)
-    {
-        uint8_t *bytes = NULL;
-        bytes = new uint8_t [frameSize];
-        for(int i=0;i<frameLength;i++)
-        {
-            bytes[i]=matrix[i];
-        }
-        file.write((char *)bytes,frameLength);
-        delete [] bytes;
-    }
-    else //for now, for all other types, we convert to float32, will discuss with John if we want to preserve
-         //data type for writing, or if we will have situations where we want to modify nifti files inline
-    {
-        file.write((char *)matrix,frameSize);
-    }
-    file.close();
-}*/
 
 //for in place editing of files, we need to respect the original layout
 void NiftiMatrix::writeFrame() throw (NiftiException)

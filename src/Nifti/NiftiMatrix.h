@@ -63,14 +63,6 @@ public:
 
     // Below are low level functions for operating on generic matrix files, currently used by Nifti
 
-    // !!! NIFTI SPECIFIC nifti specific will, move to Nifti file !!!
-    void setNiftiHeader(Nifti1Header &headerin);
-    void setNiftiHeader(Nifti2Header &headerin);
-
-    void getLayoutFromNiftiHeader(const Nifti1Header &headerIn);
-    void getLayoutFromNiftiHeader(const Nifti2Header &headerIn);
-    // !!! END NIFTI SPECIFIC !!!
-
     // !!!SECTION 1: matrix reader set up!!!
     /*use functions below to setup layout first before reading a frame, so that the matrix reader "knows" how interpret/load/format the data into the internal matrix
       it's flexible, but the recommended usage is:
@@ -80,12 +72,10 @@ public:
 
     void setMatrixOffset(const int64_t &offsetin) throw (NiftiException);
 
-    //these two are a bit redundant, since one can get this info from set/getMatrixLayoutOnDisk
-    void setneedsSwapping(bool &needsSwappingIn) { needsSwapping = needsSwappingIn; }
-    void getSwapNeeed(bool &needsSwappingOut) const { needsSwappingOut = needsSwapping; }
+    // the following two functions are nifti specific
+    void setMatrixLayoutOnDisk(const Nifti1Header &headerIn);
+    void setMatrixLayoutOnDisk(const Nifti2Header &headerIn);
 
-    void setDataType(const NiftiDataTypeEnum::Enum &typein);
-    void getDataType(NiftiDataTypeEnum::Enum &typeout) const;
     void getMatrixLayoutOnDisk(LayoutType &layout);
     void setMatrixLayoutOnDisk(LayoutType &layout);
     void getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const;
@@ -93,9 +83,18 @@ public:
 
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
+
+    // use read frame where data preservation is important and you care about what is in that frame.
+    // use set frame to write to frame that hasn't previously been written, or to completely over-write a frame if
+    // you don't care about the data it contains.
+    /// Reads frame from disk into memory, flushes previous frame to disk if changes were made.
     void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
+
+    /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
     void setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice = 0L)  throw(NiftiException);
+    /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
     void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
+    /// Writes the current frame to disk.
     void writeFrame() throw(NiftiException);
     // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
     //void readMatrix() {}//for loading the entire matrix, not implemented
@@ -123,12 +122,6 @@ public:
     QFile file;
     int64_t matrixStartOffset;
 
-    //nifti specific
-    Nifti1Header n1Header;
-    Nifti2Header n2Header;
-    int niftiVersion;
-
-    //non-nifti specific
     //layout
 
     uint64_t frameLength;

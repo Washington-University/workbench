@@ -21,7 +21,6 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-#if 0
 #ifndef NIFTIFILE_H
 #define NIFTIFILE_H
 
@@ -30,63 +29,49 @@
 #include "NiftiException.h"
 #include "NiftiHeaderIO.h"
 #include "ByteSwapping.h"
-#include "CiftiMatrix.h"
-#include "CiftiXML.h"
-#include "nifti2.h"
-/// Class for opening, reading, and writing generic Nifti1/2 Data
+#include "NiftiMatrix.h"
+
+/// Class for opening, reading, and writing generic Nifti1/2 Data, doesn't support extensions (yet)
 
 namespace caret {
 
 class NiftiFile
 {
 public:
-    NiftiFile();
-public:
    /// Constructor
-   NiftiFile(CACHE_LEVEL clevel = IN_MEMORY) throw (NiftiException);
+   NiftiFile() throw (NiftiException);
    /// Constructor
-   NiftiFile(const QString &fileName,CACHE_LEVEL clevel = IN_MEMORY) throw (NiftiException);
+   NiftiFile(const QString &fileName) throw (NiftiException);
    /// Open the Nifti File
    virtual void openFile(const QString &fileName) throw (NiftiException);
-   /// Open the Nifti File
-   virtual void openFile(const QString &fileName, CACHE_LEVEL clevel) throw (NiftiException);
    /// Write the Nifti File
    virtual void writeFile(const QString &fileName) const throw (NiftiException);
-   /// set NiftiHeader
+
+   /// Header Functions
+   /// set Nifti1Header
    virtual void setHeader(const Nifti1Header &header) throw (NiftiException);
-   /// get NiftiHeader
-   //Nifti1Header * getHeader() throw (NiftiException);
-   /// get NiftiHeader
+   /// get Nifti1Header
    void getHeader(Nifti1Header &header) throw (NiftiException);
-   /// set NiftiHeader
+   /// set Nifti2Header
    virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
-   /// get NiftiHeader
-   //Nifti2Header * getHeader() throw (NiftiException);
-   /// get NiftiHeader
+   /// get Nifti2Header
    void getHeader(Nifti2Header &header) throw (NiftiException);
-   /// set NiftiMatrix
-   virtual void setNiftiMatrix(CiftiMatrix &matrix) throw (NiftiException);
-   /// get NiftiMatrix
-   virtual CiftiMatrix * getNiftiMatrix() throw (NiftiException);
+
    /// Destructor
    virtual ~NiftiFile();
 protected:
-   virtual void init();
-   virtual void readHeader() throw (NiftiException);
+   virtual void init();   
    //virtual void readNiftiExtension() throw (NiftiException)
    //virtual void readNiftiMatrix() throw (NiftiException);
-   CACHE_LEVEL m_clevel;
-   bool m_copyMatrix;
 
-   QFile m_inputFile;
-   Nifti1Header *m_nifti1Header;
-   Nifti2Header *m_nifti2Header;
+   AString filename;
+   NiftiHeaderIO header;
+   NiftiMatrix matrix;
 
-   bool m_swapNeeded;
 };
 
 
 }
 
 #endif // NIFTIFILE_H
-#endif
+
