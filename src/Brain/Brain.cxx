@@ -34,6 +34,7 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "LabelFile.h"
 #include "PaletteFile.h"
@@ -54,6 +55,7 @@ Brain::Brain()
 {
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
+    this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
@@ -70,6 +72,9 @@ Brain::~Brain()
     this->resetBrain();
     delete this->paletteFile;
     delete this->specFile;
+    if (this->volumeSliceController != NULL) {
+        delete this->volumeSliceController;
+    }
     if (this->wholeBrainController != NULL) {
         delete this->wholeBrainController;
     }
@@ -172,6 +177,7 @@ Brain::resetBrain()
     
     this->specFile->clear();
     
+    this->updateVolumeSliceController();
     this->updateWholeBrainController();
 }
 
@@ -383,6 +389,35 @@ Brain::readRgbaFile(const AString& filename,
 void 
 Brain::readVolumeFile(const AString& filename) throw (DataFileException)
 {
+/*
+    std::vector<int64_t> dim;
+    dim.push_back(176);
+    dim.push_back(208);
+    dim.push_back(176);
+    std::vector<float> row1;
+    row1.push_back(1.0);
+    row1.push_back(0.0);
+    row1.push_back(0.0);
+    row1.push_back(1.0);
+    std::vector<float> row2;
+    row2.push_back(0.0);
+    row2.push_back(1.0);
+    row2.push_back(0.0);
+    row2.push_back(1.0);
+    std::vector<float> row3;
+    row3.push_back(0.0);
+    row3.push_back(0.0);
+    row3.push_back(1.0);
+    row3.push_back(1.0);
+    
+    std::vector<std::vector<float> > indexToSpace;
+    indexToSpace.push_back(row1);
+    indexToSpace.push_back(row2);
+    indexToSpace.push_back(row3);
+    
+    VolumeFile* vTest = new VolumeFile(dim, indexToSpace, 1);
+    this->volumeFiles.push_back(vTest);
+*/
     VolumeFile* vf = new VolumeFile();
     try {
         vf->readFile(filename);
@@ -392,6 +427,43 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
         throw e;
     }
     this->volumeFiles.push_back(vf);
+}
+
+/**
+ * @return  Number of volume files.
+ */
+int32_t 
+Brain::getNumberOfVolumeFiles() const
+{
+    return this->volumeFiles.size();
+}
+
+/**
+ * Get the volume file at the given index.
+ * @param volumeFileIndex
+ *    Index of the volume file.
+ * @return
+ *    Volume file at the given index.
+ */
+VolumeFile* 
+Brain::getVolumeFile(const int32_t volumeFileIndex)
+{
+    CaretAssertVectorIndex(this->volumeFiles, volumeFileIndex);
+    return this->volumeFiles[volumeFileIndex];
+}
+
+/**
+ * Get the volume file at the given index.
+ * @param volumeFileIndex
+ *    Index of the volume file.
+ * @return
+ *    Volume file at the given index.
+ */
+const VolumeFile* 
+Brain::getVolumeFile(const int32_t volumeFileIndex) const
+{
+    CaretAssertVectorIndex(this->volumeFiles, volumeFileIndex);
+    return this->volumeFiles[volumeFileIndex];
 }
 
 /**
@@ -482,6 +554,38 @@ Brain::getSpecFile()
     return this->specFile;
 }
 
+/**
+ * Update the volume slice controller.
+ */
+void 
+Brain::updateVolumeSliceController()
+{
+    bool isValid = false;
+    if (this->getNumberOfVolumeFiles() > 0) {
+        isValid = true;
+    }
+    
+    if (isValid) {
+        if (this->volumeSliceController == NULL) {
+            this->volumeSliceController = new ModelDisplayControllerVolume(this);
+            EventModelDisplayControllerAdd eventAddModel(this->volumeSliceController);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+        }
+    }
+    else {
+        if (this->volumeSliceController != NULL) {
+            EventModelDisplayControllerDelete eventDeleteModel(this->volumeSliceController);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete this->volumeSliceController;
+            this->volumeSliceController = NULL;
+        }
+    }
+    
+}
+
+/**
+ * Update the whole brain controller.
+ */
 void 
 Brain::updateWholeBrainController()
 {
@@ -588,6 +692,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             break;
     }    
     
+    this->updateVolumeSliceController();
     this->updateWholeBrainController();
 }
 

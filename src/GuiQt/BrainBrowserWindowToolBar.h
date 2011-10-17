@@ -280,14 +280,17 @@ namespace caret {
         QAction* volumePlaneCoronalToolButtonAction;
         QAction* volumePlaneAxialToolButtonAction;
         QAction* volumePlaneAllToolButtonAction;
-        QAction* volumePlaneObliqueToolButtonAction;
-        QAction* volumePlaneMontageToolButtonAction;
+        QAction* volumePlaneViewOrthogonalToolButtonAction;
+        QAction* volumePlaneViewObliqueToolButtonAction;
+        QAction* volumePlaneViewMontageToolButtonAction;
         QAction* volumePlaneResetToolButtonAction;
         
         QActionGroup* volumePlaneActionGroup;
+        QActionGroup* volumePlaneViewActionGroup;
         
     private slots:
         void volumePlaneActionGroupTriggered(QAction*);
+        void volumePlaneViewActionGroupTriggered(QAction*);
         void volumePlaneResetToolButtonTriggered(bool checked);
         
         

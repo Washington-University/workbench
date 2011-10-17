@@ -67,6 +67,9 @@
 #include "ModelDisplayControllerWholeBrain.h"
 #include "Surface.h"
 #include "StructureSurfaceSelectionControl.h"
+#include "VolumeFile.h"
+#include "VolumeSliceViewModeEnum.h"
+#include "VolumeSliceViewPlaneEnum.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -1289,6 +1292,26 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
     
     this->volumeIndicesWidgetGroup->blockSignals(true);
     
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        VolumeFile* vf = volumeController->getVolumeFile();
+        std::vector<int64_t> dimensions;
+        vf->getDimensions(dimensions);
+        const int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
+        const int maxCoronalDim = (dimensions[1] > 0) ? (dimensions[1] - 1) : 0;
+        const int maxParasagittalDim = (dimensions[0] > 0) ? (dimensions[0] - 1) : 0;
+        this->volumeIndicesAxialSpinBox->setMaximum(maxAxialDim);
+        this->volumeIndicesCoronalSpinBox->setMaximum(maxCoronalDim);
+        this->volumeIndicesParasagittalSpinBox->setMaximum(maxParasagittalDim);
+        
+        this->volumeIndicesAxialSpinBox->setValue(volumeController->getSliceIndexAxial(tabIndex));
+        this->volumeIndicesCoronalSpinBox->setValue(volumeController->getSliceIndexCoronal(tabIndex));
+        this->volumeIndicesParasagittalSpinBox->setValue(volumeController->getSliceIndexParagittal(tabIndex));
+    }
+    
     this->volumeIndicesWidgetGroup->blockSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -1543,6 +1566,17 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserT
     
     this->volumeMontageWidgetGroup->blockSignals(true);
     
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        this->montageRowsSpinBox->setValue(volumeController->getMontageNumberOfRows(tabIndex));
+        this->montageColumnsSpinBox->setValue(volumeController->getMontageNumberOfColumns(tabIndex));
+        this->montageSpacingSpinBox->setValue(volumeController->getMontageSliceSpacing(tabIndex));
+    }
+    
+    
     this->volumeMontageWidgetGroup->blockSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -1571,7 +1605,8 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     WuQtUtilities::loadIcon(":/view-plane-axial.png", 
                             axialIcon);
     
-    this->volumePlaneParasagittalToolButtonAction = WuQtUtilities::createAction("P", 
+    this->volumePlaneParasagittalToolButtonAction = 
+    WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::PARASAGITTAL), 
                                                                                       "View the PARASAGITTAL slice", 
                                                                                       this);
     this->volumePlaneParasagittalToolButtonAction->setCheckable(true);
@@ -1579,7 +1614,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
         this->volumePlaneParasagittalToolButtonAction->setIcon(parasagittalIcon);
     }
     
-    this->volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction("C", 
+    this->volumePlaneCoronalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::CORONAL), 
                                                                                  "View the CORONAL slice", 
                                                                                  this);
     this->volumePlaneCoronalToolButtonAction->setCheckable(true);
@@ -1587,7 +1622,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
         this->volumePlaneCoronalToolButtonAction->setIcon(coronalIcon);
     }
 
-    this->volumePlaneAxialToolButtonAction = WuQtUtilities::createAction("A", 
+    this->volumePlaneAxialToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::AXIAL), 
                                                                                "View the AXIAL slice", 
                                                                                this);
     this->volumePlaneAxialToolButtonAction->setCheckable(true);
@@ -1595,38 +1630,49 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
         this->volumePlaneAxialToolButtonAction->setIcon(axialIcon);
     }
 
-    this->volumePlaneAllToolButtonAction = WuQtUtilities::createAction("All", 
+    this->volumePlaneAllToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewPlaneEnum::toGuiNameAbbreviation(VolumeSliceViewPlaneEnum::ALL), 
                                                                              "View the PARASAGITTAL, CORONAL, and AXIAL slices", 
                                                                              this);
     this->volumePlaneAllToolButtonAction->setCheckable(true);
     
 
-    this->volumePlaneObliqueToolButtonAction = WuQtUtilities::createAction("O",
-                                                                           "View the volume obliquely",                                                                           
-                                                                           this);
-    this->volumePlaneObliqueToolButtonAction->setCheckable(true);
-    
-    this->volumePlaneMontageToolButtonAction = WuQtUtilities::createAction("M",
-                                                                           "View a montage of slices",                                                                           
-                                                                           this);
-    this->volumePlaneMontageToolButtonAction->setCheckable(true);
-    
-    this->volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset", 
-                                                                               "Reset to the slices to those with stereotaxic coordinate (0, 0, 0) and remove panning/zooming", 
-                                                                               this, 
-                                                                               this, 
-                                                                               SLOT(volumePlaneResetToolButtonTriggered(bool)));
-    
     this->volumePlaneActionGroup = new QActionGroup(this);
     this->volumePlaneActionGroup->addAction(this->volumePlaneParasagittalToolButtonAction);
     this->volumePlaneActionGroup->addAction(this->volumePlaneCoronalToolButtonAction);
     this->volumePlaneActionGroup->addAction(this->volumePlaneAxialToolButtonAction);
     this->volumePlaneActionGroup->addAction(this->volumePlaneAllToolButtonAction);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneMontageToolButtonAction);
-    this->volumePlaneActionGroup->addAction(this->volumePlaneObliqueToolButtonAction);
     this->volumePlaneActionGroup->setExclusive(true);
     QObject::connect(this->volumePlaneActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(volumePlaneActionGroupTriggered(QAction*)));
+
+    
+    this->volumePlaneViewOrthogonalToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::ORTHOGONAL),
+                                                                                  "View the volume orthogonal axis",                                                                           
+                                                                                  this);
+    this->volumePlaneViewOrthogonalToolButtonAction->setCheckable(true);
+    
+    this->volumePlaneViewObliqueToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::OBLIQUE),
+                                                                           "View the volume oblique axis",                                                                           
+                                                                           this);
+    this->volumePlaneViewObliqueToolButtonAction->setCheckable(true);
+    
+    this->volumePlaneViewMontageToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::MONTAGE),
+                                                                           "View a montage of orthogonal slices",                                                                           
+                                                                           this);
+    this->volumePlaneViewMontageToolButtonAction->setCheckable(true);
+    
+    this->volumePlaneViewActionGroup = new QActionGroup(this);
+    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewOrthogonalToolButtonAction);
+    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewMontageToolButtonAction);
+    this->volumePlaneViewActionGroup->addAction(this->volumePlaneViewObliqueToolButtonAction);
+    QObject::connect(this->volumePlaneViewActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(volumePlaneViewActionGroupTriggered(QAction*)));
+    
+    this->volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset", 
+                                                                         "Reset to the slices to those with stereotaxic coordinate (0, 0, 0) and remove panning/zooming", 
+                                                                         this, 
+                                                                         this, 
+                                                                         SLOT(volumePlaneResetToolButtonTriggered(bool)));
     
     
     QToolButton* volumePlaneParasagittalToolButton = new QToolButton();
@@ -1641,11 +1687,14 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     QToolButton* volumePlaneAllToolButton = new QToolButton();
     volumePlaneAllToolButton->setDefaultAction(this->volumePlaneAllToolButtonAction);
     
-    QToolButton* volumePlaneMontageToolButton = new QToolButton();
-    volumePlaneMontageToolButton->setDefaultAction(this->volumePlaneMontageToolButtonAction);
+    QToolButton* volumePlaneViewMontageToolButton = new QToolButton();
+    volumePlaneViewMontageToolButton->setDefaultAction(this->volumePlaneViewMontageToolButtonAction);
     
-    QToolButton* volumePlaneObliqueToolButton = new QToolButton();
-    volumePlaneObliqueToolButton->setDefaultAction(this->volumePlaneObliqueToolButtonAction);
+    QToolButton* volumePlaneViewObliqueToolButton = new QToolButton();
+    volumePlaneViewObliqueToolButton->setDefaultAction(this->volumePlaneViewObliqueToolButtonAction);
+    
+    QToolButton* volumePlaneViewOrthogonalToolButton = new QToolButton();
+    volumePlaneViewOrthogonalToolButton->setDefaultAction(this->volumePlaneViewOrthogonalToolButtonAction);
     
     QToolButton* volumePlaneResetToolButton = new QToolButton();
     volumePlaneResetToolButton->setDefaultAction(this->volumePlaneResetToolButtonAction);
@@ -1666,8 +1715,9 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
 
     QHBoxLayout* planeLayout2 = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(planeLayout2, 0, 2, 0);
-    planeLayout2->addWidget(volumePlaneMontageToolButton);
-    planeLayout2->addWidget(volumePlaneObliqueToolButton);
+    planeLayout2->addWidget(volumePlaneViewOrthogonalToolButton);
+    planeLayout2->addWidget(volumePlaneViewMontageToolButton);
+    planeLayout2->addWidget(volumePlaneViewObliqueToolButton);
     planeLayout2->addWidget(volumePlaneResetToolButton);
     planeLayout2->addStretch();
     
@@ -1706,6 +1756,40 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTab
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->volumePlaneWidgetGroup->blockSignals(true);
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        switch (volumeController->getSliceViewPlane(tabIndex)) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                this->volumePlaneAllToolButtonAction->setChecked(true);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+                this->volumePlaneAxialToolButtonAction->setChecked(true);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+                this->volumePlaneCoronalToolButtonAction->setChecked(true);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                this->volumePlaneParasagittalToolButtonAction->setChecked(true);
+                break;
+        }
+        
+        switch(volumeController->getSliceViewMode(tabIndex)) {
+            case VolumeSliceViewModeEnum::MONTAGE:
+                this->volumePlaneViewMontageToolButtonAction->setChecked(true);
+                break;
+            case VolumeSliceViewModeEnum::OBLIQUE:
+                this->volumePlaneViewObliqueToolButtonAction->setChecked(true);
+                break;
+            case VolumeSliceViewModeEnum::ORTHOGONAL:
+                this->volumePlaneViewOrthogonalToolButtonAction->setChecked(true);
+                break;
+        }
+    }
+
     
     this->volumePlaneWidgetGroup->blockSignals(false);
 
@@ -2157,6 +2241,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
 }
 
 /**
@@ -2167,6 +2252,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
 }
 
 /**
@@ -2177,6 +2263,17 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    
+    volumeController->setSliceIndexParasagittal(tabIndex, this->volumeIndicesParasagittalSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2187,6 +2284,17 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    
+    volumeController->setSliceIndexCoronal(tabIndex, this->volumeIndicesCoronalSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2197,6 +2305,17 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    
+    volumeController->setSliceIndexAxial(tabIndex, this->volumeIndicesAxialSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2253,29 +2372,73 @@ void
 BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
 {
     CaretLogEntering();
+    this->checkUpdateCounter();
+    
+    VolumeSliceViewPlaneEnum::Enum plane = VolumeSliceViewPlaneEnum::AXIAL;
     
     if (action == this->volumePlaneAllToolButtonAction) {
-        
+        plane = VolumeSliceViewPlaneEnum::ALL;
     }
     else if (action == this->volumePlaneAxialToolButtonAction) {
+        plane = VolumeSliceViewPlaneEnum::AXIAL;
         
     }
     else if (action == this->volumePlaneCoronalToolButtonAction) {
+        plane = VolumeSliceViewPlaneEnum::CORONAL;
         
     }
     else if (action == this->volumePlaneParasagittalToolButtonAction) {
-    
-    }
-    else if (action == this->volumePlaneMontageToolButtonAction) {
-        
-    }
-    else if (action == this->volumePlaneObliqueToolButtonAction) {
-        
+        plane = VolumeSliceViewPlaneEnum::PARASAGITTAL;
     }
     else {
         CaretLogSevere("Invalid volume plane action: " + action->text());
     }
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    
+    volumeController->setSliceViewPlane(tabIndex, plane);
+    this->updateGraphicsWindow();
+}
+
+/**
+ * Called when volume view plane button is clicked.
+ */
+void 
+BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
+{
+    CaretLogEntering();
     this->checkUpdateCounter();
+    
+    VolumeSliceViewModeEnum::Enum mode = VolumeSliceViewModeEnum::ORTHOGONAL;
+    
+    if (action == this->volumePlaneViewOrthogonalToolButtonAction) {
+        mode = VolumeSliceViewModeEnum::ORTHOGONAL;
+    }
+    else if (action == this->volumePlaneViewMontageToolButtonAction) {
+        mode = VolumeSliceViewModeEnum::MONTAGE;
+    }
+    else if (action == this->volumePlaneViewObliqueToolButtonAction) {
+        mode = VolumeSliceViewModeEnum::OBLIQUE;
+    }
+    else {
+        CaretLogSevere("Invalid volume plane view action: " + action->text());
+    }
+     
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    volumeController->setSliceViewMode(tabIndex, mode);
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2286,6 +2449,16 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool checked)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    volumeController->resetView(tabIndex);
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2296,6 +2469,16 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    volumeController->setMontageNumberOfRows(tabIndex, this->montageRowsSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2306,6 +2489,15 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    volumeController->setMontageNumberOfColumns(tabIndex, this->montageColumnsSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 /**
@@ -2316,6 +2508,15 @@ BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int i)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController == NULL) {
+        return;
+    }
+    volumeController->setMontageSliceSpacing(tabIndex, this->montageSpacingSpinBox->value());
+    this->updateGraphicsWindow();
 }
 
 void 

@@ -22,7 +22,9 @@
  * 
  */ 
 
+#include "Brain.h"
 #include "ModelDisplayControllerVolume.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -36,6 +38,7 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
                          YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_NO)
 {
+    this->brain = brain;
     this->initializeMembersModelDisplayControllerVolume();
 }
 
@@ -49,12 +52,22 @@ ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
 void
 ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
 {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
+        this->sliceViewMode[i]          = VolumeSliceViewModeEnum::ORTHOGONAL;
+        this->sliceIndexAxial[i]        = 0;
+        this->sliceIndexCoronal[i]      = 0;
+        this->sliceIndexParasagittal[i] = 0;
+        this->montageNumberOfColumns[i] = 3;
+        this->montageNumberOfRows[i]    = 3;
+        this->montageSliceSpacing[i]    = 5;
+    }
 }
 
 /**
  * Get the name for use in a GUI.
  *
- * @param includeStructureFlag - Prefix label with structure to which
+ * @param includeStructureFlag Prefix label with structure to which
  *      this structure model belongs.
  * @return   Name for use in a GUI.
  *
@@ -83,5 +96,257 @@ Brain*
 ModelDisplayControllerVolume::getBrain()
 {
     return this->brain;
+}
+
+VolumeFile* 
+ModelDisplayControllerVolume::getVolumeFile()
+{
+    VolumeFile* vf = NULL;
+    if (this->brain->getNumberOfVolumeFiles() > 0) {
+        vf = this->brain->getVolumeFile(0);
+    }
+    return vf;
+}
+
+/**
+ * Return the for axis mode in the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return Axis mode.
+ *   
+ */
+VolumeSliceViewPlaneEnum::Enum 
+ModelDisplayControllerVolume::getSliceViewPlane(const int32_t windowTabNumber) const
+{    
+    return this->sliceViewPlane[windowTabNumber];
+}
+
+/**
+ * Set the axis mode in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceAxisMode
+ *    New value for axis mode
+ */
+void 
+ModelDisplayControllerVolume::setSliceViewPlane(const int32_t windowTabNumber,
+                      VolumeSliceViewPlaneEnum::Enum slicePlane)
+{   
+    this->sliceViewPlane[windowTabNumber] = slicePlane;
+}
+
+/**
+ * Return the view mode for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   View mode.
+ */
+VolumeSliceViewModeEnum::Enum 
+ModelDisplayControllerVolume::getSliceViewMode(const int32_t windowTabNumber) const
+{    
+    return this->sliceViewMode[windowTabNumber];
+}
+
+/**
+ * Set the view mode in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceViewMode
+ *    New value for view mode
+ */
+void 
+ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
+                      VolumeSliceViewModeEnum::Enum sliceViewMode)
+{    this->sliceViewMode[windowTabNumber] = sliceViewMode;
+}
+
+/**
+ * Return the axial slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Axial slice index.
+ */
+int64_t 
+ModelDisplayControllerVolume::getSliceIndexAxial(const int32_t windowTabNumber) const
+{    
+    return this->sliceIndexAxial[windowTabNumber];
+}
+
+/**
+ * Set the axial slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for axial slice index.
+ */
+void 
+ModelDisplayControllerVolume::setSliceIndexAxial(const int32_t windowTabNumber,
+                        const int64_t sliceIndexAxial)
+{    
+    this->sliceIndexAxial[windowTabNumber] = sliceIndexAxial;
+}
+
+/**
+ * Return the coronal slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Coronal slice index.
+ */
+int64_t 
+ModelDisplayControllerVolume::getSliceIndexCoronal(const int32_t windowTabNumber) const
+{    
+    return this->sliceIndexCoronal[windowTabNumber];
+}
+
+
+/**
+ * Set the coronal slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for coronal slice index.
+ */
+void 
+ModelDisplayControllerVolume::setSliceIndexCoronal(const int32_t windowTabNumber,
+                          const int64_t sliceIndexCoronal)
+{    
+    this->sliceIndexCoronal[windowTabNumber] = sliceIndexCoronal;
+}
+
+/**
+ * Return the parasagittal slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Parasagittal slice index.
+ */
+int64_t 
+ModelDisplayControllerVolume::getSliceIndexParagittal(const int32_t windowTabNumber) const
+{
+    return this->sliceIndexParasagittal[windowTabNumber];
+}
+
+/**
+ * Set the parasagittal slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for parasagittal slice index.
+ */
+void 
+ModelDisplayControllerVolume::setSliceIndexParasagittal(const int32_t windowTabNumber,
+                               const int64_t sliceIndexParasagittal)
+{    
+    this->sliceIndexParasagittal[windowTabNumber] = sliceIndexParasagittal;
+}
+
+
+/**
+ * Return the montage number of columns for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage number of columns 
+ */
+int32_t 
+ModelDisplayControllerVolume::getMontageNumberOfColumns(const int32_t windowTabNumber) const
+{    
+    return this->montageNumberOfColumns[windowTabNumber];
+}
+
+
+/**
+ * Set the montage number of columns in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for montage number of columns 
+ */
+void 
+ModelDisplayControllerVolume::setMontageNumberOfColumns(const int32_t windowTabNumber,
+                               const int32_t montageNumberOfColumns)
+{    
+    this->montageNumberOfColumns[windowTabNumber] = montageNumberOfColumns;
+}
+
+/**
+ * Return the montage number of rows for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage number of rows
+ */
+int32_t 
+ModelDisplayControllerVolume::getMontageNumberOfRows(const int32_t windowTabNumber) const
+{
+    return this->montageNumberOfRows[windowTabNumber];
+}
+
+/**
+ * Set the montage number of rows in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for montage number of rows 
+ */
+void 
+ModelDisplayControllerVolume::setMontageNumberOfRows(const int32_t windowTabNumber,
+                            const int32_t montageNumberOfRows)
+{    
+    this->montageNumberOfRows[windowTabNumber] = montageNumberOfRows;
+}
+
+/**
+ * Return the montage slice spacing for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Montage slice spacing.
+ */
+int32_t 
+ModelDisplayControllerVolume::getMontageSliceSpacing(const int32_t windowTabNumber) const
+{    
+    return this->montageSliceSpacing[windowTabNumber];
+}
+
+/**
+ * Set the montage slice spacing in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for montage slice spacing 
+ */
+void 
+ModelDisplayControllerVolume::setMontageSliceSpacing(const int32_t windowTabNumber,
+                            const int32_t montageSliceSpacing)
+{
+    this->montageSliceSpacing[windowTabNumber] = montageSliceSpacing;
+}
+
+void 
+ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
+{
+    VolumeFile* vf = this->getVolumeFile();
+    if (vf != NULL) {
+        std::vector<int64_t> dimensions;
+        vf->getDimensions(dimensions);
+        if (this->sliceIndexParasagittal[windowTabNumber] >= dimensions[0]) {
+            this->sliceIndexParasagittal[windowTabNumber] = dimensions[0] - 1;
+        }
+        if (this->sliceIndexCoronal[windowTabNumber] >= dimensions[1]) {
+            this->sliceIndexCoronal[windowTabNumber] = dimensions[1] - 1;
+        }
+        if (this->sliceIndexAxial[windowTabNumber] >= dimensions[2]) {
+            this->sliceIndexAxial[windowTabNumber] = dimensions[2] - 1;
+        }
+    }
+    else {
+        this->sliceIndexParasagittal[windowTabNumber] = 0;
+        this->sliceIndexCoronal[windowTabNumber] = 0;
+        this->sliceIndexAxial[windowTabNumber] = 0;
+    }
 }
 

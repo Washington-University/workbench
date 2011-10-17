@@ -609,7 +609,9 @@ void
 BrainOpenGL::drawVolume(BrowserTabContent* browserTabContent,
                         ModelDisplayControllerVolume* volumeController)
 {
-    
+    const int32_t tabNumber = browserTabContent->getTabNumber();
+    volumeController->updateController(tabNumber);
+    std::cout << "Axial index = " << volumeController->getSliceIndexAxial(tabNumber) << std::endl;
 }
 
 /**

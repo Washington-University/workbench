@@ -370,23 +370,28 @@ VolumeFile::~VolumeFile()
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading of volume files not implemented.");
-    NiftiHeaderIO myHeadIO;
-    myHeadIO.readFile(filename);
-    int myver = myHeadIO.getNiftiVersion();
-    switch (myver)
-    {
-        case 1:
-            m_headerType = NIFTI_1;
-            myHeadIO.getHeader(m_N1Header);
-            break;
-        case 2:
-            m_headerType = NIFTI_2;
-            myHeadIO.getHeader(m_N2Header);
-            break;
-        default:
-            break;
-    };
+    //throw DataFileException("Reading of volume files not implemented.");
+    try {
+        NiftiHeaderIO myHeadIO;
+        myHeadIO.readFile(filename);
+        int myver = myHeadIO.getNiftiVersion();
+        switch (myver)
+        {
+            case 1:
+                m_headerType = NIFTI_1;
+                myHeadIO.getHeader(m_N1Header);
+                break;
+            case 2:
+                m_headerType = NIFTI_2;
+                myHeadIO.getHeader(m_N2Header);
+                break;
+            default:
+                break;
+        };
+    }
+    catch (NiftiException e) {
+        throw DataFileException(e);
+    }
 }
 
 /**
