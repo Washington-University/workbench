@@ -51,8 +51,10 @@ public:
     //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
     NiftiMatrix(const QFile &filein);
     NiftiMatrix(const QFile &filein, const int64_t &offsetin);
-    ~NiftiMatrix() { clearMatrix();}
+    ~NiftiMatrix() { flushCurrentFrame(); clearMatrix();}
 
+    void flushCurrentFrame();
+    void resetMatrix();
     void setMatrixFile(const QFile &filein);
     void init();
 
@@ -92,8 +94,9 @@ public:
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
     void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
-    void setFrame(float *matrixIn, int64_t &matrixLengthIn, int64_t timeSlice = 0L)  throw(NiftiException);
-    void writeFrame(int64_t &timeSlice) throw(NiftiException);
+    void setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice = 0L)  throw(NiftiException);
+    void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
+    void writeFrame() throw(NiftiException);
     // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
     //void readMatrix() {}//for loading the entire matrix, not implemented
     //void setMatrix...

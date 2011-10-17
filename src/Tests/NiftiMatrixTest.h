@@ -53,9 +53,9 @@ public:
     void getFrame(NiftiMatrix &matrix,uint64_t &timeSlice, float *frame);
     void printFrame(NiftiMatrix &matrix, float *frame);
     void compareMatrices(std::vector <NiftiMatrix *> &matrices);
+    void writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame);
+    void copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std::vector< NiftiMatrix *> &matrices);
 
-
-    void setFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame);
 
     //printfloat(
     //printdouble(AString &matrixfile);

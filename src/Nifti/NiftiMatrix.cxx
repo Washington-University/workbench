@@ -221,6 +221,12 @@ void NiftiMatrix::clearMatrix()
     matrixLength = 0;
 }
 
+void NiftiMatrix::resetMatrix()
+{
+    reAllocateMatrixIfNeeded();
+    memset(matrix,matrixLength*sizeof(float),0x00);
+}
+
 void NiftiMatrix::reAllocateMatrixIfNeeded()
 {
     if(matrixLength != calculateMatrixLength(frameLength,componentDimensions)) {
@@ -278,11 +284,16 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
     delete [] bytes;
 }
 
-void NiftiMatrix::writeFrame(int64_t &timeSlice) throw(NiftiException)
+void NiftiMatrix::flushCurrentFrame()
 {
-    if(timeSlice != -1) currentTime = timeSlice;
+    if(!frameLoaded) return;
+    this->writeFrame();
+}
+
+void NiftiMatrix::writeFrame() throw(NiftiException)
+{
     if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
-    uint64_t frameOffset = matrixStartOffset+frameSize*timeSlice;
+    uint64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
     file.open(QIODevice::WriteOnly);
     file.seek(frameOffset);
     if(niftiDataType==NIFTI_TYPE_RGB24)
@@ -304,12 +315,21 @@ void NiftiMatrix::writeFrame(int64_t &timeSlice) throw(NiftiException)
     file.close();
 }
 
-void NiftiMatrix::setFrame(float *matrixIn, int64_t &matrixLengthIn, int64_t timeSlice)  throw(NiftiException)
+void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice)  throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     reAllocateMatrixIfNeeded();
     if(this->matrixLength != matrixLengthIn) throw NiftiException("frame size does not match expected frame size!");
     memcpy(matrix,matrixIn,matrixLength*sizeof(float));
+    currentTime = timeSlice;
+    frameLoaded = true;
+}
+
+void NiftiMatrix::setFrame(const int64_t &timeSlice)  throw(NiftiException)
+{
+    if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
+    this->resetMatrix();
+
     currentTime = timeSlice;
     frameLoaded = true;
 }
