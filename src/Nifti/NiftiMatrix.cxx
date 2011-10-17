@@ -68,6 +68,7 @@ void NiftiMatrix::init()
     matrixLength = 0;
     layoutSet = false;
     frameLoaded = false;
+    frameNeedsWriting = false;
     currentTime = 0;
 }
 
@@ -234,12 +235,15 @@ void NiftiMatrix::reAllocateMatrixIfNeeded()
         matrixLength = calculateMatrixLength(frameLength,componentDimensions);
         matrix = new float[matrixLength];
     }
+    frameLoaded = false;
+    frameNeedsWriting = false;
 }
 
 void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     if(frameLoaded && timeSlice==currentTime) return;
+    flushCurrentFrame();
     uint64_t frameOffset = matrixStartOffset+frameSize*timeSlice;
     uint8_t *bytes = NULL;
     bytes = new uint8_t[frameSize];
@@ -287,9 +291,11 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
 void NiftiMatrix::flushCurrentFrame()
 {
     if(!frameLoaded) return;
+    if(!frameNeedsWriting) return;
     this->writeFrame();
 }
 
+/*
 void NiftiMatrix::writeFrame() throw(NiftiException)
 {
     if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
@@ -313,25 +319,76 @@ void NiftiMatrix::writeFrame() throw(NiftiException)
         file.write((char *)matrix,frameSize);
     }
     file.close();
+}*/
+
+//for in place editing of files, we need to respect the original layout
+void NiftiMatrix::writeFrame() throw (NiftiException)
+{
+    if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
+    if(!frameNeedsWriting) return;
+    uint64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
+    file.open(QIODevice::ReadWrite);
+    file.seek(frameOffset);
+
+    switch(NiftiDataTypeEnum::toIntegerCode(this->niftiDataType))
+    {
+    case NIFTI_TYPE_FLOAT32:
+        if(needsSwapping) ByteSwapping::swapBytes(matrix,frameLength);
+
+        file.write((char *)matrix,frameSize);
+        if(needsSwapping) ByteSwapping::swapBytes(matrix,frameLength);
+        break;
+    case NIFTI_TYPE_FLOAT64:
+    {
+        double *outMatrix = new double[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(double));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_RGB24:
+    {
+        uint8_t *bytes = NULL;
+        bytes = new uint8_t [frameSize];
+        for(int i=0;i<frameLength;i++)
+        {
+            bytes[i]=matrix[i];
+        }
+        file.write((char *)bytes,frameLength);
+        delete [] bytes;
+    }
+        break;
+    default:
+        throw NiftiException("Unsupported Data type for writes.");
+        break;
+    }
+    file.close();
+
 }
 
 void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice)  throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
-    reAllocateMatrixIfNeeded();
+    flushCurrentFrame();
+    this->resetMatrix();
     if(this->matrixLength != matrixLengthIn) throw NiftiException("frame size does not match expected frame size!");
     memcpy(matrix,matrixIn,matrixLength*sizeof(float));
     currentTime = timeSlice;
     frameLoaded = true;
+    frameNeedsWriting = true;
 }
 
 void NiftiMatrix::setFrame(const int64_t &timeSlice)  throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
+    flushCurrentFrame();
     this->resetMatrix();
 
     currentTime = timeSlice;
     frameLoaded = true;
+    frameNeedsWriting = true;
 }
 
 float NiftiMatrix::getComponent(const uint64_t &index, const uint32_t &componentIndex) const throw (NiftiException)
@@ -355,6 +412,7 @@ void NiftiMatrix::setComponent(const uint64_t &index, const uint32_t &componentI
     if((componentIndex+1)>componentDimensions) throw NiftiException("ComponentIndex exceeds the number of components for this nifti Matrix.");
     matrix[index*componentDimensions+componentIndex] = value;
     frameLoaded = true;
+    frameNeedsWriting = true;
 }
 
 uint64_t NiftiMatrix::calculateFrameLength(const std::vector<int> &dimensionsIn) const

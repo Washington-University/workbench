@@ -52,7 +52,7 @@ public:
 
     void getFrame(NiftiMatrix &matrix,uint64_t &timeSlice, float *frame);
     void printFrame(NiftiMatrix &matrix, float *frame);
-    void compareMatrices(std::vector <NiftiMatrix *> &matrices);
+    bool compareMatrices(std::vector <NiftiMatrix *> &matrices);
     void writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame);
     void copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std::vector< NiftiMatrix *> &matrices);
 

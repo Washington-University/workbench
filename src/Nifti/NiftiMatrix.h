@@ -134,6 +134,7 @@ public:
     uint64_t frameLength;
     uint64_t frameSize;
     bool frameLoaded;
+    bool frameNeedsWriting;
 
     // matrix data
     int64_t currentTime;

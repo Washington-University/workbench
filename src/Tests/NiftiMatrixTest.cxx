@@ -52,18 +52,21 @@ void NiftiMatrixTest::writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float
     //for the purposes of testing, we tell the api to take in a null formatted matrix, in
     //the future, I will simply have it allocate a null buffer if it is the first param
     //I could just as easily handed if the frame and been done with it...
-    float *temp = new float[matrix.getFrameLength()];
-    memset(temp,matrix.getFrameLength(),sizeof(float));
-    matrix.setFrame(temp,matrix.getFrameLength(),timeSlice);
+    //float *temp = new float[matrix.getFrameLength()];
+    //memset(temp,matrix.getFrameLength(),sizeof(float));
+    //matrix.setFrame(temp,matrix.getFrameLength(),timeSlice);
+    matrix.setFrame(timeSlice);
 
     //set the frame using the low level api to make sure it works
     uint64_t frameLength = matrix.getFrameLength();
     for(uint64_t i = 0;i<frameLength;i++) matrix.setComponent(i,0,frame[i]);
-
+    //matrix.flushCurrentFrame();
 }
 
-void NiftiMatrixTest::testWriter()
+
+void NiftiMatrixTest::testReader()
 {
+    std::cout << "Testing matrix readers." << std::endl << std::endl;
     NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
     setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
     std::vector <NiftiMatrix *> matrices;
@@ -71,6 +74,40 @@ void NiftiMatrixTest::testWriter()
     matrices.push_back(&floatMatrixBE);
     matrices.push_back(&doubleMatrix);
     matrices.push_back(&doubleMatrixBE);
+    compareMatrices(matrices);
+    if(!(compareMatrices(matrices))) {
+        setFailed("While testing writers, the input read data sets failed basic sanity checks.");
+        return;
+    }
+    else {
+        std::cout << "Test of matrix reading successful for all supported formats." << std::endl << std::endl;
+    }
+}
+
+void NiftiMatrixTest::testWriter()
+{
+    std::cout << "Testing matrix writers." << std::endl;
+    std::cout << "Loading input matrices (matrix readers)." << std::endl;
+    NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
+    setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
+    std::vector <NiftiMatrix *> matrices;
+    matrices.push_back( &floatMatrix);
+    matrices.push_back(&floatMatrixBE);
+    matrices.push_back(&doubleMatrix);
+    matrices.push_back(&doubleMatrixBE);
+    std::cout << "Doing a sanity check to make sure input matrices are valid before using them to test" <<std::endl;
+    std::cout << "the nifti matrix writer." << std::endl;
+    //do a sanity check to make sure that our input matrices are valid
+    if(!(compareMatrices(matrices))) {
+        setFailed("While testing writers, the input read data sets failed basic sanity checks.");
+        return;
+    }
+    else {
+        std::cout << "Input matrices passed sanity check." << std::endl << std::endl;
+    }
+
+
+    std::cout << "Loading writer matrices" << std::endl;
     NiftiMatrix floatMatrixOut, floatMatrixOutBE, doubleMatrixOut, doubleMatrixOutBE;
     std::vector <NiftiMatrix *> matricesOut;
     matricesOut.push_back(&floatMatrixOut);
@@ -79,53 +116,20 @@ void NiftiMatrixTest::testWriter()
     matricesOut.push_back(&doubleMatrixOutBE);
     setupWriterMatrices(floatMatrixOut,floatMatrixOutBE, doubleMatrixOut,doubleMatrixOutBE);
     copyMatrices(matricesOut,matrices);
+    std::vector <NiftiMatrix *> allMatrices;
+    allMatrices.reserve(matrices.size()+matricesOut.size());
+    allMatrices.insert(allMatrices.end(),matrices.begin(),matrices.end());
+    allMatrices.insert(allMatrices.end(),matricesOut.begin(),matricesOut.end());
 
-    compareMatrices(matrices);
+    std::cout << "Comparing matrices that were written to disk to matrices that were used as input." << std::endl;
+    compareMatrices(allMatrices);
+    std::cout << "Test of matrix writing successful for all supported formats." << std::endl << std::endl;
 }
 
-void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std::vector< NiftiMatrix *> &matrices)
-{
-    //below we load frames, note that all values are stored as floats,
-    //the word double denotes what file on disk it was stored as.
-    //need better sanity checking in the future, such as comparing layouts, not just frame lengths
-    NiftiMatrix *mat = matrices[0];
-    uint64_t frameLength = matrices[0]->getFrameLength();
-    for(uint32_t i = 0;i<matrices.size();i++)
-    {
-        if(frameLength!=matrices[i]->getFrameLength()!=matricesOut[i]->getFrameLength())
-        {
-            setFailed("Error comparing matrices, they do not have the same frame size.");
-            return;
-        }
-
-    }
-    std::vector<float *> frames;
-    std::vector<float *> outFrames;
-    for(uint i = 0;i<matrices.size();i++)
-    {
-        frames.push_back(new float[frameLength]);
-        outFrames.push_back(new float(frameLength));
-    }
-    LayoutType layout;
-    mat->getMatrixLayoutOnDisk(layout);
-    std::vector <int32_t> dim = layout.dimensions;
-
-
-    for(uint64_t t=0;t<dim[4];t++)
-    {
-        for(uint i = 0;i < matrices.size();i++)
-        {
-            this->getFrame(*(matrices[i]),t,(float *)(frames[i]));
-            this->writeFrame(*(matricesOut[i]), t, (float *)(frames[i]));
-        }
-    }
-}
 void NiftiMatrixTest::execute()
 {
     testReader();
-    //testWriter();
-
-
+    testWriter();
 }
 
 void NiftiMatrixTest::setupLayouts(NiftiMatrix &floatMatrix,
@@ -185,27 +189,14 @@ NiftiMatrix &doubleMatrixBE)
 {
     //define file paths
     AString path = m_default_path + "/nifti";
-    floatMatrix.setMatrixFile( path+"/testmatrix.float");
-    floatMatrixBE.setMatrixFile( path+"/testmatrix.floatbe");
-    doubleMatrix.setMatrixFile( path+"/testmatrix.double");
-    doubleMatrixBE.setMatrixFile( path+"/testmatrix.doublebe");
+    floatMatrix.setMatrixFile( path+"/testmatrixout.float");
+    floatMatrixBE.setMatrixFile( path+"/testmatrixout.floatbe");
+    doubleMatrix.setMatrixFile( path+"/testmatrixout.double");
+    doubleMatrixBE.setMatrixFile( path+"/testmatrixout.doublebe");
     setupLayouts(floatMatrix,floatMatrixBE,doubleMatrix,doubleMatrixBE);
 }
 
-void NiftiMatrixTest::testReader()
-{
-    NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
-    setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
-    std::vector <NiftiMatrix *> matrices;
-    matrices.push_back( &floatMatrix);
-    matrices.push_back(&floatMatrixBE);
-    matrices.push_back(&doubleMatrix);
-    matrices.push_back(&doubleMatrixBE);
-    int size = matrices.size();
-    compareMatrices(matrices);
-}
-
-void NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
+void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std::vector< NiftiMatrix *> &matrices)
 {
     //below we load frames, note that all values are stored as floats,
     //the word double denotes what file on disk it was stored as.
@@ -216,8 +207,46 @@ void NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
     {
         if(frameLength!=matrices[i]->getFrameLength())
         {
-            setFailed("Error comparing matrices, they do not have the same frame size.");
+            setFailed("Error copying matrices, they do not have the same frame length.");
             return;
+        }
+
+    }
+    std::vector<float *> frames;
+    std::vector<float *> outFrames;
+    for(uint i = 0;i<matrices.size();i++)
+    {
+        frames.push_back(new float[frameLength]);
+        outFrames.push_back(new float(frameLength));
+    }
+    LayoutType layout;
+    mat->getMatrixLayoutOnDisk(layout);
+    std::vector <int32_t> dim = layout.dimensions;
+
+
+    for(uint64_t t=0;t<dim[4];t++)
+    {
+        for(uint i = 0;i < matrices.size();i++)
+        {
+            this->getFrame(*(matrices[i]),t,(float *)(frames[i]));
+            this->writeFrame(*(matricesOut[i]), t, (float *)(frames[i]));
+        }
+    }
+}
+
+bool NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
+{
+    //below we load frames, note that all values are stored as floats,
+    //the word double denotes what file on disk it was stored as.
+    //need better sanity checking in the future, such as comparing layouts, not just frame lengths
+    NiftiMatrix *mat = matrices[0];
+    uint64_t frameLength = matrices[0]->getFrameLength();
+    for(uint32_t i = 0;i<matrices.size();i++)
+    {
+        if(frameLength!=matrices[i]->getFrameLength())
+        {
+            setFailed("Error comparing matrices, they do not have the same frame length.");
+            return false;
         }
     }
     std::vector<float *> frames;
@@ -241,12 +270,13 @@ void NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
         {
             if(memcmp(frames[i],frames[i+1],frameLength*sizeof(float)))
             {
-                setFailed("Error reading frames using NiftiMatrix");
-                return;
+                setFailed("Error comparing frames.");
+                return false;
             }
         }
-        std::cout << "reading time slice "<< t << " was successful for all supported formats" << std::endl;
-    }
+        std::cout << "time slices are equal "<< t << " for all supported formats" << std::endl;
+    }    
+    return true;
 }
 
 // below should only be used when troubleshooting test problems, as it generates a lot of output
