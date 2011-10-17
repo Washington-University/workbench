@@ -1295,9 +1295,32 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
+    
+    VolumeFile* vf = NULL;
     ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
     if (volumeController != NULL) {
-        VolumeFile* vf = volumeController->getVolumeFile();
+        if (this->getDisplayedModelController() == volumeController) {
+            vf = volumeController->getVolumeFile();
+            this->volumeIndicesAxialCheckBox->setVisible(false);
+            this->volumeIndicesCoronalCheckBox->setVisible(false);
+            this->volumeIndicesParasagittalCheckBox->setVisible(false);            
+        }
+    }
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            vf = wholeBrainController->getVolumeFile();
+            this->volumeIndicesAxialCheckBox->setVisible(true);
+            this->volumeIndicesAxialCheckBox->setChecked(wholeBrainController->isSliceAxialEnabled(tabIndex));
+            this->volumeIndicesCoronalCheckBox->setVisible(true);
+            this->volumeIndicesCoronalCheckBox->setChecked(wholeBrainController->isSliceCoronalEnabled(tabIndex));
+            this->volumeIndicesParasagittalCheckBox->setVisible(true);
+            this->volumeIndicesParasagittalCheckBox->setChecked(wholeBrainController->isSliceParasagittalEnabled(tabIndex));
+        }
+    }
+    
+    if (vf != NULL) {
         std::vector<int64_t> dimensions;
         vf->getDimensions(dimensions);
         const int maxAxialDim = (dimensions[2] > 0) ? (dimensions[2] - 1) : 0;
@@ -2231,6 +2254,17 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int sta
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceParasagittalEnabled(tabIndex, this->volumeIndicesParasagittalCheckBox->isChecked());
+            this->updateGraphicsWindow();
+        }
+    }
 }
 
 /**
@@ -2242,6 +2276,16 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
     CaretLogEntering();
     this->checkUpdateCounter();
     
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceCoronalEnabled(tabIndex, this->volumeIndicesCoronalCheckBox->isChecked());
+            this->updateGraphicsWindow();
+        }
+    }
 }
 
 /**
@@ -2253,6 +2297,16 @@ BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
     CaretLogEntering();
     this->checkUpdateCounter();
     
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceAxialEnabled(tabIndex, this->volumeIndicesAxialCheckBox->isChecked());
+            this->updateGraphicsWindow();
+        }
+    }
 }
 
 /**
@@ -2267,12 +2321,20 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
-        return;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceIndexParasagittal(tabIndex, this->volumeIndicesParasagittalSpinBox->value());
+        }
     }
     
-    volumeController->setSliceIndexParasagittal(tabIndex, this->volumeIndicesParasagittalSpinBox->value());
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        if (this->getDisplayedModelController() == volumeController) {
+            volumeController->setSliceIndexParasagittal(tabIndex, this->volumeIndicesParasagittalSpinBox->value());
+        }
+    }
+    
     this->updateGraphicsWindow();
 }
 
@@ -2288,12 +2350,20 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
-        return;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceIndexCoronal(tabIndex, this->volumeIndicesCoronalSpinBox->value());
+        }
     }
     
-    volumeController->setSliceIndexCoronal(tabIndex, this->volumeIndicesCoronalSpinBox->value());
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        if (this->getDisplayedModelController() == volumeController) {
+            volumeController->setSliceIndexCoronal(tabIndex, this->volumeIndicesCoronalSpinBox->value());
+        }
+    }
+    
     this->updateGraphicsWindow();
 }
 
@@ -2309,12 +2379,20 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
-    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
-    if (volumeController == NULL) {
-        return;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            wholeBrainController->setSliceIndexAxial(tabIndex, this->volumeIndicesAxialSpinBox->value());
+        }
     }
     
-    volumeController->setSliceIndexAxial(tabIndex, this->volumeIndicesAxialSpinBox->value());
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        if (this->getDisplayedModelController() == volumeController) {
+            volumeController->setSliceIndexAxial(tabIndex, this->volumeIndicesAxialSpinBox->value());
+        }
+    }
+
     this->updateGraphicsWindow();
 }
 

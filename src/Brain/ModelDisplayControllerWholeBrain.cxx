@@ -24,6 +24,7 @@
 
 #include <algorithm>
 
+#include "Brain.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayControllerSurface.h"
@@ -67,6 +68,14 @@ ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBr
         this->rightEnabled[i] = true;
         this->leftRightSeparation[i] = 0.0;
         this->cerebellumSeparation[i] = 0.0;
+        
+        this->sliceIndexAxial[i]        = 0;
+        this->sliceIndexCoronal[i]      = 0;
+        this->sliceIndexParasagittal[i] = 0;
+        
+        this->sliceEnabledAxial[i] = true;
+        this->sliceEnabledCoronal[i] = true;
+        this->sliceEnabledParasagittal[i] = true;
     }
 }
 
@@ -305,6 +314,169 @@ ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTa
     this->cerebellumSeparation[windowTabNumber] = separation;
 }
 
+/**
+ * Return the axial slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Axial slice index.
+ */
+int64_t 
+ModelDisplayControllerWholeBrain::getSliceIndexAxial(const int32_t windowTabNumber) const
+{    
+    return this->sliceIndexAxial[windowTabNumber];
+}
+
+/**
+ * Set the axial slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for axial slice index.
+ */
+void 
+ModelDisplayControllerWholeBrain::setSliceIndexAxial(const int32_t windowTabNumber,
+                                                 const int64_t sliceIndexAxial)
+{    
+    this->sliceIndexAxial[windowTabNumber] = sliceIndexAxial;
+}
+
+/**
+ * Return the coronal slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Coronal slice index.
+ */
+int64_t 
+ModelDisplayControllerWholeBrain::getSliceIndexCoronal(const int32_t windowTabNumber) const
+{    
+    return this->sliceIndexCoronal[windowTabNumber];
+}
+
+
+/**
+ * Set the coronal slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for coronal slice index.
+ */
+void 
+ModelDisplayControllerWholeBrain::setSliceIndexCoronal(const int32_t windowTabNumber,
+                                                   const int64_t sliceIndexCoronal)
+{    
+    this->sliceIndexCoronal[windowTabNumber] = sliceIndexCoronal;
+}
+
+/**
+ * Return the parasagittal slice index for the given window tab.
+ * @param windowTabNumber
+ *   Tab Number of window.
+ * @return
+ *   Parasagittal slice index.
+ */
+int64_t 
+ModelDisplayControllerWholeBrain::getSliceIndexParagittal(const int32_t windowTabNumber) const
+{
+    return this->sliceIndexParasagittal[windowTabNumber];
+}
+
+/**
+ * Set the parasagittal slice index in the given window tab.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param 
+ *    New value for parasagittal slice index.
+ */
+void 
+ModelDisplayControllerWholeBrain::setSliceIndexParasagittal(const int32_t windowTabNumber,
+                                                        const int64_t sliceIndexParasagittal)
+{    
+    this->sliceIndexParasagittal[windowTabNumber] = sliceIndexParasagittal;
+}
+
+/**
+ * Is the parasagittal slice enabled?
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @return
+ *    Enabled status of parasagittal slice.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isSliceParasagittalEnabled(const int32_t windowTabNumber) const
+{
+    return this->sliceEnabledParasagittal[windowTabNumber];
+}
+
+/**
+ * Set the enabled status of the parasagittal slice.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceEnabledParasagittal 
+ *    New enabled status.
+ */ 
+void 
+ModelDisplayControllerWholeBrain::setSliceParasagittalEnabled(const int32_t windowTabNumber,
+                                                              const bool sliceEnabledParasagittal)
+{
+    this->sliceEnabledParasagittal[windowTabNumber] = sliceEnabledParasagittal;
+}
+
+/**
+ * Is the coronal slice enabled?
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @return
+ *    Enabled status of coronal slice.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isSliceCoronalEnabled(const int32_t windowTabNumber) const
+{
+    return this->sliceEnabledCoronal[windowTabNumber];
+}
+
+/**
+ * Set the enabled status of the coronal slice.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceEnabledCoronal 
+ *    New enabled status.
+ */ 
+void 
+ModelDisplayControllerWholeBrain::setSliceCoronalEnabled(const int32_t windowTabNumber,
+                                                              const bool sliceEnabledCoronal)
+{
+    this->sliceEnabledCoronal[windowTabNumber] = sliceEnabledCoronal;
+}
+
+/**
+ * Is the axial slice enabled?
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @return
+ *    Enabled status of axial slice.
+ */
+bool 
+ModelDisplayControllerWholeBrain::isSliceAxialEnabled(const int32_t windowTabNumber) const
+{
+    return this->sliceEnabledAxial[windowTabNumber];
+}
+
+/**
+ * Set the enabled status of the axial slice.
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param sliceEnabledParasagittal 
+ *    New enabled status.
+ */ 
+void 
+ModelDisplayControllerWholeBrain::setSliceAxialEnabled(const int32_t windowTabNumber,
+                                                              const bool sliceEnabledAxial)
+{
+    this->sliceEnabledAxial[windowTabNumber] = sliceEnabledAxial;
+}
+
 
 /**
  * Get the name for use in a GUI.
@@ -328,5 +500,15 @@ AString
 ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
 {
     return "Whole Brain";
+}
+
+VolumeFile* 
+ModelDisplayControllerWholeBrain::getVolumeFile()
+{
+    VolumeFile* vf = NULL;
+    if (this->brain->getNumberOfVolumeFiles() > 0) {
+        vf = this->brain->getVolumeFile(0);
+    }
+    return vf;
 }
 
