@@ -45,21 +45,13 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
-    bool success = parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
-    if (!success)
-    {
-        if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
-        {
-            AString nextArg = parameters.nextString("option");
-            throw ProgramParametersException("Argument \"" + nextArg + "\" is unknown or incorrectly placed");
-        }
-        throw ProgramParametersException("Unknown error while parsing the command line");
-    }
+    parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
+    parameters.verifyAllParametersProcessed();
     //code to show what arguments map to what parameters should go here
     
     m_autoAlg->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
     
-    writeOutput(myAlgParams.getPointer(), myOutAssoc);//TODO: some way of having outputs that are only optional? probably would make parsing harder to get right
+    writeOutput(myOutAssoc);
     
 }
 
@@ -68,20 +60,12 @@ void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (Co
     CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
-    bool success = parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc, true);//parsing block
-    if (!success)
-    {
-        if (parameters.hasNext())//SHOULD be the case, false means unmatched option on the very end of the command made it back to root level
-        {
-            AString nextArg = parameters.nextString("option");
-            throw ProgramParametersException("Argument \"" + nextArg + "\" is unknown or incorrectly placed");
-        }
-        throw ProgramParametersException("Unknown error while parsing the command line");
-    }
+    parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc, true);//parsing block
+    parameters.verifyAllParametersProcessed();
     //don't execute or write parsed output
 }
 
-bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
+void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
 {
     uint32_t i;
     for (i = 0; i < myComponent->m_paramList.size(); ++i)
@@ -92,11 +76,19 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             bool success = parseOption(nextArg, myComponent, parameters, outAssociation, debug);
             if (!success)
             {
-                throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
-                    ">, option switch is either incorrect, or incorrectly placed");
+                switch (myComponent->m_paramList[i]->getType())
+                {
+                case AlgorithmParametersEnum::INT:
+                case AlgorithmParametersEnum::DOUBLE:
+                    break;//it is probably a negative number, so don't throw an exception unless it fails to parse as one
+                default:
+                    throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
+                                                     ">, option switch is either incorrect, or incorrectly placed");
+                };
+            } else {
+                --i;
+                continue;//so skip trying to parse it as a required argument
             }
-            --i;
-            continue;//so skip trying to parse it as a required argument
         }
         switch (myComponent->m_paramList[i]->getType())
         {
@@ -232,8 +224,7 @@ bool CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             cout << tempItem.m_fileName << endl;
         }
     }
-    bool success = parseRemainingOptions(myComponent, parameters, outAssociation, debug);
-    return success;
+    parseRemainingOptions(myComponent, parameters, outAssociation, debug);
 }
 
 bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
@@ -251,18 +242,18 @@ bool CommandParser::parseOption(const AString& mySwitch, ParameterComponent* myC
                 throw ProgramParametersException("Option \"" + mySwitch + "\" specified more than once");
             }
             myComponent->m_optionList[i]->m_present = true;
-            bool success = parseComponent(myComponent->m_optionList[i], parameters, outAssociation, debug);
+            parseComponent(myComponent->m_optionList[i], parameters, outAssociation, debug);
             if (debug)
             {
                 cout << "Finished parsing option " << myComponent->m_optionList[i]->m_optionSwitch << endl;
             }
-            return success;
+            return true;
         }
     }
     return false;
 }
 
-bool CommandParser::parseRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
+void CommandParser::parseRemainingOptions(ParameterComponent* myComponent, ProgramParameters& parameters, vector<OutputAssoc>& outAssociation, bool debug)
 {
     while (parameters.hasNext())
     {
@@ -273,17 +264,16 @@ bool CommandParser::parseRemainingOptions(ParameterComponent* myComponent, Progr
             if (!success)
             {
                 parameters.backup();
-                return false;
+                return;
             }
         } else {
             parameters.backup();
-            return false;
+            return;
         }
     }
-    return true;
 }
 
-void CommandParser::writeOutput(AlgorithmParameters* myAlgParams, const vector<OutputAssoc>& outAssociation)
+void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
 {
     for (uint32_t i = 0; i < outAssociation.size(); ++i)
     {
@@ -454,7 +444,7 @@ void CommandParser::addComponentDescriptions(AString& info, ParameterComponent* 
     }
     for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
     {
-        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - out - " + myComponent->m_outputList[i]->m_description, curIndent, true);
+        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - output - " + myComponent->m_outputList[i]->m_description, curIndent, true);
     }
     addOptionDescriptions(info, myComponent, curIndent);
 }
@@ -463,7 +453,7 @@ void CommandParser::addOptionDescriptions(AString& info, ParameterComponent* myC
 {
     for (int i = 0; i < (int)myComponent->m_optionList.size(); ++i)
     {
-        info += formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "] - " + myComponent->m_optionList[i]->m_shortName + " - " + myComponent->m_optionList[i]->m_description, curIndent, true);
+        info += formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "] - " + myComponent->m_optionList[i]->m_description, curIndent, true);
         addComponentDescriptions(info, myComponent->m_optionList[i], curIndent + m_indentIncrement);//indent arguments to options
     }
 }

@@ -103,11 +103,11 @@ public:
                     float vectorsAll[],
                     const int32_t offset);
 
-    static float normalizeVector(float vectorInOut[3]);
+    static float normalizeVector(float vectorInOut[]);
 
-    static double normalizeVector(double vectorInOut[3]);
+    static double normalizeVector(double vectorInOut[]);
 
-    static float vectorLength(const float vector[3]);
+    static float vectorLength(const float vector[]);
 
     static float vectorLength(
                     const float vectorsAll[],
@@ -137,8 +137,8 @@ public:
                     const double p2[3]);
 
     static void subtractVectors(
-                    const float v1[3],
-                    const float v2[3],
+                    const float v1[],
+                    const float v2[],
                     float result[3]);
 
     static void createUnitVector(

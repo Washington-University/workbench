@@ -43,10 +43,10 @@ namespace caret {
             AString m_fileName;
             AbstractParameter* m_param;
         };
-        bool parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug = false);
+        void parseComponent(ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug = false);
         bool parseOption(const AString& mySwitch, ParameterComponent* myComponent, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
-        bool parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
-        void writeOutput(AlgorithmParameters* myAlgParams, const std::vector<OutputAssoc>& outAssociation);
+        void parseRemainingOptions(ParameterComponent* myAlgParams, ProgramParameters& parameters, std::vector<OutputAssoc>& outAssociation, bool debug);
+        void writeOutput(const std::vector<OutputAssoc>& outAssociation);
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
         void addHelpOptions(AString& info, ParameterComponent* myAlgParams, int curIndent);

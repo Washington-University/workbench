@@ -344,7 +344,7 @@ MathFunctions::normalizeVector(
  *
  */
 float
-MathFunctions::normalizeVector(float vector[3])
+MathFunctions::normalizeVector(float vector[])
 {
     float len = vectorLength(vector);
     if (len != 0.0) {
@@ -363,7 +363,7 @@ MathFunctions::normalizeVector(float vector[3])
  *
  */
 double
-MathFunctions::normalizeVector(double vector[3])
+MathFunctions::normalizeVector(double vector[])
 {
     double len = vectorLength(vector);
     if (len != 0.0) {
@@ -383,7 +383,7 @@ MathFunctions::normalizeVector(double vector[3])
  *
  */
 float
-MathFunctions::vectorLength(const float vector[3])
+MathFunctions::vectorLength(const float vector[])
 {
     float len =
     (float)std::sqrt(vector[0]*vector[0] +

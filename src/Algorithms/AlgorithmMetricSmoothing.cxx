@@ -50,9 +50,9 @@ AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
     ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
-    OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "region of interest", "select an area to smooth");
+    OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to smooth");
     roiOption->addMetricParameter(6, "roi-metric", "the roi to smooth within, as a metric");
-    OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "column select", "select a single column to smooth");
+    OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to smooth");
     columnSelect->addIntParameter(8, "column-number", "the column number to smooth");
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
@@ -92,6 +92,10 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
     {
         throw AlgorithmException("metric does not match surface in number of nodes");
     }
+    if (myRoi != NULL && myRoi->getNumberOfNodes() != numNodes)
+    {
+        throw AlgorithmException("roi metric does not match surface in number of nodes");
+    }
     int32_t numCols = myMetric->getNumberOfColumns();
     if (columnNum < -1 || columnNum >= numCols)
     {
@@ -108,21 +112,27 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
+        const float* myRoiColumn;
+        if (myRoi != NULL)
+        {
+            myRoiColumn = myRoi->getValuePointerForColumn(0);
+        }
         for (int32_t col = 0; col < numCols; ++col)
         {
             myProgress.setTask("Smoothing Column " + AString::number(col));
+            const float* myColumn = myMetric->getValuePointerForColumn(col);
             for (int32_t i = 0; i < numNodes; ++i)
             {
-                if (myRoi == NULL || myRoi->getValue(i, 0) > 0.0f)
+                if (myRoi == NULL || myRoiColumn[i] > 0.0f)
                 {
                     float sum = 0.0f;
                     WeightList& myWeightRef = m_weightLists[i];
                     int32_t numWeights = myWeightRef.m_nodes.size();
                     for (int32_t j = 0; j < numWeights; ++j)
                     {
-                        sum += myWeightRef.m_weights[j] * myMetric->getValue(myWeightRef.m_nodes[j], col);
+                        sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
                     }
-                    myMetricOut->setValue(i, col, sum / myWeightRef.m_weightSum);
+                    myMetricOut->setValue(i, col, sum / myWeightRef.m_weightSum);//TODO: implement and use a better way to set an entire column
                 } else {
                     myMetricOut->setValue(i, col, 0.0f);//zero other stuff
                 }
@@ -132,16 +142,22 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         myProgress.setTask("Smoothing Column " + AString::number(columnNum));
+        const float* myColumn = myMetric->getValuePointerForColumn(columnNum);
+        const float* myRoiColumn;
+        if (myRoi != NULL)
+        {
+            myRoiColumn = myRoi->getValuePointerForColumn(0);
+        }
         for (int32_t i = 0; i < numNodes; ++i)
         {
-            if (myRoi == NULL || myRoi->getValue(i, 0) > 0.0f)
+            if (myRoi == NULL || myRoiColumn[i] > 0.0f)
             {
                 float sum = 0.0f;
                 WeightList& myWeightRef = m_weightLists[i];
                 int32_t numWeights = myWeightRef.m_nodes.size();
                 for (int32_t j = 0; j < numWeights; ++j)
                 {
-                    sum += myWeightRef.m_weights[j] * myMetric->getValue(myWeightRef.m_nodes[j], columnNum);
+                    sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
                 }
                 myMetricOut->setValue(i, 0, sum / myWeightRef.m_weightSum);
             } else {
@@ -193,6 +209,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double 
     CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
     vector<float> distances;
     vector<int32_t> nodes;
+    const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
     for (int32_t i = 0; i < numNodes; ++i)
     {
         myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
@@ -208,7 +225,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double 
         m_weightLists[i].m_weightSum = 0.0f;
         for (int32_t j = 0; j < numNeigh; ++j)
         {
-            if (theRoi->getValue(nodes[j], 0) > 0.0f)
+            if (myRoiColumn[nodes[j]] > 0.0f)
             {
                 float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
                 m_weightLists[i].m_weights.push_back(weight);

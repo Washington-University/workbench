@@ -171,7 +171,7 @@ namespace caret {
         CiftiFile* getOutputCifti(const int32_t key);
         
         ///convenience method to create, add, and return an optional parameter
-        OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description);
+        OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
         ///return pointer to an input parameter
         AbstractParameter* getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
@@ -187,12 +187,11 @@ namespace caret {
     struct OptionalParameter : public ParameterComponent
     {
         int32_t m_key;//uniquely identifies this option
-        AString m_optionSwitch, m_shortName, m_description;
+        AString m_optionSwitch, m_description;
         bool m_present;//to be filled by parser
-        OptionalParameter(int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description) :
+        OptionalParameter(int32_t key, const AString& optionSwitch, const AString& description) :
         m_key(key),
         m_optionSwitch(optionSwitch),
-        m_shortName(shortName),
         m_description(description)
         {
             m_present = false;

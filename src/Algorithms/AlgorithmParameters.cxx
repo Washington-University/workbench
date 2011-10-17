@@ -69,9 +69,9 @@ void ParameterComponent::addOptionalParameter(OptionalParameter* param)
     m_optionList.push_back(param);
 }
 
-OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& shortName, const AString& description)
+OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description)
 {
-    OptionalParameter* ret = new OptionalParameter(key, optionSwitch, shortName, description);
+    OptionalParameter* ret = new OptionalParameter(key, optionSwitch, description);
     addOptionalParameter(ret);
     return ret;
 }
