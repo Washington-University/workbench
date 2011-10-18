@@ -89,6 +89,18 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
     matrix.setMatrixOffset((header.getVolumeOffset()));
 }
 
+void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength)
+{
+    if(!bytes[0]) return;
+    int64_t currentIndex = 4;//skip over the extension char array
+    while(currentIndex < extensionLength)
+    {
+        //byte swap esize
+        ByteSwapping::swapBytes((int32_t *)&bytes[currentIndex],2);
+        currentIndex+=*((int32_t *)(&bytes[currentIndex]));
+    }
+}
+
 /**
  *
  *
@@ -97,7 +109,7 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
  * @param fileName specifies the name and path of the file to write to
  */
 void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
-{
+{     
     if(fileName == m_fileName)
     {
         //need to honor byte order
@@ -122,12 +134,23 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     }
     else //assume we are writing a new file
     {
+        //TODO: When extension class is done, Nifti vox offset, and matrix offset will need to be updated to include size of extension, since it will have changed.
         headerIO.writeFile(fileName,byteOrder);
+
         //write extension code
 
         int64_t vOffset = headerIO.getVolumeOffset();
         int64_t eOffset = headerIO.getExtensionsOffset();
         int64_t eLength = vOffset-eOffset;
+
+        //confusing, but we never swapped these bytes when we read them in, so
+        //we need to swap them now if the byte order to write is native
+        //and swap is needed
+        //check for NATIVE_BYTE_ORDER and if it needs swapping
+        if(byteOrder == NATIVE_BYTE_ORDER && headerIO.getSwapNeeded())
+        {
+            swapExtensionsBytes(extension_bytes, eLength);
+        }
         QFile ext(fileName);
         ext.open(QIODevice::ReadWrite);
         ext.seek(eOffset);
@@ -143,7 +166,14 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         LayoutType newLayout = layoutOrig;
         //yes, layouttype needs a method for defining the default
         //layout....
-        newLayout.needsSwapping = false;
+        if(byteOrder == ORIGINAL_BYTE_ORDER && headerIO.getSwapNeeded())
+        {
+            newLayout.needsSwapping = true;
+        }
+        else
+        {
+            newLayout.needsSwapping = false;
+        }
         bool valid = true;
         newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
         if(!valid) throw NiftiException("Nifti Enum bites it again.");
@@ -266,6 +296,37 @@ void NiftiFile::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, c
     frameIn.reinitialize(dim,sForm,components);
 
     matrix.setVolumeFrame(frameIn,timeSlice,component);
+}
+
+void NiftiFile::readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException)
+{
+    this->openFile(filename);
+
+    //get dimensions, sform and component size
+    Nifti2Header header;
+    headerIO.getHeader(header);
+    std::vector< std::vector<float> > sForm(4);
+    for(uint i=0;i<sForm.size();i++) sForm[i].resize(4);
+    header.getSForm(sForm);
+    std::vector<int64_t> dim;
+    header.getDimensions(dim);
+    int32_t components;
+    header.getComponentDimensions(components);
+
+    vol.reinitialize(dim,sForm,components);
+    int64_t timeSlices = 1;
+    if(dim.size()==4) timeSlices = dim[3];
+    //TODO, for now components are always 0, rewrite for RGB
+    for(int64_t t=0;t<timeSlices;t++)
+    {
+        matrix.getVolumeFrame(vol,t,0);
+    }
+}
+
+void NiftiFile::writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException)
+{
+
+
 }
 
 

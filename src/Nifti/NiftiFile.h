@@ -136,11 +136,19 @@ public:
    /// get Nifti2Header
    void getHeader(Nifti2Header &header) throw (NiftiException);
 
-   /// volume read/write Functions
+   // TODO: This will eventually be handled by the extension reader/writer object
+   void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
+
+   /// volume file read/write Functions
    /// get VolumeFrame
    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
    /// set VolumeFrame
    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
+
+   /// Read the entire nifti file into a volume file
+   void readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
+   /// Write the entire Volume File to a nifti file
+   void writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
 
    void getLayout(LayoutType &layout) throw(NiftiException);
 
