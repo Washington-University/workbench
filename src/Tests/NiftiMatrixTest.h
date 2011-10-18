@@ -50,10 +50,10 @@ public:
                       NiftiMatrix &doubleMatrixBE);
     void testWriter();
 
-    void getFrame(NiftiMatrix &matrix,uint64_t &timeSlice, float *frame);
+    void getFrame(NiftiMatrix &matrix,int64_t &timeSlice, float *frame);
     void printFrame(NiftiMatrix &matrix, float *frame);
     bool compareMatrices(std::vector <NiftiMatrix *> &matrices);
-    void writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame);
+    void writeFrame(NiftiMatrix &matrix, int64_t &timeSlice, float *frame);
     void copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std::vector< NiftiMatrix *> &matrices);
 
 

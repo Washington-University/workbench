@@ -63,13 +63,14 @@ void NiftiMatrix::setMatrixFile(const QFile &filein){
     file.setFileName(filein.fileName());
 }
 
+/*
 void NiftiMatrix::getVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (NiftiException)
 {
     readFrame(timeSlice);
-    uint64_t index = 0;
-    for(uint32_t k=0;k<dimensions[3];k++)
-        for(uint32_t j=0;j<dimensions[2];j++)
-            for(uint32_t i=0;i<dimensions[1];i++)
+    int64_t index = 0;
+    for(int32_t k=0;k<dimensions[3];k++)
+        for(int32_t j=0;j<dimensions[2];j++)
+            for(int32_t i=0;i<dimensions[1];i++)
             {
                 translateVoxel(i,j,k,index);
                 for(int c=0;c<componentDimensions;c++)
@@ -81,16 +82,16 @@ void NiftiMatrix::getVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (
 void NiftiMatrix::setVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (NiftiException)
 {
     //flushCurrentFrame();
-    uint64_t index = 0;
-    for(uint32_t k=0;k<dimensions[3];k++)
-        for(uint32_t j=0;j<dimensions[2];j++)
-            for(uint32_t i=0;i<dimensions[1];i++)
+    int64_t index = 0;
+    for(int32_t k=0;k<dimensions[3];k++)
+        for(int32_t j=0;j<dimensions[2];j++)
+            for(int32_t i=0;i<dimensions[1];i++)
             {
                 translateVoxel(i,j,k,index);
                 for(int c=0;c<componentDimensions;c++)
                     matrix[index+c]=volume.getValue(i,j,k,timeSlice,c);
             }
-}
+}*/
 
 void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
 {
@@ -109,7 +110,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
     layoutSet = true;
 }
 
-void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const
+void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, int64_t &frameLengthOut, int64_t &frameSizeOut ) const
 {
     dimensionsOut = dimensions;
     componentDimensionsOut = componentDimensions;
@@ -119,7 +120,7 @@ void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int
     frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
 }
 
-void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int32_t> &dimensionsIn, const int &componentDimensionsIn, const int &valueByteSizeIn, const bool &needsSwappingIn )
+void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const int &valueByteSizeIn, const bool &needsSwappingIn )
 {
     dimensions = dimensionsIn;
     componentDimensions = componentDimensionsIn;
@@ -182,9 +183,9 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     if(frameLoaded && timeSlice==currentTime) return;
     flushCurrentFrame();
-    uint64_t frameOffset = matrixStartOffset+frameSize*timeSlice;
-    uint8_t *bytes = NULL;
-    bytes = new uint8_t[frameSize];
+    int64_t frameOffset = matrixStartOffset+frameSize*timeSlice;
+    int8_t *bytes = NULL;
+    bytes = new int8_t[frameSize];
     if(!bytes) {
         throw NiftiException("There was an error allocating memory for reading.");
         return;
@@ -238,7 +239,7 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
 {
     if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
     if(!frameNeedsWriting) return;
-    uint64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
+    int64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
     file.open(QIODevice::ReadWrite);
     file.seek(frameOffset);
 
@@ -262,8 +263,8 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
         break;
     case NIFTI_TYPE_RGB24:
     {
-        uint8_t *bytes = NULL;
-        bytes = new uint8_t [frameSize];
+        int8_t *bytes = NULL;
+        bytes = new int8_t [frameSize];
         for(int i=0;i<frameLength;i++)
         {
             bytes[i]=matrix[i];
@@ -280,7 +281,7 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
 
 }
 
-void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice) throw(NiftiException)
+void NiftiMatrix::setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice) throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     flushCurrentFrame();
@@ -312,7 +313,7 @@ void NiftiMatrix::setFrame(const int64_t &timeSlice)  throw(NiftiException)
     frameNeedsWriting = true;
 }
 
-float NiftiMatrix::getComponent(const uint64_t &index, const uint32_t &componentIndex) const throw (NiftiException)
+float NiftiMatrix::getComponent(const int64_t &index, const int64_t &componentIndex) const throw (NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     if(!frameLoaded) throw NiftiException("Please load frame before getting component.");
@@ -321,12 +322,12 @@ float NiftiMatrix::getComponent(const uint64_t &index, const uint32_t &component
     return matrix[index*componentDimensions+componentIndex];
 }
 
-void NiftiMatrix::translateVoxel(const uint64_t &i, const uint64_t &j, const uint64_t &k, uint64_t &index) const
+void NiftiMatrix::translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, int64_t &index) const
 {
     index = i+(j+(k*dimensions[2]))*dimensions[1];
 }
 
-void NiftiMatrix::setComponent(const uint64_t &index, const uint32_t &componentIndex, const float &value) throw (NiftiException)
+void NiftiMatrix::setComponent(const int64_t &index, const int64_t &componentIndex, const float &value) throw (NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     reAllocateMatrixIfNeeded();
@@ -336,26 +337,43 @@ void NiftiMatrix::setComponent(const uint64_t &index, const uint32_t &componentI
     frameNeedsWriting = true;
 }
 
-uint64_t NiftiMatrix::calculateFrameLength(const std::vector<int> &dimensionsIn) const
+int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const
 {
-    uint64_t frameLength = 1;
+    int64_t frameLength = 1;
     for(int i=1;i<dimensionsIn[0];i++)
         frameLength*=dimensionsIn[i];
     return frameLength;
 }
 
-uint64_t NiftiMatrix::calculateFrameSizeInBytes(const uint64_t &frameLengthIn, const uint32_t &valueByteSizeIn, const uint32_t &componentDimensionsIn) const
+int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn, const int64_t &componentDimensionsIn) const
 {
         return frameLengthIn*valueByteSizeIn*componentDimensionsIn;
 }
 
-uint64_t NiftiMatrix::calculateMatrixLength(const uint64_t &frameLengthIn, const uint64_t &componentDimensionsIn) const
+int64_t NiftiMatrix::calculateMatrixLength(const int64_t &frameLengthIn, const int64_t &componentDimensionsIn) const
 {
     return frameLengthIn*componentDimensionsIn;
 }
 
-uint64_t NiftiMatrix::calculateMatrixSizeInBytes(const uint64_t &frameSizeIn, const uint64_t &componentDimensionsIn) const
+int64_t NiftiMatrix::calculateMatrixSizeInBytes(const int64_t &frameSizeIn, const int64_t &componentDimensionsIn) const
 {
     return frameSizeIn*componentDimensionsIn;
+}
+
+
+void NiftiMatrix::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component)
+{
+    readFrame(timeSlice);
+
+    //TODO ignoring component for now
+    frameOut.setFrame(this->matrix,timeSlice,component);
+
+}
+
+void NiftiMatrix::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component)
+{
+    //TODO, this is evil, but fast, as I'm handing it the internal matrix
+    setFrame(timeSlice);
+    frameIn.getFrame(this->matrix,timeSlice, component);
 }
 

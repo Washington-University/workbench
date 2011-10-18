@@ -51,12 +51,12 @@ public:
    void initHeaderStruct(nifti_1_header &header);
    void initHeaderStruct();
    //helper methods
-   void getDimensions(std::vector <int32_t> &dimensionsOut) const;
-   void setDimensions(const std::vector <int32_t> &dimensionsIn) throw (NiftiException) ;
+   void getDimensions(std::vector <int64_t> &dimensionsOut) const;
+   void setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException) ;
    void getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const;
    void setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn);
-   void getComponentDimensions(uint32_t &componentDimensionsOut) const;
-   void getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException);
+   void getComponentDimensions(int32_t &componentDimensionsOut) const;
+   void getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException);
    void getNeedsSwapping(bool &needsSwappingOut) const { needsSwappingOut = needsSwapping; }
    void setNeedsSwapping(bool &needsSwappingIn) throw (NiftiException) {
        if(needsSwappingSet) throw NiftiException("This attribute is read-only, and can only be set when reading the header.");
@@ -64,7 +64,7 @@ public:
        needsSwapping = needsSwappingIn;
    }
 
-   uint64_t getVolumeOffset() { return m_header.vox_offset; }
+   int64_t getVolumeOffset() { return m_header.vox_offset; }
 
 private:
    nifti_1_header m_header;

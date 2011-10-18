@@ -72,9 +72,9 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
     headerIO.readFile(fileName);
 
     //read Extension Bytes, eventually a class will handle this
-    uint64_t vOffset = headerIO.getVolumeOffset();
-    uint64_t eOffset = headerIO.getExtensionsOffset();
-    uint64_t eLength = vOffset-eOffset;
+    int64_t vOffset = headerIO.getVolumeOffset();
+    int64_t eOffset = headerIO.getExtensionsOffset();
+    int64_t eLength = vOffset-eOffset;
     QFile ext(fileName);
     ext.open(QIODevice::ReadWrite);
     ext.seek(eOffset);
@@ -86,7 +86,7 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
     Nifti2Header header;
     headerIO.getHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
-    matrix.setMatrixOffset(header.getVolumeOffset());
+    matrix.setMatrixOffset((header.getVolumeOffset()));
 }
 
 /**
@@ -107,9 +107,9 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         //since we never swapped to begin with, and we are
         //sticking with the original byte order we can just
         //write the bytes
-        uint64_t vOffset = headerIO.getVolumeOffset();
-        uint64_t eOffset = headerIO.getExtensionsOffset();
-        uint64_t eLength = vOffset-eOffset;
+        int64_t vOffset = headerIO.getVolumeOffset();
+        int64_t eOffset = headerIO.getExtensionsOffset();
+        int64_t eLength = vOffset-eOffset;
         QFile ext(fileName);
         ext.open(QIODevice::ReadWrite);
         ext.seek(eOffset);
@@ -124,9 +124,10 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     {
         headerIO.writeFile(fileName,byteOrder);
         //write extension code
-        uint64_t vOffset = headerIO.getVolumeOffset();
-        uint64_t eOffset = headerIO.getExtensionsOffset();
-        uint64_t eLength = vOffset-eOffset;
+
+        int64_t vOffset = headerIO.getVolumeOffset();
+        int64_t eOffset = headerIO.getExtensionsOffset();
+        int64_t eLength = vOffset-eOffset;
         QFile ext(fileName);
         ext.open(QIODevice::ReadWrite);
         ext.seek(eOffset);
@@ -150,13 +151,15 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         outMatrix.setMatrixLayoutOnDisk(newLayout);
         //need to check if we're dealing with a time series, otherwise
         //dim4 may be zero
-        uint64_t totalTimeSlices= 1;
+
+        int64_t totalTimeSlices= 1;
         if(newLayout.dimensions[4]!=0 && newLayout.dimensions[0]==4) {
             totalTimeSlices = newLayout.dimensions[4];
         }
         //need better handling for different matrices, for later
         float * frame = new float[matrix.getFrameLength()];
-        for(uint64_t t=0;t<totalTimeSlices;t++)
+
+        for(int64_t t=0;t<totalTimeSlices;t++)
         {
             matrix.readFrame(t);
             matrix.getFrame(frame);
@@ -229,6 +232,41 @@ void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
 
 // Volume IO
 
+void NiftiFile::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component)
+{
+    //get dimensions, sform and component size
+    Nifti2Header header;
+    headerIO.getHeader(header);
+    std::vector< std::vector<float> >  sForm(4);
+    for(uint i=0;i<sForm.size();i++) sForm[i].resize(4);
+    header.getSForm(sForm);
+    std::vector<int64_t> dim;
+    header.getDimensions(dim);
+    int32_t components;
+    header.getComponentDimensions(components);
+    //set up frame out dimensions
+    frameOut.reinitialize(dim,sForm,components);
+
+    matrix.getVolumeFrame(frameOut,timeSlice,component);
+}
+
+void NiftiFile::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component)
+{
+    //get dimensions, sform and component size
+    Nifti2Header header;
+    headerIO.getHeader(header);
+    std::vector< std::vector<float> > sForm(4);
+    for(uint i=0;i<sForm.size();i++) sForm[i].resize(4);
+    header.getSForm(sForm);
+    std::vector<int64_t> dim;
+    header.getDimensions(dim);
+    int32_t components;
+    header.getComponentDimensions(components);
+
+    frameIn.reinitialize(dim,sForm,components);
+
+    matrix.setVolumeFrame(frameIn,timeSlice,component);
+}
 
 
 

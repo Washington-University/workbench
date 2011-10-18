@@ -49,19 +49,21 @@ public:
    QString *getHeaderAsString();
    void initHeaderStruct(nifti_2_header &header);
    void initHeaderStruct();
-   void getDimensions(std::vector <int> &dimensionsOut) const;
-   void setDimensions(const std::vector <int> &dimensionsIn) throw (NiftiException) ;
+   void getDimensions(std::vector <int64_t> &dimensionsOut) const;
+   void setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException) ;
    void getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const;
    void setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn);
-   void getComponentDimensions(uint32_t &componentDimensionsOut) const;
-   void getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException);
+   void getComponentDimensions(int32_t &componentDimensionsOut) const;
+   void getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException);
    void getNeedsSwapping(bool &needsSwappingOut) const {needsSwappingOut = needsSwapping; }
    void setNeedsSwapping(bool &needsSwappingIn) throw (NiftiException) {
        if(needsSwappingSet) throw NiftiException("This attribute is read-only, and can only be set when reading the header.");
        needsSwappingSet = true;
        needsSwapping = needsSwappingIn;
    }
-   uint64_t getVolumeOffset() { return m_header.vox_offset; }
+   void getSForm(std::vector < std::vector <float> > &sForm);
+   void setSForm(std::vector < std::vector <float> > &sForm);
+   int64_t getVolumeOffset() { return m_header.vox_offset; }
 private:
    nifti_2_header m_header;
    //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user

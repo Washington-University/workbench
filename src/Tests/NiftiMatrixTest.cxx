@@ -38,16 +38,16 @@ NiftiMatrixTest::NiftiMatrixTest(const AString &identifier) : TestInterface(iden
 
 
 
-void NiftiMatrixTest::getFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame)
+void NiftiMatrixTest::getFrame(NiftiMatrix &matrix, int64_t &timeSlice, float *frame)
 {
     matrix.readFrame(timeSlice);
 
     //for purposes of comparison I will be returning the entire frame
-    uint64_t frameLength = matrix.getFrameLength();
-    for(uint64_t i = 0;i<frameLength;i++) frame[i] = matrix.getComponent(i,0);
+    int64_t frameLength = matrix.getFrameLength();
+    for(int64_t i = 0;i<frameLength;i++) frame[i] = matrix.getComponent(i,0);
 }
 
-void NiftiMatrixTest::writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float *frame)
+void NiftiMatrixTest::writeFrame(NiftiMatrix &matrix, int64_t &timeSlice, float *frame)
 {
     //for the purposes of testing, we tell the api to take in a null formatted matrix, in
     //the future, I will simply have it allocate a null buffer if it is the first param
@@ -58,8 +58,8 @@ void NiftiMatrixTest::writeFrame(NiftiMatrix &matrix, uint64_t &timeSlice, float
     matrix.setFrame(timeSlice);
 
     //set the frame using the low level api to make sure it works
-    uint64_t frameLength = matrix.getFrameLength();
-    for(uint64_t i = 0;i<frameLength;i++) matrix.setComponent(i,0,frame[i]);
+    int64_t frameLength = matrix.getFrameLength();
+    for(int64_t i = 0;i<frameLength;i++) matrix.setComponent(i,0,frame[i]);
     //matrix.flushCurrentFrame();
 }
 
@@ -139,7 +139,7 @@ void NiftiMatrixTest::setupLayouts(NiftiMatrix &floatMatrix,
 )
 {
     //define layouts matrix layout is 10,8,6,4
-    std::vector <int32_t> dim(5,0);
+    std::vector <int64_t> dim(5,0);
     dim[0]=4;dim[1]=10;dim[2]=8;dim[3]=6;dim[4]=4;
 
     // below we define four layouts
@@ -202,7 +202,7 @@ void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std
     //the word double denotes what file on disk it was stored as.
     //need better sanity checking in the future, such as comparing layouts, not just frame lengths
     NiftiMatrix *mat = matrices[0];
-    uint64_t frameLength = matrices[0]->getFrameLength();
+    int64_t frameLength = matrices[0]->getFrameLength();
     for(uint32_t i = 0;i<matrices.size();i++)
     {
         if(frameLength!=matrices[i]->getFrameLength())
@@ -221,10 +221,10 @@ void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std
     }
     LayoutType layout;
     mat->getMatrixLayoutOnDisk(layout);
-    std::vector <int32_t> dim = layout.dimensions;
+    std::vector <int64_t> dim = layout.dimensions;
 
 
-    for(uint64_t t=0;t<dim[4];t++)
+    for(int64_t t=0;t<dim[4];t++)
     {
         for(uint i = 0;i < matrices.size();i++)
         {
@@ -240,7 +240,7 @@ bool NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
     //the word double denotes what file on disk it was stored as.
     //need better sanity checking in the future, such as comparing layouts, not just frame lengths
     NiftiMatrix *mat = matrices[0];
-    uint64_t frameLength = matrices[0]->getFrameLength();
+    int64_t frameLength = matrices[0]->getFrameLength();
     for(uint32_t i = 0;i<matrices.size();i++)
     {
         if(frameLength!=matrices[i]->getFrameLength())
@@ -256,10 +256,10 @@ bool NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
     }
     LayoutType layout;
     mat->getMatrixLayoutOnDisk(layout);
-    std::vector <int32_t> dim = layout.dimensions;
+    std::vector <int64_t> dim = layout.dimensions;
 
 
-    for(uint64_t t=0;t<dim[4];t++)
+    for(int64_t t=0;t<dim[4];t++)
     {
         for(uint i = 0;i < matrices.size();i++)
         {
@@ -284,7 +284,7 @@ void NiftiMatrixTest::printFrame(NiftiMatrix &matrix, float * frame)
 {
     LayoutType layout;
     matrix.getMatrixLayoutOnDisk(layout);
-    uint64_t index = 0;
+    int64_t index = 0;
 
     for(int k = 0;k<layout.dimensions[3];k++)
     {

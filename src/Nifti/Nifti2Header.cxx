@@ -279,21 +279,21 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
    needsSwappingSet = false;
 }
 
-void Nifti2Header::getDimensions(std::vector <int> &dimensionsOut) const
+void Nifti2Header:: getDimensions(std::vector <int64_t> &dimensionsOut) const
 {
     dimensionsOut.clear();
     dimensionsOut.resize(m_header.dim[0]);
-    for(int i = 0;i<dimensionsOut.size();i++)
+    for(uint i = 0;i<dimensionsOut.size();i++)
     {
         dimensionsOut[i]=m_header.dim[i+1];
     }
 }
 
-void Nifti2Header::setDimensions(const std::vector < int > &dimensionsIn) throw (NiftiException)
+void Nifti2Header::setDimensions(const std::vector < int64_t > &dimensionsIn) throw (NiftiException)
 {
     if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
-    for(int i =0;i<dimensionsIn.size();i++)
+    for(uint i =0;i<dimensionsIn.size();i++)
     {
         m_header.dim[i+1]=dimensionsIn[i];
     }
@@ -308,13 +308,13 @@ void Nifti2Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
     m_header.datatype = NiftiDataTypeEnum::toIntegerCode(enumIn);
 }
 
-void Nifti2Header::getComponentDimensions(uint32_t &componentDimensionsOut) const
+void Nifti2Header::getComponentDimensions(int32_t &componentDimensionsOut) const
 {
     componentDimensionsOut = 1;
     if(m_header.datatype == NIFTI_TYPE_RGB24) componentDimensionsOut = 3;
 }
 
-void Nifti2Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException)
+void Nifti2Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     switch(m_header.datatype) {
@@ -331,3 +331,31 @@ void Nifti2Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(Nift
         throw NiftiException("Unsupported Data Type.");
     }
 }
+
+void Nifti2Header::getSForm(std::vector < std::vector <float> > &sForm)
+{
+    sForm.resize(4);
+    for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);
+    for(int i = 0;i<4;i++)
+    {
+        sForm[i][0] = m_header.srow_x[i];
+        sForm[i][1] = m_header.srow_y[i];
+        sForm[i][2] = m_header.srow_z[i];
+        sForm[i][3] = 0.0f;
+    }
+    sForm[3][3] = 1.0f;
+}
+
+void Nifti2Header::setSForm(std::vector < std::vector <float> > &sForm)
+{
+    if(sForm.size()<3) return;//TODO should throw an exception
+    for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
+    for(int i = 0;i<4;i++)
+    {
+        m_header.srow_x[i] = sForm[i][0];
+        m_header.srow_y[i] = sForm[i][1];
+        m_header.srow_z[i] = sForm[i][2];
+    }
+}
+
+

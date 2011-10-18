@@ -217,7 +217,7 @@ void Nifti1Header::initHeaderStruct(nifti_1_header &header)
    needsSwappingSet = false;
 }
 
-void Nifti1Header::getDimensions(std::vector< int > &dimensionsOut) const
+void Nifti1Header::getDimensions(std::vector< int64_t > &dimensionsOut) const
 {
     dimensionsOut.clear();
     dimensionsOut.resize(m_header.dim[0]);
@@ -227,7 +227,7 @@ void Nifti1Header::getDimensions(std::vector< int > &dimensionsOut) const
     }
 }
 
-void Nifti1Header::setDimensions(const std::vector<int32_t> &dimensionsIn) throw (NiftiException)
+void Nifti1Header::setDimensions(const std::vector<int64_t> &dimensionsIn) throw (NiftiException)
 {
     if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
@@ -246,13 +246,13 @@ void Nifti1Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
     m_header.datatype = (short) NiftiDataTypeEnum::toIntegerCode(enumIn);
 }
 
-void Nifti1Header::getComponentDimensions(uint32_t &componentDimensionsOut) const
+void Nifti1Header::getComponentDimensions(int32_t &componentDimensionsOut) const
 {
     componentDimensionsOut = 1;
     if(m_header.datatype == NIFTI_TYPE_RGB24) componentDimensionsOut = 3;
 }
 
-void Nifti1Header::getValueByteSize(uint32_t &valueByteSizeOut) const throw(NiftiException)
+void Nifti1Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     switch(m_header.datatype) {

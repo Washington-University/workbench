@@ -25,14 +25,30 @@
 #include "NiftiTest.h"
 using namespace caret;
 
-NiftiTest::NiftiTest(const AString &identifier) : TestInterface(identifier)
-{
-}
-
-void NiftiTest::execute()
+NiftiFileTest::NiftiFileTest(const AString &identifier) : TestInterface(identifier)
 {
 
 }
+
+void NiftiFileTest::execute()
+{
+    testObjectCreateDestroy();
+    if(this->failed()) return;
+}
+
+void NiftiFileTest::testObjectCreateDestroy()
+{
+    NiftiFile *niftiFile = new NiftiFile();
+    if(niftiFile) std::cout << "Object created successfully." << std::endl;
+    else {
+        setFailed("Error creating object.");
+        return;
+    }
+
+    delete niftiFile;
+}
+
+//Tests for reading and writing Nifti Headers
 
 NiftiHeaderTest::NiftiHeaderTest(const AString &identifier) : TestInterface(identifier)
 {

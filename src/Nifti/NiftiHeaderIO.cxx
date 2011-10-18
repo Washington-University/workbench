@@ -293,7 +293,7 @@ void NiftiHeaderIO::setHeader(const Nifti2Header &header) throw (NiftiException)
     this->nifti2Header = header;
 }
 
-uint64_t NiftiHeaderIO::getVolumeOffset()
+int64_t NiftiHeaderIO::getVolumeOffset()
 {
     if(niftiVersion == 1)
         return this->nifti1Header.getVolumeOffset();
@@ -302,7 +302,7 @@ uint64_t NiftiHeaderIO::getVolumeOffset()
     else return 0;
 }
 
-uint64_t NiftiHeaderIO::getExtensionsOffset()
+int64_t NiftiHeaderIO::getExtensionsOffset()
 {
     if(niftiVersion == 1)
         return 348;

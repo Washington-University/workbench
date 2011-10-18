@@ -27,14 +27,16 @@
 
 #include "TestInterface.h"
 #include "NiftiHeaderIO.h"
+#include "NiftiFile.h"
 
 namespace caret {
 
-class NiftiTest : public TestInterface
+class NiftiFileTest : public TestInterface
 {
 public:
-    NiftiTest(const AString& identifier);
+    NiftiFileTest(const AString& identifier);
     virtual void execute();
+    void testObjectCreateDestroy();
 };
 
 class NiftiHeaderTest : public TestInterface

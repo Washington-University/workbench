@@ -33,12 +33,12 @@
 namespace caret {
 
 struct  LayoutType {
-bool layoutSet;
-bool needsSwapping;
-uint32_t componentDimensions;
-std::vector <int> dimensions;
-NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
-uint32_t valueByteSize;//redundant, and derivable from Nifti
+    bool layoutSet;
+    bool needsSwapping;
+    int32_t componentDimensions;
+    std::vector <int64_t> dimensions;
+    NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
+    int32_t valueByteSize;//redundant, and derivable from Nifti
 };
 
 
@@ -58,9 +58,6 @@ public:
     void setMatrixFile(const QFile &filein);
     void init();
 
-    void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-
     // Below are low level functions for operating on generic matrix files, currently used by Nifti
 
     // !!!SECTION 1: matrix reader set up!!!
@@ -70,7 +67,7 @@ public:
       2. setDataType (the data type as it is stored on disk)
       3. setMatrixLayoutOnDisk();*/
 
-    void setMatrixOffset(const int64_t &offsetin) throw (NiftiException);
+    void setMatrixOffset(const int64_t &offsetin) throw (NiftiException) { this->matrixStartOffset = offsetin; }
 
     // the following two functions are nifti specific
     void setMatrixLayoutOnDisk(const Nifti1Header &headerIn);
@@ -78,8 +75,8 @@ public:
 
     void getMatrixLayoutOnDisk(LayoutType &layout);
     void setMatrixLayoutOnDisk(LayoutType &layout);
-    void getMatrixLayoutOnDisk(std::vector<int32_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,uint64_t &frameLengthOut, uint64_t &frameSizeOut ) const;
-    void setMatrixLayoutOnDisk(const std::vector<int32_t> &dimensionsIn, const int &componentDimensionsIn,const  int &valueByteSizeIn, const bool &needsSwappingIn );
+    void getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,int64_t &frameLengthOut, int64_t &frameSizeOut ) const;
+    void setMatrixLayoutOnDisk(const std::vector<int64_t> &dimensionsIn, const int &componentDimensionsIn,const  int &valueByteSizeIn, const bool &needsSwappingIn );
 
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
@@ -91,7 +88,7 @@ public:
     void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
 
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
-    void setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice = 0L)  throw(NiftiException);
+    void setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L)  throw(NiftiException);
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
     void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
     /// Gets the entire loaded frame as floats, for easier manipulation
@@ -105,29 +102,36 @@ public:
 
     // !!!SECTION 3: after frame has been loaded, use functions below to manipulate frame data
     //once a frame has been loaded, use the functions below to manipulate it
-    void translateVoxel(const uint64_t &i, const uint64_t &j, const uint64_t &k, uint64_t &index) const;
-    float getComponent(const uint64_t &index, const uint32_t &componentIndex) const throw (NiftiException);
-    void setComponent(const uint64_t &index, const uint32_t &componentIndex, const float &value) throw (NiftiException);
-
+    void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, int64_t &index) const;
+    float getComponent(const int64_t &index, const int64_t &componentIndex) const throw (NiftiException);
+    void setComponent(const int64_t &index, const int64_t &componentIndex, const float &value) throw (NiftiException);
+    /// volume read/write Functions
+    /// get VolumeFrame
+    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
+    /// set VolumeFrame
+    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
+    /* void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
+    void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
+    */
     // !!!SECTION 4: convenient getter/setters
-    uint64_t getFrameSize() { return frameSize;}
-    uint64_t getFrameLength() { return frameLength; }
+    int64_t getFrameSize() { return frameSize;}
+    int64_t getFrameLength() { return frameLength; }
     private:
     void reAllocateMatrixIfNeeded();
     void clearMatrix();
     //frames represent brain volumes on disk, the matrix is the internal storage for the matrix after it has been loaded from the file.
-    uint64_t calculateFrameLength(const std::vector<int> &dimensionsIn) const;
-    uint64_t calculateFrameSizeInBytes(const uint64_t &frameLengthIn, const uint32_t &valueByteSizeIn, const uint32_t &componentDimensionsIn) const;
-    uint64_t calculateMatrixLength(const uint64_t &frameLengthIn, const uint64_t &componentDimensionsIn) const;
-    uint64_t calculateMatrixSizeInBytes(const uint64_t &frameSizeIn, const uint64_t &componentDimensionsIn) const;
+    int64_t calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const;
+    int64_t calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn, const int64_t &componentDimensionsIn) const;
+    int64_t calculateMatrixLength(const int64_t &frameLengthIn, const int64_t &componentDimensionsIn) const;
+    int64_t calculateMatrixSizeInBytes(const int64_t &frameSizeIn, const int64_t &componentDimensionsIn) const;
 
     QFile file;
     int64_t matrixStartOffset;
 
     //layout
 
-    uint64_t frameLength;
-    uint64_t frameSize;
+    int64_t frameLength;
+    int64_t frameSize;
     bool frameLoaded;
     bool frameNeedsWriting;
 

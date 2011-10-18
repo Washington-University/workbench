@@ -54,7 +54,7 @@ int main(int argc, char** argv)
     vector<TestInterface*> mytests;
     mytests.push_back(new TimerTest("timer"));
     mytests.push_back(new ProgressTest("progress"));
-    mytests.push_back(new NiftiTest("nifti"));
+    mytests.push_back(new NiftiFileTest("niftifile"));
     mytests.push_back(new NiftiHeaderTest("niftiheader"));
     mytests.push_back(new NiftiMatrixTest("niftimatrix"));
     mytests.push_back(new VolumeFileTest("volumefile"));
