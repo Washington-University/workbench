@@ -30,6 +30,18 @@
 using namespace caret;
 using namespace std;
 
+void VolumeFile::reinitialize(const vector< uint64_t >& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+{
+    vector<int64_t> dimensionCast;
+    int32_t dimSize = (int32_t)dimensionsIn.size();
+    dimensionCast.resize(dimSize);
+    for (int32_t i = 0; i < dimSize; ++i)
+    {
+        dimensionCast[i] = (int64_t)dimensionsIn[i];
+    }
+    reinitialize(dimensionCast, indexToSpace, numComponents);
+}
+
 void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     freeMemory();
@@ -91,6 +103,14 @@ VolumeFile::VolumeFile()
     m_spaceToIndex = m_indexToSpace;
 }
 
+VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+{
+    m_data = NULL;
+    m_headerType = NONE;
+    m_indexRef = NULL;
+    reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
+}
+
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     m_data = NULL;
@@ -99,7 +119,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
 
-void VolumeFile::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut)
+void VolumeFile::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const
 {
     CaretAssert(isPlumb());//this will fail MISERABLY on non-plumb volumes, so assert plumb
     for (int i = 0; i < 3; ++i)
@@ -140,22 +160,22 @@ void VolumeFile::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spac
     }
 }
 
-void VolumeFile::closestVoxel(const float* coordIn, int64_t* indexOut)
+void VolumeFile::closestVoxel(const float* coordIn, int64_t* indexOut) const
 {
     closestVoxel(coordIn[0], coordIn[1], coordIn[2], indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut)
+void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut) const
 {
     closestVoxel(coordIn1, coordIn2, coordIn3, indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::closestVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3)
+void VolumeFile::closestVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const
 {
     closestVoxel(coordIn[0], coordIn[1], coordIn[2], indexOut1, indexOut2, indexOut3);
 }
 
-void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3)
+void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const
 {
     float tempInd1, tempInd2, tempInd3;
     spaceToIndex(coordIn1, coordIn2, coordIn3, tempInd1, tempInd2, tempInd3);
@@ -164,13 +184,13 @@ void VolumeFile::closestVoxel(const float& coordIn1, const float& coordIn2, cons
     indexOut3 = (int32_t)floor(0.5f + tempInd3);
 }
 
-void VolumeFile::getDimensions(vector<int64_t>& dimOut)
+void VolumeFile::getDimensions(vector<int64_t>& dimOut) const
 {
     dimOut.resize(5);
     getDimensions(dimOut[0], dimOut[1], dimOut[2], dimOut[3], dimOut[4]);
 }
 
-void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimBricksOut, int64_t& numComponents)
+void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimBricksOut, int64_t& numComponents) const
 {
     dimOut1 = m_dimensions[0];
     dimOut2 = m_dimensions[1];
@@ -179,29 +199,29 @@ void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimO
     numComponents = m_dimensions[4];
 }
 
-int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component)
+int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component) const
 {//the component is split out, so you have the entire R volume timeseries, then entire G, then entire B, as stored in memory, this will make indexing tricks less memory intensive
     //return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
     //HACK: use pointer math and the indexing array to get the index
     return (m_indexRef[component][brickIndex][indexIn3][indexIn2] + indexIn1) - m_data;
 }//doesn't seem to have a performance drawback to order them in memory this way
 
-void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut)
+void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut)
+void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut) const
 {
     indexToSpace(indexIn1, indexIn2, indexIn3, coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut1, coordOut2, coordOut3);
 }
 
-void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const
 {
     //do we want an assert here?  I think it is okay to find the theoretical coordinates of an undefined voxel
     coordOut1 = m_indexToSpace[0][0] * indexIn1 + m_indexToSpace[0][1] * indexIn2 + m_indexToSpace[0][2] * indexIn3 + m_indexToSpace[0][3];
@@ -209,29 +229,29 @@ void VolumeFile::indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, 
     coordOut3 = m_indexToSpace[2][0] * indexIn1 + m_indexToSpace[2][1] * indexIn2 + m_indexToSpace[2][2] * indexIn3 + m_indexToSpace[2][3];
 }
 
-void VolumeFile::indexToSpace(const float* indexIn, float* coordOut)
+void VolumeFile::indexToSpace(const float* indexIn, float* coordOut) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float* coordOut)
+void VolumeFile::indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float* coordOut) const
 {
     indexToSpace(indexIn1, indexIn2, indexIn3, coordOut[0], coordOut[1], coordOut[2]);
 }
 
-void VolumeFile::indexToSpace(const float* indexIn, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const float* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut1, coordOut2, coordOut3);
 }
 
-void VolumeFile::indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3)
+void VolumeFile::indexToSpace(const float& indexIn1, const float& indexIn2, const float& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const
 {
     coordOut1 = m_indexToSpace[0][0] * indexIn1 + m_indexToSpace[0][1] * indexIn2 + m_indexToSpace[0][2] * indexIn3 + m_indexToSpace[0][3];
     coordOut2 = m_indexToSpace[1][0] * indexIn1 + m_indexToSpace[1][1] * indexIn2 + m_indexToSpace[1][2] * indexIn3 + m_indexToSpace[1][3];
     coordOut3 = m_indexToSpace[2][0] * indexIn1 + m_indexToSpace[2][1] * indexIn2 + m_indexToSpace[2][2] * indexIn3 + m_indexToSpace[2][3];
 }
 
-bool VolumeFile::isPlumb()
+bool VolumeFile::isPlumb() const
 {
     char axisUsed = 0;
     char indexUsed = 0;
@@ -257,22 +277,22 @@ bool VolumeFile::isPlumb()
     return true;
 }
 
-void VolumeFile::spaceToIndex(const float* coordIn, float* indexOut)
+void VolumeFile::spaceToIndex(const float* coordIn, float* indexOut) const
 {
     spaceToIndex(coordIn[0], coordIn[1], coordIn[2], indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float* indexOut)
+void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float* indexOut) const
 {
     spaceToIndex(coordIn1, coordIn2, coordIn3, indexOut[0], indexOut[1], indexOut[2]);
 }
 
-void VolumeFile::spaceToIndex(const float* coordIn, float& indexOut1, float& indexOut2, float& indexOut3)
+void VolumeFile::spaceToIndex(const float* coordIn, float& indexOut1, float& indexOut2, float& indexOut3) const
 {
     spaceToIndex(coordIn[0], coordIn[1], coordIn[2], indexOut1, indexOut2, indexOut3);
 }
 
-void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float& indexOut1, float& indexOut2, float& indexOut3)
+void VolumeFile::spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float& indexOut1, float& indexOut2, float& indexOut3) const
 {
     indexOut1 = m_spaceToIndex[0][0] * coordIn1 + m_spaceToIndex[0][1] * coordIn2 + m_spaceToIndex[0][2] * coordIn3 + m_spaceToIndex[0][3];
     indexOut2 = m_spaceToIndex[1][0] * coordIn1 + m_spaceToIndex[1][1] * coordIn2 + m_spaceToIndex[1][2] * coordIn3 + m_spaceToIndex[1][3];
@@ -420,7 +440,7 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
     throw DataFileException("Writing of volume files not implemented.");
 }
 
-void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component)
+void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component) const
 {
     int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
     int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];
