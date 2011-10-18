@@ -112,6 +112,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
     if (columnNum == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, myMetric->getNumberOfColumns());
+        myMetricOut->setStructure(mySurf->getStructure());
         const float* myRoiColumn;
         if (myRoi != NULL)
         {
@@ -120,6 +121,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         for (int32_t col = 0; col < numCols; ++col)
         {
             myProgress.setTask("Smoothing Column " + AString::number(col));
+            myMetricOut->setColumnName(col, myMetric->getColumnName(col) + ", smooth " + AString::number(myKernel));
             const float* myColumn = myMetric->getValuePointerForColumn(col);
             for (int32_t i = 0; i < numNodes; ++i)
             {
@@ -141,6 +143,8 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(mySurf->getStructure());
+        myMetricOut->setColumnName(0, myMetric->getColumnName(columnNum) + ", smooth " + AString::number(myKernel));
         myProgress.setTask("Smoothing Column " + AString::number(columnNum));
         const float* myColumn = myMetric->getValuePointerForColumn(columnNum);
         const float* myRoiColumn;

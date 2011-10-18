@@ -130,6 +130,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
     if (myColumn == -1)
     {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+        myMetricOut->setStructure(mySurf->getStructure());
         const float* myRoiColumn;
         if (myRoi != NULL)
         {
@@ -139,7 +140,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
         {
             float somevec[3], xhat[3], yhat[3];
             float sanity;
-            const float* myMetricColumn = myMetricIn->getValuePointerForColumn(col);
+            const float* myMetricColumn = toProcess->getValuePointerForColumn(col);
+            myMetricOut->setColumnName(col, toProcess->getColumnName(col) + ", gradient");
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
             for (int32_t i = 0; i < numNodes; ++i)
             {
@@ -254,6 +256,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
         }
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(mySurf->getStructure());
+        myMetricOut->setColumnName(myColumn, toProcess->getColumnName(myColumn) + ", gradient");
         const float* myRoiColumn;
         if (myRoi != NULL)
         {
@@ -261,7 +265,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
         }
         float somevec[3], xhat[3], yhat[3];
         float sanity;
-        const float* myMetricColumn = myMetricIn->getValuePointerForColumn(myColumn);
+        const float* myMetricColumn = toProcess->getValuePointerForColumn(myColumn);
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
         for (int32_t i = 0; i < numNodes; ++i)
         {

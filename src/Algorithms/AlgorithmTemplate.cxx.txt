@@ -43,7 +43,7 @@ AlgorithmParameters* AlgorithmName::getParameters()
     AlgorithmParameters* ret = new AlgorithmParameters();
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
     //ret->addMetricOutputParameter(2, "metric", "the output metric");
-    //OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "column select", "select a single column");
+    //OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "select a single column");
     //columnSelect->addIntParameter(4, "column-number", "the column number");
     ret->setHelpText(
         AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
