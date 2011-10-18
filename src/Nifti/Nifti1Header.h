@@ -64,6 +64,8 @@ public:
        needsSwapping = needsSwappingIn;
    }
 
+   uint64_t getVolumeOffset() { return m_header.vox_offset; }
+
 private:
    nifti_1_header m_header;
    //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user

@@ -36,22 +36,24 @@ namespace caret {
 /// Class for determining Nifti Header version and return correct (nifti 1 or 2) Header version
 class NiftiHeaderIO {
 public:
-   NiftiHeaderIO() throw (NiftiException) { }
-   NiftiHeaderIO(const QString &inputFileName) throw (NiftiException);
-   NiftiHeaderIO(QFile &inputFile) throw (NiftiException);
+   NiftiHeaderIO() throw (NiftiException) { }   
+   NiftiHeaderIO(const QFile &inputFile) throw (NiftiException);
    ~NiftiHeaderIO() { }
-   void readFile(const QString &inputFileName) throw (NiftiException);
-   void readFile(QFile &inputFile) throw (NiftiException);
-   void writeFile(QFile &outputFile) const throw (NiftiException);
-   void writeFile(const QString &outputFileName) const throw (NiftiException);
+
+   void readFile(const QFile &inputFile) throw (NiftiException);
+   void writeFile(const QFile &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
 
    void getHeader(Nifti1Header &header) const throw (NiftiException);
    void setHeader(const Nifti1Header &header) throw (NiftiException);
 
    void getHeader(Nifti2Header &header) const throw (NiftiException);
    void setHeader(const Nifti2Header &header) throw (NiftiException);
+   void swapHeaderBytes(nifti_1_header &header);
+   void swapHeaderBytes(nifti_2_header &header);
    bool getSwapNeeded();
    int getNiftiVersion();
+   uint64_t getVolumeOffset();
+   uint64_t getExtensionsOffset();
 
 private:
     int niftiVersion;

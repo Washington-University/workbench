@@ -280,7 +280,7 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
 
 }
 
-void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice)  throw(NiftiException)
+void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice) throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     flushCurrentFrame();
@@ -290,6 +290,15 @@ void NiftiMatrix::setFrame(float *matrixIn, const uint64_t &matrixLengthIn, cons
     currentTime = timeSlice;
     frameLoaded = true;
     frameNeedsWriting = true;
+}
+
+void NiftiMatrix::getFrame(float *frameOut) throw(NiftiException)
+{
+    if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
+    if(!frameLoaded) throw NiftiException("Please load frame before getting component.");
+    //copy data to output frame
+    //TODO change this so that it will work when the matrix contains more than a single frame...
+    memcpy((char *)frameOut,(char *)matrix,this->matrixLength*sizeof(float));
 }
 
 void NiftiMatrix::setFrame(const int64_t &timeSlice)  throw(NiftiException)

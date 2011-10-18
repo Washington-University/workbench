@@ -94,6 +94,8 @@ public:
     void setFrame(float *matrixIn, const uint64_t &matrixLengthIn, const uint64_t &timeSlice = 0L)  throw(NiftiException);
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
     void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
+    /// Gets the entire loaded frame as floats, for easier manipulation
+    void getFrame(float *frame) throw (NiftiException);
     /// Writes the current frame to disk.
     void writeFrame() throw(NiftiException);
     // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet

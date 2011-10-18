@@ -30,6 +30,7 @@
 #include "NiftiException.h"
 #include "NiftiEnums.h"
 #include "ByteSwapping.h"
+#include "Nifti1Header.h"
 #include <vector>
 #include "nifti1.h"
 #include "nifti2.h"
@@ -41,6 +42,7 @@ class Nifti2Header {
 public:
    Nifti2Header() throw (NiftiException);
    Nifti2Header(const nifti_2_header &header) throw (NiftiException);
+   Nifti2Header(const Nifti1Header &n1header) throw (NiftiException);
    ~Nifti2Header();
    void getHeaderStruct(nifti_2_header &header) const throw (NiftiException);
    void setHeaderStuct(const nifti_2_header &header) throw (NiftiException);
@@ -59,6 +61,7 @@ public:
        needsSwappingSet = true;
        needsSwapping = needsSwappingIn;
    }
+   uint64_t getVolumeOffset() { return m_header.vox_offset; }
 private:
    nifti_2_header m_header;
    //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user

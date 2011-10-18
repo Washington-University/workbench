@@ -31,43 +31,15 @@ using namespace caret;
 /**
  * Constructor
  *
- * Constructor that opens and reads from the specified file
- * @param inputFileName the name of the input file that starts with the NiftiHeaderIO
- */
-NiftiHeaderIO::NiftiHeaderIO(const QString& inputFileName) throw (NiftiException)
-{
-    //test to see if file exists
-    if(!QFile::exists(inputFileName)) throw NiftiException("File " + AString(inputFileName) +" does not exist.\n");
-    readFile(inputFileName);
-}
-
-/**
- * Constructor
- *
  * Constructor that reads from the specified file handle
  * @param inputFile the input handle that starts with the NiftiHeaderIO
  */
-NiftiHeaderIO::NiftiHeaderIO(QFile &inputFile) throw (NiftiException)
+NiftiHeaderIO::NiftiHeaderIO(const QFile &inputFileIn) throw (NiftiException)
 {
-    readFile(inputFile);
+    QFile inputFile(inputFileIn.fileName());
+    if(inputFile.exists()) readFile(inputFile);
 }
 
-
-/**
- * readFile
- *
- * read NiftiHeaderIO data from file name, closes file when finished loading data
- * @param inputFileName name and path of Nifti2 Header file
- */
-void NiftiHeaderIO::readFile(const QString& inputFileName) throw (NiftiException)
-{
-    QFile inputFile;
-    inputFile.setFileName(inputFileName);
-    inputFile.open(QIODevice::ReadOnly);
-    this->readFile(inputFile);
-    inputFile.close();
-
-}
 
 /**
  * getSwapNeeded
@@ -90,12 +62,14 @@ bool NiftiHeaderIO::getSwapNeeded()
  * Constructor that takes an input nifti_2_header struct *
  * @param header
  */
-void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
+void NiftiHeaderIO::readFile(const QFile &inputFileIn) throw (NiftiException)
 {
+    QFile inputFile(inputFileIn.fileName());
     int bytes_read = 0;
     m_swapNeeded=false;
     niftiVersion = 0;
     nifti_2_header header;
+    inputFile.open(QIODevice::ReadOnly);
     bytes_read = inputFile.read((char *)&header, NIFTI1_HEADER_SIZE);
         if(bytes_read < NIFTI1_HEADER_SIZE)
         {
@@ -111,37 +85,7 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
         if(NIFTI2_NEEDS_SWAP(header))
         {
             m_swapNeeded=true;
-            ByteSwapping::swapBytes(&(header.sizeof_hdr),1);
-            ByteSwapping::swapBytes(&(header.datatype),1);
-            ByteSwapping::swapBytes(&(header.bitpix),1);
-            ByteSwapping::swapBytes(&(header.dim[0]),8);
-            ByteSwapping::swapBytes(&(header.intent_p1),1);
-            ByteSwapping::swapBytes(&(header.intent_p2),1);
-            ByteSwapping::swapBytes(&(header.intent_p3),1);
-            ByteSwapping::swapBytes(&(header.pixdim[0]),8);
-            ByteSwapping::swapBytes(&(header.vox_offset),1);
-            ByteSwapping::swapBytes(&(header.scl_slope),1);
-            ByteSwapping::swapBytes(&(header.scl_inter),1);
-            ByteSwapping::swapBytes(&(header.cal_max),1);
-            ByteSwapping::swapBytes(&(header.cal_min),1);
-            ByteSwapping::swapBytes(&(header.slice_duration),1);
-            ByteSwapping::swapBytes(&(header.toffset),1);
-            ByteSwapping::swapBytes(&(header.slice_start),1);
-            ByteSwapping::swapBytes(&(header.slice_end),1);
-            ByteSwapping::swapBytes(&(header.qform_code),1);
-            ByteSwapping::swapBytes(&(header.sform_code),1);
-            ByteSwapping::swapBytes(&(header.quatern_b),1);
-            ByteSwapping::swapBytes(&(header.quatern_c),1);
-            ByteSwapping::swapBytes(&(header.quatern_d),1);
-            ByteSwapping::swapBytes(&(header.qoffset_x),1);
-            ByteSwapping::swapBytes(&(header.qoffset_y),1);
-            ByteSwapping::swapBytes(&(header.qoffset_z),1);
-            ByteSwapping::swapBytes(&(header.srow_x[0]),4);
-            ByteSwapping::swapBytes(&(header.srow_y[0]),4);
-            ByteSwapping::swapBytes(&(header.srow_z[0]),4);
-            //ByteSwapping::swapBytes(&(header.slice_code),1);
-            //ByteSwapping::swapBytes(&(header.xyzt_units),1);
-            ByteSwapping::swapBytes(&(header.intent_code),1);
+            swapHeaderBytes(header);
         }
         nifti1Header.setHeaderStuct(header);
         nifti1Header.setNeedsSwapping(m_swapNeeded)        ;
@@ -157,37 +101,6 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
             if(bytes_read < NIFTI2_HEADER_SIZE) {
                 throw NiftiException("Error reading Nifti2 header, file is too short.");
             }
-            ByteSwapping::swapBytes(&(header.sizeof_hdr),1);
-            ByteSwapping::swapBytes(&(header.datatype),1);
-            ByteSwapping::swapBytes(&(header.bitpix),1);
-            ByteSwapping::swapBytes(&(header.dim[0]),8);
-            ByteSwapping::swapBytes(&(header.intent_p1),1);
-            ByteSwapping::swapBytes(&(header.intent_p2),1);
-            ByteSwapping::swapBytes(&(header.intent_p3),1);
-            ByteSwapping::swapBytes(&(header.pixdim[0]),8);
-            ByteSwapping::swapBytes(&(header.vox_offset),1);
-            ByteSwapping::swapBytes(&(header.scl_slope),1);
-            ByteSwapping::swapBytes(&(header.scl_inter),1);
-            ByteSwapping::swapBytes(&(header.cal_max),1);
-            ByteSwapping::swapBytes(&(header.cal_min),1);
-            ByteSwapping::swapBytes(&(header.slice_duration),1);
-            ByteSwapping::swapBytes(&(header.toffset),1);
-            ByteSwapping::swapBytes(&(header.slice_start),1);
-            ByteSwapping::swapBytes(&(header.slice_end),1);
-            ByteSwapping::swapBytes(&(header.qform_code),1);
-            ByteSwapping::swapBytes(&(header.sform_code),1);
-            ByteSwapping::swapBytes(&(header.quatern_b),1);
-            ByteSwapping::swapBytes(&(header.quatern_c),1);
-            ByteSwapping::swapBytes(&(header.quatern_d),1);
-            ByteSwapping::swapBytes(&(header.qoffset_x),1);
-            ByteSwapping::swapBytes(&(header.qoffset_y),1);
-            ByteSwapping::swapBytes(&(header.qoffset_z),1);
-            ByteSwapping::swapBytes(&(header.srow_x[0]),4);
-            ByteSwapping::swapBytes(&(header.srow_y[0]),4);
-            ByteSwapping::swapBytes(&(header.srow_z[0]),4);
-            //ByteSwapping::swapBytes(&(header.slice_code),1);
-            //ByteSwapping::swapBytes(&(header.xyzt_units),1);
-            ByteSwapping::swapBytes(&(header.intent_code),1);
         }
         nifti2Header.setHeaderStuct(header);
         nifti2Header.setNeedsSwapping(m_swapNeeded);
@@ -196,6 +109,77 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
     {
         throw NiftiException("This is not a valid Nifti1/2 File.");
     }
+    inputFile.close();
+}
+
+void NiftiHeaderIO::swapHeaderBytes(nifti_1_header &header)
+{
+    ByteSwapping::swapBytes(&(header.sizeof_hdr),1);
+    ByteSwapping::swapBytes(&(header.datatype),1);
+    ByteSwapping::swapBytes(&(header.bitpix),1);
+    ByteSwapping::swapBytes(&(header.dim[0]),8);
+    ByteSwapping::swapBytes(&(header.intent_p1),1);
+    ByteSwapping::swapBytes(&(header.intent_p2),1);
+    ByteSwapping::swapBytes(&(header.intent_p3),1);
+    ByteSwapping::swapBytes(&(header.pixdim[0]),8);
+    ByteSwapping::swapBytes(&(header.vox_offset),1);
+    ByteSwapping::swapBytes(&(header.scl_slope),1);
+    ByteSwapping::swapBytes(&(header.scl_inter),1);
+    ByteSwapping::swapBytes(&(header.cal_max),1);
+    ByteSwapping::swapBytes(&(header.cal_min),1);
+    ByteSwapping::swapBytes(&(header.slice_duration),1);
+    ByteSwapping::swapBytes(&(header.toffset),1);
+    ByteSwapping::swapBytes(&(header.slice_start),1);
+    ByteSwapping::swapBytes(&(header.slice_end),1);
+    ByteSwapping::swapBytes(&(header.qform_code),1);
+    ByteSwapping::swapBytes(&(header.sform_code),1);
+    ByteSwapping::swapBytes(&(header.quatern_b),1);
+    ByteSwapping::swapBytes(&(header.quatern_c),1);
+    ByteSwapping::swapBytes(&(header.quatern_d),1);
+    ByteSwapping::swapBytes(&(header.qoffset_x),1);
+    ByteSwapping::swapBytes(&(header.qoffset_y),1);
+    ByteSwapping::swapBytes(&(header.qoffset_z),1);
+    ByteSwapping::swapBytes(&(header.srow_x[0]),4);
+    ByteSwapping::swapBytes(&(header.srow_y[0]),4);
+    ByteSwapping::swapBytes(&(header.srow_z[0]),4);
+    //ByteSwapping::swapBytes(&(header.slice_code),1);
+    //ByteSwapping::swapBytes(&(header.xyzt_units),1);
+    ByteSwapping::swapBytes(&(header.intent_code),1);
+}
+
+void NiftiHeaderIO::swapHeaderBytes(nifti_2_header &header)
+{
+    ByteSwapping::swapBytes(&(header.sizeof_hdr),1);
+    ByteSwapping::swapBytes(&(header.datatype),1);
+    ByteSwapping::swapBytes(&(header.bitpix),1);
+    ByteSwapping::swapBytes(&(header.dim[0]),8);
+    ByteSwapping::swapBytes(&(header.intent_p1),1);
+    ByteSwapping::swapBytes(&(header.intent_p2),1);
+    ByteSwapping::swapBytes(&(header.intent_p3),1);
+    ByteSwapping::swapBytes(&(header.pixdim[0]),8);
+    ByteSwapping::swapBytes(&(header.vox_offset),1);
+    ByteSwapping::swapBytes(&(header.scl_slope),1);
+    ByteSwapping::swapBytes(&(header.scl_inter),1);
+    ByteSwapping::swapBytes(&(header.cal_max),1);
+    ByteSwapping::swapBytes(&(header.cal_min),1);
+    ByteSwapping::swapBytes(&(header.slice_duration),1);
+    ByteSwapping::swapBytes(&(header.toffset),1);
+    ByteSwapping::swapBytes(&(header.slice_start),1);
+    ByteSwapping::swapBytes(&(header.slice_end),1);
+    ByteSwapping::swapBytes(&(header.qform_code),1);
+    ByteSwapping::swapBytes(&(header.sform_code),1);
+    ByteSwapping::swapBytes(&(header.quatern_b),1);
+    ByteSwapping::swapBytes(&(header.quatern_c),1);
+    ByteSwapping::swapBytes(&(header.quatern_d),1);
+    ByteSwapping::swapBytes(&(header.qoffset_x),1);
+    ByteSwapping::swapBytes(&(header.qoffset_y),1);
+    ByteSwapping::swapBytes(&(header.qoffset_z),1);
+    ByteSwapping::swapBytes(&(header.srow_x[0]),4);
+    ByteSwapping::swapBytes(&(header.srow_y[0]),4);
+    ByteSwapping::swapBytes(&(header.srow_z[0]),4);
+    //ByteSwapping::swapBytes(&(header.slice_code),1);
+    //ByteSwapping::swapBytes(&(header.xyzt_units),1);
+    ByteSwapping::swapBytes(&(header.intent_code),1);
 }
 
 /**
@@ -204,32 +188,43 @@ void NiftiHeaderIO::readFile(QFile &inputFile) throw (NiftiException)
  * writes the nifti 1 header to the output file handle
  * @param outputFile
  */
-void NiftiHeaderIO::writeFile(QFile &outputFile) const throw (NiftiException)
+void NiftiHeaderIO::writeFile(const QFile &outputFileIn, NIFTI_BYTE_ORDER byte_order) throw (NiftiException)
 {
+    QFile outputFile(outputFileIn.fileName());
     if(!outputFile.isOpen())
     {
-        if(!outputFile.open(QIODevice::WriteOnly))
+        if(!outputFile.open(QIODevice::ReadWrite))
         {
             throw NiftiException("There was an error opening the file for writing.");
         }
     }
     if(this->niftiVersion == 1)
     {
-        if(outputFile.write((char *)&nifti1Header,NIFTI1_HEADER_SIZE) != NIFTI1_HEADER_SIZE)
-        {
-            throw NiftiException("The was an error writing the header.");
-        }
-    }
-    else if(this->niftiVersion == 2)
-    {
-        if(outputFile.write((char *)&nifti2Header,NIFTI2_HEADER_SIZE) != NIFTI2_HEADER_SIZE)
+        //swap for write if needed
+        nifti_1_header header;
+        nifti1Header.getHeaderStruct(header);
+        if(byte_order == ORIGINAL_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+
+        if(outputFile.write((char *)&header,NIFTI1_HEADER_SIZE) != NIFTI1_HEADER_SIZE)
         {
             throw NiftiException("The was an error writing the header.");
         }
 
     }
+    else if(this->niftiVersion == 2)
+    {
+        //swap for write if needed
+        nifti_2_header header;
+        nifti2Header.getHeaderStruct(header);
+        if(byte_order == ORIGINAL_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+
+        if(outputFile.write((char *)&header,NIFTI2_HEADER_SIZE) != NIFTI2_HEADER_SIZE)
+        {
+            throw NiftiException("The was an error writing the header.");
+        }
+    }
     else throw NiftiException("NiftiHeaderIO only currently supports Nifti versions 1 and 2.");
-    //outputFile.close();
+    outputFile.close();
 }
 
 /**
@@ -241,20 +236,6 @@ void NiftiHeaderIO::writeFile(QFile &outputFile) const throw (NiftiException)
 int NiftiHeaderIO::getNiftiVersion()
 {
     return niftiVersion;
-}
-
-/**
- * writeFile
- *
- * writes the nifti 2 header to the output file name
- * @param outputFileName
- */
-void NiftiHeaderIO::writeFile(const QString &outputFileName) const throw (NiftiException)
-{
-    QFile outputFile;
-    outputFile.setFileName(outputFileName);
-    this->writeFile(outputFile);
-    outputFile.close();
 }
 
 /**
@@ -278,9 +259,13 @@ void NiftiHeaderIO::getHeader(Nifti1Header &header) const throw (NiftiException)
   **/
 void NiftiHeaderIO::getHeader(Nifti2Header &header) const throw (NiftiException)
 {
-    if(this->niftiVersion !=2) throw NiftiException("Nifti1Header requested, this version is not loaded.");
-
-    header = this->nifti2Header;
+    if(this->niftiVersion !=2 && this->niftiVersion != 1) throw NiftiException("Nifti1Header requested, this version is not loaded.");
+    if(niftiVersion == 2) {
+        header = this->nifti2Header;
+    }
+    else {
+        header = this->nifti1Header;
+    }
 }
 
 /**
@@ -306,5 +291,23 @@ void NiftiHeaderIO::setHeader(const Nifti2Header &header) throw (NiftiException)
 {
     niftiVersion = 2;
     this->nifti2Header = header;
+}
+
+uint64_t NiftiHeaderIO::getVolumeOffset()
+{
+    if(niftiVersion == 1)
+        return this->nifti1Header.getVolumeOffset();
+    else if(niftiVersion == 2)
+        return this->nifti2Header.getVolumeOffset();
+    else return 0;
+}
+
+uint64_t NiftiHeaderIO::getExtensionsOffset()
+{
+    if(niftiVersion == 1)
+        return 348;
+    else if(niftiVersion == 2)
+        return 540;
+    else return 0;
 }
 
