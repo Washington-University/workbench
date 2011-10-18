@@ -33,6 +33,7 @@ DataCompressZLib.h
 DataFile.h
 DataFileException.h
 DataFileInterface.h
+DescriptiveStatistics.h
 ElapsedTimer.h
 Event.h
 EventListenerInterface.h
@@ -72,6 +73,7 @@ CaretObject.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
+DescriptiveStatistics.cxx
 ElapsedTimer.cxx
 Event.cxx
 EventManager.cxx
