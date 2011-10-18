@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Files
 BinaryFileReader.h
 CaretDataFile.h
+CaretMappableDataFile.h
 DataFileTypeEnum.h
 GeodesicHelper.h
 GiftiTypeFile.h
@@ -41,6 +42,7 @@ VolumeFile.h
 BinaryFileReader.cxx
 DataFileTypeEnum.cxx
 CaretDataFile.cxx
+CaretMappableDataFile.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
 LabelFile.cxx
