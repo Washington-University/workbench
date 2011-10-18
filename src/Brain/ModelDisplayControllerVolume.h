@@ -28,6 +28,7 @@
 
 #include "ModelDisplayController.h"
 
+#include "VolumeSliceIndicesSelection.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewModeEnum.h"
 
@@ -57,22 +58,7 @@ namespace caret {
         
         void setSliceViewMode(const int32_t windowTabNumber,
                               VolumeSliceViewModeEnum::Enum sliceViewMode);
-        
-        int64_t getSliceIndexAxial(const int32_t windowTabNumber) const;
-        
-        void setSliceIndexAxial(const int32_t windowTabNumber,
-                                       const int64_t sliceIndexAxial);
-        
-        int64_t getSliceIndexCoronal(const int32_t windowTabNumber) const;
-        
-        void setSliceIndexCoronal(const int32_t windowTabNumber,
-                                       const int64_t sliceIndexCoronal);
-        
-        int64_t getSliceIndexParagittal(const int32_t windowTabNumber) const;
-        
-        void setSliceIndexParasagittal(const int32_t windowTabNumber,
-                                       const int64_t sliceIndexParasagittal);
-        
+                
         int32_t getMontageNumberOfColumns(const int32_t windowTabNumber) const;
         
         void setMontageNumberOfColumns(const int32_t windowTabNumber,
@@ -89,6 +75,10 @@ namespace caret {
                                     const int32_t montageSliceSpacing);
         
         void updateController(const int32_t windowTabNumber);
+        
+        VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber);
+        
+        const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
     private:
         ModelDisplayControllerVolume(const ModelDisplayControllerVolume&);
@@ -113,15 +103,6 @@ namespace caret {
         /** Type of slice viewing */
         VolumeSliceViewModeEnum::Enum sliceViewMode[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        /** Parasagittal slice index */
-        int64_t sliceIndexParasagittal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Coronal slice index */
-        int64_t sliceIndexCoronal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Axial slice index */
-        int64_t sliceIndexAxial[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-
         /** Number of montage rows */
         int32_t montageNumberOfRows[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
@@ -130,6 +111,8 @@ namespace caret {
         
         /** Montage slice spacing */
         int32_t montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace

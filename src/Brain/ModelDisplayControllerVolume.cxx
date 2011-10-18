@@ -55,12 +55,10 @@ ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
         this->sliceViewMode[i]          = VolumeSliceViewModeEnum::ORTHOGONAL;
-        this->sliceIndexAxial[i]        = 0;
-        this->sliceIndexCoronal[i]      = 0;
-        this->sliceIndexParasagittal[i] = 0;
         this->montageNumberOfColumns[i] = 3;
         this->montageNumberOfRows[i]    = 3;
         this->montageSliceSpacing[i]    = 5;
+        this->volumeSlicesSelected[i].reset();
     }
 }
 
@@ -162,86 +160,31 @@ ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
 }
 
 /**
- * Return the axial slice index for the given window tab.
+ * Return the volume slice selection.
  * @param windowTabNumber
  *   Tab Number of window.
  * @return
- *   Axial slice index.
+ *   Volume slice selection for tab.
  */
-int64_t 
-ModelDisplayControllerVolume::getSliceIndexAxial(const int32_t windowTabNumber) const
-{    
-    return this->sliceIndexAxial[windowTabNumber];
-}
-
-/**
- * Set the axial slice index in the given window tab.
- * @param windowTabNumber
- *    Tab number of window.
- * @param 
- *    New value for axial slice index.
- */
-void 
-ModelDisplayControllerVolume::setSliceIndexAxial(const int32_t windowTabNumber,
-                        const int64_t sliceIndexAxial)
-{    
-    this->sliceIndexAxial[windowTabNumber] = sliceIndexAxial;
-}
-
-/**
- * Return the coronal slice index for the given window tab.
- * @param windowTabNumber
- *   Tab Number of window.
- * @return
- *   Coronal slice index.
- */
-int64_t 
-ModelDisplayControllerVolume::getSliceIndexCoronal(const int32_t windowTabNumber) const
-{    
-    return this->sliceIndexCoronal[windowTabNumber];
-}
-
-
-/**
- * Set the coronal slice index in the given window tab.
- * @param windowTabNumber
- *    Tab number of window.
- * @param 
- *    New value for coronal slice index.
- */
-void 
-ModelDisplayControllerVolume::setSliceIndexCoronal(const int32_t windowTabNumber,
-                          const int64_t sliceIndexCoronal)
-{    
-    this->sliceIndexCoronal[windowTabNumber] = sliceIndexCoronal;
-}
-
-/**
- * Return the parasagittal slice index for the given window tab.
- * @param windowTabNumber
- *   Tab Number of window.
- * @return
- *   Parasagittal slice index.
- */
-int64_t 
-ModelDisplayControllerVolume::getSliceIndexParagittal(const int32_t windowTabNumber) const
+VolumeSliceIndicesSelection* 
+ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
-    return this->sliceIndexParasagittal[windowTabNumber];
+    return &this->volumeSlicesSelected[windowTabNumber];
 }
 
 /**
- * Set the parasagittal slice index in the given window tab.
+ * Return the volume slice selection.
  * @param windowTabNumber
- *    Tab number of window.
- * @param 
- *    New value for parasagittal slice index.
+ *   Tab Number of window.
+ * @return
+ *   Volume slice selection for tab.
  */
-void 
-ModelDisplayControllerVolume::setSliceIndexParasagittal(const int32_t windowTabNumber,
-                               const int64_t sliceIndexParasagittal)
-{    
-    this->sliceIndexParasagittal[windowTabNumber] = sliceIndexParasagittal;
+const VolumeSliceIndicesSelection* 
+ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
+{
+    return &this->volumeSlicesSelected[windowTabNumber];
 }
+
 
 
 /**
@@ -331,22 +274,7 @@ ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
 {
     VolumeFile* vf = this->getVolumeFile();
     if (vf != NULL) {
-        std::vector<int64_t> dimensions;
-        vf->getDimensions(dimensions);
-        if (this->sliceIndexParasagittal[windowTabNumber] >= dimensions[0]) {
-            this->sliceIndexParasagittal[windowTabNumber] = dimensions[0] - 1;
-        }
-        if (this->sliceIndexCoronal[windowTabNumber] >= dimensions[1]) {
-            this->sliceIndexCoronal[windowTabNumber] = dimensions[1] - 1;
-        }
-        if (this->sliceIndexAxial[windowTabNumber] >= dimensions[2]) {
-            this->sliceIndexAxial[windowTabNumber] = dimensions[2] - 1;
-        }
-    }
-    else {
-        this->sliceIndexParasagittal[windowTabNumber] = 0;
-        this->sliceIndexCoronal[windowTabNumber] = 0;
-        this->sliceIndexAxial[windowTabNumber] = 0;
+        this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
     }
 }
 

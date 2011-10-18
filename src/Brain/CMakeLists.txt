@@ -79,6 +79,7 @@ SurfaceOverlay.h
 SurfaceOverlayDataTypeEnum.h
 SurfaceOverlaySet.h
 VolumeOverlayDataTypeEnum.h
+VolumeSliceIndicesSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
 YokingTypeEnum.h
@@ -120,6 +121,7 @@ SurfaceOverlay.cxx
 SurfaceOverlayDataTypeEnum.cxx
 SurfaceOverlaySet.cxx
 VolumeOverlayDataTypeEnum.cxx
+VolumeSliceIndicesSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx
 YokingTypeEnum.cxx

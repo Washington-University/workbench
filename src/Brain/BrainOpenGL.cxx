@@ -24,6 +24,8 @@
  */
 /*LICENSE_END*/
 
+#include <cstdlib>
+
 #ifdef CARET_OS_WINDOWS
 #include <Windows.h>
 #endif
@@ -52,7 +54,7 @@
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
-#include <cstdlib>
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -199,49 +201,22 @@ BrainOpenGL::drawModelInternal(Mode mode,
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
-    glViewport(viewport[0], 
-               viewport[1], 
-               viewport[2], 
-               viewport[3]);
-    
     if(modelDisplayController != NULL) {
         CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
-        
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        this->setOrthographicProjection(viewport);
-        
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        
-        const float* translation = modelDisplayController->getTranslation(this->windowTabIndex);
-        glTranslatef(translation[0], 
-                     translation[1], 
-                     translation[2]);
-        
-        Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(this->windowTabIndex);
-        double rotationMatrixElements[16];
-        rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
-        glMultMatrixd(rotationMatrixElements);
-        
-        const float scale = modelDisplayController->getScaling(this->windowTabIndex);
-        glScalef(scale, 
-                 scale, 
-                 scale);
-        
+                
         ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
         ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
         ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
         if (surfaceController != NULL) {
-            this->drawSurface(surfaceController->getSurface());
+            this->drawSurfaceController(surfaceController, viewport);
         }
         else if (volumeController != NULL) {
-            this->drawVolume(browserTabContent,
-                             volumeController);
+            this->drawVolumeController(browserTabContent,
+                                       volumeController, viewport);
         }
         else if (wholeBrainController != NULL) {
-            this->drawWholeBrain(browserTabContent,
-                                 wholeBrainController);
+            this->drawWholeBrainController(browserTabContent,
+                                           wholeBrainController, viewport);
         }
         else {
             CaretAssertMessage(0, "Unknown type of model display controller for drawing");
@@ -249,6 +224,57 @@ BrainOpenGL::drawModelInternal(Mode mode,
     }
     
     this->checkForOpenGLError(modelDisplayController, "At end of drawModel()");
+}
+
+/**
+ * Set the viewport.
+ * @param viewport
+ *   Values for viewport (x, y, x-size, y-size)
+ */
+void 
+BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4])
+{
+    glViewport(viewport[0], 
+               viewport[1], 
+               viewport[2], 
+               viewport[3]); 
+    
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    this->setOrthographicProjection(viewport);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+/**
+ * Apply the viewing transformations for the model controller 
+ * in the given tab.
+ *
+ * @param modelDisplayController
+ *    Model controller being viewed.
+ * @param tabIndex
+ *    Index of tab containing the controller.
+ */
+void 
+BrainOpenGL::applyViewingTransformations(const ModelDisplayController* modelDisplayController,
+                                         const int32_t tabIndex)
+{
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    
+    const float* translation = modelDisplayController->getTranslation(tabIndex);
+    glTranslatef(translation[0], 
+                 translation[1], 
+                 translation[2]);
+    
+    const Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(tabIndex);
+    double rotationMatrixElements[16];
+    rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
+    glMultMatrixd(rotationMatrixElements);
+    
+    const float scale = modelDisplayController->getScaling(tabIndex);
+    glScalef(scale, 
+             scale, 
+             scale);    
 }
 
 void 
@@ -389,6 +415,21 @@ BrainOpenGL::disableLighting()
     glDisable(GL_LIGHTING);
     glDisable(GL_COLOR_MATERIAL);
 }
+
+/**
+ * Draw contents of a surface controller.
+ * @param surfaceController
+ *    Controller that is drawn.
+ */
+void 
+BrainOpenGL::drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
+                                   const int32_t viewport[4])
+{
+    this->setViewportAndOrthographicProjection(viewport);
+    this->applyViewingTransformations(surfaceController, this->windowTabIndex);
+    this->drawSurface(surfaceController->getSurface());
+}
+
 
 /**
  * Draw a surface.
@@ -606,12 +647,207 @@ BrainOpenGL::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
  *    Controller for slices.
  */
 void 
-BrainOpenGL::drawVolume(BrowserTabContent* browserTabContent,
-                        ModelDisplayControllerVolume* volumeController)
+BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
+                                  ModelDisplayControllerVolume* volumeController,
+                                  const int32_t viewport[4])
 {
+    
     const int32_t tabNumber = browserTabContent->getTabNumber();
     volumeController->updateController(tabNumber);
-    std::cout << "Axial index = " << volumeController->getSliceIndexAxial(tabNumber) << std::endl;
+    VolumeFile* vf = volumeController->getVolumeFile();
+    if (vf != NULL) {
+        const VolumeSliceIndicesSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
+        switch (volumeController->getSliceViewMode(tabNumber)) {
+            case VolumeSliceViewModeEnum::MONTAGE:
+            {
+                const int numRows = volumeController->getMontageNumberOfRows(tabNumber);
+                CaretAssert(numRows > 0);
+                const int numCols = volumeController->getMontageNumberOfColumns(tabNumber);
+                CaretAssert(numCols > 0);
+                const int vpSizeX = viewport[2] / numRows;
+                const int vpSizeY = viewport[3] / numCols;
+                
+                int sliceIndex = -1;
+                const int sliceStep = volumeController->getMontageSliceSpacing(tabNumber);
+                const VolumeSliceViewPlaneEnum::Enum slicePlane = volumeController->getSliceViewPlane(this->windowTabIndex);
+                switch (slicePlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                        sliceIndex = -1;
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        sliceIndex = selectedSlices->getSliceIndexAxial();
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        sliceIndex = selectedSlices->getSliceIndexCoronal();
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        sliceIndex = selectedSlices->getSliceIndexParasagittal();
+                        break;
+                }
+
+                
+                for (int i = 0; i < numRows; i++) {
+                    for (int j = 0; j < numCols; j++) {
+                        const int vpX = (numRows - 1) * vpSizeX;
+                        const int vpY = j * vpSizeY;
+                        const int vp[4] = { vpX, vpY, vpSizeX, vpSizeY };
+                        
+                        this->setViewportAndOrthographicProjection(vp);
+                        volumeController->setSliceViewPlane(tabNumber, slicePlane);
+                        this->applyViewingTransformations(volumeController, tabNumber);
+                        this->drawVolumeOrthogonalSlice(slicePlane, 
+                                                        sliceIndex, 
+                                                        vf, 
+                                                        tabNumber);
+                        sliceIndex += sliceStep;
+                    }
+                }
+            }
+                break;
+            case VolumeSliceViewModeEnum::OBLIQUE:
+                break;
+            case VolumeSliceViewModeEnum::ORTHOGONAL:
+            {
+                const VolumeSliceViewPlaneEnum::Enum slicePlane = volumeController->getSliceViewPlane(this->windowTabIndex);
+                switch (slicePlane) {
+                    case VolumeSliceViewPlaneEnum::ALL:
+                    {
+                        const int halfX = viewport[2] / 2;
+                        const int halfY = viewport[3] / 2;
+                        
+                        const int axialVP[4] = { 0, halfY, halfX, halfY };
+                        this->setViewportAndOrthographicProjection(axialVP);
+                        volumeController->setSliceViewPlane(tabNumber, VolumeSliceViewPlaneEnum::AXIAL);
+                        this->applyViewingTransformations(volumeController, tabNumber);
+                        this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
+                                                        selectedSlices->getSliceIndexAxial(),
+                                                        vf,
+                                                        tabNumber);
+                        
+                        const int coronalVP[4] = { halfX, halfY, halfX, halfY };
+                        this->setViewportAndOrthographicProjection(coronalVP);
+                        volumeController->setSliceViewPlane(tabNumber, VolumeSliceViewPlaneEnum::CORONAL);
+                        this->applyViewingTransformations(volumeController, tabNumber);
+                        this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
+                                                        selectedSlices->getSliceIndexCoronal(),
+                                                        vf,
+                                                        tabNumber);
+                        
+                        const int parasagittalVP[4] = { halfX, 0, halfX, halfY };
+                        this->setViewportAndOrthographicProjection(parasagittalVP);
+                        volumeController->setSliceViewPlane(tabNumber, VolumeSliceViewPlaneEnum::PARASAGITTAL);
+                        this->applyViewingTransformations(volumeController, tabNumber);
+                        this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                                                        selectedSlices->getSliceIndexParasagittal(),
+                                                        vf,
+                                                        tabNumber);
+                        
+                    }
+                        break;
+                    case VolumeSliceViewPlaneEnum::AXIAL:
+                        this->setViewportAndOrthographicProjection(viewport);
+                        this->applyViewingTransformations(volumeController, this->windowTabIndex);
+                        this->drawVolumeOrthogonalSlice(slicePlane, 
+                                                        selectedSlices->getSliceIndexAxial(),
+                                                        vf,
+                                                        tabNumber);
+                        break;
+                    case VolumeSliceViewPlaneEnum::CORONAL:
+                        this->setViewportAndOrthographicProjection(viewport);
+                        this->applyViewingTransformations(volumeController, this->windowTabIndex);
+                        this->drawVolumeOrthogonalSlice(slicePlane, 
+                                                        selectedSlices->getSliceIndexCoronal(),
+                                                        vf,
+                                                        tabNumber);
+                        break;
+                    case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                        this->setViewportAndOrthographicProjection(viewport);
+                        this->applyViewingTransformations(volumeController, this->windowTabIndex);
+                        this->drawVolumeOrthogonalSlice(slicePlane, 
+                                                        selectedSlices->getSliceIndexParasagittal(),
+                                                        vf,
+                                                        tabNumber);
+                        break;
+                }
+            }
+            break;
+        }
+        
+    }
+}
+
+/**
+ * Draw a single volume orthogonal slice.
+ * @param slicePlane
+ * @param sliceIndex
+ * @param tabNumber
+ */
+void 
+BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                       const int64_t sliceIndex,
+                                       /*const*/VolumeFile* volumeFile,
+                                       const int32_t tabNumber)
+{
+    int64_t dimI, dimJ, dimK, numMaps, numComponents;
+    volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+    
+    const int64_t lastDimI = dimI - 1;
+    const int64_t lastDimJ = dimJ - 1;
+    const int64_t lastDimK = dimK - 1;
+    float x1, y1, z1;
+    float x2, y2, z2;
+    glBegin(GL_QUADS);
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            if (sliceIndex < dimK) {
+                const int64_t k = sliceIndex;
+                for (int64_t i = 0; i < lastDimI; i++) {
+                    for (int64_t j = 0; j < lastDimJ; j++) {
+                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                        volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                        glVertex3f(x1, y1, z1);
+                        glVertex3f(x2, y2, z2);
+                    }
+                }
+            }
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            if (sliceIndex < dimJ) {
+                const int64_t j = sliceIndex;
+                for (int64_t i = 0; i < lastDimI; i++) {
+                    for (int64_t k = 0; k < lastDimK; k++) {
+                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                        volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                        glVertex3f(x1, y1, z1);
+                        glVertex3f(x2, y2, z2);
+                    }
+                }
+            }
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            if (sliceIndex < dimI) {
+                const int64_t i = sliceIndex;
+                for (int64_t j = 0; j < lastDimJ; j++) {
+                    for (int64_t k = 0; k < lastDimK; k++) {
+                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                        volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                        glVertex3f(x1, y1, z1);
+                        glVertex3f(x2, y2, z2);
+                    }
+                }
+            }
+        }
+            break;
+    }
+    glEnd();
 }
 
 /**
@@ -622,9 +858,13 @@ BrainOpenGL::drawVolume(BrowserTabContent* browserTabContent,
  *    Controller for whole brain.
  */
 void 
-BrainOpenGL::drawWholeBrain(BrowserTabContent* browserTabContent,
-                            ModelDisplayControllerWholeBrain* wholeBrainController)
+BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
+                                      ModelDisplayControllerWholeBrain* wholeBrainController,
+                                      const int32_t viewport[4])
 {
+    this->setViewportAndOrthographicProjection(viewport);
+    this->applyViewingTransformations(wholeBrainController, this->windowTabIndex);
+    
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
     
@@ -671,15 +911,6 @@ BrainOpenGL::drawWholeBrain(BrowserTabContent* browserTabContent,
             }
         }
     }
-}
-
-/**
- * Check for OpenGL errors.
- */
-void 
-BrainOpenGL::checkForOpenGLError()
-{
-    
 }
 
 /**

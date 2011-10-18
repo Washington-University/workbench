@@ -31,6 +31,7 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "IdentificationItemDataTypeEnum.h"
+#include "VolumeSliceViewPlaneEnum.h"
 
 namespace caret {
     
@@ -40,8 +41,10 @@ namespace caret {
     class IdentificationWithColor;
     class Surface;
     class ModelDisplayController;
+    class ModelDisplayControllerSurface;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
+    class VolumeFile;
     
     /**
      * Performs drawing of graphics using OpenGL.
@@ -98,6 +101,9 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
+        void drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
+                                   const int32_t viewport[4]);
+        
         void drawSurface(Surface* surface);
         
         void drawSurfaceNodes(Surface* surface);
@@ -106,13 +112,18 @@ namespace caret {
         
         void drawSurfaceTriangles(Surface* surface);
         
-        void drawVolume(BrowserTabContent* browserTabContent,
-                        ModelDisplayControllerVolume* volumeController);
+        void drawVolumeController(BrowserTabContent* browserTabContent,
+                                  ModelDisplayControllerVolume* volumeController,
+                                  const int32_t viewport[4]);
         
-        void drawWholeBrain(BrowserTabContent* browserTabContent,
-                            ModelDisplayControllerWholeBrain* wholeBrainController);
+        void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                       const int64_t sliceIndex,
+                                       /*const*/VolumeFile* volumeFile,
+                                       const int32_t tabNumber);
         
-        void checkForOpenGLError();
+        void drawWholeBrainController(BrowserTabContent* browserTabContent,
+                                      ModelDisplayControllerWholeBrain* wholeBrainController,
+                                      const int32_t viewport[4]);
         
         void setOrthographicProjection(const int32_t viewport[4]);
         
@@ -128,6 +139,11 @@ namespace caret {
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
+        
+        void setViewportAndOrthographicProjection(const int32_t viewport[4]);
+        
+        void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
+                                         const int32_t tabIndex);
                                            
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;
@@ -145,7 +161,7 @@ namespace caret {
         BrowserTabContent* browserTabContent;
         
         /** Index of window tab */
-        int windowTabIndex;
+        int32_t windowTabIndex;
         
         /** mode of operation draw/select/etc*/
         Mode mode;

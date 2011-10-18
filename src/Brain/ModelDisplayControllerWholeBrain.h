@@ -28,6 +28,7 @@
 #include "BrainConstants.h"
 #include "ModelDisplayController.h"
 #include "SurfaceTypeEnum.h"
+#include "VolumeSliceIndicesSelection.h"
 
 
 namespace caret {
@@ -79,35 +80,10 @@ namespace caret {
         void setCerebellumSeparation(const int32_t windowTabNumber,
                                     const float separation);
         
-        int64_t getSliceIndexAxial(const int32_t windowTabNumber) const;
+        VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber);
         
-        void setSliceIndexAxial(const int32_t windowTabNumber,
-                                const int64_t sliceIndexAxial);
+        const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
-        int64_t getSliceIndexCoronal(const int32_t windowTabNumber) const;
-        
-        void setSliceIndexCoronal(const int32_t windowTabNumber,
-                                  const int64_t sliceIndexCoronal);
-        
-        int64_t getSliceIndexParagittal(const int32_t windowTabNumber) const;
-        
-        void setSliceIndexParasagittal(const int32_t windowTabNumber,
-                                       const int64_t sliceIndexParasagittal);
-        
-        bool isSliceParasagittalEnabled(const int32_t windowTabNumber) const;
-        
-        void setSliceParasagittalEnabled(const int32_t windowTabNumber,
-                                         const bool sliceEnabledParasagittal);
-        
-        bool isSliceCoronalEnabled(const int32_t windowTabNumber) const;
-        
-        void setSliceCoronalEnabled(const int32_t windowTabNumber,
-                                         const bool sliceEnabledCoronal);
-        
-        bool isSliceAxialEnabled(const int32_t windowTabNumber) const;
-        
-        void setSliceAxialEnabled(const int32_t windowTabNumber,
-                                         const bool sliceEnabledAxial);
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
@@ -143,20 +119,7 @@ namespace caret {
         
         float cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        /** Parasagittal slice index */
-        int64_t sliceIndexParasagittal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Coronal slice index */
-        int64_t sliceIndexCoronal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        /** Axial slice index */
-        int64_t sliceIndexAxial[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool sliceEnabledParasagittal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool sliceEnabledCoronal[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool sliceEnabledAxial[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
     };
 
 } // namespace

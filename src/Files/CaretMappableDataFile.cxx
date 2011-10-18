@@ -32,21 +32,6 @@ using namespace caret;
 
     
 /**
- * \class CaretMappableDataFile 
- * \brief A Caret data file that is mappable to surfaces and/or volumes.
- *
- * This class is essentially an interface that defines methods for
- * files that are 'mappable', as an overlay, to surfaces and/or volumes.
- * Use of a common interface simplifies selection and application
- * of these data files.
- *
- * For a GIFTI File, the number of maps is the number of data arrays
- * in the GIFTI file.  For a volume, it may be the number of time points.
- * 
- * Note that Caret5 used the term 'column'.
- */
-
-/**
  * Constructor.
  */
 CaretMappableDataFile::CaretMappableDataFile(const DataFileTypeEnum::Enum dataFileType)
