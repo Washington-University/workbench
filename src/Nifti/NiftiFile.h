@@ -150,6 +150,11 @@ public:
    /// Write the entire Volume File to a nifti file
    void writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
 
+   /// Gets a Nifti1Header from a previously defined volume file
+   void getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header & header);
+   /// Gets a Nifti2Header from a previously defined volume file
+   void getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header & header);
+
    void getLayout(LayoutType &layout) throw(NiftiException);
 
    /// Destructor

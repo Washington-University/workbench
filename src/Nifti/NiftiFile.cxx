@@ -323,8 +323,52 @@ void NiftiFile::readVolumeFile(VolumeFile &vol, const AString &filename) throw (
     }
 }
 
+void NiftiFile::getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header &header)
+{
+    /*need to get the following:
+     dimensions
+     spacing (store to pixdim)
+     sform_row_*
+     orientation
+    */
+    /* implied defaults:
+      DATA TYPE IS FLOAT32
+      INTENT CODE IS NIFTI_INTENT_NONE
+      vox_offset is 548 for now, since we don't support labels yet
+      qform code is NIFTI_XFORM_TALAIRACH
+      sform code is NIFTI_XFORM_TALAIRACH??
+      qform (how do get that from sform, or is it necessary?)
+      quatern_?, again how do we get that?
+      intent_name "NIFTI_INTENT_NONE"
+      scl_slope = 0
+      scl_inter = 0
+      slice_start = 0
+      slice_end = 0
+      slice_code =0
+      xyzt_units = ??
+      intent_p1,2,3 = 0
+      */
+}
+
+void NiftiFile::getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header &header)
+{
+
+
+
+}
+
 void NiftiFile::writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException)
 {
+    //get dimensions, sform and component size
+    std::vector <int64_t> dim;
+
+    int64_t timeSlices = 1;
+    if(dim.size()==4) timeSlices = dim[3];
+    //TODO, for now components are always 0, rewrite for RGB
+    for(int64_t t=0;t<timeSlices;t++)
+    {
+        matrix.setVolumeFrame(vol,t,0);
+    }
 
 
 }
