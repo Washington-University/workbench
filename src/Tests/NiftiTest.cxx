@@ -34,6 +34,8 @@ void NiftiFileTest::execute()
 {
     testObjectCreateDestroy();
     if(this->failed()) return;
+    testNifti1ReadWrite();
+    if(this->failed()) return;
 }
 
 void NiftiFileTest::testObjectCreateDestroy()
@@ -46,6 +48,63 @@ void NiftiFileTest::testObjectCreateDestroy()
     }
 
     delete niftiFile;
+}
+
+void NiftiFileTest::testNifti1ReadWrite()
+{
+    std::cout << "Testing Nifti1 reader/writer." << std::endl;
+    NiftiFile reader(this->m_default_path + "/nifti/fcMRI1_nonlin_Subcortical_Smoothed_s6.nii");
+    Nifti1Header header;
+    if(reader.getNiftiVersion()==1)
+    {
+        reader.getHeader(header);
+    }
+    else
+    {
+        setFailed("This test is for nifti1 files currently.");
+        return;
+    }
+    //hack TODO, this gives it a name to write to, change to write and cleanup temp
+    //files if necessary
+    AString outFile = this->m_default_path + "/nifti/Nifti1TestOut.nii";
+    if(QFile::exists(outFile)) QFile::remove(outFile);
+    NiftiFile writer(outFile);
+    writer.setHeader(header);
+    LayoutType layout;
+    reader.getLayout(layout);
+    int64_t timeSlices = 1;
+    if(layout.dimensions.size()>3) timeSlices=layout.dimensions[3];
+    reader.matrix.readFrame(0);//hack TODO, fix this....
+    int64_t frameLength = reader.matrix.getFrameLength();
+    float * frame = new float[frameLength];
+    for(int64_t t = 0;t<timeSlices;t++)
+    {
+        reader.matrix.readFrame(t);
+        reader.matrix.getFrame(frame);
+        writer.matrix.setFrame(frame,frameLength,t);
+        writer.matrix.flushCurrentFrame();
+    }
+
+    writer.writeFile(outFile);
+
+    //reopen output file, and check that frames agree
+    NiftiFile test(outFile);
+    float * frameTest = new float[frameLength];
+    for(int64_t t = 0;t<timeSlices;t++)
+    {
+        reader.matrix.readFrame(t);
+        reader.matrix.getFrame(frame);
+        test.matrix.readFrame(t);
+        test.matrix.getFrame(frameTest);
+        if(!memcmp((void *)frame,(void *)frameTest,reader.matrix.getFrameSize()))
+        {
+            this->setFailed("Input and output nifti file frames are not the same.");
+            return;
+        }
+    }
+    std::cout << "Reading and writing of Nifti was successful for all frames." << std::endl;
+    delete [] frame;
+    delete [] frameTest;
 }
 
 //Tests for reading and writing Nifti Headers

@@ -105,8 +105,8 @@
 
 
 /// Class for opening, reading, and writing generic Nifti1/2 Data, doesn't support extensions (yet)
-
 namespace caret {
+    class NiftiFileTest;
 
 //we specify here whether to write in native byte order, or to honor the original
 //byte order, we could also get clever and try to determine whether or not we are
@@ -116,6 +116,7 @@ namespace caret {
 
 class NiftiFile
 {
+    friend class NiftiFileTest;
 public:
    /// Constructor
    NiftiFile() throw (NiftiException);
@@ -135,6 +136,8 @@ public:
    virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
    /// get Nifti2Header
    void getHeader(Nifti2Header &header) throw (NiftiException);
+   /// get NiftiVersion
+   int getNiftiVersion();
 
    // TODO: This will eventually be handled by the extension reader/writer object
    void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
@@ -155,7 +158,9 @@ public:
    /// Gets a Nifti2Header from a previously defined volume file
    void getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header & header);
 
-   void getLayout(LayoutType &layout) throw(NiftiException);
+   void getLayout(LayoutType &layout) throw(NiftiException) {
+       return matrix.getMatrixLayoutOnDisk(layout);
+   }
 
    /// Destructor
    virtual ~NiftiFile();
@@ -166,6 +171,7 @@ protected:
    NiftiHeaderIO headerIO;
    NiftiMatrix matrix;
    int8_t * extension_bytes;
+   bool newFile;
 };
 
 

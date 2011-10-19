@@ -134,6 +134,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsI
 void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
+    headerIn.getNiftiDataTypeEnum(this->niftiDataType);
     headerIn.getDimensions(this->dimensions);
     headerIn.getComponentDimensions(this->componentDimensions);
     headerIn.getValueByteSize(this->valueByteSize);
@@ -146,6 +147,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
 void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
 {
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
+    headerIn.getNiftiDataTypeEnum(this->niftiDataType);
     headerIn.getDimensions(this->dimensions);
     headerIn.getComponentDimensions(this->componentDimensions);
     headerIn.getValueByteSize(this->valueByteSize);
@@ -340,7 +342,7 @@ void NiftiMatrix::setComponent(const int64_t &index, const int64_t &componentInd
 int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const
 {
     int64_t frameLength = 1;
-    for(int i=1;i<dimensionsIn[0];i++)
+    for(int i=0;i<3;i++)
         frameLength*=dimensionsIn[i];
     return frameLength;
 }

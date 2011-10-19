@@ -56,7 +56,7 @@ NiftiFile::NiftiFile(const QString &fileName) throw (NiftiException)
 void NiftiFile::init()
 {
     extension_bytes = NULL;
-
+    newFile = false;
 }
 
 /**
@@ -68,6 +68,13 @@ void NiftiFile::init()
  */
 void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
 {
+    if(!QFile::exists(fileName))//opening file for writing
+    {
+        this->m_fileName = fileName;
+        matrix.setMatrixFile(m_fileName);
+        newFile=true;
+        return;
+    }
     //read header
     headerIO.readFile(fileName);
 
@@ -75,6 +82,8 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
     int64_t vOffset = headerIO.getVolumeOffset();
     int64_t eOffset = headerIO.getExtensionsOffset();
     int64_t eLength = vOffset-eOffset;
+    if(extension_bytes) delete [] extension_bytes;
+    extension_bytes = new int8_t[eLength];
     QFile ext(fileName);
     ext.open(QIODevice::ReadWrite);
     ext.seek(eOffset);
@@ -83,10 +92,19 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
 
     //set up Matrix
     matrix.setMatrixFile(fileName);
-    Nifti2Header header;
-    headerIO.getHeader(header);
-    matrix.setMatrixLayoutOnDisk(header);
-    matrix.setMatrixOffset((header.getVolumeOffset()));
+    if(this->getNiftiVersion()==1) {
+        Nifti1Header header;
+        headerIO.getHeader(header);
+        matrix.setMatrixLayoutOnDisk(header);
+        matrix.setMatrixOffset((header.getVolumeOffset()));
+    }
+    else if(this->getNiftiVersion()==2)
+    {
+        Nifti2Header header;
+        headerIO.getHeader(header);
+        matrix.setMatrixLayoutOnDisk(header);
+        matrix.setMatrixOffset((header.getVolumeOffset()));
+    }
 }
 
 void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength)
@@ -110,7 +128,7 @@ void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLengt
  */
 void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
 {     
-    if(fileName == m_fileName)
+    if(fileName == m_fileName && !newFile)
     {
         //need to honor byte order
         headerIO.writeFile(fileName,ORIGINAL_BYTE_ORDER);
@@ -122,17 +140,29 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         int64_t vOffset = headerIO.getVolumeOffset();
         int64_t eOffset = headerIO.getExtensionsOffset();
         int64_t eLength = vOffset-eOffset;
-        QFile ext(fileName);
-        ext.open(QIODevice::ReadWrite);
-        ext.seek(eOffset);
-        ext.write((char *)extension_bytes, eLength);
-        ext.close();
+        if(eLength>4)
+        {
+            QFile ext(fileName);
+            ext.open(QIODevice::ReadWrite);
+            ext.seek(eOffset);
+            ext.write((char *)extension_bytes, eLength);
+            ext.close();
+        }
+        else //extension doesn't exist, just write four 0x00's
+        {
+            uint8_t bytes[4] = {0x00,0x00,0x00,0x00};
+            QFile ext(fileName);
+            ext.open(QIODevice::ReadWrite);
+            ext.seek(eOffset);
+            ext.write((char *)bytes, 4);
+            ext.close();
+        }
         //write matrix
         //need to flush last frame when writing in place, all other writes
         //have occured
         matrix.flushCurrentFrame();
     }
-    else //assume we are writing a new file
+    else //we are writing a new file
     {
         //TODO: When extension class is done, Nifti vox offset, and matrix offset will need to be updated to include size of extension, since it will have changed.
         headerIO.writeFile(fileName,byteOrder);
@@ -142,20 +172,31 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         int64_t vOffset = headerIO.getVolumeOffset();
         int64_t eOffset = headerIO.getExtensionsOffset();
         int64_t eLength = vOffset-eOffset;
-
-        //confusing, but we never swapped these bytes when we read them in, so
-        //we need to swap them now if the byte order to write is native
-        //and swap is needed
-        //check for NATIVE_BYTE_ORDER and if it needs swapping
-        if(byteOrder == NATIVE_BYTE_ORDER && headerIO.getSwapNeeded())
+        if(eLength >4)
         {
-            swapExtensionsBytes(extension_bytes, eLength);
+            //confusing, but we never swapped these bytes when we read them in, so
+            //we need to swap them now if the byte order to write is native
+            //and swap is needed
+            //check for NATIVE_BYTE_ORDER and if it needs swapping
+            if(byteOrder == NATIVE_BYTE_ORDER && headerIO.getSwapNeeded())
+            {
+                swapExtensionsBytes(extension_bytes, eLength);
+            }
+            QFile ext(fileName);
+            ext.open(QIODevice::ReadWrite);
+            ext.seek(eOffset);
+            ext.write((char *)extension_bytes, eLength);
+            ext.close();
         }
-        QFile ext(fileName);
-        ext.open(QIODevice::ReadWrite);
-        ext.seek(eOffset);
-        ext.write((char *)extension_bytes, eLength);
-        ext.close();
+        else //extension doesn't exist, just write four 0x00
+        {
+            uint8_t bytes[4] = {0x00,0x00,0x00,0x00};
+            QFile ext(fileName);
+            ext.open(QIODevice::ReadWrite);
+            ext.seek(eOffset);
+            ext.write((char *)bytes, 4);
+            ext.close();
+        }
 
         //uggh, needs an output layout
         //until then, will hack around this...
@@ -183,8 +224,8 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         //dim4 may be zero
 
         int64_t totalTimeSlices= 1;
-        if(newLayout.dimensions[4]!=0 && newLayout.dimensions[0]==4) {
-            totalTimeSlices = newLayout.dimensions[4];
+        if(newLayout.dimensions[3]!=0 && newLayout.dimensions[0]==4) {
+            totalTimeSlices = newLayout.dimensions[3];
         }
         //need better handling for different matrices, for later
         float * frame = new float[matrix.getFrameLength()];
@@ -219,6 +260,7 @@ NiftiFile::~NiftiFile()
 void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
 {
     headerIO.setHeader(header);
+    matrix.setMatrixLayoutOnDisk(header);
 }
 
 /**
@@ -231,6 +273,7 @@ void NiftiFile::setHeader(const Nifti1Header &header) throw (NiftiException)
 void NiftiFile::getHeader(Nifti1Header &header) throw (NiftiException)
 {
     headerIO.getHeader(header);
+    matrix.setMatrixLayoutOnDisk(header);
 }
 
 /**
@@ -259,6 +302,18 @@ void NiftiFile::getHeader(Nifti2Header &header) throw (NiftiException)
     headerIO.getHeader(header);
 }
 
+/**
+ *
+ *
+ * get a copy of the Nifti2Header
+ *
+ * @return version
+ */
+
+int NiftiFile::getNiftiVersion()
+{
+    return headerIO.getNiftiVersion();
+}
 
 // Volume IO
 
@@ -369,8 +424,6 @@ void NiftiFile::writeVolumeFile(VolumeFile &vol, const AString &filename) throw 
     {
         matrix.setVolumeFrame(vol,t,0);
     }
-
-
 }
 
 

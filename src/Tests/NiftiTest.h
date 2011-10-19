@@ -37,6 +37,7 @@ public:
     NiftiFileTest(const AString& identifier);
     virtual void execute();
     void testObjectCreateDestroy();
+    void testNifti1ReadWrite();
 };
 
 class NiftiHeaderTest : public TestInterface
