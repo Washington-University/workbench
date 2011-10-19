@@ -55,35 +55,35 @@ namespace caret {
          /** invalid data type.  */
          NIFTI_TYPE_INVALID = 0,
          /** unsigned byte.  */
-         NIFTI_TYPE_UINT8 = 2,
+         NIFTI_TYPE_UINT8 = ::NIFTI_TYPE_UINT8,
          /** signed short.  */
-         NIFTI_TYPE_INT16 = 4,
+         NIFTI_TYPE_INT16 = ::NIFTI_TYPE_INT16,
          /** signed int.  */
-         NIFTI_TYPE_INT32 = 8,
+         NIFTI_TYPE_INT32 = ::NIFTI_TYPE_INT32,
          /** 32 bit float.  */
-         NIFTI_TYPE_FLOAT32 = 16,
+         NIFTI_TYPE_FLOAT32 = ::NIFTI_TYPE_FLOAT32,
          /** 64 bit complex = 2 32 bit floats.  */
-         NIFTI_TYPE_COMPLEX64 = 32,
+         NIFTI_TYPE_COMPLEX64 = ::NIFTI_TYPE_COMPLEX64,
          /** 64 bit float = double.  */
-         NIFTI_TYPE_FLOAT64 = 64,
+         NIFTI_TYPE_FLOAT64 = ::NIFTI_TYPE_FLOAT64,
          /** 3 8 bit bytes.  */
-         NIFTI_TYPE_RGB24 = 128,
+         NIFTI_TYPE_RGB24 = ::NIFTI_TYPE_RGB24,
          /** signed char.  */
-         NIFTI_TYPE_INT8 = 256,
+         NIFTI_TYPE_INT8 = ::NIFTI_TYPE_INT8,
          /** unsigned short.  */
-         NIFTI_TYPE_UINT16 = 512,
+         NIFTI_TYPE_UINT16 = ::NIFTI_TYPE_UINT16,
          /** unsigned int.  */
-         NIFTI_TYPE_UINT32 = 768,
+         NIFTI_TYPE_UINT32 = ::NIFTI_TYPE_UINT32,
          /** signed long long.  */
-         NIFTI_TYPE_INT64 = 1024,
+         NIFTI_TYPE_INT64 = ::NIFTI_TYPE_INT64,
          /** unsigned long long.  */
-         NIFTI_TYPE_UINT64 = 1280,
+         NIFTI_TYPE_UINT64 = ::NIFTI_TYPE_UINT64,
          /** 128 bit float = long double.  */
-         NIFTI_TYPE_FLOAT128 = 1536,
+         NIFTI_TYPE_FLOAT128 = ::NIFTI_TYPE_FLOAT128,
          /** 128 bit complex = 2 64 bit floats.  */
-         NIFTI_TYPE_COMPLEX128 = 1792,
+         NIFTI_TYPE_COMPLEX128 = ::NIFTI_TYPE_COMPLEX128,
          /** 256 bit complex = 2 128 bit floats  */
-         NIFTI_TYPE_COMPLEX256 = 2048
+         NIFTI_TYPE_COMPLEX256 = ::NIFTI_TYPE_COMPLEX256
       };
       
       
