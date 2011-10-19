@@ -29,6 +29,8 @@
 
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "IdentificationItemSurfaceNode.h"
+#include "IdentificationManager.h"
 #include "MouseEvent.h"
 #include "ModelDisplayController.h"
 
@@ -115,7 +117,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                          BrowserTabContent* browserTabContent,
                                          BrainOpenGLWidget* openGLWidget)
 {
+    IdentificationManager* idManager =
+        openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
     
+    std::cout << "ID: " << idManager->getSurfaceNodeIdentification()->toString() << std::endl;
 }
 
 /**

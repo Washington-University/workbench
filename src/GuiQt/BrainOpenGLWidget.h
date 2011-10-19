@@ -38,6 +38,7 @@ namespace caret {
 
     class BrainOpenGL;
     class BrowserTabContent;
+    class IdentificationManager;
     class ModelDisplayController;
     class MouseEvent;
     class UserInputModeView;
@@ -54,6 +55,9 @@ namespace caret {
         //ModelDisplayController* getDisplayedModelController();
         
         void receiveEvent(Event* event);
+        
+        IdentificationManager* performIdentification(const int x,
+                                                     const int y);
         
     protected:
         void initializeGL();

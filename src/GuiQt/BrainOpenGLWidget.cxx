@@ -224,7 +224,9 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             this->processMouseEvent(&mouseEvent);
         }
     }
-/*    
+/*   
+ 
+x, y, 
     int mouseX = me->x();
     int mouseY = this->windowHeight[this->windowIndex] - me->y();
     
@@ -254,6 +256,42 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                   mouseY);
     }
 */
+}
+
+/**
+ * Perform identification.
+ *
+ * @param x
+ *    X-coordinate for identification.
+ * @param y
+ *    Y-coordinate for identification.
+ * @return
+ *    IdentificationManager providing identification information.
+ */
+IdentificationManager* 
+BrainOpenGLWidget::performIdentification(const int x,
+                                         const int y)
+{
+    int viewport[4] = {
+        0,
+        0,
+        this->windowWidth[this->windowIndex],
+        this->windowHeight[this->windowIndex]
+    };
+    
+    this->makeCurrent();
+    CaretLogFine("Performing selection");
+    IdentificationManager* idManager = this->openGL->getIdentificationManager();
+    idManager->reset();
+    idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
+    idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
+    this->openGL->selectModel(this->modelController, 
+                              this->browserTabContent, 
+                              this->windowTabIndex, 
+                              viewport, 
+                              x, 
+                              y);
+    return idManager;
 }
 
 

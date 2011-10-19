@@ -26,7 +26,9 @@
 
 #include <QApplication>
 #include <QGLFormat>
+#include <QGLPixelBuffer>
 
+#include "CaretLogger.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -94,6 +96,13 @@ main(int argc, char* argv[])
         EventManager::get()->sendEvent(newBrowserWindow.getPointer());
     }
     //GuiManager::get()->newBrainBrowserWindow(NULL);
+    
+    if (QGLPixelBuffer::hasOpenGLPbuffers()) {
+        CaretLogConfig("OpenGL PBuffers are supported");
+    }
+    else {
+        CaretLogConfig("OpenGL PBuffers are NOT supported");
+    }
     
     /*
      * Start the app which will launch the main window.
