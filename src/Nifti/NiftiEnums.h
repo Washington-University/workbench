@@ -33,6 +33,7 @@
 #include <vector>
 #include <AString.h>
 #include <CaretAssert.h>
+#include "nifti2.h"
 
 namespace caret {
    
@@ -52,37 +53,37 @@ namespace caret {
        */
       enum Enum {
          /** invalid data type.  */
-         NIFTI_TYPE_INVALID,
+         NIFTI_TYPE_INVALID = 0,
          /** unsigned byte.  */
-         NIFTI_TYPE_UINT8,
+         NIFTI_TYPE_UINT8 = 2,
          /** signed short.  */
-         NIFTI_TYPE_INT16,
+         NIFTI_TYPE_INT16 = 4,
          /** signed int.  */
-         NIFTI_TYPE_INT32,
+         NIFTI_TYPE_INT32 = 8,
          /** 32 bit float.  */
-         NIFTI_TYPE_FLOAT32,
+         NIFTI_TYPE_FLOAT32 = 16,
          /** 64 bit complex = 2 32 bit floats.  */
-         NIFTI_TYPE_COMPLEX64,
+         NIFTI_TYPE_COMPLEX64 = 32,
          /** 64 bit float = double.  */
-         NIFTI_TYPE_FLOAT64,
+         NIFTI_TYPE_FLOAT64 = 64,
          /** 3 8 bit bytes.  */
-         NIFTI_TYPE_RGB24,
+         NIFTI_TYPE_RGB24 = 128,
          /** signed char.  */
-         NIFTI_TYPE_INT8,
+         NIFTI_TYPE_INT8 = 256,
          /** unsigned short.  */
-         NIFTI_TYPE_UINT16,
+         NIFTI_TYPE_UINT16 = 512,
          /** unsigned int.  */
-         NIFTI_TYPE_UINT32,
+         NIFTI_TYPE_UINT32 = 768,
          /** signed long long.  */
-         NIFTI_TYPE_INT64,
+         NIFTI_TYPE_INT64 = 1024,
          /** unsigned long long.  */
-         NIFTI_TYPE_UINT64,
+         NIFTI_TYPE_UINT64 = 1280,
          /** 128 bit float = long double.  */
-         NIFTI_TYPE_FLOAT128,
+         NIFTI_TYPE_FLOAT128 = 1536,
          /** 128 bit complex = 2 64 bit floats.  */
-         NIFTI_TYPE_COMPLEX128,
+         NIFTI_TYPE_COMPLEX128 = 1792,
          /** 256 bit complex = 2 128 bit floats  */
-         NIFTI_TYPE_COMPLEX256
+         NIFTI_TYPE_COMPLEX256 = 2048
       };
       
       
@@ -117,75 +118,75 @@ namespace caret {
        */
       enum Enum {
          /**  */
-         NIFTI_INTENT_NONE,
+         NIFTI_INTENT_NONE = ::NIFTI_INTENT_NONE,
          /**  */
-         NIFTI_INTENT_CORREL,
+         NIFTI_INTENT_CORREL = ::NIFTI_INTENT_CORREL,
          /**  */
-         NIFTI_INTENT_TTEST,
+         NIFTI_INTENT_TTEST = ::NIFTI_INTENT_FTEST,
          /**  */
-         NIFTI_INTENT_FTEST,
+         NIFTI_INTENT_FTEST = ::NIFTI_INTENT_FTEST,
          /**  */
-         NIFTI_INTENT_ZSCORE,
+         NIFTI_INTENT_ZSCORE = ::NIFTI_INTENT_ZSCORE,
          /**  */
-         NIFTI_INTENT_CHISQ,
+         NIFTI_INTENT_CHISQ = ::NIFTI_INTENT_CHISQ,
          /**  */
-         NIFTI_INTENT_BETA,
+         NIFTI_INTENT_BETA = ::NIFTI_INTENT_BETA,
          /**  */
-         NIFTI_INTENT_BINOM,
+         NIFTI_INTENT_BINOM = ::NIFTI_INTENT_BINOM,
          /**  */
-         NIFTI_INTENT_GAMMA,
+         NIFTI_INTENT_GAMMA = ::NIFTI_INTENT_GAMMA,
          /**  */
-         NIFTI_INTENT_POISSON,
+         NIFTI_INTENT_POISSON = ::NIFTI_INTENT_POISSON,
          /**  */
-         NIFTI_INTENT_NORMAL,
+         NIFTI_INTENT_NORMAL = ::NIFTI_INTENT_NORMAL,
          /**  */
-         NIFTI_INTENT_FTEST_NONC,
+         NIFTI_INTENT_FTEST_NONC = ::NIFTI_INTENT_FTEST_NONC,
          /**  */
-         NIFTI_INTENT_CHISQ_NONC,
+         NIFTI_INTENT_CHISQ_NONC = ::NIFTI_INTENT_CHISQ_NONC,
          /**  */
-         NIFTI_INTENT_LOGISTIC,
+         NIFTI_INTENT_LOGISTIC = ::NIFTI_INTENT_LOGISTIC,
          /**  */
-         NIFTI_INTENT_LAPLACE,
+         NIFTI_INTENT_LAPLACE = ::NIFTI_INTENT_LAPLACE,
          /**  */
-         NIFTI_INTENT_UNIFORM,
+         NIFTI_INTENT_UNIFORM = ::NIFTI_INTENT_UNIFORM,
          /**  */
-         NIFTI_INTENT_TTEST_NONC,
+         NIFTI_INTENT_TTEST_NONC = ::NIFTI_INTENT_TTEST_NONC,
          /**  */
-         NIFTI_INTENT_WEIBULL,
+         NIFTI_INTENT_WEIBULL = ::NIFTI_INTENT_WEIBULL,
          /**  */
-         NIFTI_INTENT_CHI,
+         NIFTI_INTENT_CHI = ::NIFTI_INTENT_CHI,
          /**  */
-         NIFTI_INTENT_INVGAUSS,
+         NIFTI_INTENT_INVGAUSS = ::NIFTI_INTENT_INVGAUSS,
          /**  */
-         NIFTI_INTENT_EXTVAL,
+         NIFTI_INTENT_EXTVAL = ::NIFTI_INTENT_EXTVAL,
          /**  */
-         NIFTI_INTENT_PVAL,
+         NIFTI_INTENT_PVAL = ::NIFTI_INTENT_PVAL,
          /**  */
-         NIFTI_INTENT_LOGPVAL,
+         NIFTI_INTENT_LOGPVAL = ::NIFTI_INTENT_LOGPVAL,
          /**  */
-         NIFTI_INTENT_LOG10PVAL,
+         NIFTI_INTENT_LOG10PVAL = ::NIFTI_INTENT_LOG10PVAL,
          /**  */
-         NIFTI_INTENT_ESTIMATE,
+         NIFTI_INTENT_ESTIMATE = ::NIFTI_INTENT_ESTIMATE,
          /**  */
-         NIFTI_INTENT_LABEL,
+         NIFTI_INTENT_LABEL = ::NIFTI_INTENT_LABEL,
          /**  */
-         NIFTI_INTENT_NEURONAME,
+         NIFTI_INTENT_NEURONAME = ::NIFTI_INTENT_NEURONAME,
          /**  */
-         NIFTI_INTENT_GENMATRIX,
+         NIFTI_INTENT_GENMATRIX = ::NIFTI_INTENT_GENMATRIX,
          /**  */
-         NIFTI_INTENT_SYMMATRIX,
+         NIFTI_INTENT_SYMMATRIX = ::NIFTI_INTENT_SYMMATRIX,
          /**  */
-         NIFTI_INTENT_DISPVECT,
+         NIFTI_INTENT_DISPVECT = ::NIFTI_INTENT_DISPVECT,
          /**  */
-         NIFTI_INTENT_VECTOR,
+         NIFTI_INTENT_VECTOR = ::NIFTI_INTENT_VECTOR,
          /**  */
-         NIFTI_INTENT_POINTSET,
+         NIFTI_INTENT_POINTSET = ::NIFTI_INTENT_POINTSET,
          /**  */
-         NIFTI_INTENT_TRIANGLE,
+         NIFTI_INTENT_TRIANGLE = ::NIFTI_INTENT_TRIANGLE,
          /**  */
-         NIFTI_INTENT_QUATERNION,
+         NIFTI_INTENT_QUATERNION = ::NIFTI_INTENT_QUATERNION,
          /**  */
-         NIFTI_INTENT_DIMLESS,
+         NIFTI_INTENT_DIMLESS = ::NIFTI_INTENT_DIMLESS,
          /**  */
          NIFTI_INTENT_TIME_SERIES,
          /**  */
@@ -201,15 +202,15 @@ namespace caret {
          /**  */
          NIFTI_INTENT_CARET_DEFORMATION_NODE_AREAS,
          /**  */
-         NIFTI_INTENT_CONNECTIVITY_DENSE,
+         NIFTI_INTENT_CONNECTIVITY_DENSE = ::NIFTI_INTENT_CONNECTIVITY_DENSE,
          /**  */
-         NIFTI_INTENT_CONNECTIVITY_DENSE_TIME,
+         NIFTI_INTENT_CONNECTIVITY_DENSE_TIME = ::NIFTI_INTENT_CONNECTIVITY_DENSE_TIME,
          /**  */
-         NIFTI_INTENT_CONNECTIVITY_PARCELLATED,
+         NIFTI_INTENT_CONNECTIVITY_PARCELLATED = ::NIFTI_INTENT_CONNECTIVITY_PARCELLATED,
          /**  */
-         NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME,
+         NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME = ::NIFTI_INTENT_CONNECTIVITY_PARCELLATED_TIME,
          /**  */
-         NIFTI_INTENT_CONNECTIVITY_TRAJECTORY
+         NIFTI_INTENT_CONNECTIVITY_TRAJECTORY = ::NIFTI_INTENT_CONNECTIVITY_TRAJECTORY
       };
       
       
@@ -261,13 +262,13 @@ namespace caret {
        */
       enum Enum {
          /**  */
-         NIFTI_UNITS_UNKNOWN,
+         NIFTI_UNITS_UNKNOWN = ::NIFTI_UNITS_UNKNOWN,
          /**  */
-         NIFTI_UNITS_METER,
+         NIFTI_UNITS_METER = ::NIFTI_UNITS_METER,
          /**  */
-         NIFTI_UNITS_MM,
+         NIFTI_UNITS_MM = ::NIFTI_UNITS_MM,
          /**  */
-         NIFTI_UNITS_MICRON
+         NIFTI_UNITS_MICRON  = ::NIFTI_UNITS_MICRON
       };
       
       
@@ -300,17 +301,17 @@ namespace caret {
        */
       enum Enum {
          /**  */
-         NIFTI_UNITS_UNKNOWN,
+         NIFTI_UNITS_UNKNOWN = ::NIFTI_UNITS_UNKNOWN,
          /**  */
-         NIFTI_UNITS_SEC,
+         NIFTI_UNITS_SEC = ::NIFTI_UNITS_SEC,
          /**  */
-         NIFTI_UNITS_MSEC,
+         NIFTI_UNITS_MSEC = ::NIFTI_UNITS_MSEC,
          /**  */
-         NIFTI_UNITS_USEC,
+         NIFTI_UNITS_USEC = ::NIFTI_UNITS_USEC,
          /**  */
-         NIFTI_UNITS_HZ,
+         NIFTI_UNITS_HZ = ::NIFTI_UNITS_HZ,
          /**  */
-         NIFTI_UNITS_PPM
+         NIFTI_UNITS_PPM = ::NIFTI_UNITS_PPM
       };
       
       
@@ -354,15 +355,15 @@ namespace caret {
        */
       enum Enum {
          /** Arbitrary Coordinates  */
-         NIFTI_XFORM_UNKNOWN,
+         NIFTI_XFORM_UNKNOWN  = ::NIFTI_XFORM_UNKNOWN,
          /** Scanner-base anatomical coordinates  */
-         NIFTI_XFORM_SCANNER_ANAT,
+         NIFTI_XFORM_SCANNER_ANAT  = ::NIFTI_XFORM_SCANNER_ANAT,
          /** Coordinates aligned to another file's or anatomial "truth"  */
-         NIFTI_XFORM_ALIGNED_ANAT,
+         NIFTI_XFORM_ALIGNED_ANAT = ::NIFTI_XFORM_ALIGNED_ANAT,
          /** Coordinates aligned to Talairach-Tournoux Atlas: (0,0,0) = Anterior Commissure  */
-         NIFTI_XFORM_TALAIRACH,
+         NIFTI_XFORM_TALAIRACH  = ::NIFTI_XFORM_TALAIRACH,
          /** MNI 152 Normalize Coordinates  */
-         NIFTI_XFORM_MNI_152
+         NIFTI_XFORM_MNI_152  = ::NIFTI_XFORM_MNI_152
       };
       
       
