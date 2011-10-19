@@ -324,15 +324,15 @@ void VolumeFile::setupIndexing()
     m_jMult.resize(m_dimensions[1]);
     for (int64_t i = 0; i < m_dimensions[1]; ++i)
     {
-       m_jMult[i] = i * m_dimensions[0];
+        m_jMult[i] = i * m_dimensions[0];
     }
     for (int64_t i = 0; i < m_dimensions[2]; ++i)
     {
-       m_kMult[i] = i * dim01;
+        m_kMult[i] = i * dim01;
     }
     for (int64_t i = 0; i < m_dimensions[3]; ++i)
     {
-       m_bMult[i] = i * dim012;
+        m_bMult[i] = i * dim012;
     }
     for (int64_t i = 0; i < m_dimensions[4]; ++i)
     {

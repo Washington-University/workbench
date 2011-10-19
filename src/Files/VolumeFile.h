@@ -82,6 +82,11 @@ namespace caret {
             return m_indexToSpace;
         }
 
+        ///get the originally specified dimensions vector
+        inline const std::vector<int64_t>& getOriginalDimensions() const {
+            return m_origDims;
+        }
+        
         ///returns true if volume space is not skew, and each axis and index is separate
         bool isPlumb() const;
 
@@ -153,6 +158,7 @@ namespace caret {
         {
             setValue(valueIn, indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
+        
         ///set a value at an index triplet and optionally timepoint
         inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
@@ -170,12 +176,12 @@ namespace caret {
         void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0);
 
         ///get the raw voxel data
-        float* getVoxelDataRef() {
+        inline float* getVoxelDataRef() {
             return m_data;
         }
         
         ///get the raw voxel data (const method)
-        const float* getVoxelDataRef() const {
+        inline const float* getVoxelDataRef() const {
             return m_data;
         }
         

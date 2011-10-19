@@ -28,10 +28,12 @@
 #undef __DESCRIPTIVE_STATISTICS_DECLARE__
 
 #include <algorithm>
+#include <cmath>
 
 #include "CaretAssert.h"
 
 using namespace caret;
+using namespace std;
 
     
 /**
@@ -49,23 +51,21 @@ using namespace caret;
  * @param histogramNumberOfElements
  *    Number of elemnents for the histogram.  Must be positive!!
  */
-DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElements)
+DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElements, const int64_t percentileDivisions)
 : CaretObject()
 {
-    this->histogramNumberOfElements = histogramNumberOfElements;
-    CaretAssert(this->histogramNumberOfElements > 0);
-}
-
-/**
- * Constructor.
- * 
- * The histogram will contain 100 elements.
- *
- */
-DescriptiveStatistics::DescriptiveStatistics()
-: CaretObject()
-{
-    this->histogramNumberOfElements = 100;
+    m_histogramNumberOfElements = histogramNumberOfElements;
+    m_percentileDivisions = percentileDivisions;
+    m_validCount = 0;
+    m_infCount = 0;
+    m_negInfCount = 0;
+    m_nanCount = 0;
+    CaretAssert(m_histogramNumberOfElements > 2);
+    CaretAssert(m_percentileDivisions > 2);
+    m_histogram = new int64_t[m_histogramNumberOfElements];
+    m_histogram96 = new int64_t[m_histogramNumberOfElements];
+    m_positivePercentiles = new float[m_percentileDivisions];
+    m_negativePercentiles = new float[m_percentileDivisions];
 }
 
 /**
@@ -73,11 +73,21 @@ DescriptiveStatistics::DescriptiveStatistics()
  */
 DescriptiveStatistics::~DescriptiveStatistics()
 {
-    if (this->histogram != NULL) {
-        delete this->histogram;
+    if (m_histogram != NULL)
+    {
+        delete[] m_histogram;
     }
-    if (this->histogram96 != NULL) {
-        delete this->histogram96;
+    if (m_histogram96 != NULL)
+    {
+        delete[] m_histogram96;
+    }
+    if (m_positivePercentiles != NULL)
+    {
+        delete[] m_positivePercentiles;
+    }
+    if (m_negativePercentiles != NULL)
+    {
+        delete[] m_negativePercentiles;
     }
 }
 
@@ -92,33 +102,30 @@ void
 DescriptiveStatistics::update(const float* values,
                               const int64_t numberOfValues)
 {    
-    this->histogram = new int64_t[this->histogramNumberOfElements];
-    this->histogram96 = new int64_t[this->histogramNumberOfElements];
-
-    this->containsNegativeValues = false;
-    this->containsPositiveValues = false;
+    m_containsNegativeValues = false;
+    m_containsPositiveValues = false;
     
-    this->mean = 0.0;
-    this->median = 0.0;
-    this->standardDeviationPopulation = 0.0;
-    this->standardDeviationSample = 0.0;
+    m_mean = 0.0;
+    m_median = 0.0;
+    m_standardDeviationPopulation = 0.0;
+    m_standardDeviationSample = 0.0;
     
-    this->mean96 = 0.0;
-    this->median96 = 0.0;
-    this->standardDeviationPopulation96 = 0.0;
-    this->standardDeviationSample96 = 0.0;
+    m_mean96 = 0.0;
+    m_median96 = 0.0;
+    m_standardDeviationPopulation96 = 0.0;
+    m_standardDeviationSample96 = 0.0;
     
-    std::fill(this->histogram,
-              this->histogram + this->histogramNumberOfElements,
+    std::fill(m_histogram,
+              m_histogram + m_histogramNumberOfElements,
               0.0);
-    std::fill(this->histogram96,
-              this->histogram96 + this->histogramNumberOfElements,
+    std::fill(m_histogram96,
+              m_histogram96 + m_histogramNumberOfElements,
               0.0);
-    std::fill(this->positivePercentiles,
-              this->positivePercentiles + DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS,
+    std::fill(m_positivePercentiles,
+              m_positivePercentiles + m_percentileDivisions,
               0.0);
-    std::fill(this->negativePercentiles,
-              this->negativePercentiles + DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS,
+    std::fill(m_negativePercentiles,
+              m_negativePercentiles + m_percentileDivisions,
               0.0);
     
     if (numberOfValues <= 0) {
@@ -127,15 +134,15 @@ DescriptiveStatistics::update(const float* values,
     
     if (numberOfValues == 1) {
         const float v = values[0];
-        this->mean = v;
-        this->median = v;
-        this->histogram[this->histogramNumberOfElements / 2] = v;
-        this->histogram96[this->histogramNumberOfElements / 2] = v;
-        std::fill(this->positivePercentiles,
-                  this->positivePercentiles + DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS,
+        m_mean = v;
+        m_median = v;
+        m_histogram[m_histogramNumberOfElements / 2] = v;
+        m_histogram96[m_histogramNumberOfElements / 2] = v;
+        fill(m_positivePercentiles,
+                  m_positivePercentiles + m_percentileDivisions,
                   v);
-        std::fill(this->negativePercentiles,
-                  this->negativePercentiles + DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS,
+        fill(m_negativePercentiles,
+                  m_negativePercentiles + m_percentileDivisions,
                   v);
         return;
     }
@@ -145,10 +152,31 @@ DescriptiveStatistics::update(const float* values,
      * Copy and sort the input data.
      */
     float* sortedValues = new float[numberOfValues];
-    std::copy(values, 
-              values + numberOfValues, 
-              sortedValues);
-    std::sort(sortedValues, sortedValues + numberOfValues);
+    m_validCount = 0;
+    m_infCount = 0;
+    m_negInfCount = 0;
+    m_nanCount = 0;
+    for (int64_t i = 0; i < numberOfValues; ++i)
+    {//remove and count non-numerical values
+        if (values[i] != values[i])
+        {
+            ++m_nanCount;
+            continue;
+        }
+        if (values[i] < -1.0f && (values[i] * 2.0f == values[i]))
+        {
+            ++m_negInfCount;
+            continue;
+        }
+        if (values[i] > 1.0f && (values[i] * 2.0f == values[i]))
+        {
+            ++m_infCount;
+            continue;
+        }
+        sortedValues[m_validCount] = values[i];
+        ++m_validCount;
+    }
+    sort(sortedValues, sortedValues + m_validCount);
     
     /*
      * Find most/least negative/positive indices in sorted data.
@@ -157,20 +185,52 @@ DescriptiveStatistics::update(const float* values,
     int64_t leastNegativeIndex = -1;
     int64_t leastPositiveIndex = -1;
     int64_t mostPositiveIndex  = -1;
-    for (int64_t i = 0; i < numberOfValues; i++) {
-        const float v = sortedValues[i];
-        if (v < 0.0) {
-            if (mostNegativeIndex < 0) {
-                mostNegativeIndex = i;
+    if (sortedValues[0] < 0.0f)
+    {
+        mostNegativeIndex = 0;
+    }
+    if (sortedValues[0] > 0.0f)
+    {
+        leastPositiveIndex = 0;
+    }
+    if (sortedValues[m_validCount - 1] > 0.0f)
+    {
+        mostPositiveIndex = m_validCount - 1;
+    }
+    if (sortedValues[m_validCount - 1] < 0.0f)
+    {
+        leastNegativeIndex = m_validCount - 1;
+    }
+    if (leastNegativeIndex == -1 && leastPositiveIndex == -1)
+    {//need to find where the zeros start and end
+        int64_t start = -1, end = m_validCount, guess, nextEnd = m_validCount;
+        while (end - start > 1)
+        {//bisection search for last negative
+            guess = (start + end) / 2;
+            if (sortedValues[guess] < 0.0f)
+            {
+                start = guess;
+            } else {
+                end = guess;
+                if (sortedValues[guess] > 0.0f)
+                {
+                    nextEnd = guess;//save some time on the next search
+                }
             }
-            leastNegativeIndex = i;
         }
-        else if (v > 0.0) {
-            if (leastPositiveIndex < 0) {
-                leastPositiveIndex = i;
+        leastNegativeIndex = start;
+        end = nextEnd;//don't reinitialize start, it is just before the first nonnegative already
+        while (end - start > 1)
+        {//bisection search for first positive
+            guess = (start + end) / 2;
+            if (sortedValues[guess] > 0.0f)
+            {
+                end = guess;
+            } else {
+                start = guess;
             }
-            mostPositiveIndex = i;
         }
+        leastPositiveIndex = end;
     }
     
     /*
@@ -179,16 +239,15 @@ DescriptiveStatistics::update(const float* values,
      */
     const int64_t numNegativeValues = leastNegativeIndex - mostNegativeIndex + 1;
     if (numNegativeValues > 0) {
-        this->containsNegativeValues = true;
+        m_containsNegativeValues = true;
         
-        const float step = (sortedValues[mostNegativeIndex] - sortedValues[leastNegativeIndex])
-        / DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS;
-        for (int64_t i = 0; i < DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS; i++) {
-            const int64_t indx = static_cast<int64_t>(i * step) + leastNegativeIndex;
-            this->negativePercentiles[i] = sortedValues[indx];
+        m_negativePercentiles[0] = sortedValues[leastNegativeIndex];
+        for (int64_t i = 1; i < m_percentileDivisions - 1; i++)
+        {
+            const int64_t indx = leastNegativeIndex - (int64_t)(((double)i * numNegativeValues) / m_percentileDivisions + 0.5);
+            m_negativePercentiles[i] = sortedValues[indx];
         }
-        this->negativePercentiles[DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS - 1] =
-        sortedValues[mostNegativeIndex];
+        m_negativePercentiles[m_percentileDivisions - 1] = sortedValues[mostNegativeIndex];
     }
     
     /*
@@ -196,41 +255,35 @@ DescriptiveStatistics::update(const float* values,
      */
     const int64_t numPositiveValues = mostPositiveIndex - leastPositiveIndex + 1;
     if (numPositiveValues > 0) {
-        this->containsPositiveValues = true;
+        this->m_containsPositiveValues = true;
         
-        const float step = (sortedValues[mostPositiveIndex] - sortedValues[leastPositiveIndex]) 
-        / DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS;
-        for (int64_t i = 0; i < DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS; i++) {
-            const int64_t indx = static_cast<int64_t>(i * step) + leastPositiveIndex;
-            this->positivePercentiles[i] = sortedValues[indx];
+        m_positivePercentiles[0] = sortedValues[leastPositiveIndex];
+        for (int64_t i = 1; i < m_percentileDivisions - 1; i++) {
+            const int64_t indx = (int64_t)(((double)i * numPositiveValues) / m_percentileDivisions + 0.5) + leastPositiveIndex;
+            m_positivePercentiles[i] = sortedValues[indx];
         }
-        this->positivePercentiles[DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS - 1] =
-        sortedValues[mostPositiveIndex];
+        m_positivePercentiles[m_percentileDivisions - 1] = sortedValues[mostPositiveIndex];
     }
     
     /*
      * Indices at 2% and 98%
      */
-    const int64_t twoPercentIndex = 
-    static_cast<int64_t>(DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS * 0.02);
-    const int64_t ninetyEightPercentIndex = 
-    static_cast<int64_t>(DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS * 0.98);
+    const int64_t twoPercentIndex = (int64_t)(m_validCount * 0.02 + 0.5);
+    const int64_t ninetyEightPercentIndex = (int64_t)(m_validCount * 0.98 + 0.5);
     
     /*
      * Prepare for histogram of all data
      */
     const float minValue = sortedValues[0];
-    const float maxValue = sortedValues[DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS - 1];
-    const float bucketSize = (maxValue - minValue)
-        / this->histogramNumberOfElements;
+    const float maxValue = sortedValues[m_validCount - 1];
+    const float bucketSize = (maxValue - minValue) / m_histogramNumberOfElements;
 
     /*
      * Prepare for histogram of middle 96%
      */
     const float minValue96 = sortedValues[twoPercentIndex];
     const float maxValue96 = sortedValues[ninetyEightPercentIndex];
-    const float bucketSize96 = (maxValue96 - minValue96)
-        / this->histogramNumberOfElements;
+    const float bucketSize96 = (maxValue96 - minValue96) / m_histogramNumberOfElements;
     
     /*
      * Prepare for statistics
@@ -243,18 +296,22 @@ DescriptiveStatistics::update(const float* values,
     /*
      * Create histogram and statistics.
      */
-    for (int64_t i = 0; i < numberOfValues; i++) {
+    for (int64_t i = 0; i < m_validCount; i++) {
         const float v = sortedValues[i];
-        const int64_t indx = (v - minValue) / bucketSize;
-        this->histogram[indx]++;
+        int64_t indx = (v - minValue) / bucketSize;
+        if (indx >= m_histogramNumberOfElements) indx = m_histogramNumberOfElements - 1;//NEVER trust floats to not have rounding errors when nonzero
+        if (indx < 0) indx = 0;//probably not needed, involves subtracting equals
+        m_histogram[indx]++;
         
         sum += v;
         const float v2 = v * v;
         sumSQ += v2;
         
         if ((i >= twoPercentIndex) && (i <= ninetyEightPercentIndex)) {
-            const int64_t indx96 = (v - minValue96) / bucketSize96;
-            this->histogram96[indx96]++;
+            int64_t indx96 = (v - minValue96) / bucketSize96;
+            if (indx96 >= m_histogramNumberOfElements) indx96 = m_histogramNumberOfElements - 1;
+            if (indx96 < 0) indx96 = 0;
+            m_histogram96[indx96]++;
             
             sum96 += v;
             sumSQ96 += v2;
@@ -265,23 +322,34 @@ DescriptiveStatistics::update(const float* values,
      * Compute statistics of all.
      * Pop Variance = (sum(x^2) - [(sum(x))^2] / N) / N
      */
-    this->mean = sum / numberOfValues;
-    this->median = sortedValues[numberOfValues / 2];
-    const double numerator = (sumSQ - ((sum*sum) / numberOfValues));
-    this->standardDeviationPopulation = numerator / numberOfValues;
-    this->standardDeviationSample = numerator / (numberOfValues - 1);
+    m_mean = sum / m_validCount;
+    m_median = sortedValues[m_validCount / 2];
+    const double numerator = (sumSQ - ((sum*sum) / m_validCount));
+    m_standardDeviationPopulation = -1.0;
+    m_standardDeviationSample = -1.0;
+    if (m_validCount > 0)
+    {
+        m_standardDeviationPopulation = sqrt(numerator / m_validCount);
+        if (m_validCount > 1)
+        {
+            m_standardDeviationSample = sqrt(numerator / (m_validCount - 1));
+        }
+    }
     
     /*
      * Compute statistics of middle 96%
      */
     const int64_t numberOfValues96 = ninetyEightPercentIndex - twoPercentIndex;
-    this->mean96 = sum96 / numberOfValues96;
-    this->median96 = sortedValues[(numberOfValues96 / 2) + twoPercentIndex];
+    m_mean96 = sum96 / numberOfValues96;
+    m_median96 = sortedValues[(numberOfValues96 / 2) + twoPercentIndex];
     const double numerator96 = (sumSQ96 - ((sum96*sum96) / numberOfValues96));
-    if (numberOfValues96 > 0) {
-        this->standardDeviationPopulation = numerator96 / numberOfValues96;
+    m_standardDeviationPopulation96 = -1.0;
+    m_standardDeviationSample96 = -1.0;
+    if (numberOfValues96 > 0)
+    {
+        m_standardDeviationPopulation = sqrt(numerator96 / numberOfValues96);
         if (numberOfValues96 > 1) {
-            this->standardDeviationSample = numerator96 / (numberOfValues96 - 1);
+            m_standardDeviationSample = sqrt(numerator96 / (numberOfValues96 - 1));
         }
     }
 }
@@ -308,12 +376,15 @@ DescriptiveStatistics::update(const std::vector<float>& values)
 float 
 DescriptiveStatistics::getPositivePercentile(const float percent) const
 {
-    CaretAssert((percent >= 0.0) && (percent <= 100.0));
-    const int32_t percentIndex = percent * 10.0;
-    CaretAssertArrayIndex(this->positivePercentiles, 
-                          DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS, 
-                          percentIndex);
-    return this->positivePercentiles[percentIndex];
+    const float myIndex = (percent / 100 * (m_percentileDivisions - 1));//noninteger index to interpolate at
+    int64_t lowIndex = (int64_t)floor(myIndex);
+    int64_t highIndex = (int64_t)ceil(myIndex);
+    if (highIndex <= 0) return m_positivePercentiles[0];
+    if (lowIndex >= m_percentileDivisions - 1) return m_positivePercentiles[m_percentileDivisions - 1];
+    if (lowIndex == highIndex) return m_positivePercentiles[lowIndex];
+    float lowWeight = highIndex - myIndex;
+    float highWeight = myIndex - lowIndex;
+    return (lowWeight * m_positivePercentiles[lowIndex] + highWeight * m_positivePercentiles[highIndex]) / (lowWeight + highWeight);
 }
 
 /**
@@ -327,12 +398,15 @@ DescriptiveStatistics::getPositivePercentile(const float percent) const
 float 
 DescriptiveStatistics::getNegativePercentile(const float percent) const
 {
-    CaretAssert((percent >= 0.0) && (percent <= 100.0));
-    const int32_t percentIndex = percent * 10.0;
-    CaretAssertArrayIndex(this->negativePercentiles, 
-                          DescriptiveStatistics::PERCENTILE_NUMBER_OF_ELEMENTS, 
-                          percentIndex);
-    return this->negativePercentiles[percentIndex];
+    const float myIndex = (percent / 100 * (m_percentileDivisions - 1));//noninteger index to interpolate at
+    int64_t lowIndex = (int64_t)floor(myIndex);
+    int64_t highIndex = (int64_t)ceil(myIndex);
+    if (highIndex <= 0) return m_negativePercentiles[0];
+    if (lowIndex >= m_percentileDivisions - 1) return m_negativePercentiles[m_percentileDivisions - 1];
+    if (lowIndex == highIndex) return m_negativePercentiles[lowIndex];
+    float lowWeight = highIndex - myIndex;
+    float highWeight = myIndex - lowIndex;
+    return (lowWeight * m_negativePercentiles[lowIndex] + highWeight * m_negativePercentiles[highIndex]) / (lowWeight + highWeight);
 }
 
 /**

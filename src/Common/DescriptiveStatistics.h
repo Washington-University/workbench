@@ -34,16 +34,8 @@ namespace caret {
     class DescriptiveStatistics : public CaretObject {
         
     public:
-        enum { 
-            /**
-             * Number of values in the positive and negative percentiles.
-             */
-            PERCENTILE_NUMBER_OF_ELEMENTS = 1001
-        };
         
-        DescriptiveStatistics();
-        
-        DescriptiveStatistics(const int64_t histogramNumberOfElements);
+        DescriptiveStatistics(const int64_t histogramNumberOfElements = 100, const int64_t percentileDivisions = 1001);
         
         virtual ~DescriptiveStatistics();
         
@@ -59,89 +51,89 @@ namespace caret {
         /**
          * @return Does the data contains positive values.
          */
-        bool hasPositiveValues() const { return this->containsPositiveValues; }
+        bool hasPositiveValues() const { return this->m_containsPositiveValues; }
         
         /**
          * @return Does the data contains negative values.
          */
-        bool hasNegativeValues() const { return this->containsNegativeValues; }
+        bool hasNegativeValues() const { return this->m_containsNegativeValues; }
         
         /**
          * @return The number of elements in the histogram.
          */
-        int64_t getHistogramNumberOfElements() { return this->histogramNumberOfElements; }
+        int64_t getHistogramNumberOfElements() { return this->m_histogramNumberOfElements; }
         
         /**
          * @return Get the histogram for all values.  The number of elements
          * is HISTOGRAM_NUMBER_OF_ELEMENTS.
          */
-        const int64_t* getHistogram() const { return this->histogram; }
+        const int64_t* getHistogram() const { return this->m_histogram; }
         
         /**
          * @return Get the histogram for the middle 96% of values.  
          * The number of elements is HISTOGRAM_NUMBER_OF_ELEMENTS.
          */
-        const int64_t* getHistogram96() const { return this->histogram96; }
+        const int64_t* getHistogram96() const { return this->m_histogram96; }
         
         /**
          * @return The most positive value.
          */
-        float getMostPositiveValue() const { return this->positivePercentiles[PERCENTILE_NUMBER_OF_ELEMENTS - 1]; }
+        float getMostPositiveValue() const { return this->m_positivePercentiles[m_percentileDivisions - 1]; }
         
         /**
          * @return The least positive value.
          */
-        float getLeastPositiveValue() const { return this->positivePercentiles[0]; }
+        float getLeastPositiveValue() const { return this->m_positivePercentiles[0]; }
         
         /**
          * @return The most negative value.
          */
-        float getMostNegativeValue() const { return this->negativePercentiles[PERCENTILE_NUMBER_OF_ELEMENTS - 1]; }
+        float getMostNegativeValue() const { return this->m_negativePercentiles[m_percentileDivisions - 1]; }
         
         /**
          * @return The least negative value.
          */
-        float getLeastNegativeValue() const { return this->negativePercentiles[0]; }
+        float getLeastNegativeValue() const { return this->m_negativePercentiles[0]; }
         
         /**
          * @return The mean (average) value.
          */
-        float getMean() const { return this->mean; }
+        float getMean() const { return this->m_mean; }
         
         /**
          * @return The median value.
          */
-        float getMedian() const { return this->median; }
+        float getMedian() const { return this->m_median; }
         
         /**
          * @return The population standard deviation (divide by N).
          */
-        float getPopulationStandardDeviation() const { return this->standardDeviationPopulation; }
+        float getPopulationStandardDeviation() const { return this->m_standardDeviationPopulation; }
         
         /**
          * @return The sample standard deviation (divide by N - 1).
          */
-        float getStandardDeviationSample() const { return this->standardDeviationSample; }
+        float getStandardDeviationSample() const { return this->m_standardDeviationSample; }
         
         /**
          * @return The mean (average) of middle 96% of elements.
          */
-        float getMean96() const { return this->mean96; }
+        float getMean96() const { return this->m_mean96; }
         
         /**
          * @return The median of middle 96% of elements.
          */
-        float getMedian96() const { return this->median96; }
+        float getMedian96() const { return this->m_median96; }
         
         /**
          * @return The population standard deviation of middle 96% of elements (divide by N).
          */
-        float getPopulationStandardDeviation96() const { return this->standardDeviationPopulation96; }
+        float getPopulationStandardDeviation96() const { return this->m_standardDeviationPopulation96; }
         
         /**
          * @return The sample standard deviation of middle 96% of elements (divide by N - 1).
          */
-        float getStandardDeviationSample96() const { return this->standardDeviationSample96; }
+        float getStandardDeviationSample96() const { return this->m_standardDeviationSample96; }
         
     private:
         DescriptiveStatistics(const DescriptiveStatistics&);
@@ -156,7 +148,7 @@ namespace caret {
          * Contains the histogram which provides the
          * distribution of the data.
          */
-        int64_t* histogram;
+        int64_t* m_histogram;
         
         /**
          * Contains the histogram which provides the
@@ -164,12 +156,15 @@ namespace caret {
          * two percent and the largest two percent of
          * data values.
          */
-        int64_t* histogram96;
+        int64_t* m_histogram96;
         
         /**
          * Contains the number of elements in the histograms.
          */
-        int64_t histogramNumberOfElements;
+        int64_t m_histogramNumberOfElements;
+        
+        ///contains number of divisions in the percentiles
+        int64_t m_percentileDivisions;
         
         /**
          * Contains the negative percentiles.
@@ -181,11 +176,11 @@ namespace caret {
          *
          * The last index contains the most negative value.
          */
-        float negativePercentiles[PERCENTILE_NUMBER_OF_ELEMENTS];
+        float* m_negativePercentiles;
         
         
         /** Indicates that negative data is present. */
-        bool containsNegativeValues;
+        bool m_containsNegativeValues;
         
         /**
          * Contains the positive percentiles.
@@ -197,35 +192,37 @@ namespace caret {
          *
          * The last index contains the greatest positive value.
          */
-        float positivePercentiles[PERCENTILE_NUMBER_OF_ELEMENTS];
+        float* m_positivePercentiles;
         
         /** Indicates that positive data is present. */
-        bool containsPositiveValues;
+        bool m_containsPositiveValues;
         
         /** The mean (average) value. */
-        float mean;
+        float m_mean;
         
         /** The population standard deviation of all values (divide by N). */
-        float standardDeviationPopulation;
+        float m_standardDeviationPopulation;
         
         /** The sample standard deviation of all values (divide by N - 1). */
-        float standardDeviationSample;
+        float m_standardDeviationSample;
         
         /** The median (middle) value. */
-        float median;
+        float m_median;
         
         /** The mean (average) value of the middle 96% of elements. */
-        float mean96;
+        float m_mean96;
         
         /** The population standard deviation of middle 96% elements (divide by N). */
-        float standardDeviationPopulation96;
+        float m_standardDeviationPopulation96;
         
         /** The sample standard deviation of middle 96% elements (divide by N - 1). */
-        float standardDeviationSample96;
+        float m_standardDeviationSample96;
         
         /** The median (middle) value of middle 96% of elements*/
-        float median96;
+        float m_median96;
         
+        ///counts of each class of number
+        int64_t m_validCount, m_infCount, m_negInfCount, m_nanCount;
     };
     
 #ifdef __DESCRIPTIVE_STATISTICS_DECLARE__
