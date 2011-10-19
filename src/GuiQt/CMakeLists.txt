@@ -51,9 +51,13 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventUserInterfaceUpdate.h
 GuiManager.h
+MouseEvent.h
+MouseEventTypeEnum.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 StructureSurfaceSelectionControl.h
+UserInputModeView.h
+UserInputReceiverInterface.h
 ViewModeEnum.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
@@ -72,9 +76,12 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
+MouseEvent.cxx
+MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
 StructureSurfaceSelectionControl.cxx
+UserInputModeView.cxx
 ViewModeEnum.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx

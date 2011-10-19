@@ -247,3 +247,18 @@ AString::fromNumbers(const double* array,
     return s;
 }
 
+/**
+ * Convert the boolean value to a string.
+ * @param b
+ *    The boolean value.
+ * @return "true" if true, else "false".
+ */
+AString 
+AString::fromBool(const bool b)
+{
+    if (b) {
+        return "true";
+    }
+    return "false";
+}
+

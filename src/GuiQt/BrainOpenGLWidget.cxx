@@ -22,6 +22,7 @@
  */
 /*LICENSE_END*/
 
+#include <algorithm>
 #include <cmath>
 
 #include <QMouseEvent>
@@ -40,13 +41,16 @@
 #include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "Matrix4x4.h"
-#include "Surface.h"
 #include "ModelDisplayController.h"
+#include "MouseEvent.h"
+#include "Surface.h"
+#include "UserInputModeView.h"
 
 using namespace caret;
 
@@ -62,7 +66,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 {
     this->windowIndex = windowIndex;
     this->modelController = NULL;
-    
+    this->userInputViewModeProcessor = new UserInputModeView();
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 }
@@ -72,6 +76,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
+    delete this->userInputViewModeProcessor;
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -102,31 +107,9 @@ BrainOpenGLWidget::initializeGL()
     this->openGL = GuiManager::get()->getBrainOpenGL();
     this->openGL->initializeOpenGL();
     
-    this->mouseMovedBounds[0] = 0;
-    this->mouseMovedBounds[1] = 0;
-    this->mouseMovedBounds[2] = 0;
-    this->mouseMovedBounds[3] = 0;
-    
     this->lastMouseX = 0;
     this->lastMouseY = 0;
 
-    //
-    // Mouse button move masks
-    // Note: On Macintoshes, Qt::ControlButton is the Apple key
-    //
-    leftMouseButtonMoveMask        = Qt::NoModifier;
-    leftShiftMouseButtonMoveMask   = Qt::ShiftModifier;
-    leftControlMouseButtonMoveMask = Qt::ControlModifier;
-    leftAltMouseButtonMoveMask     = Qt::AltModifier;
-    
-    //
-    // Mouse button press masks
-    // Note: On Macintoshes, Qt::ControlButton is the Apple key
-    //
-    leftMouseButtonPressMask        = Qt::NoButton;
-    leftShiftMouseButtonPressMask   = Qt::ShiftModifier;
-    leftControlMouseButtonPressMask = Qt::ControlModifier;
-    
     this->setFocusPolicy(Qt::StrongFocus);
 }
 
@@ -171,27 +154,85 @@ BrainOpenGLWidget::paintGL()
                             viewport);
 }
 
+/**
+ * Receive mouse press events from Qt.
+ * @param me
+ *    The mouse event.
+ */
 void 
 BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
 {
-    int mouseX = me->x();
-    int mouseY = this->windowHeight[this->windowIndex] - me->y();
+    const Qt::MouseButton button = me->button();
+    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
-    this->lastMouseX = mouseX;
-    this->lastMouseY = mouseY;
+    if (button == Qt::LeftButton) {
+        int mouseX = me->x();
+        int mouseY = this->windowHeight[this->windowIndex] - me->y();
+
+        MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_PRESSED,
+                              me);
+        this->processMouseEvent(&mouseEvent);
+        
+        this->lastMouseX = mouseX;
+        this->lastMouseY = mouseY;
+
+        this->mouseMovementMinimumX = mouseX;
+        this->mouseMovementMaximumX = mouseX;
+        this->mouseMovementMinimumY = mouseY;
+        this->mouseMovementMaximumY = mouseY;
+    }
 }
 
+/**
+ * Receive mouse button release events from Qt.
+ * @param me
+ *    The mouse event.
+ */
 void 
 BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
 {
+    const Qt::MouseButton button = me->button();
+    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+
+    if (button == Qt::LeftButton) {
+        int mouseX = me->x();
+        int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        
+        this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
+        this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
+        this->mouseMovementMinimumY = std::min(this->mouseMovementMinimumY, mouseY);
+        this->mouseMovementMaximumY = std::max(this->mouseMovementMaximumY, mouseY);
+        
+        const int dx = this->mouseMovementMaximumX - this->mouseMovementMinimumX;
+        const int dy = this->mouseMovementMaximumY - this->mouseMovementMinimumY;
+        const int absDX = (dx >= 0) ? dx : -dx;
+        const int absDY = (dy >= 0) ? dy : -dy;
+
+        if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
+            && (absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
+            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_CLICKED,
+                                  me,
+                                  dx,
+                                  dy);
+            this->processMouseEvent(&mouseEvent);
+        }
+        else {
+            MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_RELEASED,
+                                  me,
+                                  dx,
+                                  dy);
+            this->processMouseEvent(&mouseEvent);
+        }
+    }
+/*    
     int mouseX = me->x();
     int mouseY = this->windowHeight[this->windowIndex] - me->y();
     
     
     const int dx = std::abs((float)(mouseX - this->lastMouseX));//HACK: linux cmath thinks abs(int) is ambiguous
     const int dy = std::abs((float)(mouseY - this->lastMouseY));
-    
-    if ((dx < 2) && (dy < 2)) {
+    if ((dx < BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
+        && (dy < BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
         int viewport[4] = {
             0,
             0,
@@ -212,12 +253,58 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
                                   mouseX, 
                                   mouseY);
     }
+*/
 }
 
 
+/**
+ * Receive mouse move events from Qt.
+ * @param me
+ *    The mouse event.
+ */
 void 
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
+    const Qt::MouseButton button = me->button();
+    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    
+    if (button == Qt::NoButton) {
+        if (me->buttons() == Qt::LeftButton) {
+            int mouseX = me->x();
+            int mouseY = this->windowHeight[this->windowIndex] - me->y();
+            
+            this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
+            this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
+            this->mouseMovementMinimumY = std::min(this->mouseMovementMinimumY, mouseY);
+            this->mouseMovementMaximumY = std::max(this->mouseMovementMaximumY, mouseY);
+            
+            const int dx = mouseX - this->lastMouseX;
+            const int dy = mouseY - this->lastMouseY;
+            const int absDX = (dx >= 0) ? dx : -dx;
+            const int absDY = (dy >= 0) ? dy : -dy;
+            
+            if ((absDX > BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
+                || (absDY > BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
+                
+                MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_DRAGGED,
+                                      me,
+                                      dx,
+                                      dy);
+                this->processMouseEvent(&mouseEvent);
+            }
+            
+            this->lastMouseX = mouseX;
+            this->lastMouseY = mouseY;
+        }
+    }
+    
+/*
+    
+    const Qt::MouseButton button = me->button();
+    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    
+    if (button == Qt::LeftButton) {
+        
     Qt::KeyboardModifiers bs = me->modifiers();
     Qt::MouseButtons button = me->buttons();
     const int x = me->x();
@@ -290,6 +377,37 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
     
     this->lastMouseX = x;
     this->lastMouseY = y;
+ */
+}
+
+/**
+ * Process a mouse event by sending it to the current
+ * user input processor.
+ *
+ * @param mouseEvent
+ *    Mouse event for processing.
+ */
+void 
+BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
+{
+    CaretLogFiner(mouseEvent->toString());
+    
+    if (mouseEvent->isValid()) {
+        
+        this->userInputViewModeProcessor->processMouseEvent(mouseEvent,
+                                    this->browserTabContent,
+                                    this);
+        
+        if (mouseEvent->isUserInterfaceUpdateRequested()) {
+            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        }
+        if (mouseEvent->isGraphicsUpdateOneWindowRequested()) {
+            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+        }
+        if (mouseEvent->isGraphicsUpdateAllWindowsRequested()) {
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+    }
 }
 
 /**

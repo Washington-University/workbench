@@ -39,6 +39,8 @@ namespace caret {
     class BrainOpenGL;
     class BrowserTabContent;
     class ModelDisplayController;
+    class MouseEvent;
+    class UserInputModeView;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
@@ -51,12 +53,6 @@ namespace caret {
         
         //ModelDisplayController* getDisplayedModelController();
         
-        void mouseMoveEvent(QMouseEvent* e);
-        
-        void mousePressEvent(QMouseEvent* e);
-        
-        void mouseReleaseEvent(QMouseEvent* e);
-        
         void receiveEvent(Event* event);
         
     protected:
@@ -66,7 +62,15 @@ namespace caret {
         
         void paintGL();
         
+        void mouseMoveEvent(QMouseEvent* e);
+        
+        void mousePressEvent(QMouseEvent* e);
+        
+        void mouseReleaseEvent(QMouseEvent* e);
+        
     private:
+        void processMouseEvent(MouseEvent* mouseEvent);
+        
         BrainOpenGL* openGL;
         
         BrowserTabContent* browserTabContent;
@@ -80,42 +84,22 @@ namespace caret {
         int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         int32_t windowHeight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         
-        int32_t mouseMovedBounds[4];
+        int32_t mouseMovementMinimumX;
+        int32_t mouseMovementMaximumX;
+        int32_t mouseMovementMinimumY;
+        int32_t mouseMovementMaximumY;
         
-        /// left mouse button pressonly
-        static int leftMouseButtonPressMask;
-        
-        /// left mouse button + shift press
-        static int leftShiftMouseButtonPressMask;
-        
-        /// left mouse button + control press
-        static int leftControlMouseButtonPressMask;
-        
-        /// left mouse button only move
-        static int leftMouseButtonMoveMask;
-        
-        /// left mouse button + shift move
-        static int leftShiftMouseButtonMoveMask;
-        
-        /// left mouse button + control move
-        static int leftControlMouseButtonMoveMask;
-        
-        /// left mouse button + alt move
-        static int leftAltMouseButtonMoveMask;
+        static const int32_t MOUSE_MOVEMENT_TOLERANCE;
         
         int lastMouseX;
         
         int lastMouseY;
+        
+        UserInputModeView* userInputViewModeProcessor;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
-    int BrainOpenGLWidget::leftMouseButtonPressMask = 0;
-    int BrainOpenGLWidget::leftShiftMouseButtonPressMask = 0;
-    int BrainOpenGLWidget::leftControlMouseButtonPressMask = 0;
-    int BrainOpenGLWidget::leftMouseButtonMoveMask = 0;
-    int BrainOpenGLWidget::leftShiftMouseButtonMoveMask = 0;
-    int BrainOpenGLWidget::leftControlMouseButtonMoveMask = 0;
-    int BrainOpenGLWidget::leftAltMouseButtonMoveMask = 0;
+    const int32_t BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE = 2;
 #endif // __BRAIN_OPENGL_WIDGET_DEFINE__
     
 } // namespace

@@ -99,6 +99,7 @@ public:
     static AString fromNumbers(const float* array, const int64_t numberOfElements, const AString& separator);
     static AString fromNumbers(const int32_t* array,const int64_t numberOfElements, const AString& separator);
     static AString fromNumbers(const double* array, const int64_t numberOfElements, const AString& separator);
+    static AString fromBool(const bool b);
 };
 #include <string>
 #include <iostream>
