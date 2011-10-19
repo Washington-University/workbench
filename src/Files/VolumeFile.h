@@ -49,9 +49,10 @@ namespace caret {
         std::vector<std::vector<float> > m_indexToSpace;
         std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
         float* m_data;
-        int64_t m_dimensions[5];//don't support more than 4d volumes yet
+        int64_t m_dimensions[5];//store internally as 4d+component
+        std::vector<int64_t> m_origDims;//but keep track of the original dimensions
         float***** m_indexRef;//some magic to avoid multiply during getVoxel/setVoxel
-        std::vector<int64_t> m_jMult, m_kMult, m_bMult, m_cMult;//some magic for faster getIndex
+        std::vector<int64_t> m_jMult, m_kMult, m_bMult, m_cMult;//some magic for fast getIndex when pointer indexing is undesired
 
         void freeMemory();
         void setupIndexing();//sets up the magic
@@ -77,7 +78,7 @@ namespace caret {
         void reinitialize(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         
         ///get the spacing info
-        const std::vector<std::vector<float> >& getVolumeSpace() const {
+        inline const std::vector<std::vector<float> >& getVolumeSpace() const {
             return m_indexToSpace;
         }
 
@@ -130,11 +131,18 @@ namespace caret {
         {
             return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
+        
         ///get a value at three indexes and optionally timepoint
         inline float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-            return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
+            if (m_indexRef != NULL)
+            {
+                return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
+            } else {
+                int64_t myIndex = getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component);
+                return m_data[myIndex];
+            }
         }
 
         ///get a frame
@@ -149,7 +157,13 @@ namespace caret {
         inline void setValue(const float& valueIn, const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0)
         {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
-            m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
+            if (m_indexRef != NULL)
+            {
+                m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
+            } else {
+                int64_t myIndex = getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component);
+                m_data[myIndex] = valueIn;
+            }
         }
         
         ///set a frame
@@ -171,7 +185,17 @@ namespace caret {
         void getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimOut3, int64_t& dimTimeOut, int64_t& numComponents) const;
 
         ///gets index into data array for three indexes plus time index
-        int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const;
+        inline int64_t getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
+        {
+            CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));
+            if (m_indexRef != NULL)
+            {
+                //HACK: use pointer math and the indexing array to get the index if it is set up
+                return (m_indexRef[component][brickIndex][indexIn3][indexIn2] + indexIn1) - m_data;
+            } else {//otherwise, calculate via precalculated multiples arrays
+                return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
+            }
+        }
 
         ///checks if an index is within array dimensions
         inline bool indexValid(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const

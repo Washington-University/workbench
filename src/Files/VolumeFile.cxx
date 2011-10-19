@@ -25,7 +25,6 @@
 #include "VolumeFile.h"
 #include "FloatMatrix.h"
 #include <cmath>
-#include "NiftiHeaderIO.h"
 #include "NiftiFile.h"
 
 using namespace caret;
@@ -63,6 +62,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_spaceToIndex = temp2.getMatrix();
     m_indexToSpace.resize(3);//reduce them both back to 3x4
     m_spaceToIndex.resize(3);
+    m_origDims = dimensionsIn;//save the original dimensions
     m_dimensions[0] = dimensionsIn[0];
     m_dimensions[1] = dimensionsIn[1];
     m_dimensions[2] = dimensionsIn[2];
@@ -200,13 +200,6 @@ void VolumeFile::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimO
     numComponents = m_dimensions[4];
 }
 
-int64_t VolumeFile::getIndex(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex, const int64_t component) const
-{//the component is split out, so you have the entire R volume timeseries, then entire G, then entire B, as stored in memory, this will make indexing tricks less memory intensive
-    //return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
-    //HACK: use pointer math and the indexing array to get the index
-    return (m_indexRef[component][brickIndex][indexIn3][indexIn2] + indexIn1) - m_data;
-}//doesn't seem to have a performance drawback to order them in memory this way
-
 void VolumeFile::indexToSpace(const int64_t* indexIn, float* coordOut) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut[0], coordOut[1], coordOut[2]);
@@ -322,17 +315,13 @@ void VolumeFile::setupIndexing()
     int64_t dim43 = m_dimensions[4] * m_dimensions[3];//sizes for the reverse indexing lookup arrays
     int64_t dim432 = dim43 * m_dimensions[2];
     int64_t dim4321 = dim432 * m_dimensions[1];
-    //int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
-    /*int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
+    int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
+    int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
     int64_t dim0123 = dim012 * m_dimensions[3];//*/ //size of a timeseries (single component)
-    m_indexRef = new float****[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
-    m_indexRef[0] = new float***[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
-    m_indexRef[0][0] = new float**[dim432];
-    m_indexRef[0][0][0] = new float*[dim4321];
-    /*m_cMult.resize(m_dimensions[4]);//these aren't the size of the lookup arrays because we can do the math manually and take less memory
+    m_cMult.resize(m_dimensions[4]);//these aren't the size of the lookup arrays because we can do the math manually and take less memory
     m_bMult.resize(m_dimensions[3]);//it is probably slightly slower to do the math manually than to do lookups, so have both
-    m_kMult.resize(m_dimensions[2]);//its possible we could hack getIndex to use the indexing array and pointer math from m_data, but that would be a brutal hack...though it would make them the same...
-    m_jMult.resize(m_dimensions[1]);//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
+    m_kMult.resize(m_dimensions[2]);//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
+    m_jMult.resize(m_dimensions[1]);
     for (int64_t i = 0; i < m_dimensions[1]; ++i)
     {
        m_jMult[i] = i * m_dimensions[0];
@@ -344,43 +333,53 @@ void VolumeFile::setupIndexing()
     for (int64_t i = 0; i < m_dimensions[3]; ++i)
     {
        m_bMult[i] = i * dim012;
-    }//*/ //TSC: commented out but preserved in case the pointer math getIndex hack is frowned on
-    //
-    //EXPLANATION TIME
-    //
-    //Apologies for the oddity below, it is highly obtuse due to the effort of avoiding a large number of multiplies
-    //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_indexRef[0][0] with a skip of dim[2], etc
-    //at the final level, it indexes into m_data with a skip of dim[0]
-    //what this accomplishes is that the lookup m_indexRef[component][brick[k][j][i] will be the data value at the index (i, j, k, brick, component), with no multiplications whatsoever
-    //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it simpler to get a value from the array at an index
-    //as long as the dimension that steps by 1 in m_data is large, it takes relatively little memory to accomplish, compared to the entire volume
-    //
-    //if this is too much of a hassle, the trick of precalculating the multiples of dim[0], dim[0] * dim[1], etc, for all values of each of the dimensions is nearly as fast and easy to use, while being more intuitive
-    //the code for this is above, commented out, plus a line in the outer loop below
-    int64_t cbase = 0;
-    for (int64_t c = 0; c < m_dimensions[4]; ++c)
+    }
+    for (int64_t i = 0; i < m_dimensions[4]; ++i)
     {
-        //m_cMult[c] = c * dim0123;//NOTE: this line is for precalculating multiples for a different way of calculating indexes than the simple formula
-        m_indexRef[c] = m_indexRef[0] + cbase;//pointer math, redundant for [0], but [0][1], etc needs to get set, so it is easier to loop including 0
-        int64_t bbase = cbase * m_dimensions[2];
-        for (int64_t b = 0; b < m_dimensions[3]; ++b)
+        m_cMult[i] = i * dim0123;
+    }
+    if (m_dimensions[0] < (int64_t)(8 * sizeof(float*) / sizeof(float)) && (dim4321 * sizeof(float*)) > (32<<20))
+    {//if the final dimension is small enough that the added memory usage of the last level would be more than 12.5%, and the last level would take more than 32MB of memory
+        m_indexRef = NULL;//don't use memory indexing, use the precalculated multiples
+    } else {//among other things, this prevents VolumeFile from exploding if you accidentally load a cifti instead of an actual volume
+        //
+        //EXPLANATION TIME
+        //
+        //Apologies for the oddity below, it is highly obtuse due to the effort of avoiding a large number of multiplies
+        //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_indexRef[0][0] with a skip of dim[2], etc
+        //at the final level, it indexes into m_data with a skip of dim[0]
+        //what this accomplishes is that the lookup m_indexRef[component][brick[k][j][i] will be the data value at the index (i, j, k, brick, component), with no multiplications whatsoever
+        //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it simpler to get a value from the array at an index
+        //as long as the dimension that steps by 1 in m_data is large, it takes relatively little memory to accomplish, compared to the entire volume
+        //
+        m_indexRef = new float****[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
+        m_indexRef[0] = new float***[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
+        m_indexRef[0][0] = new float**[dim432];
+        m_indexRef[0][0][0] = new float*[dim4321];
+        int64_t cbase = 0;
+        for (int64_t c = 0; c < m_dimensions[4]; ++c)
         {
-            m_indexRef[c][b] = m_indexRef[0][0] + bbase;
-            int64_t kbase = bbase * m_dimensions[1];
-            int64_t jbase = kbase * m_dimensions[0];//treat this one specially to avoid multiplies at the slice level
-            for (int64_t k = 0; k < m_dimensions[2]; ++k)
+            m_indexRef[c] = m_indexRef[0] + cbase;//pointer math, redundant for [0], but [0][1], etc needs to get set, so it is easier to loop including 0
+            int64_t bbase = cbase * m_dimensions[2];
+            for (int64_t b = 0; b < m_dimensions[3]; ++b)
             {
-                m_indexRef[c][b][k] = m_indexRef[0][0][0] + kbase;
-                for (int64_t j = 0; j < m_dimensions[1]; ++j)
-                {//because l looks like 1
-                    m_indexRef[c][b][k][j] = m_data + jbase;//NOTE: this last pointer math is into m_data on purpose! this is why you can access the data through m_indexRef
-                    jbase += m_dimensions[0];
+                m_indexRef[c][b] = m_indexRef[0][0] + bbase;
+                int64_t kbase = bbase * m_dimensions[1];
+                int64_t jbase = kbase * m_dimensions[0];//treat this one specially to avoid multiplies at the slice level
+                for (int64_t k = 0; k < m_dimensions[2]; ++k)
+                {
+                    m_indexRef[c][b][k] = m_indexRef[0][0][0] + kbase;
+                    for (int64_t j = 0; j < m_dimensions[1]; ++j)
+                    {//because l looks like 1
+                        m_indexRef[c][b][k][j] = m_data + jbase;//NOTE: this last pointer math is into m_data on purpose! this is why you can access the data through m_indexRef
+                        jbase += m_dimensions[0];
+                    }
+                    kbase += m_dimensions[1];
                 }
-                kbase += m_dimensions[1];
+                bbase += m_dimensions[2];
             }
-            bbase += m_dimensions[2];
+            cbase += m_dimensions[3];
         }
-        cbase += m_dimensions[3];
     }
 }
 
