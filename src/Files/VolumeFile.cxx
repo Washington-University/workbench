@@ -26,6 +26,7 @@
 #include "FloatMatrix.h"
 #include <cmath>
 #include "NiftiHeaderIO.h"
+#include "NiftiFile.h"
 
 using namespace caret;
 using namespace std;
@@ -390,24 +391,9 @@ VolumeFile::~VolumeFile()
 
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
-    //throw DataFileException("Reading of volume files not implemented.");
     try {
-        NiftiHeaderIO myHeadIO;
-        myHeadIO.readFile(filename);
-        int myver = myHeadIO.getNiftiVersion();
-        switch (myver)
-        {
-            case 1:
-                m_headerType = NIFTI_1;
-                myHeadIO.getHeader(m_N1Header);
-                break;
-            case 2:
-                m_headerType = NIFTI_2;
-                myHeadIO.getHeader(m_N2Header);
-                break;
-            default:
-                break;
-        };
+        NiftiFile myNifti;
+        myNifti.readVolumeFile(*this, filename);
     }
     catch (NiftiException e) {
         throw DataFileException(e);
@@ -437,7 +423,13 @@ VolumeFile::isEmpty() const
 void 
 VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Writing of volume files not implemented.");
+    try {
+        NiftiFile myNifti;
+        myNifti.writeVolumeFile(*this, filename);
+    }
+    catch (NiftiException e) {
+        throw DataFileException(e);
+    }
 }
 
 void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component) const
