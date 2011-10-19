@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include <vector>
 
 #include "CaretObject.h"
 
@@ -35,26 +36,25 @@ namespace caret {
     public:
         enum { 
             /**
-             * Number of values in the histogram.
-             */
-            HISTOGRAM_NUMBER_OF_ELEMENTS = 100,
-            
-            /**
              * Number of values in the positive and negative percentiles.
              */
-            PERCENTILE_NUMBER_OF_ELEMENTS = 101
+            PERCENTILE_NUMBER_OF_ELEMENTS = 1001
         };
         
         DescriptiveStatistics();
+        
+        DescriptiveStatistics(const int64_t histogramNumberOfElements);
         
         virtual ~DescriptiveStatistics();
         
         void update(const float* values,
                     const int64_t numberOfValues);
         
-        float getPositivePercentile(const int64_t percent) const;
+        void update(const std::vector<float>& values);
         
-        float getNegativePercentile(const int64_t percent) const;
+        float getPositivePercentile(const float percent) const;
+        
+        float getNegativePercentile(const float percent) const;
         
         /**
          * @return Does the data contains positive values.
@@ -65,6 +65,11 @@ namespace caret {
          * @return Does the data contains negative values.
          */
         bool hasNegativeValues() const { return this->containsNegativeValues; }
+        
+        /**
+         * @return The number of elements in the histogram.
+         */
+        int64_t getHistogramNumberOfElements() { return this->histogramNumberOfElements; }
         
         /**
          * @return Get the histogram for all values.  The number of elements
@@ -98,6 +103,46 @@ namespace caret {
          */
         float getLeastNegativeValue() const { return this->negativePercentiles[0]; }
         
+        /**
+         * @return The mean (average) value.
+         */
+        float getMean() const { return this->mean; }
+        
+        /**
+         * @return The median value.
+         */
+        float getMedian() const { return this->median; }
+        
+        /**
+         * @return The population standard deviation (divide by N).
+         */
+        float getPopulationStandardDeviation() const { return this->standardDeviationPopulation; }
+        
+        /**
+         * @return The sample standard deviation (divide by N - 1).
+         */
+        float getStandardDeviationSample() const { return this->standardDeviationSample; }
+        
+        /**
+         * @return The mean (average) of middle 96% of elements.
+         */
+        float getMean96() const { return this->mean96; }
+        
+        /**
+         * @return The median of middle 96% of elements.
+         */
+        float getMedian96() const { return this->median96; }
+        
+        /**
+         * @return The population standard deviation of middle 96% of elements (divide by N).
+         */
+        float getPopulationStandardDeviation96() const { return this->standardDeviationPopulation96; }
+        
+        /**
+         * @return The sample standard deviation of middle 96% of elements (divide by N - 1).
+         */
+        float getStandardDeviationSample96() const { return this->standardDeviationSample96; }
+        
     private:
         DescriptiveStatistics(const DescriptiveStatistics&);
 
@@ -111,7 +156,7 @@ namespace caret {
          * Contains the histogram which provides the
          * distribution of the data.
          */
-        int64_t histogram[HISTOGRAM_NUMBER_OF_ELEMENTS];
+        int64_t* histogram;
         
         /**
          * Contains the histogram which provides the
@@ -119,7 +164,12 @@ namespace caret {
          * two percent and the largest two percent of
          * data values.
          */
-        int64_t histogram96[HISTOGRAM_NUMBER_OF_ELEMENTS];
+        int64_t* histogram96;
+        
+        /**
+         * Contains the number of elements in the histograms.
+         */
+        int64_t histogramNumberOfElements;
         
         /**
          * Contains the negative percentiles.
@@ -151,6 +201,31 @@ namespace caret {
         
         /** Indicates that positive data is present. */
         bool containsPositiveValues;
+        
+        /** The mean (average) value. */
+        float mean;
+        
+        /** The population standard deviation of all values (divide by N). */
+        float standardDeviationPopulation;
+        
+        /** The sample standard deviation of all values (divide by N - 1). */
+        float standardDeviationSample;
+        
+        /** The median (middle) value. */
+        float median;
+        
+        /** The mean (average) value of the middle 96% of elements. */
+        float mean96;
+        
+        /** The population standard deviation of middle 96% elements (divide by N). */
+        float standardDeviationPopulation96;
+        
+        /** The sample standard deviation of middle 96% elements (divide by N - 1). */
+        float standardDeviationSample96;
+        
+        /** The median (middle) value of middle 96% of elements*/
+        float median96;
+        
     };
     
 #ifdef __DESCRIPTIVE_STATISTICS_DECLARE__
