@@ -13,6 +13,7 @@ class QTabWidget;
 
 
 namespace caret {
+    class HyperLinkTextBrowser;
     class OverlaySelectionControl;
     
     class BrainBrowserWindowToolBox : public QDockWidget, public EventListenerInterface {
@@ -40,6 +41,10 @@ namespace caret {
         
         void dockMoved(Qt::DockWidgetArea area);
         
+        void clearInformationText();
+        
+        void removeIdSymbols();
+        
         void updateMySize();
         
         void updateDisplayedPanel();
@@ -52,7 +57,7 @@ namespace caret {
         
         OverlaySelectionControl* createVolumeLayersWidget(const OverlaySelectionControl::Orientation orientation);
         
-        QWidget* createIdentificationWidget();
+        QWidget* createInformationWidget();
         
         QWidget* createConnectivityWidget();
         
@@ -81,6 +86,10 @@ namespace caret {
         Qt::DockWidgetArea dockWidgetArea;
         
         int32_t browserWindowIndex;
+        
+        QWidget* informationWidget;
+        
+        HyperLinkTextBrowser* informationTextBrowser;
     };    
 }
 

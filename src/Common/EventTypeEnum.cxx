@@ -106,6 +106,14 @@ EventTypeEnum::initialize()
                                      "EVENT_GRAPHICS_UPDATE_ONE_WINDOW", 
                                      "Update graphics in one window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_SYMBOL_REMOVAL, 
+                                     "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
+                                     "Remove all identification symbols"));
+    
+    enumData.push_back(EventTypeEnum(EVENT_INFORMATION_TEXT_DISPLAY,
+                                     "EVENT_INFORMATION_TEXT_DISPLAY",
+                                     "Display text in information windows"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
                                      "Add a model display controller"));

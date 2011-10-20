@@ -29,9 +29,11 @@
 #include "CaretObject.h"
 
 namespace caret {
+    class BrowserTabContent;
     class IdentificationItem;
     class IdentificationItemSurfaceNode;
     class IdentificationItemSurfaceTriangle;
+    class IdentificationTextGenerator;
     
     class IdentificationManager : public CaretObject {
         
@@ -44,7 +46,13 @@ namespace caret {
         
         IdentificationItemSurfaceNode* getSurfaceNodeIdentification();
         
+        const IdentificationItemSurfaceNode* getSurfaceNodeIdentification() const;
+        
         IdentificationItemSurfaceTriangle* getSurfaceTriangleIdentification();
+        
+        const IdentificationItemSurfaceTriangle* getSurfaceTriangleIdentification() const;
+        
+        AString getIdentificationText(const BrowserTabContent* browserTabContent) const;
         
     private:
         IdentificationManager(const IdentificationManager&);
@@ -60,6 +68,8 @@ namespace caret {
         IdentificationItemSurfaceNode* surfaceNodeIdentification;
         
         IdentificationItemSurfaceTriangle* surfaceTriangleIdentification;
+        
+        IdentificationTextGenerator* idTextGenerator;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

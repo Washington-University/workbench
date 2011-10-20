@@ -1,5 +1,5 @@
-#ifndef __IDENTIFICATION_ITEM_SURFACE_NODE__H_
-#define __IDENTIFICATION_ITEM_SURFACE_NODE__H_
+#ifndef __IDENTIFICATION_TEXT_GENERATOR__H_
+#define __IDENTIFICATION_TEXT_GENERATOR__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,46 +26,37 @@
  */ 
 
 
-#include "IdentificationItem.h"
+#include "CaretObject.h"
 
 namespace caret {
 
-    class Surface;
+    class BrowserTabContent;
+    class IdentificationManager;
     
-    class IdentificationItemSurfaceNode : public IdentificationItem {
+    class IdentificationTextGenerator : public CaretObject {
         
     public:
-        IdentificationItemSurfaceNode();
+        IdentificationTextGenerator();
         
-        virtual ~IdentificationItemSurfaceNode();
+        virtual ~IdentificationTextGenerator();
         
-        virtual bool isValid() const;
-        
-        const Surface* getSurface() const;
-        
-        void setSurface(Surface* surface);
-        
-        int32_t getNodeNumber() const;
-        
-        void setNodeNumber(const int32_t nodeNumber);
-        
-        virtual void reset();
+        AString createIdentificationText(const IdentificationManager* idManager,
+                                         const BrowserTabContent* browserTabContent) const;
         
     private:
-        IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode&);
+        IdentificationTextGenerator(const IdentificationTextGenerator&);
 
-        IdentificationItemSurfaceNode& operator=(const IdentificationItemSurfaceNode&);
+        IdentificationTextGenerator& operator=(const IdentificationTextGenerator&);
         
     public:
-    private:
-        Surface* surface;
+        virtual AString toString() const;
         
-        int32_t nodeNumber;
+    private:
     };
     
-#ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#ifdef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
+#endif // __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
 
 } // namespace
-#endif  //__IDENTIFICATION_ITEM_SURFACE_NODE__H_
+#endif  //__IDENTIFICATION_TEXT_GENERATOR__H_

@@ -78,8 +78,8 @@ IdentificationItemSurfaceNode::isValid() const
 /**
  * return Surface containing identified node.
  */
-Surface* 
-IdentificationItemSurfaceNode::getSurface()
+const Surface* 
+IdentificationItemSurfaceNode::getSurface() const
 {
     return this->surface;
 }
@@ -100,7 +100,7 @@ IdentificationItemSurfaceNode::setSurface(Surface* surface)
  * return Number of identified node.
  */
 int32_t 
-IdentificationItemSurfaceNode::getNodeNumber()
+IdentificationItemSurfaceNode::getNodeNumber() const
 {
     return this->nodeNumber;
 }

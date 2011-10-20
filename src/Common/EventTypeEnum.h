@@ -60,6 +60,10 @@ public:
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */
         EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+        /** Remove all identification symbols */
+        EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
+        /** Display text in information windows */
+        EVENT_INFORMATION_TEXT_DISPLAY,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */

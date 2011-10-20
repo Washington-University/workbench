@@ -29,6 +29,7 @@
 
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
+#include "IdentificationTextGenerator.h"
 
 using namespace caret;
 
@@ -51,6 +52,8 @@ IdentificationManager::IdentificationManager()
     
     this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
+    
+    this->idTextGenerator = new IdentificationTextGenerator();
 }
 
 /**
@@ -62,6 +65,20 @@ IdentificationManager::~IdentificationManager()
     this->surfaceNodeIdentification = NULL;
     delete this->surfaceTriangleIdentification;
     this->surfaceTriangleIdentification = NULL;
+    delete this->idTextGenerator;
+    this->idTextGenerator = NULL;
+}
+
+/**
+ * Get text describing the current identification data.
+ * @param browserTabContent
+ *    Tab content in which identification took place.
+ */
+AString 
+IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent) const
+{
+    const AString text = this->idTextGenerator->createIdentificationText(this, browserTabContent);
+    return text;
 }
 
 /**
@@ -88,10 +105,28 @@ IdentificationManager::getSurfaceNodeIdentification()
 }
 
 /**
+ * @return Identification for surface node.
+ */
+const IdentificationItemSurfaceNode* 
+IdentificationManager::getSurfaceNodeIdentification() const
+{
+    return this->surfaceNodeIdentification;
+}
+
+/**
  * @return Identification for surface triangle.
  */
 IdentificationItemSurfaceTriangle* 
 IdentificationManager::getSurfaceTriangleIdentification()
+{
+    return this->surfaceTriangleIdentification;
+}
+
+/**
+ * @return Identification for surface triangle.
+ */
+const IdentificationItemSurfaceTriangle* 
+IdentificationManager::getSurfaceTriangleIdentification() const
 {
     return this->surfaceTriangleIdentification;
 }

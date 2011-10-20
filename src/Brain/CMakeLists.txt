@@ -52,6 +52,7 @@ EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabNew.h
 EventDataFileRead.h
+EventIdentificationSymbolRemoval.h
 EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
@@ -63,6 +64,8 @@ IdentificationItem.h
 IdentificationItemSurfaceNode.h
 IdentificationItemSurfaceTriangle.h
 IdentificationManager.h
+IdentificationStringBuilder.h
+IdentificationTextGenerator.h
 IdentificationWithColor.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
@@ -94,6 +97,7 @@ EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabNew.cxx
 EventDataFileRead.cxx
+EventIdentificationSymbolRemoval.cxx
 EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
@@ -105,6 +109,8 @@ IdentificationItem.cxx
 IdentificationItemSurfaceNode.cxx
 IdentificationItemSurfaceTriangle.cxx
 IdentificationManager.cxx
+IdentificationStringBuilder.cxx
+IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx

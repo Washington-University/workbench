@@ -2,6 +2,7 @@
 
 #include <iostream>
 
+#include <QAction>
 #include <QButtonGroup>
 #include <QChar>
 #include <QComboBox>
@@ -17,11 +18,15 @@
 #include <QStringList>
 #include <QTabWidget>
 #include <QTableWidget>
+#include <QToolBar>
 
 #include "BrainBrowserWindowToolBox.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
+#include "EventIdentificationSymbolRemoval.h"
+#include "EventInformationTextDisplay.h"
 #include "EventUserInterfaceUpdate.h"
+#include "HyperLinkTextBrowser.h"
 #include "OverlaySelectionControl.h"
 #include "WuQtUtilities.h"
 
@@ -42,6 +47,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
                                                      const Location location)
 :   QDockWidget()
 {
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     this->browserWindowIndex = browserWindowIndex;
@@ -68,7 +74,9 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->volumeOverlayControl  = this->createVolumeLayersWidget(overlayControlOrientation);
     
     
-    //this->connectivityWidget   = this->createConnectivityWidget();
+    this->informationWidget = this->createInformationWidget();
+    
+    this->connectivityWidget   = this->createConnectivityWidget();
     //this->metricWidget   = this->createMetricWidget();
     //this->labelWidget   = this->createLabelWidget();
     
@@ -76,6 +84,8 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->tabWidget->setUsesScrollButtons(true);
     this->tabWidget->addTab(this->surfaceOverlayControl, "Surface");
     this->tabWidget->addTab(this->volumeOverlayControl, "Volume");
+    this->tabWidget->addTab(this->informationWidget, "Info");
+    this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->labelWidget, "Label");
     //this->tabWidget->addTab(this->metricWidget, "Metric");
@@ -106,6 +116,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
                      this, SLOT(dockMoved(Qt::DockWidgetArea)));
     
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    this->tabWidget->setCurrentWidget(this->surfaceOverlayControl);
 }
 
 BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
@@ -339,15 +350,82 @@ BrainBrowserWindowToolBox::createGiftiColumnSelectionPanel()
 }
 
 /**
- * Create the identification widget.
- * @return The identification widget.
+ * Create the information widget.
+ * @return The information widget.
  */
 QWidget* 
-BrainBrowserWindowToolBox::createIdentificationWidget()
+BrainBrowserWindowToolBox::createInformationWidget()
 {
+    this->informationTextBrowser = new HyperLinkTextBrowser();
+    QAction* clearAction = WuQtUtilities::createAction("Clear", 
+                                                       "Clear contents of information display", 
+                                                       this, 
+                                                       this, 
+                                                       SLOT(clearInformationText()));
+    
+    QAction* copyAction = WuQtUtilities::createAction("Copy", 
+                                                       "Copy selection from information display", 
+                                                       this, 
+                                                       this->informationTextBrowser, 
+                                                       SLOT(copy()));
+    
+    QAction* clearIdSymbolAction = WuQtUtilities::createAction("RID", 
+                                                      "Remove ID symbols from ALL surfaces.", 
+                                                      this, 
+                                                      this, 
+                                                      SLOT(removeIdSymbols()));
+    
+    QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
+                     copyAction, SLOT(setEnabled(bool)));
+    copyAction->setEnabled(false);
+    
+    QToolBar* idToolBarLeft = new QToolBar();
+    idToolBarLeft->setOrientation(Qt::Vertical);
+    idToolBarLeft->setFloatable(false);
+    idToolBarLeft->setMovable(false);
+    idToolBarLeft->addAction(clearAction);
+    idToolBarLeft->addSeparator();
+    idToolBarLeft->addAction(copyAction);
+    idToolBarLeft->addSeparator();
+    
+    QToolBar* idToolBarRight = new QToolBar();
+    idToolBarRight->setOrientation(Qt::Vertical);
+    idToolBarRight->setFloatable(false);
+    idToolBarRight->setMovable(false);
+    idToolBarRight->addAction(clearIdSymbolAction);
+    idToolBarRight->addSeparator();
+    
     QWidget* w = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(w);
+    layout->addWidget(idToolBarLeft);
+    layout->addWidget(this->informationTextBrowser);
+    layout->addWidget(idToolBarRight);
+    layout->setStretchFactor(idToolBarLeft, 0);
+    layout->setStretchFactor(this->informationTextBrowser, 100);
+    layout->setStretchFactor(idToolBarRight, 0);
+    
     return w;
 }
+
+/**
+ * Clear the information text.
+ */
+void 
+BrainBrowserWindowToolBox::clearInformationText()
+{
+    this->informationTextBrowser->setText("");
+}
+
+
+/**
+ * Remove ID symbols from all surfaces.
+ */
+void 
+BrainBrowserWindowToolBox::removeIdSymbols()
+{
+    EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
+}
+
 
 
 /**
@@ -368,6 +446,15 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
         
         this->updateDisplayedPanel();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
+        EventInformationTextDisplay* textEvent =
+        dynamic_cast<EventInformationTextDisplay*>(event);
+        CaretAssert(textEvent);
+        
+        this->tabWidget->setCurrentWidget(this->informationWidget);
+        this->informationTextBrowser->appendHtml(textEvent->getText());
+        textEvent->setEventProcessed();
+    }
     else {
     }
 }
@@ -384,6 +471,18 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
     }
     else if (selectedTopLevelWidget == this->volumeOverlayControl) {
         this->volumeOverlayControl->updateControl();
+    }
+    else if (selectedTopLevelWidget == this->informationWidget) {
+        // nothing to do!
+    }
+    else if (selectedTopLevelWidget == this->connectivityWidget) {
+        
+    }
+    else if (selectedTopLevelWidget == this->metricWidget) {
+        
+    }
+    else if (selectedTopLevelWidget == this->labelWidget) {
+        
     }
     else {
         CaretAssertMessage(0, "Invalid top level widget in ToolBox.");
