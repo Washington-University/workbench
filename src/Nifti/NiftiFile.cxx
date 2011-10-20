@@ -218,7 +218,6 @@ void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         bool valid = true;
         newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
         if(!valid) throw NiftiException("Nifti Enum bites it again.");
-        newLayout.valueByteSize = 4;
         outMatrix.setMatrixLayoutOnDisk(newLayout);
         //need to check if we're dealing with a time series, otherwise
         //dim4 may be zero

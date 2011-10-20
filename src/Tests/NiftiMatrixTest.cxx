@@ -149,12 +149,10 @@ void NiftiMatrixTest::setupLayouts(NiftiMatrix &floatMatrix,
     floatLayout.layoutSet = true;
     floatLayout.needsSwapping = false;
     floatLayout.niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
-    floatLayout.valueByteSize = 4;
     LayoutType floatLayoutBE( floatLayout);
     floatLayoutBE.needsSwapping = true;
     LayoutType doubleLayout(floatLayout);
     doubleLayout.niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT64;
-    doubleLayout.valueByteSize = 8;
     LayoutType doubleLayoutBE(doubleLayout);
     doubleLayoutBE.needsSwapping = true;
 

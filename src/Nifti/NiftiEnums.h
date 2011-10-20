@@ -37,6 +37,11 @@
 
 namespace caret {
    
+    //we specify here whether to write in native byte order, or to honor the original
+    //byte order, we could also get clever and try to determine whether or not we are
+    //a big or little-endian machine, but the key concept to keep track of is whether or
+    //not we want to honor the byte order of the original file (for in place read/write)
+    //not the actual byte order.  This should also function portably.
     enum NIFTI_BYTE_ORDER {
         NATIVE_BYTE_ORDER,
         ORIGINAL_BYTE_ORDER
@@ -188,19 +193,19 @@ namespace caret {
          /**  */
          NIFTI_INTENT_DIMLESS = ::NIFTI_INTENT_DIMLESS,
          /**  */
-         NIFTI_INTENT_TIME_SERIES,
+         NIFTI_INTENT_TIME_SERIES = 2001,
          /**  */
-         NIFTI_INTENT_NODE_INDEX,
+         NIFTI_INTENT_NODE_INDEX = 2002,
          /**  */
-         NIFTI_INTENT_RGB_VECTOR,
+         NIFTI_INTENT_RGB_VECTOR = 2003,
          /**  */
-         NIFTI_INTENT_RGBA_VECTOR,
+         NIFTI_INTENT_RGBA_VECTOR = 2004,
          /**  */
-         NIFTI_INTENT_SHAPE,
+         NIFTI_INTENT_SHAPE = 2005,
          /**  */
-         NIFTI_INTENT_CARET_DEFORMATION_NODE_INDICES,
+         NIFTI_INTENT_CARET_DEFORMATION_NODE_INDICES = 25000,
          /**  */
-         NIFTI_INTENT_CARET_DEFORMATION_NODE_AREAS,
+         NIFTI_INTENT_CARET_DEFORMATION_NODE_AREAS = 25001,
          /**  */
          NIFTI_INTENT_CONNECTIVITY_DENSE = ::NIFTI_INTENT_CONNECTIVITY_DENSE,
          /**  */

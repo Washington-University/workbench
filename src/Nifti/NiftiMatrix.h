@@ -32,18 +32,79 @@
 #include "stdint.h"
 namespace caret {
 
-struct  LayoutType {
-    bool layoutSet;
-    bool needsSwapping;
-    int32_t componentDimensions;
-    std::vector <int64_t> dimensions;
-    NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
-    int32_t valueByteSize;//redundant, and derivable from Nifti
+enum MatrixDimensions {//ways of accessing matrix
+    MATRIX_POINT,
+    MATRIX_ROW,
+    MATRIX_COLUMN,
+    MATRIX_SLICE,
+    MATRIX_FRAME,
+    MATRIX_SERIES
 };
 
+enum MatrixIndexingOrderEnum {
+    ROW_MAJOR_ORDER,
+    COLUMN_MAJOR_ORDER
+};
+
+//constants
+const int32_t MATRIX_POINT_DIMENSIONS=0;
+const int32_t MATRIX_ROW_DIMENSIONS=1;
+const int32_t MATRIX_COLUMN_DIMENSIONS=1;
+const int32_t MATRIX_SLICE_DIMENSIONS=2;
+const int32_t MATRIX_FRAME_DIMENSIONS=3;
+const int32_t MATRIX_SERIES_DIMENSIONS=4;
 
 
-class NiftiMatrix : public LayoutType //so we don't have to qualify layouts
+
+struct  LayoutType {
+    bool needsSwapping;
+    bool layoutSet;
+    int32_t componentDimensions;
+    std::vector <int64_t> dimensions;
+    std::vector <int32_t> indexingOrder;//for later, this will determine the order of indexing (i.e. row vs column major order, etc.
+    std::vector <int32_t> storageOrder;//for later, this will determine how it is laid out on disk...
+    NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
+    int32_t valueByteSize() { //convenience method for getting value byte size from data type
+        switch(niftiDataType)
+        {
+        case NIFTI_TYPE_UINT8:
+        case NIFTI_TYPE_INT8:
+            return 1;
+        case NIFTI_TYPE_UINT16:
+        case NIFTI_TYPE_INT16:
+            return 2;
+        case NIFTI_TYPE_RGB24:
+            return 3;
+        case NIFTI_TYPE_UINT32:
+        case NIFTI_TYPE_INT32:
+        case NIFTI_TYPE_FLOAT32:
+            return 4;
+        case NIFTI_TYPE_UINT64:
+        case NIFTI_TYPE_INT64:
+        case NIFTI_TYPE_FLOAT64:
+            return 8;
+        default:
+            return 0;
+        }
+    }
+
+};
+
+struct Matrix : public LayoutType {
+    //supported matrix storage types
+    double * doubleMatrix;
+    float * floatMatrix;
+    int64_t * int64Matrix;
+    int32_t * int32Matrix;
+    int16_t * int16Matrix;
+    int8_t * int8Matrix;
+    uint64_t * uint64Matrix;
+    uint32_t * uint32Matrix;
+    uint16_t * uint16Matrix;
+    uint8_t * uint8Matrix;
+};
+
+class NiftiMatrix : public Matrix //so we don't have to qualify layouts
 {
 public:
     NiftiMatrix();
@@ -75,7 +136,7 @@ public:
 
     void getMatrixLayoutOnDisk(LayoutType &layout);
     void setMatrixLayoutOnDisk(LayoutType &layout);
-    void getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,int64_t &frameLengthOut, int64_t &frameSizeOut ) const;
+    void getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,int64_t &frameLengthOut, int64_t &frameSizeOut );
     void setMatrixLayoutOnDisk(const std::vector<int64_t> &dimensionsIn, const int &componentDimensionsIn,const  int &valueByteSizeIn, const bool &needsSwappingIn );
 
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!

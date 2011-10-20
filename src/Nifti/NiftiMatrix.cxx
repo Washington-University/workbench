@@ -98,7 +98,7 @@ void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
 
     layout = (*this);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
     layoutSet = true;
 }
 
@@ -106,28 +106,27 @@ void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
 {
     *(static_cast <LayoutType *> (this)) = layout;
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
     layoutSet = true;
 }
 
-void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, int64_t &frameLengthOut, int64_t &frameSizeOut ) const
+void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, int64_t &frameLengthOut, int64_t &frameSizeOut )
 {
     dimensionsOut = dimensions;
     componentDimensionsOut = componentDimensions;
-    valueByteSizeOut = valueByteSize;
+    valueByteSizeOut = valueByteSize();
     needsSwappingOut = needsSwapping;
     frameLengthOut = calculateFrameLength(dimensions);
-    frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const int &valueByteSizeIn, const bool &needsSwappingIn )
 {
     dimensions = dimensionsIn;
-    componentDimensions = componentDimensionsIn;
-    valueByteSize = valueByteSizeIn;
+    componentDimensions = componentDimensionsIn;    
     needsSwapping = needsSwappingIn;
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
     layoutSet = true;
 }
 
@@ -137,10 +136,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
     headerIn.getNiftiDataTypeEnum(this->niftiDataType);
     headerIn.getDimensions(this->dimensions);
     headerIn.getComponentDimensions(this->componentDimensions);
-    headerIn.getValueByteSize(this->valueByteSize);
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
     layoutSet = true;
 }
 
@@ -150,10 +148,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
     headerIn.getNiftiDataTypeEnum(this->niftiDataType);
     headerIn.getDimensions(this->dimensions);
     headerIn.getComponentDimensions(this->componentDimensions);
-    headerIn.getValueByteSize(this->valueByteSize);
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize, componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
     layoutSet = true;
 }
 
@@ -342,7 +339,7 @@ void NiftiMatrix::setComponent(const int64_t &index, const int64_t &componentInd
 int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const
 {
     int64_t frameLength = 1;
-    for(int i=0;i<3;i++)
+    for(int i=0;i<MATRIX_FRAME_DIMENSIONS;i++)
         frameLength*=dimensionsIn[i];
     return frameLength;
 }
