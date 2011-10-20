@@ -338,10 +338,10 @@ void Nifti2Header::getSForm(std::vector < std::vector <float> > &sForm)
     for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);
     for(int i = 0;i<4;i++)
     {
-        sForm[i][0] = m_header.srow_x[i];
-        sForm[i][1] = m_header.srow_y[i];
-        sForm[i][2] = m_header.srow_z[i];
-        sForm[i][3] = 0.0f;
+        sForm[0][i] = m_header.srow_x[i];
+        sForm[1][i] = m_header.srow_y[i];
+        sForm[2][i] = m_header.srow_z[i];
+        sForm[3][i] = 0.0f;
     }
     sForm[3][3] = 1.0f;
 }
@@ -352,9 +352,9 @@ void Nifti2Header::setSForm(std::vector < std::vector <float> > &sForm)
     for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
     for(int i = 0;i<4;i++)
     {
-        m_header.srow_x[i] = sForm[i][0];
-        m_header.srow_y[i] = sForm[i][1];
-        m_header.srow_z[i] = sForm[i][2];
+        m_header.srow_x[i] = sForm[0][i];
+        m_header.srow_y[i] = sForm[1][i];
+        m_header.srow_z[i] = sForm[2][i];
     }
 }
 
