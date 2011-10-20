@@ -52,6 +52,8 @@ namespace caret {
         
         OverlaySelectionControl* createVolumeLayersWidget(const OverlaySelectionControl::Orientation orientation);
         
+        QWidget* createIdentificationWidget();
+        
         QWidget* createConnectivityWidget();
         
         QWidget* createLabelWidget();

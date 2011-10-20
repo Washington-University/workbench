@@ -24,6 +24,9 @@
 
 #include "AString.h"
 #include <iostream>
+
+using namespace caret;
+
 std::ostream& operator << (std::ostream &lhs, const AString &rhs) 
 { 
     return lhs << rhs.toStdString(); 
@@ -262,3 +265,126 @@ AString::fromBool(const bool b)
     return "false";
 }
 
+/**
+ * Convert any URLs in this string to  
+ * HTML hyperlinks.
+ * "http://www.wustl.edu" becomes "<a href=http://www.wustl.edu>http://wwww.wustl.edu</a>"
+ * @param sin
+ *    String that may contain URLs.
+ * @return
+ *    Input string with any URLs replace with hyperlinks.
+ */
+AString 
+AString::convertURLsToHyperlinks() const
+{
+    std::vector<AString> url;
+    std::vector<int> urlStart;
+    
+    const AString& sin = *this;
+    
+    if (sin.indexOf("http://") == -1) {
+        return sin;
+    }
+    else {
+        //
+        // Create a modifiable copy
+        //
+        AString s(sin);
+        
+        //
+        // loop since there may be more than one URL
+        //
+        bool done = false;
+        int startPos = 0;
+        while(done == false) {
+            //
+            // Find the beginning of the URL 
+            //
+            const int httpStart = s.indexOf("http://", startPos); 
+            
+            //
+            // Was the start of a URL found
+            //
+            if (httpStart == -1) {
+                done = true;
+            }
+            else {
+                //
+                // Find the end of the URL
+                //
+                int httpEnd = s.indexOfAnyChar(" \t\n\r", httpStart + 1);
+                
+                //
+                // May not find end since end of string
+                //
+                int httpLength;
+                if (httpEnd == -1) {
+                    httpLength = s.length() - httpStart;
+                }
+                else {
+                    httpLength = httpEnd - httpStart;
+                }
+                
+                //
+                // Get the http URL
+                //
+                const AString httpString = s.mid(httpStart, httpLength);
+                url.push_back(httpString);
+                urlStart.push_back(httpStart);
+                
+                //
+                // Prepare for next search
+                //
+                startPos = httpStart;
+                //if (startPos > 0) {
+                startPos = startPos + 1;
+                //}
+            }
+        }
+        
+        if (url.empty() == false) {
+            const int startNum = static_cast<int>(url.size()) - 1;
+            for (int i = startNum; i >= 0; i--) {
+                const int len = url[i].length();
+                
+                //
+                // Create the trailing part of the hyperlink and insert it
+                //
+                AString trailingHyperLink("\">");
+                trailingHyperLink.append(url[i]);
+                trailingHyperLink.append("</a>");
+                s.insert(urlStart[i] + len, trailingHyperLink);
+                
+                //
+                // Insert the beginning of the hyperlink
+                //
+                s.insert(urlStart[i], " <a href=\"");
+            }
+        }
+        return s;
+    }
+}
+
+/**
+ * Returns the index position of any character in 
+ * 'str' in this string.
+ * @param str  Characters that are searched
+ *    for in this string.
+ * @param from String position (default is first character).
+ */
+int32_t
+AString::indexOfAnyChar(const AString& str,
+                        const int from) const
+{
+    const AString& s = *this;
+    const int len = s.length();
+    const int len2 = str.length();
+    for (int i = from; i < len; i++) {
+        for (int j = 0; j < len2; j++) {
+            if (s[i] == str[j]) {
+                return i;
+            }
+        }
+    }
+    return -1;
+}

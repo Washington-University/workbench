@@ -27,6 +27,8 @@
 
 #include <AString.h>
 
+using namespace caret;
+
 namespace PaletteColorMappingXmlElements {
     static const AString XML_TAG_PALETTE_COLOR_MAPPING = "PaletteColorMapping";
     static const AString XML_TAG_SCALE_MODE = "ScaleMode";

@@ -338,6 +338,17 @@ BrainBrowserWindowToolBox::createGiftiColumnSelectionPanel()
     return w;
 }
 
+/**
+ * Create the identification widget.
+ * @return The identification widget.
+ */
+QWidget* 
+BrainBrowserWindowToolBox::createIdentificationWidget()
+{
+    QWidget* w = new QWidget();
+    return w;
+}
+
 
 /**
  * Receive events from the event manager.

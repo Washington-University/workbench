@@ -19,7 +19,7 @@ INCLUDE(${QT_USE_FILE})
 # Any class that derives from a QT class and contains
 # the "Q_OBJECT" macro must be listed here.
 #
-# Also list each of these headers in the 
+# Also LIST each of these headers in the 
 # source files section so that they show
 # up in development tools such as XCode.
 #
@@ -29,6 +29,7 @@ BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 GuiManager.h
+HyperLinkTextBrowser.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 StructureSurfaceSelectionControl.h
@@ -38,7 +39,11 @@ WuQWidgetObjectGroup.h
 )
 
 #
-# Source files 
+# Header files
+# 
+# If the header file is qt 'moc' file
+# also list it in the section above
+# named MOC_INPUT_HEADER_FILES
 #
 SET(SOURCE_FILES
 BrainBrowserWindow.h
@@ -51,6 +56,7 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventUserInterfaceUpdate.h
 GuiManager.h
+HyperLinkTextBrowser.h
 MouseEvent.h
 MouseEventTypeEnum.h
 OverlaySelectionControl.h
@@ -76,6 +82,7 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
+HyperLinkTextBrowser.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx
