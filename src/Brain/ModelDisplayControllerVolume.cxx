@@ -278,3 +278,19 @@ ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
     }
 }
 
+/**
+ * Reset view.  For left and right hemispheres, the default
+ * view is a lateral view.
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayControllerVolume::resetView(const int32_t windowTabNumber)
+{
+    ModelDisplayController::resetView(windowTabNumber);
+    VolumeFile* vf = this->getVolumeFile();
+    if (vf != NULL) {
+        this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
+    }
+}
+

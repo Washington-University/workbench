@@ -80,6 +80,8 @@ namespace caret {
         
         const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
+        virtual void resetView(const int32_t windowTabNumber);
+        
     private:
         ModelDisplayControllerVolume(const ModelDisplayControllerVolume&);
         

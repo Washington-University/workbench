@@ -2045,6 +2045,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
     ModelDisplayController* mdc = btc->getDisplayedModelController();
     if (mdc != NULL) {
         mdc->resetView(btc->getTabNumber());
+        this->updateVolumeIndicesWidget(btc);
         this->updateGraphicsWindow();
     }
     
