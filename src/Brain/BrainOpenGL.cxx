@@ -796,6 +796,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
     const int64_t lastDimK = dimK - 1;
     float x1, y1, z1;
     float x2, y2, z2;
+    
     glBegin(GL_QUADS);
     switch (slicePlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -807,6 +808,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                 const int64_t k = sliceIndex;
                 for (int64_t i = 0; i < lastDimI; i++) {
                     for (int64_t j = 0; j < lastDimJ; j++) {
+                        const float voxel = volumeFile->getValue(i, j, k);
+                        glColor3f(voxel, voxel, voxel);
                         volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                         volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
                         glVertex3f(x1, y1, z1);
@@ -822,6 +825,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                 const int64_t j = sliceIndex;
                 for (int64_t i = 0; i < lastDimI; i++) {
                     for (int64_t k = 0; k < lastDimK; k++) {
+                        const float voxel = volumeFile->getValue(i, j, k);
+                        glColor3f(voxel, voxel, voxel);
                         volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                         volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
                         glVertex3f(x1, y1, z1);
@@ -837,6 +842,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                 const int64_t i = sliceIndex;
                 for (int64_t j = 0; j < lastDimJ; j++) {
                     for (int64_t k = 0; k < lastDimK; k++) {
+                        const float voxel = volumeFile->getValue(i, j, k);
+                        glColor3f(voxel, voxel, voxel);
                         volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                         volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
                         glVertex3f(x1, y1, z1);
