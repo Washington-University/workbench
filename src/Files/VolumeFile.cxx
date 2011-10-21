@@ -395,6 +395,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
     try {
         NiftiFile myNifti;
         myNifti.readVolumeFile(*this, filename);
+        this->setFileName(filename);
     }
     catch (NiftiException e) {
         throw DataFileException(e);
