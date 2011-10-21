@@ -57,6 +57,14 @@ const int32_t MATRIX_SERIES_DIMENSIONS=4;
 
 
 struct  LayoutType {
+    LayoutType() {
+        needsSwapping = false;
+        layoutSet=false;
+        componentDimensions=1;
+        niftiDataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
+        sclSlope=0.0;
+        sclIntercept=0.0;
+    }
     bool needsSwapping;
     bool layoutSet;
     int32_t componentDimensions;
@@ -64,6 +72,8 @@ struct  LayoutType {
     std::vector <int32_t> indexingOrder;//for later, this will determine the order of indexing (i.e. row vs column major order, etc.
     std::vector <int32_t> storageOrder;//for later, this will determine how it is laid out on disk...
     NiftiDataTypeEnum::Enum niftiDataType;//we borrow this enum from nifti, but could be used in generic matrix implementation
+    double sclSlope;
+    double sclIntercept;
     int32_t valueByteSize() { //convenience method for getting value byte size from data type
         switch(niftiDataType)
         {
@@ -201,7 +211,6 @@ public:
     int64_t matrixStartOffset;
 
     //layout
-
     int64_t frameLength;
     int64_t frameSize;
     bool frameLoaded;

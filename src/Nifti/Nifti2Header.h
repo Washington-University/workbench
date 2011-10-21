@@ -56,6 +56,7 @@ public:
    void getComponentDimensions(int32_t &componentDimensionsOut) const;
    void getValueByteSize(int32_t &valueByteSizeOut) const throw(NiftiException);
    void getNeedsSwapping(bool &needsSwappingOut) const {needsSwappingOut = needsSwapping; }
+   void getScaling(double &slopeOut, double &interceptOut) const { slopeOut=m_header.scl_slope;interceptOut=m_header.scl_inter; }
    void setNeedsSwapping(bool &needsSwappingIn) throw (NiftiException) {
        if(needsSwappingSet) throw NiftiException("This attribute is read-only, and can only be set when reading the header.");
        needsSwappingSet = true;

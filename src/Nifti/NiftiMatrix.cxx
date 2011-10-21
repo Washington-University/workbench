@@ -139,6 +139,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    headerIn.getScaling(sclSlope, sclIntercept);
     layoutSet = true;
 }
 
@@ -151,6 +152,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    headerIn.getScaling(sclSlope, sclIntercept);
     layoutSet = true;
 }
 
@@ -261,6 +263,15 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
         throw NiftiException("Unrecognized Nifti Data Type found when reading frame.");
         break;
     }
+    //apply scaling
+    if(sclSlope != 0.0)
+    {
+        for(int64_t i =0;i<matrixLength;i++)
+        {
+            matrix[i] = sclSlope*matrix[i]+sclIntercept;
+        }
+    }
+
     //cleanup
     frameLoaded = true;
     delete [] bytes;
@@ -281,6 +292,15 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
     int64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
     file.open(QIODevice::ReadWrite);
     file.seek(frameOffset);
+    //remove scaling, TODO, make a copy of frame to avoid round off errors when we
+    //reapply scaling at the end of this function
+    if(sclSlope != 0.0)
+    {
+        for(int64_t i =0;i<matrixLength;i++)
+        {
+            matrix[i] = (matrix[i]-sclIntercept)/sclSlope;
+        }
+    }
 
     switch(NiftiDataTypeEnum::toIntegerCode(this->niftiDataType))
     {
@@ -389,6 +409,14 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
         break;
     }
     file.close();
+    //reapply scaling
+    if(sclSlope != 0.0)
+    {
+        for(int64_t i =0;i<matrixLength;i++)
+        {
+            matrix[i] = sclSlope*matrix[i]+sclIntercept;
+        }
+    }
 
 }
 
