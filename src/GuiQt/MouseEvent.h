@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include <QMouseEvent>
 
 #include "CaretObject.h"
 #include "MouseEventTypeEnum.h"
@@ -42,9 +43,11 @@ namespace caret {
         
     public:
         MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
-                   const QMouseEvent* qtMouseEvent,
-                   const int dx = 0,
-                   const int dy = 0);
+                   const Qt::KeyboardModifiers keyModifiers,
+                   const int x,
+                   const int y,
+                   const int dx,
+                   const int dy);
         
         MouseEvent(const QWheelEvent& event);
         

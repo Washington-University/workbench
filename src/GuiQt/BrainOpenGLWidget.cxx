@@ -166,11 +166,15 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
     const Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
     if (button == Qt::LeftButton) {
-        int mouseX = me->x();
-        int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = me->x();
+        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
 
         MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_PRESSED,
-                              me);
+                              keyModifiers,
+                              mouseX,
+                              mouseY,
+                              0,
+                              0);
         this->processMouseEvent(&mouseEvent);
         
         this->lastMouseX = mouseX;
@@ -195,8 +199,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     const Qt::KeyboardModifiers keyModifiers = me->modifiers();
 
     if (button == Qt::LeftButton) {
-        int mouseX = me->x();
-        int mouseY = this->windowHeight[this->windowIndex] - me->y();
+        const int mouseX = me->x();
+        const int mouseY = this->windowHeight[this->windowIndex] - me->y();
         
         this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
         this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -211,14 +215,18 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
         if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
             && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
             MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_CLICKED,
-                                  me,
+                                  keyModifiers,
+                                  mouseX,
+                                  mouseY,
                                   dx,
                                   dy);
             this->processMouseEvent(&mouseEvent);
         }
         else {
             MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_RELEASED,
-                                  me,
+                                  keyModifiers,
+                                  mouseX,
+                                  mouseY,
                                   dx,
                                   dy);
             this->processMouseEvent(&mouseEvent);
@@ -295,7 +303,7 @@ BrainOpenGLWidget::performIdentification(const int x,
 }
 
 
-/**
+/** 
  * Receive mouse move events from Qt.
  * @param me
  *    The mouse event.
@@ -304,12 +312,12 @@ void
 BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
 {
     const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
+    Qt::KeyboardModifiers keyModifiers = me->modifiers();
     
     if (button == Qt::NoButton) {
         if (me->buttons() == Qt::LeftButton) {
-            int mouseX = me->x();
-            int mouseY = this->windowHeight[this->windowIndex] - me->y();
+            const int mouseX = me->x();
+            const int mouseY = this->windowHeight[this->windowIndex] - me->y();
             
             this->mouseMovementMinimumX = std::min(this->mouseMovementMinimumX, mouseX);
             this->mouseMovementMaximumX = std::max(this->mouseMovementMaximumX, mouseX);
@@ -325,7 +333,9 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
                 || (absDY > BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
                 
                 MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_DRAGGED,
-                                      me,
+                                      keyModifiers,
+                                      mouseX,
+                                      mouseY,
                                       dx,
                                       dy);
                 this->processMouseEvent(&mouseEvent);

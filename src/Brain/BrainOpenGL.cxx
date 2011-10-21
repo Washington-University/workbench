@@ -500,8 +500,10 @@ BrainOpenGL::drawSurface(Surface* surface)
             this->drawSurfaceTrianglesWithVertexArrays(surface);
             break;
         case MODE_IDENTIFICATION:
+            glShadeModel(GL_FLAT);
             this->drawSurfaceNodes(surface);
             this->drawSurfaceTriangles(surface);
+            glShadeModel(GL_SMOOTH);
             break;
     }
     
@@ -1241,5 +1243,6 @@ BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dat
                         GL_FLOAT,
                         &depthOut);
     }
+    this->colorIdentification->reset();
 }
 

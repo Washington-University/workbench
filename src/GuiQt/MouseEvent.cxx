@@ -33,15 +33,21 @@ using namespace caret;
  * Constructor.
  * @param mouseEventType
  *    Type of mouse event.
- * @param qtMouseEvent
- *    Mouse event reported by Qt.
+ * @param keyModifiers
+ *    Mouse key modifiers.
+ * @param x
+ *    Mouse X-coordinate (left == 0)
+ * @param y
+ *    Mouse Y-coordinate (bottom == 0)
  * @param dx
  *    Change in mouse X-coordinate
  * @param dy
  *    Change in mouse Y-coordinate
  */
 MouseEvent::MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
-                       const QMouseEvent* qtMouseEvent,
+                       const Qt::KeyboardModifiers keyModifiers, 
+                       const int x,
+                       const int y,
                        const int dx,
                        const int dy)
 : CaretObject()
@@ -49,12 +55,11 @@ MouseEvent::MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
     this->initializeMembersMouseEvent();
 
     this->mouseEventType = mouseEventType;
-    this->x = qtMouseEvent->x();
-    this->y = qtMouseEvent->y();
+    this->x = x;
+    this->y = y;
     this->dx = dx;
     this->dy = dy;
 
-    const Qt::KeyboardModifiers keyModifiers = qtMouseEvent->modifiers();
     if (keyModifiers == Qt::NoButton) {
         // nothing
     }
@@ -199,8 +204,9 @@ MouseEvent::getX() const
 }
 
 /**
- * Get the X-coordinate of the mouse.
- * @return The X-coordinate.
+ * Get the Y-coordinate of the mouse.
+ * Origin is at the BOTTOM of the widget !!!
+ * @return The Y-coordinate.
  *
  */
 int32_t
