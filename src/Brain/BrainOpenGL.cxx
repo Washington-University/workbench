@@ -494,7 +494,6 @@ BrainOpenGL::drawSurface(Surface* surface)
     glEnable(GL_DEPTH_TEST);
     
     this->enableLighting();
-    glEnable(GL_CULL_FACE);
     
     switch (this->mode) {
         case MODE_DRAWING:
@@ -702,9 +701,6 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelDisplayControllerVolume* volumeController,
                                   const int32_t viewport[4])
 {
-    this->disableLighting();
-    glDisable(GL_CULL_FACE);
-    
     const int32_t tabNumber = browserTabContent->getTabNumber();
     volumeController->updateController(tabNumber);
     VolumeFile* vf = volumeController->getVolumeFile();
@@ -837,86 +833,220 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
  * Draw a single volume orthogonal slice.
  * @param slicePlane
  * @param sliceIndex
- * @param tabNumber
  */
 void 
 BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        /*const*/VolumeFile* volumeFile)
 {
+    /*
+     * For slices disable culling since want to see both side
+     * and set shading to flat so there is no interpolation of
+     * colors within a voxel drawn as a quad.  This allows
+     * drawing of voxels using quad strips.
+     */
+    this->disableLighting();
+    glDisable(GL_CULL_FACE);
+    glShadeModel(GL_FLAT);
+    
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
     
     const int64_t lastDimI = dimI - 1;
     const int64_t lastDimJ = dimJ - 1;
     const int64_t lastDimK = dimK - 1;
-    float x1, y1, z1;
-    float x2, y2, z2;
     
-    glBegin(GL_QUADS);
-    switch (slicePlane) {
-        case VolumeSliceViewPlaneEnum::ALL:
-            CaretAssert(0);
-            break;
-        case VolumeSliceViewPlaneEnum::AXIAL:
-        {
-            if (sliceIndex < dimK) {
-                const int64_t k = sliceIndex;
-                for (int64_t i = 0; i < lastDimI; i++) {
-                    for (int64_t j = 0; j < lastDimJ; j++) {
-                        const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                        glColor3f(voxel, voxel, voxel);
-                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                        volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
-                        glVertex3f(x1, y1, z1);
-                        glVertex3f(x2, y1, z1);
-                        glVertex3f(x2, y2, z1);
-                        glVertex3f(x1, y2, z1);
+    const bool useQuadStrips = true;
+    if (useQuadStrips) {
+        
+        float originX, originY, originZ;
+        float xv, yv, zv;
+        volumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
+        volumeFile->indexToSpace((int64_t)1, (int64_t)1, (int64_t)1, xv, yv, zv);
+        const float voxelSizeX = xv - originX;
+        const float voxelSizeY = yv - originY;
+        const float voxelSizeZ = zv - originZ;
+        
+        /*
+         * Note on quad strips:
+         *
+         * Each quad receives the color specified at the vertex
+         * 2i +2 (for i = 1..N).
+         *
+         * So, the color used to draw a quad is the color that
+         * is specified at vertex 3, 5, 7,.. with the first
+         * vertex being 1.
+         */
+        switch (slicePlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+            {
+                if (sliceIndex < dimK) {
+                    const int64_t k = sliceIndex;
+                    const float z = k * voxelSizeZ;
+                    float x = originX;
+                    for (int64_t i = 0; i < dimI; i++) {
+                        glBegin(GL_QUAD_STRIP);
+                        {
+                            const float x2 = x + voxelSizeX;
+                            float y = originY;
+                            
+                            glVertex3f(x, y, z);
+                            glVertex3f(x2, y, z);
+                            
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                                glColor3f(voxel, voxel, voxel);
+                                
+                                y += voxelSizeY;
+                                glVertex3f(x, y, z);
+                                glVertex3f(x2, y, z);
+                            }
+                            
+                            x += voxelSizeX;
+                        }
+                        glEnd();
                     }
                 }
             }
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::CORONAL:
-        {
-            if (sliceIndex < dimJ) {
-                const int64_t j = sliceIndex;
-                for (int64_t i = 0; i < lastDimI; i++) {
-                    for (int64_t k = 0; k < lastDimK; k++) {
-                        const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                        glColor3f(voxel, voxel, voxel);
-                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                        volumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
-                        glVertex3f(x1, y1, z1);
-                        glVertex3f(x2, y1, z1);
-                        glVertex3f(x2, y1, z2);
-                        glVertex3f(x1, y1, z2);
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+            {
+                if (sliceIndex < dimJ) {
+                    const int64_t j = sliceIndex;
+                    const float y = j * voxelSizeY;
+                    float x = originX;
+                    for (int64_t i = 0; i < dimI; i++) {
+                        glBegin(GL_QUAD_STRIP);
+                        {
+                            const float x2 = x + voxelSizeX;
+                            float z = originZ;
+                            
+                            glVertex3f(x, y, z);
+                            glVertex3f(x2, y, z);
+                            
+                            for (int64_t k = 0; k < dimK; k++) {
+                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                                glColor3f(voxel, voxel, voxel);
+                                
+                                z += voxelSizeZ;
+                                glVertex3f(x, y, z);
+                                glVertex3f(x2, y, z);
+                            }
+                            
+                            x += voxelSizeX;
+                        }
+                        glEnd();
                     }
                 }
             }
-        }
-            break;
-        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-        {
-            if (sliceIndex < dimI) {
-                const int64_t i = sliceIndex;
-                for (int64_t j = 0; j < lastDimJ; j++) {
-                    for (int64_t k = 0; k < lastDimK; k++) {
-                        const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                        glColor3f(voxel, voxel, voxel);
-                        volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                        volumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
-                        glVertex3f(x1, y1, z1);
-                        glVertex3f(x1, y2, z1);
-                        glVertex3f(x1, y2, z2);
-                        glVertex3f(x1, y1, z2);
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            {
+                if (sliceIndex < dimI) {
+                    const int64_t i = sliceIndex;
+                    const float x = i * voxelSizeX;
+                    float y = originY;
+                    for (int64_t j = 0; j < dimJ; j++) {
+                        glBegin(GL_QUAD_STRIP);
+                        {
+                            const float y2 = y + voxelSizeY;
+                            float z = originZ;
+                            
+                            glVertex3f(x, y, z);
+                            glVertex3f(x, y2, z);
+                            
+                            for (int64_t k = 0; k < dimK; k++) {
+                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                                glColor3f(voxel, voxel, voxel);
+                                
+                                z += voxelSizeZ;
+                                glVertex3f(x, y, z);
+                                glVertex3f(x, y2, z);
+                            }
+                            
+                            y += voxelSizeY;
+                        }
+                        glEnd();
                     }
                 }
             }
+                break;
         }
-            break;
     }
-    glEnd();
+    else {
+        float x1, y1, z1;
+        float x2, y2, z2;
+        glBegin(GL_QUADS);
+        switch (slicePlane) {
+            case VolumeSliceViewPlaneEnum::ALL:
+                CaretAssert(0);
+                break;
+            case VolumeSliceViewPlaneEnum::AXIAL:
+            {
+                if (sliceIndex < dimK) {
+                    const int64_t k = sliceIndex;
+                    for (int64_t i = 0; i < lastDimI; i++) {
+                        for (int64_t j = 0; j < lastDimJ; j++) {
+                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            glColor3f(voxel, voxel, voxel);
+                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                            glVertex3f(x1, y1, z1);
+                            glVertex3f(x2, y1, z1);
+                            glVertex3f(x2, y2, z1);
+                            glVertex3f(x1, y2, z1);
+                        }
+                    }
+                }
+            }
+                break;
+            case VolumeSliceViewPlaneEnum::CORONAL:
+            {
+                if (sliceIndex < dimJ) {
+                    const int64_t j = sliceIndex;
+                    for (int64_t i = 0; i < lastDimI; i++) {
+                        for (int64_t k = 0; k < lastDimK; k++) {
+                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            glColor3f(voxel, voxel, voxel);
+                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            volumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
+                            glVertex3f(x1, y1, z1);
+                            glVertex3f(x2, y1, z1);
+                            glVertex3f(x2, y1, z2);
+                            glVertex3f(x1, y1, z2);
+                        }
+                    }
+                }
+            }
+                break;
+            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            {
+                if (sliceIndex < dimI) {
+                    const int64_t i = sliceIndex;
+                    for (int64_t j = 0; j < lastDimJ; j++) {
+                        for (int64_t k = 0; k < lastDimK; k++) {
+                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            glColor3f(voxel, voxel, voxel);
+                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            volumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
+                            glVertex3f(x1, y1, z1);
+                            glVertex3f(x1, y2, z1);
+                            glVertex3f(x1, y2, z2);
+                            glVertex3f(x1, y1, z2);
+                        }
+                    }
+                }
+            }
+                break;
+        }
+        glEnd();
+    }
+    
+    glEnable(GL_CULL_FACE);
+    glShadeModel(GL_SMOOTH);
 }
 
 /**
@@ -981,8 +1111,6 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
         }
     }
     
-    this->disableLighting();
-    glDisable(GL_CULL_FACE);
     VolumeFile* vf = wholeBrainController->getVolumeFile();
     if (vf != NULL) {
         const VolumeSliceIndicesSelection* slices = 
