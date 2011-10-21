@@ -451,6 +451,8 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
         dynamic_cast<EventInformationTextDisplay*>(event);
         CaretAssert(textEvent);
         
+        textEvent->setEventProcessed();
+        
         const AString text = textEvent->getText();
         if (text.isEmpty() == false) {
             this->tabWidget->setCurrentWidget(this->informationWidget);
