@@ -751,8 +751,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                          slicePlane);
                             this->drawVolumeOrthogonalSlice(slicePlane, 
                                                             sliceIndex, 
-                                                            vf, 
-                                                            tabNumber);
+                                                            vf);
                             sliceIndex += sliceStep;
                         }
                     }
@@ -777,8 +776,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         
                         const int coronalVP[4] = { halfX, halfY, halfX, halfY };
                         this->setViewportAndOrthographicProjection(coronalVP);
@@ -787,8 +785,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         
                         const int parasagittalVP[4] = { halfX, 0, halfX, halfY };
                         this->setViewportAndOrthographicProjection(parasagittalVP);
@@ -797,8 +794,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         
                     }
                         break;
@@ -809,8 +805,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         this->setViewportAndOrthographicProjection(viewport);
@@ -819,8 +814,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         this->setViewportAndOrthographicProjection(viewport);
@@ -829,8 +823,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(),
-                                                        vf,
-                                                        tabNumber);
+                                                        vf);
                         break;
                 }
             }
@@ -849,8 +842,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
 void 
 BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       /*const*/VolumeFile* volumeFile,
-                                       const int32_t tabNumber)
+                                       /*const*/VolumeFile* volumeFile)
 {
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
@@ -986,6 +978,29 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
                     glPopMatrix();
                 }
             }
+        }
+    }
+    
+    this->disableLighting();
+    glDisable(GL_CULL_FACE);
+    VolumeFile* vf = wholeBrainController->getVolumeFile();
+    if (vf != NULL) {
+        const VolumeSliceIndicesSelection* slices = 
+            wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
+        if (slices->isSliceAxialEnabled()) {
+            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
+                                            slices->getSliceIndexAxial(), 
+                                            vf);
+        }
+        if (slices->isSliceCoronalEnabled()) {
+            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
+                                            slices->getSliceIndexCoronal(), 
+                                            vf);
+        }
+        if (slices->isSliceParasagittalEnabled()) {
+            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                                            slices->getSliceIndexParasagittal(), 
+                                            vf);
         }
     }
 }

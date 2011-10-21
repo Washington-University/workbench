@@ -118,8 +118,7 @@ namespace caret {
         
         void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       /*const*/VolumeFile* volumeFile,
-                                       const int32_t tabNumber);
+                                       /*const*/VolumeFile* volumeFile);
         
         void drawWholeBrainController(BrowserTabContent* browserTabContent,
                                       ModelDisplayControllerWholeBrain* wholeBrainController,
