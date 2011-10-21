@@ -885,7 +885,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
             {
                 if (sliceIndex < dimK) {
                     const int64_t k = sliceIndex;
-                    const float z = k * voxelSizeZ;
+                    const float z = originZ + (k * voxelSizeZ);
                     float x = originX;
                     for (int64_t i = 0; i < dimI; i++) {
                         glBegin(GL_QUAD_STRIP);
@@ -916,7 +916,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
             {
                 if (sliceIndex < dimJ) {
                     const int64_t j = sliceIndex;
-                    const float y = j * voxelSizeY;
+                    const float y = originY + (j * voxelSizeY);
                     float x = originX;
                     for (int64_t i = 0; i < dimI; i++) {
                         glBegin(GL_QUAD_STRIP);
@@ -947,7 +947,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
             {
                 if (sliceIndex < dimI) {
                     const int64_t i = sliceIndex;
-                    const float x = i * voxelSizeX;
+                    const float x = originX + (i * voxelSizeX);
                     float y = originY;
                     for (int64_t j = 0; j < dimJ; j++) {
                         glBegin(GL_QUAD_STRIP);
