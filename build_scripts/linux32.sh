@@ -14,7 +14,7 @@
 #
 # Go to correct directory
 #
-BUILD_ROOT_DIR=/miniserver/caret7_development/linux32
+BUILD_ROOT_DIR=/mnt/miniserver/caret7_development/linux32
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
 BUILD_SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
@@ -25,7 +25,7 @@ cd ${BUILD_ROOT_DIR}
 #
 
 #for now we use caret5's lib dir
-LIB_DIR=/miniserver/caret_development/linux32
+LIB_DIR=/mnt/miniserver/caret_development/linux32
 QTDIR=${LIB_DIR}/libraries/qt-software/qt-everywhere-opensource-src-4.7.1
 export QTDIR
 
@@ -75,7 +75,7 @@ cat ${ERROR_FILE}
 #
 # Copy to distribution directory
 #
-DIST_DIR=/miniserver/caret7_distribution/caret/bin_linux32
+DIST_DIR=/mnt/miniserver/caret7_distribution/caret/bin_linux32
 /bin/cp -v Desktop/workbench ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 /bin/cp -v CommandLine/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 
