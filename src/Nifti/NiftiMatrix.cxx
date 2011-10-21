@@ -98,7 +98,7 @@ void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
 
     layout = (*this);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     layoutSet = true;
 }
 
@@ -106,7 +106,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
 {
     *(static_cast <LayoutType *> (this)) = layout;
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     layoutSet = true;
 }
 
@@ -117,16 +117,16 @@ void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int
     valueByteSizeOut = valueByteSize();
     needsSwappingOut = needsSwapping;
     frameLengthOut = calculateFrameLength(dimensions);
-    frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize());
 }
 
-void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const int &valueByteSizeIn, const bool &needsSwappingIn )
+void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const bool &needsSwappingIn )
 {
     dimensions = dimensionsIn;
     componentDimensions = componentDimensionsIn;    
     needsSwapping = needsSwappingIn;
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     layoutSet = true;
 }
 
@@ -138,7 +138,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
     headerIn.getComponentDimensions(this->componentDimensions);
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     layoutSet = true;
 }
 
@@ -150,7 +150,7 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
     headerIn.getComponentDimensions(this->componentDimensions);
     headerIn.getNeedsSwapping(this->needsSwapping);
     frameLength = calculateFrameLength(dimensions);
-    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize(), componentDimensions);
+    frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     layoutSet = true;
 }
 
@@ -215,10 +215,50 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
         for(int i=0;i<matrixLength;i++) matrix[i] = ((double *)bytes)[i];
         break;
     case NIFTI_TYPE_RGB24:
-        for(int i=0;i<matrixLength;i++) matrix[i] = bytes[i];
+    {
+        if(matrixLength%3) throw NiftiException("Reading RGB type but frame bytes aren't divisible by 3.");
+        int64_t GFrameOffset = frameLength;
+        int64_t BFrameOffset = frameLength*2;
+        for(int i=0;i<matrixLength;i+=3)
+        {
+            matrix[i] = bytes[i];
+            matrix[GFrameOffset+i]=bytes[i+1];
+            matrix[BFrameOffset+i]=bytes[i+2]        ;
+        }
+    }
+        break;
+    case NIFTI_TYPE_INT8:
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((int8_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_INT16:
+        if(needsSwapping) ByteSwapping::swapBytes((int16_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((int16_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_INT32:
+        if(needsSwapping) ByteSwapping::swapBytes((int32_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((int32_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_INT64:
+        if(needsSwapping) ByteSwapping::swapBytes((int64_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((int64_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_UINT8:
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((uint8_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_UINT16:
+        if(needsSwapping) ByteSwapping::swapBytes((uint16_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((uint16_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_UINT32:
+        if(needsSwapping) ByteSwapping::swapBytes((uint32_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((uint32_t *)bytes)[i];
+        break;
+    case NIFTI_TYPE_UINT64:
+        if(needsSwapping) ByteSwapping::swapBytes((uint64_t *)bytes, frameLength);
+        for(int i=0;i<matrixLength;i++) matrix[i] = ((uint64_t *)bytes)[i];
         break;
     default:
-        throw NiftiException("Unrecognized Nifti Data found when reading frame.");
+        throw NiftiException("Unrecognized Nifti Data Type found when reading frame.");
         break;
     }
     //cleanup
@@ -262,14 +302,86 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
         break;
     case NIFTI_TYPE_RGB24:
     {
-        int8_t *bytes = NULL;
-        bytes = new int8_t [frameSize];
-        for(int i=0;i<frameLength;i++)
+        if(matrixLength%3) throw NiftiException("Reading RGB type but frame bytes aren't divisible by 3.");
+        int64_t GFrameOffset = frameLength;
+        int64_t BFrameOffset = frameLength*2;
+        uint8_t *bytes = NULL;
+        int64_t RGBOutFrameLength = frameLength*3;
+        bytes = new uint8_t [RGBOutFrameLength];
+        for(int i=0;i<RGBOutFrameLength;i+=3)
         {
             bytes[i]=matrix[i];
+            bytes[i+1]=matrix[GFrameOffset+i];
+            bytes[i+2]=matrix[BFrameOffset+i];
         }
-        file.write((char *)bytes,frameLength);
+        file.write((char *)bytes,RGBOutFrameLength);
         delete [] bytes;
+    }
+        break;
+    case NIFTI_TYPE_INT8:
+        file.write((char *)matrix, frameLength);
+        break;
+    case NIFTI_TYPE_INT16:
+    {
+        int16_t *outMatrix = new int16_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(int16_t));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_INT32:
+    {
+        int32_t *outMatrix = new int32_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(int32_t));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_INT64:
+    {
+        int64_t *outMatrix = new int64_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(int64_t));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_UINT8:
+        file.write((char *)matrix, frameLength);
+        break;
+    case NIFTI_TYPE_UINT16:
+    {
+        uint16_t *outMatrix = new uint16_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(int16_t));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_UINT32:
+    {
+        uint32_t *outMatrix = new uint32_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(uint32_t));
+        delete [] outMatrix;
+    }
+        break;
+    case NIFTI_TYPE_UINT64:
+    {
+        uint64_t *outMatrix = new uint64_t[frameLength];
+        for(int i = 0;i<frameLength;i++) outMatrix[i]=matrix[i];
+        if(needsSwapping) ByteSwapping::swapBytes(outMatrix, frameLength);
+
+        file.write((char *)outMatrix, frameLength*sizeof(uint64_t));
+        delete [] outMatrix;
     }
         break;
     default:
@@ -280,25 +392,30 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
 
 }
 
-void NiftiMatrix::setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice) throw(NiftiException)
+void NiftiMatrix::setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice, const int64_t &componentIndex) throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
+    if(componentIndex>(componentDimensions-1)) throw NiftiException("Component index exceeds the size of component dimensions.");
     flushCurrentFrame();
     this->resetMatrix();
     if(this->matrixLength != matrixLengthIn) throw NiftiException("frame size does not match expected frame size!");
-    memcpy(matrix,matrixIn,matrixLength*sizeof(float));
+    //TODO change this so that it will work when the matrix contains more than a single frame...
+    char * tempFrame = (char *)&matrix[componentIndex*frameLength];//for RGB format
+    memcpy(tempFrame,matrixIn,frameLength*sizeof(float));
     currentTime = timeSlice;
     frameLoaded = true;
     frameNeedsWriting = true;
 }
 
-void NiftiMatrix::getFrame(float *frameOut) throw(NiftiException)
+void NiftiMatrix::getFrame(float *frameOut, const int64_t &componentIndex) throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     if(!frameLoaded) throw NiftiException("Please load frame before getting component.");
+    if(componentIndex>(componentDimensions-1)) throw NiftiException("Component index exceeds the size of component dimensions.");
     //copy data to output frame
     //TODO change this so that it will work when the matrix contains more than a single frame...
-    memcpy((char *)frameOut,(char *)matrix,this->matrixLength*sizeof(float));
+    char * tempFrame = (char *)&matrix[componentIndex*frameLength];//for RGB format
+    memcpy((char *)frameOut,(char *)tempFrame,this->frameLength*sizeof(float));
 }
 
 void NiftiMatrix::setFrame(const int64_t &timeSlice)  throw(NiftiException)
@@ -318,7 +435,7 @@ float NiftiMatrix::getComponent(const int64_t &index, const int64_t &componentIn
     if(!frameLoaded) throw NiftiException("Please load frame before getting component.");
     if((componentIndex+1)>componentDimensions) throw NiftiException("ComponentIndex exceeds the number of compoents for this nifti Matrix.");
 
-    return matrix[index*componentDimensions+componentIndex];
+    return matrix[index+componentIndex*frameLength];
 }
 
 void NiftiMatrix::translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, int64_t &index) const
@@ -331,7 +448,7 @@ void NiftiMatrix::setComponent(const int64_t &index, const int64_t &componentInd
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     reAllocateMatrixIfNeeded();
     if((componentIndex+1)>componentDimensions) throw NiftiException("ComponentIndex exceeds the number of components for this nifti Matrix.");
-    matrix[index*componentDimensions+componentIndex] = value;
+    matrix[index+componentIndex*frameLength] = value;
     frameLoaded = true;
     frameNeedsWriting = true;
 }
@@ -344,9 +461,9 @@ int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensions
     return frameLength;
 }
 
-int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn, const int64_t &componentDimensionsIn) const
+int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn) const
 {
-        return frameLengthIn*valueByteSizeIn*componentDimensionsIn;
+        return frameLengthIn*valueByteSizeIn;
 }
 
 int64_t NiftiMatrix::calculateMatrixLength(const int64_t &frameLengthIn, const int64_t &componentDimensionsIn) const
@@ -365,6 +482,7 @@ void NiftiMatrix::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, 
     readFrame(timeSlice);
 
     //TODO ignoring component for now
+
     frameOut.setFrame(this->matrix,timeSlice,component);
 
 }
