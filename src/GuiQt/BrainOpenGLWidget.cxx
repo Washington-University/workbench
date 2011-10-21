@@ -209,7 +209,7 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
         const int absDY = (dy >= 0) ? dy : -dy;
 
         if ((absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
-            && (absDX <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
+            && (absDY <= BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
             MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_CLICKED,
                                   me,
                                   dx,

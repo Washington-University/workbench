@@ -153,9 +153,11 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         // Mouse moved with just left button down
         //
         if (mouseEvent->isAnyKeyDown() == false) {
-            Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex);
-            rotationMatrix->rotateX(-dy);
-            rotationMatrix->rotateY(dx);
+            //if (modelController->isRotationAllowed()) {
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex);
+                rotationMatrix->rotateX(-dy);
+                rotationMatrix->rotateY(dx);
+            //}
         }
         //
         // Mouse moved with control key and left mouse button down

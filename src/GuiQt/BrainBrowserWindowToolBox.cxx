@@ -451,9 +451,12 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
         dynamic_cast<EventInformationTextDisplay*>(event);
         CaretAssert(textEvent);
         
-        this->tabWidget->setCurrentWidget(this->informationWidget);
-        this->informationTextBrowser->appendHtml(textEvent->getText());
-        textEvent->setEventProcessed();
+        const AString text = textEvent->getText();
+        if (text.isEmpty() == false) {
+            this->tabWidget->setCurrentWidget(this->informationWidget);
+            this->informationTextBrowser->appendHtml(textEvent->getText());
+            textEvent->setEventProcessed();
+        }
     }
     else {
     }

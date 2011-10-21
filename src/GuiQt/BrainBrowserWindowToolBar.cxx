@@ -2375,7 +2375,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
     }
     
     if (sliceSelection != NULL) {
-        sliceSelection->setSliceIndexCoronal(this->volumeIndicesParasagittalSpinBox->value());
+        sliceSelection->setSliceIndexCoronal(this->volumeIndicesCoronalSpinBox->value());
     }
     
     this->updateGraphicsWindow();
@@ -2409,7 +2409,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
     }
 
     if (sliceSelection != NULL) {        
-        sliceSelection->setSliceIndexAxial(this->volumeIndicesParasagittalSpinBox->value());
+        sliceSelection->setSliceIndexAxial(this->volumeIndicesAxialSpinBox->value());
     }
     
     this->updateGraphicsWindow();

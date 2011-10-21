@@ -144,7 +144,11 @@ namespace caret {
         
         void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
                                          const int32_t tabIndex);
-                                           
+        
+        void applyViewingTransformationsVolumeSlice(const ModelDisplayController* modelDisplayController,
+                                         const int32_t tabIndex,
+                                         const VolumeSliceViewPlaneEnum::Enum viewPlane);
+        
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;
         
