@@ -51,9 +51,12 @@ namespace caret {
         float* m_data;
         int64_t m_dimensions[5];//store internally as 4d+component
         std::vector<int64_t> m_origDims;//but keep track of the original dimensions
-        float***** m_indexRef;//some magic to avoid multiply during getVoxel/setVoxel
-        std::vector<int64_t> m_jMult, m_kMult, m_bMult, m_cMult;//some magic for fast getIndex when pointer indexing is undesired
-
+        float*** m_indexRef;//some magic to avoid multiply during getVoxel/setVoxel
+        int64_t* m_jMult;//some magic for fast getIndex/getValue/setValue
+        int64_t* m_kMult;
+        int64_t* m_bMult;
+        int64_t* m_cMult;
+        
         void freeMemory();
         void setupIndexing();//sets up the magic
 
@@ -143,10 +146,9 @@ namespace caret {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             if (m_indexRef != NULL)
             {
-                return m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1];
+                return m_indexRef[component][brickIndex][indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]];
             } else {
-                int64_t myIndex = getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component);
-                return m_data[myIndex];
+                return m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)];
             }
         }
 
@@ -165,10 +167,9 @@ namespace caret {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             if (m_indexRef != NULL)
             {
-                m_indexRef[component][brickIndex][indexIn3][indexIn2][indexIn1] = valueIn;
+                m_indexRef[component][brickIndex][indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]] = valueIn;
             } else {
-                int64_t myIndex = getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component);
-                m_data[myIndex] = valueIn;
+                m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)] = valueIn;
             }
         }
         
@@ -197,8 +198,8 @@ namespace caret {
             if (m_indexRef != NULL)
             {
                 //HACK: use pointer math and the indexing array to get the index if it is set up
-                return (m_indexRef[component][brickIndex][indexIn3][indexIn2] + indexIn1) - m_data;
-            } else {//otherwise, calculate via precalculated multiples arrays
+                return (m_indexRef[component][brickIndex] + indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3]) - m_data;
+            } else {//otherwise, calculate via precalculated multiplies arrays
                 return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
             }
         }

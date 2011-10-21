@@ -46,7 +46,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
 {
     freeMemory();
     CaretAssert(dimensionsIn.size() >= 3);
-    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using the 3x4 part of a 4x4 matrix
+    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
     CaretAssert(indexToSpace[0].size() == 4);
     CaretAssert(indexToSpace[1].size() == 4);
     CaretAssert(indexToSpace[2].size() == 4);
@@ -58,7 +58,7 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_indexToSpace[3][2] = 0.0f;
     m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
     FloatMatrix temp(m_indexToSpace);
-    FloatMatrix temp2 = temp.inverse();//get the multiplicative part
+    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
     m_spaceToIndex = temp2.getMatrix();
     m_indexToSpace.resize(3);//reduce them both back to 3x4
     m_spaceToIndex.resize(3);
@@ -87,6 +87,10 @@ VolumeFile::VolumeFile()
     m_data = NULL;
     m_headerType = NONE;
     m_indexRef = NULL;
+    m_jMult = NULL;
+    m_kMult = NULL;
+    m_bMult = NULL;
+    m_cMult = NULL;
     m_dimensions[0] = 0;
     m_dimensions[1] = 0;
     m_dimensions[2] = 0;
@@ -109,6 +113,10 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_data = NULL;
     m_headerType = NONE;
     m_indexRef = NULL;
+    m_jMult = NULL;
+    m_kMult = NULL;
+    m_bMult = NULL;
+    m_cMult = NULL;
     reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
 }
 
@@ -117,6 +125,10 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_data = NULL;
     m_headerType = NONE;
     m_indexRef = NULL;
+    m_jMult = NULL;
+    m_kMult = NULL;
+    m_bMult = NULL;
+    m_cMult = NULL;
     reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
 
@@ -302,26 +314,30 @@ void VolumeFile::freeMemory()
     }
     if (m_indexRef != NULL)
     {//assume the entire thing exists
-        delete[] m_indexRef[0][0][0];//they were actually allocated as only 4 flat arrays
-        delete[] m_indexRef[0][0];
-        delete[] m_indexRef[0];
+        delete[] m_indexRef[0];//they were actually allocated as only 2 flat arrays
         delete[] m_indexRef;
         m_indexRef = NULL;
     }
+    if (m_jMult != NULL) delete[] m_jMult;
+    if (m_kMult != NULL) delete[] m_kMult;
+    if (m_bMult != NULL) delete[] m_bMult;
+    if (m_cMult != NULL) delete[] m_cMult;
+    m_jMult = NULL;
+    m_kMult = NULL;
+    m_bMult = NULL;
+    m_cMult = NULL;
 }
 
 void VolumeFile::setupIndexing()
 {//must have valid m_dimensions and m_data before calling this, and already have the previous indexing freed
     int64_t dim43 = m_dimensions[4] * m_dimensions[3];//sizes for the reverse indexing lookup arrays
-    int64_t dim432 = dim43 * m_dimensions[2];
-    int64_t dim4321 = dim432 * m_dimensions[1];
     int64_t dim01 = m_dimensions[0] * m_dimensions[1];//size of an xy slice
     int64_t dim012 = dim01 * m_dimensions[2];//size of a frame
     int64_t dim0123 = dim012 * m_dimensions[3];//*/ //size of a timeseries (single component)
-    m_cMult.resize(m_dimensions[4]);//these aren't the size of the lookup arrays because we can do the math manually and take less memory
-    m_bMult.resize(m_dimensions[3]);//it is probably slightly slower to do the math manually than to do lookups, so have both
-    m_kMult.resize(m_dimensions[2]);//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
-    m_jMult.resize(m_dimensions[1]);
+    m_cMult = new int64_t[m_dimensions[4]];//these aren't the size of the lookup arrays because we can do the math manually and take less memory (and cache space)
+    m_bMult = new int64_t[m_dimensions[3]];//it is fastest (due to cache size) to do part lookups, then part math
+    m_kMult = new int64_t[m_dimensions[2]];//m_iMult doesn't exist because the first index isn't multiplied by anthing, so can be added directly
+    m_jMult = new int64_t[m_dimensions[1]];
     for (int64_t i = 0; i < m_dimensions[1]; ++i)
     {
         m_jMult[i] = i * m_dimensions[0];
@@ -338,45 +354,31 @@ void VolumeFile::setupIndexing()
     {
         m_cMult[i] = i * dim0123;
     }
-    if (m_dimensions[0] < (int64_t)(8 * sizeof(float*) / sizeof(float)) && (dim4321 * sizeof(float*)) > (32<<20))
-    {//if the final dimension is small enough that the added memory usage of the last level would be more than 12.5%, and the last level would take more than 32MB of memory
+    if ((dim012 < (int64_t)(8 * sizeof(float*) / sizeof(float))) && ((dim43 * sizeof(float*)) > (32<<20)))
+    {//if the final dimensions are small enough that the added memory usage of the last level would be more than 12.5%, and the last level would take more than 32MB of memory
         m_indexRef = NULL;//don't use memory indexing, use the precalculated multiples
     } else {//among other things, this prevents VolumeFile from exploding if you accidentally load a cifti instead of an actual volume
         //
         //EXPLANATION TIME
         //
         //Apologies for the oddity below, it is highly obtuse due to the effort of avoiding a large number of multiplies
-        //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_indexRef[0][0] with a skip of dim[2], etc
-        //at the final level, it indexes into m_data with a skip of dim[0]
-        //what this accomplishes is that the lookup m_indexRef[component][brick[k][j][i] will be the data value at the index (i, j, k, brick, component), with no multiplications whatsoever
-        //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it simpler to get a value from the array at an index
-        //as long as the dimension that steps by 1 in m_data is large, it takes relatively little memory to accomplish, compared to the entire volume
+        //what it actually does is set up m_indexRef to be an array of references into m_indexRef[0], with a skip size equal to dim[3], and each m_indexRef[i] indexes into m_data with a skip of dim[2] * dim[1] * dim[0]
+        //what this accomplishes is that the lookup m_indexRef[component][brick][i + j * dim[0] + k * dim[0] * dim[1]] will be the data value at the index (i, j, k, brick, component)
+        //however, it uses the lookup tables generated above instead of multiplies, meaning that it does no multiplies at all
+        //this allows getVoxel and setVoxel to be faster than a standard index calculating flat array scheme, and actually makes it faster to get a value from the array at an index
+        //as long as the dimensions of a frame are large, it takes relatively little memory to accomplish, compared to the data of the entire volume
         //
-        m_indexRef = new float****[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
-        m_indexRef[0] = new float***[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
-        m_indexRef[0][0] = new float**[dim432];
-        m_indexRef[0][0][0] = new float*[dim4321];
+        m_indexRef = new float**[m_dimensions[4]];//do dimensions in reverse order, since dim[0] moves by one float at a time
+        m_indexRef[0] = new float*[dim43];//this way, you can use m_indexRef[c][t][z][y][x] to get the value with only lookups
         int64_t cbase = 0;
+        int64_t bbase = 0;
         for (int64_t c = 0; c < m_dimensions[4]; ++c)
         {
             m_indexRef[c] = m_indexRef[0] + cbase;//pointer math, redundant for [0], but [0][1], etc needs to get set, so it is easier to loop including 0
-            int64_t bbase = cbase * m_dimensions[2];
             for (int64_t b = 0; b < m_dimensions[3]; ++b)
             {
-                m_indexRef[c][b] = m_indexRef[0][0] + bbase;
-                int64_t kbase = bbase * m_dimensions[1];
-                int64_t jbase = kbase * m_dimensions[0];//treat this one specially to avoid multiplies at the slice level
-                for (int64_t k = 0; k < m_dimensions[2]; ++k)
-                {
-                    m_indexRef[c][b][k] = m_indexRef[0][0][0] + kbase;
-                    for (int64_t j = 0; j < m_dimensions[1]; ++j)
-                    {//because l looks like 1
-                        m_indexRef[c][b][k][j] = m_data + jbase;//NOTE: this last pointer math is into m_data on purpose! this is why you can access the data through m_indexRef
-                        jbase += m_dimensions[0];
-                    }
-                    kbase += m_dimensions[1];
-                }
-                bbase += m_dimensions[2];
+                m_indexRef[c][b] = m_data + bbase;
+                bbase += dim012;
             }
             cbase += m_dimensions[3];
         }
@@ -434,7 +436,7 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component) const
 {
     int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
-    int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];
+    int64_t endIndex = startIndex + m_dimensions[0] * m_dimensions[1] * m_dimensions[2];//because getIndex asserts valid index, and adding 1 to brick index may be invalid
     int64_t outIndex = 0;//could use memcpy, but this is more obvious and should get optimized
     for (int64_t myIndex = startIndex; myIndex < endIndex; ++myIndex)
     {
