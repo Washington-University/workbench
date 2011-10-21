@@ -14,8 +14,11 @@
 #
 # Go to correct directory
 #
-BUILD_DIR=/miniserver/caret7_development/linux32
-cd ${BUILD_DIR}
+BUILD_ROOT_DIR=/miniserver/caret7_development/linux32
+GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
+BUILD_SRC_DIR=${GIT_ROOT_DIR}/src
+BUILD_DIR=${BUILD_ROOT_DIR}/build
+cd ${BUILD_ROOT_DIR}
 
 #
 # Setup Environment
@@ -30,14 +33,14 @@ PATH=${QTDIR}/bin:${PATH}
 export PATH
 
 #
-# Go into source directory
+# Go into git checkout directory
 #
-cd caret7_source
+cd ${GIT_ROOT_DIR}
 
 #
 # File for capturing standard error
 #
-ERROR_FILE=${BUILD_DIR}/result_build_linux32.txt
+ERROR_FILE=${BUILD_ROOT_DIR}/result_build_linux32.txt
 rm -f ${ERROR_FILE}
 echo "Linux 32 Build Result" > ${ERROR_FILE}
 
@@ -62,9 +65,9 @@ fi
 # contain just the output that shows the errors.
 # Catch output and echo to screen.
 #
-mkdir -p build >> ${ERROR_FILE} 2>&1
-cd build >> ${ERROR_FILE} 2>&1
-cmake ../src >> ${ERROR_FILE} 2>&1
+mkdir -p ${BUILD_DIR} >> ${ERROR_FILE} 2>&1
+cd ${BUILD_DIR} >> ${ERROR_FILE} 2>&1
+cmake ${SRC_DIR} >> ${ERROR_FILE} 2>&1
 make -j2 
 make -j2 >> ${ERROR_FILE} 2>&1
 cat ${ERROR_FILE}

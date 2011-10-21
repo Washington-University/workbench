@@ -14,8 +14,11 @@
 #
 # Go to correct directory
 #
-BUILD_DIR=/miniserver/caret7_development/linux64
-cd ${BUILD_DIR}
+BUILD_ROOT_DIR=/miniserver/caret7_development/linux64
+GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
+BUILD_SRC_DIR=${GIT_ROOT_DIR}/src
+BUILD_DIR=${BUILD_ROOT_DIR}/build
+cd ${BUILD_ROOT_DIR}
 
 #
 # Setup Environment
@@ -31,9 +34,9 @@ export PATH
 
 
 #
-# Go into source directory
+# Go into git checkout directory
 #
-cd caret7_source
+cd ${GIT_ROOT_DIR}
 
 #
 # File for capturing standard error
@@ -63,9 +66,9 @@ git pull -u >> ${ERROR_FILE} 2>&1
 # contain just the output that shows the errors.
 # Catch output and echo to screen.
 #
-mkdir -p build
-cd build
-cmake ../src  >> ${ERROR_FILE} 2>&1
+mkdir -p ${BUILD_DIR}
+cd ${BUILD_DIR}
+cmake ${SRC_DIR}  >> ${ERROR_FILE} 2>&1
 make -j2 >> ${ERROR_FILE} 2>&1
 cat ${ERROR_FILE}
 
