@@ -16,7 +16,7 @@
 #
 BUILD_ROOT_DIR=/mnt/miniserver/caret7_development/linux32
 GIT_ROOT_DIR=${BUILD_ROOT_DIR}/caret7_source
-BUILD_SRC_DIR=${GIT_ROOT_DIR}/src
+SRC_DIR=${GIT_ROOT_DIR}/src
 BUILD_DIR=${BUILD_ROOT_DIR}/build
 cd ${BUILD_ROOT_DIR}
 
