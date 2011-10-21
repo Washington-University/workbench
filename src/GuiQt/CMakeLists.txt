@@ -33,6 +33,9 @@ HyperLinkTextBrowser.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 StructureSurfaceSelectionControl.h
+WuQDialog.h
+WuQDialogModal.h
+WuQDialogNonModal.h
 WuQFileDialog.h
 WuQMessageBox.h
 WuQWidgetObjectGroup.h
@@ -65,6 +68,9 @@ StructureSurfaceSelectionControl.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
+WuQDialog.h
+WuQDialogModal.h
+WuQDialogNonModal.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQMessageBox.h
@@ -90,6 +96,9 @@ OverlaySelectionControlLayer.cxx
 StructureSurfaceSelectionControl.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
+WuQDialog.cxx
+WuQDialogModal.cxx
+WuQDialogNonModal.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx
 WuQWidgetObjectGroup.cxx
