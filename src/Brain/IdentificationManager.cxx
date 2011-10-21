@@ -23,12 +23,16 @@
  * 
  */ 
 
+#include "BrainConstants.h"
+#include "CaretAssert.h"
+
 #define __IDENTIFICATION_MANAGER_DECLARE__
 #include "IdentificationManager.h"
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
+#include "IdentificationItemVoxel.h"
 #include "IdentificationTextGenerator.h"
 
 using namespace caret;
@@ -49,9 +53,11 @@ IdentificationManager::IdentificationManager()
 {
     this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
     this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
+    this->voxelIdentification = new IdentificationItemVoxel();
     
     this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
+    this->allIdentificationItems.push_back(this->voxelIdentification);
     
     this->idTextGenerator = new IdentificationTextGenerator();
 }
@@ -65,6 +71,8 @@ IdentificationManager::~IdentificationManager()
     this->surfaceNodeIdentification = NULL;
     delete this->surfaceTriangleIdentification;
     this->surfaceTriangleIdentification = NULL;
+    delete this->voxelIdentification;
+    this->voxelIdentification = NULL;
     delete this->idTextGenerator;
     this->idTextGenerator = NULL;
 }
@@ -129,6 +137,24 @@ const IdentificationItemSurfaceTriangle*
 IdentificationManager::getSurfaceTriangleIdentification() const
 {
     return this->surfaceTriangleIdentification;
+}
+
+/**
+ * @return Identification for voxels.
+ */
+const IdentificationItemVoxel* 
+IdentificationManager::getVoxelIdentification() const
+{
+    return this->voxelIdentification;
+}
+
+/**
+ * @return Identification for voxels.
+ */
+IdentificationItemVoxel* 
+IdentificationManager::getVoxelIdentification()
+{
+    return this->voxelIdentification;
 }
 
 /**

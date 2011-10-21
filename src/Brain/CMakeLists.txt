@@ -63,6 +63,7 @@ IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemSurfaceNode.h
 IdentificationItemSurfaceTriangle.h
+IdentificationItemVoxel.h
 IdentificationManager.h
 IdentificationStringBuilder.h
 IdentificationTextGenerator.h
@@ -108,6 +109,7 @@ IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemSurfaceNode.cxx
 IdentificationItemSurfaceTriangle.cxx
+IdentificationItemVoxel.cxx
 IdentificationManager.cxx
 IdentificationStringBuilder.cxx
 IdentificationTextGenerator.cxx

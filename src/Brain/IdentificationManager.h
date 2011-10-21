@@ -25,7 +25,6 @@
  * 
  */ 
 
-
 #include "CaretObject.h"
 
 namespace caret {
@@ -33,6 +32,7 @@ namespace caret {
     class IdentificationItem;
     class IdentificationItemSurfaceNode;
     class IdentificationItemSurfaceTriangle;
+    class IdentificationItemVoxel;
     class IdentificationTextGenerator;
     
     class IdentificationManager : public CaretObject {
@@ -52,6 +52,10 @@ namespace caret {
         
         const IdentificationItemSurfaceTriangle* getSurfaceTriangleIdentification() const;
         
+        const IdentificationItemVoxel* getVoxelIdentification() const;
+        
+        IdentificationItemVoxel* getVoxelIdentification();
+        
         AString getIdentificationText(const BrowserTabContent* browserTabContent) const;
         
     private:
@@ -70,6 +74,8 @@ namespace caret {
         IdentificationItemSurfaceTriangle* surfaceTriangleIdentification;
         
         IdentificationTextGenerator* idTextGenerator;
+        
+        IdentificationItemVoxel* voxelIdentification;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

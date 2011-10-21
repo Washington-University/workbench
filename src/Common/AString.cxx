@@ -236,6 +236,33 @@ AString::fromNumbers(const int32_t* array,
  *   by the separator.
  */
 AString
+AString::fromNumbers(const int64_t* array,
+                     const int64_t numberOfElements,
+                     const AString& separator)
+{
+    AString s;
+    for (int64_t i = 0; i < numberOfElements; i++) {
+        if (i > 0) {
+            s += separator;
+        }
+        s += AString::number(array[i]);
+    }
+    return s;
+}
+
+/**
+ * Convert an array of values into a string.
+ * @param array
+ *   The array of values.
+ * @param numberOfElements
+ *   Number of elements in the array.
+ * @param separator
+ *   Inserted between each pair of values.
+ * @return
+ *   String containing the array values separated
+ *   by the separator.
+ */
+AString
 AString::fromNumbers(const double* array,
                              const int64_t numberOfElements,
                              const AString& separator)

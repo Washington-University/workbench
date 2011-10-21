@@ -28,9 +28,11 @@
 #undef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
 
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
 #include "Surface.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -92,6 +94,24 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                        + AString::number(xyz[2]));
     }
     
+    const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
+    const int32_t numVoxels = voxelID->getNumberOfIdentifiedVoxels();
+    for (int i = 0; i < numVoxels; i++) {
+        int64_t ijk[3];
+        const VolumeFile* vf = voxelID->getVolumeFile(i);
+        voxelID->getVoxelIJK(i, ijk);
+        
+        idText.addLine(true,
+                       vf->getFileNameNoPath()
+                       + " "
+                       + AString::number(ijk[0])
+                       + ", "
+                       + AString::number(ijk[1])
+                       + ", "
+                       + AString::number(ijk[2])
+                       + ": "
+                       + AString::number(vf->getValue(ijk)));
+    }
     return idText.toString();
     
 }

@@ -48,6 +48,7 @@
 #include "CaretLogger.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
+#include "IdentificationItemVoxel.h"
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
 #include "Surface.h"
@@ -841,6 +842,19 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                                        const int64_t sliceIndex,
                                        /*const*/VolumeFile* volumeFile)
 {
+    IdentificationItemVoxel* voxelID = 
+        this->identificationManager->getVoxelIdentification();
+    bool isSelect = false;
+    if (this->isIdentifyMode()) {
+        if (voxelID->isEnabledForSelection()) {
+            isSelect = true;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+        }
+        else {
+            return;
+        }
+    }
+    
     /*
      * For slices disable culling since want to see both side
      * and set shading to flat so there is no interpolation of
@@ -858,9 +872,11 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
     const int64_t lastDimJ = dimJ - 1;
     const int64_t lastDimK = dimK - 1;
     
-    const bool useQuadStrips = true;
+    bool useQuadStrips = true;
+    if (isSelect) {
+        useQuadStrips = false;
+    }
     if (useQuadStrips) {
-        
         float originX, originY, originZ;
         float xv, yv, zv;
         volumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
@@ -879,6 +895,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
          * is specified at vertex 3, 5, 7,.. with the first
          * vertex being 1.
          */
+        
         switch (slicePlane) {
             case VolumeSliceViewPlaneEnum::ALL:
                 CaretAssert(0);
@@ -979,6 +996,14 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
         }
     }
     else {
+        uint8_t rgb[3];
+        std::vector<int64_t> idVoxelIndices;
+        int64_t idVoxelCounter = 0;
+        if (isSelect) {
+            const int64_t bigDim = std::max(dimI, std::max(dimJ, dimK));
+            idVoxelIndices.reserve(bigDim * 3);
+        }
+        
         float x1, y1, z1;
         float x2, y2, z2;
         glBegin(GL_QUADS);
@@ -993,7 +1018,20 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t j = 0; j < lastDimJ; j++) {
                             const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                            glColor3f(voxel, voxel, voxel);
+                            if (isSelect) {
+                                this->colorIdentification->addItem(rgb, 
+                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   idVoxelCounter);
+                                glColor3ubv(rgb);
+                                
+                                idVoxelIndices.push_back(i);
+                                idVoxelIndices.push_back(j);
+                                idVoxelIndices.push_back(k);
+                                idVoxelCounter++;
+                            }
+                            else {
+                                glColor3f(voxel, voxel, voxel);
+                            }
                             volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                             volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
@@ -1012,7 +1050,20 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
                             const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                            glColor3f(voxel, voxel, voxel);
+                            if (isSelect) {
+                                this->colorIdentification->addItem(rgb, 
+                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   idVoxelCounter);
+                                glColor3ubv(rgb);
+                                
+                                idVoxelIndices.push_back(i);
+                                idVoxelIndices.push_back(j);
+                                idVoxelIndices.push_back(k);
+                                idVoxelCounter++;
+                            }
+                            else {
+                                glColor3f(voxel, voxel, voxel);
+                            }
                             volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                             volumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
@@ -1031,7 +1082,20 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     for (int64_t j = 0; j < lastDimJ; j++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
                             const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                            glColor3f(voxel, voxel, voxel);
+                            if (isSelect) {
+                                this->colorIdentification->addItem(rgb, 
+                                                                   IdentificationItemDataTypeEnum::VOXEL, 
+                                                                   idVoxelCounter);
+                                glColor3ubv(rgb);
+                                
+                                idVoxelIndices.push_back(i);
+                                idVoxelIndices.push_back(j);
+                                idVoxelIndices.push_back(k);
+                                idVoxelCounter++;
+                            }
+                            else {
+                                glColor3f(voxel, voxel, voxel);
+                            }
                             volumeFile->indexToSpace(i, j, k, x1, y1, z1);
                             volumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
@@ -1045,6 +1109,26 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                 break;
         }
         glEnd();
+        
+        if (isSelect) {
+            int32_t idIndex;
+            float depth = -1.0;
+            this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::VOXEL, 
+                                             this->mouseX, 
+                                             this->mouseY,
+                                             idIndex,
+                                             depth);
+            if (idIndex >= 0) {
+                int64_t voxelIndices[3] = {
+                    idVoxelIndices[idIndex*3],
+                    idVoxelIndices[idIndex*3+1],
+                    idVoxelIndices[idIndex*3+2]
+                };
+                voxelID->addVoxel(volumeFile, voxelIndices, depth);
+                CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
+            }
+        }
+        
     }
     
     glEnable(GL_CULL_FACE);
