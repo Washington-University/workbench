@@ -84,6 +84,8 @@ namespace caret {
         
         const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
+        virtual void resetView(const int32_t windowTabNumber);
+        
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
@@ -120,6 +122,8 @@ namespace caret {
         float cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        VolumeFile* lastVolumeFile;
     };
 
 } // namespace

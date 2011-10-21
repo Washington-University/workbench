@@ -60,6 +60,7 @@ ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
         this->montageSliceSpacing[i]    = 5;
         this->volumeSlicesSelected[i].reset();
     }
+    this->lastVolumeFile = NULL;
 }
 
 /**
@@ -102,6 +103,12 @@ ModelDisplayControllerVolume::getVolumeFile()
     VolumeFile* vf = NULL;
     if (this->brain->getNumberOfVolumeFiles() > 0) {
         vf = this->brain->getVolumeFile(0);
+        if (vf != this->lastVolumeFile) {
+            for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+                this->volumeSlicesSelected[i].selectSlicesAtOrigin(vf);
+            }
+            this->lastVolumeFile = vf;
+        }
     }
     return vf;
 }

@@ -371,7 +371,29 @@ ModelDisplayControllerWholeBrain::getVolumeFile()
     VolumeFile* vf = NULL;
     if (this->brain->getNumberOfVolumeFiles() > 0) {
         vf = this->brain->getVolumeFile(0);
+        if (vf != this->lastVolumeFile) {
+            for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+                this->volumeSlicesSelected[i].selectSlicesAtOrigin(vf);
+            }
+            this->lastVolumeFile = vf;
+        }
     }
     return vf;
+}
+
+/**
+ * Reset view.  For left and right hemispheres, the default
+ * view is a lateral view.
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayControllerWholeBrain::resetView(const int32_t windowTabNumber)
+{
+    ModelDisplayController::resetView(windowTabNumber);
+    VolumeFile* vf = this->getVolumeFile();
+    if (vf != NULL) {
+        this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
+    }
 }
 

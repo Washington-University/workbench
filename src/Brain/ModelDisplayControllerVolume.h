@@ -115,6 +115,8 @@ namespace caret {
         int32_t montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        VolumeFile* lastVolumeFile;
     };
 
 } // namespace
