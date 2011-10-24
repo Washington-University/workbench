@@ -175,7 +175,7 @@ void NiftiMatrix::clearMatrix()
 void NiftiMatrix::resetMatrix()
 {
     reAllocateMatrixIfNeeded();
-    memset(matrix,matrixLength*sizeof(float),0x00);
+    memset(matrix,0x00,matrixLength*sizeof(float));
 }
 
 void NiftiMatrix::reAllocateMatrixIfNeeded()
@@ -204,7 +204,8 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
     try {
         if(this->isCompressed())
         {
-            gzFile matFile = gzopen(file.fileName().toStdString().c_str(),"r+");
+            AString aFileName = file.fileName();
+            gzFile matFile = gzopen(aFileName,"r+");
             gzseek(matFile,frameOffset,0);
             gzread(matFile,bytes,frameSize);
             gzclose(matFile);
