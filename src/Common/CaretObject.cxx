@@ -80,6 +80,7 @@ CaretObject::operator=(const CaretObject& co)
 void
 CaretObject::initializeMembersCaretObject()
 {
+#ifndef NDEBUG
     SystemBacktrace myBacktrace;
     SystemUtilities::getBackTrace(myBacktrace);
     CaretObject::allocatedObjects.insert(
@@ -88,6 +89,7 @@ CaretObject::initializeMembersCaretObject()
     /*CaretObject::allocatedObjects.insert(
            std::make_pair(this, 
                           SystemUtilities::getBackTrace()));//*/
+#endif
 }
 
 void 
@@ -126,6 +128,7 @@ CaretObject::className() const
 void 
 CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
 {
+#ifndef NDEBUG
     int count = 0;
     
     if (CaretObject::allocatedObjects.empty() == false) {
@@ -148,6 +151,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
     if (count > 0) {
         std::cout << count << " objects were not deleted." << std::endl;
     }
+#endif
 }
 
 /**
