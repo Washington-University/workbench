@@ -50,19 +50,19 @@ namespace caret {
         static float getAlgorithmWeight();
 
         ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
-        static AlgorithmParameters* getParameters() { CaretAssert(false); return NULL; };
+        static AlgorithmParameters* getParameters() { CaretAssert(false); return NULL; }
 
         ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
-        static void useParameters(AlgorithmParameters*, ProgressObject*) { CaretAssert(false); };
+        static void useParameters(AlgorithmParameters*, ProgressObject*) { CaretAssert(false); }
         
         ///override this to set the command switch
-        static AString getCommandSwitch() { CaretAssert(false); return ""; };
+        static AString getCommandSwitch() { CaretAssert(false); return ""; }
         
         ///override this to set the short description
-        static AString getShortDescription() { CaretAssert(false); return ""; };
+        static AString getShortDescription() { CaretAssert(false); return ""; }
         
         ///override this if the algorithm doesn't take parameters
-        static bool takesParameters() { return true; };
+        static bool takesParameters() { return true; }
     };
 
     ///interface class for use by algorithm parsers
@@ -80,12 +80,12 @@ namespace caret {
     struct TemplateAutoAlgorithm : public AutoAlgorithmInterface
     {
         AString m_switch, m_shortInfo;
-        TemplateAutoAlgorithm() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { };
-        AlgorithmParameters* getParameters() { return T::getParameters(); };
-        void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParameters(a, b); };
-        const AString& getCommandSwitch() { return m_switch; };
-        const AString& getShortDescription() { return m_shortInfo; };
-        bool takesParameters() { return T::takesParameters(); };
+        TemplateAutoAlgorithm() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { }
+        AlgorithmParameters* getParameters() { return T::getParameters(); }
+        void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParameters(a, b); }
+        const AString& getCommandSwitch() { return m_switch; }
+        const AString& getShortDescription() { return m_shortInfo; }
+        bool takesParameters() { return T::takesParameters(); }
     };
 
     ///interface class for parsers to inherit from
@@ -95,7 +95,7 @@ namespace caret {
     protected:
         AutoAlgorithmInterface* m_autoAlg;
     public:
-        AlgorithmParserInterface(AutoAlgorithmInterface* myAutoAlg) : m_autoAlg(myAutoAlg) { };
+        AlgorithmParserInterface(AutoAlgorithmInterface* myAutoAlg) : m_autoAlg(myAutoAlg) { }
         virtual ~AlgorithmParserInterface();
     };
 }

@@ -128,7 +128,7 @@ AString SystemBacktrace::toSymbolString() const
     char** symbols = backtrace_symbols(m_callstack, m_numFrames);
     for (int i = 0; i < m_numFrames; ++i)
     {
-        str << symbols[i] << endl;
+        str << symbols[i] << std::endl;
     }
     free(symbols);
 #endif // CARET_OS_WINDOWS
