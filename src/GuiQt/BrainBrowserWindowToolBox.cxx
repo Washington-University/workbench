@@ -44,34 +44,42 @@ using namespace caret;
  */
 BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindowIndex,
                                                      const QString& title,
-                                                     const Location location)
+                                                     const Qt::Orientation defaultOrientation)
 :   QDockWidget()
 {
+    this->orientation = defaultOrientation;
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     
     this->browserWindowIndex = browserWindowIndex;
     
-    OverlaySelectionControl::Orientation overlayControlOrientation;
-    switch (location) {
-        case TOP_OR_BOTTOM:
-            overlayControlOrientation = OverlaySelectionControl::HORIZONTAL;
-            this->setAllowedAreas(Qt::TopDockWidgetArea
-                                  | Qt::BottomDockWidgetArea);
-            break;
-        case LEFT_OR_RIGHT:
-            overlayControlOrientation = OverlaySelectionControl::VERTICAL;
-            this->setAllowedAreas(Qt::RightDockWidgetArea
-                                  | Qt::LeftDockWidgetArea);
-            break;
-    }
-    
-    this->dockWidgetArea = Qt::NoDockWidgetArea;
+    this->setAllowedAreas(Qt::AllDockWidgetAreas);
+//    OverlaySelectionControl::Orientation overlayControlOrientation;
+//    switch (location) {
+//        case TOP_OR_BOTTOM:
+//            overlayControlOrientation = OverlaySelectionControl::HORIZONTAL;
+//            this->setAllowedAreas(Qt::TopDockWidgetArea
+//                                  | Qt::BottomDockWidgetArea);
+//            break;
+//        case LEFT_OR_RIGHT:
+//            overlayControlOrientation = OverlaySelectionControl::VERTICAL;
+//            this->setAllowedAreas(Qt::RightDockWidgetArea
+//                                  | Qt::LeftDockWidgetArea);
+//            break;
+//    }
     
     this->dockTitle = title + " Toolbox";
     
-    this->surfaceOverlayControl = this->createSurfaceLayersWidget(overlayControlOrientation);
-    this->volumeOverlayControl  = this->createVolumeLayersWidget(overlayControlOrientation);
+    this->topBottomSurfaceOverlayControl = this->createSurfaceLayersWidget(Qt::Horizontal);
+    this->leftRightSurfaceOverlayControl = this->createSurfaceLayersWidget(Qt::Vertical);
+    this->leftRightSurfaceOverlayControl->setVisible(false);
+    this->surfaceOverlayWidget = new QWidget();
+    QVBoxLayout* surfaceOverlayLayout = new QVBoxLayout(this->surfaceOverlayWidget);
+    surfaceOverlayLayout->addWidget(this->topBottomSurfaceOverlayControl);
+    surfaceOverlayLayout->addWidget(this->leftRightSurfaceOverlayControl);
+    
+    this->volumeOverlayControl  = this->createVolumeLayersWidget(Qt::Horizontal);
     
     
     this->informationWidget = this->createInformationWidget();
@@ -82,7 +90,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     this->tabWidget = new QTabWidget();
     this->tabWidget->setUsesScrollButtons(true);
-    this->tabWidget->addTab(this->surfaceOverlayControl, "Surface");
+    this->tabWidget->addTab(this->surfaceOverlayWidget, "Surface");
     this->tabWidget->addTab(this->volumeOverlayControl, "Volume");
     this->tabWidget->addTab(this->informationWidget, "Info");
     this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
@@ -116,7 +124,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
                      this, SLOT(dockMoved(Qt::DockWidgetArea)));
     
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
-    this->tabWidget->setCurrentWidget(this->surfaceOverlayControl);
+    this->tabWidget->setCurrentWidget(this->surfaceOverlayWidget);
 }
 
 BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
@@ -143,42 +151,46 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
 {
     int surfaceWidgetIndex = -1;
     
-    this->dockWidgetArea = area;
-    
     switch (area) {
         case Qt::LeftDockWidgetArea:
+            this->orientation = Qt::Vertical;
             surfaceWidgetIndex = 1;
             break;
         case Qt::RightDockWidgetArea:
+            this->orientation = Qt::Vertical;
             surfaceWidgetIndex = 1;
             break;
         case Qt::TopDockWidgetArea:
+            this->orientation = Qt::Horizontal;
             surfaceWidgetIndex = 0;
             break;
         case Qt::BottomDockWidgetArea:
+            this->orientation = Qt::Horizontal;
             surfaceWidgetIndex = 0;
             break;
         default:
             break;
     }
     
-    //surfaceWidgetIndex = 0;
-    
-    if (surfaceWidgetIndex >= 0) {
-        QWidget* viewedWidget = this->tabWidget->currentWidget();
-                
-        this->tabWidget->setCurrentWidget(viewedWidget);
-        
-        /*
-        std::cout << "Widget index: " << surfaceWidgetIndex << std::endl;
-        GuiHelper::printSize("Stacked Widget Size: ", viewedWidget->size());
-        GuiHelper::printSize("Stacked Widget: ", viewedWidget->sizeHint());
-        GuiHelper::printSize("Widget 0 Size: ", this->surfaceLayersStackedWidget->widget(0)->size());
-        GuiHelper::printSize("Widget 0 Size Hint: ", this->surfaceLayersStackedWidget->widget(0)->sizeHint());
-        GuiHelper::printSize("Widget 1 Size: ", this->surfaceLayersStackedWidget->widget(1)->size());
-        GuiHelper::printSize("Widget 1 Size Hint: ", this->surfaceLayersStackedWidget->widget(1)->sizeHint());
-        */
-    }
+    this->updateDisplayedPanel();
+
+//    //surfaceWidgetIndex = 0;
+//    
+//    if (surfaceWidgetIndex >= 0) {
+//        QWidget* viewedWidget = this->tabWidget->currentWidget();
+//                
+//        this->tabWidget->setCurrentWidget(viewedWidget);
+//        
+//        /*
+//        std::cout << "Widget index: " << surfaceWidgetIndex << std::endl;
+//        GuiHelper::printSize("Stacked Widget Size: ", viewedWidget->size());
+//        GuiHelper::printSize("Stacked Widget: ", viewedWidget->sizeHint());
+//        GuiHelper::printSize("Widget 0 Size: ", this->surfaceLayersStackedWidget->widget(0)->size());
+//        GuiHelper::printSize("Widget 0 Size Hint: ", this->surfaceLayersStackedWidget->widget(0)->sizeHint());
+//        GuiHelper::printSize("Widget 1 Size: ", this->surfaceLayersStackedWidget->widget(1)->size());
+//        GuiHelper::printSize("Widget 1 Size Hint: ", this->surfaceLayersStackedWidget->widget(1)->sizeHint());
+//        */
+//    }
     
     this->updateMySize();
     //this->updateGeometry();
@@ -187,6 +199,7 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindowToolBox::updateMySize()
 {
+    this->adjustSize();
 //    this->adjustSize();
 //    this->setFixedHeight(this->sizeHint().height());
 
@@ -223,7 +236,7 @@ BrainBrowserWindowToolBox::updateMySize()
 }
 
 OverlaySelectionControl* 
-BrainBrowserWindowToolBox::createSurfaceLayersWidget(const OverlaySelectionControl::Orientation orientation)
+BrainBrowserWindowToolBox::createSurfaceLayersWidget(const Qt::Orientation orientation)
 {
     OverlaySelectionControl* overlaySelectionControl =
     new OverlaySelectionControl(this->browserWindowIndex,
@@ -240,7 +253,7 @@ BrainBrowserWindowToolBox::createSurfaceLayersWidget(const OverlaySelectionContr
 }
 
 OverlaySelectionControl* 
-BrainBrowserWindowToolBox::createVolumeLayersWidget(const OverlaySelectionControl::Orientation orientation)
+BrainBrowserWindowToolBox::createVolumeLayersWidget(const Qt::Orientation orientation)
 {
     OverlaySelectionControl* overlaySelectionControl =
     new OverlaySelectionControl(this->browserWindowIndex,
@@ -471,8 +484,19 @@ void
 BrainBrowserWindowToolBox::updateDisplayedPanel()
 {
     const QWidget* selectedTopLevelWidget = this->tabWidget->currentWidget();
-    if (selectedTopLevelWidget == this->surfaceOverlayControl) {
-        this->surfaceOverlayControl->updateControl();
+    if (selectedTopLevelWidget == this->surfaceOverlayWidget) {
+        switch (this->orientation) {
+            case Qt::Horizontal:
+                this->leftRightSurfaceOverlayControl->setVisible(false);
+                this->topBottomSurfaceOverlayControl->setVisible(true);
+                break;
+            case Qt::Vertical:
+                this->topBottomSurfaceOverlayControl->setVisible(false);
+                this->leftRightSurfaceOverlayControl->setVisible(true);
+                break;
+        }
+        this->topBottomSurfaceOverlayControl->updateControl();
+        this->leftRightSurfaceOverlayControl->updateControl();
     }
     else if (selectedTopLevelWidget == this->volumeOverlayControl) {
         this->volumeOverlayControl->updateControl();

@@ -179,7 +179,7 @@ void
 OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -211,7 +211,7 @@ void
 OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -245,7 +245,7 @@ void
 OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -280,7 +280,7 @@ void
 OverlaySelectionControlLayer::removeLayerToolButtonPressed()
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -375,7 +375,7 @@ void
 OverlaySelectionControlLayer::opacityValueChanged(double value)
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -410,7 +410,7 @@ void
 OverlaySelectionControlLayer::fileSelected(int fileIndex)
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:
@@ -448,7 +448,7 @@ void
 OverlaySelectionControlLayer::columnSelected(int columnIndex)
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
     switch (this->dataType) {
         case OverlaySelectionControl::SURFACE:

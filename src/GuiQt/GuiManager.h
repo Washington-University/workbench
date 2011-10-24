@@ -72,7 +72,8 @@ namespace caret {
         
         BrainOpenGL* getBrainOpenGL();
         
-        BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex);
+        BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
+                                                                const bool allowInvalidBrowserWindowIndex);
         
         void receiveEvent(Event* event);
         

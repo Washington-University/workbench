@@ -315,12 +315,25 @@ GuiManager::exitProgram(QWidget* parent)
  * Get the browser tab content in a browser window.
  * @param browserWindowIndex
  *    Index of browser window.
+ * @param allowInvalidBrowserWindowIndex
+ *    In some instance, such as GUI construction, the window is not
+ *    fully created, thus "this->brainBrowserWindows" is invalid for
+ *    the given index.  If this parameter is true, NULL will be 
+ *    returned in this case.
  * @return
- *    Browser tab content in the browser window.
+ *    Browser tab content in the browser window.  Value may be NULL
+ *    is allowInvalidBrowserWindowIndex is true.
  */
 BrowserTabContent* 
-GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex)
+GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
+                                                 const bool allowInvalidBrowserWindowIndex)
 {
+    if (allowInvalidBrowserWindowIndex) {
+        if (browserWindowIndex >= static_cast<int32_t>(this->brainBrowserWindows.size())) {
+            return NULL;
+        }
+    }
+    
     CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
     BrainBrowserWindow* browserWindow = brainBrowserWindows[browserWindowIndex];
     CaretAssert(browserWindow);

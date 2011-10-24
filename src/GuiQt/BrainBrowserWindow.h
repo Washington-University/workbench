@@ -85,7 +85,7 @@ namespace caret {
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
-            bool isTopBottomToolBoxDisplayed;
+            bool isToolBoxDisplayed;
             bool isToolBarDisplayed;
         };
         
@@ -170,7 +170,7 @@ namespace caret {
         
         QMenu* moveTabToThisWindowMenu;
         
-        BrainBrowserWindowToolBox* topBottomToolBox;
+        BrainBrowserWindowToolBox* toolBox;
         
         AString previousOpenFileNameFilter;
         

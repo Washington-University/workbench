@@ -46,17 +46,13 @@ namespace caret {
             SURFACE,
             VOLUME
         };
-        enum Orientation {
-            HORIZONTAL,
-            VERTICAL
-        };
         
         enum {
             MAXIMUM_NUMBER_OF_LAYERS = 10
         };
         
         OverlaySelectionControl(const int32_t browserWindowIndex,
-                                const Orientation orientation,
+                                const Qt::Orientation orientation,
                                 const DataType dataType,
                                 QWidget* parent = 0);
         
@@ -83,14 +79,13 @@ namespace caret {
 
         int32_t browserWindowIndex;
         DataType dataType;
-        Orientation orientation;
+        Qt::Orientation orientation;
 
         QWidget* layersGridWidget;
         
         QVector<OverlaySelectionControlLayer*> layers;
         
         QPushButton* addLayerPushButton;
-        
     };
     
 }

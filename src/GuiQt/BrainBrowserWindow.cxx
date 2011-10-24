@@ -85,18 +85,18 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->setCentralWidget(this->openGLWidget);
     
-    this->topBottomToolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
+    this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
                                                            "ToolBox",
-                                                           BrainBrowserWindowToolBox::TOP_OR_BOTTOM);
+                                                           Qt::Horizontal);
     this->addDockWidget(Qt::BottomDockWidgetArea,
-                        this->topBottomToolBox,
+                        this->toolBox,
                         Qt::Horizontal);
-    QObject::connect(this->topBottomToolBox, SIGNAL(controlRemoved()),
+    QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
                      this, SLOT(shrinkToolbox()));
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
-                                                  this->topBottomToolBox->toggleViewAction());
+                                                  this->toolBox->toggleViewAction());
     this->addToolBar(this->toolbar);
     
     this->createActions();
@@ -434,10 +434,8 @@ BrainBrowserWindow::createMenuViewMoveToolBox()
     menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
     menu->addSeparator();
     menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
-    QAction* leftAction = menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
-    leftAction->setDisabled(true);
-    QAction* rightAction = menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
-    rightAction->setDisabled(true);
+    menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
+    menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
     menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
     
     return menu;
@@ -706,8 +704,8 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
     if (this->showToolBarAction->isChecked() != wcs.isToolBarDisplayed) {
         this->showToolBarAction->trigger();
     }
-    if (this->topBottomToolBox->toggleViewAction()->isChecked() != wcs.isTopBottomToolBoxDisplayed) {
-        this->topBottomToolBox->toggleViewAction()->trigger();
+    if (this->toolBox->toggleViewAction()->isChecked() != wcs.isToolBoxDisplayed) {
+        this->toolBox->toggleViewAction()->trigger();
     }
 }
 
@@ -723,14 +721,14 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs,
                                               bool hideComponents)
 {
     wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
-    wcs.isTopBottomToolBoxDisplayed = this->topBottomToolBox->toggleViewAction()->isChecked();
+    wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
     
     if (hideComponents) {
         if (wcs.isToolBarDisplayed) {
             this->showToolBarAction->trigger();
         }
-        if (wcs.isTopBottomToolBoxDisplayed) {
-            this->topBottomToolBox->toggleViewAction()->trigger();
+        if (wcs.isToolBoxDisplayed) {
+            this->toolBox->toggleViewAction()->trigger();
         }
     }
 }
@@ -826,29 +824,39 @@ BrainBrowserWindow::processMoveToolBoxToFloat()
 void 
 BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
 {
-    switch (area) {
-        case Qt::LeftDockWidgetArea:
-            break;
-        case Qt::RightDockWidgetArea:
-            break;
-        case Qt::TopDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::TopDockWidgetArea, 
-                                this->topBottomToolBox,
-                                Qt::Horizontal);
-            break;
-        case Qt::BottomDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                this->topBottomToolBox,
-                                Qt::Horizontal);
-            break;
-        default:
-            this->topBottomToolBox->setFloating(true);
-            break;
+        switch (area) {
+            case Qt::LeftDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::LeftDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::RightDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::RightDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::TopDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::TopDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::BottomDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::BottomDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            default:
+                this->toolBox->setFloating(true);
+                break;
     }
-    
-    this->shrinkToolbox();
+
+    if (this->toolBox->isFloating() == false) {
+        this->shrinkToolbox();
+    }
     /*
      * This code will allow the region of the main window
      * containing the dock widget to shrink without changing 
@@ -874,15 +882,15 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
         case Qt::RightDockWidgetArea:
             break;
         case Qt::TopDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::TopDockWidgetArea, this->topBottomToolBox);
+            this->toolBox->setFloating(false);
+            this->addDockWidget(Qt::TopDockWidgetArea, this->toolBox);
             break;
         case Qt::BottomDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::BottomDockWidgetArea, this->topBottomToolBox);
+            this->toolBox->setFloating(false);
+            this->addDockWidget(Qt::BottomDockWidgetArea, this->toolBox);
             break;
         default:
-            this->topBottomToolBox->setFloating(true);
+            this->toolBox->setFloating(true);
             break;
     }
 */
@@ -894,26 +902,36 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindow::shrinkToolbox()
 {
-    switch (this->dockWidgetArea(this->topBottomToolBox)) {
-        case Qt::LeftDockWidgetArea:
-            break;
-        case Qt::RightDockWidgetArea:
-            break;
-        case Qt::TopDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::TopDockWidgetArea, 
-                                this->topBottomToolBox,
-                                Qt::Horizontal);
-            break;
-        case Qt::BottomDockWidgetArea:
-            this->topBottomToolBox->setFloating(false);
-            this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                this->topBottomToolBox,
-                                Qt::Horizontal);
-            break;
-        default:
-            this->topBottomToolBox->setFloating(true);
-            break;
+    if (this->toolBox->isFloating() == false) {
+        switch (this->dockWidgetArea(this->toolBox)) {
+            case Qt::LeftDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::LeftDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::RightDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::LeftDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::TopDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::TopDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            case Qt::BottomDockWidgetArea:
+                this->toolBox->setFloating(false);
+                this->addDockWidget(Qt::BottomDockWidgetArea, 
+                                    this->toolBox,
+                                    Qt::Horizontal);
+                break;
+            default:
+                this->toolBox->setFloating(true);
+                break;
+        }
     }
      /*
      * This code will allow the region of the main window
@@ -927,7 +945,7 @@ BrainBrowserWindow::shrinkToolbox()
      const int minWidth = this->minimumWidth();
      const int maxWidth = this->maximumWidth();
      this->setFixedWidth(this->width());
-     this->topBottomToolBox->adjustSize();
+     this->toolBox->adjustSize();
      this->setFixedWidth(this->width());
      this->adjustSize();
      this->setMinimumWidth(minWidth);

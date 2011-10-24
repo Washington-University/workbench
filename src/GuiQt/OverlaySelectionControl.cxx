@@ -70,7 +70,7 @@ using namespace caret;
  *    Parent of the control.
  */
 OverlaySelectionControl::OverlaySelectionControl(const int32_t browserWindowIndex,
-                                                 const Orientation orientation,
+                                                 const Qt::Orientation orientation,
                                                  const DataType dataType,
                                                  QWidget* parent)
 : QWidget(parent)
@@ -98,7 +98,6 @@ OverlaySelectionControl::OverlaySelectionControl(const int32_t browserWindowInde
 
     QObject::connect(this->addLayerPushButton, SIGNAL(clicked()),
                      this, SLOT(addLayer()));
-    
 }
 
 /**
@@ -116,14 +115,18 @@ QWidget*
 OverlaySelectionControl::createLayers()
 {
     const bool smallArrowButtonsFlag = true;
+    const bool verticalCompactFlag = true;
     
     QGroupBox* gridWidget = new QGroupBox("");
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     gridLayout->setVerticalSpacing(0);
+    if (verticalCompactFlag) {
+        gridLayout->setVerticalSpacing(4);
+    }
     gridLayout->setContentsMargins(0, 0, 0, 0);
     
     switch (orientation) {
-        case HORIZONTAL:
+        case Qt::Horizontal:
         {
             int row = 0;
             gridLayout->addWidget(new QLabel("On"), row, 0);
@@ -166,7 +169,7 @@ OverlaySelectionControl::createLayers()
             }
         }
             break;
-        case VERTICAL:
+        case Qt::Vertical:
         {
             int row = 0;
             gridLayout->addWidget(new QLabel("On"), row, 0);
@@ -178,9 +181,11 @@ OverlaySelectionControl::createLayers()
                     gridLayout->addWidget(new QLabel("Volume/Type"), row, 1, Qt::AlignHCenter);
                     break;
             }
-            gridLayout->addWidget(new QLabel("Adjust"), row, 2, 1, 3, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Move"), row, 5);
-            gridLayout->addWidget(new QLabel("Remove"), row, 6);
+            if (verticalCompactFlag == false) {
+                gridLayout->addWidget(new QLabel("Adjust"), row, 2, 1, 3, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Move"), row, 5);
+                gridLayout->addWidget(new QLabel("Remove"), row, 6);
+            }
             
             row++;
 /*            
@@ -194,10 +199,12 @@ OverlaySelectionControl::createLayers()
 */            
             gridLayout->setColumnStretch(0, 0);
             gridLayout->setColumnStretch(1, 100);
-            gridLayout->setColumnStretch(3, 0);
-            gridLayout->setColumnStretch(4, 0);
-            gridLayout->setColumnStretch(5, 0);
-            gridLayout->setColumnStretch(6, 0);
+            if (verticalCompactFlag == false) {
+                gridLayout->setColumnStretch(3, 0);
+                gridLayout->setColumnStretch(4, 0);
+                gridLayout->setColumnStretch(5, 0);
+                gridLayout->setColumnStretch(6, 0);
+            }
         };
             break;
     }
@@ -217,7 +224,7 @@ OverlaySelectionControl::createLayers()
                          this, SIGNAL(controlRemoved()));
         
         switch (orientation) {
-            case HORIZONTAL:
+            case Qt::Horizontal:
             if (smallArrowButtonsFlag) {
                 QSize arrowButtonSize = layer->upArrowToolButton->sizeHint();
                 arrowButtonSize.setWidth(arrowButtonSize.width() / 2);
@@ -255,32 +262,67 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->deleteToolButton, row, 9, Qt::AlignHCenter);
             }
                 break;
-            case VERTICAL:
+            case Qt::Vertical:
             {
-                int row = gridLayout->rowCount();
-                
-                const int row1 = row;
-                const int row2 = row1 + 1;
-                const int row3 = row2 + 1;
-                
-                QFrame* horizLine = new QFrame();
-                horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
-                horizLine->setLineWidth(1);
-                horizLine->setMidLineWidth(1);
-                gridLayout->addWidget(horizLine, row1, 0, 1, 7);  
-                layer->addWidget(horizLine);
-                
-                gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 2, 1);
-                gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
-                gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
-                gridLayout->addWidget(layer->opacityDoubleSpinBox, row2, 2, 1, 3);
-                gridLayout->addWidget(layer->histogramToolButton, row3, 2);
-                gridLayout->addWidget(layer->settingsToolButton, row3, 3);
-                gridLayout->addWidget(layer->metadataToolButton, row3, 4);
-                
-                gridLayout->addWidget(layer->upArrowToolButton, row2, 5, Qt::AlignHCenter);
-                gridLayout->addWidget(layer->downArrowToolButton, row3, 5, Qt::AlignHCenter);
-                gridLayout->addWidget(layer->deleteToolButton, row2, 6, 2, 1, Qt::AlignHCenter);
+                if (verticalCompactFlag) {
+                    int row = gridLayout->rowCount();
+                    
+                    const int row1 = row;
+                    const int row2 = row1 + 1;
+                    const int row3 = row2 + 1;
+                    const int row4 = row3 + 1;
+                    
+                    QFrame* horizLine = new QFrame();
+                    horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
+                    horizLine->setLineWidth(1);
+                    horizLine->setMidLineWidth(1);
+                    gridLayout->addWidget(horizLine, row1, 0, 1, 2);  
+                    layer->addWidget(horizLine);
+                    
+                    gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 3, 1);
+                    gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
+                    gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
+                    
+                    QHBoxLayout* buttLayout = new QHBoxLayout();
+                    buttLayout->addWidget(layer->histogramToolButton);
+                    buttLayout->addWidget(layer->settingsToolButton);
+                    buttLayout->addWidget(layer->metadataToolButton);
+                    buttLayout->addStretch();
+                    buttLayout->addWidget(layer->opacityDoubleSpinBox);
+                    buttLayout->addStretch();
+                    buttLayout->addWidget(layer->upArrowToolButton);
+                    buttLayout->addWidget(layer->downArrowToolButton);
+                    buttLayout->addWidget(layer->deleteToolButton);
+                    
+                    gridLayout->addLayout(buttLayout, row4, 1);
+
+                }
+                else {
+                    int row = gridLayout->rowCount();
+                    
+                    const int row1 = row;
+                    const int row2 = row1 + 1;
+                    const int row3 = row2 + 1;
+                    
+                    QFrame* horizLine = new QFrame();
+                    horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
+                    horizLine->setLineWidth(1);
+                    horizLine->setMidLineWidth(1);
+                    gridLayout->addWidget(horizLine, row1, 0, 1, 7);  
+                    layer->addWidget(horizLine);
+                    
+                    gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 2, 1);
+                    gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
+                    gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
+                    gridLayout->addWidget(layer->opacityDoubleSpinBox, row2, 2, 1, 3);
+                    gridLayout->addWidget(layer->histogramToolButton, row3, 2);
+                    gridLayout->addWidget(layer->settingsToolButton, row3, 3);
+                    gridLayout->addWidget(layer->metadataToolButton, row3, 4);
+                    
+                    gridLayout->addWidget(layer->upArrowToolButton, row2, 5, Qt::AlignHCenter);
+                    gridLayout->addWidget(layer->downArrowToolButton, row3, 5, Qt::AlignHCenter);
+                    gridLayout->addWidget(layer->deleteToolButton, row2, 6, 2, 1, Qt::AlignHCenter);
+                }
                 
             };
                 break;
@@ -299,7 +341,7 @@ void
 OverlaySelectionControl::addLayer() 
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
     SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
     surfaceOverlaySet->addDisplayedOverlay();
@@ -345,7 +387,10 @@ void
 OverlaySelectionControl::updateControl()
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex);
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
     
     int32_t numberOfDisplayedOverlays = 0;
     

@@ -117,4 +117,3 @@ EventBrowserWindowContentGet::setBrowserTabContent(BrowserTabContent* browserTab
 {
     this->browserTabContent = browserTabContent;
 }
-
