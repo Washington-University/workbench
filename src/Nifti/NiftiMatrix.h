@@ -30,6 +30,7 @@
 #include "AString.h"
 #include "VolumeFile.h"
 #include "stdint.h"
+#include "zlib.h"
 namespace caret {
 // NOT USED, yet...
 enum MatrixDimensions {//ways of accessing matrix
@@ -126,6 +127,7 @@ public:
     /// Writes out any changes made to the current Frame to the disk, if it has been changed
     void flushCurrentFrame();
     void setMatrixFile(const QFile &filein);
+    bool isCompressed();
 
     // Below are low level functions for operating on generic matrix files, currently used by Nifti
 

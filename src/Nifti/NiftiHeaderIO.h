@@ -37,11 +37,12 @@ namespace caret {
 class NiftiHeaderIO {
 public:
    NiftiHeaderIO() throw (NiftiException) { }   
-   NiftiHeaderIO(const QFile &inputFile) throw (NiftiException);
+   NiftiHeaderIO(const AString &inputFile) throw (NiftiException);
    ~NiftiHeaderIO() { }
 
-   void readFile(const QFile &inputFile) throw (NiftiException);
-   void writeFile(const QFile &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+   void readFile(const AString &inputFile) throw (NiftiException);
+   void writeFile(const AString &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+   bool isCompressed(const AString &fileName) const;
 
    void getHeader(Nifti1Header &header) const throw (NiftiException);
    void setHeader(const Nifti1Header &header) throw (NiftiException);

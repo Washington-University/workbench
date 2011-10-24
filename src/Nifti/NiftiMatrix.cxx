@@ -57,6 +57,16 @@ void NiftiMatrix::init()
     currentTime = 0;
 }
 
+bool NiftiMatrix::isCompressed()
+{
+    if(file.fileName().length()!=0)
+    {
+        if(file.fileName().endsWith(".gz")) return true;
+        else return false;
+    }
+    else return false;
+}
+
 void NiftiMatrix::setMatrixFile(const QFile &filein){
     this->clearMatrix();
     init();
@@ -192,10 +202,21 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
         return;
     }
     try {
-    file.open(QIODevice::ReadOnly);
-    file.seek(frameOffset);
-    file.read((char *)bytes,frameSize);
-    file.close();
+        if(this->isCompressed())
+        {
+            gzFile matFile = gzopen(file.fileName().toStdString().c_str(),"r+");
+            gzseek(matFile,frameOffset,0);
+            gzread(matFile,bytes,frameSize);
+            gzclose(matFile);
+        }
+        else
+        {
+            file.open(QIODevice::ReadOnly);
+            file.seek(frameOffset);
+            file.read((char *)bytes,frameSize);
+            file.close();
+        }
+
     }
     catch (...) {
         std::cout << "Exception reading from:" << file.fileName() << std::endl;
@@ -287,6 +308,7 @@ void NiftiMatrix::flushCurrentFrame()
 //for in place editing of files, we need to respect the original layout
 void NiftiMatrix::writeFrame() throw (NiftiException)
 {
+    if(this->isCompressed()) throw NiftiException("Writing compressed files is disabled.");
     if(!frameLoaded) throw NiftiException("Writeframe is called but frame isn't loaded.");
     if(!frameNeedsWriting) return;
     int64_t frameOffset = matrixStartOffset+frameSize*this->currentTime;
@@ -417,7 +439,6 @@ void NiftiMatrix::writeFrame() throw (NiftiException)
             matrix[i] = sclSlope*matrix[i]+sclIntercept;
         }
     }
-
 }
 
 void NiftiMatrix::setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice, const int64_t &componentIndex) throw(NiftiException)

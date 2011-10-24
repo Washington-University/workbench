@@ -47,7 +47,7 @@ NiftiFile::NiftiFile() throw (NiftiException)
  * @param fileName name and path of the Nifti File
  * currently only IN_MEMORY is supported
  */
-NiftiFile::NiftiFile(const QString &fileName) throw (NiftiException)
+NiftiFile::NiftiFile(const AString &fileName) throw (NiftiException)
 {
    init();
    this->openFile(fileName);
@@ -59,6 +59,17 @@ void NiftiFile::init()
     newFile = false;
 }
 
+bool NiftiFile::isCompressed()
+{
+    if(m_fileName.length()!=0)
+    {
+        if(m_fileName.endsWith(".gz")) return true;
+        else return false;
+
+    }
+    else return false;
+}
+
 /**
  *
  *
@@ -66,7 +77,7 @@ void NiftiFile::init()
  *
  * @param fileName name and path of the Nifti File
  */
-void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
+void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
 {
     if(!QFile::exists(fileName))//opening file for writing
     {
@@ -84,11 +95,22 @@ void NiftiFile::openFile(const QString &fileName) throw (NiftiException)
     int64_t eLength = vOffset-eOffset;
     if(extension_bytes) delete [] extension_bytes;
     extension_bytes = new int8_t[eLength];
-    QFile ext(fileName);
-    ext.open(QIODevice::ReadWrite);
-    ext.seek(eOffset);
-    ext.read((char *)extension_bytes, eLength);
-    ext.close();
+    if(this->isCompressed())
+    {
+        AString temp = fileName;
+        gzFile ext = gzopen(temp, "r+");
+        gzseek(ext,eOffset,0);
+        gzread(ext,extension_bytes,eLength);
+        gzclose(ext);
+    }
+    else
+    {
+        QFile ext(fileName);
+        ext.open(QIODevice::ReadWrite);
+        ext.seek(eOffset);
+        ext.read((char *)extension_bytes, eLength);
+        ext.close();
+    }
 
     //set up Matrix
     matrix.setMatrixFile(fileName);
@@ -126,7 +148,7 @@ void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLengt
  *
  * @param fileName specifies the name and path of the file to write to
  */
-void NiftiFile::writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
+void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
 {     
     if(fileName == m_fileName && !newFile)
     {

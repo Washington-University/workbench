@@ -31,6 +31,7 @@
 #include "ByteSwapping.h"
 #include "NiftiMatrix.h"
 #include "VolumeFile.h"
+#include "zlib.h"
 
 /** TODOS: there are a BUNCH...
 High priority:
@@ -86,11 +87,13 @@ public:
    /// Constructor
    NiftiFile() throw (NiftiException);
    /// Constructor
-   NiftiFile(const QString &fileName) throw (NiftiException);
+   NiftiFile(const AString &fileName) throw (NiftiException);
    /// Open the Nifti File
-   virtual void openFile(const QString &fileName) throw (NiftiException);
+   virtual void openFile(const AString &fileName) throw (NiftiException);
    /// Write the Nifti File
-   virtual void writeFile(const QString &fileName, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    virtual void writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    /// Is the file Compressed?
+   bool isCompressed();
 
    /// Header Functions
    /// set Nifti1Header
