@@ -198,7 +198,7 @@ public:
     int64_t getFrameLength() { return frameLength; }
 
 
-    private:
+private:
     void reAllocateMatrixIfNeeded();
     void clearMatrix();
     void init();

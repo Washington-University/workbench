@@ -21,7 +21,6 @@ ADD_LIBRARY(Cifti
 #CiftiByteSwap.h
 CiftiFileException.h
 CiftiFile.h
-CiftiMatrix.h
 CiftiXMLElements.h
 CiftiXML.h
 CiftiXMLReader.h
@@ -29,7 +28,6 @@ CiftiXMLWriter.h
 
 CiftiFile.cxx
 CiftiFileException.cxx
-CiftiMatrix.cxx
 CiftiXML.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
@@ -45,4 +43,5 @@ ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
+${CMAKE_SOURCE_DIR}/Files
 )

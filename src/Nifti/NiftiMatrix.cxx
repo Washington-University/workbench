@@ -35,7 +35,7 @@ NiftiMatrix::NiftiMatrix()
 NiftiMatrix::NiftiMatrix(const QFile &filein)
 {
     init();
-    file.setFileName(filein.fileName());    
+    file.setFileName(filein.fileName());
 }
 
 NiftiMatrix::NiftiMatrix(const QFile &filein, const int64_t &offsetin)
@@ -133,7 +133,7 @@ void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int
 void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const bool &needsSwappingIn )
 {
     dimensions = dimensionsIn;
-    componentDimensions = componentDimensionsIn;    
+    componentDimensions = componentDimensionsIn;
     needsSwapping = needsSwappingIn;
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
@@ -513,7 +513,7 @@ int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensions
 
 int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn) const
 {
-        return frameLengthIn*valueByteSizeIn;
+    return frameLengthIn*valueByteSizeIn;
 }
 
 int64_t NiftiMatrix::calculateMatrixLength(const int64_t &frameLengthIn, const int64_t &componentDimensionsIn) const

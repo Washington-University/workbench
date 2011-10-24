@@ -36,25 +36,25 @@ namespace caret {
 /// Class for determining Nifti Header version and return correct (nifti 1 or 2) Header version
 class NiftiHeaderIO {
 public:
-   NiftiHeaderIO() throw (NiftiException) { }   
-   NiftiHeaderIO(const AString &inputFile) throw (NiftiException);
-   ~NiftiHeaderIO() { }
+    NiftiHeaderIO() throw (NiftiException) { }
+    NiftiHeaderIO(const AString &inputFile) throw (NiftiException);
+    ~NiftiHeaderIO() { }
 
-   void readFile(const AString &inputFile) throw (NiftiException);
-   void writeFile(const AString &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
-   bool isCompressed(const AString &fileName) const;
+    void readFile(const AString &inputFile) throw (NiftiException);
+    void writeFile(const AString &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    bool isCompressed(const AString &fileName) const;
 
-   void getHeader(Nifti1Header &header) const throw (NiftiException);
-   void setHeader(const Nifti1Header &header) throw (NiftiException);
+    void getHeader(Nifti1Header &header) const throw (NiftiException);
+    void setHeader(const Nifti1Header &header) throw (NiftiException);
 
-   void getHeader(Nifti2Header &header) const throw (NiftiException);
-   void setHeader(const Nifti2Header &header) throw (NiftiException);
-   void swapHeaderBytes(nifti_1_header &header);
-   void swapHeaderBytes(nifti_2_header &header);
-   bool getSwapNeeded();
-   int getNiftiVersion();
-   int64_t getVolumeOffset();
-   int64_t getExtensionsOffset();
+    void getHeader(Nifti2Header &header) const throw (NiftiException);
+    void setHeader(const Nifti2Header &header) throw (NiftiException);
+    void swapHeaderBytes(nifti_1_header &header);
+    void swapHeaderBytes(nifti_2_header &header);
+    bool getSwapNeeded();
+    int getNiftiVersion();
+    int64_t getVolumeOffset();
+    int64_t getExtensionsOffset();
 
 private:
     int niftiVersion;

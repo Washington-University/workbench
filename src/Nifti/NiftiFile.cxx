@@ -36,7 +36,7 @@ using namespace caret;
  */
 NiftiFile::NiftiFile() throw (NiftiException)
 {
-   init();
+    init();
 }
 
 /**
@@ -49,8 +49,8 @@ NiftiFile::NiftiFile() throw (NiftiException)
  */
 NiftiFile::NiftiFile(const AString &fileName) throw (NiftiException)
 {
-   init();
-   this->openFile(fileName);
+    init();
+    this->openFile(fileName);
 }
 
 void NiftiFile::init()

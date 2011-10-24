@@ -3,27 +3,27 @@
 
 /*LICENSE_START*/ 
 /* 
- *  Copyright 1995-2002 Washington University School of Medicine 
- * 
- *  http://brainmap.wustl.edu 
- * 
- *  This file is part of CARET. 
- * 
- *  CARET is free software; you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or 
- *  (at your option) any later version. 
- * 
- *  CARET is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- * 
- *  You should have received a copy of the GNU General Public License 
- *  along with CARET; if not, write to the Free Software 
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- * 
- */ 
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 
 
 #include "CaretObject.h"
@@ -64,19 +64,19 @@ public:
     void setTranslation(const float t[]);
 
     void setTranslation(
-                    const double tx,
-                    const double ty,
-                    const double tz);
+            const double tx,
+            const double ty,
+            const double tz);
 
     void translate(
-                    const double tx,
-                    const double ty,
-                    const double tz);
+            const double tx,
+            const double ty,
+            const double tz);
 
     void scale(
-                    const double sx,
-                    const double sy,
-                    const double sz);
+            const double sx,
+            const double sy,
+            const double sz);
 
     void rotateX(const double degrees);
 
@@ -85,14 +85,14 @@ public:
     void rotateZ(const double degrees);
 
     void rotate(
-                    const double angle,
-                    const double vector[]);
+            const double angle,
+            const double vector[]);
 
     void rotate(
-                    const double angle,
-                    const double x,
-                    const double y,
-                    const double z);
+            const double angle,
+            const double x,
+            const double y,
+            const double z);
 
     void premultiply(const Matrix4x4& tm);
 
@@ -125,17 +125,17 @@ public:
     void setTransformedSpaceName(const AString& name);
 
     double getMatrixElement(
-                    const int32_t i,
-                    const int32_t j) const;
+            const int32_t i,
+            const int32_t j) const;
 
     void setMatrixElement(
-                    const int32_t i,
-                    const int32_t j,
-                    const double e);
+            const int32_t i,
+            const int32_t j,
+            const double e);
 
     bool compare(
-                    const Matrix4x4& m,
-                    const float error);
+            const Matrix4x4& m,
+            const float error);
 
     bool invert();
 

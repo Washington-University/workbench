@@ -155,7 +155,7 @@ void NiftiHeaderIO::readFile(const AString &inputFileIn) throw (NiftiException)
         }
         nifti2Header.setHeaderStuct(n2header);
         nifti2Header.setNeedsSwapping(m_swapNeeded);
-    }    
+    }
 }
 
 void NiftiHeaderIO::swapHeaderBytes(nifti_1_header &header)

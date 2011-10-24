@@ -29,7 +29,7 @@
 #define __CIFTI_FILE_EXCEPTION_H__
 
 #include <exception>
-#include <QString>
+#include "AString.h"
 
 namespace caret {
 
@@ -38,27 +38,27 @@ class StatisticException;
 /// Exception involving data files
 class CiftiFileException : public std::exception {
 
-   public:
-      // Constructor
-      CiftiFileException(const QString& msg);
-            
-      /// Constructor
-      CiftiFileException(const QString& filename, const QString& msg);
-      
-      /// Destructor
-      virtual ~CiftiFileException() throw();
-      
-      /// get description of exception
-      virtual QString whatQString() const throw();
-      
-      /// get description of exception (private to prevent its use)
-      virtual const char* what() const throw();
-            
-   protected:
-      /// Description of the exception
-      QString exceptionDescription;
-      
-   private:      
+public:
+    // Constructor
+    CiftiFileException(const AString& msg);
+
+    /// Constructor
+    CiftiFileException(const AString& filename, const AString& msg);
+
+    /// Destructor
+    virtual ~CiftiFileException() throw();
+
+    /// get description of exception
+    virtual AString whatAString() const throw();
+
+    /// get description of exception (private to prevent its use)
+    virtual const char* what() const throw();
+
+protected:
+    /// Description of the exception
+    AString exceptionDescription;
+
+private:
 };
 
 }

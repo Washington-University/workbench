@@ -78,68 +78,68 @@ For later:
 
 /// Class for opening, reading, and writing generic Nifti1/2 Data, doesn't support extensions (yet)
 namespace caret {
-    class NiftiFileTest;
+class NiftiFileTest;
 
 class NiftiFile
 {
     friend class NiftiFileTest;
 public:
-   /// Constructor
-   NiftiFile() throw (NiftiException);
-   /// Constructor
-   NiftiFile(const AString &fileName) throw (NiftiException);
-   /// Open the Nifti File
-   virtual void openFile(const AString &fileName) throw (NiftiException);
-   /// Write the Nifti File
+    /// Constructor
+    NiftiFile() throw (NiftiException);
+    /// Constructor
+    NiftiFile(const AString &fileName) throw (NiftiException);
+    /// Open the Nifti File
+    virtual void openFile(const AString &fileName) throw (NiftiException);
+    /// Write the Nifti File
     virtual void writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
     /// Is the file Compressed?
-   bool isCompressed();
+    bool isCompressed();
 
-   /// Header Functions
-   /// set Nifti1Header
-   virtual void setHeader(const Nifti1Header &header) throw (NiftiException);
-   /// get Nifti1Header
-   void getHeader(Nifti1Header &header) throw (NiftiException);
-   /// set Nifti2Header
-   virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
-   /// get Nifti2Header
-   void getHeader(Nifti2Header &header) throw (NiftiException);
-   /// get NiftiVersion
-   int getNiftiVersion();
+    /// Header Functions
+    /// set Nifti1Header
+    virtual void setHeader(const Nifti1Header &header) throw (NiftiException);
+    /// get Nifti1Header
+    void getHeader(Nifti1Header &header) throw (NiftiException);
+    /// set Nifti2Header
+    virtual void setHeader(const Nifti2Header &header) throw (NiftiException);
+    /// get Nifti2Header
+    void getHeader(Nifti2Header &header) throw (NiftiException);
+    /// get NiftiVersion
+    int getNiftiVersion();
 
-   // TODO: This will eventually be handled by the extension reader/writer object
-   void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
+    // TODO: This will eventually be handled by the extension reader/writer object
+    void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
 
-   /// volume file read/write Functions
-   /// get VolumeFrame
-   void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
-   /// set VolumeFrame
-   void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
+    /// volume file read/write Functions
+    /// get VolumeFrame
+    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
+    /// set VolumeFrame
+    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
 
-   /// Read the entire nifti file into a volume file
-   void readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
-   /// Write the entire Volume File to a nifti file
-   void writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
+    /// Read the entire nifti file into a volume file
+    void readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
+    /// Write the entire Volume File to a nifti file
+    void writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
 
-   /// Gets a Nifti1Header from a previously defined volume file
-   void getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header & header);
-   /// Gets a Nifti2Header from a previously defined volume file
-   void getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header & header);
+    /// Gets a Nifti1Header from a previously defined volume file
+    void getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header & header);
+    /// Gets a Nifti2Header from a previously defined volume file
+    void getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header & header);
 
-   void getLayout(LayoutType &layout) throw(NiftiException) {
-       return matrix.getMatrixLayoutOnDisk(layout);
-   }
+    void getLayout(LayoutType &layout) throw(NiftiException) {
+        return matrix.getMatrixLayoutOnDisk(layout);
+    }
 
-   /// Destructor
-   virtual ~NiftiFile();
+    /// Destructor
+    virtual ~NiftiFile();
 protected:
-   virtual void init();
+    virtual void init();
 
-   AString m_fileName;
-   NiftiHeaderIO headerIO;
-   NiftiMatrix matrix;
-   int8_t * extension_bytes;
-   bool newFile;
+    AString m_fileName;
+    NiftiHeaderIO headerIO;
+    NiftiMatrix matrix;
+    int8_t * extension_bytes;
+    bool newFile;
 };
 
 

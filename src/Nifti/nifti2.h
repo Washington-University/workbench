@@ -25,24 +25,24 @@ const int32_t NIFTI_ECODE_CIFTI=32;
 const int32_t NIFTI2_HEADER_SIZE=540;
 
 #define NIFTI2_VERSION(h) \
-   (h).sizeof_hdr == 348 ? 1 : \
-   (h).sizeof_hdr == 1543569408? 1 : \
-   (h).sizeof_hdr == 540 ? 2 : \
-   (h).sizeof_hdr == 469893120 ? 2 : 0
-   
+    (h).sizeof_hdr == 348 ? 1 : \
+    (h).sizeof_hdr == 1543569408? 1 : \
+    (h).sizeof_hdr == 540 ? 2 : \
+    (h).sizeof_hdr == 469893120 ? 2 : 0
+
 #define NIFTI2_NEEDS_SWAP(h) \
-   (h).sizeof_hdr == 469893120 ? 1 : \
-   (h).sizeof_hdr == 1543569408 ? 1 : 0
-   
+    (h).sizeof_hdr == 469893120 ? 1 : \
+    (h).sizeof_hdr == 1543569408 ? 1 : 0
+
 /*#define NIFTI_VERSION(h)                               \
  ( ( (h).magic[0]=='n' && (h).magic[3]=='\0'    &&     \
      ( (h).magic[1]=='i' || (h).magic[1]=='+' ) &&     \
      ( (h).magic[2]>='1' && (h).magic[2]<='9' )   )    \
 ? (h).magic[2]-'0' : 0 )*/
 
-                          /*************************/  /************************/ /************/
+/*************************/  /************************/ /************/
 struct nifti_2_header {   /* NIFTI-2 usage         */  /* NIFTI-1 usage        */ /*  offset  */
-                          /*************************/  /************************/ /************/
+    /*************************/  /************************/ /************/
     int32_t   sizeof_hdr;     /*!< MUST be 540           */  /* int32_t sizeof_hdr; (348) */  /*   0 */
     char  magic[8] ;      /*!< MUST be valid signature. */  /* char magic[4];     */  /*   4 */
     short datatype;       /*!< Defines data type!    */  /* short datatype;       */  /*  12 */

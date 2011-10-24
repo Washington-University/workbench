@@ -34,106 +34,89 @@ using namespace caret;
 
 /**
  * Default Constructor
- * 
+ *
  * Default Constructor
- * @param CACHE_LEVEL specifies whether the file is loaded into memory, or kept on disk
- * currently only IN_MEMORY is supported 
+ *
  */
-CiftiFile::CiftiFile(CACHE_LEVEL clevel) throw (CiftiFileException)
+CiftiFile::CiftiFile() throw (CiftiFileException)
 {
-   init();
-   m_clevel = clevel;
+    init();
 }
 
 /**
  * constructor
- * 
+ *
  * Constructor
- * 
+ *
  * @param fileName name and path of the Cifti File
- * @param CACHE_LEVEL specifies whether the file is loaded into memory, or kept on disk
- * currently only IN_MEMORY is supported
+ *
  */
-CiftiFile::CiftiFile(const QString &fileName,CACHE_LEVEL clevel) throw (CiftiFileException) 
+CiftiFile::CiftiFile(const AString &fileName) throw (CiftiFileException)
 {
-   init();   
-   this->openFile(fileName, clevel);
+    init();
+    this->openFile(fileName);
 }
 
 void CiftiFile::init()
-{
-   this->m_Nifti2Header = NULL;
-   this->m_clevel = IN_MEMORY; 
-   this->m_xml = NULL;
-   this->m_matrix = NULL;
-   this->m_swapNeeded = false;
-   this->m_copyMatrix = false;
+{   
+    this->m_swapNeeded = false;
 }
 
 /**
- * 
- * 
+ *
+ *
  * open a Cifti file
- * 
+ *
  * @param fileName name and path of the Cifti File
  */
-void CiftiFile::openFile(const QString &fileName) throw (CiftiFileException)
+void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
 {
-   m_inputFile.setFileName(fileName);
-   m_inputFile.open(QIODevice::ReadOnly);
-   readHeader();
-   
-   //read XML
-   //TODO m_swapNeeded = m_Nifti2Header->getSwapNeeded();
-   char extensions[4];
-   m_inputFile.read(extensions,4);
-   unsigned int length;
-   m_inputFile.read((char *)&length, 4);
-   if(m_swapNeeded)ByteSwapping::swapBytes(&length,1);
-   unsigned int ecode;
-   m_inputFile.read((char *)&ecode,4);
-   if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
-   if(ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
-   QByteArray bytes = m_inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
-   m_xml = new CiftiXML(bytes);
-   
-   //read Matrix
-   readCiftiMatrix();
-}
+    //Read Nifti2Header
 
-/**
- * 
- * 
- * open a Cifti file
- * 
- * @param fileName name and path of the Cifti File
- * @param CACHE_LEVEL specifies whether the file is loaded into memory, or kept on disk
- * currently only IN_MEMORY is supported 
- */
-void CiftiFile::openFile(const QString &fileName, CACHE_LEVEL clevel) throw (CiftiFileException)
-{
-   m_clevel = clevel;
-   this->openFile(fileName);
+
+    //read XML
+    //TODO m_swapNeeded = m_Nifti2Header->getSwapNeeded();
+    {
+        QFile inputFile(fileName);
+        inputFile.setFileName(fileName);
+        inputFile.open(QIODevice::ReadWrite);
+        char extensions[4];
+        inputFile.read(extensions,4);
+        unsigned int length;
+        inputFile.read((char *)&length, 4);
+        if(m_swapNeeded)ByteSwapping::swapBytes(&length,1);
+        unsigned int ecode;
+        inputFile.read((char *)&ecode,4);
+        if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
+        if(ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
+        QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
+        inputFile.close();
+        m_xml.readXML(bytes);
+
+    }
+
+    //set up Matrix for reading..
+
 }
 
 /** 
- * 
- * 
+ *
+ *
  * write the Cifti File
- * 
+ *
  * @param fileName specifies the name and path of the file to write to
  */
-void CiftiFile::writeFile(const QString &fileName) const throw (CiftiFileException)
+void CiftiFile::writeFile(const AString &fileName) const throw (CiftiFileException)
 {
-   QFile outputFile(fileName);
-   outputFile.open(QIODevice::WriteOnly);
-   //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
-   QByteArray xmlBytes;
-   m_xml->writeXML(xmlBytes);
-   int length = 8 + xmlBytes.length();
-   int ecode = 32;//NIFTI_ECODE_CIFTI
-   char bytes[4] = { 0x01, 0x00,0x00, 0x00};
-   
+
+
+    //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
+    QByteArray xmlBytes;
+    CiftiXML xml = m_xml;
+    xml.writeXML(xmlBytes);
+    int length = 8 + xmlBytes.length();
+
+    /*
    nifti_2_header header;
    m_Nifti2Header->getHeaderStruct(header);
    header.vox_offset = 544 + length;
@@ -143,19 +126,30 @@ void CiftiFile::writeFile(const QString &fileName) const throw (CiftiFileExcepti
    header.vox_offset += padding;
    length += padding;
    m_Nifti2Header->setHeaderStuct(header);
-   
-   
-   //write out the file
-   //TODO m_Nifti2Header->writeFile(outputFile);
-   outputFile.write(bytes,4);
-   outputFile.write((char *)&length,4);
-   outputFile.write((char *)&ecode,4);   
-   outputFile.write(xmlBytes);
-   char junk[] = "         ";//filler for 8 byte alignment
-   char* junk2 = &(junk[0]);
-   if (padding) outputFile.write(junk2, padding);
-   m_matrix->writeMatrix(outputFile);
-   outputFile.close();
+   */
+
+    //write out the file
+    //write out header
+
+
+    //write out the xml extension
+    /*{
+       int ecode = 32;//NIFTI_ECODE_CIFTI
+       char bytes[4] = { 0x01, 0x00,0x00, 0x00};
+
+       QFile outputFile(fileName);
+       outputFile.open(QIODevice::WriteOnly);
+       outputFile.write(bytes,4);
+       outputFile.write((char *)&length,4);
+       outputFile.write((char *)&ecode,4);
+       outputFile.write(xmlBytes);
+       char junk[] = "         ";//filler for 8 byte alignment
+       char* junk2 = &(junk[0]);
+       if (padding) outputFile.write(junk2, padding);
+       outputFile.close();
+   }*/
+    //write the matrix
+
 }
 
 /**
@@ -163,156 +157,60 @@ void CiftiFile::writeFile(const QString &fileName) const throw (CiftiFileExcepti
  */
 CiftiFile::~CiftiFile()
 {
-   if(m_Nifti2Header) delete m_Nifti2Header;
+
 }
 
 /**
- * 
- * 
+ *
+ *
  * set the Nifti2Header
- * 
+ *
  * @param header
  */
-// Head IO
+// Header IO
 void CiftiFile::setHeader(const Nifti2Header &header) throw (CiftiFileException)
-{
-   if(m_Nifti2Header) delete m_Nifti2Header;
-   m_Nifti2Header = new Nifti2Header(header);
-}
-
-
-void CiftiFile::readHeader() throw (CiftiFileException)
-{
-   if(m_Nifti2Header != NULL) delete m_Nifti2Header;
-   // TODO m_Nifti2Header = new Nifti2Header(m_inputFile);
+{   
+    m_headerIO.setHeader(header);
 }
 
 /**
- * 
- * 
- * get a newly allocated copy of the Nifti2Header
- * 
- * @return Nifti2Header*
- */
-Nifti2Header *CiftiFile::getHeader() throw (CiftiFileException)
-{
-   if(m_Nifti2Header == NULL) readHeader();
-   return new Nifti2Header(*m_Nifti2Header);
-}
-
-/**
- * 
- * 
+ *
+ *
  * get a copy of the Nifti2Header
- * 
+ *
  * @param header
  */
 void CiftiFile::getHeader(Nifti2Header &header) throw (CiftiFileException)
 {
-   if(m_Nifti2Header == NULL) readHeader();
-   header = *m_Nifti2Header;
+    m_headerIO.getHeader(header);
 }
 
-// Matrix IO
-/**
- * 
- * 
- * set the CiftiMatrix
- * 
- * @param matrix
- */
-void CiftiFile::setCiftiMatrix(CiftiMatrix & matrix) throw (CiftiFileException)
-{
-   if(this->m_matrix) delete this->m_matrix;
-   if(this->m_copyMatrix)      
-   {
-      this->m_matrix = new CiftiMatrix(matrix);
-   }
-   else
-   {
-      this->m_matrix = &matrix;
-   }
-   if (m_Nifti2Header == NULL)
-   {
-      m_Nifti2Header = new Nifti2Header;
-      //TODO m_Nifti2Header->initTimeSeriesHeaderStruct();
-   }
-   std::vector<int> tempvec;
-   matrix.getDimensions(tempvec);
-   // TODO m_Nifti2Header->setCiftiDimensions(tempvec);
-}
 
-/**
- * 
- * 
- * get a pointer to the CiftiMatrix
- * 
- * @return CiftiMatrix* 
- */
-CiftiMatrix * CiftiFile::getCiftiMatrix() throw (CiftiFileException)
-{
-   if(!this->m_matrix) readCiftiMatrix();//TODO check reset extension offset if needed
-   if(this->m_copyMatrix)
-   {
-      return new CiftiMatrix(*m_matrix);
-   }
-   else
-   {
-      CiftiMatrix *temp = this->m_matrix;
-      this->m_matrix = NULL;
-      return temp;
-   }      
-}
 
-void CiftiFile::readCiftiMatrix() throw (CiftiFileException)
-{
-   if(m_matrix != NULL) delete m_matrix;
-   std::vector <int> dimensions;
-   //TODO m_Nifti2Header->getCiftiDimensions(dimensions);
-   m_matrix = new CiftiMatrix(m_inputFile, dimensions,m_clevel);
-   m_matrix->setCopyData(m_copyMatrix);
-   if(m_swapNeeded) m_matrix->swapByteOrder();
-}
+
 
 // XML IO
 /** 
- * 
- * 
+ *
+ *
  * setter for CiftiFile's CiftiXML object
- * 
+ *
  * @param ciftixml
  */
 void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
 {
-   if(this->m_xml) delete this->m_xml;
-   this->m_xml = new CiftiXML(xml);
-   
+    this->m_xml = xml;
+
 }
 
 /** 
- * 
- * 
- * get a pointer to a newly allocated copy of the CiftiFile's CiftiXML class
- * 
- * @return CiftiXML*
- */
-
-CiftiXML * CiftiFile::getCiftiXML() throw (CiftiFileException)
-{
-   if(!this->m_xml) return NULL;//readCiftiXML();//TODO check reset extension offset if needed
-   return new CiftiXML(*m_xml);
-   
-}
-
-/** 
- * 
- * 
+ *
+ *
  * gets a copy of the object's internal CiftiXML object
- * 
- * @param xml 
+ *
+ * @param xml
  */
 void CiftiFile::getCiftiXML(CiftiXML &xml) throw (CiftiFileException)
 {
-   if(!this->m_xml) return;//readCiftiXML();//TODO check reset extension offset if needed
-   xml = *m_xml;  
+    xml = this->m_xml;
 }

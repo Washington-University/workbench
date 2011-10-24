@@ -133,66 +133,66 @@ extern "C" {
            This binary header should be found at the beginning of a valid
            NIFTI-1 header file.
  */
-                        /*************************/  /************************/
+/*************************/  /************************/
 struct nifti_1_header { /* NIFTI-1 usage         */  /* ANALYZE 7.5 field(s) */
-                        /*************************/  /************************/
+    /*************************/  /************************/
 
-                                           /*--- was header_key substruct ---*/
- int   sizeof_hdr;    /*!< MUST be 348           */  /* int sizeof_hdr;      */ /* 0 */
- char  data_type[10]; /*!< ++UNUSED++            */  /* char data_type[10];  */ /* 4 */
- char  db_name[18];   /*!< ++UNUSED++            */  /* char db_name[18];    */ /* 14 */
- int   extents;       /*!< ++UNUSED++            */  /* int extents;         */ /* 32 */
- short session_error; /*!< ++UNUSED++            */  /* short session_error; */ /* 36 */
- char  regular;       /*!< ++UNUSED++            */  /* char regular;        */ /* 38 */
- char  dim_info;      /*!< MRI slice ordering.   */  /* char hkey_un0;       */ /* 39 */
+    /*--- was header_key substruct ---*/
+    int   sizeof_hdr;    /*!< MUST be 348           */  /* int sizeof_hdr;      */ /* 0 */
+    char  data_type[10]; /*!< ++UNUSED++            */  /* char data_type[10];  */ /* 4 */
+    char  db_name[18];   /*!< ++UNUSED++            */  /* char db_name[18];    */ /* 14 */
+    int   extents;       /*!< ++UNUSED++            */  /* int extents;         */ /* 32 */
+    short session_error; /*!< ++UNUSED++            */  /* short session_error; */ /* 36 */
+    char  regular;       /*!< ++UNUSED++            */  /* char regular;        */ /* 38 */
+    char  dim_info;      /*!< MRI slice ordering.   */  /* char hkey_un0;       */ /* 39 */
 
-                                      /*--- was image_dimension substruct ---*/
- short dim[8];        /*!< Data array dimensions.*/  /* short dim[8];        */ /* 40 */
- float intent_p1 ;    /*!< 1st intent parameter. */  /* short unused8;       */ /* 56 */
-                                                     /* short unused9;       */
- float intent_p2 ;    /*!< 2nd intent parameter. */  /* short unused10;      */ /* 60 */
-                                                     /* short unused11;      */
- float intent_p3 ;    /*!< 3rd intent parameter. */  /* short unused12;      */ /* 64 */
-                                                     /* short unused13;      */
- short intent_code ;  /*!< NIFTI_INTENT_* code.  */  /* short unused14;      */ /* 68 */
- short datatype;      /*!< Defines data type!    */  /* short datatype;      */ /* 70 */
- short bitpix;        /*!< Number bits/voxel.    */  /* short bitpix;        */ /* 72 */
- short slice_start;   /*!< First slice index.    */  /* short dim_un0;       */ /* 74 */
- float pixdim[8];     /*!< Grid spacings.        */  /* float pixdim[8];     */ /* 76 */
- float vox_offset;    /*!< Offset into .nii file */  /* float vox_offset;    */ /* 108 */
- float scl_slope ;    /*!< Data scaling: slope.  */  /* float funused1;      */ /* 112 */
- float scl_inter ;    /*!< Data scaling: offset. */  /* float funused2;      */ /* 116 */
- short slice_end;     /*!< Last slice index.     */  /* float funused3;      */ /* 120 */
- char  slice_code ;   /*!< Slice timing order.   */                                  /* 122 */
- char  xyzt_units ;   /*!< Units of pixdim[1..4] */                                 /* 123 */
- float cal_max;       /*!< Max display intensity */  /* float cal_max;       */ /* 124 */
- float cal_min;       /*!< Min display intensity */  /* float cal_min;       */    /* 128 */
- float slice_duration;/*!< Time for 1 slice.     */  /* float compressed;    */ /* 132 */
- float toffset;       /*!< Time axis shift.      */  /* float verified;      */          /* 136 */
- int   glmax;         /*!< ++UNUSED++            */  /* int glmax;           */  /* 140 */
- int   glmin;         /*!< ++UNUSED++            */  /* int glmin;           */    /* 144 */
+    /*--- was image_dimension substruct ---*/
+    short dim[8];        /*!< Data array dimensions.*/  /* short dim[8];        */ /* 40 */
+    float intent_p1 ;    /*!< 1st intent parameter. */  /* short unused8;       */ /* 56 */
+    /* short unused9;       */
+    float intent_p2 ;    /*!< 2nd intent parameter. */  /* short unused10;      */ /* 60 */
+    /* short unused11;      */
+    float intent_p3 ;    /*!< 3rd intent parameter. */  /* short unused12;      */ /* 64 */
+    /* short unused13;      */
+    short intent_code ;  /*!< NIFTI_INTENT_* code.  */  /* short unused14;      */ /* 68 */
+    short datatype;      /*!< Defines data type!    */  /* short datatype;      */ /* 70 */
+    short bitpix;        /*!< Number bits/voxel.    */  /* short bitpix;        */ /* 72 */
+    short slice_start;   /*!< First slice index.    */  /* short dim_un0;       */ /* 74 */
+    float pixdim[8];     /*!< Grid spacings.        */  /* float pixdim[8];     */ /* 76 */
+    float vox_offset;    /*!< Offset into .nii file */  /* float vox_offset;    */ /* 108 */
+    float scl_slope ;    /*!< Data scaling: slope.  */  /* float funused1;      */ /* 112 */
+    float scl_inter ;    /*!< Data scaling: offset. */  /* float funused2;      */ /* 116 */
+    short slice_end;     /*!< Last slice index.     */  /* float funused3;      */ /* 120 */
+    char  slice_code ;   /*!< Slice timing order.   */                                  /* 122 */
+    char  xyzt_units ;   /*!< Units of pixdim[1..4] */                                 /* 123 */
+    float cal_max;       /*!< Max display intensity */  /* float cal_max;       */ /* 124 */
+    float cal_min;       /*!< Min display intensity */  /* float cal_min;       */    /* 128 */
+    float slice_duration;/*!< Time for 1 slice.     */  /* float compressed;    */ /* 132 */
+    float toffset;       /*!< Time axis shift.      */  /* float verified;      */          /* 136 */
+    int   glmax;         /*!< ++UNUSED++            */  /* int glmax;           */  /* 140 */
+    int   glmin;         /*!< ++UNUSED++            */  /* int glmin;           */    /* 144 */
 
-                                         /*--- was data_history substruct ---*/
- char  descrip[80];   /*!< any text you like.    */  /* char descrip[80];    */ /* 148 */
- char  aux_file[24];  /*!< auxiliary filename.   */  /* char aux_file[24];   */ /* 228 */
+    /*--- was data_history substruct ---*/
+    char  descrip[80];   /*!< any text you like.    */  /* char descrip[80];    */ /* 148 */
+    char  aux_file[24];  /*!< auxiliary filename.   */  /* char aux_file[24];   */ /* 228 */
 
- short qform_code ;   /*!< NIFTI_XFORM_* code.   */  /*-- all ANALYZE 7.5 ---*/ /* 252 */
- short sform_code ;   /*!< NIFTI_XFORM_* code.   */  /*   fields below here  */ /* 254 */
-                                                     /*   are replaced       */
- float quatern_b ;    /*!< Quaternion b param.   */             /* 256 */
- float quatern_c ;    /*!< Quaternion c param.   */             /* 260 */
- float quatern_d ;    /*!< Quaternion d param.   */            /* 264 */
- float qoffset_x ;    /*!< Quaternion x shift.   */                 /* 268 */
- float qoffset_y ;    /*!< Quaternion y shift.   */                 /* 272 */
- float qoffset_z ;    /*!< Quaternion z shift.   */                 /* 276 */
+    short qform_code ;   /*!< NIFTI_XFORM_* code.   */  /*-- all ANALYZE 7.5 ---*/ /* 252 */
+    short sform_code ;   /*!< NIFTI_XFORM_* code.   */  /*   fields below here  */ /* 254 */
+    /*   are replaced       */
+    float quatern_b ;    /*!< Quaternion b param.   */             /* 256 */
+    float quatern_c ;    /*!< Quaternion c param.   */             /* 260 */
+    float quatern_d ;    /*!< Quaternion d param.   */            /* 264 */
+    float qoffset_x ;    /*!< Quaternion x shift.   */                 /* 268 */
+    float qoffset_y ;    /*!< Quaternion y shift.   */                 /* 272 */
+    float qoffset_z ;    /*!< Quaternion z shift.   */                 /* 276 */
 
- float srow_x[4] ;    /*!< 1st row affine transform.   */       /* 280 */
- float srow_y[4] ;    /*!< 2nd row affine transform.   */      /* 296 */
- float srow_z[4] ;    /*!< 3rd row affine transform.   */      /* 312 */
+    float srow_x[4] ;    /*!< 1st row affine transform.   */       /* 280 */
+    float srow_y[4] ;    /*!< 2nd row affine transform.   */      /* 296 */
+    float srow_z[4] ;    /*!< 3rd row affine transform.   */      /* 312 */
 
- char intent_name[16];/*!< 'name' or meaning of data.  */ /* 328 */
+    char intent_name[16];/*!< 'name' or meaning of data.  */ /* 328 */
 
- char magic[4] ;      /*!< MUST be "ni1\0" or "n+1\0". */ /* 344 */
+    char magic[4] ;      /*!< MUST be "ni1\0" or "n+1\0". */ /* 344 */
 
 } ;                   /**** 348 bytes total ****/
 
@@ -269,7 +269,7 @@ typedef struct nifti_1_header nifti_1_header ;
    program can simply ignore all extended header sections simply by jumping
    straight to the image data using vox_offset.
 -----------------------------------------------------------------------------*/
-   
+
 /*! \struct nifti1_extender
     \brief This structure represents a 4-byte string that should follow the
            binary nifti_1_header data in a NIFTI-1 header file.  If the char
@@ -284,9 +284,9 @@ typedef struct nifti1_extender nifti1_extender ;
     \brief Data structure defining the fields of a header extension.
  */
 struct nifti1_extension {
-   int    esize ; /*!< size of extension, in bytes (must be multiple of 16) */
-   int    ecode ; /*!< extension code, one of the NIFTI_ECODE_ values       */
-   char * edata ; /*!< raw data, with no byte swapping                      */
+    int    esize ; /*!< size of extension, in bytes (must be multiple of 16) */
+    int    ecode ; /*!< extension code, one of the NIFTI_ECODE_ values       */
+    char * edata ; /*!< raw data, with no byte swapping                      */
 } ;
 typedef struct nifti1_extension nifti1_extension ;
 
@@ -473,7 +473,7 @@ typedef struct nifti1_extension nifti1_extension ;
     \brief nifti1 datatype codes
     @{
  */
-                            /*--- the original ANALYZE 7.5 type codes ---*/
+/*--- the original ANALYZE 7.5 type codes ---*/
 const int32_t DT_NONE                   =0;
 const int32_t DT_UNKNOWN                =0;     /* what it says, dude           */
 const int32_t DT_BINARY                 =1;     /* binary (1 bit/voxel)         */
@@ -486,7 +486,7 @@ const int32_t DT_DOUBLE                 =64;     /* double (64 bits/voxel)      
 const int32_t DT_RGB                   =128;     /* RGB triple (24 bits/voxel)   */
 const int32_t DT_ALL                   =255;     /* not very useful (?)          */
 
-                            /*----- another set of names for the same ---*/
+/*----- another set of names for the same ---*/
 const int32_t DT_UINT8                   =2;
 const int32_t DT_INT16                   =4;
 const int32_t DT_INT32                   =8;
@@ -495,7 +495,7 @@ const int32_t DT_COMPLEX64              =32;
 const int32_t DT_FLOAT64                =64;
 const int32_t DT_RGB24                 =128;
 
-                            /*------------------- new codes for NIFTI ---*/
+/*------------------- new codes for NIFTI ---*/
 const int32_t DT_INT8                  =256;     /* signed char (8 bits)         */
 const int32_t DT_UINT16                =512;     /* unsigned short (16 bits)     */
 const int32_t DT_UINT32                =768;     /* unsigned int (32 bits)       */
@@ -507,45 +507,45 @@ const int32_t DT_COMPLEX256           =2048;     /* long double pair (256 bits) 
 /* @} */
 
 
-                            /*------- aliases for all the above codes ---*/
+/*------- aliases for all the above codes ---*/
 
 /*! \defgroup NIFTI1_DATATYPE_ALIASES
     \brief aliases for the nifti1 datatype codes
     @{
  */
-                                       /*! unsigned char. */
+/*! unsigned char. */
 const int32_t NIFTI_TYPE_UINT8          =2;
-                                       /*! signed short. */
+/*! signed short. */
 const int32_t NIFTI_TYPE_INT16          =4;
-                                       /*! signed int. */
+/*! signed int. */
 const int32_t NIFTI_TYPE_INT32          =8;
-                                       /*! 32 bit float. */
+/*! 32 bit float. */
 const int32_t NIFTI_TYPE_FLOAT32       =16;
-                                       /*! 64 bit complex = 2 32 bit floats. */
+/*! 64 bit complex = 2 32 bit floats. */
 const int32_t NIFTI_TYPE_COMPLEX64     =32;
-                                       /*! 64 bit float = double. */
+/*! 64 bit float = double. */
 const int32_t NIFTI_TYPE_FLOAT64       =64;
-                                       /*! 3 8 bit bytes. */
+/*! 3 8 bit bytes. */
 const int32_t NIFTI_TYPE_RGB24        =128;
-                                       /*! signed char. */
+/*! signed char. */
 const int32_t NIFTI_TYPE_INT8         =256;
-                                       /*! unsigned short. */
+/*! unsigned short. */
 const int32_t NIFTI_TYPE_UINT16       =512;
-                                       /*! unsigned int. */
+/*! unsigned int. */
 const int32_t NIFTI_TYPE_UINT32       =768;
-                                       /*! signed long long. */
+/*! signed long long. */
 const int32_t NIFTI_TYPE_INT64       =1024;
-                                       /*! unsigned long long. */
+/*! unsigned long long. */
 const int32_t NIFTI_TYPE_UINT64      =1280;
-                                       /*! 128 bit float = long double. */
+/*! 128 bit float = long double. */
 const int32_t NIFTI_TYPE_FLOAT128    =1536;
-                                       /*! 128 bit complex = 2 64 bit floats. */
+/*! 128 bit complex = 2 64 bit floats. */
 const int32_t NIFTI_TYPE_COMPLEX128  =1792;
-                                       /*! 256 bit complex = 2 128 bit floats */
+/*! 256 bit complex = 2 128 bit floats */
 const int32_t NIFTI_TYPE_COMPLEX256  =2048;
 /* @} */
 
-                     /*-------- sample typedefs for complicated types ---*/
+/*-------- sample typedefs for complicated types ---*/
 #if 0
 typedef struct { float       r,i;     } complex_float ;
 typedef struct { double      r,i;     } complex_double ;
@@ -641,12 +641,12 @@ typedef struct { unsigned char r,g,b; } rgb_byte ;
    If no data name is implied or needed, intent_name[0] should be set to 0.
 -----------------------------------------------------------------------------*/
 
- /*! default: no intention is indicated in the header. */
+/*! default: no intention is indicated in the header. */
 
 const int32_t NIFTI_INTENT_NONE        =0;
 
-    /*-------- These codes are for probability distributions ---------------*/
-    /* Most distributions have a number of parameters,
+/*-------- These codes are for probability distributions ---------------*/
+/* Most distributions have a number of parameters,
        below denoted by p1, p2, and p3, and stored in
         - intent_p1, intent_p2, intent_p3 if dataset doesn't have 5th dimension
         - image data array                if dataset does have 5th dimension
@@ -665,9 +665,9 @@ const int32_t NIFTI_INTENT_NONE        =0;
 
         [C2] Continuous Univariate Distributions, vol. 2,
              NL Johnson, S Kotz, N Balakrishnan.                            */
-    /*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
 
-  /*! [C2, chap 32] Correlation coefficient R (1 param):
+/*! [C2, chap 32] Correlation coefficient R (1 param):
        p1 = degrees of freedom
        R/sqrt(1-R*R) is t-distributed with p1 DOF. */
 
@@ -677,91 +677,91 @@ const int32_t NIFTI_INTENT_NONE        =0;
  */
 const int32_t NIFTI_INTENT_CORREL     =2;
 
-  /*! [C2, chap 28] Student t statistic (1 param): p1 = DOF. */
+/*! [C2, chap 28] Student t statistic (1 param): p1 = DOF. */
 
 const int32_t NIFTI_INTENT_TTEST      =3;
 
-  /*! [C2, chap 27] Fisher F statistic (2 params):
+/*! [C2, chap 27] Fisher F statistic (2 params):
        p1 = numerator DOF, p2 = denominator DOF. */
 
 const int32_t NIFTI_INTENT_FTEST      =4;
 
-  /*! [C1, chap 13] Standard normal (0 params): Density = N(0,1). */
+/*! [C1, chap 13] Standard normal (0 params): Density = N(0,1). */
 
 const int32_t NIFTI_INTENT_ZSCORE     =5;
 
-  /*! [C1, chap 18] Chi-squared (1 param): p1 = DOF.
+/*! [C1, chap 18] Chi-squared (1 param): p1 = DOF.
       Density(x) proportional to exp(-x/2) * x^(p1/2-1). */
 
 const int32_t NIFTI_INTENT_CHISQ      =6;
 
-  /*! [C2, chap 25] Beta distribution (2 params): p1=a, p2=b.
+/*! [C2, chap 25] Beta distribution (2 params): p1=a, p2=b.
       Density(x) proportional to x^(a-1) * (1-x)^(b-1). */
 
 const int32_t NIFTI_INTENT_BETA       =7;
 
-  /*! [U, chap 3] Binomial distribution (2 params):
+/*! [U, chap 3] Binomial distribution (2 params):
        p1 = number of trials, p2 = probability per trial.
       Prob(x) = (p1 choose x) * p2^x * (1-p2)^(p1-x), for x=0,1,...,p1. */
 
 const int32_t NIFTI_INTENT_BINOM      =8;
 
-  /*! [C1, chap 17] Gamma distribution (2 params):
+/*! [C1, chap 17] Gamma distribution (2 params):
        p1 = shape, p2 = scale.
       Density(x) proportional to x^(p1-1) * exp(-p2*x). */
 
 const int32_t NIFTI_INTENT_GAMMA      =9;
 
-  /*! [U, chap 4] Poisson distribution (1 param): p1 = mean.
+/*! [U, chap 4] Poisson distribution (1 param): p1 = mean.
       Prob(x) = exp(-p1) * p1^x / x! , for x=0,1,2,.... */
 
 const int32_t NIFTI_INTENT_POISSON   =10;
 
-  /*! [C1, chap 13] Normal distribution (2 params):
+/*! [C1, chap 13] Normal distribution (2 params):
        p1 = mean, p2 = standard deviation. */
 
 const int32_t NIFTI_INTENT_NORMAL    =11;
 
-  /*! [C2, chap 30] Noncentral F statistic (3 params):
+/*! [C2, chap 30] Noncentral F statistic (3 params):
        p1 = numerator DOF, p2 = denominator DOF,
        p3 = numerator noncentrality parameter.  */
 
 const int32_t NIFTI_INTENT_FTEST_NONC=12;
 
-  /*! [C2, chap 29] Noncentral chi-squared statistic (2 params):
+/*! [C2, chap 29] Noncentral chi-squared statistic (2 params):
        p1 = DOF, p2 = noncentrality parameter.     */
 
 const int32_t NIFTI_INTENT_CHISQ_NONC=13;
 
-  /*! [C2, chap 23] Logistic distribution (2 params):
+/*! [C2, chap 23] Logistic distribution (2 params):
        p1 = location, p2 = scale.
       Density(x) proportional to sech^2((x-p1)/(2*p2)). */
 
 const int32_t NIFTI_INTENT_LOGISTIC  =14;
 
-  /*! [C2, chap 24] Laplace distribution (2 params):
+/*! [C2, chap 24] Laplace distribution (2 params):
        p1 = location, p2 = scale.
       Density(x) proportional to exp(-abs(x-p1)/p2). */
 
 const int32_t NIFTI_INTENT_LAPLACE   =15;
 
-  /*! [C2, chap 26] Uniform distribution: p1 = lower end, p2 = upper end. */
+/*! [C2, chap 26] Uniform distribution: p1 = lower end, p2 = upper end. */
 
 const int32_t NIFTI_INTENT_UNIFORM   =16;
 
-  /*! [C2, chap 31] Noncentral t statistic (2 params):
+/*! [C2, chap 31] Noncentral t statistic (2 params):
        p1 = DOF, p2 = noncentrality parameter. */
 
 const int32_t NIFTI_INTENT_TTEST_NONC=17;
 
-  /*! [C1, chap 21] Weibull distribution (3 params):
+/*! [C1, chap 21] Weibull distribution (3 params):
        p1 = location, p2 = scale, p3 = power.
       Density(x) proportional to
        ((x-p1)/p2)^(p3-1) * exp(-((x-p1)/p2)^p3) for x > p1. */
 
 const int32_t NIFTI_INTENT_WEIBULL   =18;
 
-  /*! [C1, chap 18] Chi distribution (1 param): p1 = DOF.
+/*! [C1, chap 18] Chi distribution (1 param): p1 = DOF.
       Density(x) proportional to x^(p1-1) * exp(-x^2/2) for x > 0.
        p1 = 1 = 'half normal' distribution
        p1 = 2 = Rayleigh distribution
@@ -769,24 +769,24 @@ const int32_t NIFTI_INTENT_WEIBULL   =18;
 
 const int32_t NIFTI_INTENT_CHI       =19;
 
-  /*! [C1, chap 15] Inverse Gaussian (2 params):
+/*! [C1, chap 15] Inverse Gaussian (2 params):
        p1 = mu, p2 = lambda
       Density(x) proportional to
        exp(-p2*(x-p1)^2/(2*p1^2*x)) / x^3  for x > 0. */
 
 const int32_t NIFTI_INTENT_INVGAUSS  =20;
 
-  /*! [C2, chap 22] Extreme value type I (2 params):
+/*! [C2, chap 22] Extreme value type I (2 params):
        p1 = location, p2 = scale
       cdf(x) = exp(-exp(-(x-p1)/p2)). */
 
 const int32_t NIFTI_INTENT_EXTVAL    =21;
 
-  /*! Data is a 'p-value' (no params). */
+/*! Data is a 'p-value' (no params). */
 
 const int32_t NIFTI_INTENT_PVAL      =22;
 
-  /*! Data is ln(p-value) (no params).
+/*! Data is ln(p-value) (no params).
       To be safe, a program should compute p = exp(-abs(this_value)).
       The nifti_stats.c library returns this_value
       as positive, so that this_value = -log(p). */
@@ -794,41 +794,41 @@ const int32_t NIFTI_INTENT_PVAL      =22;
 
 const int32_t NIFTI_INTENT_LOGPVAL   =23;
 
-  /*! Data is log10(p-value) (no params).
+/*! Data is log10(p-value) (no params).
       To be safe, a program should compute p = pow(10.,-abs(this_value)).
       The nifti_stats.c library returns this_value
       as positive, so that this_value = -log10(p). */
 
 const int32_t NIFTI_INTENT_LOG10PVAL =24;
 
-  /*! Smallest intent_code that indicates a statistic. */
+/*! Smallest intent_code that indicates a statistic. */
 
 const int32_t NIFTI_FIRST_STATCODE    =2;
 
-  /*! Largest intent_code that indicates a statistic. */
+/*! Largest intent_code that indicates a statistic. */
 
 const int32_t NIFTI_LAST_STATCODE    =24;
 
- /*---------- these values for intent_code aren't for statistics ----------*/
+/*---------- these values for intent_code aren't for statistics ----------*/
 
- /*! To signify that the value at each voxel is an estimate
+/*! To signify that the value at each voxel is an estimate
      of some parameter, set intent_code = NIFTI_INTENT_ESTIMATE.
      The name of the parameter may be stored in intent_name.     */
 
 const int32_t NIFTI_INTENT_ESTIMATE =1001;
 
- /*! To signify that the value at each voxel is an index into
+/*! To signify that the value at each voxel is an index into
      some set of labels, set intent_code = NIFTI_INTENT_LABEL.
      The filename with the labels may stored in aux_file.        */
 
 const int32_t NIFTI_INTENT_LABEL    =1002;
 
- /*! To signify that the value at each voxel is an index into the
+/*! To signify that the value at each voxel is an index into the
      NeuroNames labels set, set intent_code = NIFTI_INTENT_NEURONAME. */
 
 const int32_t NIFTI_INTENT_NEURONAME=1003;
 
- /*! To store an M x N matrix at each voxel:
+/*! To store an M x N matrix at each voxel:
        - dataset must have a 5th dimension (dim[0]=5 and dim[5]>1)
        - intent_code must be NIFTI_INTENT_GENMATRIX
        - dim[5] must be M*N
@@ -842,7 +842,7 @@ const int32_t NIFTI_INTENT_NEURONAME=1003;
 
 const int32_t NIFTI_INTENT_GENMATRIX=1004;
 
- /*! To store an NxN symmetric matrix at each voxel:
+/*! To store an NxN symmetric matrix at each voxel:
        - dataset must have a 5th dimension
        - intent_code must be NIFTI_INTENT_SYMMATRIX
        - dim[5] must be N*(N+1)/2
@@ -855,7 +855,7 @@ const int32_t NIFTI_INTENT_GENMATRIX=1004;
 
 const int32_t NIFTI_INTENT_SYMMATRIX=1005;
 
- /*! To signify that the vector value at each voxel is to be taken
+/*! To signify that the vector value at each voxel is to be taken
      as a displacement field or vector:
        - dataset must have a 5th dimension
        - intent_code must be NIFTI_INTENT_DISPVECT
@@ -865,7 +865,7 @@ const int32_t NIFTI_INTENT_SYMMATRIX=1005;
 const int32_t NIFTI_INTENT_DISPVECT =1006;   /* specifically for displacements */
 const int32_t NIFTI_INTENT_VECTOR   =1007;   /* for any other type of vector */
 
- /*! To signify that the vector value at each voxel is really a
+/*! To signify that the vector value at each voxel is really a
      spatial coordinate (e.g., the vertices or nodes of a surface mesh):
        - dataset must have a 5th dimension
        - intent_code must be NIFTI_INTENT_POINTSET
@@ -878,7 +878,7 @@ const int32_t NIFTI_INTENT_VECTOR   =1007;   /* for any other type of vector */
 
 const int32_t NIFTI_INTENT_POINTSET =1008;
 
- /*! To signify that the vector value at each voxel is really a triple
+/*! To signify that the vector value at each voxel is really a triple
      of indexes (e.g., forming a triangle) from a pointset dataset:
        - dataset must have a 5th dimension
        - intent_code must be NIFTI_INTENT_TRIANGLE
@@ -891,7 +891,7 @@ const int32_t NIFTI_INTENT_POINTSET =1008;
 
 const int32_t NIFTI_INTENT_TRIANGLE =1009;
 
- /*! To signify that the vector value at each voxel is a quaternion:
+/*! To signify that the vector value at each voxel is a quaternion:
        - dataset must have a 5th dimension
        - intent_code must be NIFTI_INTENT_QUATERNION
        - dim[0] = 5
@@ -900,7 +900,7 @@ const int32_t NIFTI_INTENT_TRIANGLE =1009;
 
 const int32_t NIFTI_INTENT_QUATERNION=1010;
 
- /*! Dimensionless value - no params - although, as in _ESTIMATE 
+/*! Dimensionless value - no params - although, as in _ESTIMATE
      the name of the parameter may be stored in intent_name.     */
 
 const int32_t NIFTI_INTENT_DIMLESS   =1011;
@@ -1154,32 +1154,32 @@ const int32_t NIFTI_INTENT_DIMLESS   =1011;
    (RW Cox) do not understand.
 -----------------------------------------------------------------------------*/
 
-   /* [qs]form_code value:  */      /* x,y,z coordinate system refers to:    */
-   /*-----------------------*/      /*---------------------------------------*/
+/* [qs]form_code value:  */      /* x,y,z coordinate system refers to:    */
+/*-----------------------*/      /*---------------------------------------*/
 
 /*! \defgroup NIFTI1_XFORM_CODES
     \brief nifti1 xform codes to describe the "standard" coordinate system
     @{
  */
-                                    /*! Arbitrary coordinates (Method 1). */
+/*! Arbitrary coordinates (Method 1). */
 
 const int32_t NIFTI_XFORM_UNKNOWN     =0;
 
-                                    /*! Scanner-based anatomical coordinates */
+/*! Scanner-based anatomical coordinates */
 
 const int32_t NIFTI_XFORM_SCANNER_ANAT=1;
 
-                                    /*! Coordinates aligned to another file's,
+/*! Coordinates aligned to another file's,
                                         or to anatomical "truth".            */
 
 const int32_t NIFTI_XFORM_ALIGNED_ANAT=2;
 
-                                    /*! Coordinates aligned to Talairach-
+/*! Coordinates aligned to Talairach-
                                         Tournoux Atlas; (0,0,0)=AC, etc. */
 
 const int32_t NIFTI_XFORM_TALAIRACH   =3;
 
-                                    /*! MNI 152 normalized coordinates. */
+/*! MNI 152 normalized coordinates. */
 
 const int32_t NIFTI_XFORM_MNI_152     =4;
 /* @} */
@@ -1226,31 +1226,31 @@ const int32_t NIFTI_XFORM_MNI_152     =4;
            each dimension of the dataset
     @{
  */
-                               /*! NIFTI code for unspecified units. */
+/*! NIFTI code for unspecified units. */
 const int32_t NIFTI_UNITS_UNKNOWN=0;
 
-                               /** Space codes are multiples of 1. **/
-                               /*! NIFTI code for meters. */
+/** Space codes are multiples of 1. **/
+/*! NIFTI code for meters. */
 const int32_t NIFTI_UNITS_METER  =1;
-                               /*! NIFTI code for millimeters. */
+/*! NIFTI code for millimeters. */
 const int32_t NIFTI_UNITS_MM     =2;
-                               /*! NIFTI code for micrometers. */
+/*! NIFTI code for micrometers. */
 const int32_t NIFTI_UNITS_MICRON =3;
 
-                               /** Time codes are multiples of 8. **/
-                               /*! NIFTI code for seconds. */
+/** Time codes are multiples of 8. **/
+/*! NIFTI code for seconds. */
 const int32_t NIFTI_UNITS_SEC    =8;
-                               /*! NIFTI code for milliseconds. */
+/*! NIFTI code for milliseconds. */
 const int32_t NIFTI_UNITS_MSEC  =16;
-                               /*! NIFTI code for microseconds. */
+/*! NIFTI code for microseconds. */
 const int32_t NIFTI_UNITS_USEC  =24;
 
-                               /*** These units are for spectral data: ***/
-                               /*! NIFTI code for Hertz. */
+/*** These units are for spectral data: ***/
+/*! NIFTI code for Hertz. */
 const int32_t NIFTI_UNITS_HZ    =32;
-                               /*! NIFTI code for ppm. */
+/*! NIFTI code for ppm. */
 const int32_t NIFTI_UNITS_PPM   =40;
-                               /*! NIFTI code for radians per second. */
+/*! NIFTI code for radians per second. */
 const int32_t NIFTI_UNITS_RADS  =48;
 /* @} */
 
@@ -1261,7 +1261,7 @@ const int32_t NIFTI_UNITS_RADS  =48;
 
 #undef  SPACE_TIME_TO_XYZT
 #define SPACE_TIME_TO_XYZT(ss,tt) (  (((char)(ss)) & 0x07)   \
-                                   | (((char)(tt)) & 0x38) )
+    | (((char)(tt)) & 0x38) )
 
 /*---------------------------------------------------------------------------*/
 /* MRI-SPECIFIC SPATIAL AND TEMPORAL INFORMATION:
@@ -1359,8 +1359,8 @@ const int32_t NIFTI_UNITS_RADS  =48;
 
 #undef  FPS_INTO_DIM_INFO
 #define FPS_INTO_DIM_INFO(fd,pd,sd) ( ( ( ((char)(fd)) & 0x03)      ) |  \
-                                      ( ( ((char)(pd)) & 0x03) << 2 ) |  \
-                                      ( ( ((char)(sd)) & 0x03) << 4 )  )
+    ( ( ((char)(pd)) & 0x03) << 2 ) |  \
+    ( ( ((char)(sd)) & 0x03) << 4 )  )
 
 /*! \defgroup NIFTI1_SLICE_ORDER
     \brief nifti1 slice order codes, describing the acquisition order
@@ -1406,10 +1406,10 @@ const int32_t NIFTI_SLICE_ALT_DEC2 =6; /* 05 May 2005: RWCox */
     Returns NIFTI version number (1..9) if magic is good, 0 if it is not. */
 
 #define NIFTI_VERSION(h)                               \
- ( ( (h).magic[0]=='n' && (h).magic[3]=='\0'    &&     \
-     ( (h).magic[1]=='i' || (h).magic[1]=='+' ) &&     \
-     ( (h).magic[2]>='1' && (h).magic[2]<='9' )   )    \
- ? (h).magic[2]-'0' : 0 )
+    ( ( (h).magic[0]=='n' && (h).magic[3]=='\0'    &&     \
+    ( (h).magic[1]=='i' || (h).magic[1]=='+' ) &&     \
+    ( (h).magic[2]>='1' && (h).magic[2]<='9' )   )    \
+    ? (h).magic[2]-'0' : 0 )
 
 /*.................*/
 /*! Check if a nifti_1_header struct says if the data is stored in the

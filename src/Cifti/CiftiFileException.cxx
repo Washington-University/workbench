@@ -29,24 +29,24 @@
 
 using namespace caret;
 
-CiftiFileException::CiftiFileException(const QString& msg) 
+CiftiFileException::CiftiFileException(const AString& msg)
 {
-   exceptionDescription = msg;
+    exceptionDescription = msg;
 }
 
 /**
  * Constructor.
  */
-CiftiFileException::CiftiFileException(const QString& filename, const QString& msg) 
+CiftiFileException::CiftiFileException(const AString& filename, const AString& msg)
 {
-   QString s("Error  ");
-   s.append(filename);
-   s.append(": ");
-   s.append(msg);
-   exceptionDescription = s;
+    AString s("Error  ");
+    s.append(filename);
+    s.append(": ");
+    s.append(msg);
+    exceptionDescription = s;
 }
 
-         
+
 /**
  * Destructor.
  */
@@ -61,14 +61,14 @@ CiftiFileException::~CiftiFileException() throw()
 const char*
 CiftiFileException::what() const throw() 
 {
-   return exceptionDescription.toAscii().constData();
+    return exceptionDescription.toAscii().constData();
 }
 
 /**
  * Text message describing exception.
  */
-QString
-CiftiFileException::whatQString() const throw() 
+AString
+CiftiFileException::whatAString() const throw()
 {
-   return exceptionDescription;
+    return exceptionDescription;
 }

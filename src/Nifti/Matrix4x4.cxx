@@ -1,26 +1,26 @@
-/*LICENSE_START*/ 
+/*LICENSE_START*/
 /* 
- *  Copyright 1995-2002 Washington University School of Medicine 
- * 
- *  http://brainmap.wustl.edu 
- * 
- *  This file is part of CARET. 
- * 
- *  CARET is free software; you can redistribute it and/or modify 
- *  it under the terms of the GNU General Public License as published by 
- *  the Free Software Foundation; either version 2 of the License, or 
- *  (at your option) any later version. 
- * 
- *  CARET is distributed in the hope that it will be useful, 
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- *  GNU General Public License for more details. 
- * 
- *  You should have received a copy of the GNU General Public License 
- *  along with CARET; if not, write to the Free Software 
- *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
- * 
- */ 
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
 /*=========================================================================
 
   Program:   Visualization Toolkit
@@ -186,9 +186,9 @@ Matrix4x4::setTranslation(const float t[3])
  */
 void
 Matrix4x4::setTranslation(
-                   const double tx,
-                   const double ty,
-                   const double tz)
+        const double tx,
+        const double ty,
+        const double tz)
 {
     matrix[0][3] = tx;
     matrix[1][3] = ty;
@@ -209,9 +209,9 @@ Matrix4x4::setTranslation(
  */
 void
 Matrix4x4::translate(
-                   const double tx,
-                   const double ty,
-                   const double tz)
+        const double tx,
+        const double ty,
+        const double tz)
 {
     Matrix4x4 cm;
     cm.setTranslation(tx, ty, tz);
@@ -231,9 +231,9 @@ Matrix4x4::translate(
  */
 void
 Matrix4x4::scale(
-                   const double sx,
-                   const double sy,
-                   const double sz)
+        const double sx,
+        const double sy,
+        const double sz)
 {
     Matrix4x4 cm;
     cm.matrix[0][0] = sx;
@@ -246,7 +246,7 @@ Matrix4x4::scale(
 /**
  * Apply a rotation about the X-axis.  Rotates in the
  * screen's coordinate system.
- * 
+ *
  * @param  degrees  Amount to rotate in degrees.
  *
  */
@@ -259,7 +259,7 @@ Matrix4x4::rotateX(const double degrees)
 /**
  * Apply a rotation about the Y-axis.  Rotates in the
  * screen's coordinate system.
- * 
+ *
  * @param  degrees  Amount to rotate in degrees.
  *
  */
@@ -272,7 +272,7 @@ Matrix4x4::rotateY(const double degrees)
 /**
  * Apply a rotation about the Z-axis.  Rotates in the
  * screen's coordinate system.
- * 
+ *
  * @param  degrees  Amount to rotate in degrees.
  *
  */
@@ -290,8 +290,8 @@ Matrix4x4::rotateZ(const double degrees)
  */
 void
 Matrix4x4::rotate(
-                   const double angle,
-                   const double vector[4])
+        const double angle,
+        const double vector[4])
 {
     this->rotate(angle, vector[0], vector[1], vector[2]);
     this->setModified();
@@ -299,7 +299,7 @@ Matrix4x4::rotate(
 
 /**
  * Rotate <I>angle</I> degrees about the vector <I>(x,y,z)</I>.
- * 
+ *
  * @param  angle  Amount to rotate in degrees.
  * @param  xin      X-component of the vector.
  * @param  yin      Y-component of the vector.
@@ -308,10 +308,10 @@ Matrix4x4::rotate(
  */
 void
 Matrix4x4::rotate(
-                   const double angleIn,
-                   const double xin,
-                   const double yin,
-                   const double zin)
+        const double angleIn,
+        const double xin,
+        const double yin,
+        const double zin)
 {
     /// from vtkTransformConcatenation::Rotate()
     float angle = angleIn;
@@ -376,21 +376,21 @@ Matrix4x4::premultiply(const Matrix4x4& tm)
     double matrixOut[4][4];
     for (int row = 0; row < 4; row++) {
         matrixOut[row][0] = matrix[row][0] * tm.matrix[0][0]
-        + matrix[row][1] * tm.matrix[1][0]
-        + matrix[row][2] * tm.matrix[2][0]
-        + matrix[row][3] * tm.matrix[3][0];
+                + matrix[row][1] * tm.matrix[1][0]
+                + matrix[row][2] * tm.matrix[2][0]
+                + matrix[row][3] * tm.matrix[3][0];
         matrixOut[row][1] = matrix[row][0] * tm.matrix[0][1]
-        + matrix[row][1] * tm.matrix[1][1]
-        + matrix[row][2] * tm.matrix[2][1]
-        + matrix[row][3] * tm.matrix[3][1];
+                + matrix[row][1] * tm.matrix[1][1]
+                + matrix[row][2] * tm.matrix[2][1]
+                + matrix[row][3] * tm.matrix[3][1];
         matrixOut[row][2] = matrix[row][0] * tm.matrix[0][2]
-        + matrix[row][1] * tm.matrix[1][2]
-        + matrix[row][2] * tm.matrix[2][2]
-        + matrix[row][3] * tm.matrix[3][2];
+                + matrix[row][1] * tm.matrix[1][2]
+                + matrix[row][2] * tm.matrix[2][2]
+                + matrix[row][3] * tm.matrix[3][2];
         matrixOut[row][3] = matrix[row][0] * tm.matrix[0][3]
-        + matrix[row][1] * tm.matrix[1][3]
-        + matrix[row][2] * tm.matrix[2][3]
-        + matrix[row][3] * tm.matrix[3][3];
+                + matrix[row][1] * tm.matrix[1][3]
+                + matrix[row][2] * tm.matrix[2][3]
+                + matrix[row][3] * tm.matrix[3][3];
     }
     setMatrix(matrixOut);
     this->fixNumericalError();
@@ -409,21 +409,21 @@ Matrix4x4::postmultiply(const Matrix4x4& tm)
     double matrixOut[4][4];
     for (int row = 0; row < 4; row++) {
         matrixOut[row][0] = tm.matrix[row][0] * matrix[0][0]
-        + tm.matrix[row][1] * matrix[1][0]
-        + tm.matrix[row][2] * matrix[2][0]
-        + tm.matrix[row][3] * matrix[3][0];
+                + tm.matrix[row][1] * matrix[1][0]
+                + tm.matrix[row][2] * matrix[2][0]
+                + tm.matrix[row][3] * matrix[3][0];
         matrixOut[row][1] = tm.matrix[row][0] * matrix[0][1]
-        + tm.matrix[row][1] * matrix[1][1]
-        + tm.matrix[row][2] * matrix[2][1]
-        + tm.matrix[row][3] * matrix[3][1];
+                + tm.matrix[row][1] * matrix[1][1]
+                + tm.matrix[row][2] * matrix[2][1]
+                + tm.matrix[row][3] * matrix[3][1];
         matrixOut[row][2] = tm.matrix[row][0] * matrix[0][2]
-        + tm.matrix[row][1] * matrix[1][2]
-        + tm.matrix[row][2] * matrix[2][2]
-        + tm.matrix[row][3] * matrix[3][2];
+                + tm.matrix[row][1] * matrix[1][2]
+                + tm.matrix[row][2] * matrix[2][2]
+                + tm.matrix[row][3] * matrix[3][2];
         matrixOut[row][3] = tm.matrix[row][0] * matrix[0][3]
-        + tm.matrix[row][1] * matrix[1][3]
-        + tm.matrix[row][2] * matrix[2][3]
-        + tm.matrix[row][3] * matrix[3][3];
+                + tm.matrix[row][1] * matrix[1][3]
+                + tm.matrix[row][2] * matrix[2][3]
+                + tm.matrix[row][3] * matrix[3][3];
     }
     setMatrix(matrixOut);
     this->fixNumericalError();
@@ -575,32 +575,32 @@ Matrix4x4::setMatrix(const Matrix4x4& cm)
 void
 Matrix4x4::multiplyPoint3(float p[3]) const
 {
-        float pout[3] = { 0.0f, 0.0f, 0.0f };
-        for (int row = 0; row < 3; row++) {
-            pout[row] = (float)(this->matrix[row][0] * p[0]
-                                + this->matrix[row][1] * p[1]
-                                + this->matrix[row][2] * p[2]
-                                + this->matrix[row][3]);
-        }
-        p[0] = pout[0];
-        p[1] = pout[1];
-        p[2] = pout[2];
+    float pout[3] = { 0.0f, 0.0f, 0.0f };
+    for (int row = 0; row < 3; row++) {
+        pout[row] = (float)(this->matrix[row][0] * p[0]
+                            + this->matrix[row][1] * p[1]
+                            + this->matrix[row][2] * p[2]
+                            + this->matrix[row][3]);
+    }
+    p[0] = pout[0];
+    p[1] = pout[1];
+    p[2] = pout[2];
 }
 
 void
 Matrix4x4::multiplyPoint4(float p[4]) const
 {
-        float pout[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-        for (int row = 0; row < 4; row++) {
-            pout[row] = (float)(this->matrix[row][0] * p[0]
-                                + this->matrix[row][1] * p[1]
-                                + this->matrix[row][2] * p[2]
-                                + this->matrix[row][3] * p[3]);
-        }
-        p[0] = pout[0];
-        p[1] = pout[1];
-        p[2] = pout[2];
-        p[3] = pout[3];
+    float pout[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    for (int row = 0; row < 4; row++) {
+        pout[row] = (float)(this->matrix[row][0] * p[0]
+                            + this->matrix[row][1] * p[1]
+                            + this->matrix[row][2] * p[2]
+                            + this->matrix[row][3] * p[3]);
+    }
+    p[0] = pout[0];
+    p[1] = pout[1];
+    p[2] = pout[2];
+    p[3] = pout[3];
 }
 
 void
@@ -676,8 +676,8 @@ Matrix4x4::setTransformedSpaceName(const AString& name)
  */
 double
 Matrix4x4::getMatrixElement(
-                   const int32_t i,
-                   const int32_t j) const
+        const int32_t i,
+        const int32_t j) const
 {
     return this->matrix[i][j];
 }
@@ -691,9 +691,9 @@ Matrix4x4::getMatrixElement(
  */
 void
 Matrix4x4::setMatrixElement(
-                   const int32_t i,
-                   const int32_t j,
-                   const double e)
+        const int32_t i,
+        const int32_t j,
+        const double e)
 {
     this->matrix[i][j] = e;
     this->setModified();
@@ -709,8 +709,8 @@ Matrix4x4::setMatrixElement(
  */
 bool
 Matrix4x4::compare(
-                   const Matrix4x4& m,
-                   const float error)
+        const Matrix4x4& m,
+        const float error)
 {
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -817,9 +817,9 @@ Matrix4x4::Inverse(const double a[4][4], double matrixOut[4][4]) const
 {
     // Formula used to Calculate Inverse:
     // inv(A) = 1/det(A) * adj(A)
-//    if (INFO) {
-//        System.out.println("Performing Inverse...");
-//    }
+    //    if (INFO) {
+    //        System.out.println("Performing Inverse...");
+    //    }
     int tms = 4;
     
     double mm[4][4];
@@ -849,9 +849,9 @@ Matrix4x4::Inverse(const double a[4][4], double matrixOut[4][4]) const
 void
 Matrix4x4::Adjoint(const double inputMatrix[4][4], double outputMatrix[4][4]) const
 {
-//    if (INFO) {
-//        System.out.println("Performing Adjoint...");
-//    }
+    //    if (INFO) {
+    //        System.out.println("Performing Adjoint...");
+    //    }
     const int tms = 4;
     
     double a[4][4];
@@ -918,23 +918,23 @@ Matrix4x4::UpperTriangle3(const double inputMatrix[3][3], double outputMatrix[3]
         for (int row = col + 1; row < tms; row++) {
             v = 1;
             
-        outahere: while (m[col][col] == 0) // check if 0 in diagonal
-        { // if so switch until not
-            if (col + v >= tms) // check if switched all rows
-            {
-                iDF = 0;
-                goto outahere;
-            } else {
-                for (int c = 0; c < tms; c++) {
-                    temp = m[col][c];
-                    m[col][c] = m[col + v][c]; // switch rows
-                    m[col + v][c] = temp;
+outahere: while (m[col][col] == 0) // check if 0 in diagonal
+            { // if so switch until not
+                if (col + v >= tms) // check if switched all rows
+                {
+                    iDF = 0;
+                    goto outahere;
+                } else {
+                    for (int c = 0; c < tms; c++) {
+                        temp = m[col][c];
+                        m[col][c] = m[col + v][c]; // switch rows
+                        m[col + v][c] = temp;
+                    }
+                    v++; // count row switchs
+                    iDF = iDF * -1; // each switch changes determinant
+                    // factor
                 }
-                v++; // count row switchs
-                iDF = iDF * -1; // each switch changes determinant
-                // factor
             }
-        }
             
             if (m[col][col] != 0) {
                 /*
@@ -944,16 +944,16 @@ Matrix4x4::UpperTriangle3(const double inputMatrix[3][3], double outputMatrix[3]
                 }
                 */
                 
-                    double bottom = m[col][col];
-                    if (bottom != 0.0) {
-                        f1 = (-1) * m[row][col] / m[col][col];
-                        for (int i = col; i < tms; i++) {
-                            m[row][i] = f1 * m[col][i] + m[row][i];
-                        }
+                double bottom = m[col][col];
+                if (bottom != 0.0) {
+                    f1 = (-1) * m[row][col] / m[col][col];
+                    for (int i = col; i < tms; i++) {
+                        m[row][i] = f1 * m[col][i] + m[row][i];
                     }
-                    else {
-                       // std::cout << "Still Here!!!" std::endl;
-                    }
+                }
+                else {
+                    // std::cout << "Still Here!!!" std::endl;
+                }
                 
             }
             
@@ -988,23 +988,23 @@ Matrix4x4::UpperTriangle4(const double inputMatrix[4][4], double outputMatrix[4]
         for (int row = col + 1; row < tms; row++) {
             v = 1;
             
-        outahere: while (m[col][col] == 0) // check if 0 in diagonal
-        { // if so switch until not
-            if (col + v >= tms) // check if switched all rows
-            {
-                iDF = 0;
-                goto outahere;
-            } else {
-                for (int c = 0; c < tms; c++) {
-                    temp = m[col][c];
-                    m[col][c] = m[col + v][c]; // switch rows
-                    m[col + v][c] = temp;
+outahere: while (m[col][col] == 0) // check if 0 in diagonal
+            { // if so switch until not
+                if (col + v >= tms) // check if switched all rows
+                {
+                    iDF = 0;
+                    goto outahere;
+                } else {
+                    for (int c = 0; c < tms; c++) {
+                        temp = m[col][c];
+                        m[col][c] = m[col + v][c]; // switch rows
+                        m[col + v][c] = temp;
+                    }
+                    v++; // count row switchs
+                    iDF = iDF * -1; // each switch changes determinant
+                    // factor
                 }
-                v++; // count row switchs
-                iDF = iDF * -1; // each switch changes determinant
-                // factor
             }
-        }
             
             if (m[col][col] != 0) {
                 /*
@@ -1039,9 +1039,9 @@ Matrix4x4::UpperTriangle4(const double inputMatrix[4][4], double outputMatrix[4]
 double
 Matrix4x4::Determinant4(const double matrixIn[4][4]) const
 {
-//    if (INFO) {
-//        System.out.println("Getting Determinant...");
-//    }
+    //    if (INFO) {
+    //        System.out.println("Getting Determinant...");
+    //    }
     double matrix[4][4];
     for (int i = 0; i < 4; i++) {
         for (int j = 0; j < 4; j++) {
@@ -1061,9 +1061,9 @@ Matrix4x4::Determinant4(const double matrixIn[4][4]) const
     
     det = det * iDF; // adjust w/ determinant factor
     
-//    if (INFO) {
-//        System.out.println("Determinant: " + det);
-//    }
+    //    if (INFO) {
+    //        System.out.println("Determinant: " + det);
+    //    }
     return det;
 }
 double
