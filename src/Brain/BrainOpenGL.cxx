@@ -1181,7 +1181,7 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
                         break;
                     case StructureEnum::CEREBELLUM:
                         drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);
-                        dy = wholeBrainController->getCerebellumSeparation(tabNumberIndex);
+                        dz = wholeBrainController->getCerebellumSeparation(tabNumberIndex);
                         break;
                     default:
                         break;
