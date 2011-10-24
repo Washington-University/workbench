@@ -252,6 +252,7 @@ namespace caret {
         QSpinBox*  volumeIndicesAxialSpinBox;
         
     private slots:
+        void volumeIndicesResetActionTriggered();
         void volumeIndicesParasagittalCheckBoxStateChanged(int state);
         void volumeIndicesCoronalCheckBoxStateChanged(int state);
         void volumeIndicesAxialCheckBoxStateChanged(int state);

@@ -1199,23 +1199,31 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
 QWidget* 
 BrainBrowserWindowToolBar::createVolumeIndicesWidget()
 {
+    QAction* volumeIndicesResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT", 
+                                                                         "Reset to the slices indices to those with stereotaxic coordinate (0, 0, 0)", 
+                                                                         this, 
+                                                                         this, 
+                                                                         SLOT(volumeIndicesResetActionTriggered()));
+    QToolButton* volumeIndicesResetToolButton = new QToolButton;
+    volumeIndicesResetToolButton->setDefaultAction(volumeIndicesResetToolButtonAction);
+    
     QLabel* parasagittalLabel = new QLabel("P:");
     QLabel* coronalLabel = new QLabel("C:");
     QLabel* axialLabel = new QLabel("A:");
     
-    this->volumeIndicesParasagittalCheckBox = new QCheckBox("");
+    this->volumeIndicesParasagittalCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesParasagittalCheckBox,
                                           "Enable/Disable display of PARASAGITTAL slice");
     QObject::connect(this->volumeIndicesParasagittalCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesParasagittalCheckBoxStateChanged(int)));
     
-    this->volumeIndicesCoronalCheckBox = new QCheckBox("");
+    this->volumeIndicesCoronalCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesCoronalCheckBox,
                                           "Enable/Disable display of CORONAL slice");
     QObject::connect(this->volumeIndicesCoronalCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesCoronalCheckBoxStateChanged(int)));
     
-    this->volumeIndicesAxialCheckBox = new QCheckBox("");
+    this->volumeIndicesAxialCheckBox = new QCheckBox(" ");
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesAxialCheckBox,
                                           "Enable/Disable display of AXIAL slice");
     
@@ -1242,6 +1250,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     
     
     QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->setHorizontalSpacing(2);
     gridLayout->setVerticalSpacing(2);
     gridLayout->addWidget(this->volumeIndicesParasagittalCheckBox, 0, 0);
     gridLayout->addWidget(parasagittalLabel, 0, 1);
@@ -1252,13 +1261,16 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     gridLayout->addWidget(this->volumeIndicesAxialCheckBox, 2, 0);
     gridLayout->addWidget(axialLabel, 2, 1);
     gridLayout->addWidget(this->volumeIndicesAxialSpinBox, 2, 2);
+    gridLayout->addWidget(volumeIndicesResetToolButton, 0, 3, 3, 1);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
     layout->addLayout(gridLayout);
+    layout->addStretch();
     
     this->volumeIndicesWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->volumeIndicesWidgetGroup->add(volumeIndicesResetToolButtonAction);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalCheckBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalSpinBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesCoronalCheckBox);
@@ -1695,7 +1707,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
                      this, SLOT(volumePlaneViewActionGroupTriggered(QAction*)));
     
     this->volumePlaneResetToolButtonAction = WuQtUtilities::createAction("Reset", 
-                                                                         "Reset to the slices to those with stereotaxic coordinate (0, 0, 0) and remove panning/zooming", 
+                                                                         "Reset to remove panning/zooming", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(volumePlaneResetToolButtonTriggered(bool)));
@@ -1757,7 +1769,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     this->volumePlaneWidgetGroup->add(this->volumePlaneActionGroup);
     this->volumePlaneWidgetGroup->add(this->volumePlaneResetToolButtonAction);
     
-    QWidget* w = this->createToolWidget("Plane", 
+    QWidget* w = this->createToolWidget("Slice Plane", 
                                         widget, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
@@ -2247,6 +2259,32 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
     
     wholeBrainController->setCerebellumSeparation(tabIndex, 
                                                  this->wholeBrainSurfaceSeparationCerebellumSpinBox->value());
+    this->updateGraphicsWindow();
+}
+
+/**
+ * Called when volume indices RESET tool button is pressed.
+ */
+void
+BrainBrowserWindowToolBar::volumeIndicesResetActionTriggered()
+{
+    CaretLogEntering();
+    this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        volumeController->setSlicesToOrigin(tabIndex);
+    }
+    
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        wholeBrainController->setSlicesToOrigin(tabIndex);
+    }
+    
+    this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
 

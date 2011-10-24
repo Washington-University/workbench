@@ -382,15 +382,12 @@ ModelDisplayControllerWholeBrain::getVolumeFile()
 }
 
 /**
- * Reset view.  For left and right hemispheres, the default
- * view is a lateral view.
- * @param  windowTabNumber  Window for which view is requested
- * reset the view.
+ * Set the selected slices to the origin.
+ * @param  windowTabNumber  Window for which slices set to origin is requested.
  */
 void
-ModelDisplayControllerWholeBrain::resetView(const int32_t windowTabNumber)
+ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    ModelDisplayController::resetView(windowTabNumber);
     VolumeFile* vf = this->getVolumeFile();
     if (vf != NULL) {
         this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
