@@ -28,7 +28,7 @@
 #include <QtCore>
 #include "iostream"
 #include "CiftiFileException.h"
-#include "NiftiHeaderIO.h"
+#include "CiftiHeaderIO.h"
 #include "CiftiXML.h"
 #include "NiftiMatrix.h"
 
@@ -48,10 +48,10 @@ public:
     virtual void writeFile(const AString &fileName) const throw (CiftiFileException);
 
     //get/set Nifti2/CiftiHeader
-    /// set Nifti2Header
-    virtual void setHeader(const Nifti2Header &header) throw (CiftiFileException);
-    /// get Nifti2Header
-    virtual void getHeader(Nifti2Header &header) throw (CiftiFileException);
+    /// set CiftiHeader
+    virtual void setHeader(const CiftiHeader &header) throw (CiftiFileException);
+    /// get CiftiHeader
+    virtual void getHeader(CiftiHeader &header) throw (CiftiFileException);
 
     //TODO, put some thought into whether we want to hand back an xml tree vs handing back a class that manages
     //the tree in an intelligent way.
@@ -66,7 +66,7 @@ protected:
     virtual void init();
 
     AString m_fileName;
-    NiftiHeaderIO m_headerIO;
+    CiftiHeaderIO m_headerIO;
     CiftiXML m_xml;
     NiftiMatrix m_matrix;
     bool m_swapNeeded;

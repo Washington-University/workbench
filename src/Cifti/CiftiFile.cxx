@@ -71,11 +71,11 @@ void CiftiFile::init()
  */
 void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
 {
-    //Read Nifti2Header
-
+    //Read CiftiHeader
+    m_headerIO.readFile(fileName);
 
     //read XML
-    //TODO m_swapNeeded = m_Nifti2Header->getSwapNeeded();
+    m_swapNeeded = m_headerIO.getSwapNeeded();
     {
         QFile inputFile(fileName);
         inputFile.setFileName(fileName);
@@ -96,7 +96,10 @@ void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
     }
 
     //set up Matrix for reading..
-
+    m_matrix.setMatrixFile(fileName);
+    CiftiHeader header;
+    m_headerIO.getHeader(header);
+    m_matrix.setMatrixLayoutOnDisk(header);
 }
 
 /** 
@@ -117,15 +120,15 @@ void CiftiFile::writeFile(const AString &fileName) const throw (CiftiFileExcepti
     int length = 8 + xmlBytes.length();
 
     /*
-   nifti_2_header header;
-   m_Nifti2Header->getHeaderStruct(header);
-   header.vox_offset = 544 + length;
-   int remainder = header.vox_offset % 8;
-   int padding = 0;
-   if (remainder) padding = 8 - remainder;//for 8 byte alignment
-   header.vox_offset += padding;
-   length += padding;
-   m_Nifti2Header->setHeaderStuct(header);
+        nifti_2_header header;
+        m_CiftiHeader->getHeaderStruct(header);
+        header.vox_offset = 544 + length;
+        int remainder = header.vox_offset % 8;
+        int padding = 0;
+        if (remainder) padding = 8 - remainder;//for 8 byte alignment
+        header.vox_offset += padding;
+        length += padding;
+        m_CiftiHeader->setHeaderStuct(header);
    */
 
     //write out the file
@@ -163,12 +166,12 @@ CiftiFile::~CiftiFile()
 /**
  *
  *
- * set the Nifti2Header
+ * set the CiftiHeader
  *
  * @param header
  */
 // Header IO
-void CiftiFile::setHeader(const Nifti2Header &header) throw (CiftiFileException)
+void CiftiFile::setHeader(const CiftiHeader &header) throw (CiftiFileException)
 {   
     m_headerIO.setHeader(header);
 }
@@ -176,11 +179,11 @@ void CiftiFile::setHeader(const Nifti2Header &header) throw (CiftiFileException)
 /**
  *
  *
- * get a copy of the Nifti2Header
+ * get a copy of the CiftiHeader
  *
  * @param header
  */
-void CiftiFile::getHeader(Nifti2Header &header) throw (CiftiFileException)
+void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
 {
     m_headerIO.getHeader(header);
 }
