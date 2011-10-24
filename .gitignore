@@ -1,2 +1,3 @@
 OLD.Makefile
 *.kdev4
+CMakeLists.txt.user*

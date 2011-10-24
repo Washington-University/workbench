@@ -27,6 +27,7 @@
 
 #include <map>
 #include <AString.h>
+#include "SystemUtilities.h"
 
 namespace caret {
     
@@ -59,10 +60,10 @@ private:
      */
     class CaretObjectInfo {
     public:
-        CaretObjectInfo(const AString& callStack);
+        CaretObjectInfo(const SystemBacktrace& backtrace);
         ~CaretObjectInfo();
         
-        AString callStack;
+        SystemBacktrace m_backtrace;
     };
     
     void copyHelper(const CaretObject& co);

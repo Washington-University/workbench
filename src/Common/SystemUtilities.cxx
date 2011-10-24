@@ -37,7 +37,6 @@
 using namespace caret;
 
 SystemUtilities::SystemUtilities()
-    : CaretObject()
 {
 }
 
@@ -98,7 +97,6 @@ SystemUtilities::getBackTrace(std::vector<AString>& backTraceOut)
     
 #ifdef CARET_OS_WINDOWS
 #else  // CARET_OS_WINDOWS
-    std::stringstream str;
     void* callstack[1024];
     int numFrames = backtrace(callstack, 1024);
     char** symbols = backtrace_symbols(callstack, numFrames);
@@ -107,6 +105,34 @@ SystemUtilities::getBackTrace(std::vector<AString>& backTraceOut)
     }
     free(symbols);
 #endif // CARET_OS_WINDOWS
+}
+
+void SystemUtilities::getBackTrace(SystemBacktrace& backTraceOut)
+{
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    backTraceOut.m_numFrames = backtrace(backTraceOut.m_callstack, 1024);
+#endif // CARET_OS_WINDOWS
+}
+
+SystemBacktrace::SystemBacktrace()
+{
+    m_numFrames = 0;
+}
+
+AString SystemBacktrace::toSymbolString() const
+{
+    std::stringstream str;
+#ifdef CARET_OS_WINDOWS
+#else  // CARET_OS_WINDOWS
+    char** symbols = backtrace_symbols(m_callstack, m_numFrames);
+    for (int i = 0; i < m_numFrames; ++i)
+    {
+        str << symbols[i] << endl;
+    }
+    free(symbols);
+#endif // CARET_OS_WINDOWS
+    return AString::fromStdString(str.str());
 }
 
 /**

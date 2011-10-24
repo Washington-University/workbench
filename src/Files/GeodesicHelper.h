@@ -75,7 +75,7 @@ namespace caret {
                 delete[] distances;
                 delete[] distances2;
             }
-        };
+        }
         friend class GeodesicHelper;//let it grab the private variables it needs
     };
 
@@ -92,7 +92,7 @@ namespace caret {
         public:
             inline bool isEmpty() {
                 return store.empty();
-            };
+            }
             inline int32_t pop()
             {
                 int32_t ret = store[0].node;
@@ -110,7 +110,7 @@ namespace caret {
                 store[prev] = store[last];
                 store.pop_back();
                 return ret;
-            };
+            }
             inline void push(int32_t node, float dist)
             {
                 int32_t prev = store.size();
@@ -126,10 +126,10 @@ namespace caret {
                     next = (prev - 1) >> 1;
                 }
                 store[prev] = mydata;
-            };
+            }
             inline void clear() {
                 store.clear();
-            };
+            }
         };
         float* output, **distances, **distances2;//use primitives for speed, and they don't need to change size
         int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
@@ -153,7 +153,7 @@ namespace caret {
                 delete[] changed;
                 delete[] parent;
             }
-        };
+        }
         /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
         void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, const bool smoothflag = true);
 

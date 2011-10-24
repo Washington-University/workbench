@@ -80,9 +80,14 @@ CaretObject::operator=(const CaretObject& co)
 void
 CaretObject::initializeMembersCaretObject()
 {
+    SystemBacktrace myBacktrace;
+    SystemUtilities::getBackTrace(myBacktrace);
     CaretObject::allocatedObjects.insert(
+               std::make_pair(this,
+                              myBacktrace));
+    /*CaretObject::allocatedObjects.insert(
            std::make_pair(this, 
-                          SystemUtilities::getBackTrace()));
+                          SystemUtilities::getBackTrace()));//*/
 }
 
 void 
@@ -132,7 +137,7 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
             const CaretObjectInfo& caretObjectInfo = iter->second;
             std::cout << caretObject->toString().toStdString() << std::endl;
             if (showCallStack) {
-                std::cout << caretObjectInfo.callStack.toStdString() << std::endl;
+                std::cout << caretObjectInfo.m_backtrace.toSymbolString() << std::endl;
             }
             std::cout << std::endl;
             
@@ -152,9 +157,9 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
  * @param callStack
  *     A callstack showing where the object was created.
  */
-CaretObject::CaretObjectInfo::CaretObjectInfo(const AString& callStack)
+CaretObject::CaretObjectInfo::CaretObjectInfo(const SystemBacktrace& backtrace)
 {
-    this->callStack   = callStack;
+    m_backtrace   = backtrace;
 }
 
 /**

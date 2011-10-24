@@ -50,52 +50,56 @@ void freeTestList(vector<TestInterface*>& mylist)
 
 int main(int argc, char** argv)
 {
-    SessionManager::createSessionManager();
-    vector<TestInterface*> mytests;
-    mytests.push_back(new TimerTest("timer"));
-    mytests.push_back(new ProgressTest("progress"));
-    mytests.push_back(new NiftiFileTest("niftifile"));
-    mytests.push_back(new NiftiHeaderTest("niftiheader"));
-    mytests.push_back(new NiftiMatrixTest("niftimatrix"));
-    mytests.push_back(new VolumeFileTest("volumefile"));
-    if (argc < 2)
     {
-        cout << "No test specified, please specify one of the following:" << endl;
-        for (int i = 0; i < (int)mytests.size(); ++i)
+        SessionManager::createSessionManager();
+        vector<TestInterface*> mytests;
+        mytests.push_back(new TimerTest("timer"));
+        mytests.push_back(new ProgressTest("progress"));
+        mytests.push_back(new NiftiFileTest("niftifile"));
+        mytests.push_back(new NiftiHeaderTest("niftiheader"));
+        mytests.push_back(new NiftiMatrixTest("niftimatrix"));
+        mytests.push_back(new VolumeFileTest("volumefile"));
+        if (argc < 2)
         {
-            cout << mytests[i]->getIdentifier() << endl;
-        }
-        freeTestList(mytests);
-        return 1;//no test specified, fail
-    }
-    int failCount = 0;
-    for (int i = 1; i < argc; ++i)
-    {
-        for (int j = 0; j < (int)mytests.size(); ++j)
-        {
-            if (mytests[j]->getIdentifier() == AString(argv[i]) || "all" == AString(argv[i]))
+            cout << "No test specified, please specify one of the following:" << endl;
+            for (int i = 0; i < (int)mytests.size(); ++i)
             {
-                try
+                cout << mytests[i]->getIdentifier() << endl;
+            }
+            freeTestList(mytests);
+            return 1;//no test specified, fail
+        }
+        int failCount = 0;
+        for (int i = 1; i < argc; ++i)
+        {
+            for (int j = 0; j < (int)mytests.size(); ++j)
+            {
+                if (mytests[j]->getIdentifier() == AString(argv[i]) || "all" == AString(argv[i]))
                 {
-                    mytests[j]->execute();
-                } catch (exception e) {
-                    ++failCount;
-                    cout << "Test " << mytests[j]->getIdentifier() << " failed, exception: " << e.what() << endl;
-                    continue;//skip trying failed() and getFailMessage()
-                }
-                if (mytests[j]->failed())
-                {
-                    ++failCount;
-                    cout << "Test " << mytests[j]->getIdentifier() << " failed: " << mytests[j]->getFailMessage() << endl;
+                    try
+                    {
+                        mytests[j]->execute();
+                    } catch (exception e) {
+                        ++failCount;
+                        cout << "Test " << mytests[j]->getIdentifier() << " failed, exception: " << e.what() << endl;
+                        continue;//skip trying failed() and getFailMessage()
+                    }
+                    if (mytests[j]->failed())
+                    {
+                        ++failCount;
+                        cout << "Test " << mytests[j]->getIdentifier() << " failed: " << mytests[j]->getFailMessage() << endl;
+                    }
                 }
             }
         }
+        freeTestList(mytests);
+        if (failCount != 0)
+        {
+            cout << "Total of " << failCount << " tests failed!" << endl;
+            return 1;
+        }
+        SessionManager::deleteSessionManager();
     }
-    freeTestList(mytests);
-    if (failCount != 0)
-    {
-        cout << "Total of " << failCount << " tests failed!" << endl;
-        return 1;
-    }
+    CaretObject::printListOfObjectsNotDeleted(true);
     return 0;
 }

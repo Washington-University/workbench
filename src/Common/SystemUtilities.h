@@ -26,19 +26,29 @@
  */ 
 
 
-#include "CaretObject.h"
-
-
 #include <stdint.h>
 
 #include <AString.h>
 
 namespace caret {
 
+class SystemBacktrace
+{
+#ifdef CARET_OS_WINDOWS
+#else // CARET_OS_WINDOWS
+    void* m_callstack[1024];
+    int m_numFrames;
+#endif // CARET_OS_WINDOWS
+public:
+    SystemBacktrace();
+    AString toSymbolString() const;
+    friend class SystemUtilities;
+};
+
 /**
  * Methods to help out with files and directories.
  */
-class SystemUtilities : public CaretObject {
+class SystemUtilities {
 
 private:
     SystemUtilities();
@@ -50,7 +60,9 @@ public:
     static AString getBackTrace();
     
     static void getBackTrace(std::vector<AString>& backTraceOut);
-    
+
+    static void getBackTrace(SystemBacktrace& backTraceOut);
+
     static AString getCurrentDirectory();
 
     static void setCurrentDirectory(const AString& path);
