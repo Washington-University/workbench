@@ -29,7 +29,6 @@
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "ModelDisplayControllerTypeEnum.h"
-#include "SurfaceOverlaySet.h"
 #include "YokingTypeEnum.h"
 
 namespace caret {
@@ -39,6 +38,7 @@ namespace caret {
     class ModelDisplayControllerSurfaceSelector;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
+    class OverlaySet;
     class Surface;
     class SurfaceNodeColoring;
     
@@ -62,7 +62,7 @@ namespace caret {
         
         void setUserName(const AString& userName);
         
-        SurfaceOverlaySet* getSurfaceOverlaySet();
+        OverlaySet* getOverlaySet();
         
         int32_t getYokeToTabNumber() const;
         
@@ -83,6 +83,10 @@ namespace caret {
         ModelDisplayController* getDisplayedModelController();
         
         ModelDisplayControllerSurface* getDisplayedSurfaceModel();
+        
+        ModelDisplayControllerVolume* getDisplayedVolumeModel();
+        
+        ModelDisplayControllerWholeBrain* getDisplayedWholeBrainModel();
         
         ModelDisplayControllerVolume* getSelectedVolumeModel();
         
@@ -143,8 +147,8 @@ namespace caret {
         /** Type of yoking */
         YokingTypeEnum::Enum yokingType;
         
-        /** The surface overlay assignments */
-        SurfaceOverlaySet surfaceOverlayAssignment;
+        /** The overlay assignments */
+        OverlaySet* overlaySet;
         
         /** Last cerebellum surface that was colored for this browser tab */
         Surface* surfaceCerebellumLastColored;

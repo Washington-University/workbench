@@ -37,14 +37,14 @@
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
 #include "RgbaFile.h"
 #include "Surface.h"
-#include "SurfaceOverlay.h"
-#include "SurfaceOverlaySet.h"
 
 using namespace caret;
 
@@ -91,11 +91,11 @@ SurfaceNodeColoring::toString() const
 void 
 SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
                                        const Surface* surface,
-                                       SurfaceOverlaySet* surfaceOverlaySet,
+                                       OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
 {
     const int32_t numNodes = surface->getNumberOfNodes();
-    const int32_t numberOfDisplayedOverlays = surfaceOverlaySet->getNumberOfDisplayedOverlays();
+    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
     
     /*
      * Default color.
@@ -117,28 +117,32 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
     bool firstOverlayFlag = true;
     float* overlayRGBV = new float[numNodes * 4];
     for (int32_t iOver = (numberOfDisplayedOverlays - 1); iOver >= 0; iOver--) {
-        SurfaceOverlay* overlay = surfaceOverlaySet->getOverlay(iOver);
+        Overlay* overlay = overlaySet->getOverlay(iOver);
         if (overlay->isEnabled()) {
-            SurfaceOverlayDataTypeEnum::Enum overlayType;
-            AString selectedColumnName;
+            DataFileTypeEnum::Enum mapDataFileType;
+            AString selectedMapName;
             overlay->getSelectionData(browserTabContent,
-                                      overlayType,
-                                      selectedColumnName);
+                                      mapDataFileType,
+                                      selectedMapName);
             
             bool isColoringValid = false;
-            switch (overlayType) {
-                case SurfaceOverlayDataTypeEnum::NONE:
+            switch (mapDataFileType) {
+                case DataFileTypeEnum::LABEL:
+                    isColoringValid = this->assignLabelColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
                     break;
-                case SurfaceOverlayDataTypeEnum::CONNECTIVITY:
+                case DataFileTypeEnum::METRIC:
+                    isColoringValid = this->assignMetricColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
                     break;
-                case SurfaceOverlayDataTypeEnum::LABEL:
-                    isColoringValid = this->assignLabelColoring(brainStructure, selectedColumnName, numNodes, overlayRGBV);
+                case DataFileTypeEnum::RGBA:
+                    isColoringValid = this->assignRgbaColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
                     break;
-                case SurfaceOverlayDataTypeEnum::METRIC:
-                    isColoringValid = this->assignMetricColoring(brainStructure, selectedColumnName, numNodes, overlayRGBV);
+                case DataFileTypeEnum::VOLUME:
                     break;
-                case SurfaceOverlayDataTypeEnum::RGBA:
-                    isColoringValid = this->assignRgbaColoring(brainStructure, selectedColumnName, numNodes, overlayRGBV);
+                case DataFileTypeEnum::UNKNOWN:
+                    break;
+                default:
+                    CaretAssertMessage(0, "File type not supported for surface overlay: " 
+                                       + DataFileTypeEnum::toName(mapDataFileType));
                     break;
             }
             

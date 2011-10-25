@@ -29,8 +29,19 @@
 #include "Overlay.h"
 #undef __OVERLAY_DECLARE__
 
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
-#include "SurfaceOverlay.h"
+#include "CaretMappableDataFile.h"
+#include "EventCaretMappableDataFilesGet.h"
+#include "EventManager.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
+#include "RgbaFile.h"
+#include "Surface.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -139,10 +150,14 @@ Overlay::setEnabled(const bool enabled)
 void 
 Overlay::copyData(const Overlay* overlay)
 {
+    CaretAssert(overlay);
+    
     this->opacity = overlay->opacity;
     this->enabled = overlay->enabled;
     
-    this->copyOverlayData(overlay);
+    this->mapFiles = overlay->mapFiles;
+    this->selectedMapFile = overlay->selectedMapFile;
+    this->selectedMapName = overlay->selectedMapName;
 }
 
 /**
@@ -153,25 +168,221 @@ Overlay::copyData(const Overlay* overlay)
 void 
 Overlay::swapData(Overlay* overlay)
 {
-    SurfaceOverlay* surfaceOverlay = dynamic_cast<SurfaceOverlay*>(overlay);
-    
-    if (surfaceOverlay != NULL) {
-        SurfaceOverlay swapOverlay;
-        swapOverlay.copyData(surfaceOverlay);
-        
-        surfaceOverlay->copyData(this);
-        this->copyData(&swapOverlay);
-    }
-    else {
-        CaretAssertMessage(0, "Unrecognized overlay type");
-    }
-/*
     Overlay swapOverlay;
     swapOverlay.copyData(overlay);
     
     overlay->copyData(this);
     this->copyData(&swapOverlay);
-*/
 }
+
+/**
+ * Get the current selection.  If the current selection is
+ * invalid, new map data will be selected.
+ *
+ * @param browserTabContent
+ *    Tab in which this overlay is applied.
+ * @param mapDataFileTypeOut
+ *    Type of map file out.
+ * @param selectedMapNameOut
+ *    Name of map that is selected.
+ */
+void 
+Overlay::getSelectionData(BrowserTabContent* browserTabContent,
+                          DataFileTypeEnum::Enum& mapDataFileTypeOut,
+                          AString& selectedMapNameOut)
+{
+    std::vector<CaretMappableDataFile*> allFiles;
+    CaretMappableDataFile* selectedFile;
+    int32_t selectedIndex;
+    this->getSelectionData(browserTabContent,
+                           allFiles,
+                           selectedFile,
+                           selectedMapNameOut,
+                           selectedIndex);
+    
+    mapDataFileTypeOut = DataFileTypeEnum::UNKNOWN;
+    if (selectedFile != NULL) {
+        mapDataFileTypeOut = selectedFile->getDataFileType();
+    }
+    else {
+        selectedMapNameOut = "";
+    }    
+}
+
+/**
+ * Return the selection information.  This method is typically
+ * called to update the user-interface.
+ *
+ * @param browserTabContent
+ *    Tab in which this overlay is applied.
+ * @param mapFilesOut
+ *    Contains all map files that can be selected.
+ * @param selectedMapFileOut
+ *    The selected map file.  May be NULL.
+ * @param selectedMapNameOut
+ *    Name of selected map.
+ * @param selectedMapIndexOut
+ *    Index of selected map in the selected file.
+ */
+void 
+Overlay::getSelectionData(BrowserTabContent* browserTabContent,
+                          std::vector<CaretMappableDataFile*>& mapFilesOut,
+                          CaretMappableDataFile* &selectedMapFileOut,
+                          AString& selectedMapNameOut,
+                          int32_t& selectedMapIndexOut)
+{
+    mapFilesOut.clear();
+    selectedMapFileOut = NULL;
+    selectedMapNameOut = "";
+    selectedMapIndexOut = -1;
+    
+    /**
+     * Get the data files.
+     */
+    std::vector<CaretMappableDataFile*> allDataFiles;
+    EventCaretMappableDataFilesGet eventGetMapDataFiles;
+    EventManager::get()->sendEvent(eventGetMapDataFiles.getPointer());
+    eventGetMapDataFiles.getAllFiles(allDataFiles);
+    
+    bool showSurfaceMapFiles = false;
+    bool showVolumeMapFiles  = false;
+
+    /*
+     * If a surface is displayed, restrict selections to files that
+     * match the structure of the displayed surface.
+     */
+    StructureEnum::Enum selectedSurfaceStructure = StructureEnum::ALL;
+    ModelDisplayControllerSurface* surfaceController = browserTabContent->getDisplayedSurfaceModel();
+    if (surfaceController != NULL) {
+        selectedSurfaceStructure = surfaceController->getSurface()->getStructure();
+        showSurfaceMapFiles = true;
+    }
+    
+    /*
+     * If a volume is selected, restrict selections to volume files.
+     */
+    ModelDisplayControllerVolume* volumeController = browserTabContent->getDisplayedVolumeModel();
+    if (volumeController != NULL) {
+        showVolumeMapFiles = true;
+    }
+    
+    /*
+     * If whole brain is selected, show surface and volume files.
+     */
+    ModelDisplayControllerWholeBrain* wholeBrainController = browserTabContent->getDisplayedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        showSurfaceMapFiles = true;
+        showVolumeMapFiles = true;
+    }
+    
+    /*
+     * Use only those data files that meet criteria.
+     */
+    for (std::vector<CaretMappableDataFile*>::iterator iter = allDataFiles.begin();
+         iter != allDataFiles.end();
+         iter++) {
+        CaretMappableDataFile* mapFile = *iter;
+        bool useIt = false;
+        
+        if (mapFile->isSurfaceMappable()) {
+            if (showSurfaceMapFiles) {
+                if (selectedSurfaceStructure == StructureEnum::ALL) {
+                    useIt = true;
+                }
+                else if (selectedSurfaceStructure == mapFile->getStructure()) {
+                    useIt = true;
+                }
+            }
+        }
+        else if (mapFile->isVolumeMappable()) {
+            if (showVolumeMapFiles) {
+                useIt = true;
+            }
+        }
+        else {
+            CaretAssertMessage(0, "Map file is neither surface nor volume mappable: " + mapFile->getFileName());
+        }
+        
+        if (useIt) {
+            mapFilesOut.push_back(mapFile);
+        }
+    }
+    
+    /*
+     * Does selected data file still no longer exist?
+     */
+    if (std::find(mapFilesOut.begin(), 
+                  mapFilesOut.end(),
+                  this->selectedMapFile) == mapFilesOut.end()) {
+        this->selectedMapFile = NULL;
+    }
+    
+    /*
+     * If selected data file is valid, see if selected
+     * map is still valid.  If not, use first map.
+     */
+    if (this->selectedMapFile != NULL) {
+        const int32_t mapIndex = this->selectedMapFile->getMapIndexFromName(this->selectedMapName);
+        if (mapIndex < 0) {
+            this->selectedMapName = this->selectedMapFile->getMapName(0);
+        }
+    }
+    else {
+        /*
+         * Look for a file that contains the selected map name.
+         */
+        if (this->selectedMapName.isEmpty() == false) {
+            for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
+                 iter != mapFilesOut.end();
+                 iter++) {
+                CaretMappableDataFile* mapTypeFile = *iter;
+                const int32_t mapIndex = mapTypeFile->getMapIndexFromName(this->selectedMapName);
+                if (mapIndex >= 0) {
+                    this->selectedMapFile = mapTypeFile;
+                    break;
+                }
+            }
+        }
+        
+        /*
+         * Use first map in first file that has one or more maps.
+         */
+        if (this->selectedMapFile == NULL) {
+            if (mapFilesOut.empty() == false) {
+                for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
+                     iter != mapFilesOut.end();
+                     iter++) {
+                    CaretMappableDataFile* mapTypeFile = *iter;
+                    if (mapTypeFile->getNumberOfMaps() > 0) {
+                        this->selectedMapFile = mapTypeFile;
+                        this->selectedMapName = mapTypeFile->getMapName(0);
+                    }
+                }
+            }
+        }
+    }
+    
+    selectedMapFileOut = this->selectedMapFile;
+    if (selectedMapFileOut != NULL) {
+        selectedMapNameOut = this->selectedMapName;
+        selectedMapIndexOut = this->selectedMapFile->getMapIndexFromName(selectedMapNameOut);
+    }
+}
+
+/**
+ * Set the selected map file and map.
+ * @param selectedMapFile 
+ *    File that is selected.
+ * @param selectedMapName
+ *    Map name that is selected.
+ */
+void 
+Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
+                          const int32_t selectedMapIndex)
+{
+    this->selectedMapFile = selectedMapFile;
+    this->selectedMapName = selectedMapFile->getMapName(selectedMapIndex);    
+}
+
 
 

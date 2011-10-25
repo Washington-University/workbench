@@ -36,6 +36,7 @@
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "OverlaySet.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
 #include "StructureEnum.h"
@@ -60,6 +61,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->userName = "";
     this->yokeToTabNumber = 0;
     this->yokingType = YokingTypeEnum::OFF;
+    this->overlaySet = new OverlaySet();
     
     this->surfaceColoring = new SurfaceNodeColoring();
     
@@ -78,6 +80,9 @@ BrowserTabContent::~BrowserTabContent()
     this->surfaceColoring = NULL;
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
+    
+    delete this->overlaySet;
+    this->overlaySet = NULL;
 }
 
 /**
@@ -238,7 +243,7 @@ BrowserTabContent::getDisplayedModelController() const
  * Get the displayed surface model.
  * 
  * @return  Pointer to displayed surface model or 
- *          NULL if the displayed model is not a 
+ *          NULL if the displayed model is NOT a 
  *          surface.
  */   
 ModelDisplayControllerSurface* 
@@ -247,6 +252,37 @@ BrowserTabContent::getDisplayedSurfaceModel()
     ModelDisplayControllerSurface* mdcs =
         dynamic_cast<ModelDisplayControllerSurface*>(this->getDisplayedModelController());
     return mdcs;
+}
+
+/**
+ * Get the displayed volume model.
+ * 
+ * @return  Pointer to displayed volume model or 
+ *          NULL if the displayed model is NOT a 
+ *          volume.
+ */   
+ModelDisplayControllerVolume* 
+BrowserTabContent::getDisplayedVolumeModel()
+{
+    ModelDisplayControllerVolume* mdcv =
+        dynamic_cast<ModelDisplayControllerVolume*>(this->getDisplayedModelController());
+    return mdcv;
+}
+
+/**
+ * Get the displayed whole brain model.
+ * 
+ * @return  Pointer to displayed whole brain model or 
+ *          NULL if the displayed model is NOT a 
+ *          whole brain.
+ */   
+ModelDisplayControllerWholeBrain* 
+BrowserTabContent::getDisplayedWholeBrainModel()
+{
+    ModelDisplayControllerWholeBrain* mdcwb =
+        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getDisplayedModelController());
+    return mdcwb;
+
 }
 
 /**
@@ -301,14 +337,14 @@ BrowserTabContent::getSurfaceModelSelector()
 }
 
 /**
- * Get the surface overlay assignments for this tab.
+ * Get the overlay assignments for this tab.
  * 
- * @return  Surface overlay assignments for this tab.
+ * @return  Overlay assignments for this tab.
  */
-SurfaceOverlaySet* 
-BrowserTabContent::getSurfaceOverlaySet()
+OverlaySet* 
+BrowserTabContent::getOverlaySet()
 {
-    return &this->surfaceOverlayAssignment;
+    return this->overlaySet;
 }
 
 /**
@@ -545,7 +581,7 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
      */
     this->surfaceColoring->colorSurfaceNodes(this,
                                              surface,
-                                             &surfaceOverlayAssignment, 
+                                             overlaySet, 
                                              rgba);
     
     /*

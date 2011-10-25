@@ -90,6 +90,10 @@ EventTypeEnum::initialize()
                                      "EVENT_BROWSER_WINDOW_NEW", 
                                      "Create a new browser window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_CARET_MAPPABLE_DATA_FILES_GET, 
+                                     "EVENT_CARET_MAPPABLE_DATA_FILES_GET", 
+                                     "Get all Caret Mappable data files"));
+    
     enumData.push_back(EventTypeEnum(EVENT_DATA_FILE_READ, 
                                     "EVENT_DATA_FILE_READ", 
                                     "Read a data file"));

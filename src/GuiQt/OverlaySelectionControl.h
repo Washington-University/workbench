@@ -41,19 +41,9 @@ namespace caret {
         
         Q_OBJECT
         
-    public:
-        enum DataType {
-            SURFACE,
-            VOLUME
-        };
-        
-        enum {
-            MAXIMUM_NUMBER_OF_LAYERS = 10
-        };
-        
+    public:        
         OverlaySelectionControl(const int32_t browserWindowIndex,
                                 const Qt::Orientation orientation,
-                                const DataType dataType,
                                 QWidget* parent = 0);
         
         ~OverlaySelectionControl();
@@ -78,7 +68,7 @@ namespace caret {
         void updateLayersGridWidgetSize();
 
         int32_t browserWindowIndex;
-        DataType dataType;
+
         Qt::Orientation orientation;
 
         QWidget* layersGridWidget;

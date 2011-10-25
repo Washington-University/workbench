@@ -41,17 +41,11 @@ namespace caret {
             /// Maximum number of browser tabs
             MAXIMUM_NUMBER_OF_BROWSER_TABS = 50,
             
-            /// Maximum number of surface overlays
-            MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS = 10,
+            /// Maximum number of overlays
+            MAXIMUM_NUMBER_OF_OVERLAYS = 10,
             
-            /// Minimum number of surface overlays
-            MINIMUM_NUMBER_OF_SURFACE_OVERLAYS = 3,
-            
-            /// Maximum number of volume overlays
-            MAXIMUM_NUMBER_OF_VOLUME_OVERLAYS = 10,
-            
-            /// Minimum number of volume overlays
-            MINIMUM_NUMBER_OF_VOLUME_OVERLAYS = 3
+            /// Minimum number of overlays
+            MINIMUM_NUMBER_OF_OVERLAYS = 3            
         };        
     private:
         BrainConstants();

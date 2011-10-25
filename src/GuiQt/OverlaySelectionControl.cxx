@@ -48,8 +48,8 @@
 #include "GuiManager.h"
 #include "OverlaySelectionControl.h"
 #include "OverlaySelectionControlLayer.h"
-#include "SurfaceOverlay.h"
-#include "SurfaceOverlaySet.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -71,12 +71,10 @@ using namespace caret;
  */
 OverlaySelectionControl::OverlaySelectionControl(const int32_t browserWindowIndex,
                                                  const Qt::Orientation orientation,
-                                                 const DataType dataType,
                                                  QWidget* parent)
 : QWidget(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->dataType = dataType;
     this->orientation = orientation;
     
     this->addLayerPushButton = new QPushButton("Add Layer");
@@ -130,16 +128,8 @@ OverlaySelectionControl::createLayers()
         {
             int row = 0;
             gridLayout->addWidget(new QLabel("On"), row, 0);
-            switch (dataType) {
-                case SURFACE:
-                    gridLayout->addWidget(new QLabel("File"), row, 1, Qt::AlignHCenter);
-                    gridLayout->addWidget(new QLabel("Map"), row, 2, Qt::AlignHCenter);
-                    break;
-                case VOLUME:
-                    gridLayout->addWidget(new QLabel("Volume"), row, 1, Qt::AlignHCenter);
-                    gridLayout->addWidget(new QLabel("Type"), row, 2, Qt::AlignHCenter);
-                    break;
-            }
+            gridLayout->addWidget(new QLabel("File"), row, 1, Qt::AlignHCenter);
+            gridLayout->addWidget(new QLabel("Map"), row, 2, Qt::AlignHCenter);
             gridLayout->addWidget(new QLabel("Hist"), row, 3);
             gridLayout->addWidget(new QLabel("Settings"), row, 4);
             gridLayout->addWidget(new QLabel("Meta"), row, 5);
@@ -173,14 +163,7 @@ OverlaySelectionControl::createLayers()
         {
             int row = 0;
             gridLayout->addWidget(new QLabel("On"), row, 0);
-            switch (dataType) {
-                case SURFACE:
-                    gridLayout->addWidget(new QLabel("File/Map"), row, 1, Qt::AlignHCenter);
-                    break;
-                case VOLUME:
-                    gridLayout->addWidget(new QLabel("Volume/Type"), row, 1, Qt::AlignHCenter);
-                    break;
-            }
+            gridLayout->addWidget(new QLabel("File/Map"), row, 1, Qt::AlignHCenter);
             if (verticalCompactFlag == false) {
                 gridLayout->addWidget(new QLabel("Adjust"), row, 2, 1, 3, Qt::AlignHCenter);
                 gridLayout->addWidget(new QLabel("Move"), row, 5);
@@ -214,9 +197,9 @@ OverlaySelectionControl::createLayers()
     const Qt::Alignment ALIGN_BOTTOM_HORIZONTAL_CENTER = Qt::AlignBottom | Qt::AlignHCenter;
     
     
-    for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_LAYERS; i++) {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         OverlaySelectionControlLayer* layer = new OverlaySelectionControlLayer(this->browserWindowIndex,
-                                 this, this->dataType, 
+                                 this, 
                                  i);
         this->layers.append(layer);
         
@@ -343,8 +326,8 @@ OverlaySelectionControl::addLayer()
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
-    SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-    surfaceOverlaySet->addDisplayedOverlay();
+    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    overlaySet->addDisplayedOverlay();
     
     this->updateControl();
     /*
@@ -392,22 +375,11 @@ OverlaySelectionControl::updateControl()
         return;
     }
     
-    int32_t numberOfDisplayedOverlays = 0;
+    const OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
     
-    switch (dataType) {
-        case SURFACE:
-        {
-            SurfaceOverlaySet* surfaceOverlaySet = browserTabContent->getSurfaceOverlaySet();
-            numberOfDisplayedOverlays = surfaceOverlaySet->getNumberOfDisplayedOverlays();
-        }
-            break;
-        case VOLUME:
-        {
-            //VolumeOverlaySet* volumeOverlaySet = browserTabContent->getVolumeOverlaySet();
-            //numberOfDisplayedOverlays = volumeOverlaySet->getNumberOfDisplayedOverlays();
-        }
-            break;
-    }
+            
+
     for (int32_t i = 0; i < this->layers.size(); i++) {
         if (i < numberOfDisplayedOverlays) {
             this->layers[i]->setVisible(true);

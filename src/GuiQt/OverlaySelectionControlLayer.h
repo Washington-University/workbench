@@ -47,7 +47,6 @@ namespace caret {
     public:
         OverlaySelectionControlLayer(const int32_t browserWindowIndex,
                                      OverlaySelectionControl* overlaySelectionControl,
-                                     OverlaySelectionControl::DataType dataType,
                                      const int32_t layerIndex);
         
         ~OverlaySelectionControlLayer();
@@ -58,11 +57,9 @@ namespace caret {
         void setVisible(const bool visible);
         
         void updateControl(BrowserTabContent* browserTabContent);
-        void updateSurfaceControl(BrowserTabContent* browserTabContent);
-        void updateVolumeControl(BrowserTabContent* browserTabContent);
+        void updateOverlayControl(BrowserTabContent* browserTabContent);
         
         int32_t browserWindowIndex;
-        OverlaySelectionControl::DataType dataType;
         int32_t layerIndex;
         
         QCheckBox* enabledCheckBox;

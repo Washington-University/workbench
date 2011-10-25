@@ -26,15 +26,17 @@
  */ 
 
 #include "CaretObject.h"
+#include "DataFileTypeEnum.h"
 
 namespace caret {
-
+    class BrowserTabContent;
+    class CaretMappableDataFile;
+    
     class Overlay : public CaretObject {
         
-    protected:
+    public:
         Overlay();
         
-    public:
         virtual ~Overlay();
         
         float getOpacity() const;
@@ -55,24 +57,28 @@ namespace caret {
         
         void swapData(Overlay* overlay);
         
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              DataFileTypeEnum::Enum& mapFileTypeOut,
+                              AString& selectedMapNameOut);
+        
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              std::vector<CaretMappableDataFile*>& mapFilesOut,
+                              CaretMappableDataFile* &selectedMapFileOut,
+                              AString& selectedMapNameOut,
+                              int32_t& selectedMapIndexOut);
+        
+        void setSelectionData(CaretMappableDataFile* selectedMapFile,
+                              const int32_t selectedMapIndex);
+        
     private:
         Overlay(const Overlay&);
 
         Overlay& operator=(const Overlay&);
         
-        /**
-         * Copy the overlay's data to "this" overlay.
-         * Will need to cast the input overlay.
-         * 
-         * @param overlay
-         *    Overlay that is copied.
-         */
-        virtual void copyOverlayData(const Overlay* overlay) = 0;
-        
-        /** Name of overlay */
+        /** Name of overlay (DO NOT COPY)*/
         AString name;
         
-        /** Index of this overlay */
+        /** Index of this overlay (DO NOT COPY)*/
         int32_t overlayIndex;
         
         /** opacity for overlay */
@@ -80,6 +86,15 @@ namespace caret {
         
         /** enabled status */
         bool enabled;
+        
+        /** available mappable files */
+        std::vector<CaretMappableDataFile*> mapFiles;
+        
+        /* selected mappable file */
+        CaretMappableDataFile* selectedMapFile;
+        
+        /* selected data file map */
+        AString selectedMapName;
     };
     
 #ifdef __OVERLAY_DECLARE__

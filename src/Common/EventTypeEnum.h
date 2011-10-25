@@ -52,6 +52,8 @@ public:
         EVENT_BROWSER_WINDOW_CONTENT_GET,
         /** Create a new browser window */
         EVENT_BROWSER_WINDOW_NEW,
+        /** Get CaretMappable data files */
+        EVENT_CARET_MAPPABLE_DATA_FILES_GET,
         /** Read a data file */
         EVENT_DATA_FILE_READ,
         /** Get node data files */

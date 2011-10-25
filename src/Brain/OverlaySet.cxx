@@ -28,7 +28,7 @@
 #undef __OVERLAY_SET_DECLARE__
 
 #include "CaretAssert.h"
-#include "SurfaceOverlaySet.h"
+#include "OverlaySet.h"
 
 using namespace caret;
 
@@ -36,13 +36,13 @@ using namespace caret;
  * \class OverlaySet
  * \brief Contains a set of overlay assignments
  *
- * The maximum number of surface overlays is fixed.  The number
- * of surface overlays presented to the user varies and is
+ * The maximum number of overlays is fixed.  The number
+ * of overlays presented to the user varies and is
  * controlled using the ToolBox in a Browser Window.
  * 
  * The primary overlay is always the overlay at index zero.
  * The underlay is the overlay at (numberOfDisplayedOverlays - 1).
- * When surfaces are colored, the overlays are assigned 
+ * When models are colored, the overlays are assigned 
  * starting with the underlay and concluding with the primary
  * overlay.
  */
@@ -50,19 +50,10 @@ using namespace caret;
 /**
  * Constructor.
  */
-OverlaySet::OverlaySet(const OverlaySetType overlaySetType)
+OverlaySet::OverlaySet()
 : CaretObject()
 {
-    this->overlaySetType = overlaySetType;
-    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_SURFACE_OVERLAYS;
-    
-    switch (overlaySetType) {
-        case OVERLAY_SET_SURFACE:
-            this->overlays = new SurfaceOverlay[BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS];
-            break;
-        case OVERLAY_SET_VOLUME:
-            break;
-    }
+    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
 }
 
 /**
@@ -77,7 +68,7 @@ OverlaySet::~OverlaySet()
  * @return Returns the primary overlay.
  */
 Overlay* 
-OverlaySet::getPrimaryOverlayGeneric()
+OverlaySet::getPrimaryOverlay()
 {
     return &this->overlays[0];
 }
@@ -87,7 +78,7 @@ OverlaySet::getPrimaryOverlayGeneric()
  * displayed overlay.
  */
 Overlay* 
-OverlaySet::getUnderlayGeneric()
+OverlaySet::getUnderlay()
 {
     return &this->overlays[this->getNumberOfDisplayedOverlays() - 1];
 }
@@ -99,10 +90,10 @@ OverlaySet::getUnderlayGeneric()
  * @return Overlay at the given index.
  */
 const Overlay* 
-OverlaySet::getOverlayGeneric(const int32_t overlayNumber) const
+OverlaySet::getOverlay(const int32_t overlayNumber) const
 {
     CaretAssertArrayIndex(this->overlays, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
     return &this->overlays[overlayNumber];    
 }
@@ -114,10 +105,10 @@ OverlaySet::getOverlayGeneric(const int32_t overlayNumber) const
  * @return Overlay at the given index.
  */
 Overlay* 
-OverlaySet::getOverlayGeneric(const int32_t overlayNumber)
+OverlaySet::getOverlay(const int32_t overlayNumber)
 {
     CaretAssertArrayIndex(this->overlays, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
     return &this->overlays[overlayNumber];    
 }
@@ -141,8 +132,8 @@ void
 OverlaySet::addDisplayedOverlay()
 {
     this->numberOfDisplayedOverlays++;
-    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS) {
-        this->numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_SURFACE_OVERLAYS;
+    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        this->numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
     }
 }
 
@@ -166,7 +157,7 @@ OverlaySet::getNumberOfDisplayedOverlays() const
 void 
 OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
-    if (this->numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_SURFACE_OVERLAYS) {
+    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
         this->numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < this->numberOfDisplayedOverlays; i++) {
             this->overlays[i].copyData(&this->overlays[i+1]);

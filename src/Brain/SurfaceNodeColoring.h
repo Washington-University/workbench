@@ -35,8 +35,7 @@ namespace caret {
     class Palette;
     class PaletteColorMapping;
     class Surface;
-    class SurfaceOverlay;
-    class SurfaceOverlaySet;
+    class OverlaySet;
     
     /// Performs coloring of surface nodes
     class SurfaceNodeColoring : public CaretObject {
@@ -48,7 +47,7 @@ namespace caret {
         
         void colorSurfaceNodes(BrowserTabContent* browserTabContent,
                                const Surface* surface,
-                               SurfaceOverlaySet* surfaceOverlaySet,
+                               OverlaySet* overlaySet,
                                float* rgbaNodeColors);
     private:
         SurfaceNodeColoring(const SurfaceNodeColoring&);

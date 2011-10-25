@@ -51,6 +51,7 @@ EventBrainStructureGet.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabNew.h
+EventCaretMappableDataFilesGet.h
 EventDataFileRead.h
 EventIdentificationSymbolRemoval.h
 EventNodeDataFilesGet.h
@@ -79,10 +80,6 @@ OverlaySet.h
 SessionManager.h
 Surface.h
 SurfaceNodeColoring.h
-SurfaceOverlay.h
-SurfaceOverlayDataTypeEnum.h
-SurfaceOverlaySet.h
-VolumeOverlayDataTypeEnum.h
 VolumeSliceIndicesSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
@@ -98,6 +95,7 @@ EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabNew.cxx
 EventDataFileRead.cxx
+EventCaretMappableDataFilesGet.cxx
 EventIdentificationSymbolRemoval.cxx
 EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
@@ -125,10 +123,6 @@ OverlaySet.cxx
 SessionManager.cxx
 Surface.cxx
 SurfaceNodeColoring.cxx
-SurfaceOverlay.cxx
-SurfaceOverlayDataTypeEnum.cxx
-SurfaceOverlaySet.cxx
-VolumeOverlayDataTypeEnum.cxx
 VolumeSliceIndicesSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx

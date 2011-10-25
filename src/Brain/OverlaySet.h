@@ -31,14 +31,20 @@
 
 namespace caret {
 
-    class SurfaceOverlaySet;
-    
     class OverlaySet : public CaretObject {
         
     public:
-        static SurfaceOverlaySet* newInstanceSurfaceOverlaySet();
+        OverlaySet();
         
         virtual ~OverlaySet();
+        
+        Overlay* getPrimaryOverlay();
+        
+        Overlay* getUnderlay();
+        
+        Overlay* getOverlay(const int32_t overlayNumber);
+        
+        const Overlay* getOverlay(const int32_t overlayNumber) const;
         
         void addDisplayedOverlay();
         
@@ -49,22 +55,6 @@ namespace caret {
         void moveDisplayedOverlayUp(const int32_t overlayIndex);
         
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
-
-    protected:
-        enum OverlaySetType {
-            OVERLAY_SET_SURFACE,
-            OVERLAY_SET_VOLUME
-        };
-        
-        OverlaySet(const OverlaySetType overlaySetType);
-        
-        Overlay* getPrimaryOverlayGeneric();
-        
-        Overlay* getUnderlayGeneric();
-        
-        Overlay* getOverlayGeneric(const int32_t overlayNumber);
-        
-        const Overlay* getOverlayGeneric(const int32_t overlayNumber) const;
         
     public:
         virtual AString toString() const;
@@ -74,9 +64,7 @@ namespace caret {
         
         OverlaySet& operator=(const OverlaySet&);
         
-        OverlaySetType overlaySetType;
-        
-        Overlay* overlays;
+        Overlay overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         int32_t numberOfDisplayedOverlays;
     };

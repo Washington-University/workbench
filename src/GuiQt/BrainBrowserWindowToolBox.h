@@ -48,9 +48,7 @@ namespace caret {
         BrainBrowserWindowToolBox(const BrainBrowserWindowToolBox&);
         BrainBrowserWindowToolBox& operator=(const BrainBrowserWindowToolBox&);
         
-        OverlaySelectionControl* createSurfaceLayersWidget(const Qt::Orientation orientation);
-        
-        OverlaySelectionControl* createVolumeLayersWidget(const Qt::Orientation orientation);
+        OverlaySelectionControl* createLayersWidget(const Qt::Orientation orientation);
         
         QWidget* createInformationWidget();
         
@@ -66,11 +64,9 @@ namespace caret {
         
         QTabWidget* tabWidget;
         
-        OverlaySelectionControl* topBottomSurfaceOverlayControl;
-        OverlaySelectionControl* leftRightSurfaceOverlayControl;
-        QWidget* surfaceOverlayWidget;
-        
-        OverlaySelectionControl* volumeOverlayControl;
+        OverlaySelectionControl* topBottomOverlayControl;
+        OverlaySelectionControl* leftRightOverlayControl;
+        QWidget* overlayWidget;
         
         QWidget* connectivityWidget;
         
