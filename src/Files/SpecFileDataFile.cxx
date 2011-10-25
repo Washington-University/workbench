@@ -138,7 +138,7 @@ SpecFileDataFile::isSelected() const
 void 
 SpecFileDataFile::setSelected(const bool selected)
 {
-    this->selected = true;
+    this->selected = selected;
 }
 
 /**

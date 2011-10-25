@@ -23,9 +23,15 @@
  * 
  */ 
 
+#include <iostream>
+
+#include <QPushButton>
+
 #define __WU_Q_DIALOG_MODAL_DECLARE__
 #include "WuQDialogModal.h"
 #undef __WU_Q_DIALOG_MODAL_DECLARE__
+
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -39,15 +45,28 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructs a modal dialog.  After construction,
+ * use exec() to display the dialog.
+ *
+ * @param dialogTitle
+ *    Title for dialog.
+ * @param parent
+ *    Parent widget on which this dialog is displayed.
+ * @param f
+ *    optional Qt::WindowFlags 
  */
-WuQDialogModal::WuQDialogModal(QWidget* parent,
+WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
+                               QWidget* parent,
                                Qt::WindowFlags f)
-: WuQDialog(true, 
+: WuQDialog(dialogTitle,
             parent, 
             f)
 {
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Ok);
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Cancel);
     
+    QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
+                     this, SLOT(clicked(QAbstractButton*)));
 }
 
 /**
@@ -56,5 +75,76 @@ WuQDialogModal::WuQDialogModal(QWidget* parent,
 WuQDialogModal::~WuQDialogModal()
 {
     
+}
+
+/**
+ * Called when a button is pressed.
+ */
+void 
+WuQDialogModal::clicked(QAbstractButton* button)
+{
+    std::cout << "Button clicked: " << button->text() << std::endl;
+    
+    QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
+    
+    if (buttonRole == QDialogButtonBox::AcceptRole) {
+        this->okButtonPressed();
+    }
+    else if (buttonRole == QDialogButtonBox::RejectRole) {
+        this->cancelButtonPressed();
+    }
+    else {
+        CaretAssertMessage(0, "Invalid button role: " + buttonRole);
+    }
+}
+
+/**
+ * Called when the OK button is pressed.
+ * If needed should override this to process
+ * data when the OK button is pressed and then
+ * call this to issue the accept signal.
+ */
+void 
+WuQDialogModal::okButtonPressed()
+{
+    this->accept();
+}
+
+/**
+ * Called when the Cancel button is pressed.
+ * If needed should override this to process
+ * data when the Cancel button is pressed.
+ * Call this to issue the reject signal.
+ */
+void 
+WuQDialogModal::cancelButtonPressed()
+{
+    this->reject();
+}
+
+/**
+ * Set the OK button to the given text.  If the text
+ * is zero length, the OK button is removed.
+ *
+ * @text
+ *    Text for OK button.
+ */
+void 
+WuQDialogModal::setOkButtonText(const AString& text)
+{
+    this->setStandardButtonText(QDialogButtonBox::Ok, text);
+}
+
+/**
+ * Set the Cancel button to the given text.  If the text
+ * is zero length, the Cancel button is removed.
+ *
+ * @text
+ *    Text for OK button.
+ */
+void 
+WuQDialogModal::setCancelButtonText(const AString& text)
+{
+    this->setStandardButtonText(QDialogButtonBox::Cancel, text);
 }
 

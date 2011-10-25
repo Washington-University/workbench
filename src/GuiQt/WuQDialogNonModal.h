@@ -31,19 +31,32 @@
 namespace caret {
 
     class WuQDialogNonModal : public WuQDialog {
+        Q_OBJECT
         
     public:
-        WuQDialogNonModal(QWidget* parent = 0,
+        WuQDialogNonModal(const AString& dialogTitle,
+                          QWidget* parent = 0,
                           Qt::WindowFlags f = 0);
         
         virtual ~WuQDialogNonModal();
+        
+        void setApplyButtonText(const AString& text);
+        
+        void setCloseButtonText(const AString& text);
+        
+    protected:
+        virtual void applyButtonPressed();
+        
+        virtual void closeButtonPressed();
+
+    private slots:
+        void clicked(QAbstractButton* button);
         
     private:
         WuQDialogNonModal(const WuQDialogNonModal&);
 
         WuQDialogNonModal& operator=(const WuQDialogNonModal&);
         
-    public:
     private:
     };
     
@@ -52,4 +65,5 @@ namespace caret {
 #endif // __WU_Q_DIALOG_NON_MODAL_DECLARE__
 
 } // namespace
+
 #endif  //__WU_Q_DIALOG_NON_MODAL__H_

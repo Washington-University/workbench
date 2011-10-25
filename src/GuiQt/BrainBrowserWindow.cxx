@@ -43,6 +43,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SpecFile.h"
+#include "SpecFileDialog.h"
 #include "WuQFileDialog.h"
 #include "WuQtUtilities.h"
 
@@ -608,16 +609,21 @@ BrainBrowserWindow::processDataFileOpen()
                     catch (DataFileException e) {
                         errorMessages += e.whatString();
                     }
-                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                 &specFile);
                     
-                    EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                    
-                    if (readSpecFileEvent.isError()) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
+                    SpecFileDialog sfd(&specFile,
+                                       this);
+                    if (sfd.exec() == QDialog::Accepted) {
+                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                     &specFile);
+                        
+                        EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                        
+                        if (readSpecFileEvent.isError()) {
+                            if (errorMessages.isEmpty() == false) {
+                                errorMessages += "\n";
+                            }
+                            errorMessages += readSpecFileEvent.getErrorMessage();
                         }
-                        errorMessages += readSpecFileEvent.getErrorMessage();
                     }
                 }
                 else {

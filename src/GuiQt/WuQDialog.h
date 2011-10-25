@@ -27,9 +27,13 @@
 /*LICENSE_END*/
 
 #include <QDialog>
+#include <QDialogButtonBox>
+
+#include "AString.h"
 
 class QKeyEvent;
 class QMenu;
+class QVBoxLayout;
 
 namespace caret  {
 
@@ -37,12 +41,21 @@ namespace caret  {
         Q_OBJECT
         
     protected:
-        WuQDialog(const bool isModalDialog,
-                  QWidget* parent = 0,
+        WuQDialog(const AString& dialogTitle,
+                  QWidget* parent,
                   Qt::WindowFlags f = 0);
         
     public:
         virtual ~WuQDialog();
+        
+        QDialogButtonBox* getDialogButtonBox();
+        
+        void setCentralWidget(QWidget* w);
+        
+        void setStandardButtonText(QDialogButtonBox::StandardButton button,
+                                   const AString& text);
+        
+        void setDeleteWhenClosed(bool deleteFlag);
         
         static void beep();
         
@@ -64,6 +77,11 @@ namespace caret  {
         void addImageCaptureToMenu(QMenu* menu);
         
         virtual void contextMenuEvent(QContextMenuEvent*);
+        
+    private:
+        QVBoxLayout* userWidgetLayout;
+        
+        QDialogButtonBox* buttonBox;
     };
 
 }

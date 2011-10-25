@@ -32,6 +32,7 @@ GuiManager.h
 HyperLinkTextBrowser.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 WuQDialog.h
 WuQDialogModal.h
@@ -64,6 +65,7 @@ MouseEvent.h
 MouseEventTypeEnum.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 UserInputModeView.h
 UserInputReceiverInterface.h
@@ -93,6 +95,7 @@ MouseEvent.cxx
 MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
+SpecFileDialog.cxx
 StructureSurfaceSelectionControl.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx

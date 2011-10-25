@@ -23,9 +23,15 @@
  * 
  */ 
 
+#include <iostream>
+
+#include <QPushButton>
+
 #define __WU_Q_DIALOG_NON_MODAL_DECLARE__
 #include "WuQDialogNonModal.h"
 #undef __WU_Q_DIALOG_NON_MODAL_DECLARE__
+
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -39,15 +45,28 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructs a modal dialog.  After construction,
+ * use exec() to display the dialog.
+ *
+ * @param dialogTitle
+ *    Title for dialog.
+ * @param parent
+ *    Parent widget on which this dialog is displayed.
+ * @param f
+ *    optional Qt::WindowFlags 
  */
-WuQDialogNonModal::WuQDialogNonModal(QWidget* parent,
+WuQDialogNonModal::WuQDialogNonModal(const AString& dialogTitle,
+                                     QWidget* parent,
                                      Qt::WindowFlags f)
-: WuQDialog(false,
+: WuQDialog(dialogTitle,
             parent,
             f)
 {
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Apply);
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Close);
     
+    QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
+                     this, SLOT(clicked(QAbstractButton*)));
 }
 
 /**
@@ -56,5 +75,74 @@ WuQDialogNonModal::WuQDialogNonModal(QWidget* parent,
 WuQDialogNonModal::~WuQDialogNonModal()
 {
     
+}
+
+/**
+ * Called when a button is pressed.
+ */
+void 
+WuQDialogNonModal::clicked(QAbstractButton* button)
+{
+    std::cout << "Button clicked: " << button->text() << std::endl;
+    
+    QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
+    
+    if (buttonRole == QDialogButtonBox::ApplyRole) {
+        this->applyButtonPressed();
+    }
+    else if (buttonRole == QDialogButtonBox::RejectRole) {
+        this->closeButtonPressed();
+    }
+    else {
+        CaretAssertMessage(0, "Invalid button role: " + buttonRole);
+    }
+}
+
+/**
+ * Called when the Apply button is pressed.
+ * If needed should override this to process
+ * data when the Apply button is pressed.
+ */
+void 
+WuQDialogNonModal::applyButtonPressed()
+{
+    
+}
+
+/**
+ * Called when the Close button is pressed.
+ * If needed should override this to process
+ * data when the Close button is pressed.
+ */
+void 
+WuQDialogNonModal::closeButtonPressed()
+{
+    this->close();
+}
+
+/**
+ * Set the Apply button to the given text.  If the text
+ * is zero length, the Apply button is removed.
+ *
+ * @text
+ *    Text for OK button.
+ */
+void 
+WuQDialogNonModal::setApplyButtonText(const AString& text)
+{
+    this->setStandardButtonText(QDialogButtonBox::Apply, text);
+}
+
+/**
+ * Set the Close button to the given text.  If the text
+ * is zero length, the Close button is removed.
+ *
+ * @text
+ *    Text for OK button.
+ */
+void 
+WuQDialogNonModal::setCloseButtonText(const AString& text)
+{
+    this->setStandardButtonText(QDialogButtonBox::Close, text);
 }
 

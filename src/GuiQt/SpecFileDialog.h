@@ -1,5 +1,5 @@
-#ifndef __WU_Q_DIALOG_MODAL__H_
-#define __WU_Q_DIALOG_MODAL__H_
+#ifndef __SPEC_FILE_DIALOG__H_
+#define __SPEC_FILE_DIALOG__H_
 
 /*LICENSE_START*/
 /* 
@@ -25,44 +25,47 @@
  * 
  */ 
 
-#include "WuQDialog.h"
+
+#include "SpecFileDialog.h"
+#include "WuQDialogModal.h"
+
+class QCheckBox;
 
 namespace caret {
-
-    class WuQDialogModal : public WuQDialog {
+    class SpecFileDataFile;
+    class SpecFile;
+    
+    class SpecFileDialog : public WuQDialogModal {
         Q_OBJECT
         
     public:
-        WuQDialogModal(const AString& dialogTitle,
-                       QWidget* parent,
-                       Qt::WindowFlags f = 0);
+        SpecFileDialog(SpecFile* specFile,
+                       QWidget* parent);
         
-        virtual ~WuQDialogModal();
-        
-    
-        void setOkButtonText(const AString& text);
-        
-        void setCancelButtonText(const AString& text);
+        virtual ~SpecFileDialog();
 
     protected:
         virtual void okButtonPressed();
         
-        virtual void cancelButtonPressed();
-        
-    private slots:
-        void clicked(QAbstractButton* button);
-        
     private:
-        WuQDialogModal(const WuQDialogModal&);
+        SpecFileDialog(const SpecFileDialog&);
 
-        WuQDialogModal& operator=(const WuQDialogModal&);
-    private:
+        SpecFileDialog& operator=(const SpecFileDialog&);
         
+    public:
+        virtual AString toString() const;
+        
+    private:
+        SpecFile* specFile;
+        
+        std::vector<QCheckBox*> checkBoxes;
+        
+        std::vector<SpecFileDataFile*> dataFiles;
     };
     
-#ifdef __WU_Q_DIALOG_MODAL_DECLARE__
+#ifdef __SPEC_FILE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_DIALOG_MODAL_DECLARE__
+#endif // __SPEC_FILE_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_DIALOG_MODAL__H_
+#endif  //__SPEC_FILE_DIALOG__H_

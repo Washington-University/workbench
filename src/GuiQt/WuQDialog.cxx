@@ -32,6 +32,7 @@
 #include <QMenu>
 #include <QMessageBox>
 #include <QPixmap>
+#include <QPushButton>
 #include <QTimer>
 
 #include "WuQDialog.h"
@@ -47,18 +48,31 @@ using namespace caret;
 
 /**
  * constructor.
+ *
+ * @param dialogTitle
+ *    Title for dialog.
+ * @param parent
+ *    Parent widget on which this dialog is displayed.
+ * @param f
+ *    optional Qt::WindowFlags 
  */
-WuQDialog::WuQDialog(const bool isModalDialog,
+WuQDialog::WuQDialog(const AString& dialogTitle,
                      QWidget* parent,
                      Qt::WindowFlags f)
    : QDialog(parent, f)
 {
+    this->setWindowTitle(dialogTitle);
+    
     this->setFocusPolicy(Qt::ClickFocus);
     
-    //this->userLayout = new QVBoxLayout();
+    this->userWidgetLayout = new QVBoxLayout();
+    
+    this->buttonBox = new QDialogButtonBox(Qt::Horizontal,
+                                           this);
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
-    //dialogLayout->addLayout(userLayout);
+    dialogLayout->addLayout(this->userWidgetLayout);
+    dialogLayout->addWidget(this->buttonBox);
 }
               
 /**
@@ -67,7 +81,50 @@ WuQDialog::WuQDialog(const bool isModalDialog,
 WuQDialog::~WuQDialog()
 {
 }
+
+/**
+ * Allows deletion of the dialog by the windowing
+ * system when the dialog is closed.  This should only
+ * be true if the dialog is dynamically allocated (with
+ * new) and not explicitly delete'ed by the user's code.
+ * 
+ * @param deleteFlag
+ *    If true, dialog will be deleted by the windowing system.
+ */
+void 
+WuQDialog::setDeleteWhenClosed(bool deleteFlag)
+{
+    this->setAttribute(Qt::WA_DeleteOnClose, deleteFlag);
+}
+
       
+/**
+ * Set the text of a standard button.  If the
+ * text is an empty string, the button is removed.
+ *
+ * @param button
+ *    Standard button enum identifying button.
+ * @param text
+ *    Text for the button.
+ */
+void 
+WuQDialog::setStandardButtonText(QDialogButtonBox::StandardButton button,
+                                 const AString& text)
+{
+    QPushButton* pushButton = this->buttonBox->button(button);
+    if (text.isEmpty()) {
+        if (pushButton != NULL) {
+            this->buttonBox->removeButton(pushButton);
+        }
+    }
+    else {
+        if (pushButton == NULL) {
+            pushButton = this->buttonBox->addButton(button);
+        }
+        pushButton->setText(text);
+    }    
+}
+
 /**
  * called to capture image after timeout so nothing obscures window.
  */
@@ -167,5 +224,29 @@ WuQDialog::close()
 {
    return QDialog::close();
 }
-      
+
+/**
+ * @return  The dialog button box for adding buttons.
+ */
+QDialogButtonBox* 
+WuQDialog::getDialogButtonBox()
+{
+    return this->buttonBox;
+}
+
+/**
+ * Sets the give widget to be the window's central widget.
+ * Note: WuQDialog takes ownership of the widget pointer
+ * and deletes it at the appropriate time.
+ *
+ * This should be called ONE and ONLY one time.
+ *
+ * @param w
+ *    The central widget.
+ */
+void 
+WuQDialog::setCentralWidget(QWidget* w)
+{
+    this->userWidgetLayout->addWidget(w);
+}
 
