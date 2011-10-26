@@ -157,7 +157,7 @@ OverlaySet::getNumberOfDisplayedOverlays() const
 void 
 OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
 {
-    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+    if (this->numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         this->numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < this->numberOfDisplayedOverlays; i++) {
             this->overlays[i].copyData(&this->overlays[i+1]);
