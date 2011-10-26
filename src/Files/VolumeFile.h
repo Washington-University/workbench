@@ -54,6 +54,7 @@ namespace caret {
         std::vector<std::vector<float> > m_indexToSpace;
         std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
         float* m_data;
+        int64_t m_dataSize;
         int64_t m_dimensions[5];//store internally as 4d+component
         std::vector<int64_t> m_origDims;//but keep track of the original dimensions
         float*** m_indexRef;//some magic to avoid multiply during getVoxel/setVoxel

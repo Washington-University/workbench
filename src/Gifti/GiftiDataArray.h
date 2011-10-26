@@ -35,6 +35,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "DescriptiveStatistics.h"
 #include "GiftiArrayIndexingOrderEnum.h"
 #include "GiftiEncodingEnum.h"
 #include "GiftiEndianEnum.h"
@@ -302,6 +303,8 @@ namespace caret {
         
         const PaletteColorMapping* getPaletteColorMapping() const;
         
+        DescriptiveStatistics* getDescriptiveStatistics();
+        
     protected:
         // allocate data for this column
         virtual void allocateData();
@@ -398,6 +401,9 @@ namespace caret {
         
         /// min/max percentage values valid
         mutable bool minMaxPercentageValuesValid;
+        
+        /// statistics about data (DO NOT COPY)
+        DescriptiveStatistics* descriptiveStatistics;
         
         bool modifiedFlag; // DO NOT COPY
         // ***** BE SURE TO UPDATE copyHelper() if elements are added ******

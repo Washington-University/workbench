@@ -62,12 +62,13 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn,
    dataPointerInt = NULL;
    dataPointerUByte = NULL;    
    this->paletteColorMapping = NULL;
+  this->descriptiveStatistics = NULL;
    clear();
    dataType = dataTypeIn;
    setDimensions(dimensionsIn);
    encoding = encodingIn;
    endian = getSystemEndian();
-    arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
+   arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
    externalFileName = "";
    externalFileOffset = 0;
    
@@ -93,6 +94,7 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn)
    dataPointerInt = NULL;
    dataPointerUByte = NULL;
    this->paletteColorMapping = NULL;
+   this->descriptiveStatistics = NULL;
    clear();
    dimensions.clear();
    encoding = GiftiEncodingEnum::ASCII;
@@ -146,6 +148,14 @@ GiftiDataArray::operator=(const GiftiDataArray& nda)
 void 
 GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
 {
+    this->paletteColorMapping = NULL;
+    if (nda.paletteColorMapping != NULL) {
+        this->paletteColorMapping = new PaletteColorMapping(*nda.paletteColorMapping);
+    }
+    if (this->descriptiveStatistics != NULL) {
+        delete this->descriptiveStatistics;
+        this->descriptiveStatistics = NULL;
+    }
    intent = nda.intent;
    encoding = nda.encoding;
    arraySubscriptingOrder = nda.arraySubscriptingOrder;
@@ -178,10 +188,6 @@ GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
    posMaxPctValue = nda.posMaxPctValue;
    matrices = nda.matrices;
     
-    this->paletteColorMapping = NULL;
-    if (nda.paletteColorMapping != NULL) {
-        this->paletteColorMapping = new PaletteColorMapping(*nda.paletteColorMapping);
-    }
    setModified();
 }
 
@@ -406,6 +412,10 @@ GiftiDataArray::clear()
     if (this->paletteColorMapping != NULL) {
         delete this->paletteColorMapping;
         this->paletteColorMapping = NULL;
+    }
+    if (this->descriptiveStatistics != NULL) {
+        delete this->descriptiveStatistics;
+        this->descriptiveStatistics = NULL;
     }
    // do not clear
    // parentGiftiDataFile;
@@ -1297,6 +1307,10 @@ void
 GiftiDataArray::setModified()
 {
     this->modifiedFlag = true;
+    if (this->descriptiveStatistics != NULL) {
+        delete this->descriptiveStatistics;
+        this->descriptiveStatistics = NULL;
+    }
 }
 
 /**
@@ -1681,6 +1695,17 @@ GiftiDataArray::getPaletteColorMapping() const
     }
     
     return this->paletteColorMapping;
+}
+
+DescriptiveStatistics* 
+GiftiDataArray::getDescriptiveStatistics()
+{
+    if (this->descriptiveStatistics == NULL) {
+        this->descriptiveStatistics = new DescriptiveStatistics();
+        this->descriptiveStatistics->update(this->dataPointerFloat, 
+                                            this->getTotalNumberOfElements());
+    }
+    return this->descriptiveStatistics;
 }
 
 AString 

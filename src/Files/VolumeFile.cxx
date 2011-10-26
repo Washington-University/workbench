@@ -80,8 +80,8 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
         }
     }
     m_dimensions[4] = numComponents;
-    int64_t totalSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
-    m_data = new float[totalSize];
+    m_dataSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
+    m_data = new float[m_dataSize];
     CaretAssert(m_data != NULL);
     setupIndexing();
     //TODO: adjust any existing nifti header to match, or remove nifti header?
@@ -93,6 +93,7 @@ VolumeFile::VolumeFile()
 : CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
+    m_dataSize = 0;
     m_headerType = NONE;
     m_indexRef = NULL;
     m_jMult = NULL;
@@ -125,6 +126,7 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
 : CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
+    m_dataSize = 0;
     m_headerType = NONE;
     m_indexRef = NULL;
     m_jMult = NULL;
@@ -143,6 +145,7 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
 : CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
+    m_dataSize = 0;
     m_headerType = NONE;
     m_indexRef = NULL;
     m_jMult = NULL;
@@ -337,6 +340,7 @@ void VolumeFile::freeMemory()
         delete[] m_data;
         m_data = NULL;
     }
+    m_dataSize = 0;
     if (m_indexRef != NULL)
     {//assume the entire thing exists
         delete[] m_indexRef[0];//they were actually allocated as only 2 flat arrays
@@ -683,7 +687,7 @@ VolumeFile::getMapStatistics(const int32_t mapIndex)
     
     if (m_brickAttributes[mapIndex]->m_statistics == NULL) {
         DescriptiveStatistics* ds = new DescriptiveStatistics();
-        
+        ds->update(m_data, m_dataSize);
         m_brickAttributes[mapIndex]->m_statistics = ds;
     }
     
