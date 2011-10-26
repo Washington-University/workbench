@@ -22,9 +22,11 @@
  * 
  */ 
 
+#include <QApplication>
 #include <iostream>
 
 #include "CaretAssert.h"
+#include "CaretHttpManager.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
@@ -55,26 +57,31 @@ static void runCommand(int argc, char* argv[]) {
 
 int main(int argc, char* argv[]) {
 
-    /*
-     * Handle uncaught exceptions
-     */
-    SystemUtilities::setHandlersForUnexpected();
-    
-    /*
-     * Create the session manager.
-     */
-    SessionManager::createSessionManager();
-    
-    runCommand(argc, argv);
-    
-    /*
-     * Delete the session manager.
-     */
-    SessionManager::deleteSessionManager();
-    
+    {
+        /*
+         * Handle uncaught exceptions
+         */
+        SystemUtilities::setHandlersForUnexpected();
+        
+        /*
+         * Create the session manager.
+         */
+        SessionManager::createSessionManager();
+        
+        QApplication myApp(argc, argv, false);//if some commands need gui (dunno, but caret5 had some) this may need to be moved into CommandOperationManager
+        
+        runCommand(argc, argv);
+        
+        /*
+         * Delete the session manager.
+         */
+        SessionManager::deleteSessionManager();
+        CaretHttpManager::deleteHttpManager();//does this belong in some other singleton manager?
+        myApp.processEvents();//since we don't exec(), let it clean up any ->deleteLater()s
+    }
     /*
      * See if any objects were not deleted.
      */
-    CaretObject::printListOfObjectsNotDeleted(true);    
+    CaretObject::printListOfObjectsNotDeleted(true);
 }
   

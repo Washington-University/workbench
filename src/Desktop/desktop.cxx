@@ -28,6 +28,7 @@
 #include <QGLFormat>
 #include <QGLPixelBuffer>
 
+#include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
@@ -125,6 +126,8 @@ main(int argc, char* argv[])
      * Delete the session manager.
      */
     SessionManager::deleteSessionManager();
+    
+    CaretHttpManager::deleteHttpManager();
     
     /*
      * See if any objects were not deleted.

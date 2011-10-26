@@ -142,4 +142,5 @@ ENABLE_TESTING()
 
 ADD_TEST(timer ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver timer)
 ADD_TEST(progress ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver progress)
-ADD_TEST(volume ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver volumefile)
+ADD_TEST(volumefile ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver volumefile)
+ADD_TEST(http ${CMAKE_CURRENT_BINARY_DIR}/Tests/test_driver http)

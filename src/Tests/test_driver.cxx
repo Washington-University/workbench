@@ -24,17 +24,20 @@
 
 //test driver for trying CTest
 
+#include <QApplication>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
 #include "TestInterface.h"
 #include "SessionManager.h"
+#include "CaretHttpManager.h"
 
 //tests
+#include "HttpTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
-#include "TimerTest.h"
 #include "ProgressTest.h"
+#include "TimerTest.h"
 #include "VolumeFileTest.h"
 
 using namespace std;
@@ -51,13 +54,15 @@ void freeTestList(vector<TestInterface*>& mylist)
 int main(int argc, char** argv)
 {
     {
+        QApplication myApp(argc, argv, false);
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
-        mytests.push_back(new TimerTest("timer"));
-        mytests.push_back(new ProgressTest("progress"));
+        mytests.push_back(new HttpTest("http"));
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));
         mytests.push_back(new NiftiMatrixTest("niftimatrix"));
+        mytests.push_back(new ProgressTest("progress"));
+        mytests.push_back(new TimerTest("timer"));
         mytests.push_back(new VolumeFileTest("volumefile"));
         if (argc < 2)
         {
@@ -99,6 +104,8 @@ int main(int argc, char** argv)
             return 1;
         }
         SessionManager::deleteSessionManager();
+        CaretHttpManager::deleteHttpManager();
+        myApp.processEvents();
     }
     CaretObject::printListOfObjectsNotDeleted(true);
     return 0;

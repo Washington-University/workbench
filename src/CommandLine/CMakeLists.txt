@@ -11,6 +11,7 @@ PROJECT (CommandLine)
 #
 SET(QT_DONT_USE_QTGUI)
 SET(QT_USE_QTXML TRUE)
+SET(QT_USE_QTNETWORK TRUE)
 
 #
 # Add QT for includes

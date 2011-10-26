@@ -1,5 +1,5 @@
-#ifndef CARETURLMANAGER_H
-#define CARETURLMANAGER_H
+#ifndef __CARET_HTTP_MANAGER_H__
+#define __CARET_HTTP_MANAGER_H__
 
 /*LICENSE_START*/
 /*
@@ -47,9 +47,9 @@ namespace caret {
             POST,
             HEAD
         };
-        static CaretHttpManager* getUrlManager();
-        static void deleteUrlManager();
-        static void httpRequest(const CaretHttpRequest& request, CaretHttpResponse& reply);
+        static CaretHttpManager* getHttpManager();
+        static void deleteHttpManager();
+        static void httpRequest(const CaretHttpRequest& request, CaretHttpResponse& response);
         static QNetworkAccessManager* getQNetManager();
     };
 
@@ -70,4 +70,4 @@ namespace caret {
 
 }
 
-#endif // CARETURLMANAGER_H
+#endif // __CARET_HTTP_MANAGER_H__

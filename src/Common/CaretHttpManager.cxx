@@ -10,7 +10,7 @@ CaretHttpManager::CaretHttpManager()
 {
 }
 
-CaretHttpManager* CaretHttpManager::getUrlManager()
+CaretHttpManager* CaretHttpManager::getHttpManager()
 {
     if (m_singleton == NULL)
     {
@@ -19,7 +19,7 @@ CaretHttpManager* CaretHttpManager::getUrlManager()
     return m_singleton;
 }
 
-void CaretHttpManager::deleteUrlManager()
+void CaretHttpManager::deleteHttpManager()
 {
     if (m_singleton != NULL)
     {
@@ -29,10 +29,10 @@ void CaretHttpManager::deleteUrlManager()
 
 QNetworkAccessManager* CaretHttpManager::getQNetManager()
 {
-    return &(getUrlManager()->m_netMgr);
+    return &(getHttpManager()->m_netMgr);
 }
 
-void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &reply)
+void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpResponse &response)
 {
     QEventLoop myLoop;
     QNetworkRequest myRequest;
@@ -47,7 +47,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         }
         myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         myRequest.setUrl(QUrl::fromUserInput(request.m_url));
-        myReply = getUrlManager()->getQNetManager()->post(myRequest, myParams.toEncoded());
+        myReply = getHttpManager()->getQNetManager()->post(myRequest, myParams.toEncoded());
         break;
     case GET:
         myUrl = QUrl::fromUserInput(request.m_url);
@@ -56,7 +56,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
-        myReply = getUrlManager()->getQNetManager()->get(myRequest);
+        myReply = getHttpManager()->getQNetManager()->get(myRequest);
         break;
     case HEAD:
         myUrl = QUrl::fromUserInput(request.m_url);
@@ -65,25 +65,25 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
-        myReply = getUrlManager()->getQNetManager()->head(myRequest);
+        myReply = getHttpManager()->getQNetManager()->head(myRequest);
         break;
     default:
         CaretAssertMessage(false, "Unrecognized http request method");
     };
     QObject::connect(myReply, SIGNAL(finished()), &myLoop, SLOT(quit()));
-    myLoop.exec();
-    reply.m_method = request.m_method;
-    reply.m_ok = false;
-    reply.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if (reply.m_responseCode == 200)
+    myLoop.exec();//this is safe, because nothing will hand this thread events except queued through this thread's event mechanism
+    response.m_method = request.m_method;//so, they can only be delivered after myLoop.exec() starts
+    response.m_ok = false;
+    response.m_responseCode = myReply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (response.m_responseCode == 200)
     {
-        reply.m_ok = true;
+        response.m_ok = true;
     }
     QByteArray myBody = myReply->readAll();
     int64_t mySize = myBody.size();
-    reply.m_body.resize(mySize);
+    response.m_body.resize(mySize);
     for (int64_t i = 0; i < mySize; ++i)
     {
-        reply.m_body[i] = myBody[(int)i];//because QByteArray apparently just uses int - hope we won't need to transfer 2GB on a system that uses int32 for this
+        response.m_body[i] = myBody[(int)i];//because QByteArray apparently just uses int - hope we won't need to transfer 2GB on a system that uses int32 for this
     }
 }

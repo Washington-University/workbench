@@ -8,6 +8,7 @@ PROJECT (Tests)
 #
 SET(QT_DONT_USE_QTGUI)
 SET(QT_USE_QTXML TRUE)
+SET(QT_USE_QTNETWORK TRUE)
 
 #
 # Add QT for includes
@@ -18,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 #The individual tests
 #
 ADD_LIBRARY(Tests
+HttpTest.h
 NiftiTest.h
 NiftiMatrixTest.h
 TestInterface.h
@@ -25,6 +27,7 @@ TimerTest.h
 ProgressTest.h
 VolumeFileTest.h
 
+HttpTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx
 TimerTest.cxx
