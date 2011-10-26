@@ -215,6 +215,32 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
  *
  * @param browserTabContent
  *    Tab in which this overlay is applied.
+ * @param selectedMapFileOut
+ *    The selected map file.  May be NULL.
+ * @param selectedMapIndexOut
+ *    Index of selected map in the selected file.
+ */
+void 
+Overlay::getSelectionData(BrowserTabContent* browserTabContent,
+                          CaretMappableDataFile* &selectedMapFileOut,
+                          int32_t& selectedMapIndexOut)
+{
+    std::vector<CaretMappableDataFile*> mapFiles;
+    AString mapName;
+    
+    this->getSelectionData(browserTabContent, 
+                           mapFiles, 
+                           selectedMapFileOut, 
+                           mapName, 
+                           selectedMapIndexOut);
+}
+
+/**
+ * Return the selection information.  This method is typically
+ * called to update the user-interface.
+ *
+ * @param browserTabContent
+ *    Tab in which this overlay is applied.
  * @param mapFilesOut
  *    Contains all map files that can be selected.
  * @param selectedMapFileOut

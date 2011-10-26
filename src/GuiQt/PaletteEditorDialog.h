@@ -1,5 +1,5 @@
-#ifndef __WU_Q_DIALOG_NON_MODAL__H_
-#define __WU_Q_DIALOG_NON_MODAL__H_
+#ifndef __PALETTE_EDITOR_DIALOG__H_
+#define __PALETTE_EDITOR_DIALOG__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,47 +26,46 @@
  */ 
 
 
-#include "WuQDialog.h"
+#include "WuQDialogNonModal.h"
+
+class QComboBox;
 
 namespace caret {
-
-    class WuQDialogNonModal : public WuQDialog {
+    
+    class CaretMappableDataFile;
+    class PaletteColorMapping;
+    class WuQWidgetObjectGroup;
+    
+    class PaletteEditorDialog : public WuQDialogNonModal {
         Q_OBJECT
         
     public:
-        WuQDialogNonModal(const AString& dialogTitle,
-                          QWidget* parent = 0,
-                          Qt::WindowFlags f = 0);
+        PaletteEditorDialog(QWidget* parent);
         
-        virtual ~WuQDialogNonModal();
-        
-        void setApplyButtonText(const AString& text);
-        
-        void setCloseButtonText(const AString& text);
-        
-    protected slots:
-        void apply();
-        
+        void updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
+                                 const int32_t mapIndex);
+                    
+        virtual ~PaletteEditorDialog();
+
     protected:
         virtual void applyButtonPressed();
         
-        virtual void closeButtonPressed();
+    private:
+        PaletteEditorDialog(const PaletteEditorDialog&);
 
-    private slots:
-        void clicked(QAbstractButton* button);
+        PaletteEditorDialog& operator=(const PaletteEditorDialog&);
         
     private:
-        WuQDialogNonModal(const WuQDialogNonModal&);
-
-        WuQDialogNonModal& operator=(const WuQDialogNonModal&);
+        PaletteColorMapping* paletteColorMapping;
         
-    private:
+        QComboBox* paletteNameComboBox;
+        
+        WuQWidgetObjectGroup* widgetGroup;
     };
     
-#ifdef __WU_Q_DIALOG_NON_MODAL_DECLARE__
+#ifdef __PALETTE_EDITOR_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_DIALOG_NON_MODAL_DECLARE__
+#endif // __PALETTE_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-
-#endif  //__WU_Q_DIALOG_NON_MODAL__H_
+#endif  //__PALETTE_EDITOR_DIALOG__H_

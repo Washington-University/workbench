@@ -42,6 +42,7 @@
 #include "GuiManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
+#include "PaletteEditorDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -64,6 +65,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                       OverlaySelectionControl* overlaySelectionControl,
                                       const int32_t layerIndex)
 {
+    this->paletteEditorDialog = NULL;
     this->overlaySelectionControl = overlaySelectionControl;
     this->browserWindowIndex = browserWindowIndex;
     this->layerIndex = layerIndex;
@@ -261,7 +263,28 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
 void 
 OverlaySelectionControlLayer::settingsToolButtonPressed()
 {
-    QMessageBox::information(this->overlaySelectionControl, "", "Settings!");
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    
+    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
+    CaretMappableDataFile* mapFile;
+    int32_t mapIndex = -1;
+    overlay->getSelectionData(browserTabContent, 
+                              mapFile, 
+                              mapIndex);
+    if (mapFile->isMappedWithPalette()) {
+        if (mapFile != NULL) {
+            if (this->paletteEditorDialog == NULL) {
+                this->paletteEditorDialog = new PaletteEditorDialog(this->settingsToolButton);
+            }
+            this->paletteEditorDialog->updatePaletteEditor(mapFile, mapIndex);
+            this->paletteEditorDialog->show();
+        }
+    }
+    else if (mapFile->isMappedWithLabelTable()) {
+        QMessageBox::information(this->overlaySelectionControl, "", "Edit Labels!");
+    }
 }
 
 void 

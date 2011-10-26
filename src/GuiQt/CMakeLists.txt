@@ -32,6 +32,7 @@ GuiManager.h
 HyperLinkTextBrowser.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+PaletteEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 WuQDialog.h
@@ -65,6 +66,7 @@ MouseEvent.h
 MouseEventTypeEnum.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+PaletteEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 UserInputModeView.h
@@ -95,6 +97,7 @@ MouseEvent.cxx
 MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
+PaletteEditorDialog.cxx
 SpecFileDialog.cxx
 StructureSurfaceSelectionControl.cxx
 UserInputModeView.cxx
@@ -134,6 +137,7 @@ ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )

@@ -67,6 +67,10 @@ namespace caret {
                               AString& selectedMapNameOut,
                               int32_t& selectedMapIndexOut);
         
+        void getSelectionData(BrowserTabContent* browserTabContent,
+                              CaretMappableDataFile* &selectedMapFileOut,
+                              int32_t& selectedMapIndexOut);
+        
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
                               const int32_t selectedMapIndex);
         

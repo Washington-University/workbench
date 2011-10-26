@@ -78,6 +78,17 @@ WuQDialogNonModal::~WuQDialogNonModal()
 }
 
 /**
+ * This slot can be called and it simply calls
+ * applyButtonPressed.  This slot can be connected
+ * to GUI components.
+ */
+void 
+WuQDialogNonModal::apply()
+{
+    this->applyButtonPressed();
+}
+
+/**
  * Called when a button is pressed.
  */
 void 
