@@ -22,32 +22,29 @@
  *
  */
 
-#ifndef NIFTIMATRIX_H
-#define NIFTIMATRIX_H
-#include "NiftiEnums.h"
-#include "NiftiException.h"
-#include "QFile"
-#include "AString.h"
-#include "VolumeFile.h"
-#include "stdint.h"
-#include "zlib.h"
-#include "QMap"
+
+//// DO NOT USE!!!!!
+//// THIS IS THE BEGINNING OF AN IMPLEMENTATION OF A GENERIC MATRIX READER/WRITER
+//// IT'S NOT READY YET, SO DON'T BOTHER EVEN LOOKING, AS FUNCTION NAMES, HOW IT'S USED
+//// CAN AND WILL CHANGE!!!!
+
+#ifndef MATRIX_H
+#define MATRIX_H
 #include "Layout.h"
 
 namespace caret {
 
-class NiftiMatrix : public LayoutType //so we don't have to qualify layouts
-{
+struct Matrix : public LayoutType {
 public:
-    NiftiMatrix();
-    //NiftiMatrix(const AString &filename) throw (NiftiException);
-    //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
-    NiftiMatrix(const QFile &filein);
-    NiftiMatrix(const QFile &filein, const int64_t &offsetin);
-    ~NiftiMatrix() { flushCurrentFrame(); clearMatrix();}
+    Matrix();
+    //Matrix(const AString &filename) throw (NiftiException);
+    //Matrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
+    Matrix(const QFile &filein);
+    Matrix(const QFile &filein, const int64_t &offsetin);
+    ~Matrix() { flushCache(); clearMatrix();}
 
     /// Writes out any changes made to the current Frame to the disk, if it has been changed
-    void flushCurrentFrame();
+    void flushCache();
     void setMatrixFile(const QFile &filein);
     bool isCompressed();
 
@@ -63,12 +60,6 @@ public:
     /// sets the offset of the start of the matrix in the file, in case we are reading from a file that has a header before the matrix.
     void setMatrixOffset(const int64_t &offsetin) throw (NiftiException) { this->matrixStartOffset = offsetin; }
 
-    // the following two functions are nifti specific
-    /// sets the matrix layout by deriving information from a Nifti1Header
-    void setMatrixLayoutOnDisk(const Nifti1Header &headerIn);
-    /// sets the matrix layout by deriving information from a Nifti2Header
-    void setMatrixLayoutOnDisk(const Nifti2Header &headerIn);
-
     /// Gets the matrix's layout on disk, since this matrix class only operates on one file at a time, it affects both reads and writes
     void getMatrixLayoutOnDisk(LayoutType &layout);
     /// set the matrix layout on disk by handing it a predefined layout struct
@@ -78,6 +69,15 @@ public:
     /// set the layout on Disk by handing it required params
     void setMatrixLayoutOnDisk(const std::vector<int64_t> &dimensionsIn, const int &componentDimensionsIn,const bool &needsSwappingIn );
 
+    /// Gets the matrix's layout, since this matrix class only operates on one file at a time, it affects both reads and writes
+    void getMatrixLayout(LayoutType &layout);
+    /// set the matrix layout on disk by handing it a predefined layout struct
+    void setMatrixLayout(LayoutType &layout);
+    /// get the layout
+    void getMatrixLayout(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut,int64_t &frameLengthOut, int64_t &frameSizeOut );
+    /// set the layout by handing it required params
+    void setMatrixLayout(const std::vector<int64_t> &dimensionsIn, const int &componentDimensionsIn,const bool &needsSwappingIn );
+
     // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
 
@@ -85,16 +85,15 @@ public:
     // use set frame to write to frame that hasn't previously been written, or to completely over-write a frame if
     // you don't care about the data it contains.
     /// Reads frame from disk into memory, flushes previous frame to disk if changes were made.
-    void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
-
+    void readChunk(int64_t index=0L)  throw (NiftiException);//for loading a frame at a time
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
-    void setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException);
+    void setChunk(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException);
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
-    void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
+    void setChunk(const int64_t &timeSlice=0L) throw(NiftiException);
     /// Gets the entire loaded frame as floats, for easier manipulation
-    void getFrame(float *frame, const int64_t &componentIndex=0L) throw (NiftiException);
+    void getChunk(float *frame, const int64_t &componentIndex=0L) throw (NiftiException);
     /// Writes the current frame to disk.
-    void writeFrame() throw(NiftiException);
+    void writeChunk() throw(NiftiException);
     // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
     //void readMatrix() {}//for loading the entire matrix, not implemented
     //void setMatrix...
@@ -102,25 +101,16 @@ public:
 
     // !!!SECTION 3: after frame has been loaded, use functions below to manipulate frame data
     //once a frame has been loaded, use the functions below to manipulate it
-    void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, int64_t &index) const;
-    float getComponent(const int64_t &index, const int64_t &componentIndex) const throw (NiftiException);
-    void setComponent(const int64_t &index, const int64_t &componentIndex, const float &value) throw (NiftiException);
-    /// Volume read/write Functions
-    /// get VolumeFrame
-    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
-    /// Set VolumeFrame
-    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
-    /* void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    */
+    void translateCoordsToIndex(std::vector<int32_t> &coords, int64_t &index) const;
+
     // !!!SECTION 4: convenient getter/setters
     /// Gets the Size in bytes of the current frame
-    int64_t getFrameSize() { return frameSize;}
+    int64_t getChunkSize() { return frameSize;}
     /// Gets the number of individual elements (array size) of the current frame
-    int64_t getFrameLength() { return frameLength; }
+    int64_t getChunkLength() { return frameLength; }
 
 
-private:
+protected:
     void reAllocateMatrixIfNeeded();
     void clearMatrix();
     void init();
@@ -145,8 +135,20 @@ private:
     float *matrix;
     int64_t matrixLength;//length of array
     bool matrixLoaded;
+
+    //supported matrix storage types
+    double * doubleMatrix;
+    float * floatMatrix;
+    int64_t * int64Matrix;
+    int32_t * int32Matrix;
+    int16_t * int16Matrix;
+    int8_t * int8Matrix;
+    uint64_t * uint64Matrix;
+    uint32_t * uint32Matrix;
+    uint16_t * uint16Matrix;
+    uint8_t * uint8Matrix;
 };
 
 }
-#endif // NIFTIMATRIX_H
 
+#endif //MATRIX_H

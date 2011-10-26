@@ -22,18 +22,11 @@
  * 
  */ 
 
-#ifndef CIFTIHEADERIO_H
-#define CIFTIHEADERIO_H
-#include "NiftiHeaderIO.h"
-#include "CiftiHeader.h"
-namespace caret {
+#include "CiftiMatrix.h"
 
-class CiftiHeaderIO : public NiftiHeaderIO
+using namespace caret;
+CiftiMatrix::CiftiMatrix()
 {
-public:
-    CiftiHeaderIO();
-    void init();
-};
+
 
 }
-#endif // CIFTIHEADERIO_H

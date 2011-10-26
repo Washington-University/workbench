@@ -23,6 +23,7 @@ CiftiFileException.h
 CiftiFile.h
 CiftiHeader.h
 CiftiHeaderIO.h
+CiftiMatrix.h
 CiftiXMLElements.h
 CiftiXML.h
 CiftiXMLReader.h
@@ -33,6 +34,7 @@ CiftiFile.cxx
 CiftiFileException.cxx
 CiftiHeader.cxx
 CiftiHeaderIO.cxx
+CiftiMatrix.cxx
 CiftiXML.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx

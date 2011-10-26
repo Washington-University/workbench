@@ -47,8 +47,8 @@ public:
     void getHeaderStruct(nifti_2_header &header) const throw (NiftiException);
     void setHeaderStuct(const nifti_2_header &header) throw (NiftiException);
     QString *getHeaderAsString();
-    void initHeaderStruct(nifti_2_header &header);
-    void initHeaderStruct();
+    virtual void initHeaderStruct(nifti_2_header &header);
+    virtual void initHeaderStruct();
     void getDimensions(std::vector <int64_t> &dimensionsOut) const;
     void setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException) ;
     void getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const;
@@ -65,7 +65,7 @@ public:
     void getSForm(std::vector < std::vector <float> > &sForm);
     void setSForm(std::vector < std::vector <float> > &sForm);
     int64_t getVolumeOffset() { return m_header.vox_offset; }
-private:
+protected:
     nifti_2_header m_header;
     //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user
     //would need to call a separate function to set byte order reading, which is error prone

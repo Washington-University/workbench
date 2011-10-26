@@ -27,7 +27,7 @@
 #include <algorithm>
 #include "CiftiXMLReader.h"
 #include <vector>
-//#include "byteswap.h"
+
 
 #include <iostream>
 using namespace caret;

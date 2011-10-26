@@ -31,6 +31,10 @@ class CiftiHeader : public Nifti2Header
 {
 public:
     CiftiHeader();
+    virtual void initHeaderStruct();
+    virtual void initHeaderStruct(nifti_2_header &header);
+    void initDenseTimeSeries();
+    void initDenseConnectivity();
 };
 
 }

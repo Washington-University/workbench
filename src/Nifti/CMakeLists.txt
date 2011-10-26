@@ -18,6 +18,8 @@ INCLUDE (${QT_USE_FILE})
 # Create the NIFTI library
 #
 ADD_LIBRARY(Nifti
+Layout.h
+Matrix.h
 Matrix4x4.h
 NiftiEnums.h
 NiftiException.h
@@ -29,7 +31,8 @@ NiftiMatrix.h
 nifti1.h
 nifti2.h
 
-
+Layout.cxx
+Matrix.cxx
 Matrix4x4.cxx
 NiftiEnums.cxx
 NiftiException.cxx

@@ -30,7 +30,7 @@
 #include "CiftiFileException.h"
 #include "CiftiHeaderIO.h"
 #include "CiftiXML.h"
-#include "NiftiMatrix.h"
+#include "CiftiMatrix.h"
 
 /// Class for opening, reading, and writing generic Cifti Data
 
@@ -68,7 +68,7 @@ protected:
     AString m_fileName;
     CiftiHeaderIO m_headerIO;
     CiftiXML m_xml;
-    NiftiMatrix m_matrix;
+    CiftiMatrix m_matrix;
     bool m_swapNeeded;
 };
 }
