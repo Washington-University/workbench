@@ -27,6 +27,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretLogger.h"
+#include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
@@ -58,8 +59,12 @@ Brain::Brain()
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_DATA_FILE_READ);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
 }
 
 /**
@@ -800,6 +805,19 @@ Brain::receiveEvent(Event* event)
             readDataFileEvent->setEventProcessed();
             this->processReadDataFileEvent(readDataFileEvent);
         }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
+        EventCaretMappableDataFilesGet* dataFilesEvent =
+        dynamic_cast<EventCaretMappableDataFilesGet*>(event);
+        CaretAssert(dataFilesEvent);
+        
+        for (std::vector<VolumeFile*>::iterator volumeIter = this->volumeFiles.begin();
+             volumeIter != this->volumeFiles.end();
+             volumeIter++) {
+            dataFilesEvent->addFile(*volumeIter);
+        }
+        
+        dataFilesEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES) {
         EventSpecFileReadDataFiles* readSpecFileDataFilesEvent =

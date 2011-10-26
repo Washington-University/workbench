@@ -26,6 +26,11 @@
 #include "FloatMatrix.h"
 #include <cmath>
 #include "NiftiFile.h"
+#include "DescriptiveStatistics.h"
+#include "GiftiLabelTable.h"
+#include "GiftiMetaData.h"
+#include "GiftiXmlElements.h"
+#include "PaletteColorMapping.h"
 
 using namespace caret;
 using namespace std;
@@ -80,9 +85,12 @@ void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     CaretAssert(m_data != NULL);
     setupIndexing();
     //TODO: adjust any existing nifti header to match, or remove nifti header?
+    
+    createAttributes();
 }
 
 VolumeFile::VolumeFile()
+: CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
     m_headerType = NONE;
@@ -106,9 +114,15 @@ VolumeFile::VolumeFile()
         }
     }
     m_spaceToIndex = m_indexToSpace;
+    m_labelTable = NULL;
+    m_metadata = NULL;
+    m_paletteColorMapping = NULL;
+    createAttributes();
+    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
 }
 
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+: CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
     m_headerType = NONE;
@@ -117,10 +131,16 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
+    m_labelTable = NULL;
+    m_metadata = NULL;
+    m_paletteColorMapping = NULL;
+    createAttributes();
+    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
 }
 
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
+: CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     m_data = NULL;
     m_headerType = NONE;
@@ -129,6 +149,11 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
+    m_labelTable = NULL;
+    m_metadata = NULL;
+    m_paletteColorMapping = NULL;
+    createAttributes();
+    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
 
@@ -326,6 +351,8 @@ void VolumeFile::freeMemory()
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
+
+    freeAttributes();
 }
 
 void VolumeFile::setupIndexing()
@@ -390,8 +417,34 @@ VolumeFile::~VolumeFile()
     freeMemory();
 }
 
+void 
+VolumeFile::createAttributes()
+{
+    m_labelTable = new GiftiLabelTable();
+    m_metadata   = new GiftiMetaData();
+    m_paletteColorMapping = new PaletteColorMapping();
+    for (int64_t i = 0; i < m_dimensions[3]; i++) {
+        m_brickAttributes.push_back(new BrickAttributes());
+    }
+}
+
+void 
+VolumeFile::freeAttributes()
+{
+    delete m_metadata;
+    delete m_labelTable;
+    delete m_paletteColorMapping;
+    for (std::vector<BrickAttributes*>::iterator iter = m_brickAttributes.begin();
+         iter != m_brickAttributes.end();
+         iter++) {
+        delete *iter;
+    }
+    m_brickAttributes.clear();
+}
+
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
+    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     try {
         NiftiFile myNifti;
         myNifti.readVolumeFile(*this, filename);
@@ -411,7 +464,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 bool
 VolumeFile::isEmpty() const
 {
-    return false;
+    return (m_dimensions[0] <= 0);
 }
 
 /**
@@ -434,6 +487,7 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
     }
 }
 
+
 void VolumeFile::getFrame(float* frameOut, const int64_t brickIndex, const int64_t component) const
 {
     int64_t startIndex = getIndex(0, 0, 0, brickIndex, component);
@@ -455,5 +509,294 @@ void VolumeFile::setFrame(const float* frameIn, const int64_t brickIndex, const 
     {
         m_data[myIndex] = frameIn[inIndex];
         ++inIndex;
+    }
+}
+
+
+/**
+ * @return The structure for this file.
+ */
+StructureEnum::Enum 
+VolumeFile::getStructure() const
+{
+    return StructureEnum::INVALID;
+}
+
+/**
+ * Set the structure for this file.
+ * @param structure
+ *   New structure for this file.
+ */
+void 
+VolumeFile::setStructure(const StructureEnum::Enum /*structure*/)
+{
+    /* no structure in volulme file */
+}
+
+/**
+ * @return Get access to the file's metadata.
+ */
+GiftiMetaData* 
+VolumeFile::getFileMetaData()
+{
+    return m_metadata;
+}
+
+/**
+ * @return Get access to unmodifiable file's metadata.
+ */
+const GiftiMetaData* 
+VolumeFile::getFileMetaData() const
+{
+    return m_metadata;
+}
+
+
+/**
+ * @return Is the data mappable to a surface?
+ */
+bool 
+VolumeFile::isSurfaceMappable() const
+{
+    return false;
+}
+
+/**
+ * @return Is the data mappable to a volume?
+ */
+bool 
+VolumeFile::isVolumeMappable() const
+{
+    return true;
+}
+
+/**
+ * @return The number of maps in the file.  
+ * Note: Caret5 used the term 'columns'.
+ */
+int32_t 
+VolumeFile::getNumberOfMaps() const
+{
+    return m_dimensions[3];
+}
+
+/**
+ * Get the name of the map at the given index.
+ * 
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Name of the map.
+ */
+AString 
+VolumeFile::getMapName(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    AString name = m_brickAttributes[mapIndex]->m_metadata->get(GiftiXmlElements::TAG_METADATA_NAME);
+    if (name.isEmpty()) {
+        name = "#" + AString::number(mapIndex + 1);
+    }
+    return name;
+}
+
+/**
+ * Find the index of the map that uses the given name.
+ * 
+ * @param mapName
+ *    Name of the desired map.
+ * @return
+ *    Index of the map using the given name.  If there is more
+ *    than one map with the given name, this method is likely
+ *    to return the index of the first map with the name.
+ */
+int32_t 
+VolumeFile::getMapIndexFromName(const AString& mapName)
+{
+    for (int64_t i = 0; i < m_dimensions[3]; i++) {
+        if (this->getMapName(i) == mapName) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * Set the name of the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mapName
+ *    New name for the map.
+ */
+void 
+VolumeFile::setMapName(const int32_t mapIndex,
+                          const AString& mapName)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    m_brickAttributes[mapIndex]->m_metadata->set(GiftiXmlElements::TAG_METADATA_NAME, mapName);
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map (const value).
+ */         
+const GiftiMetaData* 
+VolumeFile::getMapMetaData(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    return m_brickAttributes[mapIndex]->m_metadata;
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map.
+ */         
+GiftiMetaData* 
+VolumeFile::getMapMetaData(const int32_t mapIndex)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    return m_brickAttributes[mapIndex]->m_metadata;
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const DescriptiveStatistics* 
+VolumeFile::getMapStatistics(const int32_t mapIndex)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    
+    if (m_brickAttributes[mapIndex]->m_statistics == NULL) {
+        DescriptiveStatistics* ds = new DescriptiveStatistics();
+        
+        m_brickAttributes[mapIndex]->m_statistics = ds;
+    }
+    
+    return m_brickAttributes[mapIndex]->m_statistics;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a palette.
+ */
+bool 
+VolumeFile::isMappedWithPalette() const
+{
+    return (m_niftiIntent != NiftiIntentEnum::NIFTI_INTENT_LABEL);
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (will be NULL for data
+ *    not mapped using a palette).
+ */         
+PaletteColorMapping* 
+VolumeFile::getMapPaletteColorMapping(const int32_t mapIndex)
+{
+    /*
+     * Use one palette for all bricks
+     */
+    return m_paletteColorMapping;
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (constant) (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const PaletteColorMapping* 
+VolumeFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
+{
+    /*
+     * Use one palette for all bricks
+     */
+    return m_paletteColorMapping;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a label table.
+ */
+bool 
+VolumeFile::isMappedWithLabelTable() const
+{
+    return (m_niftiIntent == NiftiIntentEnum::NIFTI_INTENT_LABEL);
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (will be NULL for data
+ *    not mapped using a label table).
+ */         
+GiftiLabelTable* 
+VolumeFile::getMapLabelTable(const int32_t /*mapIndex*/)
+{
+    /*
+     * Use file's label table since volume uses one
+     * label table for all data arrays.
+     */
+    return m_labelTable;
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (constant) (will be NULL for data
+ *    not mapped using a label table).
+ */         
+const GiftiLabelTable* 
+VolumeFile::getMapLabelTable(const int32_t /*mapIndex*/) const
+{
+    /*
+     * Use file's label table since volume uses one
+     * label table for all data arrays.
+     */
+    return m_labelTable;
+}
+
+
+
+//==================================================================================
+VolumeFile::BrickAttributes::BrickAttributes()
+{
+    m_metadata = new GiftiMetaData();
+    m_statistics = NULL;
+}
+
+VolumeFile::BrickAttributes::~BrickAttributes()
+{
+    delete m_metadata;
+    if (m_statistics != NULL) {
+        delete m_statistics;
     }
 }

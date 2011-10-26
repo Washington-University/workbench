@@ -24,6 +24,7 @@
 
 #include <algorithm>
 
+#include "CaretAssert.h"
 #include "GiftiMetaData.h"
 #include "GiftiMetaDataXmlElements.h"
 
@@ -101,7 +102,7 @@ GiftiMetaData::getUniqueID() const
     AString uid = "UID";
     MetaDataConstIterator iter = this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
     if (iter == this->metadata.end()) {
-        
+        CaretAssertMessage(0, "UUID generation needs implementation");
     }
     return uid;
 }
@@ -245,6 +246,10 @@ GiftiMetaData::exists(const AString& name)
 AString
 GiftiMetaData::get(const AString& name) const
 {
+    if (this->metadata.empty()) {
+        return "";
+    }
+    
     MetaDataConstIterator iter = this->metadata.find(name);
     if (iter != this->metadata.end()) {
         return iter->second;
@@ -298,6 +303,7 @@ std::vector<AString>
 GiftiMetaData::getAllMetaDataNames() const
 {
     std::vector<AString> names;
+    
     for (MetaDataConstIterator iter = this->metadata.begin();
          iter != this->metadata.end();
          iter++) {
@@ -366,7 +372,7 @@ GiftiMetaData::toString() const
 AString
 GiftiMetaData::toFormattedString(const AString& indentation)
 {
-    return this->toString();
+    return (indentation + this->toString());
 }
 
 /**

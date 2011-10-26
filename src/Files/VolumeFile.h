@@ -29,13 +29,18 @@
 #include "stdint.h"
 #include <vector>
 #include "CaretAssert.h"
-#include "DataFile.h"
+#include "CaretMappableDataFile.h"
 #include "Nifti1Header.h"
 #include "Nifti2Header.h"
 
 namespace caret {
 
-    class VolumeFile : public DataFile
+    class DescriptiveStatistics;
+    class GiftiLabelTable;
+    class GiftiMetaData;
+    class PaletteColorMapping;
+    
+    class VolumeFile : public CaretMappableDataFile
     {
         enum StoredHeaderType
         {
@@ -60,6 +65,25 @@ namespace caret {
         void freeMemory();
         void setupIndexing();//sets up the magic
 
+        void createAttributes();
+        void freeAttributes();
+        GiftiMetaData* m_metadata; // file's metadata
+        GiftiLabelTable* m_labelTable;
+        PaletteColorMapping* m_paletteColorMapping;
+        
+        class BrickAttributes {
+        public:
+            BrickAttributes();
+            
+            ~BrickAttributes();
+            
+            GiftiMetaData* m_metadata;
+            DescriptiveStatistics* m_statistics;
+        };
+        
+        NiftiIntentEnum::Enum m_niftiIntent;
+        std::vector<BrickAttributes*> m_brickAttributes;
+        
     public:
         enum OrientTypes
         {
@@ -220,7 +244,62 @@ namespace caret {
         virtual void writeFile(const AString& filename) throw (DataFileException);
 
         virtual bool isEmpty() const;
+        
+        
+        /**
+         * @return The structure for this file.
+         */
+        virtual StructureEnum::Enum getStructure() const;
+        
+        /**
+         * Set the structure for this file.
+         * @param structure
+         *   New structure for this file.
+         */
+        virtual void setStructure(const StructureEnum::Enum structure);
+        
+        /**
+         * @return Get access to the file's metadata.
+         */
+        virtual GiftiMetaData* getFileMetaData();
+        
+        /**
+         * @return Get access to unmodifiable file's metadata.
+         */
+        virtual const GiftiMetaData* getFileMetaData() const;
+        
 
+        
+        virtual bool isSurfaceMappable() const;
+        
+        virtual bool isVolumeMappable() const;
+        
+        virtual int32_t getNumberOfMaps() const;
+        
+        virtual AString getMapName(const int32_t mapIndex) const;
+        
+        virtual int32_t getMapIndexFromName(const AString& mapName);
+        
+        virtual void setMapName(const int32_t mapIndex,
+                                const AString& mapName);
+        
+        virtual const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
+        
+        virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
+        
+        virtual bool isMappedWithPalette() const;
+        
+        virtual PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
+        
+        virtual const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
+        
+        virtual bool isMappedWithLabelTable() const;
+        
+        virtual GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
+        
+        virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;        
     };
 
 }

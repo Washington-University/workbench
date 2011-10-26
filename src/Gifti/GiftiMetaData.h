@@ -126,8 +126,7 @@ public:
 
 private:
     /**the metadata storage. */
-    std::map<AString,AString> metadata;
-
+    std::map<AString,AString> metadata;    
     typedef std::map<AString,AString>::iterator MetaDataIterator;
     typedef std::map<AString,AString>::const_iterator MetaDataConstIterator;
     
