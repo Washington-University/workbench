@@ -1657,6 +1657,32 @@ GiftiDataArray::getPaletteColorMapping()
     return this->paletteColorMapping;
 }
 
+/** 
+ * Get the color palette mapping.
+ *
+ * @return
+ *   The palette color mapping.
+ */;
+const PaletteColorMapping* 
+GiftiDataArray::getPaletteColorMapping() const
+{
+    if (this->paletteColorMapping == NULL) {
+        this->paletteColorMapping = new PaletteColorMapping();
+        const AString paletteString = this->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_PALETTE_COLOR_MAPPING);
+        if (paletteString.isEmpty() == false) {
+            try {
+                this->paletteColorMapping->decodeFromStringXML(paletteString);
+            }
+            catch (XmlException e) {
+                this->paletteColorMapping = new PaletteColorMapping();
+                CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
+            }
+        }
+    }
+    
+    return this->paletteColorMapping;
+}
+
 AString 
 GiftiDataArray::toString() const
 {

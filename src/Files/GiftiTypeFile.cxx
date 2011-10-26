@@ -23,6 +23,7 @@
  */ 
 
 #include "CaretLogger.h"
+#include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
@@ -39,7 +40,7 @@ using namespace caret;
  * Constructor.
  */
 GiftiTypeFile::GiftiTypeFile(const DataFileTypeEnum::Enum dataFileType)
-: CaretDataFile(dataFileType)
+: CaretMappableDataFile(dataFileType)
 {
     this->initializeMembersGiftiTypeFile();   
 }
@@ -62,7 +63,7 @@ GiftiTypeFile::~GiftiTypeFile()
  *    File that is copied.
  */
 GiftiTypeFile::GiftiTypeFile(const GiftiTypeFile& gtf)
-: CaretDataFile(gtf)
+: CaretMappableDataFile(gtf)
 {
     this->copyHelperGiftiTypeFile(gtf);
 }
@@ -77,7 +78,7 @@ GiftiTypeFile&
 GiftiTypeFile::operator=(const GiftiTypeFile& gtf)
 {
     if (this != &gtf) {
-        DataFile::operator=(gtf);
+        CaretMappableDataFile::operator=(gtf);
         this->copyHelperGiftiTypeFile(gtf);
     }
     return *this;
@@ -400,4 +401,217 @@ GiftiTypeFile::getPaletteColorMapping(const int32_t columnIndex)
 
 
 
+/**
+ * @return Is the data mappable to a surface?
+ */
+bool 
+GiftiTypeFile::isSurfaceMappable() const
+{
+    return true;
+}
+
+/**
+ * @return Is the data mappable to a volume?
+ */
+bool 
+GiftiTypeFile::isVolumeMappable() const
+{
+    return false;
+}
+
+/**
+ * @return The number of maps in the file.  
+ * Note: Caret5 used the term 'columns'.
+ */
+int32_t 
+GiftiTypeFile::getNumberOfMaps() const
+{
+    return this->giftiFile->getNumberOfDataArrays();
+}
+
+/**
+ * Get the name of the map at the given index.
+ * 
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Name of the map.
+ */
+AString 
+GiftiTypeFile::getMapName(const int32_t mapIndex) const
+{
+    return this->giftiFile->getDataArrayName(mapIndex);
+}
+
+/**
+ * Find the index of the map that uses the given name.
+ * 
+ * @param mapName
+ *    Name of the desired map.
+ * @return
+ *    Index of the map using the given name.  If there is more
+ *    than one map with the given name, this method is likely
+ *    to return the index of the first map with the name.
+ */
+int32_t 
+GiftiTypeFile::getMapIndexFromName(const AString& mapName)
+{
+    return this->giftiFile->getDataArrayWithNameIndex(mapName);
+}
+
+/**
+ * Set the name of the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mapName
+ *    New name for the map.
+ */
+void 
+GiftiTypeFile::setMapName(const int32_t mapIndex,
+                        const AString& mapName)
+{
+    this->giftiFile->setDataArrayName(mapIndex, mapName);
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map (const value).
+ */         
+const GiftiMetaData* 
+GiftiTypeFile::getMapMetaData(const int32_t mapIndex) const
+{
+    return this->giftiFile->getDataArray(mapIndex)->getMetaData();
+}
+
+/**
+ * Get the metadata for the map at the given index
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Metadata for the map.
+ */         
+GiftiMetaData* 
+GiftiTypeFile::getMapMetaData(const int32_t mapIndex)
+{
+    return this->giftiFile->getDataArray(mapIndex)->getMetaData();
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const DescriptiveStatistics* 
+GiftiTypeFile::getMapStatistics(const int32_t mapIndex)
+{
+    DescriptiveStatistics* stats = new DescriptiveStatistics();
+    return stats;
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a palette.
+ */
+bool 
+GiftiTypeFile::isMappedWithPalette() const
+{
+    if (this->getDataFileType() == DataFileTypeEnum::METRIC) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (will be NULL for data
+ *    not mapped using a palette).
+ */         
+PaletteColorMapping* 
+GiftiTypeFile::getMapPaletteColorMapping(const int32_t mapIndex)
+{
+    GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getPaletteColorMapping();    
+}
+
+/**
+ * Get the palette color mapping for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Palette color mapping for the map (constant) (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const PaletteColorMapping* 
+GiftiTypeFile::getMapPaletteColorMapping(const int32_t mapIndex) const
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getPaletteColorMapping();
+}
+
+/**
+ * @return Is the data in the file mapped to colors using
+ * a label table.
+ */
+bool 
+GiftiTypeFile::isMappedWithLabelTable() const
+{
+    if (this->getDataFileType() == DataFileTypeEnum::LABEL) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (will be NULL for data
+ *    not mapped using a label table).
+ */         
+GiftiLabelTable* 
+GiftiTypeFile::getMapLabelTable(const int32_t /*mapIndex*/)
+{
+    /*
+     * Use file's label table since GIFTI uses one
+     * label table for all data arrays.
+     */
+    return this->giftiFile->getLabelTable();
+}
+
+/**
+ * Get the label table for the map at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    Label table for the map (constant) (will be NULL for data
+ *    not mapped using a label table).
+ */         
+const GiftiLabelTable* 
+GiftiTypeFile::getMapLabelTable(const int32_t /*mapIndex*/) const
+{
+    /*
+     * Use file's label table since GIFTI uses one
+     * label table for all data arrays.
+     */
+    return this->giftiFile->getLabelTable();
+}
 

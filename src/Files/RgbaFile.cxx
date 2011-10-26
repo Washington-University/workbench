@@ -148,7 +148,7 @@ RgbaFile::initializeMembersRgbaFile()
  *    File that is copied.
  */
 void 
-RgbaFile::copyHelperRgbaFile(const RgbaFile& sf)
+RgbaFile::copyHelperRgbaFile(const RgbaFile& /*sf*/)
 {
     this->validateDataArraysAfterReading();
 }

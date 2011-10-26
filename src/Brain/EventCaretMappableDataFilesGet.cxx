@@ -113,7 +113,6 @@ EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>&
 {
     allFilesOut.clear();
     
-/*
     allFilesOut.insert(allFilesOut.end(), 
                        this->labelFiles.begin(), 
                        this->labelFiles.end());
@@ -123,10 +122,9 @@ EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>&
     allFilesOut.insert(allFilesOut.end(), 
                        this->rgbaFiles.begin(), 
                        this->rgbaFiles.end());
-    allFilesOut.insert(allFilesOut.end(), 
-                       this->volumeFiles.begin(), 
-                       this->volumeFiles.end());
- */
+//    allFilesOut.insert(allFilesOut.end(), 
+//                       this->volumeFiles.begin(), 
+//                       this->volumeFiles.end());
 }
 
 

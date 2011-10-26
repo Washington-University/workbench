@@ -300,6 +300,8 @@ namespace caret {
         
         PaletteColorMapping* getPaletteColorMapping();
         
+        const PaletteColorMapping* getPaletteColorMapping() const;
+        
     protected:
         // allocate data for this column
         virtual void allocateData();
@@ -365,7 +367,7 @@ namespace caret {
         int64_t externalFileOffset;
         
         /// the palette color mapping
-        PaletteColorMapping* paletteColorMapping;
+        mutable PaletteColorMapping* paletteColorMapping;
         
         /// minimum float value
         mutable float minValueFloat;
