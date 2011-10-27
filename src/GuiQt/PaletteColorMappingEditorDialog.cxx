@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <limits>
+
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QCheckBox>

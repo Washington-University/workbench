@@ -43,9 +43,42 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
     m_theXml.readXML(theBody);
-    m_rowSize = -1;
-    m_colSize = -1;
-    //TODO: get row/column size from header
+    m_rowSize = 0;
+    m_colSize = 0;
+    CiftiRootElement myRoot;
+    m_theXml.getXMLRoot(myRoot);
+    vector<CiftiMatrixIndicesMapElement>& myMaps = myRoot.m_matrices[0].m_matrixIndicesMap;
+    int64_t numMaps = (int64_t)myMaps.size();
+    for (int64_t i = 0; i < numMaps; ++i)
+    {
+        vector<int>& myDimList = myMaps[i].m_appliesToMatrixDimension;
+        for (int64_t j = 0; j < (int64_t)myDimList.size(); ++j)
+        {
+            if (myMaps[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+            {//we have no length info in any other type
+                std::vector<CiftiBrainModelElement>& myModels = myMaps[i].m_brainModels;
+                for (int64_t k = 0; k < (int64_t)myModels.size(); ++k)
+                {
+                    if (myDimList[j] == 0)
+                    {
+                        m_rowSize += myModels[k].m_indexCount;
+                    }
+                    if (myDimList[j] == 1)
+                    {
+                        m_colSize += myModels[k].m_indexCount;
+                    }
+                }
+            }
+        }
+    }
+    if (m_rowSize == 0)
+    {
+        throw CiftiFileException("Error opening URL, row size is unknown");
+    }
+    if (m_rowSize == 0)
+    {
+        throw CiftiFileException("Error opening URL, column size is unknown");
+    }
 }
 
 CiftiXnat::CiftiXnat()

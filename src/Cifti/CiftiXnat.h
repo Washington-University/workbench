@@ -59,6 +59,12 @@ namespace caret
         ///get a column
         void getColumn(float* columnOut, const int64_t& columnIndex) throw (CiftiFileException);
         
+        ///get row size
+        int64_t getRowSize() { return m_rowSize; }
+        
+        ///get column size
+        int64_t getColumnSize() { return m_colSize; }
+        
     };
 
 }

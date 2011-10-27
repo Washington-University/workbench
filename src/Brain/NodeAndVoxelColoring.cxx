@@ -24,6 +24,7 @@
  */ 
 
 #include <cmath>
+#include <limits>
 
 #define __NODE_AND_VOXEL_COLORING_DECLARE__
 #include "NodeAndVoxelColoring.h"
