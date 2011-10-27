@@ -81,7 +81,8 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     }
     QByteArray myBody = myReply->readAll();
     int64_t mySize = myBody.size();
-    response.m_body.resize(mySize);
+    response.m_body.reserve(mySize + 1);//make room for the null terminator that will sometimes be added to the end
+    response.m_body.resize(mySize);//but don't set size to include it
     for (int64_t i = 0; i < mySize; ++i)
     {
         response.m_body[i] = myBody[(int)i];//because QByteArray apparently just uses int - hope we won't need to transfer 2GB on a system that uses int32 for this

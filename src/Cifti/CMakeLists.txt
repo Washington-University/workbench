@@ -8,6 +8,7 @@ PROJECT (Cifti)
 # Need XML from Qt
 #
 SET(QT_DONT_USE_QTGUI)
+SET(QT_USE_QTNETWORK TRUE)
 
 #
 # Add QT for includes
@@ -25,6 +26,7 @@ CiftiXMLElements.h
 CiftiXML.h
 CiftiXMLReader.h
 CiftiXMLWriter.h
+CiftiXnat.h
 
 CiftiFile.cxx
 CiftiFileException.cxx
@@ -32,6 +34,7 @@ CiftiXML.cxx
 CiftiXMLElements.cxx
 CiftiXMLReader.cxx
 CiftiXMLWriter.cxx
+CiftiXnat.cxx
 )
 
 #
