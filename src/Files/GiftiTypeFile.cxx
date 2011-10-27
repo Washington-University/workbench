@@ -516,12 +516,15 @@ const DescriptiveStatistics*
 GiftiTypeFile::getMapStatistics(const int32_t mapIndex)
 {
     const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getDescriptiveStatistics();
+/*
     const float* data = gda->getDataPointerFloat();
     DescriptiveStatistics* stats = new DescriptiveStatistics();
     if (data != NULL) {
         stats->update(data, this->getNumberOfNodes());
     }
     return stats;
+*/
 }
 
 /**

@@ -1697,8 +1697,8 @@ GiftiDataArray::getPaletteColorMapping() const
     return this->paletteColorMapping;
 }
 
-DescriptiveStatistics* 
-GiftiDataArray::getDescriptiveStatistics()
+const DescriptiveStatistics* 
+GiftiDataArray::getDescriptiveStatistics() const
 {
     if (this->descriptiveStatistics == NULL) {
         this->descriptiveStatistics = new DescriptiveStatistics();

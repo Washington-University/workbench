@@ -132,8 +132,6 @@ public:
 
     float getThresholdMappedAverageAreaNegative() const;
 
-    bool performThresholdTest(const float value);
-
     void setThresholdMappedAverageAreaNegative(const float thresholdMappedAverageAreaNegative);
 
     float getThresholdMappedAverageAreaPositive() const;

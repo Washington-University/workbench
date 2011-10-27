@@ -80,12 +80,6 @@ namespace caret {
                                 const int32_t numberOfNodes,
                                 float* rgbv);
         
-        bool applyColorUsingPalette(PaletteColorMapping* paletteColorMapping,
-                                    float negPosMinMax[4],
-                                    Palette* palette,
-                                    float value,
-                                    float thresholdValue,
-                                    float rgbaOut[4]);
 };
     
 #ifdef __SURFACE_NODE_COLORING_DECLARE__

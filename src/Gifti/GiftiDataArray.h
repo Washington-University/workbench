@@ -303,7 +303,7 @@ namespace caret {
         
         const PaletteColorMapping* getPaletteColorMapping() const;
         
-        DescriptiveStatistics* getDescriptiveStatistics();
+        const DescriptiveStatistics* getDescriptiveStatistics() const;
         
     protected:
         // allocate data for this column
@@ -403,7 +403,7 @@ namespace caret {
         mutable bool minMaxPercentageValuesValid;
         
         /// statistics about data (DO NOT COPY)
-        DescriptiveStatistics* descriptiveStatistics;
+        mutable DescriptiveStatistics* descriptiveStatistics;
         
         bool modifiedFlag; // DO NOT COPY
         // ***** BE SURE TO UPDATE copyHelper() if elements are added ******
