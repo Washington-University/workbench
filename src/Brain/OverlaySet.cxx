@@ -28,7 +28,7 @@
 #undef __OVERLAY_SET_DECLARE__
 
 #include "CaretAssert.h"
-#include "OverlaySet.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -81,6 +81,38 @@ Overlay*
 OverlaySet::getUnderlay()
 {
     return &this->overlays[this->getNumberOfDisplayedOverlays() - 1];
+}
+
+/*
+ * Get the bottom-most overlay that is a volume file for the given
+ * browser tab.
+ * @param browserTabContent
+ *    Content of browser tab.
+ * @return Returns the bottom-most overlay that is set a a volume file.
+ * Will return NULL if no, enabled overlays are set to a volume file.
+ */
+VolumeFile* 
+OverlaySet::getUnderlayVolume(BrowserTabContent* browserTabContent)
+{
+    CaretAssert(browserTabContent);
+    
+    VolumeFile* vf = NULL;
+    
+    for (int32_t i = (this->getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
+        CaretMappableDataFile* mapFile;
+        int32_t mapIndex;
+        this->overlays[i].getSelectionData(browserTabContent,
+                                            mapFile,
+                                            mapIndex);
+        
+        if (mapFile != NULL) {
+            vf = dynamic_cast<VolumeFile*>(mapFile);
+            if (vf != NULL) {
+                break;
+            }
+        }
+    }
+    return vf;
 }
 
 /**

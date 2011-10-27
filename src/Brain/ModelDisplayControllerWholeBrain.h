@@ -46,7 +46,7 @@ namespace caret {
         
         Brain* getBrain();
         
-        VolumeFile* getVolumeFile();
+        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber);
         
         void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut);
         

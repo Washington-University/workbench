@@ -1312,7 +1312,7 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
     ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
     if (volumeController != NULL) {
         if (this->getDisplayedModelController() == volumeController) {
-            vf = volumeController->getVolumeFile();
+            vf = volumeController->getUnderlayVolumeFile(tabIndex);
             sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
             this->volumeIndicesAxialCheckBox->setVisible(false);
             this->volumeIndicesCoronalCheckBox->setVisible(false);
@@ -1323,7 +1323,7 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserT
     ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
     if (wholeBrainController != NULL) {
         if (this->getDisplayedModelController() == wholeBrainController) {
-            vf = wholeBrainController->getVolumeFile();
+            vf = wholeBrainController->getUnderlayVolumeFile(tabIndex);
             sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
             this->volumeIndicesAxialCheckBox->setVisible(true);
             this->volumeIndicesCoronalCheckBox->setVisible(true);

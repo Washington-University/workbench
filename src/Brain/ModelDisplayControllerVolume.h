@@ -47,7 +47,7 @@ namespace caret {
         
         Brain* getBrain();
         
-        VolumeFile* getVolumeFile();
+        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber);
         
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane(const int32_t windowTabNumber) const;
         

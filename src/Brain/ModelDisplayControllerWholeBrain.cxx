@@ -25,10 +25,13 @@
 #include <algorithm>
 
 #include "Brain.h"
+#include "BrowserTabContent.h"
+#include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "OverlaySet.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -160,7 +163,6 @@ ModelDisplayControllerWholeBrain::updateController()
         }
     }
     
-    VolumeFile* vf = this->getVolumeFile();
     
     
     /*
@@ -178,6 +180,7 @@ ModelDisplayControllerWholeBrain::updateController()
             }
         }
         
+        VolumeFile* vf = this->getUnderlayVolumeFile(i);
         if (vf != NULL) {
             this->volumeSlicesSelected[i].updateForVolumeFile(vf);
         }
@@ -365,21 +368,31 @@ ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
     return "Whole Brain";
 }
 
+/**
+ * Get the bottom-most active volume in the given window tab.
+ * @param windowTabNumber 
+ *    Tab number for content.
+ * @return 
+ *    Bottom-most volume or NULL if not available (such as 
+ *    when all overlay are not volumes or they are disabled).
+ */
 VolumeFile* 
-ModelDisplayControllerWholeBrain::getVolumeFile()
+ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber)
 {
     VolumeFile* vf = NULL;
-    if (this->brain->getNumberOfVolumeFiles() > 0) {
-        vf = this->brain->getVolumeFile(0);
-        if (vf != this->lastVolumeFile) {
-            for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-                this->volumeSlicesSelected[i].selectSlicesAtOrigin(vf);
-            }
-            this->lastVolumeFile = vf;
-        }
+    
+    EventBrowserTabGet getBrowserTabEvent(windowTabNumber);
+    EventManager::get()->sendEvent(getBrowserTabEvent.getPointer());
+    BrowserTabContent* btc = getBrowserTabEvent.getBrowserTab();
+    if (btc != NULL) {
+        OverlaySet* overlaySet = btc->getOverlaySet();
+        vf = overlaySet->getUnderlayVolume(btc);
+        
     }
+    
     return vf;
 }
+
 
 /**
  * Set the selected slices to the origin.
@@ -388,7 +401,7 @@ ModelDisplayControllerWholeBrain::getVolumeFile()
 void
 ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    VolumeFile* vf = this->getVolumeFile();
+    VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
     if (vf != NULL) {
         this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
     }

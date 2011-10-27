@@ -31,6 +31,9 @@
 
 namespace caret {
 
+    class BrowserTabContent;
+    class VolumeFile;
+    
     class OverlaySet : public CaretObject {
         
     public:
@@ -41,6 +44,8 @@ namespace caret {
         Overlay* getPrimaryOverlay();
         
         Overlay* getUnderlay();
+        
+        VolumeFile* getUnderlayVolume(BrowserTabContent* browserTabContent);
         
         Overlay* getOverlay(const int32_t overlayNumber);
         
