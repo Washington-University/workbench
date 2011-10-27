@@ -114,7 +114,7 @@ void
 PaletteColorMapping::initializeMembersPaletteColorMapping()
 {
     this->scaleMode = PaletteScaleModeEnum::MODE_AUTO_SCALE;
-    this->autoScalePercentageNegativeMaximum = 90.0f;
+    this->autoScalePercentageNegativeMaximum = -98.0f;
     this->autoScalePercentageNegativeMinimum = 2.0f;
     this->autoScalePercentagePositiveMinimum = 2.0f;
     this->autoScalePercentagePositiveMaximum = 98.0f;

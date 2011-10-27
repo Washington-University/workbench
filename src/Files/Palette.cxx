@@ -258,9 +258,9 @@ Palette::getPaletteColor(
                    const bool interpolateColorFlagIn,
                    float rgbaOut[4]) const
 {
-    rgbaOut[0] = 1.0f;
-    rgbaOut[1] = 1.0f;
-    rgbaOut[2] = 1.0f;
+    rgbaOut[0] = 0.0f;
+    rgbaOut[1] = 0.0f;
+    rgbaOut[2] = 0.0f;
     rgbaOut[3] = 1.0f;
     
     bool interpolateColorFlag = interpolateColorFlagIn;

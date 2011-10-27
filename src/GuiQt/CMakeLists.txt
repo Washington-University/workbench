@@ -32,7 +32,7 @@ GuiManager.h
 HyperLinkTextBrowser.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
-PaletteEditorDialog.h
+PaletteColorMappingEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 WuQDialog.h
@@ -66,7 +66,7 @@ MouseEvent.h
 MouseEventTypeEnum.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
-PaletteEditorDialog.h
+PaletteColorMappingEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 UserInputModeView.h
@@ -97,7 +97,7 @@ MouseEvent.cxx
 MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
-PaletteEditorDialog.cxx
+PaletteColorMappingEditorDialog.cxx
 SpecFileDialog.cxx
 StructureSurfaceSelectionControl.cxx
 UserInputModeView.cxx

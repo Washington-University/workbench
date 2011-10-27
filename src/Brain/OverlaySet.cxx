@@ -65,7 +65,7 @@ OverlaySet::~OverlaySet()
 }
 
 /**
- * @return Returns the primary overlay.
+ * @return Returns the top-most overlay regardless of its enabled status.
  */
 Overlay* 
 OverlaySet::getPrimaryOverlay()

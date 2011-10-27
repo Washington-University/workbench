@@ -75,6 +75,7 @@ ModelDisplayControllerSurfaceSelector.h
 ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
+NodeAndVoxelColoring.h
 Overlay.h
 OverlaySet.h
 SessionManager.h
@@ -118,6 +119,7 @@ ModelDisplayControllerSurfaceSelector.cxx
 ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
+NodeAndVoxelColoring.cxx
 Overlay.cxx
 OverlaySet.cxx
 SessionManager.cxx

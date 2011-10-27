@@ -63,6 +63,8 @@ namespace caret {
         
         static QWidget* createVerticalLineWidget();
         
+        static QWidget* createHorizontalLineWidget();
+        
         static void moveWindowToOffset(QWidget* parentWidget,
                                        QWidget* window,
                                        const int xOffset, 

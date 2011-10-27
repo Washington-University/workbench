@@ -42,7 +42,7 @@
 #include "GuiManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
-#include "PaletteEditorDialog.h"
+#include "PaletteColorMappingEditorDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -65,7 +65,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                       OverlaySelectionControl* overlaySelectionControl,
                                       const int32_t layerIndex)
 {
-    this->paletteEditorDialog = NULL;
+    this->paletteColorMappingEditorDialog = NULL;
     this->overlaySelectionControl = overlaySelectionControl;
     this->browserWindowIndex = browserWindowIndex;
     this->layerIndex = layerIndex;
@@ -275,11 +275,11 @@ OverlaySelectionControlLayer::settingsToolButtonPressed()
                               mapIndex);
     if (mapFile->isMappedWithPalette()) {
         if (mapFile != NULL) {
-            if (this->paletteEditorDialog == NULL) {
-                this->paletteEditorDialog = new PaletteEditorDialog(this->settingsToolButton);
+            if (this->paletteColorMappingEditorDialog == NULL) {
+                this->paletteColorMappingEditorDialog = new PaletteColorMappingEditorDialog(this->settingsToolButton);
             }
-            this->paletteEditorDialog->updatePaletteEditor(mapFile, mapIndex);
-            this->paletteEditorDialog->show();
+            this->paletteColorMappingEditorDialog->updatePaletteEditor(mapFile, mapIndex);
+            this->paletteColorMappingEditorDialog->show();
         }
     }
     else if (mapFile->isMappedWithLabelTable()) {

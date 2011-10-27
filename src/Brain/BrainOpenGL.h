@@ -44,6 +44,9 @@ namespace caret {
     class ModelDisplayControllerSurface;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
+    class Palette;
+    class PaletteColorMapping;
+    class PaletteFile;
     class VolumeFile;
     
     /**
@@ -91,6 +94,20 @@ namespace caret {
 
         
     private:
+        class VolumeDrawInfo {
+        public:
+            VolumeDrawInfo(VolumeFile* volumeFile,
+                           Palette* palette,
+                           const int32_t brickIndex,
+                           const float opacity);
+            
+            VolumeFile* volumeFile;
+            Palette* palette;
+            PaletteColorMapping* paletteColorMapping;
+            int32_t brickIndex;
+            float opacity;
+        };
+        
         bool isIdentifyMode() const { return this->mode == MODE_IDENTIFICATION; }
         
         void drawModelInternal(Mode mode,
@@ -118,7 +135,11 @@ namespace caret {
         
         void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       /*const*/VolumeFile* volumeFile);
+                                       std::vector<VolumeDrawInfo>& volumeDrawInfo);
+        
+        void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
+                                 PaletteFile* paletteFile,
+                                 std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
         void drawWholeBrainController(BrowserTabContent* browserTabContent,
                                       ModelDisplayControllerWholeBrain* wholeBrainController,

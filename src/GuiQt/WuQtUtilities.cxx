@@ -140,6 +140,21 @@ WuQtUtilities::createAction(const QString& text,
 }
 
 /**
+ * Create a horizontal line widget used as a separator.
+ *
+ * @return  A horizontal line widget used as a separator.
+ */
+QWidget* 
+WuQtUtilities::createHorizontalLineWidget()
+{
+    QFrame* frame = new QFrame();
+    frame->setMidLineWidth(0);
+    frame->setLineWidth(2);
+    frame->setFrameStyle(QFrame::HLine | QFrame::Sunken);
+    return frame;
+}
+
+/**
  * Create a vertical line widget used as a separator.
  *
  * @return  A vertical line widget used as a separator.

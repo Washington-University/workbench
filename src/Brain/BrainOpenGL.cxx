@@ -46,11 +46,18 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "DescriptiveStatistics.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
+#include "NodeAndVoxelColoring.h"
+#include "Overlay.h"
+#include "OverlaySet.h"
+#include "Palette.h"
+#include "PaletteColorMapping.h"
+#include "PaletteFile.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
@@ -693,6 +700,60 @@ BrainOpenGL::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
 }
 
 /**
+ * Setup volume drawing information for an overlay.
+ *
+ * @param browserTabContent
+ *    Content in the browser tab.
+ * @param volumeDrawInfoOut
+ *    Output containing information for volume drawing.
+ */
+void 
+BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
+                                 PaletteFile* paletteFile,
+                                 std::vector<VolumeDrawInfo>& volumeDrawInfoOut)
+{
+    volumeDrawInfoOut.clear();
+    
+    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    for (int32_t iOver = (numberOfOverlays - 1); iOver >= 0; iOver--) {
+        Overlay* overlay = overlaySet->getOverlay(iOver);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            overlay->getSelectionData(browserTabContent,
+                                      mapFile,
+                                      mapIndex);
+            if (mapFile != NULL) {
+                if (mapFile->isVolumeMappable()) {
+                    VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
+                    if (vf != NULL) {
+                        if (vf->isMappedWithPalette()) {
+                            PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+                            Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
+                            
+                            if (palette != NULL) {
+                                const float opacity = overlay->getOpacity();
+                                
+                                VolumeDrawInfo vdi(vf,
+                                                   palette,
+                                                   mapIndex,
+                                                   opacity);
+                                volumeDrawInfoOut.push_back(vdi);
+                            }
+                            else {
+                                CaretLogWarning("No valid palette for drawing volume file: "
+                                                + vf->getFileNameNoPath());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Draw the volume slices.
  * @param browserTabContent
  *    Content of the window.
@@ -706,8 +767,16 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
 {
     const int32_t tabNumber = browserTabContent->getTabNumber();
     volumeController->updateController(tabNumber);
-    VolumeFile* vf = volumeController->getVolumeFile();
-    if (vf != NULL) {
+    
+    /*
+     * Determine volumes that are to be drawn
+     */
+    std::vector<VolumeDrawInfo> volumeDrawInfo;
+    this->setupVolumeDrawInfo(browserTabContent,
+                              volumeController->getBrain()->getPaletteFile(),
+                              volumeDrawInfo);
+    
+    if (volumeDrawInfo.empty() == false) {
         const VolumeSliceIndicesSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
         switch (volumeController->getSliceViewMode(tabNumber)) {
             case VolumeSliceViewModeEnum::MONTAGE:
@@ -750,7 +819,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                          slicePlane);
                             this->drawVolumeOrthogonalSlice(slicePlane, 
                                                             sliceIndex, 
-                                                            vf);
+                                                            volumeDrawInfo);
                             sliceIndex += sliceStep;
                         }
                     }
@@ -775,7 +844,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         
                         const int coronalVP[4] = { halfX, halfY, halfX, halfY };
                         this->setViewportAndOrthographicProjection(coronalVP);
@@ -784,7 +853,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         
                         const int parasagittalVP[4] = { halfX, 0, halfX, halfY };
                         this->setViewportAndOrthographicProjection(parasagittalVP);
@@ -793,7 +862,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         
                     }
                         break;
@@ -804,7 +873,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         this->setViewportAndOrthographicProjection(viewport);
@@ -813,7 +882,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         this->setViewportAndOrthographicProjection(viewport);
@@ -822,7 +891,7 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(),
-                                                        vf);
+                                                        volumeDrawInfo);
                         break;
                 }
             }
@@ -840,8 +909,10 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
 void 
 BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
-                                       /*const*/VolumeFile* volumeFile)
+                                       std::vector<VolumeDrawInfo>& volumeDrawInfo)
 {
+    const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
+
     IdentificationItemVoxel* voxelID = 
         this->identificationManager->getVoxelIdentification();
     bool isSelect = false;
@@ -866,25 +937,139 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
     glShadeModel(GL_FLAT);
     
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
-    volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
+    VolumeFile* underlayVolumeFile = volumeDrawInfo[0].volumeFile;
+    underlayVolumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
     
     const int64_t lastDimI = dimI - 1;
     const int64_t lastDimJ = dimJ - 1;
     const int64_t lastDimK = dimK - 1;
+    
+    float originX, originY, originZ;
+    float xv, yv, zv;
+    underlayVolumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
+    underlayVolumeFile->indexToSpace((int64_t)1, (int64_t)1, (int64_t)1, xv, yv, zv);
+    const float voxelSizeX = xv - originX;
+    const float voxelSizeY = yv - originY;
+    const float voxelSizeZ = zv - originZ;
+    
+    /*
+     * Determine range of voxels for drawing
+     */
+    int64_t iStart = 0;
+    int64_t iEnd   = dimI;
+    int64_t jStart = 0;
+    int64_t jEnd   = dimJ;
+    int64_t kStart = 0;
+    int64_t kEnd   = dimK;
+    switch (slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            CaretAssert(0);
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+            kStart = sliceIndex;
+            kEnd = sliceIndex + 1;
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+            jStart = sliceIndex;
+            jEnd   = sliceIndex + 1;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+            iStart = sliceIndex;
+            iEnd   = sliceIndex + 1;
+            break;
+    }
+    
+    /*
+     * Set colors for each drawn voxel
+     * Use a vector so no worries about memory being freed
+     */
+    const int64_t numVoxels = (iEnd - iStart) * (jEnd - jStart) * (kEnd - kStart);
+    //std::vector<float> sliceValuesVector(numVoxels);
+    //float* sliceValues = &sliceValuesVector[0];
+    std::vector<float> sliceRgbaVector(numVoxels * 4);
+    float* sliceRGBA = &sliceRgbaVector[0];
+    
+    /*
+     colorScalarsWithPalette(DescriptiveStatistics* statistics,
+     PaletteColorMapping* paletteColorMapping,
+     PaletteFile* paletteFile,
+     const float* scalars,
+     const float* scalarThresholds,
+     const int32_t numberOfScalars,
+     float* rgbaOut);     */
+    float rgba[4];
+    for (int64_t i = iStart; i < iEnd; i++) {
+        for (int64_t j = jStart; j < jEnd; j++) {
+            for (int64_t k = kStart; k < kEnd; k++) {
+                const float x = originX + i * voxelSizeX;
+                const float y = originY + j * voxelSizeY;
+                const float z = originZ + k * voxelSizeZ;
+                for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
+                    VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
+                    VolumeFile* vf = volInfo.volumeFile;
+                    const int64_t brickIndex = volInfo.brickIndex;
+                    bool valid = false;
+                    float voxel = 0;
+                    if (iVol == 0) {
+                        voxel = vf->getValue(i, j, k, brickIndex);
+                        valid = true;
+                    }
+                    else {
+                        int64_t iVoxel, jVoxel, kVoxel;
+                        vf->closestVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
+                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, brickIndex)) {
+                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, brickIndex);
+                            valid = true;
+                        }
+                    }
+                    
+                    if (valid) {
+                        int64_t sliceRgbaOffset = -1;
+                        switch (slicePlane) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                CaretAssert(0);
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                sliceRgbaOffset = (i + (j * dimI)) * 4;
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                sliceRgbaOffset = (i + (k * dimI)) * 4;
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                sliceRgbaOffset = (j + (k * dimJ)) * 4;
+                                break;
+                        }
+                        
+                        NodeAndVoxelColoring::colorScalarsWithPalette(vf->getMapStatistics(brickIndex),
+                                                                      volInfo.paletteColorMapping,
+                                                                      volInfo.palette,
+                                                                      &voxel,
+                                                                      &voxel,
+                                                                      1,
+                                                                      rgba);
+                        if(iVol == 0) {
+                            sliceRGBA[sliceRgbaOffset] = rgba[0];
+                            sliceRGBA[sliceRgbaOffset+1] = rgba[1];
+                            sliceRGBA[sliceRgbaOffset+2] = rgba[2];
+                            sliceRGBA[sliceRgbaOffset+3] = 1.0;
+                        }
+                        else if (rgba[3] > 0.0) {
+                            sliceRGBA[sliceRgbaOffset] = rgba[0];
+                            sliceRGBA[sliceRgbaOffset+1] = rgba[1];
+                            sliceRGBA[sliceRgbaOffset+2] = rgba[2];
+                            sliceRGBA[sliceRgbaOffset+3] = rgba[3];
+                        }
+                    }
+                }
+            } 
+        }
+    }
     
     bool useQuadStrips = true;
     if (isSelect) {
         useQuadStrips = false;
     }
     if (useQuadStrips) {
-        float originX, originY, originZ;
-        float xv, yv, zv;
-        volumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
-        volumeFile->indexToSpace((int64_t)1, (int64_t)1, (int64_t)1, xv, yv, zv);
-        const float voxelSizeX = xv - originX;
-        const float voxelSizeY = yv - originY;
-        const float voxelSizeZ = zv - originZ;
-        
         /*
          * Note on quad strips:
          *
@@ -916,8 +1101,11 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x2, y, z);
                             
                             for (int64_t j = 0; j < dimJ; j++) {
-                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                                glColor3f(voxel, voxel, voxel);
+                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
+                                //glColor3f(voxel, voxel, voxel);
+
+                                const int32_t sliceRgbaOffset = (i + (j * dimI)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 y += voxelSizeY;
                                 glVertex3f(x, y, z);
@@ -947,8 +1135,11 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x2, y, z);
                             
                             for (int64_t k = 0; k < dimK; k++) {
-                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                                glColor3f(voxel, voxel, voxel);
+                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
+                                //glColor3f(voxel, voxel, voxel);
+                                
+                                const int32_t sliceRgbaOffset = (i + (k * dimI)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 z += voxelSizeZ;
                                 glVertex3f(x, y, z);
@@ -978,8 +1169,11 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x, y2, z);
                             
                             for (int64_t k = 0; k < dimK; k++) {
-                                const float voxel = volumeFile->getValue(i, j, k) / 255.0;
-                                glColor3f(voxel, voxel, voxel);
+                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
+                                //glColor3f(voxel, voxel, voxel);
+
+                                const int32_t sliceRgbaOffset = (j + (k * dimJ)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
                                 z += voxelSizeZ;
                                 glVertex3f(x, y, z);
@@ -1017,7 +1211,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t k = sliceIndex;
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t j = 0; j < lastDimJ; j++) {
-                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1032,8 +1226,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             else {
                                 glColor3f(voxel, voxel, voxel);
                             }
-                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            volumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                            underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            underlayVolumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
                             glVertex3f(x2, y2, z1);
@@ -1049,7 +1243,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t j = sliceIndex;
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
-                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1064,8 +1258,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             else {
                                 glColor3f(voxel, voxel, voxel);
                             }
-                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            volumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
+                            underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            underlayVolumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
                             glVertex3f(x2, y1, z2);
@@ -1081,7 +1275,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t i = sliceIndex;
                     for (int64_t j = 0; j < lastDimJ; j++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
-                            const float voxel = volumeFile->getValue(i, j, k) / 255.0;
+                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1096,8 +1290,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             else {
                                 glColor3f(voxel, voxel, voxel);
                             }
-                            volumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            volumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
+                            underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
+                            underlayVolumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x1, y2, z1);
                             glVertex3f(x1, y2, z2);
@@ -1124,7 +1318,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     idVoxelIndices[idIndex*3+1],
                     idVoxelIndices[idIndex*3+2]
                 };
-                voxelID->addVoxel(volumeFile, voxelIndices, depth);
+                voxelID->addVoxel(underlayVolumeFile, voxelIndices, depth);
                 CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
             }
         }
@@ -1197,24 +1391,30 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
         }
     }
     
-    VolumeFile* vf = wholeBrainController->getVolumeFile();
-    if (vf != NULL) {
+    /*
+     * Determine volumes that are to be drawn
+     */
+    std::vector<VolumeDrawInfo> volumeDrawInfo;
+    this->setupVolumeDrawInfo(browserTabContent,
+                              wholeBrainController->getBrain()->getPaletteFile(),
+                              volumeDrawInfo);
+    if (volumeDrawInfo.empty() == false) {
         const VolumeSliceIndicesSelection* slices = 
             wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
         if (slices->isSliceAxialEnabled()) {
             this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
                                             slices->getSliceIndexAxial(), 
-                                            vf);
+                                            volumeDrawInfo);
         }
         if (slices->isSliceCoronalEnabled()) {
             this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
                                             slices->getSliceIndexCoronal(), 
-                                            vf);
+                                            volumeDrawInfo);
         }
         if (slices->isSliceParasagittalEnabled()) {
             this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                             slices->getSliceIndexParasagittal(), 
-                                            vf);
+                                            volumeDrawInfo);
         }
     }
 }
@@ -1330,3 +1530,14 @@ BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dat
     this->colorIdentification->reset();
 }
 
+//============================================================================
+caret::BrainOpenGL::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
+                                                   Palette* palette,
+                                                   const int32_t brickIndex,
+                                                   const float opacity) {
+    this->volumeFile = volumeFile;
+    this->palette = palette;
+    this->paletteColorMapping = volumeFile->getMapPaletteColorMapping(brickIndex);
+    this->brickIndex = brickIndex;
+    this->opacity    = opacity;
+}

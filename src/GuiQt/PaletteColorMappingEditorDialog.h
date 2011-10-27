@@ -1,5 +1,5 @@
-#ifndef __PALETTE_EDITOR_DIALOG__H_
-#define __PALETTE_EDITOR_DIALOG__H_
+#ifndef __PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_
+#define __PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_
 
 /*LICENSE_START*/
 /* 
@@ -28,7 +28,11 @@
 
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
+class QDoubleSpinBox;
 class QComboBox;
+class QRadioButton;
+
 
 namespace caret {
     
@@ -36,36 +40,56 @@ namespace caret {
     class PaletteColorMapping;
     class WuQWidgetObjectGroup;
     
-    class PaletteEditorDialog : public WuQDialogNonModal {
+    class PaletteColorMappingEditorDialog : public WuQDialogNonModal {
         Q_OBJECT
         
     public:
-        PaletteEditorDialog(QWidget* parent);
+        PaletteColorMappingEditorDialog(QWidget* parent);
         
         void updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
                     
-        virtual ~PaletteEditorDialog();
+        virtual ~PaletteColorMappingEditorDialog();
 
     protected:
         virtual void applyButtonPressed();
         
     private:
-        PaletteEditorDialog(const PaletteEditorDialog&);
+        PaletteColorMappingEditorDialog(const PaletteColorMappingEditorDialog&);
 
-        PaletteEditorDialog& operator=(const PaletteEditorDialog&);
+        PaletteColorMappingEditorDialog& operator=(const PaletteColorMappingEditorDialog&);
         
     private:
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
         
+        QRadioButton* scaleAutoRadioButton;
+        QRadioButton* scaleAutoPercentageRadioButton;
+        QRadioButton* scaleFixedRadioButton;
+        
+        QDoubleSpinBox* scaleAutoPercentageNegativeMaximumSpinBox;
+        QDoubleSpinBox* scaleAutoPercentageNegativeMinimumSpinBox;
+        QDoubleSpinBox* scaleAutoPercentagePositiveMinimumSpinBox;
+        QDoubleSpinBox* scaleAutoPercentagePositiveMaximumSpinBox;
+        
+        QDoubleSpinBox* scaleFixedNegativeMaximumSpinBox;
+        QDoubleSpinBox* scaleFixedNegativeMinimumSpinBox;
+        QDoubleSpinBox* scaleFixedPositiveMinimumSpinBox;
+        QDoubleSpinBox* scaleFixedPositiveMaximumSpinBox;
+        
+        QCheckBox* displayModePositiveCheckBox;
+        QCheckBox* displayModeZeroCheckBox;
+        QCheckBox* displayModeNegativeCheckBox;
+        
+        QCheckBox* interpolateColorsCheckBox;
+        
         WuQWidgetObjectGroup* widgetGroup;
     };
     
-#ifdef __PALETTE_EDITOR_DIALOG_DECLARE__
+#ifdef __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __PALETTE_EDITOR_DIALOG_DECLARE__
+#endif // __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__PALETTE_EDITOR_DIALOG__H_
+#endif  //__PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_

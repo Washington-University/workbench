@@ -39,7 +39,7 @@ class QToolButton;
 namespace caret {
 
     class BrowserTabContent;
-    class PaletteEditorDialog;
+    class PaletteColorMappingEditorDialog;
     class WuQWidgetObjectGroup;
     
     /// One layer in a overlay selection control
@@ -84,7 +84,7 @@ namespace caret {
         
         WuQWidgetObjectGroup* widgetGroup;
         
-        PaletteEditorDialog* paletteEditorDialog;
+        PaletteColorMappingEditorDialog* paletteColorMappingEditorDialog;
     signals:
         /** Emitted when a control is removed and container should shrink */
         void controlRemoved();
