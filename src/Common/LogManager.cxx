@@ -146,6 +146,7 @@ LogManager::createLogManager()
     LogManager::singletonLogManager = new LogManager();
     
     Logger* caretLoggerInstance = Logger::getLogger("CaretLogger");
+    caretLoggerInstance->setLevel(LogLevelEnum::CONFIG);
     caretLoggerInstance->addLogHandler(new LogHandlerStandardError());
     CaretLogger::setLogger(caretLoggerInstance);
 }
