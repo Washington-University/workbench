@@ -126,7 +126,6 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
 BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    std::cout << "Dock has been destroyed." << std::endl;
 }
 
 void 
