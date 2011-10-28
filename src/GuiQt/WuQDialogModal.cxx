@@ -23,8 +23,6 @@
  * 
  */ 
 
-#include <iostream>
-
 #include <QPushButton>
 
 #define __WU_Q_DIALOG_MODAL_DECLARE__
@@ -83,8 +81,6 @@ WuQDialogModal::~WuQDialogModal()
 void 
 WuQDialogModal::clicked(QAbstractButton* button)
 {
-    std::cout << "Button clicked: " << button->text() << std::endl;
-    
     QDialogButtonBox::ButtonRole buttonRole = this->getDialogButtonBox()->buttonRole(button);
     
     if (buttonRole == QDialogButtonBox::AcceptRole) {
