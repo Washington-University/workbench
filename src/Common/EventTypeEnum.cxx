@@ -130,6 +130,10 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
     
+    enumData.push_back(EventTypeEnum(EVENT_PALETTE_COLOR_MAPPING_EDITOR, 
+                                     "EVENT_PALETTE_COLOR_MAPPING_EDITOR", 
+                                     "Display palette color mapping editor"));
+    
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

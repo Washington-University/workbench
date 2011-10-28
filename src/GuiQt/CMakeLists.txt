@@ -59,6 +59,7 @@ EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
+EventPaletteColorMappingEditor.h
 EventUserInterfaceUpdate.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -90,6 +91,7 @@ EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
+EventPaletteColorMappingEditor.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx

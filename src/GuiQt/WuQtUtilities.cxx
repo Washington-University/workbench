@@ -26,6 +26,7 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QDesktopWidget>
+#include <QDialog>
 #include <QDir>
 #include <QFileInfo>
 #include <QFrame>
@@ -208,6 +209,34 @@ WuQtUtilities::moveWindowToOffset(QWidget* parentWindow,
 }
 
 /**
+ * Place a dialog next to its parent.
+ * @param parent
+ *    The parnet.
+ * @param dialog
+ *    The dialog.
+ */
+void 
+WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
+                                        QWidget* window)
+{
+    const int px = parent->x();
+    const int py = parent->y();
+    const int pw = parent->width();
+    const int ph = parent->height();
+    
+    int x = px + pw + 1;
+    int y = py + ph - window->height();
+
+    QDesktopWidget* dw = QApplication::desktop();
+    const QRect geometry = dw->availableGeometry(parent);
+    if (x > geometry.width()) {
+        x = geometry.width() - window->width();
+    }
+    
+    window->move(x, y);
+}
+
+/**
  * Set the tool tip and status tip for a widget.
  * 
  * @param widget
@@ -342,3 +371,4 @@ WuQtUtilities::setLayoutMargins(QLayout* layout,
                                contentsMargin,
                                contentsMargin);
 }
+

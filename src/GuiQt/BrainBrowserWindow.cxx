@@ -38,10 +38,12 @@
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventPaletteColorMappingEditor.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "PaletteColorMappingEditorDialog.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
 #include "WuQFileDialog.h"
@@ -68,6 +70,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 {
+    this->paletteColorMappingEditor = NULL;
     GuiManager* guiManager = GuiManager::get();
     
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -107,6 +110,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->toolbar->updateToolBar();
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR);
 }
 
 /**
@@ -977,6 +981,34 @@ BrainBrowserWindow::receiveEvent(Event* event)
         this->toolbar->updateToolBar();
         
         uiEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR) {
+        EventPaletteColorMappingEditor* mapEditEvent =
+        dynamic_cast<EventPaletteColorMappingEditor*>(event);
+        CaretAssert(mapEditEvent);
+        
+        const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
+        if (browserWindowIndex == this->browserWindowIndex) {
+            CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
+            const int mapIndex = mapEditEvent->getMapIndex();
+            
+            if (this->paletteColorMappingEditor == NULL) {
+                this->paletteColorMappingEditor =
+                new PaletteColorMappingEditorDialog(this);
+            }
+            this->paletteColorMappingEditor->updatePaletteEditor(mapFile, mapIndex);
+            this->paletteColorMappingEditor->show();
+            this->paletteColorMappingEditor->raise();
+            this->paletteColorMappingEditor->activateWindow();
+            WuQtUtilities::moveWindowToSideOfParent(this,
+                                                    this->paletteColorMappingEditor);
+            mapEditEvent->setEventProcessed();
+        }
+        else {
+            if (this->paletteColorMappingEditor != NULL) {
+                this->paletteColorMappingEditor->hide();
+            }
+        }
     }
     else {
         

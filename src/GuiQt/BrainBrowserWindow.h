@@ -41,6 +41,8 @@ namespace caret {
     class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
+    class PaletteColorMappingEditorDialog;
+
     
     /**
      * The brain browser window is the viewer for
@@ -175,6 +177,9 @@ namespace caret {
         AString previousOpenFileNameFilter;
         
         WindowComponentStatus fullScreenEnteredWindowComponentStatus;
+                
+        /* Editor for palette color mapping. */
+        PaletteColorMappingEditorDialog* paletteColorMappingEditor;
         
         friend class GuiManager;
     };

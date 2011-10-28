@@ -76,6 +76,10 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
 {
     this->setDeleteWhenClosed(false);
 
+    /*
+     * No apply button
+     */
+    this->setApplyButtonText("");
     
     this->paletteColorMapping = NULL;
     
@@ -255,6 +259,12 @@ void
 PaletteColorMappingEditorDialog::updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
                                          const int32_t mapIndex)
 {
+    const AString title =
+    caretMappableDataFile->getFileNameNoPath()
+    + ": "
+    + caretMappableDataFile->getMapName(mapIndex);
+    this->setWindowTitle(title);
+    
     this->widgetGroup->blockSignals(true);
     
     this->paletteNameComboBox->clear();

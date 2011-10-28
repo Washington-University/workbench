@@ -38,11 +38,11 @@
 #include "CaretLogger.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventPaletteColorMappingEditor.h"
 #include "CaretMappableDataFile.h"
 #include "GuiManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
-#include "PaletteColorMappingEditorDialog.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
@@ -65,7 +65,6 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                       OverlaySelectionControl* overlaySelectionControl,
                                       const int32_t layerIndex)
 {
-    this->paletteColorMappingEditorDialog = NULL;
     this->overlaySelectionControl = overlaySelectionControl;
     this->browserWindowIndex = browserWindowIndex;
     this->layerIndex = layerIndex;
@@ -276,11 +275,10 @@ OverlaySelectionControlLayer::settingsToolButtonPressed()
     if (mapFile != NULL) {
         if (mapFile->isMappedWithPalette()) {
             if (mapFile != NULL) {
-                if (this->paletteColorMappingEditorDialog == NULL) {
-                    this->paletteColorMappingEditorDialog = new PaletteColorMappingEditorDialog(this->settingsToolButton);
-                }
-                this->paletteColorMappingEditorDialog->updatePaletteEditor(mapFile, mapIndex);
-                this->paletteColorMappingEditorDialog->show();
+                EventPaletteColorMappingEditor pcme(this->browserWindowIndex,
+                                                    mapFile,
+                                                    mapIndex);
+                EventManager::get()->sendEvent(pcme.getPointer());
             }
         }
         else if (mapFile->isMappedWithLabelTable()) {

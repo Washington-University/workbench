@@ -30,6 +30,7 @@
 
 class QAction;
 class QBoxLayout;
+class QDialog;
 class QIcon;
 class QKeySequence;
 class QObject;
@@ -77,6 +78,9 @@ namespace caret {
         
         static bool loadIcon(const QString& filename,
                              QIcon& iconOut);
+        
+        static void moveWindowToSideOfParent(QWidget* parent,
+                                             QWidget* window);
         
         static void matchWidgetHeights(QWidget* w1,
                                        QWidget* w2,

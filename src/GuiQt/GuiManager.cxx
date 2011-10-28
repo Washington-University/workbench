@@ -33,6 +33,7 @@
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretMappableDataFile.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "SessionManager.h"
@@ -85,6 +86,9 @@ GuiManager::get()
     return GuiManager::singletonGuiManager;
 }
 
+/*
+ * Create the singleton GUI Manager.
+ */
 void 
 GuiManager::createGuiManager()
 {
@@ -94,6 +98,9 @@ GuiManager::createGuiManager()
     GuiManager::singletonGuiManager = new GuiManager();
 }
 
+/*
+ * Delete the singleton GUI Manager.
+ */
 void 
 GuiManager::deleteGuiManager()
 {
@@ -104,6 +111,9 @@ GuiManager::deleteGuiManager()
     GuiManager::singletonGuiManager = NULL;
 }
 
+/**
+ * @return The brain.
+ */
 Brain* 
 GuiManager::getBrain()
 {
@@ -391,6 +401,9 @@ GuiManager::processShowSearchHelpOnlineWindow()
     
 }
 
+/**
+ * @return Name of the application.
+ */
 QString 
 GuiManager::applicationName() const
 {
@@ -416,9 +429,6 @@ GuiManager::receiveEvent(Event* event)
         eventNewBrowser->setBrowserWindowCreated(bbw);
         
         eventNewBrowser->setEventProcessed();
-    }
-    else {
-        
     }
 }
 
