@@ -984,19 +984,9 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
      * Use a vector so no worries about memory being freed
      */
     const int64_t numVoxels = (iEnd - iStart) * (jEnd - jStart) * (kEnd - kStart);
-    //std::vector<float> sliceValuesVector(numVoxels);
-    //float* sliceValues = &sliceValuesVector[0];
     std::vector<float> sliceRgbaVector(numVoxels * 4);
     float* sliceRGBA = &sliceRgbaVector[0];
     
-    /*
-     colorScalarsWithPalette(DescriptiveStatistics* statistics,
-     PaletteColorMapping* paletteColorMapping,
-     PaletteFile* paletteFile,
-     const float* scalars,
-     const float* scalarThresholds,
-     const int32_t numberOfScalars,
-     float* rgbaOut);     */
     float rgba[4];
     for (int64_t i = iStart; i < iEnd; i++) {
         for (int64_t j = jStart; j < jEnd; j++) {
@@ -1065,7 +1055,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
         }
     }
     
-    bool useQuadStrips = true;
+    bool useQuadStrips = false;
     if (isSelect) {
         useQuadStrips = false;
     }
@@ -1101,9 +1091,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x2, y, z);
                             
                             for (int64_t j = 0; j < dimJ; j++) {
-                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
-                                //glColor3f(voxel, voxel, voxel);
-
                                 const int32_t sliceRgbaOffset = (i + (j * dimI)) * 4;
                                 glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
@@ -1135,9 +1122,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x2, y, z);
                             
                             for (int64_t k = 0; k < dimK; k++) {
-                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
-                                //glColor3f(voxel, voxel, voxel);
-                                
                                 const int32_t sliceRgbaOffset = (i + (k * dimI)) * 4;
                                 glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
@@ -1169,9 +1153,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                             glVertex3f(x, y2, z);
                             
                             for (int64_t k = 0; k < dimK; k++) {
-                                //const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
-                                //glColor3f(voxel, voxel, voxel);
-
                                 const int32_t sliceRgbaOffset = (j + (k * dimJ)) * 4;
                                 glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                                 
@@ -1211,7 +1192,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t k = sliceIndex;
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t j = 0; j < lastDimJ; j++) {
-                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1224,10 +1204,12 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                                 idVoxelCounter++;
                             }
                             else {
-                                glColor3f(voxel, voxel, voxel);
+                                const int32_t sliceRgbaOffset = (i + (j * dimI)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            underlayVolumeFile->indexToSpace(i + 1, j + 1, k, x2, y2, z2);
+                            x2 = x1 + voxelSizeX;
+                            y2 = y1 + voxelSizeY;
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
                             glVertex3f(x2, y2, z1);
@@ -1243,7 +1225,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t j = sliceIndex;
                     for (int64_t i = 0; i < lastDimI; i++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
-                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1256,10 +1237,12 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                                 idVoxelCounter++;
                             }
                             else {
-                                glColor3f(voxel, voxel, voxel);
+                                const int32_t sliceRgbaOffset = (i + (k * dimI)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            underlayVolumeFile->indexToSpace(i + 1, j, k + 1, x2, y2, z2);
+                            x2 = x1 + voxelSizeX;
+                            z2 = z1 + voxelSizeZ;
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x2, y1, z1);
                             glVertex3f(x2, y1, z2);
@@ -1288,10 +1271,12 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                                 idVoxelCounter++;
                             }
                             else {
-                                glColor3f(voxel, voxel, voxel);
+                                const int32_t sliceRgbaOffset = (j + (k * dimJ)) * 4;
+                                glColor4fv(&sliceRGBA[sliceRgbaOffset]);
                             }
                             underlayVolumeFile->indexToSpace(i, j, k, x1, y1, z1);
-                            underlayVolumeFile->indexToSpace(i, j + 1, k + 1, x2, y2, z2);
+                            y2 = y1 + voxelSizeY;
+                            z2 = z1 + voxelSizeZ;
                             glVertex3f(x1, y1, z1);
                             glVertex3f(x1, y2, z1);
                             glVertex3f(x1, y2, z2);
