@@ -273,17 +273,19 @@ OverlaySelectionControlLayer::settingsToolButtonPressed()
     overlay->getSelectionData(browserTabContent, 
                               mapFile, 
                               mapIndex);
-    if (mapFile->isMappedWithPalette()) {
-        if (mapFile != NULL) {
-            if (this->paletteColorMappingEditorDialog == NULL) {
-                this->paletteColorMappingEditorDialog = new PaletteColorMappingEditorDialog(this->settingsToolButton);
+    if (mapFile != NULL) {
+        if (mapFile->isMappedWithPalette()) {
+            if (mapFile != NULL) {
+                if (this->paletteColorMappingEditorDialog == NULL) {
+                    this->paletteColorMappingEditorDialog = new PaletteColorMappingEditorDialog(this->settingsToolButton);
+                }
+                this->paletteColorMappingEditorDialog->updatePaletteEditor(mapFile, mapIndex);
+                this->paletteColorMappingEditorDialog->show();
             }
-            this->paletteColorMappingEditorDialog->updatePaletteEditor(mapFile, mapIndex);
-            this->paletteColorMappingEditorDialog->show();
         }
-    }
-    else if (mapFile->isMappedWithLabelTable()) {
-        QMessageBox::information(this->overlaySelectionControl, "", "Edit Labels!");
+        else if (mapFile->isMappedWithLabelTable()) {
+            QMessageBox::information(this->overlaySelectionControl, "", "Edit Labels!");
+        }
     }
 }
 

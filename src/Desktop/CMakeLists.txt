@@ -115,10 +115,14 @@ ${CMAKE_SOURCE_DIR}/Common
 # Apple needs qt_menu.nib directory copied
 # into application's Resources directory 
 #
+# Apple needs framework
+#
 IF (APPLE)
+    MESSAGE("EXE: " ${CMAKE_BUILD_DIR} " " ${EXE_NAME})
         ADD_CUSTOM_COMMAND(
             TARGET ${EXE_NAME}
             POST_BUILD
             COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_nib.sh ${EXE_NAME}
+            ###COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_frameworks.sh ${EXE_NAME}
         )
 ENDIF (APPLE)
