@@ -27,6 +27,7 @@
 #include <algorithm>
 #include "CiftiXMLReader.h"
 #include <vector>
+#include "CiftiMatrix.h"
 
 
 #include <iostream>
@@ -99,7 +100,7 @@ void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
     m_matrix.setMatrixFile(fileName);
     CiftiHeader header;
     m_headerIO.getHeader(header);
-    m_matrix.setMatrixLayoutOnDisk(header);
+    //TODO use init function, m_matrix.setMatrixLayoutOnDisk(header);
 }
 
 /** 

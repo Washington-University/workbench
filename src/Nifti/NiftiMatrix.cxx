@@ -75,36 +75,6 @@ void NiftiMatrix::setMatrixFile(const QFile &filein){
     file.setFileName(filein.fileName());
 }
 
-/*
-void NiftiMatrix::getVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (NiftiException)
-{
-    readFrame(timeSlice);
-    int64_t index = 0;
-    for(int32_t k=0;k<dimensions[3];k++)
-        for(int32_t j=0;j<dimensions[2];j++)
-            for(int32_t i=0;i<dimensions[1];i++)
-            {
-                translateVoxel(i,j,k,index);
-                for(int c=0;c<componentDimensions;c++)
-                    volume.setValue(matrix[index+c],i,j,k,timeSlice,c);
-
-            }
-}
-
-void NiftiMatrix::setVolumeFrame(VolumeFile &volume, int64_t &timeSlice) throw (NiftiException)
-{
-    //flushCurrentFrame();
-    int64_t index = 0;
-    for(int32_t k=0;k<dimensions[3];k++)
-        for(int32_t j=0;j<dimensions[2];j++)
-            for(int32_t i=0;i<dimensions[1];i++)
-            {
-                translateVoxel(i,j,k,index);
-                for(int c=0;c<componentDimensions;c++)
-                    matrix[index+c]=volume.getValue(i,j,k,timeSlice,c);
-            }
-}*/
-
 void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
 {
 

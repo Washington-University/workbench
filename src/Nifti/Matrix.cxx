@@ -23,7 +23,7 @@
  */
 
 #include "Matrix.h"
-
+#if 0
 using namespace caret;
 
 Matrix::Matrix()
@@ -513,3 +513,4 @@ void Matrix::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, cons
     frameIn.getFrame(this->matrix,timeSlice, component);
 }
 
+#endif 0
