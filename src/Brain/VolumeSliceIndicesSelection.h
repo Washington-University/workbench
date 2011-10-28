@@ -89,6 +89,8 @@ namespace caret {
         bool sliceEnabledCoronal;
         
         bool sliceEnabledAxial;
+        
+        bool initializedFlag;
     };
     
 #ifdef __VOLUME_SLICE_INDICES_SELECTION_DECLARE__

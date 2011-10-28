@@ -73,6 +73,8 @@ VolumeSliceIndicesSelection::reset()
     this->sliceEnabledAxial        = true;
     this->sliceEnabledCoronal      = true;
     this->sliceEnabledParasagittal = true;
+    
+    this->initializedFlag = false;
 }
 
 /**
@@ -108,6 +110,11 @@ VolumeSliceIndicesSelection::updateForVolumeFile(/*const*/ VolumeFile* volumeFil
     }
     if (this->sliceIndexAxial < 0) {
         this->sliceIndexAxial = 0;
+    }
+    
+    if (this->initializedFlag == false) {
+        this->initializedFlag = true;
+        this->selectSlicesAtOrigin(volumeFile);
     }
 }
 

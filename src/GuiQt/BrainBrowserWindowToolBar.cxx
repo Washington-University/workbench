@@ -577,8 +577,9 @@ void
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
     this->updateTabName(indx);
-    this->updateUserInterface();
     this->updateGraphicsWindow();
+    this->updateUserInterface();
+    this->updateGraphicsWindow(); // yes, do a second time
 }
 
 void 
