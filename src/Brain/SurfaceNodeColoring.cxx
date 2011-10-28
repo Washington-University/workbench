@@ -291,9 +291,6 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
     /*
      * Get min/max ranges.
      */
-    float minMax[4];
-    metricFile->getMinMaxForColorMapping(displayColumn, minMax);
-    
     int thresholdColumn = metricFile->getColumnIndexFromColumnName(paletteColorMapping->getThresholdDataName());
     if (thresholdColumn < 0) {
         thresholdColumn = displayColumn;
@@ -318,30 +315,6 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
                                                       metricThresholdData, 
                                                       numberOfNodes, 
                                                       rgbv);
-        
-/*
-        float rgba[4];
-        for (int32_t i = 0; i < numberOfNodes; i++) {
-            rgba[0] = -1.0f;
-            rgba[1] = -1.0f;
-            rgba[2] = -1.0f;
-            rgba[3] = -1.0f;
-            bool validFlag = applyColorUsingPalette(paletteColorMapping,
-                                                    minMax,
-                                                    palette,
-                                                    metricDisplayData[i],
-                                                    metricThresholdData[i],
-                                                    rgba);
-            
-            if (validFlag) {
-                const int32_t i4 = i * 4;
-                rgbv[i4]   = rgba[0];
-                rgbv[i4+1] = rgba[1];
-                rgbv[i4+2] = rgba[2];
-                rgbv[i4+3] = 1.0;
-            }
-        }
-*/
     }
     else {
         CaretLogSevere("Selected palette for metric is invalid: \"" + paletteName + "\"");

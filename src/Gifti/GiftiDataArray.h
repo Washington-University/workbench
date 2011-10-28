@@ -234,24 +234,6 @@ namespace caret {
         // get minimum and maximum values (valid for int data only)
         void getMinMaxValues(int& minValue, int& maxValue) const;
         
-        // get minimum and maximum values (valid for float data only)
-        void getMinMaxValues(float& minValue, float& maxValue) const;
-        
-        // set min max values invalid
-        inline void clearMinMaxFloatValuesValid() { minMaxFloatValuesValid = false; }
-        
-        /// get data column min/max for the specified percentages
-        void getMinMaxValuesFromPercentages(const float negMaxPct,
-                                            const float negMinPct,
-                                            const float posMinPct,
-                                            const float posMaxPct,
-                                            float& negMaxValueOut,
-                                            float& negMinValueOut,
-                                            float& posMinValueOut,
-                                            float& posMaxValueOut);
-        
-        inline void clearMaxMaxPercentageValuesValid() { minMaxPercentageValuesValid = false; }
-        
         // remap integer values that are indices to a table
         //void remapIntValues(const std::vector<int32_t>& remappingTable);
         
