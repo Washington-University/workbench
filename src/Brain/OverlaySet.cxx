@@ -99,16 +99,18 @@ OverlaySet::getUnderlayVolume(BrowserTabContent* browserTabContent)
     VolumeFile* vf = NULL;
     
     for (int32_t i = (this->getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
-        CaretMappableDataFile* mapFile;
-        int32_t mapIndex;
-        this->overlays[i].getSelectionData(browserTabContent,
-                                            mapFile,
-                                            mapIndex);
-        
-        if (mapFile != NULL) {
-            vf = dynamic_cast<VolumeFile*>(mapFile);
-            if (vf != NULL) {
-                break;
+        if (this->overlays[i].isEnabled()) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            this->overlays[i].getSelectionData(browserTabContent,
+                                               mapFile,
+                                               mapIndex);
+            
+            if (mapFile != NULL) {
+                vf = dynamic_cast<VolumeFile*>(mapFile);
+                if (vf != NULL) {
+                    break;
+                }
             }
         }
     }

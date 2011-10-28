@@ -531,11 +531,18 @@ PaletteFile::addDefaultPalettes()
     // with the interpolate option
     //   
     if (this->getPaletteByName(Palette::GRAY_INTERP_PALETTE_NAME) == NULL) {
-        Palette palGrayInterp;
-        palGrayInterp.setName(Palette::GRAY_INTERP_PALETTE_NAME);
         this->addColor("_white_gray_interp",  255, 255, 255 );
         this->addColor("_black_gray_interp",  0, 0, 0 );
+
         
+        Palette palGrayPositiveInterp;
+        palGrayPositiveInterp.setName(Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME);        
+        palGrayPositiveInterp.addScalarAndColor( 1.0f, "_white_gray_interp");
+        palGrayPositiveInterp.addScalarAndColor(0.0f, "_black_gray_interp");
+        addPalette(palGrayPositiveInterp);   
+        
+        Palette palGrayInterp;
+        palGrayInterp.setName(Palette::GRAY_INTERP_PALETTE_NAME);        
         palGrayInterp.addScalarAndColor( 1.0f, "_white_gray_interp");
         palGrayInterp.addScalarAndColor(-1.0f, "_black_gray_interp");
         addPalette(palGrayInterp);   

@@ -95,6 +95,9 @@ namespace caret {
         /**Name of gray interpolate palette */
         static  const AString GRAY_INTERP_PALETTE_NAME;
         
+        /**Name of gray interpolate palette for positive data */
+        static  const AString GRAY_INTERP_POSITIVE_PALETTE_NAME;
+        
         /**"none" color name. */
         static  const AString NONE_COLOR_NAME;
         
@@ -113,6 +116,7 @@ namespace caret {
     
 #ifdef __PALETTE_DEFINE__
     const AString Palette::GRAY_INTERP_PALETTE_NAME = "Gray_Interp";
+    const AString Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME = "Gray_Interp_Positive";
     const AString Palette::NONE_COLOR_NAME = "none";
 #endif // __PALETTE_DEFINE__
 } // namespace
