@@ -41,9 +41,9 @@ public:
     /// Constructor
     CiftiFile() throw (CiftiFileException);
     /// Constructor
-    CiftiFile(const AString &fileName) throw (CiftiFileException);
+    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
     /// Open the Cifti File
-    virtual void openFile(const AString &fileName) throw (CiftiFileException);
+    virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
     /// Write the Cifti File
     virtual void writeFile(const AString &fileName) const throw (CiftiFileException);
 
@@ -60,6 +60,26 @@ public:
     /// get CiftiXML
     virtual void getCiftiXML(CiftiXML &xml) throw (CiftiFileException);
 
+    // Matrix IO, simply passes through to underlying Cifti Matrix
+    /// get Row
+    void getRow(float * rowOut,const int64_t &rowIndex) throw (CiftiFileException)
+    { m_matrix.getRow(rowOut, rowIndex); }
+    /// set Row
+    void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException)
+    { m_matrix.setRow(rowIn, rowIndex); }
+    /// get Column
+    void getColumn(float * columnOut, const int64_t &columnIndex) throw (CiftiFileException)
+    { m_matrix.getColumn(columnOut, columnIndex); }
+    /// set Column
+    void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException)
+    { m_matrix.setColumn(columnIn, columnIndex); }
+    /// get Matrix
+    void getMatrix(float *matrixOut) throw (CiftiFileException)
+    { m_matrix.getMatrix(matrixOut); }
+    /// set Matrix
+    void setMatrix(float *matrixIn) throw (CiftiFileException)
+    { m_matrix.setMatrix(matrixIn); }
+
     /// Destructor
     virtual ~CiftiFile();
 protected:
@@ -70,6 +90,7 @@ protected:
     CiftiXML m_xml;
     CiftiMatrix m_matrix;
     bool m_swapNeeded;
+    CacheEnum m_caching;
 };
 }
 

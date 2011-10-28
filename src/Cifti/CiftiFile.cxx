@@ -52,15 +52,17 @@ CiftiFile::CiftiFile() throw (CiftiFileException)
  * @param fileName name and path of the Cifti File
  *
  */
-CiftiFile::CiftiFile(const AString &fileName) throw (CiftiFileException)
+CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
     init();
     this->openFile(fileName);
+    this->m_caching = IN_MEMORY;
 }
 
 void CiftiFile::init()
 {   
     this->m_swapNeeded = false;
+    this->m_caching = IN_MEMORY;
 }
 
 /**
@@ -70,7 +72,7 @@ void CiftiFile::init()
  *
  * @param fileName name and path of the Cifti File
  */
-void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
+void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
     //Read CiftiHeader
     m_headerIO.readFile(fileName);
@@ -100,7 +102,10 @@ void CiftiFile::openFile(const AString &fileName) throw (CiftiFileException)
     m_matrix.setMatrixFile(fileName);
     CiftiHeader header;
     m_headerIO.getHeader(header);
-    //TODO use init function, m_matrix.setMatrixLayoutOnDisk(header);
+    std::vector <int64_t> vec;
+
+    header.getDimensions(vec);
+    m_matrix.setup(vec,header.getVolumeOffset(),m_caching,m_swapNeeded);
 }
 
 /** 
@@ -218,3 +223,6 @@ void CiftiFile::getCiftiXML(CiftiXML &xml) throw (CiftiFileException)
 {
     xml = this->m_xml;
 }
+
+//Matrix IO, simply passes through to CiftiMatrix, see header for more info..
+
