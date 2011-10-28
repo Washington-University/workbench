@@ -14,7 +14,15 @@ do
       if [ ! -d ${buildType}${exeName}.app/Contents/Resources ] ; then
          mkdir ${buildType}${exeName}.app/Contents/Resources
       fi
-      cp -R ${QTDIR}/src/gui/mac/qt_menu.nib ${buildType}${exeName}.app/Contents/Resources 
+
+      if [ -f  ${QTDIR}/src/gui/mac/qt_menu.nib ] ; then
+         cp -R ${QTDIR}/src/gui/mac/qt_menu.nib ${buildType}${exeName}.app/Contents/Resources 
+      fi
+
+      if [ -f  ${QTDIR}/lib/QtGui.framework/Versions/4/Resources/qt_menu.nib ] ; then
+         cp -R ${QTDIR}/lib/QtGui.framework/Versions/4/Resources/qt_menu.nib ${buildType}${exeName}.app/Contents/Resources 
+      fi
+
    fi
 done
 
