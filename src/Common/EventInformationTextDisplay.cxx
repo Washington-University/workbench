@@ -30,11 +30,16 @@ using namespace caret;
  * Construct an event for display text in the information windows.
  * @param text
  *   Text that will be displayed.
+ * @param isPlainText
+ *   Set to true if text is plain text.  Otherwise
  */
-EventInformationTextDisplay::EventInformationTextDisplay(const AString& text)
+EventInformationTextDisplay::EventInformationTextDisplay(const AString& text,
+                                                         const TextType textType)
 : Event(EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY)
 {
     this->text = text;
+    this->textType = textType;
+    this->important = true;
 }
 
 /**
@@ -46,12 +51,44 @@ EventInformationTextDisplay::~EventInformationTextDisplay()
 }
 
 /**
+ * Set the message as not important so that the toolbox
+ * does NOT switch to the information panel.
+ */
+EventInformationTextDisplay*
+EventInformationTextDisplay::setNotImportant()
+{
+    this->important = false;
+    return this;
+}
+
+/**
+ * @return Is this message important.  If so,
+ * the Toolbox will switch to the information 
+ * display.
+ */
+bool 
+EventInformationTextDisplay::isImportant() const
+{
+    return this->important;
+}
+
+
+/**
  * @return  The text for display in the information windows.
  */
 AString 
 EventInformationTextDisplay::getText() const
 {
     return this->text; 
+}
+
+/**
+ * @return The type of text.
+ */
+EventInformationTextDisplay::TextType 
+EventInformationTextDisplay::getTextType() const
+{
+    return this->textType;
 }
 
 

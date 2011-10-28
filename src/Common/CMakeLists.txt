@@ -48,6 +48,7 @@ FloatMatrix.h
 HtmlStringBuilder.h
 Logger.h
 LogHandler.h
+LogHandlerInformationTextDisplay.h
 LogHandlerStandardError.h
 LogLevelEnum.h
 LogManager.h
@@ -90,6 +91,7 @@ FloatMatrix.cxx
 HtmlStringBuilder.cxx
 Logger.cxx
 LogHandler.cxx
+LogHandlerInformationTextDisplay.cxx
 LogHandlerStandardError.cxx
 LogLevelEnum.cxx
 LogManager.cxx

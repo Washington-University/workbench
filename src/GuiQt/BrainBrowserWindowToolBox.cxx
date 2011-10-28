@@ -350,6 +350,7 @@ QWidget*
 BrainBrowserWindowToolBox::createInformationWidget()
 {
     this->informationTextBrowser = new HyperLinkTextBrowser();
+    this->informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
     QAction* clearAction = WuQtUtilities::createAction("Clear", 
                                                        "Clear contents of information display", 
                                                        this, 
@@ -448,8 +449,17 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
         
         const AString text = textEvent->getText();
         if (text.isEmpty() == false) {
-            this->tabWidget->setCurrentWidget(this->informationWidget);
-            this->informationTextBrowser->appendHtml(textEvent->getText());
+            if (textEvent->isImportant()) {
+                this->tabWidget->setCurrentWidget(this->informationWidget);
+            }
+            switch(textEvent->getTextType()) {
+                case EventInformationTextDisplay::TYPE_PLAIN:
+                    this->informationTextBrowser->append(textEvent->getText());
+                    break;
+                case EventInformationTextDisplay::TYPE_HTML:
+                    this->informationTextBrowser->appendHtml(textEvent->getText());
+                    break;
+            }
             textEvent->setEventProcessed();
         }
     }

@@ -125,7 +125,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     const BrowserTabContent* btc = NULL;
     const AString idMessage = idManager->getIdentificationText(btc);
     
-    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage).getPointer());
+    EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
+                                                               EventInformationTextDisplay::TYPE_HTML).getPointer());
 }
 
 /**
