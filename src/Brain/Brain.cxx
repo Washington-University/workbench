@@ -714,6 +714,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
     CaretAssert(sf);
     
+    this->resetBrain();
+    
     if (this->specFile != NULL) {
         delete this->specFile;
     }
