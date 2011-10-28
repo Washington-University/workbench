@@ -733,13 +733,30 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
                             
                             if (palette != NULL) {
+                                bool useIt = true;
+                                
                                 const float opacity = overlay->getOpacity();
                                 
-                                VolumeDrawInfo vdi(vf,
-                                                   palette,
-                                                   mapIndex,
-                                                   opacity);
-                                volumeDrawInfoOut.push_back(vdi);
+                                if (volumeDrawInfoOut.empty() == false) {
+                                    /*
+                                     * If previous volume is the same as this
+                                     * volume, there is no need to draw it twice.
+                                     */
+                                    const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
+                                    if ((vdi.volumeFile == vf) 
+                                        && (opacity >= 1.0)
+                                        && (mapIndex == vdi.brickIndex)
+                                        && (palette == vdi.palette)) {
+                                        useIt = false;
+                                    }
+                                }
+                                if (useIt) {
+                                    VolumeDrawInfo vdi(vf,
+                                                       palette,
+                                                       mapIndex,
+                                                       opacity);
+                                    volumeDrawInfoOut.push_back(vdi);
+                                }
                             }
                             else {
                                 CaretLogWarning("No valid palette for drawing volume file: "
@@ -1055,7 +1072,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
         }
     }
     
-    bool useQuadStrips = false;
+    bool useQuadStrips = true;
     if (isSelect) {
         useQuadStrips = false;
     }
