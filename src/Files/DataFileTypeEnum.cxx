@@ -28,6 +28,7 @@
 #undef __DATA_FILE_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 using namespace caret;
 
@@ -227,9 +228,11 @@ DataFileTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
      * Maintain compatibility with early spec files
      */
     if (name.startsWith("SURFACE_")) {
+        CaretLogWarning("Obsolete spec file tag \"" + name + "\", replace with SURFACE");
         name = "SURFACE";
     }
     else if (name.startsWith("VOLUME_")) {
+        CaretLogWarning("Obsolete spec file tag \"" + name + "\", replace with VOLUME");
         name = "VOLUME";
     }
     
