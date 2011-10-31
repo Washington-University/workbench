@@ -46,14 +46,11 @@ echo "QMAKE: ${QMAKE_PROG}"
 #
 cd ${GIT_ROOT_DIR}
 
-#
-# Starting message
-#
-echo "Caret7 Mac 64 Build Result"
 
 #
 # Update source from repository
 #
+echo "UPDATING SOURCE FROM GIT REPOSITORY"
 git pull -u
 
 #
@@ -62,6 +59,7 @@ git pull -u
 # contain just the output that shows the errors.
 # Catch output and echo to screen.
 #
+echo "BUILDING SOURCE"
 mkdir -p ${BUILD_DIR}
 cd ${BUILD_DIR}
 cmake ${SRC_DIR}
@@ -71,11 +69,13 @@ make -j2
 #
 # Run 'macdeployqt' on the App so that frameworks are copied
 #
+echo "RUNNING MACDEPLOYQT"
 macdeployqt Desktop/workbench.app
 
 #
 # Copy to distribution directory
 #
+echo "COPYING PROGRAMS"
 DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
 /bin/cp -rv Desktop/workbench.app ${DIST_DIR}
 /bin/cp -v CommandLine/caret_command ${DIST_DIR}

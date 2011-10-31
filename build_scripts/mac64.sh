@@ -25,7 +25,7 @@ set noon
 # Run the build script
 #
 echo "Starting mac64 aux script" >> ${ERROR_FILE} 2>&1
-RESULT=${BUILD_ROOT_DIR}/caret7_source/build_scripts/mac64_aux.sh >> ${ERROR_FILE} 2>&1
+RESULT=`${BUILD_ROOT_DIR}/caret7_source/build_scripts/mac64_aux.sh >> ${ERROR_FILE} 2>&1`
 echo "Finished mac64 aux script" >> ${ERROR_FILE} 2>&1
 echo "Result: ${RESULT}"
 
