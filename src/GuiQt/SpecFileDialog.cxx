@@ -77,7 +77,10 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
             QCheckBox* cb = new QCheckBox(" ");
             cb->setChecked(dataFile->isSelected());
             QLabel* dataTypeLabel = new QLabel(DataFileTypeEnum::toGuiName(dataFileType));
-            QLabel* structureLabel = new QLabel(StructureEnum::toGuiName(dataFile->getStructure()));
+            QLabel* structureLabel = new QLabel("");
+            if (DataFileTypeEnum::isFileUsedWithOneStructure(dataFileType)) {
+                structureLabel->setText(StructureEnum::toGuiName(dataFile->getStructure()));
+            }
             QLabel* nameLabel = new QLabel(dataFile->getFileName());
             
             this->checkBoxes.push_back(cb);

@@ -41,6 +41,8 @@ using namespace caret;
  *    Name of enumberated value.
  * @param guiName
  *    Name displayed in the user-interface
+ * @param fileIsUsedWithOneStructure
+ *    True if file is used with ONE structure (eg node file (surface, metric, etc).
  * @param fileExtensionOne
  *    File extension
  * @param fileExtensionTwo
@@ -51,6 +53,7 @@ using namespace caret;
 DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const AString& name,
                                    const AString& guiName,
+                                   const bool fileIsUsedWithOneStructure,
                                    const AString& fileExtensionOne,
                                    const AString& fileExtensionTwo,
                                    const AString& fileExtensionThree)
@@ -59,6 +62,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     this->integerCode = DataFileTypeEnum::integerCodeGenerator++;
     this->name = name;
     this->guiName = guiName;
+    this->oneStructureFlag = fileIsUsedWithOneStructure;
     
     if (fileExtensionOne.isEmpty() == false) {
         this->fileExtensions.push_back(fileExtensionOne);
@@ -107,61 +111,73 @@ DataFileTypeEnum::initialize()
     enumData.push_back(DataFileTypeEnum(BORDER_PROJECTION, 
                                         "BORDER_PROJECTION", 
                                         "Border Projection",
+                                        false,
                                         "borderproj"));
     
     enumData.push_back(DataFileTypeEnum(CIFTI, 
                                         "CIFTI", 
                                         "Connectivity",
+                                        false,
                                         "cii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI_PROJECTION, 
                                         "FOCI_PROJECTION", 
                                         "Foci Projection",
+                                        false,
                                         "fociproj"));
     
     enumData.push_back(DataFileTypeEnum(LABEL, 
                                         "LABEL", 
                                         "Label",
+                                        true,
                                         "label.gii"));
     
     enumData.push_back(DataFileTypeEnum(METRIC, 
                                         "METRIC", 
                                         "Metric",
+                                        true,
                                         "func.gii"));
     
     enumData.push_back(DataFileTypeEnum(PALETTE, 
                                         "PALETTE", 
                                         "Palette",
+                                        false,
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
                                         "RGBA", 
                                         "RGBA",
+                                        true,
                                         "rgba.gii"));
     
     enumData.push_back(DataFileTypeEnum(SCENE, 
                                         "SCENE", 
                                         "Scene",
+                                        false,
                                         "scene"));
     
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
                                         "SPECIFICATION", 
                                         "Specification",
+                                        false,
                                         "spec"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE, 
                                         "SURFACE", 
                                         "Surface",
+                                        true,
                                         "surf.gii"));    
     
     enumData.push_back(DataFileTypeEnum(UNKNOWN, 
                                         "UNKNOWN", 
                                         "Unknown",
+                                        false,
                                         "unknown"));
     
     enumData.push_back(DataFileTypeEnum(VOLUME, 
                                         "VOLUME", 
                                         "Volume",
+                                        false,
                                         "nii",
                                         "nii.gz"));
     
@@ -376,6 +392,20 @@ DataFileTypeEnum::toQFileDialogFilter(const Enum enumValue)
     if (initializedFlag == false) initialize();
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->qFileDialogNameFilter;
+}
+
+/**
+ * Is the file type used with a one structure (node based file, surface, label, etc.)?
+ * @param enumValue
+ *     Enumerated type for file filter.
+ * @return  true if used with one structure, else false.
+ */
+bool 
+DataFileTypeEnum::isFileUsedWithOneStructure(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    return enumInstance->oneStructureFlag;
 }
 
 /**

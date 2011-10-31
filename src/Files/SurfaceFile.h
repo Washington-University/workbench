@@ -37,6 +37,7 @@
 
 namespace caret {
 
+    class BoundingBox;
     class GiftiDataArray;
     
     /**
@@ -78,6 +79,10 @@ namespace caret {
         CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false);
         
         CaretPointer<GeodesicHelper> getGeodesicHelper();
+        
+        const BoundingBox* getBoundingBox() const;
+        
+        virtual void setModified();
         
     protected:
         /**
@@ -128,6 +133,8 @@ namespace caret {
         ///used to track when the surface file gets changed
         void invalidateGeoHelpers();
         void invalidateTopoHelpers();
+        
+        mutable BoundingBox* boundingBox;
     };
 
 } // namespace

@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include "BoundingBox.h"
 #include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
@@ -78,7 +79,10 @@ SurfaceFile::operator=(const SurfaceFile& sf)
  */
 SurfaceFile::~SurfaceFile()
 {
-    
+    if (this->boundingBox != NULL) {
+        delete this->boundingBox;
+        this->boundingBox = NULL;
+    }
 }
 
 /**
@@ -269,6 +273,7 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->coordinatePointer   = NULL;
     this->triangleDataArray   = NULL;
     this->trianglePointer     = NULL;
+    this->boundingBox         = NULL;
     invalidateGeoHelpers();
     invalidateTopoHelpers();
 }
@@ -515,3 +520,33 @@ void caret::SurfaceFile::invalidateTopoHelpers()
     m_topoHelperIndex = 0;
     m_topoHelpers.clear();
 }
+
+/**
+ * @return A bounding box for this surface.
+ */
+const BoundingBox* 
+SurfaceFile::getBoundingBox() const
+{
+    if (this->boundingBox == NULL) {
+        this->boundingBox = new BoundingBox();
+        this->boundingBox->set(this->coordinatePointer, this->getNumberOfNodes());
+    }
+    return this->boundingBox;
+}
+
+/**
+ * Is the object modified?
+ * @return true if modified, else false.
+ */
+void 
+SurfaceFile::setModified()
+{
+    if (this->boundingBox != NULL) {
+        delete this->boundingBox;
+        this->boundingBox = NULL;
+    }
+    
+    GiftiTypeFile::setModified();
+}
+
+

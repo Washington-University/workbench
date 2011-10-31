@@ -163,11 +163,14 @@ namespace caret {
         void setViewportAndOrthographicProjection(const int32_t viewport[4]);
         
         void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
-                                         const int32_t tabIndex);
+                                         const int32_t tabIndex,
+                                         const float objectCenterXYZ[3]);
         
         void applyViewingTransformationsVolumeSlice(const ModelDisplayController* modelDisplayController,
                                          const int32_t tabIndex,
                                          const VolumeSliceViewPlaneEnum::Enum viewPlane);
+        
+        void drawSurfaceAxes();
         
         /** contains single instance of this class */
         static BrainOpenGL* brainOpenGLSingleton;

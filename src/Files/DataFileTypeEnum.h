@@ -89,10 +89,13 @@ public:
     
     static Enum fromFileExtension(const AString& filename, bool* isValidOut);
     
+    static bool isFileUsedWithOneStructure(const Enum enumValue);
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
                      const AString& guiName,
+                     const bool fileIsUsedWithOneStructure,
                      const AString& fileExtensionOne,
                      const AString& fileExtensionTwo = "",
                      const AString& fileExtensionThree = "");
@@ -128,6 +131,9 @@ private:
     
     /** Name filter for use in a QFileDialog */
     AString qFileDialogNameFilter;
+    
+    /** Is file for use with one structure */
+    bool oneStructureFlag;
 };
 
 #ifdef __DATA_FILE_TYPE_ENUM_DECLARE__

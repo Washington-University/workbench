@@ -44,6 +44,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
@@ -261,10 +262,14 @@ BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4])
  *    Model controller being viewed.
  * @param tabIndex
  *    Index of tab containing the controller.
+ * @param objectCenterXYZ
+ *    If not NULL, contains center of object about
+ *    which rotation should take place.
  */
 void 
 BrainOpenGL::applyViewingTransformations(const ModelDisplayController* modelDisplayController,
-                                         const int32_t tabIndex)
+                                         const int32_t tabIndex,
+                                         const float objectCenterXYZ[3])
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -283,6 +288,13 @@ BrainOpenGL::applyViewingTransformations(const ModelDisplayController* modelDisp
     glScalef(scale, 
              scale, 
              scale);    
+
+    if (objectCenterXYZ != NULL) {
+        /*
+         * Place center of surface at origin.
+         */
+        glTranslatef(-objectCenterXYZ[0], -objectCenterXYZ[1], -objectCenterXYZ[2]); 
+    }
 }
 
 /**
@@ -483,11 +495,37 @@ void
 BrainOpenGL::drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
                                    const int32_t viewport[4])
 {
+    Surface* surface = surfaceController->getSurface();
+    float center[3];
+    surface->getBoundingBox()->getCenter(center);
     this->setViewportAndOrthographicProjection(viewport);
-    this->applyViewingTransformations(surfaceController, this->windowTabIndex);
-    this->drawSurface(surfaceController->getSurface());
+    this->applyViewingTransformations(surfaceController, 
+                                      this->windowTabIndex,
+                                      center);
+    
+    this->drawSurface(surface);
 }
 
+/**
+ * Draw the surface axes.
+ */
+void 
+BrainOpenGL::drawSurfaceAxes()
+{
+    const float bigNumber = 1000000.0;
+    glPushMatrix();
+    glColor3f(1.0, 0.0, 0.0);
+    glBegin(GL_LINES);
+    glVertex3f(-bigNumber, 0.0, 0.0);
+    glVertex3f( bigNumber, 0.0, 0.0);
+    glVertex3f(0.0, -bigNumber, 0.0);
+    glVertex3f(0.0,  bigNumber, 0.0);
+    glVertex3f(0.0, 0.0, -bigNumber);
+    glVertex3f(0.0, 0.0, bigNumber);
+    glEnd();
+    glPopMatrix();
+    
+}
 
 /**
  * Draw a surface.
@@ -1275,7 +1313,6 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     const int64_t i = sliceIndex;
                     for (int64_t j = 0; j < lastDimJ; j++) {
                         for (int64_t k = 0; k < lastDimK; k++) {
-                            const float voxel = underlayVolumeFile->getValue(i, j, k) / 255.0;
                             if (isSelect) {
                                 this->colorIdentification->addItem(rgb, 
                                                                    IdentificationItemDataTypeEnum::VOXEL, 
@@ -1344,7 +1381,9 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
                                       const int32_t viewport[4])
 {
     this->setViewportAndOrthographicProjection(viewport);
-    this->applyViewingTransformations(wholeBrainController, this->windowTabIndex);
+    this->applyViewingTransformations(wholeBrainController, 
+                                      this->windowTabIndex,
+                                      NULL);
     
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
@@ -1370,10 +1409,12 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
                     case StructureEnum::CORTEX_LEFT:
                         drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
                         dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                        dx -= surface->getBoundingBox()->getMaxX();
                         break;
                     case StructureEnum::CORTEX_RIGHT:
                         drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
                         dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                        dx -= surface->getBoundingBox()->getMinX();
                         break;
                     case StructureEnum::CEREBELLUM:
                         drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);

@@ -447,6 +447,49 @@ BoundingBox::setMaxZ(const float value)
 }
 
 /**
+ * @return  X-Coordinate at center of the bounding box.
+ */
+float 
+BoundingBox::getCenterX() const
+{
+    const float centerX = (this->boundingBox[0] + this->boundingBox[1]) * 0.5;
+    return centerX;
+}
+
+/**
+ * @return  Y-Coordinate at center of the bounding box.
+ */
+float 
+BoundingBox::getCenterY() const
+{
+    const float centerY = (this->boundingBox[2] + this->boundingBox[3]) * 0.5;
+    return centerY;
+}
+
+/**
+ * @return  Z-Coordinate at center of the bounding box.
+ */
+float 
+BoundingBox::getCenterZ() const
+{
+    const float centerZ = (this->boundingBox[4] + this->boundingBox[5]) * 0.5;
+    return centerZ;
+}
+
+/**
+ * Get the center of the bounding box.
+ * @param centerOut
+ *    Three dimensional array into which the center is loaded.
+ */
+void 
+BoundingBox::getCenter(float centerOut[3]) const
+{
+    centerOut[0] = (this->boundingBox[0] + this->boundingBox[1]) * 0.5;
+    centerOut[1] = (this->boundingBox[2] + this->boundingBox[3]) * 0.5;
+    centerOut[2] = (this->boundingBox[4] + this->boundingBox[5]) * 0.5;
+}
+
+/**
  * Is the coordinate within the bounding box?
  * @param xyz - The coordinate.
  * @return  True if coordinate is within the bounding box, else false.

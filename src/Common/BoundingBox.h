@@ -106,6 +106,14 @@ public:
 
     void setMaxZ(const float value);
 
+    float getCenterX() const;
+    
+    float getCenterY() const;
+    
+    float getCenterZ() const;
+    
+    void getCenter(float centerOut[3]) const;
+    
     bool isCoordinateWithinBoundingBox(const float xyz[]) const;
 
     AString toString() const;
