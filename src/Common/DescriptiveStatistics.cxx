@@ -207,6 +207,7 @@ DescriptiveStatistics::update(const float* values,
         while (end - start > 1)
         {//bisection search for last negative
             guess = (start + end) / 2;
+            CaretAssertArrayIndex(sortedValues, m_validCount, guess);
             if (sortedValues[guess] < 0.0f)
             {
                 start = guess;
@@ -223,6 +224,7 @@ DescriptiveStatistics::update(const float* values,
         while (end - start > 1)
         {//bisection search for first positive
             guess = (start + end) / 2;
+            CaretAssertArrayIndex(sortedValues, m_validCount, guess);
             if (sortedValues[guess] > 0.0f)
             {
                 end = guess;
@@ -244,7 +246,10 @@ DescriptiveStatistics::update(const float* values,
         m_negativePercentiles[0] = sortedValues[leastNegativeIndex];
         for (int64_t i = 1; i < m_percentileDivisions - 1; i++)
         {
-            const int64_t indx = leastNegativeIndex - (int64_t)(((double)i * numNegativeValues) / m_percentileDivisions + 0.5);
+            int64_t indx = leastNegativeIndex - (int64_t)(((double)i * numNegativeValues) / m_percentileDivisions + 0.5);
+            if (indx < 0) indx = 0;
+            if (indx >= m_validCount) indx = m_validCount - 1;
+            CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             m_negativePercentiles[i] = sortedValues[indx];
         }
         m_negativePercentiles[m_percentileDivisions - 1] = sortedValues[mostNegativeIndex];
@@ -259,7 +264,10 @@ DescriptiveStatistics::update(const float* values,
         
         m_positivePercentiles[0] = sortedValues[leastPositiveIndex];
         for (int64_t i = 1; i < m_percentileDivisions - 1; i++) {
-            const int64_t indx = (int64_t)(((double)i * numPositiveValues) / m_percentileDivisions + 0.5) + leastPositiveIndex;
+            int64_t indx = (int64_t)(((double)i * numPositiveValues) / m_percentileDivisions + 0.5) + leastPositiveIndex;
+            if (indx < 0) indx = 0;
+            if (indx >= m_validCount) indx = m_validCount - 1;
+            CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             m_positivePercentiles[i] = sortedValues[indx];
         }
         m_positivePercentiles[m_percentileDivisions - 1] = sortedValues[mostPositiveIndex];
@@ -281,7 +289,9 @@ DescriptiveStatistics::update(const float* values,
     /*
      * Prepare for histogram of middle 96%
      */
+    CaretAssertArrayIndex(sortedValues, m_validCount, twoPercentIndex);
     const float minValue96 = sortedValues[twoPercentIndex];
+    CaretAssertArrayIndex(sortedValues, m_validCount, ninetyEightPercentIndex);
     const float maxValue96 = sortedValues[ninetyEightPercentIndex];
     const float bucketSize96 = (maxValue96 - minValue96) / m_histogramNumberOfElements;
     
@@ -301,6 +311,7 @@ DescriptiveStatistics::update(const float* values,
         int64_t indx = (v - minValue) / bucketSize;
         if (indx >= m_histogramNumberOfElements) indx = m_histogramNumberOfElements - 1;//NEVER trust floats to not have rounding errors when nonzero
         if (indx < 0) indx = 0;//probably not needed, involves subtracting equals
+        CaretAssertArrayIndex(m_histogram, m_histogramNumberOfElements, indx);
         m_histogram[indx]++;
         
         sum += v;
@@ -311,6 +322,7 @@ DescriptiveStatistics::update(const float* values,
             int64_t indx96 = (v - minValue96) / bucketSize96;
             if (indx96 >= m_histogramNumberOfElements) indx96 = m_histogramNumberOfElements - 1;
             if (indx96 < 0) indx96 = 0;
+            CaretAssertArrayIndex(m_histogram, m_histogramNumberOfElements, indx96);
             m_histogram96[indx96]++;
             
             sum96 += v;
