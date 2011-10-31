@@ -25,13 +25,8 @@ cd ${BUILD_ROOT_DIR}
 #
 
 #for now we use caret5's lib dir
-#LIB_DIR=/Volumes/DS4600/caret_development/mac64
-#QTDIR=${LIB_DIR}/libraries/qt-software/qt-4.7.1-static-64bit
-
-#
-# Use Qt SDK
-#
-QTDIR=/Users/caret/QtSDK/Desktop/Qt/474/gcc
+LIB_DIR=/Volumes/DS4600/caret_development/mac64
+QTDIR=${LIB_DIR}/libraries/qt-software/qt-4.7.1-static-64bit
 export QTDIR
 
 PATH=${QTDIR}/bin:${PATH}
@@ -76,11 +71,6 @@ cmake ${SRC_DIR} >> ${ERROR_FILE} 2>&1
 make -j2 
 make -j2 >> ${ERROR_FILE} 2>&1
 cat ${ERROR_FILE}
-
-#
-# Run 'macdeployqt' on the App so that frameworks are copied
-#
-macdeployqt Desktop/workbench.app >> ${ERROR_FILE} 2>&1
 
 #
 # Copy to distribution directory
