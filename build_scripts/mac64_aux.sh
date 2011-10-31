@@ -81,3 +81,5 @@ DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
 /bin/cp -v CommandLine/caret_command ${DIST_DIR}
 
 
+echo "SCRIPT COMPLETED SUCCESSFULLY"
+
