@@ -258,7 +258,7 @@ void CiftiMatrix::flushCache() throw (CiftiFileException)
     }
 }
 
-void CiftiMatrix::writeToNewFile(AString &fileNameIn, const int64_t  &offsetIn, const bool &needsSwappingIn) throw (CiftiFileException)
+void CiftiMatrix::writeToNewFile(const AString &fileNameIn, const int64_t  &offsetIn, const bool &needsSwappingIn) throw (CiftiFileException)
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
     QFile outFile;

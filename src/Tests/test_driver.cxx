@@ -33,6 +33,7 @@
 #include "CaretHttpManager.h"
 
 //tests
+#include "CiftiFileTest.h"
 #include "HttpTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
@@ -58,6 +59,7 @@ int main(int argc, char** argv)
         QApplication myApp(argc, argv, false);
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
+        mytests.push_back(new CiftiFileTest("ciftifile"));
         mytests.push_back(new HttpTest("http"));
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));

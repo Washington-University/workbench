@@ -53,6 +53,7 @@ public:
     void swapHeaderBytes(nifti_2_header &header);
     bool getSwapNeeded();
     int getNiftiVersion();
+    void setVolumeOffset(const int64_t &offsetIn);
     int64_t getVolumeOffset();
     int64_t getExtensionsOffset();
 

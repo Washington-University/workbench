@@ -60,6 +60,7 @@ GuiQt
 Brain
 Files
 Palette
+Cifti
 Gifti
 Nifti
 Xml
@@ -105,6 +106,7 @@ ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml

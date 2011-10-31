@@ -64,6 +64,8 @@ public:
     }
     void getSForm(std::vector < std::vector <float> > &sForm);
     void setSForm(std::vector < std::vector <float> > &sForm);
+
+    void setVolumeOffset(const int64_t &offsetIn) { m_header.vox_offset = offsetIn; }
     int64_t getVolumeOffset() { return m_header.vox_offset; }
 protected:
     nifti_2_header m_header;

@@ -71,7 +71,7 @@ public:
     //Flush Cache
     void flushCache() throw (CiftiFileException);
     //Write to a new file
-    void writeToNewFile(AString &fileNameIn, const int64_t &offsetIn, const bool &needsSwappingIn=false) throw (CiftiFileException);
+    void writeToNewFile(const AString &fileNameIn, const int64_t &offsetIn, const bool &needsSwappingIn=false) throw (CiftiFileException);
 protected:
     CacheEnum m_caching;
     float *m_matrix;

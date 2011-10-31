@@ -45,7 +45,7 @@ public:
     /// Open the Cifti File
     virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
     /// Write the Cifti File
-    virtual void writeFile(const AString &fileName) const throw (CiftiFileException);
+    virtual void writeFile(const AString &fileName) throw (CiftiFileException);
 
     //get/set Nifti2/CiftiHeader
     /// set CiftiHeader

@@ -119,16 +119,16 @@ void NiftiHeaderIO::readFile(const AString &inputFileIn) throw (NiftiException)
         {
             throw NiftiException("Error reading Nifti header, file is too short.");
         }
-        else if(NIFTI2_VERSION(n1header)==1)
+        else if((NIFTI2_VERSION(n1header))==1)
         {
             niftiVersion=1;
 
         }
-        else if(NIFTI2_VERSION(n1header)==2)
+        else if((NIFTI2_VERSION(n1header))==2)
         {
             niftiVersion=2;
             //read the rest of the bytes
-            inputFile.read((char *)bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
+            inputFile.read((char *)&bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
             memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
         }
         else throw NiftiException("Unrecognized Nifti Version.");
@@ -361,6 +361,18 @@ int64_t NiftiHeaderIO::getVolumeOffset()
         return this->nifti2Header.getVolumeOffset();
     else return 0;
 }
+
+void NiftiHeaderIO::setVolumeOffset(const int64_t &offsetIn)
+{
+    if(niftiVersion == 1)
+        this->nifti1Header.setVolumeOffset(offsetIn);
+    else if(niftiVersion == 2)
+        this->nifti2Header.setVolumeOffset(offsetIn);
+
+
+}
+
+
 
 int64_t NiftiHeaderIO::getExtensionsOffset()
 {

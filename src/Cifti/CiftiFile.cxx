@@ -55,8 +55,8 @@ CiftiFile::CiftiFile() throw (CiftiFileException)
 CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
     init();
-    this->openFile(fileName);
     this->m_caching = IN_MEMORY;
+    this->openFile(fileName);
 }
 
 void CiftiFile::init()
@@ -74,6 +74,7 @@ void CiftiFile::init()
  */
 void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
+    m_caching = caching;
     //Read CiftiHeader
     m_headerIO.readFile(fileName);
 
@@ -83,6 +84,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
         QFile inputFile(fileName);
         inputFile.setFileName(fileName);
         inputFile.open(QIODevice::ReadWrite);
+        inputFile.seek(NIFTI2_HEADER_SIZE);
         char extensions[4];
         inputFile.read(extensions,4);
         unsigned int length;
@@ -115,50 +117,56 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
  *
  * @param fileName specifies the name and path of the file to write to
  */
-void CiftiFile::writeFile(const AString &fileName) const throw (CiftiFileException)
+void CiftiFile::writeFile(const AString &fileName) throw (CiftiFileException)
 {
-
-
+    if(QFile::exists(fileName))
+    {
+        throw CiftiFileException("in place writes aren't supported, for in space.");
+        return;
+    }
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
     QByteArray xmlBytes;
     CiftiXML xml = m_xml;
     xml.writeXML(xmlBytes);
     int length = 8 + xmlBytes.length();
 
-    /*
-        nifti_2_header header;
-        m_CiftiHeader->getHeaderStruct(header);
-        header.vox_offset = 544 + length;
-        int remainder = header.vox_offset % 8;
-        int padding = 0;
-        if (remainder) padding = 8 - remainder;//for 8 byte alignment
-        header.vox_offset += padding;
-        length += padding;
-        m_CiftiHeader->setHeaderStuct(header);
-   */
+
+    // update header struct dimensions and vox_offset
+    CiftiHeader ciftiHeader;
+    this->m_headerIO.getHeader(ciftiHeader);
+
+
+    int64_t vox_offset = 544 + length;
+    int remainder = vox_offset % 8;
+    int padding = 0;
+    if (remainder) padding = 8 - remainder;//for 8 byte alignment
+    vox_offset += padding;
+    length += padding;
+
+
+    std::vector <int64_t> dim;
+    m_matrix.getMatrixDimensions(dim);
+    ciftiHeader.setDimensions(dim);
+    ciftiHeader.setVolumeOffset(vox_offset);
+    m_headerIO.setHeader(ciftiHeader);
+
 
     //write out the file
     //write out header
-
+    m_headerIO.writeFile(fileName);
 
     //write out the xml extension
-    /*{
-       int ecode = 32;//NIFTI_ECODE_CIFTI
-       char bytes[4] = { 0x01, 0x00,0x00, 0x00};
+    QFile file;
+    file.setFileName(fileName);
+    file.open(QIODevice::ReadWrite);
+    file.seek(540);
+    char eflags[4] = {1,0x00,0x00,0x00};
+    file.write(eflags,4);
+    file.write(xmlBytes);
+    file.close();
 
-       QFile outputFile(fileName);
-       outputFile.open(QIODevice::WriteOnly);
-       outputFile.write(bytes,4);
-       outputFile.write((char *)&length,4);
-       outputFile.write((char *)&ecode,4);
-       outputFile.write(xmlBytes);
-       char junk[] = "         ";//filler for 8 byte alignment
-       char* junk2 = &(junk[0]);
-       if (padding) outputFile.write(junk2, padding);
-       outputFile.close();
-   }*/
     //write the matrix
-
+    m_matrix.writeToNewFile(fileName,vox_offset, false);
 }
 
 /**
@@ -193,10 +201,6 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
 {
     m_headerIO.getHeader(header);
 }
-
-
-
-
 
 // XML IO
 /** 

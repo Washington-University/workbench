@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 #The individual tests
 #
 ADD_LIBRARY(Tests
+CiftiFileTest.h
 HttpTest.h
 NiftiTest.h
 NiftiMatrixTest.h
@@ -28,6 +29,7 @@ ProgressTest.h
 VolumeFileTest.h
 XnatTest.h
 
+CiftiFileTest.cxx
 HttpTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx

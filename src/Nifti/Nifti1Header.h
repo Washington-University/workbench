@@ -65,6 +65,7 @@ public:
         needsSwapping = needsSwappingIn;
     }
 
+    void setVolumeOffset(const int64_t &offsetIn) { m_header.vox_offset = offsetIn; }
     int64_t getVolumeOffset() { return m_header.vox_offset; }
 
 private:
