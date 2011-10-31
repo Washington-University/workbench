@@ -240,15 +240,15 @@ DescriptiveStatistics::update(const float* values,
      * Note: that index 0 is least negative, last index is most negative
      */
     const int64_t numNegativeValues = leastNegativeIndex - mostNegativeIndex + 1;
-    if (numNegativeValues > 0) {
+    if (numNegativeValues > 0 && mostNegativeIndex != -1) {
         m_containsNegativeValues = true;
         
         m_negativePercentiles[0] = sortedValues[leastNegativeIndex];
         for (int64_t i = 1; i < m_percentileDivisions - 1; i++)
         {
             int64_t indx = leastNegativeIndex - (int64_t)(((double)i * numNegativeValues) / m_percentileDivisions + 0.5);
-            if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;
+            /*if (indx < 0) indx = 0;
+            if (indx >= m_validCount) indx = m_validCount - 1;//*/
             CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             m_negativePercentiles[i] = sortedValues[indx];
         }
@@ -259,14 +259,14 @@ DescriptiveStatistics::update(const float* values,
      * Determine positive percentiles
      */
     const int64_t numPositiveValues = mostPositiveIndex - leastPositiveIndex + 1;
-    if (numPositiveValues > 0) {
+    if (numPositiveValues > 0 && mostPositiveIndex != -1) {
         this->m_containsPositiveValues = true;
         
         m_positivePercentiles[0] = sortedValues[leastPositiveIndex];
         for (int64_t i = 1; i < m_percentileDivisions - 1; i++) {
             int64_t indx = (int64_t)(((double)i * numPositiveValues) / m_percentileDivisions + 0.5) + leastPositiveIndex;
-            if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;
+            /*if (indx < 0) indx = 0;
+            if (indx >= m_validCount) indx = m_validCount - 1;//*/
             CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             m_positivePercentiles[i] = sortedValues[indx];
         }

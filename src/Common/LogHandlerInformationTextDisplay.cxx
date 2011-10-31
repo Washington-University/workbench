@@ -106,7 +106,7 @@ LogHandlerInformationTextDisplay::publish(const LogRecord& logRecord)
         eitd.setNotImportant();
     }
     
-    EventManager::get()->sendEvent(eitd.getPointer());
+    //EventManager::get()->sendEvent(eitd.getPointer());
 }
 
 
