@@ -25,13 +25,13 @@ set noon
 # Run the build script
 #
 echo "Starting mac64 aux script" >> ${ERROR_FILE} 2>&1
-RESULT=`${BUILD_ROOT_DIR}/caret7_source/build_scripts/mac64_aux.sh >> ${ERROR_FILE} 2>&1`
+${BUILD_ROOT_DIR}/caret7_source/build_scripts/mac64_aux.sh >> ${ERROR_FILE} 2>&1
 echo "Finished mac64 aux script" >> ${ERROR_FILE} 2>&1
-echo "Result: ${RESULT}"
 
 #
 # Send output as email
 #
 cat ${ERROR_FILE} | mail -s 'Caret7 Mac 64 Build Result' john@brainvis.wustl.edu
 #cat ${ERROR_FILE} | mail -s 'Caret7 Mac 64 Build Result' john@brainvis.wustl.edu jschindl@brainvis.wustl.edu tsc5yc@mst.edu
+echo "Sent mail"
 
