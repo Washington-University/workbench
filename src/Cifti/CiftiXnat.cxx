@@ -28,18 +28,44 @@
 #include "ByteSwapping.h"
 #include "CiftiXnat.h"
 
+#include <iostream>
+
 using namespace caret;
 using namespace std;
 
 void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
 {
     m_baseRequest.m_url = url;
+    int32_t start = url.indexOf('?');
+    bool foundSearchID = false;
+    while (!foundSearchID)
+    {
+        if (start == -1)
+        {
+            throw CiftiFileException("Error: searchID not found in URL string");
+        }
+        if (url.mid(start + 1, 9) == "searchID=")
+        {
+            foundSearchID = true;
+            int32_t end = url.indexOf('&');//if doesn't exist, -1 is also special case to end of string for mid()
+            AString fullArg = url.mid(start + 1, end);
+            int32_t equalsPos = fullArg.indexOf('=');//should obviously be 8, but this is more readable
+            m_baseRequest.m_arguments.push_back(make_pair(AString(fullArg.mid(0, equalsPos)), AString(fullArg.mid(equalsPos + 1, -1))));
+        }
+        start = url.indexOf('&', start + 1);
+    }
+    m_baseRequest.m_queries.push_back(make_pair(AString("type"), AString("dconn")));
+    m_baseRequest.m_arguments.push_back(make_pair(AString("type"), AString("dconn")));
+    CaretHttpRequest metadata = m_baseRequest;
+    metadata.m_queries.push_back(make_pair(AString("metadata"), AString("")));
+    metadata.m_arguments.push_back(make_pair(AString("metadata"), AString("")));
     CaretHttpResponse myResponse;
-    CaretHttpManager::httpRequest(m_baseRequest, myResponse);
+    CaretHttpManager::httpRequest(metadata, myResponse);
     if (!myResponse.m_ok)
     {
         throw CiftiFileException("Error opening URL, response code: " + AString::number(myResponse.m_responseCode));
     }
+    cout << "passed first request" << endl;
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
     m_theXml.readXML(theBody);
@@ -73,18 +99,23 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     }
     if (m_rowSize == 0)
     {
-        throw CiftiFileException("Error opening URL, row size is unknown");
+        CaretHttpRequest rowRequest = m_baseRequest;
+        rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
+        rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString("0")));
+        m_rowSize = getSizeFromReq(rowRequest);
     }
-    if (m_rowSize == 0)
+    if (m_colSize == 0)
     {
-        throw CiftiFileException("Error opening URL, column size is unknown");
+        CaretHttpRequest columnRequest = m_baseRequest;
+        columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
+        columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString("0")));
+        m_colSize = getSizeFromReq(columnRequest);
     }
 }
 
 CiftiXnat::CiftiXnat()
 {
     m_baseRequest.m_method = CaretHttpManager::POST;
-    setAuthBasic("testuser", "testing");//should this be here at all?
 }
 
 void CiftiXnat::getCiftiXML(CiftiXML& xml)
@@ -95,6 +126,7 @@ void CiftiXnat::getCiftiXML(CiftiXML& xml)
 void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) throw (CiftiFileException)
 {
     CaretHttpRequest columnRequest = m_baseRequest;
+    columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     getReqAsFloats(columnOut, m_colSize, columnRequest);
 }
@@ -102,6 +134,7 @@ void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) throw (C
 void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) throw (CiftiFileException)
 {
     CaretHttpRequest rowRequest = m_baseRequest;
+    rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     getReqAsFloats(rowOut, m_rowSize, rowRequest);
 }
@@ -110,6 +143,10 @@ void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRe
 {
     CaretHttpResponse myResponse;
     CaretHttpManager::httpRequest(request, myResponse);
+    if (!myResponse.m_ok)
+    {
+        throw CiftiFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+    }
     if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
     {
         throw CiftiFileException("Bad reply, number of bytes is not a multiple of 4");
@@ -138,14 +175,31 @@ void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRe
     }
 }
 
-void CiftiXnat::setAuthBasic(const caret::AString& userName, const caret::AString& password)
+void CiftiXnat::setAuthentication(const AString& url, const AString& userName, const AString& password)
 {
-    AString unencoded = userName + ":" + password;
-    vector<char> encoded;
-    int64_t bytesNeeded = (unencoded.size() / 3 + 1) * 4;//including the end mark
-    encoded.reserve(bytesNeeded + 1);//leave room for null terminator
-    encoded.resize(bytesNeeded);
-    Base64::encode((const unsigned char*)unencoded.c_str(), unencoded.size(), (unsigned char*)encoded.data(), 1);//mark the end, just because
-    encoded.push_back('\0');//null terminate
-    m_baseRequest.m_arguments.push_back(make_pair(AString("Authorization"), AString("Basic ") + AString(encoded.data())));
+    CaretHttpManager::setAuthentication(url, userName, password);
+}
+
+int64_t CiftiXnat::getSizeFromReq(CaretHttpRequest& request) throw (CiftiFileException)
+{
+    CaretHttpResponse myResponse;
+    CaretHttpManager::httpRequest(request, myResponse);
+    if (!myResponse.m_ok)
+    {
+        throw CiftiFileException("Error getting row, response code: " + AString::number(myResponse.m_responseCode));
+    }
+    if (myResponse.m_body.size() % 4 != 0)//expect a multiple of 4 bytes
+    {
+        throw CiftiFileException("Bad reply, number of bytes is not a multiple of 4");
+    }
+    int32_t numItems = *((int32_t*)myResponse.m_body.data());
+    if (ByteOrderEnum::isSystemBigEndian())
+    {
+        ByteSwapping::swapBytes(&numItems, 1);
+    }
+    if (numItems * 4 + 4 != (int64_t)myResponse.m_body.size())
+    {
+        throw CiftiFileException("Bad reply, number of items does not match length of reply");
+    }
+    return numItems;
 }

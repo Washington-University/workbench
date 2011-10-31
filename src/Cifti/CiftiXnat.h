@@ -40,6 +40,8 @@ namespace caret
         int64_t m_rowSize, m_colSize;
         ///get a request as a float array, with error checking
         void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) throw (CiftiFileException);
+        ///get just the size field from a request
+        int64_t getSizeFromReq(CaretHttpRequest& request) throw (CiftiFileException);
     public:
         ///initialize base request to POST type
         CiftiXnat();
@@ -48,7 +50,7 @@ namespace caret
         void openURL(const AString& url) throw (CiftiFileException);
         
         ///set auth tokens with "Basic" method, removing all previously existing tokens
-        void setAuthBasic(const AString& userName, const AString& password);
+        void setAuthentication(const AString& url, const AString& userName, const AString& password);
         
         ///get the XML data
         void getCiftiXML(CiftiXML &xml);

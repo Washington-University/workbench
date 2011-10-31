@@ -26,6 +26,7 @@ TestInterface.h
 TimerTest.h
 ProgressTest.h
 VolumeFileTest.h
+XnatTest.h
 
 HttpTest.cxx
 NiftiTest.cxx
@@ -33,6 +34,7 @@ NiftiMatrixTest.cxx
 TimerTest.cxx
 ProgressTest.cxx
 VolumeFileTest.cxx
+XnatTest.cxx
 )
 
 

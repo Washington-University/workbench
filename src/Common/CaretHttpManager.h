@@ -35,11 +35,13 @@ namespace caret {
     class CaretHttpRequest;
     class CaretHttpResponse;
 
-    class CaretHttpManager
+    class CaretHttpManager : public QObject
     {
+        Q_OBJECT
         QNetworkAccessManager m_netMgr;
         CaretHttpManager();
         static CaretHttpManager* m_singleton;
+        AString m_authURL, m_authUser, m_authPass;
     public:
         enum Method
         {
@@ -51,6 +53,9 @@ namespace caret {
         static void deleteHttpManager();
         static void httpRequest(const CaretHttpRequest& request, CaretHttpResponse& response);
         static QNetworkAccessManager* getQNetManager();
+        static void setAuthentication(const AString& url, const AString& user, const AString& password);
+    public slots:
+        void authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator);
     };
 
     struct CaretHttpResponse
@@ -65,7 +70,7 @@ namespace caret {
     {
         CaretHttpManager::Method m_method;
         AString m_url;
-        std::vector<std::pair<AString, AString> > m_arguments;
+        std::vector<std::pair<AString, AString> > m_arguments, m_queries;//arguments go to post data if method is post, queries stay as queries
     };
 
 }

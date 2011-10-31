@@ -39,6 +39,7 @@
 #include "ProgressTest.h"
 #include "TimerTest.h"
 #include "VolumeFileTest.h"
+#include "XnatTest.h"
 
 using namespace std;
 using namespace caret;
@@ -64,6 +65,7 @@ int main(int argc, char** argv)
         mytests.push_back(new ProgressTest("progress"));
         mytests.push_back(new TimerTest("timer"));
         mytests.push_back(new VolumeFileTest("volumefile"));
+        mytests.push_back(new XnatTest("xnat"));
         if (argc < 2)
         {
             cout << "No test specified, please specify one of the following:" << endl;
@@ -84,9 +86,9 @@ int main(int argc, char** argv)
                     try
                     {
                         mytests[j]->execute();
-                    } catch (exception e) {
+                    } catch (CaretException& e) {
                         ++failCount;
-                        cout << "Test " << mytests[j]->getIdentifier() << " failed, exception: " << e.what() << endl;
+                        cout << "Test " << mytests[j]->getIdentifier() << " failed, exception: " << e.whatString() << endl;
                         continue;//skip trying failed() and getFailMessage()
                     }
                     if (mytests[j]->failed())

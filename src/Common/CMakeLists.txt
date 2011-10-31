@@ -10,8 +10,15 @@ PROJECT(Common)
 #
 SET(QT_DONT_USE_QTGUI TRUE)
 SET(QT_USE_QTNETWORK TRUE)
+
 INCLUDE(${QT_USE_FILE})
 #message("QT VERSION: " ${QT_VERSION_MAJOR} ${QT_VERSION_MINOR} ${QT_VERSION_PATCH})
+
+SET(MOC_INPUT_HEADER_FILES
+CaretHttpManager.h
+)
+
+QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 
 #
 # Create a library
@@ -56,6 +63,7 @@ LogRecord.h
 MathFunctions.h
 MatrixFunctions.h
 MessageManager.h
+NetworkException.h
 ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
@@ -65,6 +73,7 @@ StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
 
+${MOC_SOURCE_FILES}
 AString.cxx
 Base64.cxx
 BoundingBox.cxx
@@ -98,6 +107,7 @@ LogManager.cxx
 LogRecord.cxx
 MathFunctions.cxx
 MessageManager.cxx
+NetworkException.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx

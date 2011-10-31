@@ -77,11 +77,16 @@ if (CMAKE_COMPILER_IS_GNUCC)
     message("gcc major minor version numbers are: "${GCC_MAJOR},${GCC_MINOR})
 endif()
 if(${GCC_VERSION} VERSION_LESS "4.2")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall" CACHE STRING "c++ compiler specific options")
 else()
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -Werror=return-type -Werror=switch" CACHE STRING "c++ compiler specific options")
 endif()
 ENDIF (NOT MSVC)
+
+FIND_PACKAGE(OpenSSL)
+IF(OPENSSL_FOUND)
+    INCLUDE_DIRECTORIES(${OPENSSL_INCLUDE_DIR})
+ENDIF(OPENSSL_FOUND)
 
 #
 # Must have QT 4.7 or later
