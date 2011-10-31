@@ -51,6 +51,8 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_DATA_FILE_READ);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
     this->browserWindowIndex = browserWindowIndex;
     
@@ -89,13 +91,13 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->tabWidget->setUsesScrollButtons(true);
     this->tabWidget->addTab(this->overlayWidget, "Layers");
     this->tabWidget->addTab(this->informationWidget, "Info");
-    this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->labelWidget, "Label");
     //this->tabWidget->addTab(this->metricWidget, "Metric");
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
     layout->addWidget(this->tabWidget);
     layout->addStretch();
     
@@ -390,6 +392,7 @@ BrainBrowserWindowToolBox::createInformationWidget()
     
     QWidget* w = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(w);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
     layout->addWidget(idToolBarLeft);
     layout->addWidget(this->informationTextBrowser);
     layout->addWidget(idToolBarRight);
@@ -462,6 +465,10 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
             textEvent->setEventProcessed();
         }
     }
+    else if ((event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES)
+             || (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES)) {
+        this->tabWidget->setCurrentWidget(this->overlayWidget);
+    }
     else {
     }
 }
@@ -502,6 +509,16 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
     else {
         CaretAssertMessage(0, "Invalid top level widget in ToolBox.");
     }
+    
+    switch (this->orientation) {
+        case Qt::Horizontal:
+            this->informationWidget->setMaximumHeight(this->topBottomOverlayControl->height());
+            break;
+        case Qt::Vertical:
+            this->informationWidget->setMaximumHeight(5000);
+            break;
+    }
+    
     this->updateMySize();
 }
 
