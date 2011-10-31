@@ -81,24 +81,6 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 }
 
 /**
- * Get the model controller displayed in this widget.
- *
- * @return
- *    Model controller displayed in this widget which
- *    may be NULL if there is no viewer for
- *    display.
- *
-ModelDisplayController* 
-BrainOpenGLWidget::getDisplayedModelController()
-{
-    EventModelDisplayControllerGetAll getModelEvent;
-    EventManager::get()->sendEvent(getModelEvent.getPointer());
-    
-    return getModelEvent.getFirstModelDisplayController();
-}
-*/
-
-/**
  * Initializes graphics.
  */
 void 
@@ -232,38 +214,6 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             this->processMouseEvent(&mouseEvent);
         }
     }
-/*   
- 
-x, y, 
-    int mouseX = me->x();
-    int mouseY = this->windowHeight[this->windowIndex] - me->y();
-    
-    
-    const int dx = std::abs((float)(mouseX - this->lastMouseX));//HACK: linux cmath thinks abs(int) is ambiguous
-    const int dy = std::abs((float)(mouseY - this->lastMouseY));
-    if ((dx < BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
-        && (dy < BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
-        int viewport[4] = {
-            0,
-            0,
-            this->windowWidth[this->windowIndex],
-            this->windowHeight[this->windowIndex]
-        };
-        
-        this->makeCurrent();
-        CaretLogFine("Performing selection");
-        IdentificationManager* idManager = this->openGL->getIdentificationManager();
-        idManager->reset();
-        idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
-        idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
-        this->openGL->selectModel(this->modelController, 
-                                  this->browserTabContent, 
-                                  this->windowTabIndex, 
-                                  viewport, 
-                                  mouseX, 
-                                  mouseY);
-    }
-*/
 }
 
 /**
@@ -329,8 +279,8 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
             const int absDX = (dx >= 0) ? dx : -dx;
             const int absDY = (dy >= 0) ? dy : -dy;
             
-            if ((absDX > BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE) 
-                || (absDY > BrainOpenGLWidget::MOUSE_MOVEMENT_TOLERANCE)) {
+            if ((absDX > 0) 
+                || (absDY > 0)) { 
                 
                 MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_DRAGGED,
                                       keyModifiers,
@@ -346,86 +296,6 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         }
     }
     
-/*
-    
-    const Qt::MouseButton button = me->button();
-    const Qt::KeyboardModifiers keyModifiers = me->modifiers();
-    
-    if (button == Qt::LeftButton) {
-        
-    Qt::KeyboardModifiers bs = me->modifiers();
-    Qt::MouseButtons button = me->buttons();
-    const int x = me->x();
-    const int y = me->y();
-    
-    mouseMovedBounds[0] = std::min(mouseMovedBounds[0], x);
-    mouseMovedBounds[1] = std::min(mouseMovedBounds[1], y);
-    mouseMovedBounds[2] = std::max(mouseMovedBounds[2], x);
-    mouseMovedBounds[3] = std::max(mouseMovedBounds[3], y);
-    
-    const int dx = static_cast<int>(std::abs(static_cast<double>(mouseMovedBounds[0] - mouseMovedBounds[2])));
-    const int dy = static_cast<int>(std::abs(static_cast<double>(mouseMovedBounds[1] - mouseMovedBounds[3])));
-    
-    bool doIt = true;
-//    if (mouseMode == MOUSE_MODE_VIEW) {
-        //
-        // Ignore very small movements in view mode to allow ID operation
-        //
-    const int mouseMoveTolerance = 2;
-        if ((dx <= mouseMoveTolerance) && (dy <= mouseMoveTolerance)) {
-            doIt = false;
-        }
-//    }
-    
-    if (doIt) {
-        //QT4if (bs & leftMouseButtonMoveMask) {
-        if (button == Qt::LeftButton) {
-            const int dx = static_cast<int>((x - lastMouseX));
-            const int dy = static_cast<int>((lastMouseY - y));  // origin at top
-            
-            if (this->modelController != NULL) {
-                //
-                // Mouse moved with just left button down
-                //
-                if (bs == leftMouseButtonMoveMask) {
-                    Matrix4x4* rotationMatrix = this->modelController->getViewingRotationMatrix(this->windowTabIndex);
-                    rotationMatrix->rotateX(-dy);
-                    rotationMatrix->rotateY(dx);
-                }
-                //
-                // Mouse moved with control key and left mouse button down
-                //
-                else if (bs == leftControlMouseButtonMoveMask) {
-                    float scale = modelController->getScaling(this->windowTabIndex);
-                    if (dy != 0) {
-                        scale += (dy * 0.05);
-                    }
-                    if (scale < 0.01) scale = 0.01;
-                    this->modelController->setScaling(this->windowTabIndex, scale);
-                }
-                //
-                // Mouse moved with shift key and left mouse button down
-                //
-                else if (bs == leftShiftMouseButtonMoveMask) {
-                    const float* t1 = modelController->getTranslation(this->windowTabIndex);
-                    float t2[] = { t1[0] + dx, t1[1] + dy, t2[2] };
-                    this->modelController->setTranslation(this->windowTabIndex, t2);
-                }
-                //
-                // Mouse moved with alt key and left mouse button down
-                //
-                else if (bs == leftAltMouseButtonMoveMask) {
-                }
-                
-                this->updateGL();
-            }
-            
-        }
-    }
-    
-    this->lastMouseX = x;
-    this->lastMouseY = y;
- */
 }
 
 /**
