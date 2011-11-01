@@ -46,4 +46,9 @@ void XnatTest::execute()
     vector<float> myData;
     myData.resize(myXnat.getRowSize());
     myXnat.getRow(myData.data(), 0);
+    bool success = myXnat.getRowFromNode(myData.data(), 528, StructureEnum::CORTEX_RIGHT);
+    if (!success)
+    {
+        setFailed("error getting row by node");
+    }
 }

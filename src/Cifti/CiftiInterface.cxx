@@ -36,6 +36,7 @@ bool CiftiInterface::getColumnFromNode(float* columnOut, const int64_t node, con
         return false;
     }
     getColumn(columnOut, myIndex);
+    return true;
 }
 
 bool CiftiInterface::getColumnFromVoxel(float* columnOut, const int64_t* ijk)
@@ -46,6 +47,7 @@ bool CiftiInterface::getColumnFromVoxel(float* columnOut, const int64_t* ijk)
         return false;
     }
     getColumn(columnOut, myIndex);
+    return true;
 }
 
 bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const caret::StructureEnum::Enum structure) const
@@ -56,6 +58,7 @@ bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const car
         return false;
     }
     getRow(rowOut, myIndex);
+    return true;
 }
 
 bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk)
@@ -66,4 +69,5 @@ bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk)
         return false;
     }
     getRow(rowOut, myIndex);
+    return true;
 }

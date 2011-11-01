@@ -37,7 +37,6 @@ namespace caret
     class CiftiXnat : public CiftiInterface
     {
         CaretHttpRequest m_baseRequest;
-        CiftiXML m_xml;
         int64_t m_rowSize, m_colSize;
         ///get a request as a float array, with error checking
         void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException);

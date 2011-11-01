@@ -39,7 +39,7 @@ int64_t CiftiXML::getSurfaceIndex(const int64_t node, const CiftiBrainModelEleme
     int64_t numIndices = (int64_t)myElement->m_nodeIndices.size();
     for (int64_t i = numContig; i < numIndices; ++i)
     {
-        if (myElement->m_nodeIndices[i] == node)
+        if ((int64_t)myElement->m_nodeIndices[i] == node)
         {
             return myElement->m_indexOffset + i;
         }
@@ -118,6 +118,7 @@ int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const caret::CiftiMatrixInd
             }
         }
     }
+    return -1;
 }
 
 int64_t CiftiXML::getColumnIndexForVoxel(const int64_t* ijk) const
@@ -145,6 +146,7 @@ bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, CiftiBrain
             mappingOut[i].m_surfaceNode = myModel->m_nodeIndices[i];
         }
     }
+    return true;
 }
 
 bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
@@ -218,6 +220,7 @@ bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixI
             }
         }
     }
+    return true;
 }
 
 bool CiftiXML::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut) const
@@ -273,9 +276,9 @@ void CiftiXML::rootChanged()
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
                             int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
+                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
                             {
-                                if (m != myMap.m_brainModels[k].m_nodeIndices[m])
+                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
                                 {
                                     thisContig = m;
                                     break;
@@ -321,9 +324,9 @@ void CiftiXML::rootChanged()
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
                             int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
+                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
                             {
-                                if (m != myMap.m_brainModels[k].m_nodeIndices[m])
+                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
                                 {
                                     thisContig = m;
                                     break;
