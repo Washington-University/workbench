@@ -35,6 +35,7 @@ CiftiFile.cxx
 CiftiFileException.cxx
 CiftiHeader.cxx
 CiftiHeaderIO.cxx
+CiftiInterface.cxx
 CiftiMatrix.cxx
 CiftiXML.cxx
 CiftiXMLElements.cxx

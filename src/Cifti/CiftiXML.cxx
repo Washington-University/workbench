@@ -220,13 +220,13 @@ bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixI
     }
 }
 
-bool CiftiXML::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut, const caret::StructureEnum::Enum structure) const
+bool CiftiXML::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut) const
 {
     mappingOut.clear();
     return getVolumeMapping(mappingOut, m_colMap, m_colVoxels);
 }
 
-bool CiftiXML::getVolumeMapForRows(vector< CiftiVolumeMap >& mappingOut, const caret::StructureEnum::Enum structure) const
+bool CiftiXML::getVolumeMapForRows(vector< CiftiVolumeMap >& mappingOut) const
 {
     mappingOut.clear();
     return getVolumeMapping(mappingOut, m_rowMap, m_rowVoxels);

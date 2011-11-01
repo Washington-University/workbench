@@ -155,10 +155,10 @@ namespace caret {
         bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
             
         ///get the mapping for a surface in rows, returns false and empty vector if not found
-        bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum structure) const;
+        bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut) const;
         
         ///get the mapping for a surface in columns, returns false and empty vector if not found
-        bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum structure) const;
+        bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
             
     protected:
         CiftiRootElement m_root;
