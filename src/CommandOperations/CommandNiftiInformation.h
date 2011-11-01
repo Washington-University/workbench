@@ -1,9 +1,6 @@
-#ifndef __COMMAND_GIFTI_CONVERT__H__
-#define __COMMAND_GIFTI_CONVERT__H__
-
-/*LICENSE_START*/ 
+/*LICENSE_START*/
 /* 
- *  Copyright 1995-2002 Washington University School of Medicine 
+ *  Copyright 1995-2011 Washington University School of Medicine 
  * 
  *  http://brainmap.wustl.edu 
  * 
@@ -24,34 +21,29 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
  * 
  */ 
-
-
 #include "CommandOperation.h"
-
+#ifndef COMMANDNIFTIINFORMATION_H
+#define COMMANDNIFTIINFORMATION_H
 namespace caret {
 
-/// Command that converts GIFTI files to different encodings
-class CommandGiftiConvert : public CommandOperation {
-
+class CommandNiftiInformation : public CommandOperation
+{
 public:
-    CommandGiftiConvert();
-
-    virtual ~CommandGiftiConvert();
+    CommandNiftiInformation();
+    virtual ~CommandNiftiInformation() {}
 
     virtual void executeOperation(ProgramParameters& parameters)
-    throw (CommandException,
-           ProgramParametersException);
+        throw (CommandException,
+               ProgramParametersException);
 
     AString getHelpInformation(const AString& programName) { return ""; }
 
 private:
 
-    CommandGiftiConvert(const CommandGiftiConvert&);
+    CommandNiftiInformation(const CommandNiftiInformation&);
 
-    CommandGiftiConvert& operator=(const CommandGiftiConvert&);
-
+    CommandNiftiInformation& operator=(const CommandNiftiInformation&);
 };
 
-} // namespace
-
-#endif // __COMMAND_GIFTI_CONVERT__H__
+}
+#endif // COMMANDNIFTIINFORMATION_H

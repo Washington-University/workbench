@@ -46,7 +46,7 @@ public:
     ~Nifti2Header();
     void getHeaderStruct(nifti_2_header &header) const throw (NiftiException);
     void setHeaderStuct(const nifti_2_header &header) throw (NiftiException);
-    QString *getHeaderAsString();
+    void getHeaderAsString(QString &string);
     virtual void initHeaderStruct(nifti_2_header &header);
     virtual void initHeaderStruct();
     void getDimensions(std::vector <int64_t> &dimensionsOut) const;

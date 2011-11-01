@@ -34,6 +34,7 @@
 #include "CommandClassCreate.h"
 #include "CommandClassCreateEnum.h"
 #include "CommandGiftiConvert.h"
+#include "CommandNiftiInformation.h"
 #include "CommandUnitTest.h"
 #include "ProgramParameters.h"
 
@@ -77,6 +78,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     
+    this->commandOperations.push_back(new CommandNiftiInformation());
     this->commandOperations.push_back(new CommandClassCreate());
     this->commandOperations.push_back(new CommandClassCreateEnum());
     this->commandOperations.push_back(new CommandGiftiConvert());
