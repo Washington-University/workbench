@@ -23,6 +23,7 @@ CiftiFileException.h
 CiftiFile.h
 CiftiHeader.h
 CiftiHeaderIO.h
+CiftiInterface.h
 CiftiMatrix.h
 CiftiXMLElements.h
 CiftiXML.h
