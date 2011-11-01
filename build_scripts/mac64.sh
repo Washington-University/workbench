@@ -31,6 +31,9 @@ echo "Finished mac64 aux script" >> ${ERROR_FILE} 2>&1
 #
 # Send output as email
 #
-cat ${ERROR_FILE} | mail -s 'Caret7 Mac 64 Build Result' john@brainvis.wustl.edu jschindl@brainvis.wustl.edu tsc5yc@mst.edu
+MAIL_ERROR_FILE=${BUILD_ROOT_DIR}/mail_result_build_mac64.txt
+rm -f ${MAIL_ERROR_FILE}
+cat ${ERROR_FILE} | mail -s 'Caret7 Mac 64 Build Result' john@brainvis.wustl.edu jschindl@brainvis.wustl.edu tsc5yc@mst.edu >> ${MAIL_ERROR_FILE} 2>&1
+
 echo "Sent mail"
 
