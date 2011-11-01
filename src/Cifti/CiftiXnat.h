@@ -37,7 +37,7 @@ namespace caret
     class CiftiXnat : public CiftiInterface
     {
         CaretHttpRequest m_baseRequest;
-        CiftiXML m_theXml;
+        CiftiXML m_xml;
         int64_t m_rowSize, m_colSize;
         ///get a request as a float array, with error checking
         void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException);
@@ -52,9 +52,6 @@ namespace caret
         
         ///set auth tokens with "Basic" method, removing all previously existing tokens
         void setAuthentication(const AString& url, const AString& userName, const AString& password);
-        
-        ///get the XML data
-        void getCiftiXML(CiftiXML &xml) const;
         
         ///get a row
         void getRow(float* rowOut,const int64_t& rowIndex) const throw (CiftiFileException);

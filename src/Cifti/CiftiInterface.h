@@ -33,9 +33,11 @@ namespace caret
     
     class CiftiInterface
     {
+    protected:
+        CiftiXML m_xml;
     public:
         ///get the XML data
-        virtual void getCiftiXML(CiftiXML &xml) const = 0;
+        void getCiftiXML(CiftiXML &xml) { xml = m_xml; }
         
         ///get a row
         virtual void getRow(float* rowOut,const int64_t& rowIndex) const throw (CiftiFileException) = 0;

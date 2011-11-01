@@ -216,18 +216,6 @@ void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
 
 }
 
-/** 
- *
- *
- * gets a copy of the object's internal CiftiXML object
- *
- * @param xml
- */
-void CiftiFile::getCiftiXML(CiftiXML &xml) const throw (CiftiFileException)
-{
-    xml = this->m_xml;
-}
-
 int64_t CiftiFile::getRowSize() const
 {
     vector<int64_t> myDims;

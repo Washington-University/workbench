@@ -68,11 +68,11 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     cout << "passed first request" << endl;
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
-    m_theXml.readXML(theBody);
+    m_xml.readXML(theBody);
     m_rowSize = 0;
     m_colSize = 0;
     CiftiRootElement myRoot;
-    m_theXml.getXMLRoot(myRoot);
+    m_xml.getXMLRoot(myRoot);
     vector<CiftiMatrixIndicesMapElement>& myMaps = myRoot.m_matrices[0].m_matrixIndicesMap;
     int64_t numMaps = (int64_t)myMaps.size();
     for (int64_t i = 0; i < numMaps; ++i)
@@ -116,11 +116,6 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
 CiftiXnat::CiftiXnat()
 {
     m_baseRequest.m_method = CaretHttpManager::POST;
-}
-
-void CiftiXnat::getCiftiXML(CiftiXML& xml) const
-{
-    xml = m_theXml;
 }
 
 void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException)

@@ -58,8 +58,6 @@ public:
     //the tree in an intelligent way.
     /// set CiftiXML
     virtual void setCiftiXML(CiftiXML &ciftixml) throw (CiftiFileException);
-    /// get CiftiXML
-    virtual void getCiftiXML(CiftiXML &xml) const throw (CiftiFileException);
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
     /// get Row
@@ -94,7 +92,6 @@ protected:
 
     AString m_fileName;
     CiftiHeaderIO m_headerIO;
-    CiftiXML m_xml;
     CiftiMatrix m_matrix;
     bool m_swapNeeded;
     CacheEnum m_caching;
