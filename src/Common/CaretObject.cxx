@@ -57,6 +57,7 @@ CaretObject::CaretObject(const CaretObject& co)
  */
 CaretObject::~CaretObject()
 {
+#ifndef NDEBUG
     /*
      * Erase returns the number of objects deleted.
      * If zero, then the object has already been deleted.
@@ -66,6 +67,7 @@ CaretObject::~CaretObject()
         std::cerr << "Destructor for a CaretObject called but the object is not allocated "
                   << "and this implies that the object has already been deleted.";
     }
+#endif
 }
 
 CaretObject& 
