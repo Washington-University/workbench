@@ -223,9 +223,31 @@ void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
  *
  * @param xml
  */
-void CiftiFile::getCiftiXML(CiftiXML &xml) throw (CiftiFileException)
+void CiftiFile::getCiftiXML(CiftiXML &xml) const throw (CiftiFileException)
 {
     xml = this->m_xml;
+}
+
+int64_t CiftiFile::getRowSize() const
+{
+    vector<int64_t> myDims;
+    m_matrix.getMatrixDimensions(myDims);
+    if (myDims.size() < 1)
+    {
+        throw CiftiFileException("Matrix has no dimensions");
+    }
+    return myDims[0];
+}
+
+int64_t CiftiFile::getColumnSize() const
+{
+    vector<int64_t> myDims;
+    m_matrix.getMatrixDimensions(myDims);
+    if (myDims.size() < 2)
+    {
+        throw CiftiFileException("Matrix has less than 2 dimensions");
+    }
+    return myDims[1];
 }
 
 //Matrix IO, simply passes through to CiftiMatrix, see header for more info..

@@ -29,6 +29,7 @@
 #include "iostream"
 #include "CiftiFileException.h"
 #include "CiftiHeaderIO.h"
+#include "CiftiInterface.h"
 #include "CiftiXML.h"
 #include "CiftiMatrix.h"
 
@@ -36,7 +37,7 @@
 
 namespace caret {
 
-class CiftiFile {
+class CiftiFile : public CiftiInterface {
 public:
     /// Constructor
     CiftiFile() throw (CiftiFileException);
@@ -58,17 +59,17 @@ public:
     /// set CiftiXML
     virtual void setCiftiXML(CiftiXML &ciftixml) throw (CiftiFileException);
     /// get CiftiXML
-    virtual void getCiftiXML(CiftiXML &xml) throw (CiftiFileException);
+    virtual void getCiftiXML(CiftiXML &xml) const throw (CiftiFileException);
 
     // Matrix IO, simply passes through to underlying Cifti Matrix
     /// get Row
-    void getRow(float * rowOut,const int64_t &rowIndex) throw (CiftiFileException)
+    void getRow(float * rowOut,const int64_t &rowIndex) const throw (CiftiFileException)
     { m_matrix.getRow(rowOut, rowIndex); }
     /// set Row
     void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException)
     { m_matrix.setRow(rowIn, rowIndex); }
     /// get Column
-    void getColumn(float * columnOut, const int64_t &columnIndex) throw (CiftiFileException)
+    void getColumn(float * columnOut, const int64_t &columnIndex) const throw (CiftiFileException)
     { m_matrix.getColumn(columnOut, columnIndex); }
     /// set Column
     void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException)
@@ -79,6 +80,12 @@ public:
     /// set Matrix
     void setMatrix(float *matrixIn) throw (CiftiFileException)
     { m_matrix.setMatrix(matrixIn); }
+    
+    ///get row size
+    int64_t getRowSize() const;
+    
+    ///get column size
+    int64_t getColumnSize() const;
 
     /// Destructor
     virtual ~CiftiFile();

@@ -103,7 +103,7 @@ void CiftiMatrix::getMatrixFile(AString &fileNameOut)
     fileNameOut = m_fileName;
 }
 
-void CiftiMatrix::getMatrixDimensions(vector<int64_t> &dimensions)
+void CiftiMatrix::getMatrixDimensions(vector<int64_t> &dimensions) const
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
     dimensions = m_dimensions;
@@ -127,7 +127,7 @@ void CiftiMatrix::getMatrixOffset(int64_t &offsetOut)
 }
 
 //Matrix IO
-void CiftiMatrix::getRow(float *rowOut, const int64_t &rowIndex) throw (CiftiFileException)
+void CiftiMatrix::getRow(float *rowOut, const int64_t &rowIndex) const throw (CiftiFileException)
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
     if(m_caching == IN_MEMORY)
@@ -158,7 +158,7 @@ void CiftiMatrix::setRow(float *rowIn, const int64_t &rowIndex) throw (CiftiFile
     }
 }
 
-void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) throw (CiftiFileException)
+void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) const throw (CiftiFileException)
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
     int64_t rowSize = m_dimensions[1];

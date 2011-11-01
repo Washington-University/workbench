@@ -54,16 +54,16 @@ public:
     void setup(vector <int64_t> &dimensions, const int64_t &offsetIn=0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
     void setMatrixFile(const AString &fileNameIn);
     void getMatrixFile(AString &fileNameOut);
-    void getMatrixDimensions(vector <int64_t> &dimensions);
+    void getMatrixDimensions(vector <int64_t> &dimensions) const;
     //void setCaching(const CacheEnum &e);
     void getCaching(CacheEnum &e);
     void getMatrixOffset(int64_t &offsetOut);
     void getNeedsSwapping(bool &needsSwappingOut);
 
     //Matrix IO
-    void getRow(float * rowOut,const int64_t &rowIndex) throw (CiftiFileException);
+    void getRow(float * rowOut,const int64_t &rowIndex) const throw (CiftiFileException);
     void setRow(float * rowIn, const int64_t &rowIndex) throw (CiftiFileException);
-    void getColumn(float * columnOut, const int64_t &columnIndex) throw (CiftiFileException);
+    void getColumn(float * columnOut, const int64_t &columnIndex) const throw (CiftiFileException);
     void setColumn(float * columnIn, const int64_t &columnIndex) throw (CiftiFileException);
     void getMatrix(float *matrixOut) throw (CiftiFileException);
     void setMatrix(float *matrixIn) throw (CiftiFileException);
@@ -79,7 +79,7 @@ protected:
     //1,1,1,1,M,N nifti matrix and convert it if needed.
     int64_t m_matrixOffset;//the beginning of the matrix in the file
     AString m_fileName;
-    QFile file;
+    mutable QFile file;
     bool m_needsSwapping;
     bool m_beenInitialized;
 };

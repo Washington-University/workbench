@@ -1,6 +1,5 @@
 #ifndef __CIFTI_INTERFACE_H__
 #define __CIFTI_INTERFACE_H__
-#include "CiftiFile.h"
 
 /*LICENSE_START*/
 /*
@@ -26,6 +25,8 @@
  *
  */
 /*LICENSE_END*/
+
+#include "CiftiXML.h"
 
 namespace caret
 {
