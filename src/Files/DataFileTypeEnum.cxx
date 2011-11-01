@@ -43,6 +43,8 @@ using namespace caret;
  *    Name displayed in the user-interface
  * @param fileIsUsedWithOneStructure
  *    True if file is used with ONE structure (eg node file (surface, metric, etc).
+ * @param fileIsOpenedWithDataFileDialog
+ *    True if file is opened with data file dialog.
  * @param fileExtensionOne
  *    File extension
  * @param fileExtensionTwo
@@ -54,6 +56,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
                                    const AString& name,
                                    const AString& guiName,
                                    const bool fileIsUsedWithOneStructure,
+                                   const bool fileIsOpenedWithDataFileDialog,
                                    const AString& fileExtensionOne,
                                    const AString& fileExtensionTwo,
                                    const AString& fileExtensionThree)
@@ -63,6 +66,7 @@ DataFileTypeEnum::DataFileTypeEnum(const Enum enumValue,
     this->name = name;
     this->guiName = guiName;
     this->oneStructureFlag = fileIsUsedWithOneStructure;
+    this->fileIsOpenedWithDataFileDialog = fileIsOpenedWithDataFileDialog;
     
     if (fileExtensionOne.isEmpty() == false) {
         this->fileExtensions.push_back(fileExtensionOne);
@@ -112,23 +116,34 @@ DataFileTypeEnum::initialize()
                                         "BORDER_PROJECTION", 
                                         "Border Projection",
                                         false,
+                                        true,
                                         "borderproj"));
     
-    enumData.push_back(DataFileTypeEnum(CIFTI, 
-                                        "CIFTI", 
-                                        "Connectivity",
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE, 
+                                        "CONNECTIVITY_DENSE", 
+                                        "Connectivity - Dense",
                                         false,
-                                        "cii"));
+                                        false,
+                                        "dconn.nii"));
+    
+    enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE_TIME_SERIES, 
+                                        "CONNECTIVITY_DENSE_TIME_SERIES", 
+                                        "Connectivity - Dense Time Series",
+                                        false,
+                                        false,
+                                        "dtseries.nii"));
     
     enumData.push_back(DataFileTypeEnum(FOCI_PROJECTION, 
                                         "FOCI_PROJECTION", 
                                         "Foci Projection",
                                         false,
+                                        true,
                                         "fociproj"));
     
     enumData.push_back(DataFileTypeEnum(LABEL, 
                                         "LABEL", 
                                         "Label",
+                                        true,
                                         true,
                                         "label.gii"));
     
@@ -136,17 +151,20 @@ DataFileTypeEnum::initialize()
                                         "METRIC", 
                                         "Metric",
                                         true,
+                                        true,
                                         "func.gii"));
     
     enumData.push_back(DataFileTypeEnum(PALETTE, 
                                         "PALETTE", 
                                         "Palette",
                                         false,
+                                        true,
                                         "palette"));
     
     enumData.push_back(DataFileTypeEnum(RGBA, 
                                         "RGBA", 
                                         "RGBA",
+                                        true,
                                         true,
                                         "rgba.gii"));
     
@@ -154,17 +172,20 @@ DataFileTypeEnum::initialize()
                                         "SCENE", 
                                         "Scene",
                                         false,
+                                        true,
                                         "scene"));
     
     enumData.push_back(DataFileTypeEnum(SPECIFICATION, 
                                         "SPECIFICATION", 
                                         "Specification",
                                         false,
+                                        true,
                                         "spec"));
     
     enumData.push_back(DataFileTypeEnum(SURFACE, 
                                         "SURFACE", 
                                         "Surface",
+                                        true,
                                         true,
                                         "surf.gii"));    
     
@@ -172,12 +193,14 @@ DataFileTypeEnum::initialize()
                                         "UNKNOWN", 
                                         "Unknown",
                                         false,
+                                        false,
                                         "unknown"));
     
     enumData.push_back(DataFileTypeEnum(VOLUME, 
                                         "VOLUME", 
                                         "Volume",
                                         false,
+                                        true,
                                         "nii",
                                         "nii.gz"));
     
@@ -494,15 +517,19 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 /**
  * Get all of the enumerated type values.  The values can be used
  * as parameters to toXXX() methods to get associated metadata.
-
+ *
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
  * @param includeUNKNOWN
  *     If true, the UNKNOWN enum is included.
+ * @param isForDataFileDialog
+ *     If true, only files that can be opened with data file dialog
+ *     are included.
  */
 void
 DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
-                              const bool includeUnknown)
+                              const bool includeUnknown,
+                              const bool isForDataFileDialog)
 {
     if (initializedFlag == false) initialize();
     
@@ -511,14 +538,19 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        if (iter->enumValue == UNKNOWN) {
-            if (includeUnknown) {
-                allEnums.push_back(iter->enumValue);
+        if (isForDataFileDialog) {
+            if (iter->fileIsOpenedWithDataFileDialog == false) {
+                continue;
             }
         }
-        else {
-            allEnums.push_back(iter->enumValue);
+        
+        if (iter->enumValue == UNKNOWN) {
+            if (includeUnknown == false) {
+                continue;
+            }
         }
+        
+        allEnums.push_back(iter->enumValue);
     }
 }
 

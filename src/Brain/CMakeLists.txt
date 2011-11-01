@@ -47,6 +47,7 @@ BrainConstants.h
 BrainOpenGL.h
 BrainStructure.h
 BrowserTabContent.h
+ConnectivityLoaderManager.h
 EventBrainStructureGet.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
@@ -91,6 +92,7 @@ BrainConstants.cxx
 BrainOpenGL.cxx
 BrainStructure.cxx
 BrowserTabContent.cxx
+ConnectivityLoaderManager.cxx
 EventBrainStructureGet.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx

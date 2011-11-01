@@ -54,6 +54,7 @@ using namespace caret;
  */
 Brain::Brain()
 {
+    this->connectivityLoaderManager = new ConnectivityLoaderManager();
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;
@@ -75,6 +76,7 @@ Brain::~Brain()
     EventManager::get()->removeAllEventsFromListener(this);
 
     this->resetBrain();
+    delete this->connectivityLoaderManager;
     delete this->paletteFile;
     delete this->specFile;
     if (this->volumeSliceController != NULL) {
@@ -179,6 +181,8 @@ Brain::resetBrain()
     
     this->brainStructures.clear();
     this->paletteFile->clear();
+    
+    this->connectivityLoaderManager->reset();
     
     this->specFile->clear();
     
@@ -661,7 +665,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         case DataFileTypeEnum::BORDER_PROJECTION:
             this->readBorderProjectionFile(dataFileName);
             break;
-        case DataFileTypeEnum::CIFTI:
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            this->readConnectivityFile(dataFileName);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->readConnectivityFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI_PROJECTION:
@@ -837,4 +844,12 @@ Brain::receiveEvent(Event* event)
     }
 }
 
+/**
+ * @return The connectivity loader manager.
+ */
+ConnectivityLoaderManager* 
+Brain::getConnectivityLoaderManager()
+{
+    return this->connectivityLoaderManager;
+}
 

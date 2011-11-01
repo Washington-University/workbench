@@ -20,6 +20,7 @@ ADD_LIBRARY(Files
 BinaryFileReader.h
 CaretDataFile.h
 CaretMappableDataFile.h
+ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 GeodesicHelper.h
 GiftiTypeFile.h
@@ -43,6 +44,7 @@ BinaryFileReader.cxx
 DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx
+ConnectivityLoaderFile.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
 LabelFile.cxx

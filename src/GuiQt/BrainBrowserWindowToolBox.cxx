@@ -22,6 +22,8 @@
 
 #include "BrainBrowserWindowToolBox.h"
 #include "CaretAssert.h"
+#include "ConnectivityLoaderControl.h"
+#include "ConnectivityLoaderFile.h"
 #include "EventManager.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
@@ -91,7 +93,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->tabWidget->setUsesScrollButtons(true);
     this->tabWidget->addTab(this->overlayWidget, "Layers");
     this->tabWidget->addTab(this->informationWidget, "Info");
-    //this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
+    this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->labelWidget, "Label");
     //this->tabWidget->addTab(this->metricWidget, "Metric");
     
@@ -251,8 +253,12 @@ BrainBrowserWindowToolBox::createLayersWidget(const Qt::Orientation orientation)
 QWidget* 
 BrainBrowserWindowToolBox::createConnectivityWidget()
 {
-    QWidget* w = new QWidget();
+    this->connectivityLoaderControl = new ConnectivityLoaderControl();
     
+    QWidget* w = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(w);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
+    layout->addWidget(this->connectivityLoaderControl);
     return w;
 }
 
@@ -498,6 +504,7 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
         // nothing to do!
     }
     else if (selectedTopLevelWidget == this->connectivityWidget) {
+        this->connectivityLoaderControl->updateControl();
         
     }
     else if (selectedTopLevelWidget == this->metricWidget) {

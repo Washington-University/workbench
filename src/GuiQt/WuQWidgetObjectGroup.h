@@ -43,6 +43,8 @@ namespace caret {
     public:
         WuQWidgetObjectGroup(QWidget* parent);
         
+        WuQWidgetObjectGroup(QObject* parent);
+        
         ~WuQWidgetObjectGroup();
         
         void add(QObject* w);

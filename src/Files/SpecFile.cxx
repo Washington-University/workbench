@@ -100,24 +100,19 @@ SpecFile::initializeSpecFile()
     this->metadata = new GiftiMetaData();
     
     std::vector<DataFileTypeEnum::Enum> allEnums;
-    DataFileTypeEnum::getAllEnums(allEnums);
+    DataFileTypeEnum::getAllEnums(allEnums, false, false);
     
     for (std::vector<DataFileTypeEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {
         DataFileTypeEnum::Enum dataFileType = *iter;
-        if (dataFileType == DataFileTypeEnum::UNKNOWN) {
-            // ignore
-        }
-        else {
-            const AString typeName = DataFileTypeEnum::toName(dataFileType);
-            if (typeName.startsWith("SURFACE")) {
-                SpecFileDataFileTypeGroup* dftg = new SpecFileDataFileTypeGroup(dataFileType);
-                this->dataFileTypeGroups.push_back(dftg);
-            }
+        const AString typeName = DataFileTypeEnum::toName(dataFileType);
+        if (typeName.startsWith("SURFACE")) {
+            SpecFileDataFileTypeGroup* dftg = new SpecFileDataFileTypeGroup(dataFileType);
+            this->dataFileTypeGroups.push_back(dftg);
         }
     }
-    
+/*    
     for (std::vector<DataFileTypeEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {
@@ -133,6 +128,7 @@ SpecFile::initializeSpecFile()
             }
         }
     }
+*/
 }
 
 /**

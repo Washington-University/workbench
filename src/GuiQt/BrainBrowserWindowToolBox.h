@@ -13,6 +13,7 @@ class QTabWidget;
 
 
 namespace caret {
+    class ConnectivityLoaderControl;
     class HyperLinkTextBrowser;
     class OverlaySelectionControl;
     
@@ -69,6 +70,8 @@ namespace caret {
         QWidget* overlayWidget;
         
         QWidget* connectivityWidget;
+        
+        ConnectivityLoaderControl* connectivityLoaderControl;
         
         QWidget* labelWidget;
         

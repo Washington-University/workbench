@@ -28,6 +28,8 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
+ConnectivityLoaderControl.h
+ConnectivityLoaderFileControl.h
 GuiManager.h
 HyperLinkTextBrowser.h
 OverlaySelectionControl.h
@@ -55,6 +57,8 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
+ConnectivityLoaderControl.h
+ConnectivityLoaderFileControl.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
 EventGraphicsUpdateAllWindows.h
@@ -87,6 +91,8 @@ BrainBrowserWindow.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
+ConnectivityLoaderControl.cxx
+ConnectivityLoaderFileControl.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
 EventGraphicsUpdateAllWindows.cxx

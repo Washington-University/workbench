@@ -65,6 +65,20 @@ CaretDataFile::getDataFileType() const
 }
 
 /**
+ * Override the default data type for the file.
+ * Use this with extreme caution as using a type invalid
+ * with the file may cause disaster.
+ * 
+ * @param dataFileType
+ *    New value for file's data type.
+ */
+void 
+CaretDataFile::setDataFileType(const DataFileTypeEnum::Enum dataFileType)
+{
+    this->dataFileType = dataFileType;
+}
+
+/**
  * Copy constructor.
  * @param cdf
  *    Instance that is copied to this.

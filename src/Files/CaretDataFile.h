@@ -70,7 +70,8 @@ namespace caret {
 
         CaretDataFile& operator=(const CaretDataFile& cdf);
         
-    public:
+        void setDataFileType(const DataFileTypeEnum::Enum dataFileType);
+        
     private:
         void copyDataCaretDataFile(const CaretDataFile& cdf);
         

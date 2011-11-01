@@ -42,8 +42,10 @@ public:
     enum Enum {
         /** Border Projection */
         BORDER_PROJECTION,
-        /** Connectivity */
-        CIFTI,
+        /** Connectivity - Dense */
+        CONNECTIVITY_DENSE,
+        /** Connectivity - Dense Time Series */
+        CONNECTIVITY_DENSE_TIME_SERIES,
         /** Foci Projection */
         FOCI_PROJECTION,
         /** Labels */
@@ -81,7 +83,8 @@ public:
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
     static void getAllEnums(std::vector<Enum>& allEnums,
-                            const bool includeUnknown = false);
+                            const bool includeUnknown = false,
+                            const bool isForDataFileDialog = false);
 
     static Enum fromQFileDialogFilter(const AString& qFileDialogNameFilter, bool* isValidOut);
     
@@ -96,6 +99,7 @@ private:
                      const AString& name,
                      const AString& guiName,
                      const bool fileIsUsedWithOneStructure,
+                     const bool fileIsOpenedWithDataFileDialog,
                      const AString& fileExtensionOne,
                      const AString& fileExtensionTwo = "",
                      const AString& fileExtensionThree = "");
@@ -134,6 +138,9 @@ private:
     
     /** Is file for use with one structure */
     bool oneStructureFlag;
+    
+    /** File is opened with the data file dialog */
+    bool fileIsOpenedWithDataFileDialog;
 };
 
 #ifdef __DATA_FILE_TYPE_ENUM_DECLARE__

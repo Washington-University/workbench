@@ -40,6 +40,14 @@ WuQWidgetObjectGroup::WuQWidgetObjectGroup(QWidget* parent)
 }
 
 /**
+ * constructor.
+ */
+WuQWidgetObjectGroup::WuQWidgetObjectGroup(QObject* parent)
+: QObject(parent)
+{
+}
+
+/**
  * destructor.
  */
 WuQWidgetObjectGroup::~WuQWidgetObjectGroup()

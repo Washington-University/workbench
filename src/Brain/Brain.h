@@ -29,6 +29,7 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "ConnectivityLoaderManager.h"
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
@@ -82,6 +83,8 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        ConnectivityLoaderManager* getConnectivityLoaderManager();
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
@@ -133,6 +136,7 @@ namespace caret {
         
         ModelDisplayControllerWholeBrain* wholeBrainController;
         
+        ConnectivityLoaderManager* connectivityLoaderManager;
     };
 
 } // namespace
