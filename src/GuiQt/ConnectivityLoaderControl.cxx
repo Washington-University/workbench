@@ -46,9 +46,7 @@ using namespace caret;
 static const int COLUMN_SELECTOR  = 0;
 static const int COLUMN_FILE      = 1;
 static const int COLUMN_FILE_TYPE = 2;
-static const int COLUMN_BROWSE    = 3;
-static const int COLUMN_NETWORK   = 4;
-static const int COLUMN_CLEAR     = 5;
+static const int COLUMN_DATA_SOURCE = 3;
 static const int COLUMN_REMOVE    = 6;
     
 /**
@@ -66,18 +64,17 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
 {
     QLabel* selectorLabel = new QLabel("Selector");
     QLabel* fileLabel = new QLabel("File");
-    QLabel* browseButton = new QLabel("Browse");
-    QLabel* networkButton = new QLabel("Network");
+    QLabel* sourceLabel = new QLabel("Data Source");
     QLabel* fileTypeLabel = new QLabel("File Type");
     QLabel* removeLabel = new QLabel("Remove");
     
     this->loaderLayout = new QGridLayout();
     this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
     this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE);
-    this->loaderLayout->addWidget(browseButton, 0, COLUMN_BROWSE);
-    this->loaderLayout->addWidget(networkButton, 0, COLUMN_NETWORK);
+    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_DATA_SOURCE, 1, 2);
     this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
     this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
+
     this->loaderLayout->setColumnStretch(COLUMN_FILE, 100);
     
     QPushButton* addPushButton = new QPushButton("Add Connectivity Loader");
@@ -117,10 +114,9 @@ ConnectivityLoaderControl::updateControl()
             const int row = this->loaderLayout->rowCount();
             this->loaderLayout->addWidget(clfc->loaderNumberLabel, row, COLUMN_SELECTOR);
             this->loaderLayout->addWidget(clfc->fileNameLineEdit, row, COLUMN_FILE);
-            this->loaderLayout->addWidget(clfc->browseButton, row, COLUMN_BROWSE);
-            this->loaderLayout->addWidget(clfc->networkButton, row, COLUMN_NETWORK);
+            this->loaderLayout->addWidget(clfc->fileButton, row, COLUMN_DATA_SOURCE);
+            this->loaderLayout->addWidget(clfc->networkButton, row, COLUMN_DATA_SOURCE + 1);
             this->loaderLayout->addWidget(clfc->fileTypeLabel, row, COLUMN_FILE_TYPE);
-            this->loaderLayout->addWidget(clfc->clearButton, row, COLUMN_CLEAR);
             this->loaderLayout->addWidget(clfc->removeButton, row, COLUMN_REMOVE);
         }
     }

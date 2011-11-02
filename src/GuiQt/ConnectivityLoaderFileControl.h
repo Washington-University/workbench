@@ -48,9 +48,8 @@ namespace caret {
         virtual ~ConnectivityLoaderFileControl();
         
     private slots:
-        void browseButtonPressed();
+        void fileButtonPressed();
         void networkButtonPressed();
-        void clearButtonPressed();
         void removeButtonPressed();
         
     private:
@@ -63,10 +62,10 @@ namespace caret {
         QLabel* loaderNumberLabel;
         QLineEdit* fileNameLineEdit;
         QLabel* fileTypeLabel;
-        QToolButton* browseButton;
+        QToolButton* fileButton;
         QToolButton* networkButton;
-        QToolButton* clearButton;
         QToolButton* removeButton;
+        
         ConnectivityLoaderFile* connectivityLoaderFile;
 
         WuQWidgetObjectGroup* widgetGroup;

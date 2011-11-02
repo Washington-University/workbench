@@ -58,20 +58,15 @@ ConnectivityLoaderFileControl::ConnectivityLoaderFileControl(QWidget* parent,
     
     this->fileTypeLabel = new QLabel();
 
-    this->browseButton = new QToolButton();
-    this->browseButton->setText("Browse");
-    QObject::connect(this->browseButton, SIGNAL(triggered(QAction*)),
-                     this, SLOT(browseButtonPressed()));
+    this->fileButton = new QToolButton();
+    this->fileButton->setText("File");
+    QObject::connect(this->fileButton, SIGNAL(triggered(QAction*)),
+                     this, SLOT(fileButtonPressed()));
 
     this->networkButton = new QToolButton();
     this->networkButton->setText("Network");
     QObject::connect(this->networkButton, SIGNAL(triggered(QAction*)),
                      this, SLOT(networkButtonPressed()));
-    
-    this->clearButton = new QToolButton();
-    this->clearButton->setText("Clear");
-    QObject::connect(this->clearButton, SIGNAL(triggered(QAction*)),
-                     this, SLOT(clearButtonPressed()));
     
     this->removeButton = new QToolButton();
     this->removeButton->setText("Remove");
@@ -84,9 +79,8 @@ ConnectivityLoaderFileControl::ConnectivityLoaderFileControl(QWidget* parent,
     this->widgetGroup->add(this->loaderNumberLabel);
     this->widgetGroup->add(this->fileNameLineEdit);
     this->widgetGroup->add(this->fileTypeLabel);
-    this->widgetGroup->add(this->browseButton);
+    this->widgetGroup->add(this->fileButton);
     this->widgetGroup->add(this->networkButton);
-    this->widgetGroup->add(this->clearButton);
     this->widgetGroup->add(this->removeButton);
 }
 
@@ -99,10 +93,10 @@ ConnectivityLoaderFileControl::~ConnectivityLoaderFileControl()
 }
 
 /**
- * Called when browse button is pressed.
+ * Called when file button is pressed.
  */
 void 
-ConnectivityLoaderFileControl::browseButtonPressed()
+ConnectivityLoaderFileControl::fileButtonPressed()
 {
     
 }
@@ -112,15 +106,6 @@ ConnectivityLoaderFileControl::browseButtonPressed()
  */
 void 
 ConnectivityLoaderFileControl::networkButtonPressed()
-{
-    
-}
-
-/**
- * Called when clear button is pressed.
- */
-void 
-ConnectivityLoaderFileControl::clearButtonPressed()
 {
     
 }
