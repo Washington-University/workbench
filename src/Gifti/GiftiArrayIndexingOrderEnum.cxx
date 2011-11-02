@@ -27,6 +27,7 @@
 #include "GiftiArrayIndexingOrderEnum.h"
 #undef __GIFTIARRAYINDEXINGORDER_DECLARE__
 
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -137,6 +138,9 @@ GiftiArrayIndexingOrderEnum::fromName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("name \"" + s + " \"failed to match enumerated value for type GiftiArrayIndexingOrderEnum"));
+    }
     return e;
 }
 
@@ -186,6 +190,9 @@ GiftiArrayIndexingOrderEnum::fromGiftiName(const AString& s, bool* isValidOut)
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("giftiName \"" + s + " \"failed to match enumerated value for type GiftiArrayIndexingOrderEnum"));
     }
     return e;
 }

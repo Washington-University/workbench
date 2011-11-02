@@ -191,7 +191,7 @@ LogLevelEnum::fromName(const AString& name, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type LogLevelEnum"));
     }
     return enumValue;
@@ -244,7 +244,7 @@ LogLevelEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type LogLevelEnum"));
     }
     return enumValue;
@@ -297,7 +297,7 @@ LogLevelEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type LogLevelEnum"));
     }
     return enumValue;

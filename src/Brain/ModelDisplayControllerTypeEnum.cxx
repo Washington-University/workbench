@@ -166,7 +166,7 @@ ModelDisplayControllerTypeEnum::fromName(const AString& name, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
     }
     return enumValue;
@@ -219,7 +219,7 @@ ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isVali
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
     }
     return enumValue;
@@ -272,7 +272,7 @@ ModelDisplayControllerTypeEnum::fromIntegerCode(const int32_t integerCode, bool*
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
     }
     return enumValue;

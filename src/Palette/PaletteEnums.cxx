@@ -27,6 +27,7 @@
 #include "PaletteEnums.h"
 #undef __PALETTE_ENUMS_DECLARE__
 
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -140,6 +141,9 @@ PaletteScaleModeEnum::fromName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("name \"" + s + " \"failed to match enumerated value for type PaletteScaleModeEnum"));
+    }
     return e;
 }
 
@@ -190,6 +194,9 @@ PaletteScaleModeEnum::fromGuiName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("guiName \"" + s + " \"failed to match enumerated value for type PaletteScaleModeEnum"));
+    }
     return e;
 }
 
@@ -238,6 +245,9 @@ PaletteScaleModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("integerCode \"" + AString::number(integerCode) + " \"failed to match enumerated value for type PaletteScaleModeEnum"));
     }
     return e;
 }
@@ -353,6 +363,9 @@ PaletteThresholdTestEnum::fromName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("name \"" + s + " \"failed to match enumerated value for type PaletteThresholdTestEnum"));
+    }
     return e;
 }
 
@@ -403,6 +416,9 @@ PaletteThresholdTestEnum::fromGuiName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("guiName \"" + s + " \"failed to match enumerated value for type PaletteThresholdTestEnum"));
+    }
     return e;
 }
 
@@ -451,6 +467,9 @@ PaletteThresholdTestEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("integerCode \"" + AString::number(integerCode) + " \"failed to match enumerated value for type PaletteThresholdTestEnum"));
     }
     return e;
 }
@@ -566,6 +585,9 @@ PaletteThresholdTypeEnum::fromName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("name \"" + s + " \"failed to match enumerated value for type PaletteThresholdTypeEnum"));
+    }
     return e;
 }
 
@@ -616,6 +638,9 @@ PaletteThresholdTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("guiName \"" + s + " \"failed to match enumerated value for type PaletteThresholdTypeEnum"));
+    }
     return e;
 }
 
@@ -664,6 +689,9 @@ PaletteThresholdTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
+    }
+    else if (validFlag == false) {
+        CaretAssertMessage(0, AString("integerCode \"" + AString::number(integerCode) + " \"failed to match enumerated value for type PaletteThresholdTypeEnum"));
     }
     return e;
 }

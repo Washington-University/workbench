@@ -168,7 +168,7 @@ VolumeSliceViewModeEnum::fromName(const AString& name, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type VolumeSliceViewModeEnum"));
     }
     return enumValue;
@@ -221,7 +221,7 @@ VolumeSliceViewModeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type VolumeSliceViewModeEnum"));
     }
     return enumValue;
@@ -274,7 +274,7 @@ VolumeSliceViewModeEnum::fromGuiNameAbbreviation(const AString& guiNameAbbreviat
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiNameAbbreviation " + guiNameAbbreviation + "failed to match enumerated value for type VolumeSliceViewPlaneEnum"));
     }
     return enumValue;
@@ -327,7 +327,7 @@ VolumeSliceViewModeEnum::fromIntegerCode(const int32_t integerCode, bool* isVali
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type VolumeSliceViewModeEnum"));
     }
     return enumValue;

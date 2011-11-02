@@ -173,7 +173,7 @@ VolumeSliceViewPlaneEnum::fromName(const AString& name, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type VolumeSliceViewPlaneEnum"));
     }
     return enumValue;
@@ -226,7 +226,7 @@ VolumeSliceViewPlaneEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type VolumeSliceViewPlaneEnum"));
     }
     return enumValue;
@@ -279,7 +279,7 @@ VolumeSliceViewPlaneEnum::fromGuiNameAbbreviation(const AString& guiNameAbbrevia
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiNameAbbreviation " + guiNameAbbreviation + "failed to match enumerated value for type VolumeSliceViewPlaneEnum"));
     }
     return enumValue;
@@ -332,7 +332,7 @@ VolumeSliceViewPlaneEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type VolumeSliceViewPlaneEnum"));
     }
     return enumValue;

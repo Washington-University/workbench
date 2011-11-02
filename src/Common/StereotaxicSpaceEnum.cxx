@@ -446,7 +446,7 @@ StereotaxicSpaceEnum::fromName(const AString& name, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type StereotaxicSpaceEnum"));
     }
     return enumValue;
@@ -499,7 +499,7 @@ StereotaxicSpaceEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type StereotaxicSpaceEnum"));
     }
     return enumValue;
@@ -552,7 +552,7 @@ StereotaxicSpaceEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type StereotaxicSpaceEnum"));
     }
     return enumValue;
