@@ -133,7 +133,11 @@ int64_t CiftiXML::getRowIndexForVoxel(const int64_t* ijk) const
 
 bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, CiftiBrainModelElement* myModel, const int64_t numContig) const
 {
-    if (myModel == NULL) return false;
+    if (myModel == NULL)
+    {
+        mappingOut.clear();
+        return false;
+    }
     int64_t mappingSize = (int64_t)myModel->m_indexCount;
     mappingOut.resize(mappingSize);
     for (int64_t i = 0; i < mappingSize; ++i)
@@ -151,7 +155,6 @@ bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, CiftiBrain
 
 bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
 {
-    mappingOut.clear();
     bool left = false;
     switch (structure)
     {
@@ -161,6 +164,7 @@ bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, cons
     case StructureEnum::CORTEX_RIGHT:
         break;
     default:
+        mappingOut.clear();
         return false;
     };
     if (left)
@@ -173,7 +177,6 @@ bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, cons
 
 bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
 {
-    mappingOut.clear();
     bool left = false;
     switch (structure)
     {
@@ -183,6 +186,7 @@ bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const S
     case StructureEnum::CORTEX_RIGHT:
         break;
     default:
+        mappingOut.clear();
         return false;
     };
     if (left)
@@ -197,6 +201,7 @@ bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixI
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
+        mappingOut.clear();
         return false;
     }
     mappingOut.resize(myCount);
@@ -225,13 +230,11 @@ bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixI
 
 bool CiftiXML::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut) const
 {
-    mappingOut.clear();
     return getVolumeMapping(mappingOut, m_colMap, m_colVoxels);
 }
 
 bool CiftiXML::getVolumeMapForRows(vector< CiftiVolumeMap >& mappingOut) const
 {
-    mappingOut.clear();
     return getVolumeMapping(mappingOut, m_rowMap, m_rowVoxels);
 }
 

@@ -109,6 +109,7 @@ ConnectivityLoaderManager::addConnectivityLoaderFile()
 {
     ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
     this->connectivityLoaderFiles.push_back(clf);
+    return clf;
 }
 
 /**
