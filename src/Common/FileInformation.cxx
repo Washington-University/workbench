@@ -137,22 +137,21 @@ FileInformation::initialize(const QFileInfo& fileInfo)
     this->pathExists = fileInfo.exists();
     if (this->pathExists) {
         this->fileSize = fileInfo.size();
-        
-        this->pathIsAbsolute = fileInfo.isAbsolute();
-        this->pathIsDirectory = fileInfo.isDir();
-        this->pathIsFile      = fileInfo.isFile();
-        this->pathIsHidden    = fileInfo.isHidden();
-        this->pathIsReadable = fileInfo.isReadable();
-        this->pathIsRelative = fileInfo.isRelative();
-        this->pathIsSymbolicLink = fileInfo.isSymLink();
-        this->pathIsWritable = fileInfo.isWritable();
-        
-        this->fileName = fileInfo.fileName();
-        this->pathName = fileInfo.path();
-        
-        this->filePath = fileInfo.absoluteFilePath();
     }
+
+    this->pathIsAbsolute = fileInfo.isAbsolute();
+    this->pathIsDirectory = fileInfo.isDir();
+    this->pathIsFile      = fileInfo.isFile();
+    this->pathIsHidden    = fileInfo.isHidden();
+    this->pathIsReadable = fileInfo.isReadable();
+    this->pathIsRelative = fileInfo.isRelative();
+    this->pathIsSymbolicLink = fileInfo.isSymLink();
+    this->pathIsWritable = fileInfo.isWritable();
     
+    this->fileName = fileInfo.fileName();
+    this->pathName = fileInfo.path();
+    
+    this->filePath = fileInfo.absoluteFilePath();
 }
 
 /**

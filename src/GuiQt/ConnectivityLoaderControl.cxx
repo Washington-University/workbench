@@ -29,6 +29,7 @@
 
 #include <QBoxLayout>
 #include <QButtonGroup>
+#include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -41,6 +42,7 @@
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "GuiManager.h"
+#include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -183,7 +185,7 @@ ConnectivityLoaderControl::updateControl()
         }
 
         if (clf != NULL) {
-            this->fileNameLineEdits[i]->setText(clf->getFileNameNoPath());
+            this->fileNameLineEdits[i]->setText(clf->getFileName());
             this->fileTypeLabels[i]->setText(clf->getCiftiTypeName());
             this->rowWidgetGroups[i]->setVisible(true);
         }
@@ -259,13 +261,72 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
 void 
 ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
 {
+    int32_t fileIndex = -1;
+    for (int32_t i = 0; i < static_cast<int32_t>(this->networkButtons.size()); i++) {
+        if (this->networkButtons[i] == button) {
+            fileIndex = i;
+        }
+    }
+    CaretAssert(fileIndex >= 0);
     
-    this->updateControl();
+    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    ConnectivityLoaderFile* loaderFile = manager->getConnectivityLoaderFile(fileIndex);
+
+    QStringList filenameFilterList;
+    std::vector<DataFileTypeEnum::Enum> connectivityEnums;
+    DataFileTypeEnum::getAllConnectivityEnums(connectivityEnums);
+    
+    QLabel* urlLabel = new QLabel("URL: ");
+    QLineEdit* urlLineEdit = new QLineEdit();
+    urlLineEdit->setText("http://hcp-dev01.nrg.wustl.edu/data/services/cifti-average?searchID=xs1308076465528");
+    QLabel* typeLabel = new QLabel("Type: ");
+    QComboBox* typeComboBox = new QComboBox();
+    for (int32_t i = 0; i < static_cast<int32_t>(connectivityEnums.size()); i++) {
+        const AString name = DataFileTypeEnum::toGuiName(connectivityEnums[i]);
+        typeComboBox->addItem(name);
+        typeComboBox->setItemData(i, qVariantFromValue(DataFileTypeEnum::toIntegerCode(connectivityEnums[i])));
+    }
+    
+    QWidget* controlsWidget = new QWidget();
+    QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
+    controlsLayout->addWidget(urlLabel, 0, 0);
+    controlsLayout->addWidget(urlLineEdit, 0, 1);
+    controlsLayout->addWidget(typeLabel, 1, 0);
+    controlsLayout->addWidget(typeComboBox, 1, 1);
+    
+    WuQDialogModal d("Connectivity File on Web",
+                     controlsWidget,
+                     this);
+    if (d.exec() == QDialog::Accepted) {
+        const AString name = urlLineEdit->text().trimmed();
+        const int comboIndex = typeComboBox->currentIndex();
+        const DataFileTypeEnum::Enum dataType = 
+            DataFileTypeEnum::fromIntegerCode(typeComboBox->itemData(comboIndex).toInt(), NULL);
+        
+        try {
+            loaderFile->setup(name, 
+                              dataType);
+        }
+        catch (DataFileException e) {
+            QMessageBox::critical(this, 
+                                  "ERROR", 
+                                  e.whatString());                
+        }
+
+        this->updateControl();
+    }
 }
 
 void 
 ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
 {
+    int32_t fileIndex = -1;
+    for (int32_t i = 0; i < static_cast<int32_t>(this->removeButtons.size()); i++) {
+        if (this->removeButtons[i] == button) {
+            fileIndex = i;
+        }
+    }
+    CaretAssert(fileIndex >= 0);
     
     this->updateControl();
 }

@@ -68,6 +68,36 @@ WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
 }
 
 /**
+ * Constructs a modal dialog.  After construction,
+ * use exec() to display the dialog.
+ *
+ * @param dialogTitle
+ *    Title for dialog.
+ * @param centralWidget,
+ *    Central widget that is displayed in the dialog.
+ * @param parent
+ *    Parent widget on which this dialog is displayed.
+ * @param f
+ *    optional Qt::WindowFlags 
+ */
+WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
+                               QWidget* centralWidget,
+                               QWidget* parent,
+                               Qt::WindowFlags f)
+: WuQDialog(dialogTitle,
+            parent, 
+            f)
+{
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Ok);
+    this->getDialogButtonBox()->addButton(QDialogButtonBox::Cancel);
+    
+    QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
+                     this, SLOT(clicked(QAbstractButton*)));
+    
+    this->setCentralWidget(centralWidget);
+}
+
+/**
  * Destructor.
  */
 WuQDialogModal::~WuQDialogModal()

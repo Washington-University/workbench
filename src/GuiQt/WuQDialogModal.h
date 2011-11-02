@@ -37,6 +37,11 @@ namespace caret {
                        QWidget* parent,
                        Qt::WindowFlags f = 0);
         
+        WuQDialogModal(const AString& dialogTitle,
+                       QWidget* centralWidget,
+                       QWidget* parent,
+                       Qt::WindowFlags f = 0);
+        
         virtual ~WuQDialogModal();
         
     
