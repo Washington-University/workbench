@@ -33,7 +33,8 @@ public:
     CiftiFileTest(const AString &identifier);
     void execute();
     void testObjectCreateDestroy();
-    void testCifti1ReadWrite();
+    void testCiftiReadWrite();
+    void testCiftiRead();
 };
 
 } // namespace caret

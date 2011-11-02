@@ -33,7 +33,7 @@ void CiftiFileTest::execute()
 {
     testObjectCreateDestroy();
     if(this->failed()) return;
-    testCifti1ReadWrite();
+    testCiftiRead();
     if(this->failed()) return;
 }
 
@@ -49,9 +49,58 @@ void CiftiFileTest::testObjectCreateDestroy()
     delete ciftiFile;
 }
 
-void CiftiFileTest::testCifti1ReadWrite()
+void CiftiFileTest::testCiftiRead()
 {
-    std::cout << "Testing Cifti1 reader/writer." << std::endl;
+    //warning the data set for this is HUGE, and it will take a few minutes to run
+    //this test is not recommended for day to day testing.  The test of CiftiReadWrite
+    //should be more than sufficient once writing has been implemented
+    std::cout << "Testing Cifti reader." << std::endl;
+    if(!QFile::exists(this->m_default_path + "/cifti/DenseConnectome.dconn.nii"))
+    {
+        setFailed("Test file "+this->m_default_path + "/cifti/DenseConnectome.dconn.nii"+" does not exist!");
+        return;
+    }
+    CiftiFile reader(this->m_default_path + "/cifti/DenseConnectome.dconn.nii");
+    CiftiHeader header;
+    reader.getHeader(header);
+
+    std::vector <int64_t> dim;
+    int64_t columnSize = reader.getColumnSize();
+    int64_t rowSize = reader.getRowSize();
+
+    if(rowSize != columnSize)
+    {
+        setFailed("The Cifti Reader test must be run on symmetric, dense connectivity matrices");
+        return;
+    }
+    float * row = new float[rowSize];
+    float * column = new float [columnSize];
+    for(int64_t i = 0;i<rowSize;i++)
+    {
+        reader.getRow(row,i);
+        reader.getColumn(column,i);
+        //if(memcmp((char *)row,(char *)column,rowSize*sizeof(float))), apparently roundoff errors keep this from working...
+        for(int64_t i;i<rowSize;i++)
+        {
+            if((row[i]>(column[i]+0.0001))||
+                    (row[i]<(column[i]-0.0001)))
+            {
+                setFailed("Row and Column " + AString::number(i) + " are not the same.");
+                std::cout << "Row " + AString::number(i) + ":" + AString::fromNumbers(row,rowSize,",") << std::endl;
+                std::cout << "Column " + AString::number(i) + ":" + AString::fromNumbers(column,columnSize,",") << std::endl;
+                goto cleanup;
+            }
+        }
+    }
+    std::cout << "Files are the same, Cifti reader test successful." << std::endl;
+    cleanup:
+    delete [] row;
+    delete [] column;
+}
+
+void CiftiFileTest::testCiftiReadWrite()
+{
+    std::cout << "Testing Cifti reader/writer." << std::endl;
 
     // read header
     CiftiFile reader(this->m_default_path + "/cifti/DenseTimeSeries.dtseries.nii");
