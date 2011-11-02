@@ -61,6 +61,8 @@ namespace caret {
         
         void reset();
         
+        static const int32_t MINIMUM_NUMBER_OF_LOADERS;
+        
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);
 
@@ -79,7 +81,7 @@ namespace caret {
     };
     
 #ifdef __CONNECTIVITY_LOADER_MANAGER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS = 2;
 #endif // __CONNECTIVITY_LOADER_MANAGER_DECLARE__
 
 } // namespace

@@ -120,6 +120,12 @@ void
 ConnectivityLoaderManager::removeConnectivityLoaderFile(const int32_t indx)
 {
     CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
+    
+    if (this->getNumberOfConnectivityLoaderFiles() <=
+        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
+        return;
+    }
+
     delete this->connectivityLoaderFiles[indx];
     this->connectivityLoaderFiles.erase(this->connectivityLoaderFiles.begin() + indx);
     
@@ -133,7 +139,12 @@ ConnectivityLoaderManager::removeConnectivityLoaderFile(const int32_t indx)
  */
 void 
 ConnectivityLoaderManager::removeConnectivityLoaderFile(const ConnectivityLoaderFile* clf)
-{
+{    
+    if (this->getNumberOfConnectivityLoaderFiles() <=
+        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
+        return;
+    }
+    
     for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
          iter != this->connectivityLoaderFiles.end();
          iter++) {
@@ -195,8 +206,9 @@ ConnectivityLoaderManager::reset()
     }
     this->connectivityLoaderFiles.clear();
     
-    this->addConnectivityLoaderFile();
-    this->addConnectivityLoaderFile();
+    for (int32_t i = 0; i < ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS; i++) {
+        this->addConnectivityLoaderFile();
+    }
 }
 
 

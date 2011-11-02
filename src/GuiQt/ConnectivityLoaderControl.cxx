@@ -52,8 +52,9 @@ using namespace caret;
 static const int COLUMN_SELECTOR  = 0;
 static const int COLUMN_FILE      = 1;
 static const int COLUMN_FILE_TYPE = 2;
-static const int COLUMN_DATA_SOURCE = 3;
-static const int COLUMN_REMOVE    = 5;
+static const int COLUMN_ANIMATE   = 3;
+static const int COLUMN_DATA_SOURCE = 4;
+static const int COLUMN_REMOVE    = 6;
     
 /**
  * \class ConnectivityLoaderControl 
@@ -68,6 +69,10 @@ static const int COLUMN_REMOVE    = 5;
 ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
 : QWidget(parent)
 {
+    this->animateButtonsGroup = new QButtonGroup();
+    QObject::connect(this->animateButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
+                     this, SLOT(animateButtonPressed(QAbstractButton*)));
+    
     this->fileButtonsGroup = new QButtonGroup();
     QObject::connect(this->fileButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(fileButtonPressed(QAbstractButton*)));
@@ -82,6 +87,7 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     
     QLabel* selectorLabel = new QLabel("Selector");
     QLabel* fileLabel = new QLabel("File");
+    QLabel* animateLabel = new QLabel("Animate");
     QLabel* sourceLabel = new QLabel("Data Source");
     QLabel* fileTypeLabel = new QLabel("File Type");
     QLabel* removeLabel = new QLabel("Remove");
@@ -90,6 +96,7 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
     this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE);
     this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
+    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_ANIMATE);
     this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_DATA_SOURCE, 1, 2);
     this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
 
@@ -114,6 +121,9 @@ ConnectivityLoaderControl::~ConnectivityLoaderControl()
     
 }
 
+/**
+ * Update the control.
+ */
 void
 ConnectivityLoaderControl::updateControl()
 {
@@ -134,6 +144,9 @@ ConnectivityLoaderControl::updateControl()
             
             QLabel* fileTypeLabel = new QLabel();
             
+            QToolButton* animateButton = new QToolButton();
+            animateButton->setText("Start");
+            
             QToolButton* fileButton = new QToolButton();
             fileButton->setText("File");
             
@@ -146,6 +159,7 @@ ConnectivityLoaderControl::updateControl()
             WuQWidgetObjectGroup* widgetGroup = new WuQWidgetObjectGroup(this);
             widgetGroup = new WuQWidgetObjectGroup(this);
             widgetGroup->add(numberLabel);
+            widgetGroup->add(animateButton);
             widgetGroup->add(fileNameLineEdit);
             widgetGroup->add(fileTypeLabel);
             widgetGroup->add(fileButton);
@@ -157,14 +171,17 @@ ConnectivityLoaderControl::updateControl()
             this->loaderLayout->addWidget(numberLabel, row, COLUMN_SELECTOR);
             this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
             this->loaderLayout->addWidget(fileButton, row, COLUMN_DATA_SOURCE);
+            this->loaderLayout->addWidget(animateButton, row, COLUMN_ANIMATE);
             this->loaderLayout->addWidget(fileTypeLabel, row, COLUMN_FILE_TYPE);
             this->loaderLayout->addWidget(networkButton, row, COLUMN_DATA_SOURCE + 1);
             this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE);
             
+            this->animateButtonsGroup->addButton(animateButton);
             this->fileButtonsGroup->addButton(fileButton);
             this->networkButtonsGroup->addButton(networkButton);
             this->removeButtonsGroup->addButton(removeButton);
             
+            this->animateButtons.push_back(animateButton);
             this->loaderNumberLabels.push_back(numberLabel);
             this->fileNameLineEdits.push_back(fileNameLineEdit);
             this->fileTypeLabels.push_back(fileTypeLabel);
@@ -197,6 +214,30 @@ ConnectivityLoaderControl::updateControl()
     //this->adjustSize();
 }
 
+/**
+ * Called when an Animate button is clicked.
+ * @param button
+ *   Animate button that was clicked.
+ */
+void 
+ConnectivityLoaderControl::animateButtonPressed(QAbstractButton* button)
+{
+    int32_t fileIndex = -1;
+    for (int32_t i = 0; i < static_cast<int32_t>(this->animateButtons.size()); i++) {
+        if (this->animateButtons[i] == button) {
+            fileIndex = i;
+        }
+    }
+    CaretAssert(fileIndex >= 0);
+    
+    std::cout << "Animate button " << fileIndex << " was pressed." << std::endl;
+}
+
+/**
+ * Called when an File button is clicked.
+ * @param button
+ *   File button that was clicked.
+ */
 void 
 ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
 {
@@ -258,6 +299,11 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     this->updateControl();
 }
 
+/**
+ * Called when an Network button is clicked.
+ * @param button
+ *   Network button that was clicked.
+ */
 void 
 ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
 {
@@ -317,6 +363,11 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
     }
 }
 
+/**
+ * Called when an remove button is clicked.
+ * @param button
+ *   Remove button that was clicked.
+ */
 void 
 ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
 {
@@ -328,9 +379,16 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
     }
     CaretAssert(fileIndex >= 0);
     
+    Brain* brain = GuiManager::get()->getBrain();
+    ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
+    manager->removeConnectivityLoaderFile(fileIndex);
+    
     this->updateControl();
 }
 
+/**
+ * Called to add a connectivity loader.
+ */
 void 
 ConnectivityLoaderControl::addConnectivityLoader()
 {

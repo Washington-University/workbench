@@ -62,6 +62,7 @@ namespace caret {
     private slots:
         void addConnectivityLoader();
         
+        void animateButtonPressed(QAbstractButton* button);
         void fileButtonPressed(QAbstractButton* button);
         void networkButtonPressed(QAbstractButton* button);
         void removeButtonPressed(QAbstractButton* button);
@@ -71,10 +72,12 @@ namespace caret {
         std::vector<QLabel*> loaderNumberLabels;
         std::vector<QLineEdit*> fileNameLineEdits;
         std::vector<QLabel*> fileTypeLabels;
+        std::vector<QToolButton*> animateButtons;
         std::vector<QToolButton*> fileButtons;
         std::vector<QToolButton*> networkButtons;
         std::vector<QToolButton*> removeButtons;
         
+        QButtonGroup* animateButtonsGroup;
         QButtonGroup* fileButtonsGroup;
         QButtonGroup* networkButtonsGroup;
         QButtonGroup* removeButtonsGroup;
