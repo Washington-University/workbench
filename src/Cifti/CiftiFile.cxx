@@ -56,7 +56,7 @@ CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching) throw (C
 {
     init();
     this->m_caching = IN_MEMORY;
-    this->openFile(fileName);
+    this->openFile(fileName,caching);
 }
 
 void CiftiFile::init()
