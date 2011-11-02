@@ -289,7 +289,7 @@ DataFileTypeEnum::fromName(const AString& nameIn, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Name \"" + name + "\" failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
@@ -342,7 +342,7 @@ DataFileTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("guiName \"" + guiName + "\" failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
@@ -395,7 +395,7 @@ DataFileTypeEnum::fromQFileDialogFilter(const AString& qFileDialogNameFilter,
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("qFileDialogNameFilter \"" + qFileDialogNameFilter + " \"failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
@@ -468,7 +468,7 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("filename \"" + filename + " \"has no matching extensions in DataFileTypeEnum"));
     }
     return enumValue;
@@ -508,7 +508,7 @@ DataFileTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
-    else {
+    else if (validFlag == false) {
         CaretAssertMessage(0, AString("Integer code \"" + AString::number(integerCode) + " \"failed to match enumerated value for type DataFileTypeEnum"));
     }
     return enumValue;
@@ -553,4 +553,28 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
         allEnums.push_back(iter->enumValue);
     }
 }
+
+/**
+ * Get all connectivity enumerated type values.
+ * @param connectivityEnumsOut
+ *    Will be loaded with all connectivity enumerated types.
+ */
+void 
+DataFileTypeEnum::getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOut)
+{
+    if (initializedFlag == false) initialize();
+    
+    connectivityEnumsOut.clear();
+    
+    for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const AString name = DataFileTypeEnum::toName(iter->enumValue);
+        if (name.startsWith("CONNECTIVITY")) {
+            connectivityEnumsOut.push_back(iter->enumValue);
+        }
+    }
+    
+}
+
 

@@ -44,7 +44,7 @@ using namespace caret;
 ConnectivityLoaderManager::ConnectivityLoaderManager()
 : CaretObject()
 {
-    
+    this->reset();    
 }
 
 /**
@@ -52,7 +52,12 @@ ConnectivityLoaderManager::ConnectivityLoaderManager()
  */
 ConnectivityLoaderManager::~ConnectivityLoaderManager()
 {
-    this->reset();
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        delete *iter;
+    }
+    this->connectivityLoaderFiles.clear();
 }
 
 /**
@@ -189,6 +194,9 @@ ConnectivityLoaderManager::reset()
         delete *iter;
     }
     this->connectivityLoaderFiles.clear();
+    
+    this->addConnectivityLoaderFile();
+    this->addConnectivityLoaderFile();
 }
 
 

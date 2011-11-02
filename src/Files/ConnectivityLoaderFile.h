@@ -103,6 +103,8 @@ namespace caret {
         
         bool isDenseTimeSeries() const;
         
+        AString getCiftiTypeName() const;
+        
         void loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex) throw (DataFileException);
         

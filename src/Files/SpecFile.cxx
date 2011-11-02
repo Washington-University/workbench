@@ -102,6 +102,9 @@ SpecFile::initializeSpecFile()
     std::vector<DataFileTypeEnum::Enum> allEnums;
     DataFileTypeEnum::getAllEnums(allEnums, false, false);
     
+    /*
+     * Do surface files first since they need to be loaded before other files
+     */
     for (std::vector<DataFileTypeEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {
@@ -112,7 +115,10 @@ SpecFile::initializeSpecFile()
             this->dataFileTypeGroups.push_back(dftg);
         }
     }
-/*    
+    
+    /*
+     * Do remaining file types excluding surfaces
+     */
     for (std::vector<DataFileTypeEnum::Enum>::iterator iter = allEnums.begin();
          iter != allEnums.end();
          iter++) {
@@ -128,7 +134,6 @@ SpecFile::initializeSpecFile()
             }
         }
     }
-*/
 }
 
 /**
@@ -194,7 +199,9 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
     
     DataFileException e("Data File Type: " 
                         + DataFileTypeEnum::toName(dataFileType)
-                        + " not allowed.");
+                        + " not allowed "
+                        + " for file "
+                        + filename);
     CaretLogThrowing(e);
     throw e;
 }

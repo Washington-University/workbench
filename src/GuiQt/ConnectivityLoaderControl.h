@@ -29,12 +29,19 @@
 
 #include <QWidget>
 
+#include "AString.h"
+
+class QAbstractButton;
+class QButtonGroup;
 class QGridLayout;
+class QLabel;
+class QLineEdit;
+class QToolButton;
 
 namespace caret {
 
     class ConnectivityLoaderFile;
-    class ConnectivityLoaderFileControl;
+    class WuQWidgetObjectGroup;
     
     class ConnectivityLoaderControl : public QWidget {
         
@@ -55,10 +62,26 @@ namespace caret {
     private slots:
         void addConnectivityLoader();
         
+        void fileButtonPressed(QAbstractButton* button);
+        void networkButtonPressed(QAbstractButton* button);
+        void removeButtonPressed(QAbstractButton* button);
     private:
         QGridLayout* loaderLayout;
 
-        std::vector<ConnectivityLoaderFileControl*> fileLoaderControls;
+        std::vector<QLabel*> loaderNumberLabels;
+        std::vector<QLineEdit*> fileNameLineEdits;
+        std::vector<QLabel*> fileTypeLabels;
+        std::vector<QToolButton*> fileButtons;
+        std::vector<QToolButton*> networkButtons;
+        std::vector<QToolButton*> removeButtons;
+        
+        QButtonGroup* fileButtonsGroup;
+        QButtonGroup* networkButtonsGroup;
+        QButtonGroup* removeButtonsGroup;
+
+        std::vector<WuQWidgetObjectGroup*> rowWidgetGroups;
+        
+        AString previousCiftiFileTypeFilter;
     };
     
 #ifdef __CONNECTIVITY_LOADER_CONTROL_DECLARE__

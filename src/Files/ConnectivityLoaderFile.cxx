@@ -76,7 +76,7 @@ ConnectivityLoaderFile::clear()
 bool 
 ConnectivityLoaderFile::isEmpty() const
 {
-    return false;
+    return this->getFileName().isEmpty();
 }
 
 /**
@@ -92,8 +92,24 @@ void
 ConnectivityLoaderFile::setup(const AString& filename,
                               const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException)
 {
+    this->clear();
+    
+    /*
+     * Make sure type is valid
+     */
+    std::vector<DataFileTypeEnum::Enum> connectivityDataTypes;
+    DataFileTypeEnum::getAllConnectivityEnums(connectivityDataTypes);
+    if (std::find(connectivityDataTypes.begin(),
+                  connectivityDataTypes.end(),
+                  connectivityFileType) == connectivityDataTypes.end()) {
+        const AString msg = "Unacceptable connectivity file type: "
+            + DataFileTypeEnum::toName(connectivityFileType);
+        throw DataFileException(msg);
+    }
+    
     this->setFileName(filename);
     this->setDataFileType(connectivityFileType);
+    
 }
 
 /**
@@ -402,6 +418,28 @@ bool
 ConnectivityLoaderFile::isDenseTimeSeries() const
 {
     return (this->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
+}
+
+/**
+ * @return Name describing loader content.
+ */
+AString 
+ConnectivityLoaderFile::getCiftiTypeName() const
+{
+    if (this->isEmpty() == false) {
+        if (this->isDense()) {
+            return "Dense";
+        }
+        else if (this->isDenseTimeSeries()) {
+            return "Dense Time";
+        }
+        else {
+            return "Unknown Type";
+        }
+    }
+    else {
+        return "";
+    }
 }
 
 /**

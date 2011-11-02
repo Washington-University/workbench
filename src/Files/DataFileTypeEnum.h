@@ -94,6 +94,8 @@ public:
     
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
+    static void getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOut);
+    
 private:
     DataFileTypeEnum(const Enum enumValue, 
                      const AString& name,
