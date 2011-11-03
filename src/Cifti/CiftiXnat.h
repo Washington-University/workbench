@@ -37,7 +37,7 @@ namespace caret
     class CiftiXnat : public CiftiInterface
     {
         CaretHttpRequest m_baseRequest;
-        int64_t m_rowSize, m_colSize;
+        int64_t m_numberOfColumns, m_numberOfRows;
         ///get a request as a float array, with error checking
         void getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException);
         ///get just the size field from a request
@@ -59,10 +59,10 @@ namespace caret
         void getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException);
         
         ///get row size
-        int64_t getRowSize() const { return m_rowSize; }
+        int64_t getNumberOfColumns() const { return m_numberOfColumns; }
         
         ///get column size
-        int64_t getColumnSize() const { return m_colSize; }
+        int64_t getNumberOfRows() const { return m_numberOfRows; }
         
     };
 

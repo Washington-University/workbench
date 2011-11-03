@@ -296,7 +296,7 @@ ConnectivityLoaderFile::getNumberOfMaps() const
                 numMaps = 1;
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
-                numMaps = this->ciftiInterface->getRowSize();
+                numMaps = this->ciftiInterface->getNumberOfColumns();
                 break;
         }
     }
@@ -585,7 +585,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 break;
             case LOADER_TYPE_DENSE:
             {
-                const int32_t num = this->ciftiInterface->getColumnSize();
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getRowFromNode(this->data, 
@@ -630,7 +630,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 break;
             case LOADER_TYPE_DENSE:
             {
-                const int32_t num = this->ciftiInterface->getColumnSize();
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
                 this->allocateData(num);
                 
                 //                if (this->ciftiInterface->getRowFromVoxel(this->data, 

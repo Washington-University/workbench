@@ -44,10 +44,10 @@ namespace caret
         virtual void getColumn(float* columnOut, const int64_t& columnIndex) const throw (CiftiFileException) = 0;
         
         ///get row size
-        virtual int64_t getRowSize() const = 0;
+        virtual int64_t getNumberOfColumns() const = 0;
         
         ///get column size
-        virtual int64_t getColumnSize() const = 0;
+        virtual int64_t getNumberOfRows() const = 0;
 
         ///get the XML data
         void getCiftiXML(CiftiXML &xml) { xml = m_xml; }

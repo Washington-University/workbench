@@ -65,8 +65,8 @@ void CiftiFileTest::testCiftiRead()
     reader.getHeader(header);
 
     std::vector <int64_t> dim;
-    int64_t columnSize = reader.getColumnSize();
-    int64_t rowSize = reader.getRowSize();
+    int64_t columnSize = reader.getNumberOfRows();
+    int64_t rowSize = reader.getNumberOfColumns();
 
     if(rowSize != columnSize)
     {

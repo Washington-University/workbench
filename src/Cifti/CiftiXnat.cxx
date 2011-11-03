@@ -70,8 +70,8 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     AString theBody(myResponse.m_body.data());
     //cout << theBody << endl;
     m_xml.readXML(theBody);
-    m_rowSize = 0;
-    m_colSize = 0;
+    m_numberOfColumns = 0;
+    m_numberOfRows = 0;
     CiftiRootElement myRoot;
     m_xml.getXMLRoot(myRoot);
     vector<CiftiMatrixIndicesMapElement>& myMaps = myRoot.m_matrices[0].m_matrixIndicesMap;
@@ -88,29 +88,29 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
                 {
                     if (myDimList[j] == 0)
                     {
-                        m_rowSize += myModels[k].m_indexCount;
+                        m_numberOfColumns += myModels[k].m_indexCount;
                     }
                     if (myDimList[j] == 1)
                     {
-                        m_colSize += myModels[k].m_indexCount;
+                        m_numberOfRows += myModels[k].m_indexCount;
                     }
                 }
             }
         }
     }
-    if (m_rowSize == 0)
+    if (m_numberOfColumns == 0)
     {
         CaretHttpRequest rowRequest = m_baseRequest;
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
         rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString("0")));
-        m_rowSize = getSizeFromReq(rowRequest);
+        m_numberOfColumns = getSizeFromReq(rowRequest);
     }
-    if (m_colSize == 0)
+    if (m_numberOfRows == 0)
     {
         CaretHttpRequest columnRequest = m_baseRequest;
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
         columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString("0")));
-        m_colSize = getSizeFromReq(columnRequest);
+        m_numberOfRows = getSizeFromReq(columnRequest);
     }
 }
 
@@ -124,7 +124,7 @@ void CiftiXnat::getColumn(float* columnOut, const int64_t& columnIndex) const th
     CaretHttpRequest columnRequest = m_baseRequest;
     columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
     columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString::number(columnIndex)));
-    getReqAsFloats(columnOut, m_colSize, columnRequest);
+    getReqAsFloats(columnOut, m_numberOfRows, columnRequest);
 }
 
 void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException)
@@ -132,7 +132,7 @@ void CiftiXnat::getRow(float* rowOut, const int64_t& rowIndex) const throw (Cift
     CaretHttpRequest rowRequest = m_baseRequest;
     rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
     rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString::number(rowIndex)));
-    getReqAsFloats(rowOut, m_rowSize, rowRequest);
+    getReqAsFloats(rowOut, m_numberOfColumns, rowRequest);
 }
 
 void CiftiXnat::getReqAsFloats(float* data, const int64_t& dataSize, CaretHttpRequest& request) const throw (CiftiFileException)

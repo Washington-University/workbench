@@ -216,7 +216,7 @@ void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
 
 }
 
-int64_t CiftiFile::getRowSize() const
+int64_t CiftiFile::getNumberOfColumns() const
 {
     vector<int64_t> myDims;
     m_matrix.getMatrixDimensions(myDims);
@@ -227,7 +227,7 @@ int64_t CiftiFile::getRowSize() const
     return myDims[0];
 }
 
-int64_t CiftiFile::getColumnSize() const
+int64_t CiftiFile::getNumberOfRows() const
 {
     vector<int64_t> myDims;
     m_matrix.getMatrixDimensions(myDims);

@@ -44,7 +44,7 @@ void XnatTest::execute()
     myXnat.setAuthentication(myUrl, user, pass);
     myXnat.openURL(myUrl);
     vector<float> myData;
-    myData.resize(myXnat.getRowSize());
+    myData.resize(myXnat.getNumberOfColumns());
     myXnat.getRow(myData.data(), 0);
     bool success = myXnat.getRowFromNode(myData.data(), 528, StructureEnum::CORTEX_RIGHT);
     if (!success)

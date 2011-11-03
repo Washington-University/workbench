@@ -80,10 +80,10 @@ public:
     { m_matrix.setMatrix(matrixIn); }
     
     ///get row size
-    int64_t getRowSize() const;
+    int64_t getNumberOfColumns() const;
     
     ///get column size
-    int64_t getColumnSize() const;
+    int64_t getNumberOfRows() const;
 
     /// Destructor
     virtual ~CiftiFile();
