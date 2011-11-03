@@ -1,4 +1,4 @@
-/*LICENSE_START*/ 
+/*LICENSE_START*/
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
  * 
