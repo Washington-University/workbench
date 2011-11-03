@@ -25,6 +25,7 @@
 
 #include "CiftiXML.h"
 #include "CiftiFileException.h"
+#include "FloatMatrix.h"
 
 using namespace caret;
 using namespace std;
@@ -256,6 +257,10 @@ void CiftiXML::rootChanged()
     m_rowLeftSurfContig = 0;
     m_rowRightSurfContig = 0;
     m_rowVoxels = 0;
+    if (m_root.m_matrices.size() == 0)
+    {
+        throw CiftiFileException("No matrices defined in cifti extension");
+    }
     CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
     int numMaps = (int)myMatrix.m_matrixIndicesMap.size();
     for (int i = 0; i < numMaps; ++i)
@@ -407,4 +412,90 @@ int64_t CiftiXML::getRowSurfaceNumberOfNodes(const caret::StructureEnum::Enum st
     } else {
         return m_rowRightSurfNodes;
     }
+}
+
+int64_t CiftiXML::getVolumeIndex(const float* xyz, const caret::CiftiMatrixIndicesMapElement* myMap) const
+{
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return -1;
+    }
+    if (m_root.m_matrices.size() == 0)
+    {
+        throw CiftiFileException("No matrices defined in cifti extension");
+    }
+    if (m_root.m_matrices[0].m_volume.size() == 0)
+    {
+        throw CiftiFileException("No volume element defined in cifti extension");
+    }
+    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
+    if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
+    {
+        throw CiftiFileException("No volume transformation defined in cifti extension");
+    }
+    const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
+    float unitScale = 1.0f;
+    switch (myTrans.m_unitsXYZ)
+    {
+        case NIFTI_UNITS_MM:
+            break;
+        case NIFTI_UNITS_METER:
+            unitScale = 1000.0f;
+            break;
+        case NIFTI_UNITS_MICRON:
+            unitScale = 0.001f;
+            break;
+        default:
+            throw CiftiFileException("Unknown units in volume transformation");
+    };
+    FloatMatrix myMatrix = FloatMatrix::zeros(4, 4);
+    for (int i = 0; i < 3; ++i)//NEVER trust the fourth row of input, NEVER!
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            myMatrix[i][j] = myTrans.m_transform[i * 4 + j];
+        }
+    }
+    myMatrix *= unitScale;//rescale to mm
+    myMatrix[3][3] = 1.0f;//i COULD do this by making a fake volume file, but that seems kinda hacky
+    FloatMatrix toIndexSpace = myMatrix.inverse();//invert to convert the other direction
+    FloatMatrix myCoord = FloatMatrix::zeros(4, 1);//column vector
+    myCoord[0][0] = xyz[0];
+    myCoord[1][0] = xyz[1];
+    myCoord[2][0] = xyz[2];
+    myCoord[3][0] = 1.0f;
+    FloatMatrix myIndices = toIndexSpace * myCoord;//matrix multiply
+    int64_t ijk[3];
+    ijk[0] = floor(myIndices[0][0] + 0.5f);
+    ijk[1] = floor(myIndices[1][0] + 0.5f);
+    ijk[2] = floor(myIndices[2][0] + 0.5f);
+    if (ijk[0] < 0 || ijk[0] >= (int64_t)myVol.m_volumeDimensions[0]) return -1;//some shortcuts to not search all the voxels on invalid coords
+    if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;
+    if (ijk[2] < 0 || ijk[2] >= (int64_t)myVol.m_volumeDimensions[2]) return -1;
+    for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
+    {
+        if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
+        {
+            const vector<voxelIndexType>& myVoxels = myMap->m_brainModels[i].m_voxelIndicesIJK;
+            int64_t voxelArraySize = (int64_t)myVoxels.size();
+            for (int64_t j = 0; j < voxelArraySize; j += 3)
+            {
+                if ((ijk[0] == (int64_t)myVoxels[j]) && (ijk[1] == (int64_t)myVoxels[j + 1]) && (ijk[2] == (int64_t)myVoxels[j + 2]))
+                {
+                    return j / 3;
+                }
+            }
+        }
+    }
+    return -1;
+}
+
+int64_t CiftiXML::getColumnIndexForVoxelCoordinate(const float* xyz) const
+{
+    return getVolumeIndex(xyz, m_colMap);
+}
+
+int64_t CiftiXML::getRowIndexForVoxelCoordinate(const float* xyz) const
+{
+    return getVolumeIndex(xyz, m_rowMap);
 }

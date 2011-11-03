@@ -64,6 +64,12 @@ namespace caret
         ///get a row by voxel index - returns false if not found in mapping
         bool getColumnFromVoxel(float* columnOut, const int64_t* ijk);
         
+        ///get a row by voxel coordinate - returns false if not found in mapping
+        bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz);
+        
+        ///get a row by voxel coordinate - returns false if not found in mapping
+        bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz);
+        
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
         { return m_xml.getSurfaceMapForRows(mappingOut, structure); }

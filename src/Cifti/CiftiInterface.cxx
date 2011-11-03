@@ -71,3 +71,25 @@ bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk)
     getRow(rowOut, myIndex);
     return true;
 }
+
+bool CiftiInterface::getColumnFromVoxelCoordinate(float* columnOut, const float* xyz)
+{
+    int64_t myIndex = m_xml.getColumnIndexForVoxelCoordinate(xyz);
+    if (myIndex == -1)
+    {
+        return false;
+    }
+    getColumn(columnOut, myIndex);
+    return true;
+}
+
+bool CiftiInterface::getRowFromVoxelCoordinate(float* rowOut, const float* xyz)
+{
+    int64_t myIndex = m_xml.getRowIndexForVoxelCoordinate(xyz);
+    if (myIndex == -1)
+    {
+        return false;
+    }
+    getRow(rowOut, myIndex);
+    return true;
+}
