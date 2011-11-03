@@ -29,8 +29,18 @@
 
 using namespace caret;
 
+#include "Brain.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
+#include "DescriptiveStatistics.h"
+#include "EventCaretMappableDataFilesGet.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventManager.h"
+#include "NodeAndVoxelColoring.h"
+#include "Palette.h"
+#include "PaletteColorMapping.h"
+#include "PaletteFile.h"
+#include "SurfaceFile.h"
     
 /**
  * \class ConnectivityLoaderManager 
@@ -41,10 +51,14 @@ using namespace caret;
 /**
  * Constructor.
  */
-ConnectivityLoaderManager::ConnectivityLoaderManager()
+ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 : CaretObject()
 {
+    this->brain = brain;
     this->reset();    
+
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
 }
 
 /**
@@ -52,6 +66,8 @@ ConnectivityLoaderManager::ConnectivityLoaderManager()
  */
 ConnectivityLoaderManager::~ConnectivityLoaderManager()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
          iter != this->connectivityLoaderFiles.end();
          iter++) {
@@ -170,11 +186,20 @@ void
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                             const int32_t nodeIndex) throw (DataFileException)
 {
+    bool haveData = false;
     for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
          iter != this->connectivityLoaderFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
-        clf->loadDataForSurfaceNode(surfaceFile, nodeIndex);
+        if (clf->isEmpty() == false) {
+            clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+            haveData = true;
+        }
+    }
+    
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
 }
 
@@ -186,11 +211,59 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
 void 
 ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
+    bool haveData = false;
     for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
          iter != this->connectivityLoaderFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         clf->loadDataForVoxelAtCoordinate(xyz);
+        if (clf->isEmpty()) {
+            haveData = true;
+        }
+    }
+    
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+}
+
+void 
+ConnectivityLoaderManager::colorConnectivityData()
+{
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        
+        if (clf->isEmpty() == false) {
+            const float* data = clf->getData();
+            float* dataRGBA = clf->getDataRGBA();
+            const int32_t dataSize = clf->getNumberOfDataElements();
+            const DescriptiveStatistics* statistics = clf->getMapStatistics(0);
+            const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
+            
+            const AString paletteName = paletteColorMapping->getSelectedPaletteName();
+            Palette* palette = this->brain->getPaletteFile()->getPaletteByName(paletteName);
+            if (palette != NULL) {
+                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+                                                              paletteColorMapping, 
+                                                              palette, 
+                                                              data, 
+                                                              data, 
+                                                              dataSize, 
+                                                              dataRGBA);
+                
+                std::cout 
+                << "Connectivity Data Average/Min/Max: "
+                << statistics->getMean()
+                << " "
+                << statistics->getMostNegativeValue()
+                << " "
+                << statistics->getMostPositiveValue()
+                << std::endl;
+            }            
+        }
     }
 }
 
@@ -212,6 +285,33 @@ ConnectivityLoaderManager::reset()
     }
 }
 
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+ConnectivityLoaderManager::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
+        EventCaretMappableDataFilesGet* dataFilesEvent =
+        dynamic_cast<EventCaretMappableDataFilesGet*>(event);
+        CaretAssert(dataFilesEvent);
+        
+        for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+             iter != this->connectivityLoaderFiles.end();
+             iter++) {
+            ConnectivityLoaderFile* clf = *iter;
+            if (clf->isEmpty() == false) {
+                dataFilesEvent->addFile(*iter);
+            }
+        }
+        
+        dataFilesEvent->setEventProcessed();
+    } 
+}
 
 /**
  * Get a description of this object's content.

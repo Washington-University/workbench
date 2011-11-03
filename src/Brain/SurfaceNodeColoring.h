@@ -32,6 +32,7 @@ namespace caret {
 
     class BrainStructure;
     class BrowserTabContent;
+    class ConnectivityLoaderFile;
     class Palette;
     class PaletteColorMapping;
     class Surface;
@@ -64,6 +65,11 @@ namespace caret {
             METRIC_COLOR_TYPE_NEG_THRESH_COLOR,
             METRIC_COLOR_TYPE_DO_NOT_COLOR
         };        
+        
+        bool assignConnectivityColoring(BrainStructure* brainStructure,
+                                        ConnectivityLoaderFile* connectivityLoaderFile,
+                                        const int32_t numberOfNodes,
+                                        float* rgbv);
         
         bool assignLabelColoring(BrainStructure* brainStructure,
                                  const AString& labelColumnName,

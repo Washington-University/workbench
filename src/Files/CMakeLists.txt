@@ -69,6 +69,7 @@ VolumeFile.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti

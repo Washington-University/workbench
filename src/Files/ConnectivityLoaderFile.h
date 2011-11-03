@@ -33,6 +33,8 @@
 
 namespace caret {
 
+    class CiftiFile;
+    class CiftiInterface;
     class SurfaceFile;
     
     /// Loads rows/columns on demand from a CIFTI file
@@ -105,12 +107,42 @@ namespace caret {
         
         AString getCiftiTypeName() const;
         
-        void loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
+        void loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t nodeIndex) throw (DataFileException);
         
         void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
+        int32_t getNumberOfDataElements() const;
+        
+        float* getData();
+        
+        float* getDataRGBA();
+        
+        bool getSurfaceNodeColoring(const StructureEnum::Enum structure,
+                                    float* nodeRGBA,
+                                    const int32_t numberOfNodes);
+        
     private:
+        enum LoaderType {
+            LOADER_TYPE_INVALID,
+            LOADER_TYPE_DENSE,
+            LOADER_TYPE_DENSE_TIME_SERIES
+        };
+        
+        void clearData();
+        
+        void reset();
+        
+        void allocateData(const int32_t numberOfDataElements);
+        
+        void zeroizeData();
+        
+        LoaderType loaderType;
+        
+        CiftiFile* ciftiDiskFile;
+        
+        CiftiInterface* ciftiInterface;
+        
         DescriptiveStatistics* descriptiveStatistics;
         
         PaletteColorMapping* paletteColorMapping;
@@ -118,6 +150,10 @@ namespace caret {
         GiftiLabelTable* labelTable;
         
         GiftiMetaData* metadata;
+        
+        float* data;
+        float* dataRGBA;
+        int32_t numberOfDataElements;
     };
     
 } // namespace

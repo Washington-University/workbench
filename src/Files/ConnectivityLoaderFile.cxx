@@ -22,7 +22,11 @@
  * 
  */ 
 
+#include <algorithm>
+
+#include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CiftiFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabelTable.h"
@@ -39,13 +43,15 @@ using namespace caret;
 ConnectivityLoaderFile::ConnectivityLoaderFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE)
 {
-    this->descriptiveStatistics = new DescriptiveStatistics();
-    
-    this->paletteColorMapping = new PaletteColorMapping();
-    
-    this->labelTable = new GiftiLabelTable();
-    
-    this->metadata = new GiftiMetaData();
+    this->ciftiDiskFile = NULL;
+    this->ciftiInterface = NULL;
+    this->descriptiveStatistics = NULL;
+    this->paletteColorMapping = NULL;
+    this->labelTable = NULL;
+    this->metadata = NULL;
+    this->data = NULL;
+    this->dataRGBA = NULL;
+    this->loaderType = LOADER_TYPE_INVALID;
 }
 
 /**
@@ -53,10 +59,38 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
  */
 ConnectivityLoaderFile::~ConnectivityLoaderFile()
 {
-    delete this->descriptiveStatistics;
-    delete this->paletteColorMapping;
-    delete this->labelTable;
-    delete this->metadata;
+    this->clearData();
+}
+
+/**
+ * Clear all data in the file.
+ */
+void 
+ConnectivityLoaderFile::clearData()
+{
+    if (this->ciftiDiskFile != NULL) {
+        delete this->ciftiDiskFile;
+        this->ciftiDiskFile = NULL;
+    }
+    if (this->descriptiveStatistics != NULL) {
+        delete this->descriptiveStatistics;
+        this->descriptiveStatistics = NULL;
+    }
+    if (this->paletteColorMapping != NULL) {
+        delete this->paletteColorMapping;
+        this->paletteColorMapping = NULL;
+    }
+    if (this->labelTable != NULL) {
+        delete this->labelTable;
+        this->labelTable = NULL;
+    }
+    if (this->metadata != NULL) {
+        delete this->metadata;
+        this->metadata = NULL;
+    }
+    this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
+    this->loaderType = LOADER_TYPE_INVALID;
+    this->allocateData(0);
 }
 
 /**
@@ -66,6 +100,24 @@ void
 ConnectivityLoaderFile::clear()
 {
     CaretMappableDataFile::clear();
+    this->reset();
+}
+
+/**
+ * Reset this file.
+ * Clear all data and initialize needed data.
+ */
+void
+ConnectivityLoaderFile::reset()
+{
+    this->clearData();
+    this->descriptiveStatistics = new DescriptiveStatistics();
+    
+    this->paletteColorMapping = new PaletteColorMapping();
+    
+    this->labelTable = new GiftiLabelTable();
+    
+    this->metadata = new GiftiMetaData();    
 }
 
 /**
@@ -94,22 +146,34 @@ ConnectivityLoaderFile::setup(const AString& filename,
 {
     this->clear();
     
-    /*
-     * Make sure type is valid
-     */
-    std::vector<DataFileTypeEnum::Enum> connectivityDataTypes;
-    DataFileTypeEnum::getAllConnectivityEnums(connectivityDataTypes);
-    if (std::find(connectivityDataTypes.begin(),
-                  connectivityDataTypes.end(),
-                  connectivityFileType) == connectivityDataTypes.end()) {
-        const AString msg = "Unacceptable connectivity file type: "
-            + DataFileTypeEnum::toName(connectivityFileType);
-        throw DataFileException(msg);
+    switch (connectivityFileType) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            this->loaderType = LOADER_TYPE_DENSE;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            this->loaderType = LOADER_TYPE_DENSE_TIME_SERIES;
+            break;
+        default:
+            throw DataFileException("Unsupported connectivity type " 
+                                    + DataFileTypeEnum::toName(connectivityFileType));
+            break;
     }
     
-    this->setFileName(filename);
-    this->setDataFileType(connectivityFileType);
-    
+    try {
+        if (filename.startsWith("http://")) {
+            
+        }
+        else {
+            this->ciftiDiskFile = new CiftiFile();
+            this->ciftiDiskFile->openFile(filename, ON_DISK);
+            this->ciftiInterface = this->ciftiDiskFile;
+        }
+        this->setFileName(filename);
+        this->setDataFileType(connectivityFileType);
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatAString());
+    }    
 }
 
 /**
@@ -176,7 +240,7 @@ ConnectivityLoaderFile::setStructure(const StructureEnum::Enum structure)
 GiftiMetaData* 
 ConnectivityLoaderFile::getFileMetaData()
 {
-    return NULL;
+    return this->metadata;
 }
 
 /**
@@ -185,7 +249,7 @@ ConnectivityLoaderFile::getFileMetaData()
 const GiftiMetaData* 
 ConnectivityLoaderFile::getFileMetaData() const
 {
-    return NULL;
+    return this->metadata;
 }
 
 /**
@@ -222,7 +286,22 @@ ConnectivityLoaderFile::isVolumeMappable() const
 int32_t 
 ConnectivityLoaderFile::getNumberOfMaps() const
 {
-    return -1;
+    int32_t numMaps = 0;
+    
+    if (this->ciftiInterface != NULL) {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                numMaps = 1;
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+                numMaps = this->ciftiInterface->getRowSize();
+                break;
+        }
+    }
+    
+    return numMaps;
 }
 
 /**
@@ -281,7 +360,7 @@ ConnectivityLoaderFile::setMapName(const int32_t mapIndex,
 const GiftiMetaData* 
 ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex) const
 {
-    return NULL;
+    return this->metadata;
 }
 
 /**
@@ -295,7 +374,7 @@ ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex) const
 GiftiMetaData* 
 ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex)
 {
-    return NULL;
+    return this->metadata;
 }
 
 /**
@@ -311,6 +390,8 @@ ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex)
 const DescriptiveStatistics* 
 ConnectivityLoaderFile::getMapStatistics(const int32_t mapIndex)
 {
+    this->descriptiveStatistics->update(this->data, 
+                                        this->numberOfDataElements);
     return this->descriptiveStatistics;
 }
 
@@ -408,7 +489,7 @@ ConnectivityLoaderFile::getMapLabelTable(const int32_t /*mapIndex*/) const
 bool 
 ConnectivityLoaderFile::isDense() const
 {
-    return (this->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE);
+    return (this->loaderType == LOADER_TYPE_DENSE);
 }
 
 /**
@@ -417,7 +498,7 @@ ConnectivityLoaderFile::isDense() const
 bool 
 ConnectivityLoaderFile::isDenseTimeSeries() const
 {
-    return (this->getDataFileType() == DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
+    return (this->loaderType == LOADER_TYPE_DENSE_TIME_SERIES);
 }
 
 /**
@@ -426,20 +507,55 @@ ConnectivityLoaderFile::isDenseTimeSeries() const
 AString 
 ConnectivityLoaderFile::getCiftiTypeName() const
 {
-    if (this->isEmpty() == false) {
-        if (this->isDense()) {
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
             return "Dense";
-        }
-        else if (this->isDenseTimeSeries()) {
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
             return "Dense Time";
-        }
-        else {
-            return "Unknown Type";
-        }
+            break;
     }
-    else {
-        return "";
-    }
+    return "";
+}
+
+/**
+ * Allocate data.
+ * @param numberOfDataElements
+ *    Number of elements in the data.
+ */
+void 
+ConnectivityLoaderFile::allocateData(const int32_t numberOfDataElements)
+{
+    if (numberOfDataElements != this->numberOfDataElements) {
+        if (data != NULL) {
+            delete data;
+            this->data = NULL;
+        }
+        if (dataRGBA != NULL) {
+            delete this->dataRGBA;
+            this->dataRGBA = NULL;
+        }
+        
+        this->numberOfDataElements = numberOfDataElements;
+        
+        if (numberOfDataElements > 0) {
+            this->data = new float[this->numberOfDataElements];
+            this->dataRGBA = new float[this->numberOfDataElements * 4];
+        }
+    }    
+}
+
+/**
+ * Zero out the data such as when loading data fails.
+ */
+void 
+ConnectivityLoaderFile::zeroizeData()
+{
+    std::fill(this->data, 
+              this->data + this->numberOfDataElements,
+              0.0);    
 }
 
 /**
@@ -450,14 +566,46 @@ ConnectivityLoaderFile::getCiftiTypeName() const
  *    Index of node number.
  */
 void 
-ConnectivityLoaderFile::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex) throw (DataFileException)
+ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
+                                               const int32_t nodeIndex) throw (DataFileException)
 {
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
     std::cout << "Connectivity Load Surface: "
-    << surfaceFile->getFileName()
+    << StructureEnum::toGuiName(structure)
     << " Node: "
     << nodeIndex
     << std::endl;
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+            {
+                const int32_t num = this->ciftiInterface->getColumnSize();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->getRowFromNode(this->data, 
+                                                         nodeIndex,
+                                                         structure)) {
+                    std::cout << "Read row for node " << nodeIndex << std::endl;
+                }
+                else {
+                    std::cout << "FAILED to read row for node " << nodeIndex << std::endl;
+                    this->zeroizeData();
+                }
+            }
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatAString());
+    }
 }
 
 /**
@@ -468,9 +616,123 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
 void 
 ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
     std::cout << "Connectivity Load Voxel: "
     << AString::fromNumbers(xyz, 3, ", ")
     << std::endl;
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+            {
+                const int32_t num = this->ciftiInterface->getColumnSize();
+                this->allocateData(num);
+                
+                //                if (this->ciftiInterface->getRowFromVoxel(this->data, 
+                //                                                        nodeIndex,
+                //                                                        surfaceFile->getStructure())) {
+                //                    std::cout << "Read row for voxel " << AString::fromNumber(xyz, 3, ",") << std::endl;
+                //                }
+                //                else {
+                //                    std::cout << "FAILED to read row for voxel " << AString::fromNumber(xyz, 3, ",") << std::endl;
+                //                }
+            }
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatAString());
+    }
+}
+
+/**
+ * @return Number of elements in the data that was loaded.
+ */
+int32_t 
+ConnectivityLoaderFile::getNumberOfDataElements() const
+{
+    return this->numberOfDataElements;
+}
+
+/**
+ * @return Pointer to data that was loaded which contains
+ * "getNumberOfDataElements()" elements.
+ */
+float* 
+ConnectivityLoaderFile::getData()
+{
+    return this->data;
+}
+
+/**
+ * @return Pointer to RGBA coloring for data that was loaded which contains
+ * "getNumberOfDataElements() * 4" elements.
+ */
+float* 
+ConnectivityLoaderFile::getDataRGBA()
+{
+    return this->dataRGBA;
+}
+
+/**
+ * Get the node coloring for the surface.
+ * @param surface
+ *    Surface whose nodes are colored.
+ * @param nodeRGBA
+ *    Filled with RGBA coloring for the surface's nodes. 
+ *    Contains numberOfNodes * 4 elements.
+ * @param numberOfNodes
+ *    Number of nodes in the surface.
+ * @return 
+ *    True if coloring is valid, else false.
+ */
+bool 
+ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structure,
+                                               float* nodeRGBA,
+                                               const int32_t numberOfNodes)
+{
+    if (this->numberOfDataElements <= 0) {
+        return false;
+    }
+    
+    bool useColumnsFlag = false;
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            break;
+    }
+    
+    if (useColumnsFlag) {
+        std::vector<CiftiSurfaceMap> nodeMap;
+        this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
+        
+        std::fill(nodeRGBA, (nodeRGBA + (numberOfNodes * 4)), 0.0);
+        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
+        for (int i = 0; i < numNodeMaps; i++) {
+            const int64_t node4 = nodeMap[i].m_surfaceNode;
+            const int64_t cifti4 = nodeMap[i].m_ciftiIndex;
+            CaretAssertArrayIndex(nodeRGBA, (numberOfNodes * 4), node4);
+            CaretAssertArrayIndex(this->dataRGBA, (this->numberOfDataElements * 4), cifti4);
+            nodeRGBA[node4]   = this->dataRGBA[cifti4];
+            nodeRGBA[node4+1] = this->dataRGBA[cifti4+1];
+            nodeRGBA[node4+2] = this->dataRGBA[cifti4+2];
+            nodeRGBA[node4+3] = this->dataRGBA[cifti4+3];
+        }
+        return true;
+    }
+    
+    return false;
 }
 
 

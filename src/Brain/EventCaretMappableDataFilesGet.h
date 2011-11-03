@@ -30,6 +30,7 @@
 namespace caret {
 
     class CaretMappableDataFile;
+    class ConnectivityLoaderFile;
     class LabelFile;
     class MetricFile;
     class ModelDisplayController;
@@ -56,6 +57,9 @@ namespace caret {
          */
         const Surface* getSurface() const { return this->surface; }
         
+        /** @return Returns the connectivity loader files. */
+        std::vector<ConnectivityLoaderFile*> getConnectivityLoaderFiles() const { return this->connectivityLoaderFiles; }
+        
         /** @return Returns the label files. */
         std::vector<LabelFile*> getLabelFiles() const { return this->labelFiles; }
         
@@ -76,6 +80,8 @@ namespace caret {
         EventCaretMappableDataFilesGet& operator=(const EventCaretMappableDataFilesGet&);
         
         const Surface* surface;
+        
+        std::vector<ConnectivityLoaderFile*> connectivityLoaderFiles;
         
         std::vector<LabelFile*> labelFiles;
         

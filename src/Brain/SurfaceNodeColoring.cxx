@@ -31,6 +31,7 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ConnectivityLoaderFile.h"
 #include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
@@ -120,14 +121,31 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
     for (int32_t iOver = (numberOfDisplayedOverlays - 1); iOver >= 0; iOver--) {
         Overlay* overlay = overlaySet->getOverlay(iOver);
         if (overlay->isEnabled()) {
-            DataFileTypeEnum::Enum mapDataFileType;
+            std::vector<CaretMappableDataFile*> mapFiles;
+            CaretMappableDataFile* selectedMapFile;
             AString selectedMapName;
+            int32_t selectedMapIndex;
+            
             overlay->getSelectionData(browserTabContent,
-                                      mapDataFileType,
-                                      selectedMapName);
+                                      mapFiles,
+                                      selectedMapFile,
+                                      selectedMapName,
+                                      selectedMapIndex);
+            
+            DataFileTypeEnum::Enum mapDataFileType = DataFileTypeEnum::UNKNOWN;
+            if (selectedMapFile != NULL) {
+                mapDataFileType = selectedMapFile->getDataFileType();
+            }
             
             bool isColoringValid = false;
             switch (mapDataFileType) {
+                case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                {
+                    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(selectedMapFile);
+                    isColoringValid = this->assignConnectivityColoring(brainStructure, clf, numNodes, overlayRGBV);
+                }
+                    break;
                 case DataFileTypeEnum::LABEL:
                     isColoringValid = this->assignLabelColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
                     break;
@@ -320,6 +338,17 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
         CaretLogSevere("Selected palette for metric is invalid: \"" + paletteName + "\"");
     }
     return true;
+}
+
+bool 
+SurfaceNodeColoring::assignConnectivityColoring(BrainStructure* brainStructure,
+                                                ConnectivityLoaderFile* connectivityLoaderFile,
+                                                const int32_t numberOfNodes,
+                                                float* rgbv)
+{
+    return connectivityLoaderFile->getSurfaceNodeColoring(brainStructure->getStructure(), 
+                                                   rgbv, 
+                                                   numberOfNodes);
 }
 
 bool 

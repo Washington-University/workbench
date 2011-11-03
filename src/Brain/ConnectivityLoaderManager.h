@@ -28,17 +28,19 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
+#include "EventListenerInterface.h"
 
 namespace caret {
 
+    class Brain;
     class ConnectivityLoaderFile;
     class DataFileException;
     class SurfaceFile;
     
-    class ConnectivityLoaderManager : public CaretObject {
+    class ConnectivityLoaderManager : public CaretObject, public EventListenerInterface {
         
     public:
-        ConnectivityLoaderManager();
+        ConnectivityLoaderManager(Brain* brain);
         
         virtual ~ConnectivityLoaderManager();
         
@@ -61,6 +63,8 @@ namespace caret {
         
         void reset();
         
+        void receiveEvent(Event* event);
+        
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
         
     private:
@@ -72,6 +76,10 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void colorConnectivityData();
+        
+        Brain* brain;
+        
         typedef std::vector<ConnectivityLoaderFile*> LoaderContainer;
         typedef LoaderContainer::iterator LoaderContainerIterator;
         typedef LoaderContainer::const_iterator LoaderContainerConstIterator;

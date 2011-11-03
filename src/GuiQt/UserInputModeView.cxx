@@ -23,18 +23,24 @@
  * 
  */ 
 
+#include <QMessageBox>
+
 #define __USER_INPUT_MODE_VIEW_DECLARE__
 #include "UserInputModeView.h"
 #undef __USER_INPUT_MODE_VIEW_DECLARE__
 
+#include "Brain.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "ConnectivityLoaderManager.h"
 #include "EventInformationTextDisplay.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationManager.h"
 #include "MouseEvent.h"
 #include "ModelDisplayController.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -119,8 +125,23 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                          BrowserTabContent* browserTabContent,
                                          BrainOpenGLWidget* openGLWidget)
 {
+    ConnectivityLoaderManager* connMan = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    
     IdentificationManager* idManager =
         openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+    
+    const IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+    const Surface* surface = idNode->getSurface();
+    const int32_t nodeIndex = idNode->getNodeNumber();
+    if ((surface != NULL) &&
+        (nodeIndex >= 0)) {
+        try {
+            connMan->loadDataForSurfaceNode(surface, nodeIndex);
+        }
+        catch (DataFileException e) {
+            QMessageBox::critical(openGLWidget, "", e.whatString());
+        }
+    }
     
     const BrowserTabContent* btc = NULL;
     const AString idMessage = idManager->getIdentificationText(btc);

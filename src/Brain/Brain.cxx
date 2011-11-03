@@ -54,7 +54,7 @@ using namespace caret;
  */
 Brain::Brain()
 {
-    this->connectivityLoaderManager = new ConnectivityLoaderManager();
+    this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;

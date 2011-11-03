@@ -315,6 +315,9 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                 if (selectedSurfaceStructure == StructureEnum::ALL) {
                     useIt = true;
                 }
+                else if (mapFile->getStructure() == StructureEnum::ALL) {
+                    useIt = true;
+                }
                 else if (selectedSurfaceStructure == mapFile->getStructure()) {
                     useIt = true;
                 }

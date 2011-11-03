@@ -26,6 +26,7 @@
 
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "ConnectivityLoaderFile.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -75,6 +76,11 @@ EventCaretMappableDataFilesGet::addFile(CaretMappableDataFile* mapDataFile)
         return;
     }
     
+    ConnectivityLoaderFile* clf = dynamic_cast<ConnectivityLoaderFile*>(mapDataFile);
+    if (clf != NULL) {
+        this->connectivityLoaderFiles.push_back(clf);
+        return;
+    }
     LabelFile* lf = dynamic_cast<LabelFile*>(mapDataFile);
     if (lf != NULL) {
         this->labelFiles.push_back(lf);
@@ -113,6 +119,9 @@ EventCaretMappableDataFilesGet::getAllFiles(std::vector<CaretMappableDataFile*>&
 {
     allFilesOut.clear();
     
+    allFilesOut.insert(allFilesOut.end(), 
+                       this->connectivityLoaderFiles.begin(), 
+                       this->connectivityLoaderFiles.end());
     allFilesOut.insert(allFilesOut.end(), 
                        this->labelFiles.begin(), 
                        this->labelFiles.end());
