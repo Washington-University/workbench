@@ -26,6 +26,7 @@
 #include "CiftiXML.h"
 #include "CiftiFileException.h"
 #include "FloatMatrix.h"
+#include <cmath>
 
 using namespace caret;
 using namespace std;
