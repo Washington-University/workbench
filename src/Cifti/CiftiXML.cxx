@@ -484,26 +484,12 @@ int64_t CiftiXML::getRowIndexForVoxelCoordinate(const float* xyz) const
 
 int64_t CiftiXML::getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const
 {
-    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    float myStep;
+    if (!getTimestep(myStep, myMap))
     {
         return -1;
     }
-    float myTime;
-    switch (myMap->m_timeStepUnits)
-    {
-        case NIFTI_UNITS_SEC:
-            myTime = seconds;
-            break;
-        case NIFTI_UNITS_MSEC:
-            myTime = seconds * 1000.0f;
-            break;
-        case NIFTI_UNITS_USEC:
-            myTime = seconds * 1000000.0f;
-            break;
-        default:
-            throw CiftiFileException("Unknown units in cifti timestep");
-    };
-    float rawIndex = myTime / myMap->m_timeStep;
+    float rawIndex = seconds / myStep;
     int64_t ret = floor(rawIndex + 0.5f);
     if (ret < 0) return -1;//NOTE: ciftiXML doesn't know the size of a row/column, so doesn't know numberof timesteps, so we can't check that here
     return ret;
@@ -517,4 +503,37 @@ int64_t CiftiXML::getColumnIndexForTimepoint(const float seconds) const
 int64_t CiftiXML::getRowIndexForTimepoint(const float seconds) const
 {
     return getTimestepIndex(seconds, m_rowMap);
+}
+
+bool CiftiXML::getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const
+{
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    switch (myMap->m_timeStepUnits)
+    {
+        case NIFTI_UNITS_SEC:
+            seconds = myMap->m_timeStep;
+            break;
+        case NIFTI_UNITS_MSEC:
+            seconds = myMap->m_timeStep * 0.001f;
+            break;
+        case NIFTI_UNITS_USEC:
+            seconds = myMap->m_timeStep * 0.000001f;
+            break;
+        default:
+            throw CiftiFileException("Unknown units in cifti timestep");
+    };
+    return true;
+}
+
+bool CiftiXML::getColumnTimestep(float& seconds) const
+{
+    return getTimestep(seconds, m_colMap);
+}
+
+bool CiftiXML::getRowTimestep(float& seconds) const
+{
+    return getTimestep(seconds, m_rowMap);
 }

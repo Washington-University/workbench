@@ -177,6 +177,12 @@ namespace caret {
         
         ///get the original number of nodes of the surfaces used to make this cifti, for columns
         int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+        
+        ///get the timestep for rows, returns false if not timeseries
+        bool getRowTimestep(float& seconds) const;
+        
+        ///get the timestep for columns, returns false if not timeseries
+        bool getColumnTimestep(float& seconds) const;
 
     protected:
         CiftiRootElement m_root;
@@ -194,6 +200,7 @@ namespace caret {
         int64_t getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const;
+        bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, CiftiBrainModelElement* myModel, const int64_t numContig) const;
