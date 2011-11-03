@@ -102,6 +102,14 @@ namespace caret
         int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
         { return m_xml.getColumnSurfaceNumberOfNodes(structure); }
             
+        ///get the timestep for rows, returns false if not timeseries
+        bool getRowTimestep(float& seconds) const
+        { return m_xml.getRowTimestep(seconds); }
+        
+        ///get the timestep for columns, returns false if not timeseries
+        bool getColumnTimestep(float& seconds) const
+        { return m_xml.getColumnTimestep(seconds); }
+
     };
 }
 
