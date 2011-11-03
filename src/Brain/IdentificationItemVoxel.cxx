@@ -143,6 +143,13 @@ IdentificationItemVoxel::addVoxel(VolumeFile* volumeFile,
     this->voxelIJK.push_back(voxelIJK[1]);
     this->voxelIJK.push_back(voxelIJK[2]);
     this->depth.push_back(depth);
+    
+    /*
+     * Use first voxel for overall depth
+     */
+    if (this->volumeFiles.size() == 1) {
+        this->setScreenDepth(depth);
+    }
 }
 
 /**
@@ -161,7 +168,7 @@ IdentificationItemVoxel::isValid() const
 AString 
 IdentificationItemVoxel::toString() const
 {
-    AString text = "IdentificationItemVoxel";
+    AString text = "IdentificationItemVoxel\n";
     
     const int32_t numVolumes = static_cast<int32_t>(this->volumeFiles.size());
     text += IdentificationItem::toString() + "\n";
@@ -172,6 +179,8 @@ IdentificationItemVoxel::toString() const
                  + AString::number(this->voxelIJK[i3]) + ", "
                  + AString::number(this->voxelIJK[i3+1]) + ", "
                  + AString::number(this->voxelIJK[i3+2]) + "\n");
+        text += ("Depth: "
+                 + AString::number(this->depth[i]));
     }
     
     return text;
