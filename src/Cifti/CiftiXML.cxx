@@ -243,16 +243,16 @@ void CiftiXML::rootChanged()
     m_colMap = NULL;//first, invalidate everything
     m_colLeftSurfModel = NULL;
     m_colRightSurfModel = NULL;
-    m_colLeftSurfNodes = 0;
-    m_colRightSurfNodes = 0;
+    m_colLeftSurfNodes = -1;
+    m_colRightSurfNodes = -1;
     m_colLeftSurfContig = 0;
     m_colRightSurfContig = 0;
     m_colVoxels = 0;
     m_rowMap = NULL;
     m_rowLeftSurfModel = NULL;
     m_rowRightSurfModel = NULL;
-    m_rowLeftSurfNodes = 0;
-    m_rowRightSurfNodes = 0;
+    m_rowLeftSurfNodes = -1;
+    m_rowRightSurfNodes = -1;
     m_rowLeftSurfContig = 0;
     m_rowRightSurfContig = 0;
     m_rowVoxels = 0;
@@ -364,5 +364,47 @@ void CiftiXML::rootChanged()
                 }
             }
         }
+    }
+}
+
+int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const caret::StructureEnum::Enum structure) const
+{
+    bool left = false;
+    switch (structure)
+    {
+    case StructureEnum::CORTEX_LEFT:
+        left = true;
+        break;
+    case StructureEnum::CORTEX_RIGHT:
+        break;
+    default:
+        return -1;
+    };
+    if (left)
+    {
+        return m_colLeftSurfNodes;
+    } else {
+        return m_colRightSurfNodes;
+    }
+}
+
+int64_t CiftiXML::getRowSurfaceNumberOfNodes(const caret::StructureEnum::Enum structure) const
+{
+    bool left = false;
+    switch (structure)
+    {
+    case StructureEnum::CORTEX_LEFT:
+        left = true;
+        break;
+    case StructureEnum::CORTEX_RIGHT:
+        break;
+    default:
+        return -1;
+    };
+    if (left)
+    {
+        return m_rowLeftSurfNodes;
+    } else {
+        return m_rowRightSurfNodes;
     }
 }

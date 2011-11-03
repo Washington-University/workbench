@@ -79,6 +79,14 @@ namespace caret
         ///get the mapping for a surface in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const
         { return m_xml.getVolumeMapForColumns(mappingOut); }
+        
+        ///get the original number of nodes of the surfaces used to make this cifti, for rows
+        int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+        { return m_xml.getRowSurfaceNumberOfNodes(structure); }
+        
+        ///get the original number of nodes of the surfaces used to make this cifti, for columns
+        int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+        { return m_xml.getColumnSurfaceNumberOfNodes(structure); }
             
     };
 }
