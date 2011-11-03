@@ -788,7 +788,7 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                     VolumeFile* vf = NULL;
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
                     if (connLoadFile != NULL) {
-                        
+                        vf = connLoadFile->getRgbaVolumeFileWithVoxelColoring();  
                     }
                     else {
                         vf = dynamic_cast<VolumeFile*>(mapFile);
