@@ -53,12 +53,12 @@ namespace caret {
         
         virtual void reset();
         
+        virtual AString toString() const;
     private:
         IdentificationItemVoxel(const IdentificationItemVoxel&);
 
         IdentificationItemVoxel& operator=(const IdentificationItemVoxel&);
         
-    public:
     private:
         std::vector<VolumeFile*> volumeFiles;
         

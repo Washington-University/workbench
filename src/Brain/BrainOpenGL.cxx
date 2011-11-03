@@ -140,6 +140,26 @@ BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
                             browserTabContent, 
                             windowTabIndex, 
                             viewport);
+    
+    GLdouble selectionModelviewMatrix[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, selectionModelviewMatrix);
+    
+    GLdouble selectionProjectionMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, selectionProjectionMatrix);
+
+    const int viewportInt[4] = {
+        viewport[0],
+        viewport[1],
+        viewport[2],
+        viewport[3]
+    };
+    
+    this->identificationManager->filterSelections(mouseX, 
+                                                  mouseY, 
+                                                  selectionModelviewMatrix, 
+                                                  selectionProjectionMatrix, 
+                                                  viewportInt);
+    
 }
 
 /**

@@ -51,6 +51,7 @@ namespace caret {
         
         virtual void reset();
         
+        virtual AString toString() const;
     private:
         IdentificationItemSurfaceNode(const IdentificationItemSurfaceNode&);
 

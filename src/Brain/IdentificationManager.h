@@ -58,6 +58,14 @@ namespace caret {
         
         AString getIdentificationText(const BrowserTabContent* browserTabContent) const;
         
+        void filterSelections(const double selectionX,
+                              const double selectionY,
+                              const double selectionModelviewMatrix[16],
+                              const double selectionProjectionMatrix[16],
+                              const int selectionViewport[4]);
+        
+        void clearDistantSelections();
+        
     private:
         IdentificationManager(const IdentificationManager&);
 
@@ -67,7 +75,19 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        IdentificationItem* getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const;
+
+        /** ALL items */
         std::vector<IdentificationItem*> allIdentificationItems;
+        
+        /** Layered items (foci, borders, etc.) */
+        std::vector<IdentificationItem*> layeredSelectedItems;
+        
+        /** Surface items (nodes, triangles) */
+        std::vector<IdentificationItem*> surfaceSelectedItems;
+        
+        /** Volume items */
+        std::vector<IdentificationItem*> volumeSelectedItems;
         
         IdentificationItemSurfaceNode* surfaceNodeIdentification;
         

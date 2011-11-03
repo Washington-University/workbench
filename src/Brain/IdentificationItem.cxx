@@ -79,7 +79,9 @@ IdentificationItem::reset()
 AString 
 IdentificationItem::toString() const
 {
-    return "IdentificationItem";
+    AString text = "";
+    text += "Depth: " + AString::number(screenDepth); 
+    return text;
 }
 
 /**

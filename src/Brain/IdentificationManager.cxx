@@ -23,8 +23,16 @@
  * 
  */ 
 
+#ifdef CARET_OS_MACOSX
+#include <OpenGL/glu.h>
+#else
+#include <GL/glu.h>
+#endif
+#include <cmath>
+
 #include "BrainConstants.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 
 #define __IDENTIFICATION_MANAGER_DECLARE__
 #include "IdentificationManager.h"
@@ -34,6 +42,7 @@
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationTextGenerator.h"
+#include "Surface.h"
 
 using namespace caret;
 
@@ -59,6 +68,13 @@ IdentificationManager::IdentificationManager()
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
     this->allIdentificationItems.push_back(this->voxelIdentification);
     
+    this->surfaceSelectedItems.push_back(this->surfaceNodeIdentification);
+    this->surfaceSelectedItems.push_back(this->surfaceTriangleIdentification);
+    
+    //this->layeredSelectedItems.push_back();
+    
+    this->volumeSelectedItems.push_back(this->voxelIdentification);
+    
     this->idTextGenerator = new IdentificationTextGenerator();
 }
 
@@ -75,6 +91,205 @@ IdentificationManager::~IdentificationManager()
     this->voxelIdentification = NULL;
     delete this->idTextGenerator;
     this->idTextGenerator = NULL;
+}
+
+/**
+ * Filter selections to arbitrate between triangle/node
+ * and to remove any selections behind another selection.
+ * @param selectionX  Selection X.
+ * @param selectionY  Selection Y.
+ * @param selectionModelviewMatrix  Selection modelview matrix.
+ * @param selectionProjectionMatrix Selection projection matrix.
+ * @param selectionViewport         Selection viewport.
+ */
+void 
+IdentificationManager::filterSelections(const double selectionX,
+                                        const double selectionY,
+                                        const double selectionModelviewMatrix[],
+                                        const double selectionProjectionMatrix[],
+                                        const int selectionViewport[4])
+{
+    AString logText;
+    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
+         iter != this->allIdentificationItems.end();
+         iter++) {
+        IdentificationItem* item = *iter;
+        if (item->isValid()) {
+            logText += ("\n" + item->toString() + "\n");
+        }
+    }
+    CaretLogSevere("Selected Items BEFORE filtering: " + logText);
+    
+    
+    //
+    // If both a node and triangle are found
+    //
+    if ((this->surfaceNodeIdentification->getNodeNumber() >= 0) &&
+        (this->surfaceTriangleIdentification->getTriangleNumber() >= 0)) {
+        //
+        // Is triangle closer to user?
+        //
+        double depthDiff = this->surfaceNodeIdentification->getScreenDepth()
+        - this->surfaceNodeIdentification->getScreenDepth();
+        if (depthDiff > 0.00001) {
+            //
+            // Do not use node
+            //
+            this->surfaceNodeIdentification->reset();
+        }
+    }
+    
+    //
+    // Have a triangle ?
+    //
+    const int32_t triangleNumber = this->surfaceTriangleIdentification->getTriangleNumber();
+    if (triangleNumber >= 0) {
+        Surface* sf = this->surfaceTriangleIdentification->getSurface();
+        if (sf != NULL) {
+            //
+            // Find node in triangle closest to cursor
+            //
+            int32_t nearestNode = -1;
+            double nearestDistance = std::numeric_limits<float>::max();
+            const int32_t* triangleNodes = sf->getTriangle(triangleNumber);
+            for (int in = 0; in < 3; in++) {
+                int nodeNum = triangleNodes[in];
+                const float* xyz = sf->getCoordinate(nodeNum);
+                double windowPos[3];
+                if (gluProject(xyz[0], 
+                                   xyz[1], 
+                                   xyz[2],
+                                   selectionModelviewMatrix,
+                                   selectionProjectionMatrix,
+                                   selectionViewport,
+                                   &windowPos[0],
+                                   &windowPos[1],
+                                   &windowPos[2])) {
+                    double dx = windowPos[0] - selectionX;
+                    double dy = windowPos[1] - selectionY;
+                    double dist = std::sqrt(dx*dx + dy*dy);
+                    if (dist < nearestDistance) {
+                        nearestNode = nodeNum;
+                        nearestDistance = dist;
+                    }
+                }
+            }
+            
+            //
+            // If no node, use node in nearest triangle
+            //
+            if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
+                if (nearestNode >= 0) {
+                    CaretLogFine("Switched node to triangle.");
+                    this->surfaceNodeIdentification->setNodeNumber(nearestNode);
+                    this->surfaceNodeIdentification->setScreenDepth(nearestDistance);
+                    this->surfaceNodeIdentification->setSurface(sf);
+                    this->surfaceNodeIdentification->setBrain(this->surfaceTriangleIdentification->getBrain());
+                }
+            }
+        }
+    }
+    
+    this->clearDistantSelections();
+    
+    logText = "";
+    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
+         iter != this->allIdentificationItems.end();
+         iter++) {
+        IdentificationItem* item = *iter;
+        if (item->isValid()) {
+            logText += ("\n" + item->toString() + "\n");
+        }
+    }
+    CaretLogSevere("Selected Items AFTER filtering: " + logText);
+}
+
+/**
+ * Examine the selection groups and manipulate them
+ * so that there are not items selected in more
+ * than one group.
+ */
+void 
+IdentificationManager::clearDistantSelections()
+{
+    std::vector<std::vector<IdentificationItem*>* > itemGroups;
+    /*
+     * Make layers items slightly closer since they are 
+     * often pasted onto the surface.
+     */
+    for (std::vector<IdentificationItem*>::iterator iter = this->layeredSelectedItems.begin();
+         iter != this->layeredSelectedItems.end();
+         iter++) {
+        IdentificationItem* item = *iter;
+        item->setScreenDepth(item->getScreenDepth()* 0.99);
+    }
+
+    
+    itemGroups.push_back(&this->layeredSelectedItems);
+    itemGroups.push_back(&this->surfaceSelectedItems);
+    itemGroups.push_back(&this->volumeSelectedItems);
+    
+    std::vector<IdentificationItem*>* minDepthGroup = NULL;
+    double minDepth = std::numeric_limits<double>::max();
+    for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
+         iter != itemGroups.end();
+         iter++) {
+        std::vector<IdentificationItem*>* group = *iter;
+        IdentificationItem* minDepthItem =
+        this->getMinimumDepthFromMultipleSelections(*group);
+        if (minDepthItem != NULL) {
+            double md = minDepthItem->getScreenDepth();
+            if (md < minDepth) {
+                minDepthGroup = group;
+                minDepth = md;
+            }
+        }
+    }
+    
+    if (minDepthGroup != NULL) {
+        for (std::vector<std::vector<IdentificationItem*>* >::iterator iter = itemGroups.begin();
+             iter != itemGroups.end();
+             iter++) {
+            std::vector<IdentificationItem*>* group = *iter;
+            if (group != minDepthGroup) {
+                for (std::vector<IdentificationItem*>::iterator iter = group->begin();
+                     iter != group->end();
+                     iter++) {
+                    IdentificationItem* item = *iter;
+                    item->reset();
+                }
+            }
+        }
+    }
+}
+
+/**
+ * From the list of selectable items, find the item with the 
+ * minimum depth.
+ * @param items  List of selectable items.
+ * @return  Reference to selectable item with the minimum depth
+ * or NULL if no valid selectable items in the list.
+ */
+IdentificationItem* 
+IdentificationManager::getMinimumDepthFromMultipleSelections(std::vector<IdentificationItem*> items) const
+{
+    double minDepth = std::numeric_limits<double>::max();
+    
+    IdentificationItem* minDepthItem = NULL;
+    
+    for (std::vector<IdentificationItem*>::iterator iter = items.begin();
+         iter != items.end();
+         iter++) {
+        IdentificationItem* item = *iter;
+        if (item->isValid()) {
+            if (item->getScreenDepth() < minDepth) {
+                minDepthItem = item;
+                minDepth = item->getScreenDepth();
+            }
+        }
+    }
+    
+    return minDepthItem;
 }
 
 /**

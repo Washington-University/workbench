@@ -27,6 +27,8 @@
 #include "IdentificationItemSurfaceNode.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__
 
+#include "Surface.h"
+
 using namespace caret;
 
 /**
@@ -116,3 +118,16 @@ IdentificationItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
     this->nodeNumber = nodeNumber;
 }
 
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString 
+IdentificationItemSurfaceNode::toString() const
+{
+    AString text = "IdentificationItemSurfaceNode\n";
+    text += IdentificationItem::toString() + "\n";
+    text += "Surface: " + surface->getFileNameNoPath() + "\n";
+    text += "Node: " + AString::number(this->nodeNumber);
+    return text;
+}

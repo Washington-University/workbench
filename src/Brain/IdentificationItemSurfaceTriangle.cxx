@@ -27,6 +27,8 @@
 #include "IdentificationItemSurfaceTriangle.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
 
+#include "Surface.h"
+
 using namespace caret;
 
 /**
@@ -115,5 +117,20 @@ IdentificationItemSurfaceTriangle::setTriangleNumber(const int32_t triangleNumbe
 {
     this->triangleNumber = triangleNumber;
 }
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString 
+IdentificationItemSurfaceTriangle::toString() const
+{
+    AString text = "IdentificationItemSurfaceTriangle\n";
+    text += IdentificationItem::toString() + "\n";
+    text += "Surface: " + surface->getFileNameNoPath() + "\n";
+    text += "Triangle: " + AString::number(this->triangleNumber);
+    return text;
+}
+
 
 

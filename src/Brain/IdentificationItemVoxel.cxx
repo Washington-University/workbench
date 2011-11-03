@@ -28,6 +28,7 @@
 #undef __IDENTIFICATION_ITEM_VOXEL_DECLARE__
 
 #include "CaretAssert.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -150,7 +151,30 @@ IdentificationItemVoxel::addVoxel(VolumeFile* volumeFile,
 bool 
 IdentificationItemVoxel::isValid() const
 {
-    return (this->getNumberOfIdentifiedVoxels() >= 0);
+    return (this->getNumberOfIdentifiedVoxels() > 0);
+}
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString 
+IdentificationItemVoxel::toString() const
+{
+    AString text = "IdentificationItemVoxel";
+    
+    const int32_t numVolumes = static_cast<int32_t>(this->volumeFiles.size());
+    text += IdentificationItem::toString() + "\n";
+    for (int32_t i = 0; i < numVolumes; i++) {
+        text += "Volume: " + this->volumeFiles[i]->getFileNameNoPath() + "\n";
+        const int32_t i3 = i * 3;
+        text += ("Voxel: " 
+                 + AString::number(this->voxelIJK[i3]) + ", "
+                 + AString::number(this->voxelIJK[i3+1]) + ", "
+                 + AString::number(this->voxelIJK[i3+2]) + "\n");
+    }
+    
+    return text;
 }
 
 

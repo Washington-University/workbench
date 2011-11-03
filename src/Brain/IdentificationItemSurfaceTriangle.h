@@ -51,12 +51,12 @@ namespace caret {
         
         virtual void reset();
         
+        virtual AString toString() const;
     private:
         IdentificationItemSurfaceTriangle(const IdentificationItemSurfaceTriangle&);
 
         IdentificationItemSurfaceTriangle& operator=(const IdentificationItemSurfaceTriangle&);
         
-    public:
     private:
         Surface* surface;
         
