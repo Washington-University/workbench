@@ -156,7 +156,7 @@ MetricFile::initializeMembersMetricFile()
  *    File that is copied.
  */
 void 
-MetricFile::copyHelperMetricFile(const MetricFile& sf)
+MetricFile::copyHelperMetricFile(const MetricFile& /*sf*/)
 {
     this->validateDataArraysAfterReading();
 }

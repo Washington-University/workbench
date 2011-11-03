@@ -1490,11 +1490,14 @@ BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
  */
 void 
 BrainOpenGL::checkForOpenGLError(const ModelDisplayController* modelController,
-                                      const AString& msg)
+                                      const AString& msgIn)
 {
     GLenum errorCode = glGetError();
     if (errorCode != GL_NO_ERROR) {
         AString msg;
+        if (msgIn.isEmpty() == false) {
+            msg += (msgIn + "\n");
+        }
         msg += ("OpenGL Error: " + AString((char*)gluErrorString(errorCode)) + "\n");
         msg += ("OpenGL Version: " + AString((char*)glGetString(GL_VERSION)) + "\n");
         msg += ("OpenGL Vendor:  " + AString((char*)glGetString(GL_VENDOR)) + "\n");

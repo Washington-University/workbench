@@ -71,7 +71,7 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  */
 AString 
 IdentificationTextGenerator::createIdentificationText(const IdentificationManager* idManager,
-                                                      const BrowserTabContent* browserTabConent) const
+                                                      const BrowserTabContent* /*browserTabConent*/) const
 {
     IdentificationStringBuilder idText;
     

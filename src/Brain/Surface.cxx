@@ -78,7 +78,15 @@ Surface::operator=(const Surface& s)
 AString 
 Surface::getNameForGUI(bool includeStructureFlag) const
 {
-    return    "Surface::getNameForGUI_NOT_IMPLEMENTED";
+    AString msg;
+    if (includeStructureFlag) {
+        msg += StructureEnum::toGuiName(this->getStructure());
+        msg += " ";
+    }
+    msg += SurfaceTypeEnum::toGuiName(this->getSurfaceType());
+    msg += " ";
+    msg += this->getFileNameNoPath();
+    return msg;
 }
 
 /**
@@ -107,7 +115,7 @@ Surface::initializeMemberSurface()
  * Helps with copying this surface.
  */
 void 
-Surface::copyHelperSurface(const Surface& s)
+Surface::copyHelperSurface(const Surface& /*s*/)
 {
     this->initializeMemberSurface();
     this->computeNormals();

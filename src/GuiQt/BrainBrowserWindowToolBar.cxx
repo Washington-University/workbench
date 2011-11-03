@@ -1011,7 +1011,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->orientationWidget->isHidden()) {
         return;
@@ -1295,7 +1295,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->volumeIndicesWidget->isHidden()) {
         return;
@@ -1391,7 +1391,7 @@ BrainBrowserWindowToolBar::createToolsWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->toolsWidget->isHidden()) {
         return;
@@ -1454,7 +1454,7 @@ BrainBrowserWindowToolBar::createWindowWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->windowWidget->isHidden()) {
         return;
@@ -1595,7 +1595,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->volumeMontageWidget->isHidden()) {
         return;
@@ -1786,7 +1786,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* browserTabContent)
+BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserTabContent*/)
 {
     if (this->volumePlaneWidget->isHidden()) {
         return;
@@ -1855,7 +1855,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
                                             QWidget* childWidget,
                                             const WidgetPlacement verticalBarPlacement,
                                             const WidgetPlacement contentPlacement,
-                                            const int horizontalStretching)
+                                            const int /*horizontalStretching*/)
 {
     //QLabel* nameLabel = new QLabel("<html><b>" + name + "<b></html>");
     QLabel* nameLabel = new QLabel("<html>" + name + "</html>");
@@ -1956,7 +1956,7 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
  * Called when orientation left button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -1972,7 +1972,7 @@ BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool checked)
  * Called when orientation right button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -1988,7 +1988,7 @@ BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool checked)
  * Called when orientation anterior button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -2004,7 +2004,7 @@ BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool checked)
  * Called when orientation posterior button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -2020,7 +2020,7 @@ BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool checked)
  * Called when orientation dorsal button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -2036,7 +2036,7 @@ BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool checked)
  * Called when orientation ventral button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -2052,7 +2052,7 @@ BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool checked)
  * Called when orientation reset button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getDisplayedModelController();
@@ -2069,7 +2069,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool checked)
  * Called when orientation user view one button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool /*checked*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2079,7 +2079,7 @@ BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool checke
  * Called when orientation user view one button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool /*checked*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2099,7 +2099,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
  * Called when orientation user view selection is made from the menu.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* action)
+BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* /*action*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2109,7 +2109,7 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAct
  * Called when the whole brain surface type combo box is changed.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int indx)
+BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2139,7 +2139,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int indx)
  * Called when whole brain surface left check box is toggled.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::wholeBrainSurfaceLeftCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2181,7 +2181,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumMenuTriggered(QAction*)
  * Called when whole brain surface right checkbox is toggled.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2202,7 +2202,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceRightCheckBoxStateChanged(int state)
  * Called when whole brain cerebellum check box is toggled.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2223,7 +2223,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceCerebellumCheckBoxStateChanged(int s
  * Called when whole brain separation left/right spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double d)
+BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double /*d*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2245,7 +2245,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationLeftRightSpinBoxValueChang
  * Called when whole brain left&right/cerebellum spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double d)
+BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double /*d*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2293,7 +2293,7 @@ BrainBrowserWindowToolBar::volumeIndicesResetActionTriggered()
  * Called when volume indices parasagittal check box is toggled.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2314,7 +2314,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalCheckBoxStateChanged(int sta
  * Called when volume indices coronal check box is toggled.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2335,7 +2335,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalCheckBoxStateChanged(int state)
  * Called when volume indices axial check box is toggled.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2356,7 +2356,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialCheckBoxStateChanged(int state)
  * Called when volume indices parasagittal spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2390,7 +2390,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int i)
  * Called when volume indices coronal spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2424,7 +2424,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int i)
  * Called when volume indices axial spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2458,7 +2458,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int i)
  * Called when window yoke to tab combo box is selected.
  */
 void 
-BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
+BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int /*indx*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2468,7 +2468,7 @@ BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
  * Called when yoke mirrored checkbox is toggled.
  */
 void 
-BrainBrowserWindowToolBar::windowYokeMirroredCheckBoxStateChanged(int state)
+BrainBrowserWindowToolBar::windowYokeMirroredCheckBoxStateChanged(int /*state*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2583,7 +2583,7 @@ BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
  * Called when volume reset slice view button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool checked)
+BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2604,7 +2604,7 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool checked)
  * Called when montage rows spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2624,7 +2624,7 @@ BrainBrowserWindowToolBar::montageRowsSpinBoxValueChanged(int i)
  * Called when montage columns spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2643,7 +2643,7 @@ BrainBrowserWindowToolBar::montageColumnsSpinBoxValueChanged(int i)
  * Called when montage spacing spin box value is changed.
  */
 void 
-BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int i)
+BrainBrowserWindowToolBar::montageSpacingSpinBoxValueChanged(int /*i*/)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2668,13 +2668,13 @@ BrainBrowserWindowToolBar::checkUpdateCounter()
 }
 
 void 
-BrainBrowserWindowToolBar::incrementUpdateCounter(const char* methodName)
+BrainBrowserWindowToolBar::incrementUpdateCounter(const char* /*methodName*/)
 {
     this->updateCounter++;
 }
 
 void 
-BrainBrowserWindowToolBar::decrementUpdateCounter(const char* methodName)
+BrainBrowserWindowToolBar::decrementUpdateCounter(const char* /*methodName*/)
 {
     this->updateCounter--;
 }

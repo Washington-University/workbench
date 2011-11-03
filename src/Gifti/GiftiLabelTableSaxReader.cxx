@@ -154,7 +154,7 @@ GiftiLabelTableSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 GiftiLabelTableSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& qName) throw (XmlSaxParserException)
+                                       const AString& /*qName*/) throw (XmlSaxParserException)
 {
    switch (state) {
       case STATE_NONE:

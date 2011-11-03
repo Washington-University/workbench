@@ -352,8 +352,8 @@ SurfaceNodeColoring::assignConnectivityColoring(BrainStructure* brainStructure,
 }
 
 bool 
-SurfaceNodeColoring::assignRgbaColoring(BrainStructure* brainStructure, 
-                                        const AString& rgbaColumnName,
+SurfaceNodeColoring::assignRgbaColoring(BrainStructure* /*brainStructure*/, 
+                                        const AString& /*rgbaColumnName*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)
 {

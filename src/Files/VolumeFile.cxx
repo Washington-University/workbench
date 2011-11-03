@@ -714,7 +714,7 @@ VolumeFile::isMappedWithPalette() const
  *    not mapped using a palette).
  */         
 PaletteColorMapping* 
-VolumeFile::getMapPaletteColorMapping(const int32_t mapIndex)
+VolumeFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
 {
     /*
      * Use one palette for all bricks

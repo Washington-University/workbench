@@ -153,9 +153,9 @@ public:
     
     void setX(const float x);
     
-    void setY(const float x);
+    void setY(const float y);
     
-    void setZ(const float x);
+    void setZ(const float z);
     
     void setXYZ(const float xyz[3]);
     

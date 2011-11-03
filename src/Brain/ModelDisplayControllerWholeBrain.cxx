@@ -353,9 +353,9 @@ ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTa
  *
  */
 AString
-ModelDisplayControllerWholeBrain::getNameForGUI(const bool includeStructureFlag) const
+ModelDisplayControllerWholeBrain::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
-    return "ModelDisplayControllerWholeBrain::getNameForGUI_NEEDS_IMPLEMENTATION";
+    return "Whole Brain";
 }
 
 /**

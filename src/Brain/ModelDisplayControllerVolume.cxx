@@ -77,9 +77,9 @@ ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
  *
  */
 AString
-ModelDisplayControllerVolume::getNameForGUI(const bool includeStructureFlag) const
+ModelDisplayControllerVolume::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
-    return "ModelDisplayControllerVolume::getNameForGUI_NEEDS_IMPLEMENTATION";
+    return "Volume";
 }
 
 /**

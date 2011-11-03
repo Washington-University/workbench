@@ -63,7 +63,7 @@ void
 GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
                                          const AString& /* localName */,
                                          const AString& qName,
-                                         const XmlAttributes& attributes)  throw (XmlSaxParserException)
+                                         const XmlAttributes& /*attributes*/)  throw (XmlSaxParserException)
 {
    const STATE previousState = this->state;
    switch (this->state) {
@@ -137,7 +137,7 @@ GiftiMetaDataSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 GiftiMetaDataSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& qName) throw (XmlSaxParserException)
+                                       const AString& /*qName*/) throw (XmlSaxParserException)
 {
 
    switch (state) {

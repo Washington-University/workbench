@@ -683,6 +683,7 @@ NiftiTimeUnitsEnum::NiftiTimeUnitsEnum(
         const AString& name)
 {
     this->e = e;
+    this->integerCode = integerCode;
     this->name = name;
 }
 

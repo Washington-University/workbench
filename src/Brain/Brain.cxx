@@ -484,7 +484,7 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
  *    If reading failed.
  */
 void 
-Brain::readBorderProjectionFile(const AString& filename) throw (DataFileException)
+Brain::readBorderProjectionFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: border projection");
 }
@@ -498,7 +498,7 @@ Brain::readBorderProjectionFile(const AString& filename) throw (DataFileExceptio
  *    If reading failed.
  */
 void 
-Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
+Brain::readConnectivityFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: connectivity");
 }
@@ -512,7 +512,7 @@ Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readFociProjectionFile(const AString& filename) throw (DataFileException)
+Brain::readFociProjectionFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: foci projection");
 }
@@ -526,7 +526,7 @@ Brain::readFociProjectionFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readPaletteFile(const AString& filename) throw (DataFileException)
+Brain::readPaletteFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: palette");
 }
@@ -540,7 +540,7 @@ Brain::readPaletteFile(const AString& filename) throw (DataFileException)
  *    If reading failed.
  */
 void 
-Brain::readSceneFile(const AString& filename) throw (DataFileException)
+Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: scene");
 }

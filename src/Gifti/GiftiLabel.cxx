@@ -605,7 +605,7 @@ GiftiLabel::setX(const float x)
  *    New value for Y-coordinate.
  */
 void 
-GiftiLabel::setY(const float x)
+GiftiLabel::setY(const float y)
 {
     this->y = y;
     this->setModified();
@@ -617,7 +617,7 @@ GiftiLabel::setY(const float x)
  *    New value for Z-coordinate.
  */
 void 
-GiftiLabel::setZ(const float x)
+GiftiLabel::setZ(const float z)
 {
     this->z = z;
     this->setModified();

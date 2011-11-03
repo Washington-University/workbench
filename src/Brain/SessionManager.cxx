@@ -157,7 +157,7 @@ SessionManager::get()
  * @return New brain that was added.
  */
 Brain* 
-SessionManager::addBrain(const bool shareDisplayPropertiesFlag)
+SessionManager::addBrain(const bool /*shareDisplayPropertiesFlag*/)
 {
     CaretAssertMessage(0, "Adding brains not implemented at this time.");
     return NULL;

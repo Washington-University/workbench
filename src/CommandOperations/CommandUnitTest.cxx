@@ -60,7 +60,7 @@ CommandUnitTest::~CommandUnitTest()
  *   If there is an error in the parameters.
  */
 void 
-CommandUnitTest::executeOperation(ProgramParameters& parameters) throw (CommandException,
+CommandUnitTest::executeOperation(ProgramParameters& /*parameters*/) throw (CommandException,
                                                                ProgramParametersException)
 {
     std::ostream* stream = &std::cout;

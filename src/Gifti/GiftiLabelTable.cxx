@@ -1018,7 +1018,7 @@ GiftiLabelTable::toString() const
 AString
 GiftiLabelTable::toFormattedString(const AString& indentation)
 {
-    return this->toString();
+    return (indentation + this->toString());
 }
 
 /**
@@ -1042,9 +1042,10 @@ GiftiLabelTable::readFromXMLDOM(const Node* rootNode)
  *
  */
 void
-GiftiLabelTable::readFromXmlString(const AString& s)
+GiftiLabelTable::readFromXmlString(const AString& /*s*/)
             throw (GiftiException)
 {
+    CaretAssertMessage(0, "Not implemented yet!");
 }
 
 /**

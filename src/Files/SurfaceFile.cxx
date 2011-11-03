@@ -285,7 +285,7 @@ SurfaceFile::initializeMembersSurfaceFile()
  *    File that is copied.
  */
 void 
-SurfaceFile::copyHelperSurfaceFile(const SurfaceFile& sf)
+SurfaceFile::copyHelperSurfaceFile(const SurfaceFile& /*sf*/)
 {
     this->validateDataArraysAfterReading();
 }

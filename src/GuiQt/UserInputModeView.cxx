@@ -123,7 +123,7 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
  */
 void 
 UserInputModeView::processIdentification(MouseEvent* mouseEvent,
-                                         BrowserTabContent* browserTabContent,
+                                         BrowserTabContent* /*browserTabContent*/,
                                          BrainOpenGLWidget* openGLWidget)
 {
     ConnectivityLoaderManager* connMan = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
@@ -170,7 +170,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 void 
 UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrowserTabContent* browserTabContent,
-                                                  BrainOpenGLWidget* openGLWidget)
+                                                  BrainOpenGLWidget* /*openGLWidget*/)
 {
     ModelDisplayController* modelController = browserTabContent->getDisplayedModelController();
     if (modelController != NULL) {

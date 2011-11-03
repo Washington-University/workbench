@@ -174,7 +174,7 @@ LabelFile::initializeMembersLabelFile()
  *    File that is copied.
  */
 void 
-LabelFile::copyHelperLabelFile(const LabelFile& sf)
+LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
 {
     this->validateDataArraysAfterReading();
 }
