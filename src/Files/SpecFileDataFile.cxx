@@ -60,6 +60,7 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
  *    Object of this type that is copied.
  */
 SpecFileDataFile::SpecFileDataFile(const SpecFileDataFile& sfdf)
+: CaretObject(sfdf)
 {
     this->copyHelper(sfdf);
 }

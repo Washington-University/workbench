@@ -62,7 +62,7 @@ Palette::~Palette()
  * @param Object that is copied.
  */
 Palette::Palette(const Palette& o)
-    : CaretObject(o)
+    : CaretObject(o), TracksModificationInterface()
 {
     this->initializeMembersPalette();
     this->copyHelper(o);

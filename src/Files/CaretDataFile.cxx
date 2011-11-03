@@ -84,6 +84,7 @@ CaretDataFile::setDataFileType(const DataFileTypeEnum::Enum dataFileType)
  *    Instance that is copied to this.
  */
 CaretDataFile::CaretDataFile(const CaretDataFile& cdf)
+: DataFile(cdf)
 {
     this->copyDataCaretDataFile(cdf);
 }

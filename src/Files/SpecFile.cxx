@@ -72,6 +72,7 @@ SpecFile::~SpecFile()
  *    Spec file whose data is copied.
  */
 SpecFile::SpecFile(const SpecFile& sf)
+: DataFile(sf)
 {
     this->initializeSpecFile();
     this->copyHelperSpecFile(sf);

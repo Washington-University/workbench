@@ -56,7 +56,7 @@ PaletteScalarAndColor::~PaletteScalarAndColor()
  * @param Object that is copied.
  */
 PaletteScalarAndColor::PaletteScalarAndColor(const PaletteScalarAndColor& o)
-    : CaretObject(o)
+    : CaretObject(o), TracksModificationInterface()
 {
     this->initializeMembersPaletteScalarAndColor();
     this->copyHelper(o);
