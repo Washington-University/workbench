@@ -33,6 +33,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -130,13 +131,15 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     IdentificationManager* idManager =
         openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
     
+    bool haveConnectivityDataFlag = false;
+    
     const IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
     const Surface* surface = idNode->getSurface();
     const int32_t nodeIndex = idNode->getNodeNumber();
     if ((surface != NULL) &&
         (nodeIndex >= 0)) {
         try {
-            connMan->loadDataForSurfaceNode(surface, nodeIndex);
+            haveConnectivityDataFlag = connMan->loadDataForSurfaceNode(surface, nodeIndex);
         }
         catch (DataFileException e) {
             QMessageBox::critical(openGLWidget, "", e.whatString());
@@ -148,6 +151,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     
     EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
                                                                EventInformationTextDisplay::TYPE_HTML).getPointer());
+
+    if (haveConnectivityDataFlag) {
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }
 
 /**

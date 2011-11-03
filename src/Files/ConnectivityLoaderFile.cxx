@@ -720,8 +720,8 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         std::fill(nodeRGBA, (nodeRGBA + (numberOfNodes * 4)), 0.0);
         const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
         for (int i = 0; i < numNodeMaps; i++) {
-            const int64_t node4 = nodeMap[i].m_surfaceNode;
-            const int64_t cifti4 = nodeMap[i].m_ciftiIndex;
+            const int64_t node4 = nodeMap[i].m_surfaceNode * 4;
+            const int64_t cifti4 = nodeMap[i].m_ciftiIndex * 4;
             CaretAssertArrayIndex(nodeRGBA, (numberOfNodes * 4), node4);
             CaretAssertArrayIndex(this->dataRGBA, (this->numberOfDataElements * 4), cifti4);
             nodeRGBA[node4]   = this->dataRGBA[cifti4];

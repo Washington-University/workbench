@@ -56,10 +56,10 @@ namespace caret {
         
         void removeConnectivityLoaderFile(const ConnectivityLoaderFile* clf);
         
-        void loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
+        bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex) throw (DataFileException);
         
-        void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         void reset();
         

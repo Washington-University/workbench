@@ -181,8 +181,10 @@ ConnectivityLoaderManager::removeConnectivityLoaderFile(const ConnectivityLoader
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @return
+ *    true if any connectivity loaders are active, else false.
  */
-void 
+bool 
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                             const int32_t nodeIndex) throw (DataFileException)
 {
@@ -201,14 +203,18 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
         this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
+    
+    return haveData;
 }
 
 /**
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
+ * @return
+ *    true if any connectivity loaders are active, else false.
  */
-void 
+bool 
 ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     bool haveData = false;
@@ -226,6 +232,8 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) thro
         this->colorConnectivityData();
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
+    
+    return haveData;
 }
 
 void 
