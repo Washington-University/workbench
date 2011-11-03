@@ -29,6 +29,7 @@
 #include <GL/glu.h>
 #endif
 #include <cmath>
+#include <limits>
 
 #include "BrainConstants.h"
 #include "CaretAssert.h"
