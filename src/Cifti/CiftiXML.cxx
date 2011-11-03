@@ -115,7 +115,7 @@ int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const caret::CiftiMatrixInd
             {
                 if ((ijk[0] == (int64_t)myVoxels[j]) && (ijk[1] == (int64_t)myVoxels[j + 1]) && (ijk[2] == (int64_t)myVoxels[j + 2]))
                 {
-                    return j / 3;
+                    return myMap->m_brainModels[i].m_indexOffset + j / 3;
                 }
             }
         }
@@ -417,10 +417,6 @@ int64_t CiftiXML::getRowSurfaceNumberOfNodes(const caret::StructureEnum::Enum st
 
 int64_t CiftiXML::getVolumeIndex(const float* xyz, const caret::CiftiMatrixIndicesMapElement* myMap) const
 {
-    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
-    {
-        return -1;
-    }
     if (m_root.m_matrices.size() == 0)
     {
         throw CiftiFileException("No matrices defined in cifti extension");
@@ -471,24 +467,9 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const caret::CiftiMatrixIndic
     ijk[1] = floor(myIndices[1][0] + 0.5f);
     ijk[2] = floor(myIndices[2][0] + 0.5f);
     if (ijk[0] < 0 || ijk[0] >= (int64_t)myVol.m_volumeDimensions[0]) return -1;//some shortcuts to not search all the voxels on invalid coords
-    if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;
+    if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;//should this be added to the other voxel index function?
     if (ijk[2] < 0 || ijk[2] >= (int64_t)myVol.m_volumeDimensions[2]) return -1;
-    for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
-    {
-        if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
-        {
-            const vector<voxelIndexType>& myVoxels = myMap->m_brainModels[i].m_voxelIndicesIJK;
-            int64_t voxelArraySize = (int64_t)myVoxels.size();
-            for (int64_t j = 0; j < voxelArraySize; j += 3)
-            {
-                if ((ijk[0] == (int64_t)myVoxels[j]) && (ijk[1] == (int64_t)myVoxels[j + 1]) && (ijk[2] == (int64_t)myVoxels[j + 2]))
-                {
-                    return j / 3;
-                }
-            }
-        }
-    }
-    return -1;
+    return getVolumeIndex(ijk, myMap);
 }
 
 int64_t CiftiXML::getColumnIndexForVoxelCoordinate(const float* xyz) const
