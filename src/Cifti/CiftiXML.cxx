@@ -74,7 +74,7 @@ int64_t CiftiXML::getColumnIndexForNode(const int64_t node, const StructureEnum:
     }
 }
 
-int64_t CiftiXML::getRowIndexForNode(const int64_t node, const caret::StructureEnum::Enum structure) const
+int64_t CiftiXML::getRowIndexForNode(const int64_t node, const StructureEnum::Enum structure) const
 {
     if (m_rowMap == NULL || m_rowMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -99,7 +99,7 @@ int64_t CiftiXML::getRowIndexForNode(const int64_t node, const caret::StructureE
     }
 }
 
-int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const caret::CiftiMatrixIndicesMapElement* myMap) const
+int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -373,7 +373,7 @@ void CiftiXML::rootChanged()
     }
 }
 
-int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const caret::StructureEnum::Enum structure) const
+int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
     bool left = false;
     switch (structure)
@@ -394,7 +394,7 @@ int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const caret::StructureEnum::Enum
     }
 }
 
-int64_t CiftiXML::getRowSurfaceNumberOfNodes(const caret::StructureEnum::Enum structure) const
+int64_t CiftiXML::getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
     bool left = false;
     switch (structure)
@@ -415,7 +415,7 @@ int64_t CiftiXML::getRowSurfaceNumberOfNodes(const caret::StructureEnum::Enum st
     }
 }
 
-int64_t CiftiXML::getVolumeIndex(const float* xyz, const caret::CiftiMatrixIndicesMapElement* myMap) const
+int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const
 {
     if (m_root.m_matrices.size() == 0)
     {
@@ -480,4 +480,41 @@ int64_t CiftiXML::getColumnIndexForVoxelCoordinate(const float* xyz) const
 int64_t CiftiXML::getRowIndexForVoxelCoordinate(const float* xyz) const
 {
     return getVolumeIndex(xyz, m_rowMap);
+}
+
+int64_t CiftiXML::getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const
+{
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return -1;
+    }
+    float myTime;
+    switch (myMap->m_timeStepUnits)
+    {
+        case NIFTI_UNITS_SEC:
+            myTime = seconds;
+            break;
+        case NIFTI_UNITS_MSEC:
+            myTime = seconds * 1000.0f;
+            break;
+        case NIFTI_UNITS_USEC:
+            myTime = seconds * 1000000.0f;
+            break;
+        default:
+            throw CiftiFileException("Unknown units in cifti timestep");
+    };
+    float rawIndex = myTime / myMap->m_timeStep;
+    int64_t ret = floor(rawIndex + 0.5f);
+    if (ret < 0) return -1;//NOTE: ciftiXML doesn't know the size of a row/column, so doesn't know numberof timesteps, so we can't check that here
+    return ret;
+}
+
+int64_t CiftiXML::getColumnIndexForTimepoint(const float seconds) const
+{
+    return getTimestepIndex(seconds, m_colMap);
+}
+
+int64_t CiftiXML::getRowIndexForTimepoint(const float seconds) const
+{
+    return getTimestepIndex(seconds, m_rowMap);
 }

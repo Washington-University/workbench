@@ -28,10 +28,28 @@
 using namespace caret;
 using namespace std;
 
+bool CiftiInterface::checkColumnIndex(int64_t index) const
+{
+    if (index < 0 || index >= getNumberOfColumns())
+    {
+        return false;
+    }
+    return true;
+}
+
+bool CiftiInterface::checkRowIndex(int64_t index) const
+{
+    if (index < 0 || index >= getNumberOfRows())
+    {
+        return false;
+    }
+    return true;
+}
+
 bool CiftiInterface::getColumnFromNode(float* columnOut, const int64_t node, const caret::StructureEnum::Enum structure) const
 {
     int64_t myIndex = m_xml.getColumnIndexForNode(node, structure);
-    if (myIndex == -1)
+    if (!checkColumnIndex(myIndex))
     {
         return false;
     }
@@ -39,10 +57,10 @@ bool CiftiInterface::getColumnFromNode(float* columnOut, const int64_t node, con
     return true;
 }
 
-bool CiftiInterface::getColumnFromVoxel(float* columnOut, const int64_t* ijk)
+bool CiftiInterface::getColumnFromVoxel(float* columnOut, const int64_t* ijk) const
 {
     int64_t myIndex = m_xml.getColumnIndexForVoxel(ijk);
-    if (myIndex == -1)
+    if (!checkColumnIndex(myIndex))
     {
         return false;
     }
@@ -53,7 +71,7 @@ bool CiftiInterface::getColumnFromVoxel(float* columnOut, const int64_t* ijk)
 bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const caret::StructureEnum::Enum structure) const
 {
     int64_t myIndex = m_xml.getRowIndexForNode(node, structure);
-    if (myIndex == -1)
+    if (!checkRowIndex(myIndex))
     {
         return false;
     }
@@ -61,10 +79,10 @@ bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const car
     return true;
 }
 
-bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk)
+bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk) const
 {
     int64_t myIndex = m_xml.getRowIndexForVoxel(ijk);
-    if (myIndex == -1)
+    if (!checkRowIndex(myIndex))
     {
         return false;
     }
@@ -72,10 +90,10 @@ bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk)
     return true;
 }
 
-bool CiftiInterface::getColumnFromVoxelCoordinate(float* columnOut, const float* xyz)
+bool CiftiInterface::getColumnFromVoxelCoordinate(float* columnOut, const float* xyz) const
 {
     int64_t myIndex = m_xml.getColumnIndexForVoxelCoordinate(xyz);
-    if (myIndex == -1)
+    if (!checkColumnIndex(myIndex))
     {
         return false;
     }
@@ -83,10 +101,32 @@ bool CiftiInterface::getColumnFromVoxelCoordinate(float* columnOut, const float*
     return true;
 }
 
-bool CiftiInterface::getRowFromVoxelCoordinate(float* rowOut, const float* xyz)
+bool CiftiInterface::getRowFromVoxelCoordinate(float* rowOut, const float* xyz) const
 {
     int64_t myIndex = m_xml.getRowIndexForVoxelCoordinate(xyz);
-    if (myIndex == -1)
+    if (!checkRowIndex(myIndex))
+    {
+        return false;
+    }
+    getRow(rowOut, myIndex);
+    return true;
+}
+
+bool CiftiInterface::getColumnFromTimepoint(float* columnOut, const float seconds) const
+{
+    int64_t myIndex = m_xml.getColumnIndexForTimepoint(seconds);
+    if (!checkColumnIndex(myIndex))
+    {
+        return false;
+    }
+    getColumn(columnOut, myIndex);
+    return true;
+}
+
+bool CiftiInterface::getRowFromTimepoint(float* rowOut, const float seconds) const
+{
+    int64_t myIndex = m_xml.getRowIndexForTimepoint(seconds);
+    if (!checkRowIndex(myIndex))
     {
         return false;
     }

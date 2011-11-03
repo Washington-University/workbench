@@ -154,6 +154,12 @@ namespace caret {
         ///SLOW! - get the column index for a voxel coordinate, returns -1 if the closest indexes have no cifti data
         int64_t getColumnIndexForVoxelCoordinate(const float* xyz) const;
         
+        ///get row index for a timepoint
+        int64_t getRowIndexForTimepoint(const float seconds) const;
+        
+        ///get row index for a timepoint
+        int64_t getColumnIndexForTimepoint(const float seconds) const;
+        
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
         
@@ -187,6 +193,7 @@ namespace caret {
         int64_t getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myModel, const int64_t numContig) const;
         int64_t getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
+        int64_t getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, CiftiBrainModelElement* myModel, const int64_t numContig) const;

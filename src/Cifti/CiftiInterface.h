@@ -36,6 +36,8 @@ namespace caret
     {
     protected:
         CiftiXML m_xml;
+        bool checkRowIndex(int64_t index) const;
+        bool checkColumnIndex(int64_t index) const;
     public:
         ///get a row
         virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
@@ -59,16 +61,22 @@ namespace caret
         bool getColumnFromNode(float* columnOut, const int64_t node, const StructureEnum::Enum structure) const;
         
         ///get a row by voxel index - returns false if not found in mapping
-        bool getRowFromVoxel(float* rowOut, const int64_t* ijk);
+        bool getRowFromVoxel(float* rowOut, const int64_t* ijk) const;
         
         ///get a row by voxel index - returns false if not found in mapping
-        bool getColumnFromVoxel(float* columnOut, const int64_t* ijk);
+        bool getColumnFromVoxel(float* columnOut, const int64_t* ijk) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
-        bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz);
+        bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
-        bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz);
+        bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz) const;
+        
+        ///get a row by timepoint
+        bool getRowFromTimepoint(float* rowOut, const float seconds) const;
+        
+        ///get a row by timepoint
+        bool getColumnFromTimepoint(float* columnOut, const float seconds) const;
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
