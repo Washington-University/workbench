@@ -28,6 +28,7 @@
 #include "CiftiXMLElements.h"
 #include "CiftiXMLReader.h"
 #include "CiftiXMLWriter.h"
+#include "VolumeFile.h"
 #include <QtCore>
 
 namespace caret {
@@ -183,7 +184,10 @@ namespace caret {
         
         ///get the timestep for columns, returns false if not timeseries
         bool getColumnTimestep(float& seconds) const;
-
+        
+        ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
+        bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
+        
     protected:
         CiftiRootElement m_root;
         CiftiMatrixIndicesMapElement* m_rowMap, *m_colMap;//assumes only one matrix

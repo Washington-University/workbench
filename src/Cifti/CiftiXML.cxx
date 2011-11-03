@@ -431,20 +431,6 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
         throw CiftiFileException("No volume transformation defined in cifti extension");
     }
     const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
-    float unitScale = 1.0f;
-    switch (myTrans.m_unitsXYZ)
-    {
-        case NIFTI_UNITS_MM:
-            break;
-        case NIFTI_UNITS_METER:
-            unitScale = 1000.0f;
-            break;
-        case NIFTI_UNITS_MICRON:
-            unitScale = 0.001f;
-            break;
-        default:
-            throw CiftiFileException("Unknown units in volume transformation");
-    };
     FloatMatrix myMatrix = FloatMatrix::zeros(4, 4);
     for (int i = 0; i < 3; ++i)//NEVER trust the fourth row of input, NEVER!
     {
@@ -453,7 +439,19 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
             myMatrix[i][j] = myTrans.m_transform[i * 4 + j];
         }
     }
-    myMatrix *= unitScale;//rescale to mm
+    switch (myTrans.m_unitsXYZ)
+    {
+        case NIFTI_UNITS_MM:
+            break;
+        case NIFTI_UNITS_METER:
+            myMatrix *= 1000.0f;
+            break;
+        case NIFTI_UNITS_MICRON:
+            myMatrix *= 0.001f;
+            break;
+        default:
+            throw CiftiFileException("Unknown units in volume transformation");
+    };
     myMatrix[3][3] = 1.0f;//i COULD do this by making a fake volume file, but that seems kinda hacky
     FloatMatrix toIndexSpace = myMatrix.inverse();//invert to convert the other direction
     FloatMatrix myCoord = FloatMatrix::zeros(4, 1);//column vector
@@ -537,3 +535,95 @@ bool CiftiXML::getRowTimestep(float& seconds) const
 {
     return getTimestep(seconds, m_rowMap);
 }
+
+bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
+{
+    if (m_root.m_matrices.size() == 0)
+    {
+        throw CiftiFileException("No matrices defined in cifti extension");
+    }
+    if (m_root.m_matrices[0].m_volume.size() == 0)
+    {
+        throw CiftiFileException("No volume element defined in cifti extension");
+    }
+    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
+    if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
+    {
+        throw CiftiFileException("No volume transformation defined in cifti extension");
+    }
+    const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
+    FloatMatrix myMatrix = FloatMatrix::zeros(3, 4);//no fourth row
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            myMatrix[i][j] = myTrans.m_transform[i * 4 + j];
+        }
+    }
+    switch (myTrans.m_unitsXYZ)
+    {
+        case NIFTI_UNITS_MM:
+            break;
+        case NIFTI_UNITS_METER:
+            myMatrix *= 1000.0f;
+            break;
+        case NIFTI_UNITS_MICRON:
+            myMatrix *= 0.001f;
+            break;
+        default:
+            throw CiftiFileException("Unknown units in volume transformation");
+    };
+    dimensionsOut[0] = myVol.m_volumeDimensions[0];
+    dimensionsOut[1] = myVol.m_volumeDimensions[1];
+    dimensionsOut[2] = myVol.m_volumeDimensions[2];
+    char axisUsed = 0;
+    char indexUsed = 0;
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 3; ++j)
+        {
+            if (myMatrix[i][j] != 0.0f)
+            {
+                if (axisUsed & (1<<i))
+                {
+                    return false;
+                }
+                if (indexUsed & (1<<j))
+                {
+                    return false;
+                }
+                axisUsed &= (1<<i);
+                indexUsed &= (1<<j);
+                spacingOut[j] = myMatrix[i][j];
+                originOut[j] = myMatrix[i][3];
+                bool negative;
+                if (myMatrix[i][j] > 0.0f)
+                {
+                    negative = true;
+                } else {
+                    negative = false;
+                }
+                switch (i)
+                {
+                case 0:
+                    //left/right
+                    orientOut[j] = (negative ? VolumeFile::RIGHT_TO_LEFT : VolumeFile::LEFT_TO_RIGHT);
+                    break;
+                case 1:
+                    //forward/back
+                    orientOut[j] = (negative ? VolumeFile::ANTERIOR_TO_POSTERIOR : VolumeFile::POSTERIOR_TO_ANTERIOR);
+                    break;
+                case 2:
+                    //up/down
+                    orientOut[j] = (negative ? VolumeFile::SUPERIOR_TO_INFERIOR : VolumeFile::INFERIOR_TO_SUPERIOR);
+                    break;
+                default:
+                    //will never get called
+                    break;
+                };
+            }
+        }
+    }
+    return true;
+}
+
