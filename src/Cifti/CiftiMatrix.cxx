@@ -56,7 +56,8 @@ void CiftiMatrix::deleteCache()
 
 void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, const CacheEnum &e, const bool &needsSwapping) throw (CiftiFileException)
 {
-
+    m_needsSwapping = needsSwapping;
+    
     if(dimensions.size() >2)
     {
         m_dimensions.clear();
