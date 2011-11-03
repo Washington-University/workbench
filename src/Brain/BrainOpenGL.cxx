@@ -47,6 +47,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -784,7 +785,14 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
-                    VolumeFile* vf = dynamic_cast<VolumeFile*>(mapFile);
+                    VolumeFile* vf = NULL;
+                    ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
+                    if (connLoadFile != NULL) {
+                        
+                    }
+                    else {
+                        vf = dynamic_cast<VolumeFile*>(mapFile);
+                    }
                     if (vf != NULL) {
                         if (vf->isMappedWithPalette()) {
                             PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);

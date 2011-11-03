@@ -309,8 +309,10 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
          iter++) {
         CaretMappableDataFile* mapFile = *iter;
         bool useIt = false;
+        bool mappable = false;
         
         if (mapFile->isSurfaceMappable()) {
+            mappable = true;
             if (showSurfaceMapFiles) {
                 if (selectedSurfaceStructure == StructureEnum::ALL) {
                     useIt = true;
@@ -323,12 +325,14 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                 }
             }
         }
-        else if (mapFile->isVolumeMappable()) {
+        if (mapFile->isVolumeMappable()) {
+            mappable = true;
             if (showVolumeMapFiles) {
                 useIt = true;
             }
         }
-        else {
+        
+        if (mappable == false) {
             CaretAssertMessage(0, "Map file is neither surface nor volume mappable: " + mapFile->getFileName());
         }
         

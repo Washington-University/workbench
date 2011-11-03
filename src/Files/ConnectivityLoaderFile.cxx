@@ -34,6 +34,7 @@
 #include "ConnectivityLoaderFile.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -52,6 +53,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->data = NULL;
     this->dataRGBA = NULL;
     this->loaderType = LOADER_TYPE_INVALID;
+    this->rgbaVolumeFile = NULL;
 }
 
 /**
@@ -87,6 +89,10 @@ ConnectivityLoaderFile::clearData()
     if (this->metadata != NULL) {
         delete this->metadata;
         this->metadata = NULL;
+    }
+    if (this->rgbaVolumeFile != NULL) {
+        delete this->rgbaVolumeFile;
+        this->rgbaVolumeFile = NULL;
     }
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
@@ -633,14 +639,13 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 const int32_t num = this->ciftiInterface->getNumberOfRows();
                 this->allocateData(num);
                 
-                //                if (this->ciftiInterface->getRowFromVoxel(this->data, 
-                //                                                        nodeIndex,
-                //                                                        surfaceFile->getStructure())) {
-                //                    std::cout << "Read row for voxel " << AString::fromNumber(xyz, 3, ",") << std::endl;
-                //                }
-                //                else {
-                //                    std::cout << "FAILED to read row for voxel " << AString::fromNumber(xyz, 3, ",") << std::endl;
-                //                }
+                if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
+                    std::cout << "Read row for voxel " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl;
+                }
+                else {
+                    std::cout << "FAILED to read row for voxel " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl;
+                    this->zeroizeData();
+                }
             }
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
@@ -734,5 +739,35 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
     
     return false;
 }
+
+/**
+ * @return A volume file that contains coloring for voxels
+ * from the last loaded data. Will be NULL if not valid.
+ */
+VolumeFile* 
+ConnectivityLoaderFile::getRgbaVolumeFileWithVoxelColoring()
+{
+    if (this->numberOfDataElements <= 0) {
+        return NULL;
+    }
+    
+    bool useColumnsFlag = false;
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            break;
+    }
+    
+    if (useColumnsFlag) {
+        return this->rgbaVolumeFile;
+    }
+    
+    return NULL;
+}
+
 
 

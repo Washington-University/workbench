@@ -36,6 +36,7 @@ namespace caret {
     class CiftiFile;
     class CiftiInterface;
     class SurfaceFile;
+    class VolumeFile;
     
     /// Loads rows/columns on demand from a CIFTI file
     class ConnectivityLoaderFile : public CaretMappableDataFile {
@@ -122,6 +123,8 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
+        VolumeFile* getRgbaVolumeFileWithVoxelColoring();
+        
     private:
         enum LoaderType {
             LOADER_TYPE_INVALID,
@@ -154,6 +157,8 @@ namespace caret {
         float* data;
         float* dataRGBA;
         int32_t numberOfDataElements;
+        
+        VolumeFile* rgbaVolumeFile;
     };
     
 } // namespace
