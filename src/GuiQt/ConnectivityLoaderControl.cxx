@@ -43,6 +43,9 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventManager.h"
 #include "GuiManager.h"
 #include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
@@ -452,7 +455,7 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
  *    New value.
  */
 void 
-ConnectivityLoaderControl::timeSpinBoxesValueChanged(double value)
+ConnectivityLoaderControl::timeSpinBoxesValueChanged(double /*value*/)
 {
     ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     
@@ -468,7 +471,8 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(double value)
     }
     
     if (dataLoadedFlag) {
-        
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());        
     }
 }
 
@@ -478,7 +482,7 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(double value)
  *    New state.
  */
 void 
-ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int state)
+ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int /*state*/)
 {
     ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     
