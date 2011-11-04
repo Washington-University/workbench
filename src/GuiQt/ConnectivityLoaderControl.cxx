@@ -236,6 +236,18 @@ ConnectivityLoaderControl::updateControl()
         if (clf != NULL) {
             this->fileNameLineEdits[i]->setText(clf->getFileName());
             this->fileTypeLabels[i]->setText(clf->getCiftiTypeName());
+            if (clf->isDenseTimeSeries()) {
+                this->showTimeGraphCheckBoxes[i]->setChecked(clf->isTimeSeriesGraphEnabled());
+                this->showTimeGraphCheckBoxes[i]->setEnabled(true);
+                this->timeSpinBoxes[i]->setEnabled(true);
+                this->animateButtons[i]->setEnabled(true);
+            }
+            else {
+                this->showTimeGraphCheckBoxes[i]->setEnabled(false);
+                this->timeSpinBoxes[i]->setEnabled(true);
+                this->animateButtons[i]->setEnabled(true);
+            }
+            
             this->rowWidgetGroups[i]->setVisible(true);
         }
         else {
@@ -470,19 +482,12 @@ ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int state)
 {
     ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     
-    bool dataLoadedFlag = false;
-    
     const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
     for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
         ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
         if (clf->isDenseTimeSeries()) {
-            clf->loadTimePointAtTime(this->timeSpinBoxes[i]->value());
-            dataLoadedFlag = true;
+            clf->setTimeSeriesGraphEnabled(this->showTimeGraphCheckBoxes[i]->isChecked());
         }
-    }
-    
-    if (dataLoadedFlag) {
-        
     }
 }
 

@@ -482,7 +482,7 @@ PaletteFile::addDefaultPalettes()
         
         
         Palette royBigBL;
-        royBigBL.setName("ROY-BIG-BL");
+        royBigBL.setName(Palette::ROY_BIG_BL_PALETTE_NAME);
         
         royBigBL.addScalarAndColor(1.00f, "_RGB_255_255_0");
         royBigBL.addScalarAndColor(0.875f, "_RGB_255_200_0");

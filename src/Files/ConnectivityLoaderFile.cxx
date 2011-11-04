@@ -33,6 +33,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "ConnectivityLoaderFile.h"
+#include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
@@ -196,6 +197,10 @@ ConnectivityLoaderFile::setup(const AString& path,
         } 
         this->setFileName(path);
         this->setDataFileType(connectivityFileType);
+
+        this->paletteColorMapping->setSelectedPaletteName(Palette::ROY_BIG_BL_PALETTE_NAME);
+        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+        this->paletteColorMapping->setInterpolatePaletteFlag(true);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatAString());
