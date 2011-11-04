@@ -113,6 +113,8 @@ namespace caret {
         
         void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
+        void loadTimePointAtTime(const float seconds) throw (DataFileException);
+        
         int32_t getNumberOfDataElements() const;
         
         float* getData();

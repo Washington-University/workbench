@@ -565,7 +565,56 @@ ConnectivityLoaderFile::zeroizeData()
 }
 
 /**
- * Load connectivity data for the surface's node.
+ * Load connectivity data for the data at the specified time.
+ * @param seconds
+ *    Time of data in seconds.
+ */
+void 
+ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    std::cout << "Connectivity Time Point at Time: "
+    << seconds
+    << std::endl;
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
+                    std::cout << "Read column for time " << seconds << std::endl;
+                }
+                else {
+                    std::cout << "FAILED to read column for seconds " << seconds << std::endl;
+                    this->zeroizeData();
+                }
+            }
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatAString());
+    }
+}
+
+/**
+ * Load connectivity data for the surface's node.  
+ *
+ * For a dense connectivity file, the data loaded is
+ * the connectivity from the node to other brainordinates.
+ * For a dense time series file, the data loaded is the
+ * time-series for this node.
+ *
  * @param surfaceFile
  *    Surface file used for structure.
  * @param nodeIndex
@@ -591,7 +640,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 break;
             case LOADER_TYPE_DENSE:
             {
-                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getRowFromNode(this->data, 
@@ -616,6 +665,12 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
 
 /**
  * Load data for a voxel at the given coordinate.
+ *
+ * For a dense connectivity file, the data loaded is
+ * the connectivity from the voxel to other brainordinates.
+ * For a dense time series file, the data loaded is the
+ * time-series for this voxel.
+ *
  * @param xyz
  *    Coordinate of voxel.
  */
@@ -636,7 +691,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 break;
             case LOADER_TYPE_DENSE:
             {
-                const int32_t num = this->ciftiInterface->getNumberOfRows();
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
