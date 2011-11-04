@@ -7,6 +7,7 @@ PROJECT (Files)
 # Need XML from Qt
 #
 SET(QT_DONT_USE_QTGUI)
+SET(QT_USE_QTNETWORK TRUE)
 
 #
 # Add QT for includes

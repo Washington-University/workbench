@@ -27,6 +27,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CiftiFile.h"
+#include "CiftiXnat.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
 #include "GiftiLabelTable.h"
@@ -45,6 +46,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
 : CaretMappableDataFile(DataFileTypeEnum::CONNECTIVITY_DENSE)
 {
     this->ciftiDiskFile = NULL;
+    this->ciftiXnatFile = NULL;
     this->ciftiInterface = NULL;
     this->descriptiveStatistics = NULL;
     this->paletteColorMapping = NULL;
@@ -73,6 +75,10 @@ ConnectivityLoaderFile::clearData()
     if (this->ciftiDiskFile != NULL) {
         delete this->ciftiDiskFile;
         this->ciftiDiskFile = NULL;
+    }
+    if (this->ciftiXnatFile != NULL) {
+        delete this->ciftiXnatFile;
+        this->ciftiXnatFile = NULL;
     }
     if (this->descriptiveStatistics != NULL) {
         delete this->descriptiveStatistics;
@@ -138,17 +144,23 @@ ConnectivityLoaderFile::isEmpty() const
 }
 
 /**
- * Setup the loader.
- * @param filename
- *    Name of file from which data is obtained.
+ * Setup the loader for a file.
+ * @param filepath
+ *    Path of file from which data is obtained.
  * @param connectivityFileType
  *    Type of data.
+ * @param username
+ *    Username for logging in.
+ * @param password
+ *    Password for logging in.
  * @throws DataFileException
  *    If there is an error reading the file.
  */
 void 
-ConnectivityLoaderFile::setup(const AString& filename,
-                              const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException)
+ConnectivityLoaderFile::setup(const AString& path,
+                              const DataFileTypeEnum::Enum connectivityFileType,
+                              const AString& username,
+                              const AString& password) throw (DataFileException)
 {
     this->clear();
     
@@ -166,20 +178,67 @@ ConnectivityLoaderFile::setup(const AString& filename,
     }
     
     try {
-        if (filename.startsWith("http://")) {
-            
+        if (path.startsWith("http://")) {
+            this->ciftiXnatFile = new CiftiXnat();
+            if (username.isEmpty() == false) {
+                this->ciftiXnatFile->setAuthentication(path, username, password);
+            }
+            this->ciftiXnatFile->openURL(path);
+            this->ciftiInterface = this->ciftiXnatFile;
         }
         else {
             this->ciftiDiskFile = new CiftiFile();
-            this->ciftiDiskFile->openFile(filename, ON_DISK);
+            this->ciftiDiskFile->openFile(path, ON_DISK);
             this->ciftiInterface = this->ciftiDiskFile;
         }
-        this->setFileName(filename);
+        this->setFileName(path);
         this->setDataFileType(connectivityFileType);
     }
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatAString());
     }    
+}
+
+/**
+ * Setup the loader.
+ * @param url
+ *    URL of file from which data is obtained.
+ * @param connectivityFileType
+ *    Type of data.
+ * @param username
+ *    Username for logging in.
+ * @param password
+ *    Password for logging in.
+ * @throws DataFileException
+ *    If there is an error reading the file.
+ */
+void 
+ConnectivityLoaderFile::setupNetworkFile(const AString& url,
+                                         const DataFileTypeEnum::Enum connectivityFileType,
+                                         const AString& username,
+                                         const AString& password) throw (DataFileException)
+{
+    this->clear();
+    if (url.startsWith("http://") == false) {
+        throw DataFileException("For network files, name must begin with \"http://\"");
+    }
+    this->setup(url, connectivityFileType, username, password);
+}
+
+/**
+ * Setup the loader for a local file.
+ * @param filename
+ *    Name of file from which data is obtained.
+ * @param connectivityFileType
+ *    Type of data.
+ * @throws DataFileException
+ *    If there is an error reading the file.
+ */
+void 
+ConnectivityLoaderFile::setupLocalFile(const AString& filename,
+                                       const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException)
+{
+    this->setup(filename, connectivityFileType, "", "");
 }
 
 /**

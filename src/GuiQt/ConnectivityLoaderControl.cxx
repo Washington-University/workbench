@@ -285,7 +285,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
             ConnectivityLoaderFile* loaderFile = manager->getConnectivityLoaderFile(fileIndex);
             
             try {
-                loaderFile->setup(name, 
+                loaderFile->setupLocalFile(name, 
                                   DataFileTypeEnum::fromQFileDialogFilter(this->previousCiftiFileTypeFilter, NULL));
             }
             catch (DataFileException e) {
@@ -325,6 +325,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
     QLabel* urlLabel = new QLabel("URL: ");
     QLineEdit* urlLineEdit = new QLineEdit();
     urlLineEdit->setText("http://hcp-dev01.nrg.wustl.edu/data/services/cifti-average?searchID=xs1308076465528");
+    
     QLabel* typeLabel = new QLabel("Type: ");
     QComboBox* typeComboBox = new QComboBox();
     for (int32_t i = 0; i < static_cast<int32_t>(connectivityEnums.size()); i++) {
@@ -333,12 +334,23 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         typeComboBox->setItemData(i, qVariantFromValue(DataFileTypeEnum::toIntegerCode(connectivityEnums[i])));
     }
     
+    QLabel* usernameLabel = new QLabel("Username: ");
+    QLineEdit* usernameLineEdit = new QLineEdit();
+    
+    QLabel* passwordLabel = new QLabel("Password: ");
+    QLineEdit* passwordLineEdit = new QLineEdit();
+    passwordLineEdit->setEchoMode(QLineEdit::Password);
+    
     QWidget* controlsWidget = new QWidget();
     QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
     controlsLayout->addWidget(urlLabel, 0, 0);
     controlsLayout->addWidget(urlLineEdit, 0, 1);
     controlsLayout->addWidget(typeLabel, 1, 0);
     controlsLayout->addWidget(typeComboBox, 1, 1);
+    controlsLayout->addWidget(usernameLabel, 2, 0);
+    controlsLayout->addWidget(usernameLineEdit, 2, 1);
+    controlsLayout->addWidget(passwordLabel, 3, 0);
+    controlsLayout->addWidget(passwordLineEdit, 3, 1);
     
     WuQDialogModal d("Connectivity File on Web",
                      controlsWidget,
@@ -348,10 +360,14 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         const int comboIndex = typeComboBox->currentIndex();
         const DataFileTypeEnum::Enum dataType = 
             DataFileTypeEnum::fromIntegerCode(typeComboBox->itemData(comboIndex).toInt(), NULL);
+        const AString username = usernameLineEdit->text().trimmed();
+        const AString password = passwordLineEdit->text().trimmed();
         
         try {
-            loaderFile->setup(name, 
-                              dataType);
+            loaderFile->setupNetworkFile(name,
+                                         dataType,
+                                         username,
+                                         password);
         }
         catch (DataFileException e) {
             QMessageBox::critical(this, 

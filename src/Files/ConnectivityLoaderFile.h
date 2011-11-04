@@ -34,6 +34,7 @@
 namespace caret {
 
     class CiftiFile;
+    class CiftiXnat;
     class CiftiInterface;
     class SurfaceFile;
     class VolumeFile;
@@ -52,8 +53,13 @@ namespace caret {
         
         virtual bool isEmpty() const;
 
-        void setup(const AString& filename,
-                   const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
+        void setupLocalFile(const AString& filename,
+                            const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
+        
+        void setupNetworkFile(const AString& url,
+                              const DataFileTypeEnum::Enum connectivityFileType,
+                              const AString& username,
+                              const AString& password) throw (DataFileException);
         
         virtual void readFile(const AString& filename) throw (DataFileException);
         
@@ -134,6 +140,11 @@ namespace caret {
             LOADER_TYPE_DENSE_TIME_SERIES
         };
         
+        void setup(const AString& url,
+                   const DataFileTypeEnum::Enum connectivityFileType,
+                   const AString& username,
+                   const AString& password) throw (DataFileException);
+        
         void clearData();
         
         void reset();
@@ -143,6 +154,8 @@ namespace caret {
         void zeroizeData();
         
         LoaderType loaderType;
+        
+        CiftiXnat* ciftiXnatFile;
         
         CiftiFile* ciftiDiskFile;
         
