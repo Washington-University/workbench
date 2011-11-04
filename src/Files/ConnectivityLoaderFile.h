@@ -140,6 +140,12 @@ namespace caret {
             LOADER_TYPE_DENSE_TIME_SERIES
         };
         
+        enum MapToType {
+            MAP_TO_TYPE_INVALID,
+            MAP_TO_TYPE_BRAINORDINATES,
+            MAP_TO_TYPE_TIMEPOINTS
+        };
+        
         void setup(const AString& url,
                    const DataFileTypeEnum::Enum connectivityFileType,
                    const AString& username,
@@ -154,6 +160,8 @@ namespace caret {
         void zeroizeData();
         
         LoaderType loaderType;
+        
+        MapToType mapToType;
         
         CiftiXnat* ciftiXnatFile;
         

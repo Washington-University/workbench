@@ -56,6 +56,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->dataRGBA = NULL;
     this->loaderType = LOADER_TYPE_INVALID;
     this->connectivityVolumeFile = NULL;
+    this->mapToType = MAP_TO_TYPE_INVALID;
 }
 
 /**
@@ -102,6 +103,7 @@ ConnectivityLoaderFile::clearData()
     }
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
+    this->mapToType = MAP_TO_TYPE_INVALID;
     this->allocateData(0);
 }
 
@@ -251,7 +253,7 @@ ConnectivityLoaderFile::setupLocalFile(const AString& filename,
  *    If there is an error reading the file.
  */
 void 
-ConnectivityLoaderFile::readFile(const AString& filename) throw (DataFileException)
+ConnectivityLoaderFile::readFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading of ConnectivityLoaderFile not supported, use setup()");
 }
@@ -266,7 +268,7 @@ ConnectivityLoaderFile::readFile(const AString& filename) throw (DataFileExcepti
  *    If there is an error writing the file.
  */
 void 
-ConnectivityLoaderFile::writeFile(const AString& filename) throw (DataFileException)
+ConnectivityLoaderFile::writeFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Writing of ConnectivityLoaderFile not supported.");
 }
@@ -294,7 +296,7 @@ ConnectivityLoaderFile::getStructure() const
  *    New value for file's structure.
  */
 void 
-ConnectivityLoaderFile::setStructure(const StructureEnum::Enum structure)
+ConnectivityLoaderFile::setStructure(const StructureEnum::Enum /*structure*/)
 {
     /* do nothing */
 }
@@ -321,8 +323,11 @@ ConnectivityLoaderFile::getFileMetaData() const
  * @return The palette color mapping for a data column.
  */
 PaletteColorMapping* 
-ConnectivityLoaderFile::getPaletteColorMapping(const int32_t columnIndex)
+ConnectivityLoaderFile::getPaletteColorMapping(const int32_t /*columnIndex*/)
 {
+    /*
+     * Use one palette color mapping for all
+     */
     return this->paletteColorMapping;
 }
 
@@ -361,7 +366,7 @@ ConnectivityLoaderFile::getNumberOfMaps() const
                 numMaps = 1;
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
-                numMaps = this->ciftiInterface->getNumberOfColumns();
+                numMaps = 1;
                 break;
         }
     }
@@ -378,9 +383,24 @@ ConnectivityLoaderFile::getNumberOfMaps() const
  *    Name of the map.
  */
 AString 
-ConnectivityLoaderFile::getMapName(const int32_t mapIndex) const
+ConnectivityLoaderFile::getMapName(const int32_t /*mapIndex*/) const
 {
-    return "Map " + AString::number(mapIndex + 1);
+    AString name = "Invalid";
+    
+    if (this->ciftiInterface != NULL) {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+                name = "Dense Data";
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+                name = "Dense Time Series";
+                break;
+        }
+    }
+    
+    return name;
 }
 
 /**
@@ -394,7 +414,7 @@ ConnectivityLoaderFile::getMapName(const int32_t mapIndex) const
  *    to return the index of the first map with the name.
  */
 int32_t 
-ConnectivityLoaderFile::getMapIndexFromName(const AString& mapName)
+ConnectivityLoaderFile::getMapIndexFromName(const AString& /*mapName*/)
 {
     return 0;
 }
@@ -408,8 +428,8 @@ ConnectivityLoaderFile::getMapIndexFromName(const AString& mapName)
  *    New name for the map.
  */
 void 
-ConnectivityLoaderFile::setMapName(const int32_t mapIndex,
-                        const AString& mapName)
+ConnectivityLoaderFile::setMapName(const int32_t /*mapIndex*/,
+                                   const AString& /*mapName*/)
 {
     
 }
@@ -423,8 +443,11 @@ ConnectivityLoaderFile::setMapName(const int32_t mapIndex,
  *    Metadata for the map (const value).
  */         
 const GiftiMetaData* 
-ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex) const
+ConnectivityLoaderFile::getMapMetaData(const int32_t /*mapIndex*/) const
 {
+    /*
+     * One metadata for all
+     */
     return this->metadata;
 }
 
@@ -437,8 +460,11 @@ ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex) const
  *    Metadata for the map.
  */         
 GiftiMetaData* 
-ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex)
+ConnectivityLoaderFile::getMapMetaData(const int32_t /*mapIndex*/)
 {
+    /*
+     * One metadata for all
+     */
     return this->metadata;
 }
 
@@ -453,7 +479,7 @@ ConnectivityLoaderFile::getMapMetaData(const int32_t mapIndex)
  *    not mapped using a palette).
  */         
 const DescriptiveStatistics* 
-ConnectivityLoaderFile::getMapStatistics(const int32_t mapIndex)
+ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/)
 {
     this->descriptiveStatistics->update(this->data, 
                                         this->numberOfDataElements);
@@ -480,8 +506,11 @@ ConnectivityLoaderFile::isMappedWithPalette() const
  *    not mapped using a palette).
  */         
 PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex)
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
 {
+    /*
+     * One palette mapping for all
+     */
     return this->paletteColorMapping;    
 }
 
@@ -495,8 +524,11 @@ ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex)
  *    not mapped using a palette).
  */         
 const PaletteColorMapping* 
-ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t mapIndex) const
+ConnectivityLoaderFile::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
 {
+    /*
+     * One palette mapping for all
+     */
     return this->paletteColorMapping;    
 }
 
@@ -620,7 +652,8 @@ ConnectivityLoaderFile::zeroizeData()
 {
     std::fill(this->data, 
               this->data + this->numberOfDataElements,
-              0.0);    
+              0.0);   
+    this->mapToType = MAP_TO_TYPE_INVALID;
 }
 
 /**
@@ -650,6 +683,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 
                 if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
                     CaretLogSevere("Read column for time " + AString::number(seconds));
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                 }
                 else {
                     CaretLogSevere("FAILED to read column for seconds " + AString::number(seconds));
@@ -699,6 +733,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                                                          nodeIndex,
                                                          structure)) {
                     CaretLogFine("Read row for node " + AString::number(nodeIndex));
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                 }
                 else {
                     CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
@@ -745,6 +780,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 
                 if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
                     CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                 }
                 else {
                     CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
@@ -810,7 +846,24 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         return false;
     }
     
+    bool validMapToType = false;
+    switch (this->mapToType) {
+        case MAP_TO_TYPE_INVALID:
+            validMapToType = false;
+            break;
+        case MAP_TO_TYPE_BRAINORDINATES:
+            validMapToType = true;
+            break;
+        case MAP_TO_TYPE_TIMEPOINTS:
+            validMapToType = false;
+            break;
+    }
+    if (validMapToType == false) {
+        return false;
+    }
+    
     bool useColumnsFlag = false;
+    bool useRowsFlag = false;
     switch (this->loaderType) {
         case LOADER_TYPE_INVALID:
             break;
@@ -818,13 +871,19 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
             useColumnsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
+            useRowsFlag = true;
             break;
     }
     
+    std::vector<CiftiSurfaceMap> nodeMap;
     if (useColumnsFlag) {
-        std::vector<CiftiSurfaceMap> nodeMap;
         this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
-        
+    }
+    if (useRowsFlag) {
+        this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
+    }
+    
+    if (nodeMap.empty() == false) {
         std::fill(nodeRGBA, (nodeRGBA + (numberOfNodes * 4)), 0.0);
         const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
         for (int i = 0; i < numNodeMaps; i++) {
@@ -857,7 +916,23 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     if (this->ciftiInterface == NULL) {
         return NULL;
     }
-    
+
+    bool validMapToType = false;
+    switch (this->mapToType) {
+        case MAP_TO_TYPE_INVALID:
+            validMapToType = false;
+            break;
+        case MAP_TO_TYPE_BRAINORDINATES:
+            validMapToType = true;
+            break;
+        case MAP_TO_TYPE_TIMEPOINTS:
+            validMapToType = false;
+            break;
+    }
+    if (validMapToType == false) {
+        return NULL;
+    }
+
     VolumeFile::OrientTypes orientation[3];
     int64_t dimensions[3];
     float origin[3];
@@ -949,6 +1024,7 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     }
     
     bool useColumnsFlag = false;
+    bool useRowsFlag = false;
     switch (this->loaderType) {
         case LOADER_TYPE_INVALID:
             break;
@@ -956,15 +1032,21 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             useColumnsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
+            useRowsFlag = true;
             break;
     }
     
-    
+    std::vector<CiftiVolumeMap> volumeMaps;
     if (useColumnsFlag) {
-        this->connectivityVolumeFile->setValueAllVoxels(0.0);
-        
-        std::vector<CiftiVolumeMap> volumeMaps;
         this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
+    }
+    if (useRowsFlag) {
+        this->ciftiInterface->getVolumeMapForRows(volumeMaps);
+    }
+    
+    
+    if (volumeMaps.empty() == false) {
+        this->connectivityVolumeFile->setValueAllVoxels(0.0);
         
         for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
              iter != volumeMaps.end();

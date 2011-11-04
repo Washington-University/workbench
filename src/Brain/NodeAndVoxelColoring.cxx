@@ -93,6 +93,10 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
                                               const int32_t numberOfScalars,
                                               float* rgbaOut)
 {
+    if (numberOfScalars <= 0) {
+        return;
+    }
+    
     CaretAssert(statistics);
     CaretAssert(paletteColorMapping);
     CaretAssert(palette);
