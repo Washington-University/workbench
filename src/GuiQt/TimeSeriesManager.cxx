@@ -24,8 +24,45 @@
 
 #include "TimeSeriesManager.h"
 using namespace caret;
-TimeSeriesManager::TimeSeriesManager()
+TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderManager *clm)
 {
+    m_index = index;
+    m_clm = clm;
+    m_helper = new AnimationHelper(index,clm);
+    m_isPlaying = false;
+}
+
+void TimeSeriesManager::toggleAnimation()
+{
+    if(m_isPlaying) pause();
+    else play();
+}
+
+TimeSeriesManager::~TimeSeriesManager()
+{
+    stop();
+    m_helper->terminate();
+    delete m_helper;
+}
+
+void TimeSeriesManager::play()
+{
+    if(m_isPlaying) return;
+    m_isPlaying = true;
+    m_helper->play();
+}
+void TimeSeriesManager::stop()
+{
+    if(!m_isPlaying) return;
+    m_isPlaying = false;
+    m_helper->stop();
+}
+
+void TimeSeriesManager::pause()
+{
+    if(!m_isPlaying) return;
+    m_isPlaying = false;
+    m_helper->pause();
 }
 
 
@@ -35,12 +72,42 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm)
     m_index = index;
     m_clm = clm;
     m_timeIndex = 0;
-    m_updateInterval = 0.1;
+    m_updateInterval = 100;
+    m_stopThread = false;
     moveToThread(this);
 }
 
 void AnimationHelper::run()
 {
+    //moveToThread(this);
+    ConnectivityLoaderFile *clf = m_clm->getConnectivityLoaderFile(m_index);
+    if(!clf) return;
+    int64_t timePoints = clf->getNumberOfTimePoints();
+    for(;m_timeIndex<timePoints;m_timeIndex++)
+    {
+        if(m_stopThread)
+        {
+            m_stopThread = false;
+            return;
+        }
+        clf->loadTimePointAtTime(m_timeIndex);
+        this->wait(m_updateInterval);
+    }
+    m_timeIndex = 0;//reset so that user can play again
+}
 
+void AnimationHelper::play()
+{
+    this->start();
+}
 
+void AnimationHelper::pause()
+{
+    m_stopThread = true;
+}
+
+void AnimationHelper::stop()
+{
+    m_stopThread = true;
+    m_timeIndex = 0;
 }

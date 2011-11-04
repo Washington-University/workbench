@@ -61,16 +61,11 @@ namespace caret {
         
         bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
 
-        bool loadDataForSurfaceAtTimeIndex(const int32_t indx,
-                                           const SurfaceFile* surfaceFile,
-                                           const int32_t timeIndex) throw (DataFileException);
-
-        bool loadDataForVolumeAtTimeIndex(const int32_t indx,
-                                          const float xyz[3]) throw (DataFileException);
-        
         void reset();
         
         void receiveEvent(Event* event);
+
+        bool loadTimePointAtTime(const float seconds) throw (DataFileException);
         
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
         

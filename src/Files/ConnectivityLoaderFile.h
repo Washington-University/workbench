@@ -131,7 +131,10 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
+
         VolumeFile* getConnectivityVolumeFile();
+        int64_t getNumberOfTimePoints();
+
         
         
         bool isTimeSeriesGraphEnabled() const;

@@ -27,21 +27,38 @@
 #include "ConnectivityLoaderManager.h"
 #include "ConnectivityLoaderFile.h"
 namespace caret {
-class TimeSeriesManager
-{
-public:
-    TimeSeriesManager();
-};
 
 class AnimationHelper : public QThread {
 public:
     AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm);
     void run();
+    void play();
+    void pause();
+    void stop();
 private:
     int32_t m_index; //index for connectivity loader file
     ConnectivityLoaderManager *m_clm;
     int64_t m_timeIndex;
     int64_t m_updateInterval;
+    bool m_stopThread;
 };
+
+class TimeSeriesManager
+{
+public:
+    TimeSeriesManager(int32_t &index, ConnectivityLoaderManager *clm);
+    virtual ~TimeSeriesManager();
+    void play();
+    void pause();
+    void stop();
+    void toggleAnimation();
+private:
+    AnimationHelper *m_helper;
+    bool m_isPlaying;
+    int32_t m_index;
+    ConnectivityLoaderManager *m_clm;
+};
+
+
 }
 #endif // TIMESERIESMANAGER_H

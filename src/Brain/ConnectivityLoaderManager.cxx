@@ -331,35 +331,31 @@ ConnectivityLoaderManager::toString() const
 }
 
 /**
- * Load time series overlay data for the surface at a given timeIndex.
- * @param indx
- *    Index of the ConnectivityLoaderFile for the Time Series we are updating
+ * Load data for the given surface node index.
  * @param surfaceFile
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
- *    Index of the time Series
+ *    Index of the surface node.
  * @return
  *    true if any connectivity loaders are active, else false.
  */
-
-bool loadDataForSurfaceAtTimeIndex(const int32_t indx,
-                                   const SurfaceFile* surfaceFile,
-                                   const int32_t timeIndex) throw (DataFileException)
+bool ConnectivityLoaderManager::loadTimePointAtTime(const float seconds) throw (DataFileException)
 {
-    return false;
-}
+    bool haveData = false;
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {
+            clf->loadTimePointAtTime(seconds);
+            haveData = true;
+        }
+    }
 
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
 
-
-/**
- * Load time series overlay data for the volume at a given timeIndex.
- * @param xyz
- *     Coordinate of voxel.
- * @return
- *    true if any connectivity loaders are active, else false.
- */
-bool loadDataForVolumeAtTimeIndex(const int32_t indx,
-                                  const float xyz[3]) throw (DataFileException)
-{
-    return false;
+    return haveData;
 }

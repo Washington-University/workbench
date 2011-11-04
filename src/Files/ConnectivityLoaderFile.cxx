@@ -1070,6 +1070,7 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
 }
 
 /**
+
  * @return
  *   Is the time series graph enabled?
  */
@@ -1092,3 +1093,15 @@ ConnectivityLoaderFile::setTimeSeriesGraphEnabled(const bool showGraph)
 
 
 
+
+ /* Get the number of time points
+ * @return
+ *    int64_t timePoints
+ */
+int64_t ConnectivityLoaderFile::getNumberOfTimePoints()
+{
+    if(this->isDenseTimeSeries())
+        return this->ciftiInterface->getNumberOfColumns();
+    else
+        return -1;
+}

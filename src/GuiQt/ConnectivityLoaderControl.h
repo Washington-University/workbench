@@ -81,12 +81,11 @@ namespace caret {
         std::vector<QToolButton*> fileButtons;
         std::vector<QToolButton*> networkButtons;
         std::vector<QToolButton*> removeButtons;
-<<<<<<< HEAD
+
         std::vector<QDoubleSpinBox*> timeSpinBoxes;
         std::vector<QCheckBox*> showTimeGraphCheckBoxes;
-=======
+
         std::vector<TimeSeriesManager*> animators;
->>>>>>> Started implementing time series thread, still thinking about best way to keep things thread safe.
         
         QButtonGroup* animateButtonsGroup;
         QButtonGroup* fileButtonsGroup;
