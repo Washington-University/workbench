@@ -249,7 +249,7 @@ DescriptiveStatistics::update(const float* values,
             int64_t indx = leastNegativeIndex - (int64_t)(((double)i * (numNegativeValues - 1)) / m_percentileDivisions + 0.5);
             CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;//
+            if (indx >= m_validCount) indx = m_validCount - 1;
             m_negativePercentiles[i] = sortedValues[indx];
         }
         m_negativePercentiles[m_percentileDivisions - 1] = sortedValues[mostNegativeIndex];
@@ -267,7 +267,7 @@ DescriptiveStatistics::update(const float* values,
             int64_t indx = (int64_t)(((double)i * (numPositiveValues - 1)) / m_percentileDivisions + 0.5) + leastPositiveIndex;
             CaretAssertArrayIndex(sortedValues, m_validCount, indx);
             if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;//
+            if (indx >= m_validCount) indx = m_validCount - 1;
             m_positivePercentiles[i] = sortedValues[indx];
         }
         m_positivePercentiles[m_percentileDivisions - 1] = sortedValues[mostPositiveIndex];
