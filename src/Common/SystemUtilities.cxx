@@ -117,7 +117,9 @@ void SystemUtilities::getBackTrace(SystemBacktrace& backTraceOut)
 
 SystemBacktrace::SystemBacktrace()
 {
+#ifndef CARET_OS_WINDOWS
     m_numFrames = 0;
+#endif
 }
 
 AString SystemBacktrace::toSymbolString() const

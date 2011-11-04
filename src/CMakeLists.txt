@@ -26,12 +26,16 @@ ELSEIF(WIN32)
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
             SET( ZLIB_INCLUDE_DIR "C:\\dev64\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
             SET( ZLIB_LIBRARY "C:\\dev64\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
+            SET( OPENSSL_ROOT_DIR "c:\\dev64\\install\\openssl" CACHE_STRING "open ssl root directory")
+
         ELSE()
             ADD_DEFINITIONS(-D_USE_MATH_DEFINES -wd"4290" -wd"4244" -wd"4267" -wd"4305" -wd"4100" -wd"4005" -MP -DNOMINMAX)
             SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
-            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)")
+            SET( ZLIB_LIBRARY "C:\\dev32\\install\\zlib\\lib\\zlib.lib" CACHE STRING "zlib library (binary)") 
+            SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
         ENDIF(CMAKE_CL_64)
     ELSE(MSVC)
+        SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
         FIND_PATH(ZLIB_INCLUDE_DIR zlib.h
             C:\\dev32\\install\\zlib\\include
             C:\\zlib_software\\zlib-1.2.5-install\\include)
