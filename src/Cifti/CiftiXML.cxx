@@ -505,6 +505,10 @@ int64_t CiftiXML::getRowIndexForTimepoint(const float seconds) const
 
 bool CiftiXML::getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const
 {
+    if (myMap == NULL)
+    {
+        return false;
+    }
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
     {
         return false;
