@@ -24,6 +24,7 @@
 
 #include "VolumeFile.h"
 #include "FloatMatrix.h"
+#include <algorithm>
 #include <cmath>
 #include "NiftiFile.h"
 #include "DescriptiveStatistics.h"
@@ -136,7 +137,6 @@ VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_labelTable = NULL;
     m_metadata = NULL;
     m_paletteColorMapping = NULL;
-    createAttributes();
     m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
 }
@@ -155,7 +155,6 @@ VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_labelTable = NULL;
     m_metadata = NULL;
     m_paletteColorMapping = NULL;
-    createAttributes();
     m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);
 }
@@ -514,6 +513,15 @@ void VolumeFile::setFrame(const float* frameIn, const int64_t brickIndex, const 
         m_data[myIndex] = frameIn[inIndex];
         ++inIndex;
     }
+}
+
+void 
+VolumeFile::setValueAllVoxels(const float value)
+{
+    for (int64_t i = 0; i < m_dataSize; i++) {
+        m_data[i] = value;
+    }
+    //std::fill(m_data, (m_data + m_dataSize), value);
 }
 
 

@@ -788,7 +788,7 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                     VolumeFile* vf = NULL;
                     ConnectivityLoaderFile* connLoadFile = dynamic_cast<ConnectivityLoaderFile*>(mapFile);
                     if (connLoadFile != NULL) {
-                        vf = connLoadFile->getRgbaVolumeFileWithVoxelColoring();  
+                        vf = connLoadFile->getConnectivityVolumeFile();  
                     }
                     else {
                         vf = dynamic_cast<VolumeFile*>(mapFile);
@@ -817,11 +817,27 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                     }
                                 }
                                 if (useIt) {
-                                    VolumeDrawInfo vdi(vf,
-                                                       palette,
-                                                       mapIndex,
-                                                       opacity);
-                                    volumeDrawInfoOut.push_back(vdi);
+                                    const DescriptiveStatistics* statistics = vf->getMapStatistics(mapIndex);
+                                    PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+                                    
+                                    if (connLoadFile != NULL) {
+                                        VolumeDrawInfo vdi(vf,
+                                                           palette,
+                                                           connLoadFile->getPaletteColorMapping(mapIndex),
+                                                           connLoadFile->getMapStatistics(mapIndex),
+                                                           mapIndex,
+                                                           opacity);
+                                        volumeDrawInfoOut.push_back(vdi);
+                                    }
+                                    else {
+                                        VolumeDrawInfo vdi(vf,
+                                                           palette,
+                                                           paletteColorMapping,
+                                                           statistics,
+                                                           mapIndex,
+                                                           opacity);
+                                        volumeDrawInfoOut.push_back(vdi);
+                                    }
                                 }
                             }
                             else {
@@ -1113,7 +1129,7 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                                 break;
                         }
                         
-                        NodeAndVoxelColoring::colorScalarsWithPalette(vf->getMapStatistics(brickIndex),
+                        NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
                                                                       volInfo.paletteColorMapping,
                                                                       volInfo.palette,
                                                                       &voxel,
@@ -1558,6 +1574,19 @@ BrainOpenGL::getIdentificationManager()
     return this->identificationManager;
 }
 
+/**
+ * Analyze color information to extract identification data.
+ * @param dataType
+ *    Type of data.
+ * @param x
+ *    X-coordinate of identification.
+ * @param y
+ *    X-coordinate of identification.
+ * @param indexOut
+ *    Index of identified item.
+ * @param depthOut
+ *    Depth of identified item.
+ */
 void
 BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
@@ -1607,13 +1636,19 @@ BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dat
 }
 
 //============================================================================
-caret::BrainOpenGL::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
+/**
+ * Constructor.
+ */
+BrainOpenGL::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                    Palette* palette,
+                                                   PaletteColorMapping* paletteColorMapping,
+                                                   const DescriptiveStatistics* statistics,
                                                    const int32_t brickIndex,
-                                                   const float opacity) {
+                                                   const float opacity) 
+: statistics(statistics) {
     this->volumeFile = volumeFile;
     this->palette = palette;
-    this->paletteColorMapping = volumeFile->getMapPaletteColorMapping(brickIndex);
+    this->paletteColorMapping = paletteColorMapping;
     this->brickIndex = brickIndex;
     this->opacity    = opacity;
 }

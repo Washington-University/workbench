@@ -198,6 +198,9 @@ namespace caret {
             }
         }
         
+        /// set every voxel to the given value
+        void setValueAllVoxels(const float value);
+        
         ///set a frame
         void setFrame(const float* frameIn, const int64_t brickIndex = 0, const int64_t component = 0);
 

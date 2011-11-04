@@ -37,6 +37,7 @@ namespace caret {
     
     class Brain;
     class BrowserTabContent;
+    class DescriptiveStatistics;
     class IdentificationManager;
     class IdentificationWithColor;
     class Surface;
@@ -98,12 +99,15 @@ namespace caret {
         public:
             VolumeDrawInfo(VolumeFile* volumeFile,
                            Palette* palette,
+                           PaletteColorMapping* paletteColorMapping,
+                           const DescriptiveStatistics* statistics,
                            const int32_t brickIndex,
                            const float opacity);
             
             VolumeFile* volumeFile;
             Palette* palette;
             PaletteColorMapping* paletteColorMapping;
+            const DescriptiveStatistics* statistics;
             int32_t brickIndex;
             float opacity;
         };

@@ -324,7 +324,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
     
     QLabel* urlLabel = new QLabel("URL: ");
     QLineEdit* urlLineEdit = new QLineEdit();
-    urlLineEdit->setText("http://hcp-dev01.nrg.wustl.edu/data/services/cifti-average?searchID=xs1308076465528");
+    urlLineEdit->setText("https://hcp-dev01.nrg.wustl.edu/data/services/cifti-average?searchID=xs1308076465528");
     
     QLabel* typeLabel = new QLabel("Type: ");
     QComboBox* typeComboBox = new QComboBox();

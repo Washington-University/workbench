@@ -55,7 +55,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->data = NULL;
     this->dataRGBA = NULL;
     this->loaderType = LOADER_TYPE_INVALID;
-    this->rgbaVolumeFile = NULL;
+    this->connectivityVolumeFile = NULL;
 }
 
 /**
@@ -96,9 +96,9 @@ ConnectivityLoaderFile::clearData()
         delete this->metadata;
         this->metadata = NULL;
     }
-    if (this->rgbaVolumeFile != NULL) {
-        delete this->rgbaVolumeFile;
-        this->rgbaVolumeFile = NULL;
+    if (this->connectivityVolumeFile != NULL) {
+        delete this->connectivityVolumeFile;
+        this->connectivityVolumeFile = NULL;
     }
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
@@ -178,7 +178,7 @@ ConnectivityLoaderFile::setup(const AString& path,
     }
     
     try {
-        if (path.startsWith("http://")) {
+        if (path.startsWith("https://")) {
             this->ciftiXnatFile = new CiftiXnat();
             if (username.isEmpty() == false) {
                 this->ciftiXnatFile->setAuthentication(path, username, password);
@@ -190,7 +190,7 @@ ConnectivityLoaderFile::setup(const AString& path,
             this->ciftiDiskFile = new CiftiFile();
             this->ciftiDiskFile->openFile(path, ON_DISK);
             this->ciftiInterface = this->ciftiDiskFile;
-        }
+        } 
         this->setFileName(path);
         this->setDataFileType(connectivityFileType);
     }
@@ -219,7 +219,7 @@ ConnectivityLoaderFile::setupNetworkFile(const AString& url,
                                          const AString& password) throw (DataFileException)
 {
     this->clear();
-    if (url.startsWith("http://") == false) {
+    if (url.startsWith("https://") == false) {
         throw DataFileException("For network files, name must begin with \"http://\"");
     }
     this->setup(url, connectivityFileType, username, password);
@@ -855,14 +855,110 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
 }
 
 /**
- * @return A volume file that contains coloring for voxels
+ * @return A volume file that contains connectivity values
  * from the last loaded data. Will be NULL if not valid.
  */
 VolumeFile* 
-ConnectivityLoaderFile::getRgbaVolumeFileWithVoxelColoring()
+ConnectivityLoaderFile::getConnectivityVolumeFile()
 {
     if (this->numberOfDataElements <= 0) {
         return NULL;
+    }
+    
+    if (this->ciftiInterface == NULL) {
+        return NULL;
+    }
+    
+    VolumeFile::OrientTypes orientation[3];
+    int64_t dimensions[3];
+    float origin[3];
+    float spacing[3];
+    if (this->ciftiInterface->getVolumeAttributesForPlumb(orientation, 
+                                                          dimensions, 
+                                                          origin, 
+                                                          spacing) == false) {
+        return NULL;
+    }
+    
+    if (dimensions[0] <= 0) {
+        return NULL;
+    }
+    
+    bool createVolumeFlag = false;
+    if (this->connectivityVolumeFile == NULL) {
+        createVolumeFlag = true;
+    }
+    else {
+        int64_t dimI, dimJ, dimK, dimTime, numComp;
+        this->connectivityVolumeFile->getDimensions(dimI, dimJ, dimK, dimTime, numComp);
+        if ((dimI != dimensions[0])
+            || (dimJ != dimensions[1])
+            || (dimK != dimensions[2])) {
+            createVolumeFlag = true;
+        }
+        else {
+            const int64_t zero = 0;
+            const int64_t one  = 1;
+            float x0, y0, z0, x1, y1, z1;
+            this->connectivityVolumeFile->indexToSpace(zero, zero, zero, x0, y0, z0);
+            this->connectivityVolumeFile->indexToSpace(one, one, one, x1, y1, z1);
+            const float dx = x1 - x0;
+            const float dy = y1 - y0;
+            const float dz = z1 - z0;
+            
+            if ((x0 != origin[0])
+                || (y0 != origin[1])
+                || (z0 != origin[2])) {
+                createVolumeFlag = true;
+            }
+            else if ((dx != spacing[0])
+                     || (dy != spacing[1])
+                     || (dz != spacing[2])) {
+                createVolumeFlag = true;
+            }
+        }        
+    }
+    
+    if (createVolumeFlag) {
+        if (this->connectivityVolumeFile != NULL) {
+            delete this->connectivityVolumeFile;
+        }
+        
+        vector<int64_t> dimensionsNew;
+        dimensionsNew.push_back(dimensions[0]);
+        dimensionsNew.push_back(dimensions[1]);
+        dimensionsNew.push_back(dimensions[2]);
+        
+        std::vector<float> row1;
+        row1.push_back(spacing[0]);
+        row1.push_back(0.0);
+        row1.push_back(0.0);
+        row1.push_back(origin[0]);
+
+        std::vector<float> row2;
+        row2.push_back(0.0);
+        row2.push_back(spacing[1]);
+        row2.push_back(0.0);
+        row2.push_back(origin[1]);
+
+        std::vector<float> row3;
+        row3.push_back(0.0);
+        row3.push_back(0.0);
+        row3.push_back(spacing[2]);
+        row3.push_back(origin[2]);
+
+        vector<vector<float> > indexToSpace;
+        indexToSpace.push_back(row1);
+        indexToSpace.push_back(row2);
+        indexToSpace.push_back(row3);
+        
+        int64_t numComponents = 1;
+        
+        this->connectivityVolumeFile = new VolumeFile(dimensionsNew, 
+                                              indexToSpace, 
+                                              numComponents);
+        
+        std::cout << "Created RGBA volume for connectivity" << std::endl;
     }
     
     bool useColumnsFlag = false;
@@ -877,7 +973,20 @@ ConnectivityLoaderFile::getRgbaVolumeFileWithVoxelColoring()
     }
     
     if (useColumnsFlag) {
-        return this->rgbaVolumeFile;
+        std::vector<CiftiVolumeMap> volumeMaps;
+        this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
+        
+        for (std::vector<CiftiVolumeMap>::const_iterator iter = volumeMaps.begin();
+             iter != volumeMaps.end();
+             iter++) {
+            const CiftiVolumeMap& vm = *iter;
+            
+            this->connectivityVolumeFile->setValueAllVoxels(0.0);
+            CaretAssertArrayIndex(this->data, this->numberOfDataElements, vm.m_ciftiIndex);
+            this->connectivityVolumeFile->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
+        }
+        
+        return this->connectivityVolumeFile;
     }
     
     return NULL;

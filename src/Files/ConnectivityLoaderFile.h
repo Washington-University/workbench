@@ -131,7 +131,7 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
-        VolumeFile* getRgbaVolumeFileWithVoxelColoring();
+        VolumeFile* getConnectivityVolumeFile();
         
     private:
         enum LoaderType {
@@ -173,7 +173,7 @@ namespace caret {
         float* dataRGBA;
         int32_t numberOfDataElements;
         
-        VolumeFile* rgbaVolumeFile;
+        VolumeFile* connectivityVolumeFile;
     };
     
 } // namespace
