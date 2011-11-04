@@ -1385,7 +1385,9 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                     idVoxelIndices[idIndex*3+1],
                     idVoxelIndices[idIndex*3+2]
                 };
-                voxelID->addVoxel(underlayVolumeFile, voxelIndices, depth);
+                voxelID->setVolumeFile(underlayVolumeFile);
+                voxelID->setVoxelIJK(voxelIndices);
+                voxelID->setScreenDepth(depth);
                 CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
             }
         }

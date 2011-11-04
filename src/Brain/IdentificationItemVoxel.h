@@ -41,15 +41,13 @@ namespace caret {
         
         virtual bool isValid() const;
         
-        int32_t getNumberOfIdentifiedVoxels() const;
+        const VolumeFile* getVolumeFile() const;
         
-        const VolumeFile* getVolumeFile(const int indx) const;
+        void getVoxelIJK(int64_t voxelIJK[3]) const;
         
-        void getVoxelIJK(const int32_t indx, int64_t voxelIJK[3]) const;
+        void setVolumeFile(VolumeFile* volumeFile);
         
-        float getDepth(const int indx) const;
-        
-        void addVoxel(VolumeFile* volumeFile, const int64_t voxelIJK[3], const float depth);
+        void setVoxelIJK(const int64_t voxelIJK[3]);
         
         virtual void reset();
         
@@ -60,11 +58,9 @@ namespace caret {
         IdentificationItemVoxel& operator=(const IdentificationItemVoxel&);
         
     private:
-        std::vector<VolumeFile*> volumeFiles;
+        VolumeFile* volumeFile;
         
-        std::vector<int64_t> voxelIJK;
-        
-        std::vector<float> depth;
+        int64_t voxelIJK[3];
     };
     
 #ifdef __IDENTIFICATION_ITEM_VOXEL_DECLARE__

@@ -38,10 +38,12 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "MouseEvent.h"
 #include "ModelDisplayController.h"
 #include "Surface.h"
+#include "VolumeFile.h"
 
 using namespace caret;
 
@@ -146,6 +148,22 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         }
     }
     
+    const IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+    if (idVoxel->isValid()) {
+        const VolumeFile* volumeFile = idVoxel->getVolumeFile();
+        int64_t voxelIJK[3];
+        idVoxel->getVoxelIJK(voxelIJK);
+        if (volumeFile != NULL) {
+            float xyz[3];
+            volumeFile->indexToSpace(voxelIJK, xyz);
+            try {
+                haveConnectivityDataFlag = connMan->loadDataForVoxelAtCoordinate(xyz);
+            }
+            catch (DataFileException e) {
+                QMessageBox::critical(openGLWidget, "", e.whatString());
+            }
+        }
+    }
     const BrowserTabContent* btc = NULL;
     const AString idMessage = idManager->getIdentificationText(btc);
     

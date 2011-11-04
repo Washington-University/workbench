@@ -95,11 +95,10 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     }
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
-    const int32_t numVoxels = voxelID->getNumberOfIdentifiedVoxels();
-    for (int i = 0; i < numVoxels; i++) {
+    if (voxelID->isValid()) {
         int64_t ijk[3];
-        const VolumeFile* vf = voxelID->getVolumeFile(i);
-        voxelID->getVoxelIJK(i, ijk);
+        const VolumeFile* vf = voxelID->getVolumeFile();
+        voxelID->getVoxelIJK(ijk);
         
         idText.addLine(true,
                        vf->getFileNameNoPath()
@@ -112,8 +111,8 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                        + ": "
                        + AString::number(vf->getValue(ijk)));
     }
-    return idText.toString();
     
+    return idText.toString();
 }
 
 /**

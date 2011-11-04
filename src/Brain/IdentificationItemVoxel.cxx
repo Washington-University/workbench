@@ -46,9 +46,10 @@ using namespace caret;
 IdentificationItemVoxel::IdentificationItemVoxel()
 : IdentificationItem(IdentificationItemDataTypeEnum::VOXEL)
 {
-    this->volumeFiles.clear();
-    this->voxelIJK.clear();
-    this->depth.clear();
+    this->volumeFile = NULL;
+    this->voxelIJK[0] = -1;
+    this->voxelIJK[1] = -1;
+    this->voxelIJK[2] = -1;
 }
 
 /**
@@ -66,90 +67,56 @@ void
 IdentificationItemVoxel::reset()
 {
     IdentificationItem::reset();
-    this->volumeFiles.clear();
-    this->voxelIJK.clear();
-    this->depth.clear();
+    this->volumeFile = NULL;
+    this->voxelIJK[0] = -1;
+    this->voxelIJK[1] = -1;
+    this->voxelIJK[2] = -1;
 }
 
 /**
- * @return  The number of identified voxels.
- */
-int32_t 
-IdentificationItemVoxel::getNumberOfIdentifiedVoxels() const
-{
-    return this->volumeFiles.size();
-}
-
-/**
- * Get the volume at the given index.
- * @param  indx
- *    index of volume.
- * @return
- *    Volume file at index.
+ * @return The volume file.
  */
 const VolumeFile* 
-IdentificationItemVoxel::getVolumeFile(const int indx) const
+IdentificationItemVoxel::getVolumeFile() const
 {
-    CaretAssertVectorIndex(this->volumeFiles, indx);
-    return this->volumeFiles[indx];
+    return this->volumeFile;
 }
 
 /**
- * Get the voxel at the given index.
- * @param indx
- *    Index of voxel.
+ * Get the voxel indices.
  * @param voxelIJK
  *    Output containing voxel indices.
  */
 void 
-IdentificationItemVoxel::getVoxelIJK(const int32_t indx,
-                                     int64_t voxelIJK[3]) const
+IdentificationItemVoxel::getVoxelIJK(int64_t voxelIJK[3]) const
 {
-    const int32_t indx3 = indx * 3;
-    CaretAssertVectorIndex(this->voxelIJK, indx3);
-    voxelIJK[0] = this->voxelIJK[indx3];
-    voxelIJK[1] = this->voxelIJK[indx3+1];
-    voxelIJK[2] = this->voxelIJK[indx3+2];
+    voxelIJK[0] = this->voxelIJK[0];
+    voxelIJK[1] = this->voxelIJK[1];
+    voxelIJK[2] = this->voxelIJK[2];
 }
 
 /**
- * Get the depth of the identified voxel.
- * @param indx
- *    Index of voxel.
- * @return
- *    Depth of voxel.
- */
-float 
-IdentificationItemVoxel::getDepth(const int indx) const
-{
-    CaretAssertVectorIndex(this->depth, indx);
-    return this->depth[indx];
-}
-
-/**
- * Add an identified voxel.
+ * Set the volume file.
  * @param volumeFile
- *    Volume file on which identification took place.
- * @param voxelIJK
- *    Indices of the voxel.
+ *    New value for volume file.
  */
 void 
-IdentificationItemVoxel::addVoxel(VolumeFile* volumeFile, 
-                                  const int64_t voxelIJK[3],
-                                  const float depth)
+IdentificationItemVoxel::setVolumeFile(VolumeFile* volumeFile)
 {
-    this->volumeFiles.push_back(volumeFile);
-    this->voxelIJK.push_back(voxelIJK[0]);
-    this->voxelIJK.push_back(voxelIJK[1]);
-    this->voxelIJK.push_back(voxelIJK[2]);
-    this->depth.push_back(depth);
-    
-    /*
-     * Use first voxel for overall depth
-     */
-    if (this->volumeFiles.size() == 1) {
-        this->setScreenDepth(depth);
-    }
+    this->volumeFile = volumeFile;
+}
+
+/**
+ * Set the voxel indices.
+ * @param voxelIJK
+ *    New value for voxel indices.
+ */
+void 
+IdentificationItemVoxel::setVoxelIJK(const int64_t voxelIJK[3])
+{
+    this->voxelIJK[0] = voxelIJK[0];
+    this->voxelIJK[1] = voxelIJK[1];
+    this->voxelIJK[2] = voxelIJK[2];
 }
 
 /**
@@ -158,7 +125,7 @@ IdentificationItemVoxel::addVoxel(VolumeFile* volumeFile,
 bool 
 IdentificationItemVoxel::isValid() const
 {
-    return (this->getNumberOfIdentifiedVoxels() > 0);
+    return (this->volumeFile != NULL);
 }
 
 /**
@@ -170,18 +137,12 @@ IdentificationItemVoxel::toString() const
 {
     AString text = "IdentificationItemVoxel\n";
     
-    const int32_t numVolumes = static_cast<int32_t>(this->volumeFiles.size());
     text += IdentificationItem::toString() + "\n";
-    for (int32_t i = 0; i < numVolumes; i++) {
-        text += "Volume: " + this->volumeFiles[i]->getFileNameNoPath() + "\n";
-        const int32_t i3 = i * 3;
-        text += ("Voxel: " 
-                 + AString::number(this->voxelIJK[i3]) + ", "
-                 + AString::number(this->voxelIJK[i3+1]) + ", "
-                 + AString::number(this->voxelIJK[i3+2]) + "\n");
-        text += ("Depth: "
-                 + AString::number(this->depth[i]));
-    }
+    text += "Volume: " + this->volumeFile->getFileNameNoPath() + "\n";
+    text += ("Voxel: " 
+             + AString::number(this->voxelIJK[0]) + ", "
+             + AString::number(this->voxelIJK[1]) + ", "
+             + AString::number(this->voxelIJK[2]) + "\n");
     
     return text;
 }

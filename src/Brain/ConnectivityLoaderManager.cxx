@@ -222,8 +222,8 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) thro
          iter != this->connectivityLoaderFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
-        clf->loadDataForVoxelAtCoordinate(xyz);
-        if (clf->isEmpty()) {
+        if (clf->isEmpty() == false) {
+            clf->loadDataForVoxelAtCoordinate(xyz);
             haveData = true;
         }
     }
