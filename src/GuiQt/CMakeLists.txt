@@ -72,6 +72,7 @@ OverlaySelectionControlLayer.h
 PaletteColorMappingEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
+TimeSeriesManager.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -105,6 +106,7 @@ OverlaySelectionControlLayer.cxx
 PaletteColorMappingEditorDialog.cxx
 SpecFileDialog.cxx
 StructureSurfaceSelectionControl.cxx
+TimeSeriesManager.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 WuQDialog.cxx

@@ -329,3 +329,37 @@ ConnectivityLoaderManager::toString() const
 {
     return "ConnectivityLoaderManager";
 }
+
+/**
+ * Load time series overlay data for the surface at a given timeIndex.
+ * @param indx
+ *    Index of the ConnectivityLoaderFile for the Time Series we are updating
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndex
+ *    Index of the time Series
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+
+bool loadDataForSurfaceAtTimeIndex(const int32_t indx,
+                                   const SurfaceFile* surfaceFile,
+                                   const int32_t timeIndex) throw (DataFileException)
+{
+    return false;
+}
+
+
+
+/**
+ * Load time series overlay data for the volume at a given timeIndex.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool loadDataForVolumeAtTimeIndex(const int32_t indx,
+                                  const float xyz[3]) throw (DataFileException)
+{
+    return false;
+}

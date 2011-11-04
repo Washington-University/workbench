@@ -220,9 +220,13 @@ ConnectivityLoaderControl::updateControl()
             this->fileTypeLabels.push_back(fileTypeLabel);
             this->fileButtons.push_back(fileButton);
             this->networkButtons.push_back(networkButton);
+<<<<<<< HEAD
             this->removeButtons.push_back(removeButton);
             this->timeSpinBoxes.push_back(timeSpinBox);
             this->showTimeGraphCheckBoxes.push_back(timeCheckBox);
+=======
+            this->removeButtons.push_back(removeButton);            
+>>>>>>> Started implementing time series thread, still thinking about best way to keep things thread safe.
         }
     }
     
@@ -277,6 +281,7 @@ ConnectivityLoaderControl::animateButtonPressed(QAbstractButton* button)
     }
     CaretAssert(fileIndex >= 0);
     
+    animators[i]->toggleAnimation();
     std::cout << "Animate button " << fileIndex << " was pressed." << std::endl;
 }
 
@@ -339,6 +344,40 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                 QMessageBox::critical(this, 
                                       "ERROR", 
                                       e.whatString());                
+            }
+            if(loaderFile->isDenseTimeSeries())
+            {
+                if(this->animators.size()>index)
+                {
+                    if(this->animators[fileIndex])
+                    {
+                        animators[i]->stop();
+                        delete animators[fileIndex];
+                    }
+                    TimeSeriesManager *tsManager = new TimeSeriesManager(loaderFile);//TODO, time series needs a handle to ConnectivityLoaderFile
+                    this->animators[fileIndex] = tsManager;
+                }
+                else
+                {
+                    TimeSeriesManager *tsManager = new TimeSeriesManager(loaderFile);//TODO, time series needs a handle to ConnectivityLoaderFile
+                    this->animators.push_back(tsManager);
+                }
+            }
+            else
+            {
+                if(this->animators.size()>index)
+                {
+                    if(animators[i])
+                    {
+                        animators[i]->stop();
+                        delete animators[fileIndex];
+                        animators[fileIndex] = NULL;
+                    }
+                }
+                else
+                {
+                    this->animators.push_back(NULL);
+                }
             }
         }        
     }
@@ -422,6 +461,42 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
                                   e.whatString());                
         }
 
+        //TODO, move boiler plate below to separate method(s)
+        if(loaderFile->isDenseTimeSeries())
+        {
+            if(this->animators.size()>index)
+            {
+                if(this->animators[fileIndex])
+                {
+                    animators[i]->stop();
+                    delete animators[fileIndex];
+                }
+                TimeSeriesManager *tsManager = new TimeSeriesManager(loaderFile);//TODO, time series needs a handle to ConnectivityLoaderFile
+                this->animators[fileIndex] = tsManager;
+            }
+            else
+            {
+                TimeSeriesManager *tsManager = new TimeSeriesManager(loaderFile);//TODO, time series needs a handle to ConnectivityLoaderFile
+                this->animators.push_back(tsManager);
+            }
+        }
+        else
+        {
+            if(this->animators.size()>index)
+            {
+                if(animators[i])
+                {
+                    animators[i]->stop();
+                    delete animators[fileIndex];
+                    animators[fileIndex] = NULL;
+                }
+            }
+            else
+            {
+                this->animators.push_back(NULL);
+            }
+        }
+
         this->updateControl();
     }
 }
@@ -441,11 +516,15 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
         }
     }
     CaretAssert(fileIndex >= 0);
-    
+    if(animators[i])
+    {
+        animators[i]->stop();//removes animation thread if it exists
+    }
+
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
     manager->removeConnectivityLoaderFile(fileIndex);
-    
+
     this->updateControl();
 }
 
