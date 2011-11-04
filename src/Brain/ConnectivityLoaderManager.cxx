@@ -31,6 +31,7 @@ using namespace caret;
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -262,14 +263,12 @@ ConnectivityLoaderManager::colorConnectivityData()
                                                               dataSize, 
                                                               dataRGBA);
                 
-                std::cout 
-                << "Connectivity Data Average/Min/Max: "
-                << statistics->getMean()
-                << " "
-                << statistics->getMostNegativeValue()
-                << " "
-                << statistics->getMostPositiveValue()
-                << std::endl;
+                CaretLogFine("Connectivity Data Average/Min/Max: "
+                             + QString::number(statistics->getMean())
+                             + " "
+                             + QString::number(statistics->getMostNegativeValue())
+                             + " "
+                             + QString::number(statistics->getMostPositiveValue()));
             }            
         }
     }

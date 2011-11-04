@@ -63,9 +63,9 @@ namespace caret {
         
         void setSliceAxialEnabled(const bool sliceEnabledAxial);
         
-        void updateForVolumeFile(/*const*/ VolumeFile* volumeFile);
+        void updateForVolumeFile(const VolumeFile* volumeFile);
         
-        void selectSlicesAtOrigin(/*const*/ VolumeFile* volumeFile);
+        void selectSlicesAtOrigin(const VolumeFile* volumeFile);
         
         void reset();
         

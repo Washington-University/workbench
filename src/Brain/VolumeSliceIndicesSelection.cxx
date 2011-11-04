@@ -84,7 +84,7 @@ VolumeSliceIndicesSelection::reset()
  *   File for which slice indices are made valid.
  */
 void 
-VolumeSliceIndicesSelection::updateForVolumeFile(/*const*/ VolumeFile* volumeFile)
+VolumeSliceIndicesSelection::updateForVolumeFile(const VolumeFile* volumeFile)
 {
     CaretAssert(volumeFile);
     
@@ -125,7 +125,7 @@ VolumeSliceIndicesSelection::updateForVolumeFile(/*const*/ VolumeFile* volumeFil
  *     Volume file whose origin is used for setting slice indices.
  */
 void 
-VolumeSliceIndicesSelection::selectSlicesAtOrigin(/*const*/ VolumeFile* volumeFile)
+VolumeSliceIndicesSelection::selectSlicesAtOrigin(const VolumeFile* volumeFile)
 {
     CaretAssert(volumeFile);
 

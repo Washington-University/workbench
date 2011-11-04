@@ -111,7 +111,7 @@ ModelDisplayControllerVolume::getBrain()
  *    when all overlay are not volumes or they are disabled).
  */
 VolumeFile* 
-ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumber)
+ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
     VolumeFile* vf = NULL;
     
@@ -177,7 +177,8 @@ ModelDisplayControllerVolume::getSliceViewMode(const int32_t windowTabNumber) co
 void 
 ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
                       VolumeSliceViewModeEnum::Enum sliceViewMode)
-{    this->sliceViewMode[windowTabNumber] = sliceViewMode;
+{    
+    this->sliceViewMode[windowTabNumber] = sliceViewMode;
 }
 
 /**
@@ -190,6 +191,8 @@ ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
 VolumeSliceIndicesSelection* 
 ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
+    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
     return &this->volumeSlicesSelected[windowTabNumber];
 }
 
@@ -203,6 +206,8 @@ ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNum
 const VolumeSliceIndicesSelection* 
 ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
+    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
     return &this->volumeSlicesSelected[windowTabNumber];
 }
 

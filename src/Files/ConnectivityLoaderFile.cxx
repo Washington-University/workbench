@@ -635,10 +635,8 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    std::cout << "Connectivity Time Point at Time: "
-    << seconds
-    << std::endl;
-    
+    this->zeroizeData();
+
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
@@ -651,11 +649,10 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
-                    std::cout << "Read column for time " << seconds << std::endl;
+                    CaretLogSevere("Read column for time " + AString::number(seconds));
                 }
                 else {
-                    std::cout << "FAILED to read column for seconds " << seconds << std::endl;
-                    this->zeroizeData();
+                    CaretLogSevere("FAILED to read column for seconds " + AString::number(seconds));
                 }
             }
                 break;
@@ -687,11 +684,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    std::cout << "Connectivity Load Surface: "
-    << StructureEnum::toGuiName(structure)
-    << " Node: "
-    << nodeIndex
-    << std::endl;
+    this->zeroizeData();
     
     try {
         switch (this->loaderType) {
@@ -705,11 +698,10 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 if (this->ciftiInterface->getRowFromNode(this->data, 
                                                          nodeIndex,
                                                          structure)) {
-                    std::cout << "Read row for node " << nodeIndex << std::endl;
+                    CaretLogFine("Read row for node " + AString::number(nodeIndex));
                 }
                 else {
-                    std::cout << "FAILED to read row for node " << nodeIndex << std::endl;
-                    this->zeroizeData();
+                    CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
                 }
             }
                 break;
@@ -740,10 +732,8 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    std::cout << "Connectivity Load Voxel: "
-    << AString::fromNumbers(xyz, 3, ", ")
-    << std::endl;
-    
+    this->zeroizeData();
+
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
@@ -754,11 +744,10 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
-                    std::cout << "Read row for voxel " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl;
+                    CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                 }
                 else {
-                    std::cout << "FAILED to read row for voxel " << xyz[0] << ", " << xyz[1] << ", " << xyz[2] << std::endl;
-                    this->zeroizeData();
+                    CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                 }
             }
                 break;
@@ -957,8 +946,6 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         this->connectivityVolumeFile = new VolumeFile(dimensionsNew, 
                                               indexToSpace, 
                                               numComponents);
-        
-        std::cout << "Created RGBA volume for connectivity" << std::endl;
     }
     
     bool useColumnsFlag = false;
@@ -972,7 +959,10 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             break;
     }
     
+    
     if (useColumnsFlag) {
+        this->connectivityVolumeFile->setValueAllVoxels(0.0);
+        
         std::vector<CiftiVolumeMap> volumeMaps;
         this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
         
@@ -981,7 +971,6 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
              iter++) {
             const CiftiVolumeMap& vm = *iter;
             
-            this->connectivityVolumeFile->setValueAllVoxels(0.0);
             CaretAssertArrayIndex(this->data, this->numberOfDataElements, vm.m_ciftiIndex);
             this->connectivityVolumeFile->setValue(this->data[vm.m_ciftiIndex], vm.m_ijk);
         }

@@ -46,7 +46,7 @@ namespace caret {
         
         Brain* getBrain();
         
-        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber);
+        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut);
         
@@ -121,7 +121,7 @@ namespace caret {
         
         float cerebellumSeparation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeFile* lastVolumeFile;
     };

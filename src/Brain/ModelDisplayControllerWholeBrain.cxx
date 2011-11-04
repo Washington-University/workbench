@@ -327,6 +327,7 @@ ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTa
 VolumeSliceIndicesSelection* 
 ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
+    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(this->getUnderlayVolumeFile(windowTabNumber));
     return &this->volumeSlicesSelected[windowTabNumber];
 }
 
@@ -340,6 +341,8 @@ ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTa
 const VolumeSliceIndicesSelection* 
 ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
+    const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+    this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
     return &this->volumeSlicesSelected[windowTabNumber];
 }
 
@@ -377,7 +380,7 @@ ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
  *    when all overlay are not volumes or they are disabled).
  */
 VolumeFile* 
-ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber)
+ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
     VolumeFile* vf = NULL;
     

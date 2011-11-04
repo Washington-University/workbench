@@ -47,7 +47,7 @@ namespace caret {
         
         Brain* getBrain();
         
-        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber);
+        VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane(const int32_t windowTabNumber) const;
         
@@ -114,7 +114,7 @@ namespace caret {
         /** Montage slice spacing */
         int32_t montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeFile* lastVolumeFile;
     };
