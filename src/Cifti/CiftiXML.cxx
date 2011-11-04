@@ -266,19 +266,19 @@ void CiftiXML::rootChanged()
     int numMaps = (int)myMatrix.m_matrixIndicesMap.size();
     for (int i = 0; i < numMaps; ++i)
     {
-        if (myMatrix.m_matrixIndicesMap[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+        CiftiMatrixIndicesMapElement& myMap = myMatrix.m_matrixIndicesMap[i];
+        int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
+        for (int j = 0; j < numDimensions; ++j)
         {
-            CiftiMatrixIndicesMapElement& myMap = myMatrix.m_matrixIndicesMap[i];
-            int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
-            for (int j = 0; j < numDimensions; ++j)
+            if (myMap.m_appliesToMatrixDimension[j] == 0)
             {
-                if (myMap.m_appliesToMatrixDimension[j] == 0)
+                if (m_rowMap != NULL)
                 {
-                    if (m_rowMap != NULL)
-                    {
-                        throw CiftiFileException("Multiple mappings on the same dimension not supported");
-                    }
-                    m_rowMap = &myMap;
+                    throw CiftiFileException("Multiple mappings on the same dimension not supported");
+                }
+                m_rowMap = &myMap;
+                if (myMatrix.m_matrixIndicesMap[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+                {
                     int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
                     for (int k = 0; k < numModels; ++k)
                     {
@@ -320,13 +320,16 @@ void CiftiXML::rootChanged()
                         }
                     }
                 }
-                if (myMap.m_appliesToMatrixDimension[j] == 1)
+            }
+            if (myMap.m_appliesToMatrixDimension[j] == 1)
+            {
+                if (m_colMap != NULL)
                 {
-                    if (m_colMap != NULL)
-                    {
-                        throw CiftiFileException("Multiple mappings on the same dimension not supported");
-                    }
-                    m_colMap = &myMap;
+                    throw CiftiFileException("Multiple mappings on the same dimension not supported");
+                }
+                m_colMap = &myMap;
+                if (myMatrix.m_matrixIndicesMap[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+                {
                     int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
                     for (int k = 0; k < numModels; ++k)
                     {
