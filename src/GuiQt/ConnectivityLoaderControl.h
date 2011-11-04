@@ -33,6 +33,8 @@
 
 class QAbstractButton;
 class QButtonGroup;
+class QCheckBox;
+class QDoubleSpinBox;
 class QGridLayout;
 class QLabel;
 class QLineEdit;
@@ -66,6 +68,8 @@ namespace caret {
         void fileButtonPressed(QAbstractButton* button);
         void networkButtonPressed(QAbstractButton* button);
         void removeButtonPressed(QAbstractButton* button);
+        void timeSpinBoxesValueChanged(double value);
+        void showTimeGraphCheckBoxesStateChanged(int state);
     private:
         QGridLayout* loaderLayout;
 
@@ -76,6 +80,8 @@ namespace caret {
         std::vector<QToolButton*> fileButtons;
         std::vector<QToolButton*> networkButtons;
         std::vector<QToolButton*> removeButtons;
+        std::vector<QDoubleSpinBox*> timeSpinBoxes;
+        std::vector<QCheckBox*> showTimeGraphCheckBoxes;
         
         QButtonGroup* animateButtonsGroup;
         QButtonGroup* fileButtonsGroup;

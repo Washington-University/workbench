@@ -133,6 +133,11 @@ namespace caret {
         
         VolumeFile* getConnectivityVolumeFile();
         
+        
+        bool isTimeSeriesGraphEnabled() const;
+        
+        void setTimeSeriesGraphEnabled(const bool showGraph);
+        
     private:
         enum LoaderType {
             LOADER_TYPE_INVALID,
@@ -182,6 +187,8 @@ namespace caret {
         int32_t numberOfDataElements;
         
         VolumeFile* connectivityVolumeFile;
+        
+        bool timeSeriesGraphEnabled;
     };
     
 } // namespace

@@ -29,7 +29,9 @@
 
 #include <QBoxLayout>
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
@@ -44,6 +46,7 @@
 #include "GuiManager.h"
 #include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
+#include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -52,9 +55,12 @@ using namespace caret;
 static const int COLUMN_SELECTOR  = 0;
 static const int COLUMN_FILE      = 1;
 static const int COLUMN_FILE_TYPE = 2;
-static const int COLUMN_ANIMATE   = 3;
-static const int COLUMN_DATA_SOURCE = 4;
-static const int COLUMN_REMOVE    = 6;
+static const int COLUMN_TIME_CHECKBOX = 3;
+static const int COLUMN_TIME_SPINBOX = 4;
+static const int COLUMN_TIME_ANIMATE = 5;
+static const int COLUMN_FILE_BUTTON = 6;
+static const int COLUMN_NETWORK_BUTTON = 7;
+static const int COLUMN_REMOVE    = 8;
     
 /**
  * \class ConnectivityLoaderControl 
@@ -87,7 +93,7 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     
     QLabel* selectorLabel = new QLabel("Selector");
     QLabel* fileLabel = new QLabel("File");
-    QLabel* animateLabel = new QLabel("Animate");
+    QLabel* animateLabel = new QLabel("Timepoint");
     QLabel* sourceLabel = new QLabel("Data Source");
     QLabel* fileTypeLabel = new QLabel("File Type");
     QLabel* removeLabel = new QLabel("Remove");
@@ -96,8 +102,8 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
     this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE);
     this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
-    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_ANIMATE);
-    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_DATA_SOURCE, 1, 2);
+    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_CHECKBOX, 1, 3);
+    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2);
     this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
 
     this->loaderLayout->setColumnStretch(COLUMN_FILE, 100);
@@ -146,15 +152,35 @@ ConnectivityLoaderControl::updateControl()
             
             QToolButton* animateButton = new QToolButton();
             animateButton->setText("Start");
+            WuQtUtilities::setToolTipAndStatusTip(animateButton,
+                                                  "Animate throught timepoints");
             
             QToolButton* fileButton = new QToolButton();
             fileButton->setText("File");
+            WuQtUtilities::setToolTipAndStatusTip(fileButton,
+                                                  "Open a connectivity file from disk");
             
             QToolButton* networkButton = new QToolButton();
             networkButton->setText("Web");
+            WuQtUtilities::setToolTipAndStatusTip(networkButton,
+                                                  "Open a connectivity file on the network");
             
             QToolButton* removeButton = new QToolButton();
             removeButton->setText("X");
+            
+            QCheckBox* timeCheckBox = new QCheckBox(" ");
+            QObject::connect(timeCheckBox, SIGNAL(stateChanged(int)),
+                             this, SLOT(showTimeGraphCheckBoxesStateChanged(int)));
+            WuQtUtilities::setToolTipAndStatusTip(timeCheckBox,
+                                                  "Display time-series chart for selected brainordinates");
+            
+            QDoubleSpinBox* timeSpinBox = new QDoubleSpinBox();
+            timeSpinBox->setMinimum(0);
+            timeSpinBox->setSingleStep(1.0);
+            QObject::connect(timeSpinBox, SIGNAL(valueChanged(double)),
+                             this, SLOT(timeSpinBoxesValueChanged(double)));
+            WuQtUtilities::setToolTipAndStatusTip(timeSpinBox,
+                                                  "Select timepoint for display on brainordinates");
             
             WuQWidgetObjectGroup* widgetGroup = new WuQWidgetObjectGroup(this);
             widgetGroup = new WuQWidgetObjectGroup(this);
@@ -165,15 +191,19 @@ ConnectivityLoaderControl::updateControl()
             widgetGroup->add(fileButton);
             widgetGroup->add(networkButton);
             widgetGroup->add(removeButton);
+            widgetGroup->add(timeCheckBox);
+            widgetGroup->add(timeSpinBox);
             this->rowWidgetGroups.push_back(widgetGroup);
             
             const int row = this->loaderLayout->rowCount();
             this->loaderLayout->addWidget(numberLabel, row, COLUMN_SELECTOR);
             this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
-            this->loaderLayout->addWidget(fileButton, row, COLUMN_DATA_SOURCE);
-            this->loaderLayout->addWidget(animateButton, row, COLUMN_ANIMATE);
+            this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX);
+            this->loaderLayout->addWidget(timeSpinBox, row, COLUMN_TIME_SPINBOX);
+            this->loaderLayout->addWidget(animateButton, row, COLUMN_TIME_ANIMATE);
             this->loaderLayout->addWidget(fileTypeLabel, row, COLUMN_FILE_TYPE);
-            this->loaderLayout->addWidget(networkButton, row, COLUMN_DATA_SOURCE + 1);
+            this->loaderLayout->addWidget(fileButton, row, COLUMN_FILE_BUTTON);
+            this->loaderLayout->addWidget(networkButton, row, COLUMN_NETWORK_BUTTON);
             this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE);
             
             this->animateButtonsGroup->addButton(animateButton);
@@ -188,6 +218,8 @@ ConnectivityLoaderControl::updateControl()
             this->fileButtons.push_back(fileButton);
             this->networkButtons.push_back(networkButton);
             this->removeButtons.push_back(removeButton);
+            this->timeSpinBoxes.push_back(timeSpinBox);
+            this->showTimeGraphCheckBoxes.push_back(timeCheckBox);
         }
     }
     
@@ -400,6 +432,58 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
     manager->removeConnectivityLoaderFile(fileIndex);
     
     this->updateControl();
+}
+
+/**
+ * Called when a time spin box value is changed.
+ * @param value
+ *    New value.
+ */
+void 
+ConnectivityLoaderControl::timeSpinBoxesValueChanged(double value)
+{
+    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    
+    bool dataLoadedFlag = false;
+    
+    const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
+    for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
+        ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
+        if (clf->isDenseTimeSeries()) {
+            clf->loadTimePointAtTime(this->timeSpinBoxes[i]->value());
+            dataLoadedFlag = true;
+        }
+    }
+    
+    if (dataLoadedFlag) {
+        
+    }
+}
+
+/**
+ * Called when a show graph checkbox value is changed.
+ * @param state
+ *    New state.
+ */
+void 
+ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int state)
+{
+    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    
+    bool dataLoadedFlag = false;
+    
+    const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
+    for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
+        ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
+        if (clf->isDenseTimeSeries()) {
+            clf->loadTimePointAtTime(this->timeSpinBoxes[i]->value());
+            dataLoadedFlag = true;
+        }
+    }
+    
+    if (dataLoadedFlag) {
+        
+    }
 }
 
 /**

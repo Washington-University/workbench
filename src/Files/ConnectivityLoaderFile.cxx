@@ -57,6 +57,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->loaderType = LOADER_TYPE_INVALID;
     this->connectivityVolumeFile = NULL;
     this->mapToType = MAP_TO_TYPE_INVALID;
+    this->timeSeriesGraphEnabled = false;
 }
 
 /**
@@ -1061,6 +1062,27 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     }
     
     return NULL;
+}
+
+/**
+ * @return
+ *   Is the time series graph enabled?
+ */
+bool 
+ConnectivityLoaderFile::isTimeSeriesGraphEnabled() const
+{
+    return this->timeSeriesGraphEnabled;
+}
+
+/**
+ * Set time-series graph enabled.
+ * @param showGraph
+ *   New value for time-series graph.
+ */
+void 
+ConnectivityLoaderFile::setTimeSeriesGraphEnabled(const bool showGraph)
+{
+    this->timeSeriesGraphEnabled = showGraph;
 }
 
 
