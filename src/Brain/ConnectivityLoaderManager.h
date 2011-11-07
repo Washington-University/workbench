@@ -65,7 +65,8 @@ namespace caret {
         
         void receiveEvent(Event* event);
 
-        bool loadTimePointAtTime(const float seconds) throw (DataFileException);
+        bool loadTimePointAtTime(ConnectivityLoaderFile* clf,
+                                 const float seconds) throw (DataFileException);
         
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
         

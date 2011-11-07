@@ -331,25 +331,22 @@ ConnectivityLoaderManager::toString() const
 }
 
 /**
- * Load data for the given surface node index.
- * @param surfaceFile
- *    Surface File that contains the node (uses its structure).
- * @param nodeIndex
- *    Index of the surface node.
+ * Load a time point from a connectivity file.
+ * @param clf
+ *    Connectivity file from which connectivity file is loaded.
+ * @param seconds
+ *    Time, in seconds, of the timepoint.
  * @return
- *    true if any connectivity loaders are active, else false.
+ *    true if data was loaded, else false.
  */
-bool ConnectivityLoaderManager::loadTimePointAtTime(const float seconds) throw (DataFileException)
+bool 
+ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
+                                               const float seconds) throw (DataFileException)
 {
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        ConnectivityLoaderFile* clf = *iter;
-        if (clf->isEmpty() == false) {
-            clf->loadTimePointAtTime(seconds);
-            haveData = true;
-        }
+    if (clf->isEmpty() == false) {
+        clf->loadTimePointAtTime(seconds);
+        haveData = true;
     }
 
     if (haveData) {

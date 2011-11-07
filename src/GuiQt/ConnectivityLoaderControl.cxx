@@ -541,8 +541,7 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(double /*value*/)
     const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
     for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
         ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
-        if (clf->isDenseTimeSeries()) {
-            clf->loadTimePointAtTime(this->timeSpinBoxes[i]->value());
+        if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[i]->value())) {
             dataLoadedFlag = true;
         }
     }
