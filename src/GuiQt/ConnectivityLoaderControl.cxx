@@ -184,6 +184,7 @@ ConnectivityLoaderControl::updateControl()
             
             QDoubleSpinBox* timeSpinBox = new QDoubleSpinBox();
             timeSpinBox->setMinimum(0);
+            timeSpinBox->setMaximum(std::numeric_limits<double>::max());
             timeSpinBox->setSingleStep(1.0);
             WuQtUtilities::setToolTipAndStatusTip(timeSpinBox,
                                                   "Select timepoint for display on brainordinates");
