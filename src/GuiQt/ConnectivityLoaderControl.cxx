@@ -38,6 +38,7 @@
 #include <QMessageBox>
 #include <QPushButton>
 #include <QToolButton>
+#include <limits>
 
 #include "Brain.h"
 #include "CaretAssert.h"
