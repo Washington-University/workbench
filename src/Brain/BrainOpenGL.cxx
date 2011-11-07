@@ -1476,27 +1476,29 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
     /*
      * Determine volumes that are to be drawn
      */
-    std::vector<VolumeDrawInfo> volumeDrawInfo;
-    this->setupVolumeDrawInfo(browserTabContent,
-                              wholeBrainController->getBrain()->getPaletteFile(),
-                              volumeDrawInfo);
-    if (volumeDrawInfo.empty() == false) {
-        const VolumeSliceIndicesSelection* slices = 
+    if (wholeBrainController->getUnderlayVolumeFile(tabNumberIndex) != NULL) {
+        std::vector<VolumeDrawInfo> volumeDrawInfo;
+        this->setupVolumeDrawInfo(browserTabContent,
+                                  wholeBrainController->getBrain()->getPaletteFile(),
+                                  volumeDrawInfo);
+        if (volumeDrawInfo.empty() == false) {
+            const VolumeSliceIndicesSelection* slices = 
             wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
-        if (slices->isSliceAxialEnabled()) {
-            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
-                                            slices->getSliceIndexAxial(), 
-                                            volumeDrawInfo);
-        }
-        if (slices->isSliceCoronalEnabled()) {
-            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
-                                            slices->getSliceIndexCoronal(), 
-                                            volumeDrawInfo);
-        }
-        if (slices->isSliceParasagittalEnabled()) {
-            this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                            slices->getSliceIndexParasagittal(), 
-                                            volumeDrawInfo);
+            if (slices->isSliceAxialEnabled()) {
+                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
+                                                slices->getSliceIndexAxial(), 
+                                                volumeDrawInfo);
+            }
+            if (slices->isSliceCoronalEnabled()) {
+                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
+                                                slices->getSliceIndexCoronal(), 
+                                                volumeDrawInfo);
+            }
+            if (slices->isSliceParasagittalEnabled()) {
+                this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                                                slices->getSliceIndexParasagittal(), 
+                                                volumeDrawInfo);
+            }
         }
     }
 }

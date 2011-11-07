@@ -49,6 +49,7 @@
 #include "GuiManager.h"
 #include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
+#include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -78,21 +79,25 @@ static const int COLUMN_REMOVE    = 8;
 ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
 : QWidget(parent)
 {
-    this->animateButtonsGroup = new QButtonGroup();
+    this->animateButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->animateButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(animateButtonPressed(QAbstractButton*)));
     
-    this->fileButtonsGroup = new QButtonGroup();
+    this->fileButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->fileButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(fileButtonPressed(QAbstractButton*)));
     
-    this->networkButtonsGroup = new QButtonGroup();
+    this->networkButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->networkButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(networkButtonPressed(QAbstractButton*)));
 
-    this->removeButtonsGroup = new QButtonGroup();
+    this->removeButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->removeButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(removeButtonPressed(QAbstractButton*)));
+    
+    this->timeSpinBoxesGroup = new WuQSpinBoxGroup(this);
+    QObject::connect(this->timeSpinBoxesGroup, SIGNAL(doubleSpinBoxValueChanged(QDoubleSpinBox*, const double)),
+                     this, SLOT(timeSpinBoxesValueChanged(QDoubleSpinBox*, const double)));
     
     QLabel* selectorLabel = new QLabel("Selector");
     QLabel* fileLabel = new QLabel("File");
@@ -180,8 +185,6 @@ ConnectivityLoaderControl::updateControl()
             QDoubleSpinBox* timeSpinBox = new QDoubleSpinBox();
             timeSpinBox->setMinimum(0);
             timeSpinBox->setSingleStep(1.0);
-            QObject::connect(timeSpinBox, SIGNAL(valueChanged(double)),
-                             this, SLOT(timeSpinBoxesValueChanged(double)));
             WuQtUtilities::setToolTipAndStatusTip(timeSpinBox,
                                                   "Select timepoint for display on brainordinates");
             
@@ -213,6 +216,7 @@ ConnectivityLoaderControl::updateControl()
             this->fileButtonsGroup->addButton(fileButton);
             this->networkButtonsGroup->addButton(networkButton);
             this->removeButtonsGroup->addButton(removeButton);
+            this->timeSpinBoxesGroup->addSpinBox(timeSpinBox);
             
             this->animateButtons.push_back(animateButton);
             this->loaderNumberLabels.push_back(numberLabel);
@@ -529,22 +533,29 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
 
 /**
  * Called when a time spin box value is changed.
+ * @param doubleSpinBox
+ *    Spin box that had value changed.
  * @param value
  *    New value.
  */
 void 
-ConnectivityLoaderControl::timeSpinBoxesValueChanged(double /*value*/)
+ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinBox,
+                                                     const double /*value*/)
 {
+    int32_t fileIndex = -1;
+    for (int32_t i = 0; i < static_cast<int32_t>(this->timeSpinBoxes.size()); i++) {
+        if (this->timeSpinBoxes[i] == doubleSpinBox) {
+            fileIndex = i;
+        }
+    }
+    CaretAssert(fileIndex >= 0);
     ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     
     bool dataLoadedFlag = false;
     
-    const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
-    for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
-        ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
-        if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[i]->value())) {
+    ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(fileIndex);
+    if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[fileIndex]->value())) {
             dataLoadedFlag = true;
-        }
     }
     
     if (dataLoadedFlag) {

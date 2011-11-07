@@ -42,6 +42,7 @@ WuQDialogModal.h
 WuQDialogNonModal.h
 WuQFileDialog.h
 WuQMessageBox.h
+WuQSpinBoxGroup.h
 WuQWidgetObjectGroup.h
 )
 
@@ -84,6 +85,7 @@ WuQDialogNonModal.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQMessageBox.h
+WuQSpinBoxGroup.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
@@ -117,6 +119,7 @@ WuQDialogModal.cxx
 WuQDialogNonModal.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx
+WuQSpinBoxGroup.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx
 )

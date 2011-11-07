@@ -44,6 +44,7 @@ class QToolButton;
 namespace caret {
 
     class ConnectivityLoaderFile;
+    class WuQSpinBoxGroup;
     class WuQWidgetObjectGroup;
     
     class ConnectivityLoaderControl : public QWidget {
@@ -69,7 +70,8 @@ namespace caret {
         void fileButtonPressed(QAbstractButton* button);
         void networkButtonPressed(QAbstractButton* button);
         void removeButtonPressed(QAbstractButton* button);
-        void timeSpinBoxesValueChanged(double value);
+        void timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinBox,
+                                       double value);
         void showTimeGraphCheckBoxesStateChanged(int state);
     private:
         QGridLayout* loaderLayout;
@@ -91,6 +93,7 @@ namespace caret {
         QButtonGroup* fileButtonsGroup;
         QButtonGroup* networkButtonsGroup;
         QButtonGroup* removeButtonsGroup;
+        WuQSpinBoxGroup* timeSpinBoxesGroup;
 
         std::vector<WuQWidgetObjectGroup*> rowWidgetGroups;
 
