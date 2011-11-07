@@ -135,7 +135,7 @@ namespace caret {
         VolumeFile* getConnectivityVolumeFile();
         int64_t getNumberOfTimePoints();
 
-        
+        float getTimeStep() const;
         
         bool isTimeSeriesGraphEnabled() const;
         

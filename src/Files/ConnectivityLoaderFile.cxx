@@ -688,7 +688,6 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
-                    CaretLogSevere("Read column for time " + AString::number(seconds));
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                 }
                 else {
@@ -1098,10 +1097,28 @@ ConnectivityLoaderFile::setTimeSeriesGraphEnabled(const bool showGraph)
  * @return
  *    int64_t timePoints
  */
-int64_t ConnectivityLoaderFile::getNumberOfTimePoints()
+int64_t 
+ConnectivityLoaderFile::getNumberOfTimePoints()
 {
-    if(this->isDenseTimeSeries())
+    if(this->isDenseTimeSeries()) {
         return this->ciftiInterface->getNumberOfColumns();
-    else
+    }
+    else {
         return -1;
+    }
 }
+
+/**
+ * @return The time step.
+ */
+float
+ConnectivityLoaderFile::getTimeStep() const
+{
+    float timeStep = 0.0;
+    if (this->ciftiInterface->getColumnTimestep(timeStep)) {
+        return timeStep;
+    }
+    
+    return 0.0;
+}
+

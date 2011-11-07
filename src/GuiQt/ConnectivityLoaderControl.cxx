@@ -245,12 +245,13 @@ ConnectivityLoaderControl::updateControl()
                 this->showTimeGraphCheckBoxes[i]->setChecked(clf->isTimeSeriesGraphEnabled());
                 this->showTimeGraphCheckBoxes[i]->setEnabled(true);
                 this->timeSpinBoxes[i]->setEnabled(true);
+                this->timeSpinBoxes[i]->setSingleStep(clf->getTimeStep());
                 this->animateButtons[i]->setEnabled(true);
             }
             else {
                 this->showTimeGraphCheckBoxes[i]->setEnabled(false);
-                this->timeSpinBoxes[i]->setEnabled(true);
-                this->animateButtons[i]->setEnabled(true);
+                this->timeSpinBoxes[i]->setEnabled(false);
+                this->animateButtons[i]->setEnabled(false);
             }
             
             this->rowWidgetGroups[i]->setVisible(true);
