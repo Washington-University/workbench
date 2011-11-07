@@ -1474,7 +1474,7 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
     }
     
     /*
-     * Determine volumes that are to be drawn
+     * Determine volumes that are to be drawn  
      */
     if (wholeBrainController->getUnderlayVolumeFile(tabNumberIndex) != NULL) {
         std::vector<VolumeDrawInfo> volumeDrawInfo;
