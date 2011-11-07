@@ -26,6 +26,7 @@
 #include "CaretHttpManager.h"
 #include "CaretAssert.h"
 #include "NetworkException.h"
+#include "CaretLogger.h"
 #include <QNetworkRequest>
 
 using namespace caret;
@@ -64,13 +65,30 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     QEventLoop myLoop;
     QNetworkRequest myRequest;
     myRequest.setSslConfiguration(QSslConfiguration::defaultConfiguration());
+    CaretHttpManager* myCaretMgr = getHttpManager();
+    AString myServerString = getServerString(request.m_url);
+    bool have_auth = false;
+    for (int i = 0; i < (int)myCaretMgr->m_authList.size(); ++i)
+    {
+        if (myServerString == myCaretMgr->m_authList[i].m_serverString)
+        {
+            QString unencoded = myCaretMgr->m_authList[i].m_user + ":" + myCaretMgr->m_authList[i].m_pass;
+            myRequest.setRawHeader("Authorization", "Basic " + unencoded.toLocal8Bit().toBase64());
+            CaretLogInfo("Found auth for URL " + request.m_url);
+            have_auth = true;
+            break;
+        }
+    }
+    if (!have_auth)
+    {
+        CaretLogInfo("NO AUTH FOUND for URL " + request.m_url);
+    }
     QNetworkReply* myReply;
     QUrl myUrl = QUrl::fromUserInput(request.m_url);
     for (int32_t i = 0; i < (int32_t)request.m_queries.size(); ++i)
     {
         myUrl.addQueryItem(request.m_queries[i].first, request.m_queries[i].second);
     }
-    CaretHttpManager* myCaretMgr = getHttpManager();
     QNetworkAccessManager* myQNetMgr = &(myCaretMgr->m_netMgr);
     bool first = true;
     QByteArray postData;
@@ -90,13 +108,6 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         }
         myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         myRequest.setUrl(myUrl);
-        if (request.m_url == myCaretMgr->m_authURL)
-        {
-            if (!first) postData += "&";
-            QString unencoded = myCaretMgr->m_authUser + ":" + myCaretMgr->m_authPass;
-            myRequest.setRawHeader("Authorization", "Basic " + unencoded.toLocal8Bit().toBase64());
-            //postData += "Authorization=Basic%20" + unencoded.toLocal8Bit().toBase64();
-        }
         myReply = myQNetMgr->post(myRequest, postData);
         break;
     case GET:
@@ -119,7 +130,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         CaretAssertMessage(false, "Unrecognized http request method");
     };
     QObject::connect(myReply, SIGNAL(sslErrors(QList<QSslError>)), &myLoop, SLOT(quit()));
-    QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
+    //QObject::connect(myQNetMgr, SIGNAL(authenticationRequired(QNetworkReply*,QAuthenticator*)), myCaretMgr, SLOT(authenticationCallback(QNetworkReply*,QAuthenticator*)));
     QObject::connect(myReply, SIGNAL(finished()), &myLoop, SLOT(quit()));//this is safe, because nothing will hand this thread events except queued through this thread's event mechanism
     myLoop.exec();//so, they can only be delivered after myLoop.exec() starts
     response.m_method = request.m_method;
@@ -143,13 +154,26 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
 
 void CaretHttpManager::setAuthentication(const AString& url, const AString& user, const AString& password)
 {
-    CaretHttpManager* myMgr = getHttpManager();
-    myMgr->m_authURL = url;//don't give the auth to a url that isn't the url intended to log into
-    myMgr->m_authUser = user;
-    myMgr->m_authPass = password;
+    CaretHttpManager* myCaretMgr = getHttpManager();
+    AString myServerString = getServerString(url);
+    CaretLogInfo("Setting auth for server " + myServerString);
+    for (int i = 0; i < (int)myCaretMgr->m_authList.size(); ++i)
+    {
+        if (myServerString == myCaretMgr->m_authList[i].m_serverString)
+        {//for the moment, only allow one auth token per server in one instance of caret, so replace
+            myCaretMgr->m_authList[i].m_user = user;
+            myCaretMgr->m_authList[i].m_pass = password;
+            return;
+        }
+    }//not found, need to add
+    AuthEntry myAuth;
+    myAuth.m_serverString = myServerString;
+    myAuth.m_user = user;
+    myAuth.m_pass = password;
+    myCaretMgr->m_authList.push_back(myAuth);
 }
 
-void CaretHttpManager::authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator)
+/*void CaretHttpManager::authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator)
 {
     if (reply->url() != QUrl::fromUserInput(m_authURL))//note: a redirect will cause this to break, this is ON PURPOSE so that auth isn't sent to a redirect
     {
@@ -160,4 +184,11 @@ void CaretHttpManager::authenticationCallback(QNetworkReply* reply, QAuthenticat
     m_authURL = "";
     m_authUser = "";
     m_authPass = "";
+}//*/ //currently not used, because callback doesn't work for the way xnat is set up, and doesn't fit well with synchronous requests
+
+AString CaretHttpManager::getServerString(const AString& url)
+{
+    QUrl fullURL = QUrl::fromUserInput(url);
+    AString ret = fullURL.toEncoded(QUrl::RemovePath | QUrl::StripTrailingSlash | QUrl::RemoveQuery | QUrl::RemoveUserInfo);
+    return ret;
 }

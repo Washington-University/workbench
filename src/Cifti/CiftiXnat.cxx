@@ -65,7 +65,6 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     {
         throw CiftiFileException("Error opening URL, response code: " + AString::number(myResponse.m_responseCode));
     }
-    cout << "passed first request" << endl;
     myResponse.m_body.push_back('\0');//null terminate it so we can construct an AString easily - CaretHttpManager is nice and pre-reserves this room for this purpose
     AString theBody(myResponse.m_body.data());
     //cout << theBody << endl;

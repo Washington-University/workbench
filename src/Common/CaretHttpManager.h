@@ -38,10 +38,17 @@ namespace caret {
     class CaretHttpManager : public QObject
     {
         Q_OBJECT
+        struct AuthEntry
+        {
+            AString m_serverString;
+            AString m_user;
+            AString m_pass;
+        };
         QNetworkAccessManager m_netMgr;
         CaretHttpManager();
         static CaretHttpManager* m_singleton;
-        AString m_authURL, m_authUser, m_authPass;
+        std::vector<AuthEntry> m_authList;
+        static AString getServerString(const AString& url);
     public:
         enum Method
         {
@@ -55,7 +62,7 @@ namespace caret {
         static QNetworkAccessManager* getQNetManager();
         static void setAuthentication(const AString& url, const AString& user, const AString& password);
     public slots:
-        void authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator);
+        //void authenticationCallback(QNetworkReply* reply, QAuthenticator* authenticator);
     };
 
     struct CaretHttpResponse
