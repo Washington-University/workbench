@@ -445,7 +445,7 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
             default:
                 break;
         }
-        AString name = dataTypeName;
+        AString name = dataTypeName
         + " "
         + dataFile->getFileNameNoPath();
         this->fileSelectionComboBox->addItem(name,

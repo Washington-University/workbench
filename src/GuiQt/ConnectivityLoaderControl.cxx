@@ -529,9 +529,13 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
 
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
+    ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(fileIndex);
+    clf->clear();
     manager->removeConnectivityLoaderFile(fileIndex);
 
     this->updateControl();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());        
 }
 
 /**
