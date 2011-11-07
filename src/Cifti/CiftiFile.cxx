@@ -224,7 +224,7 @@ int64_t CiftiFile::getNumberOfColumns() const
     {
         throw CiftiFileException("Matrix has no dimensions");
     }
-    return myDims[0];
+    return myDims[1];
 }
 
 int64_t CiftiFile::getNumberOfRows() const
@@ -235,7 +235,7 @@ int64_t CiftiFile::getNumberOfRows() const
     {
         throw CiftiFileException("Matrix has less than 2 dimensions");
     }
-    return myDims[1];
+    return myDims[0];
 }
 
 //Matrix IO, simply passes through to CiftiMatrix, see header for more info..
