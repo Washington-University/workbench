@@ -413,7 +413,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
     
     QLabel* urlLabel = new QLabel("URL: ");
     QLineEdit* urlLineEdit = new QLineEdit();
-    urlLineEdit->setText("https://hcp-dev01.nrg.wustl.edu/data/services/cifti-average?searchID=xs1308076465528");
+    urlLineEdit->setText("");
     
     QLabel* typeLabel = new QLabel("Type: ");
     QComboBox* typeComboBox = new QComboBox();
@@ -425,10 +425,12 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
     
     QLabel* usernameLabel = new QLabel("Username: ");
     QLineEdit* usernameLineEdit = new QLineEdit();
+    usernameLineEdit->setText(this->previousNetworkUserName);
     
     QLabel* passwordLabel = new QLabel("Password: ");
     QLineEdit* passwordLineEdit = new QLineEdit();
     passwordLineEdit->setEchoMode(QLineEdit::Password);
+    passwordLineEdit->setText(this->previousNetworkPassword);
     
     QWidget* controlsWidget = new QWidget();
     QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
@@ -449,14 +451,14 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         const int comboIndex = typeComboBox->currentIndex();
         const DataFileTypeEnum::Enum dataType = 
             DataFileTypeEnum::fromIntegerCode(typeComboBox->itemData(comboIndex).toInt(), NULL);
-        const AString username = usernameLineEdit->text().trimmed();
-        const AString password = passwordLineEdit->text().trimmed();
+        this->previousNetworkUserName = usernameLineEdit->text().trimmed();
+        this->previousNetworkPassword = passwordLineEdit->text().trimmed();
         
         try {
             loaderFile->setupNetworkFile(name,
                                          dataType,
-                                         username,
-                                         password);
+                                         this->previousNetworkUserName,
+                                         this->previousNetworkPassword);
         }
         catch (DataFileException e) {
             QMessageBox::critical(this, 

@@ -99,6 +99,8 @@ namespace caret {
 
         
         AString previousCiftiFileTypeFilter;
+        AString previousNetworkUserName;
+        AString previousNetworkPassword;
     };
     
 #ifdef __CONNECTIVITY_LOADER_CONTROL_DECLARE__
