@@ -86,7 +86,10 @@ VolumeSliceIndicesSelection::reset()
 void 
 VolumeSliceIndicesSelection::updateForVolumeFile(const VolumeFile* volumeFile)
 {
-    CaretAssert(volumeFile);
+    if (volumeFile == NULL) {
+        this->reset();
+        return;
+    }
     
     int64_t dimI, dimJ, dimK, numMaps, numComponents;
     volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
