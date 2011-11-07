@@ -38,12 +38,17 @@ ELSEIF(WIN32)
         SET( OPENSSL_ROOT_DIR "c:\\dev32\\install\\openssl" CACHE_STRING "open ssl root directory")
         FIND_PATH(ZLIB_INCLUDE_DIR zlib.h
             C:\\dev32\\install\\zlib\\include
-            C:\\zlib_software\\zlib-1.2.5-install\\include)
+            C:\\zlib_software\\zlib-1.2.5-install\\include
+            $ENV{ZLIB_INC_DIR})
         FIND_PATH(ZLIB_LIBRARY libzlib.a
             C:\\zlib_software\\zlib-1.2.5-install\\lib)
         IF (NOT ZLIB_FOUND)
             FIND_PATH(ZLIB_LIBRARY zlib.lib
             C:\\dev32\\install\\zlib\\lib)
+        ENDIF(NOT ZLIB_FOUND)
+        IF (NOT ZLIB_FOUND)
+            FIND_PATH(ZLIB_LIBRARY libz.a
+                $ENV{ZLIB_LIB_DIR})
         ENDIF(NOT ZLIB_FOUND)
 
       ###  SET( ZLIB_INCLUDE_DIR "C:\\dev32\\install\\zlib\\include" CACHE STRING "zlib include directory (headers)")
