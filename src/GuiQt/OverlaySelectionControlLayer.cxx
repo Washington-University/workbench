@@ -87,14 +87,6 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                      this, SLOT(columnSelected(int)));
     //this->columnSelectionComboBox->setFixedWidth(comboBoxWidth);
     
-    this->histogramAction = WuQtUtilities::createAction("H",
-                                                        "Show histogram of selected data",
-                                                        this,
-                                                        this,
-                                                        SLOT(histogramToolButtonPressed()));
-    this->histogramToolButton = new QToolButton();
-    this->histogramToolButton->setDefaultAction(this->histogramAction);
-    
     this->settingsAction = WuQtUtilities::createAction("S",
                                                         "Show control for adjusting settings that controls data coloring",
                                                         this,
@@ -151,7 +143,6 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     this->widgetGroup->add(this->enabledCheckBox);
     this->widgetGroup->add(this->fileSelectionComboBox);
     this->widgetGroup->add(this->columnSelectionComboBox);
-    this->widgetGroup->add(this->histogramToolButton);
     this->widgetGroup->add(this->settingsToolButton);
     this->widgetGroup->add(this->metadataToolButton);
     this->widgetGroup->add(this->opacityDoubleSpinBox);            
@@ -291,12 +282,6 @@ void
 OverlaySelectionControlLayer::metadataToolButtonPressed()
 {
     QMessageBox::information(this->overlaySelectionControl, "", "Metadata!");
-}
-
-void 
-OverlaySelectionControlLayer::histogramToolButtonPressed()
-{
-    QMessageBox::information(this->overlaySelectionControl, "", "Histogram!");
 }
 
 /**
@@ -449,7 +434,18 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
     for (int32_t i = 0; i < numFiles; i++) {
         CaretMappableDataFile* dataFile = dataFiles[i];
         
-        AString name = DataFileTypeEnum::toName(dataFile->getDataFileType())
+        AString dataTypeName = DataFileTypeEnum::toName(dataFile->getDataFileType());
+        switch (dataFile->getDataFileType()) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                dataTypeName = "CONNECTIVITY";
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                dataTypeName = "TIME_SERIES";
+                break;
+            default:
+                break;
+        }
+        AString name = dataTypeName;
         + " "
         + dataFile->getFileNameNoPath();
         this->fileSelectionComboBox->addItem(name,

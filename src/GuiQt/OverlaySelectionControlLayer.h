@@ -65,7 +65,6 @@ namespace caret {
         QCheckBox* enabledCheckBox;
         QComboBox* fileSelectionComboBox;
         QComboBox* columnSelectionComboBox;
-        QToolButton* histogramToolButton;
         QToolButton* settingsToolButton;
         QToolButton* metadataToolButton;
         QDoubleSpinBox* opacityDoubleSpinBox;            
@@ -74,7 +73,6 @@ namespace caret {
         QToolButton* upArrowToolButton;
         QToolButton* downArrowToolButton;
         
-        QAction* histogramAction;
         QAction* settingsAction;
         QAction* metadataAction;
         QAction* moveUpAction;
@@ -98,7 +96,6 @@ namespace caret {
         void removeLayerToolButtonPressed();
         void settingsToolButtonPressed();
         void metadataToolButtonPressed();
-        void histogramToolButtonPressed();
         
     private:
         OverlaySelectionControlLayer(const OverlaySelectionControlLayer&);

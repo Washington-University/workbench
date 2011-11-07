@@ -132,18 +132,17 @@ OverlaySelectionControl::createLayers()
             gridLayout->addWidget(new QLabel("On"), row, 0);
             gridLayout->addWidget(new QLabel("File"), row, 1, Qt::AlignHCenter);
             gridLayout->addWidget(new QLabel("Map"), row, 2, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Hist"), row, 3);
-            gridLayout->addWidget(new QLabel("Settings"), row, 4);
-            gridLayout->addWidget(new QLabel("Meta"), row, 5);
-            gridLayout->addWidget(new QLabel("Opacity"), row, 6);
+            gridLayout->addWidget(new QLabel("Settings"), row, 3);
+            gridLayout->addWidget(new QLabel("Meta"), row, 4);
+            gridLayout->addWidget(new QLabel("Opacity"), row, 5);
 
             if (smallArrowButtonsFlag) {
-                gridLayout->addWidget(new QLabel("Move"), row, 7, Qt::AlignHCenter);
-                gridLayout->addWidget(new QLabel("Remove"), row, 8);
+                gridLayout->addWidget(new QLabel("Move"), row, 6, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 7);
             }
             else {            
-                gridLayout->addWidget(new QLabel("Move"), row, 7, 1, 2, Qt::AlignHCenter);
-                gridLayout->addWidget(new QLabel("Remove"), row, 9);
+                gridLayout->addWidget(new QLabel("Move"), row, 6, 1, 2, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 8);
             }
             
             gridLayout->setColumnStretch(0, 0);
@@ -157,7 +156,7 @@ OverlaySelectionControl::createLayers()
             gridLayout->setColumnStretch(8, 0);
 
             if (smallArrowButtonsFlag == false) {
-                gridLayout->setColumnStretch(9, 0);
+                gridLayout->setColumnStretch(8, 0);
             }
         }
             break;
@@ -222,19 +221,18 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->enabledCheckBox, row, 0, Qt::AlignCenter);
                 gridLayout->addWidget(layer->fileSelectionComboBox, row, 1);
                 gridLayout->addWidget(layer->columnSelectionComboBox, row, 2);
-                gridLayout->addWidget(layer->histogramToolButton, row, 3, Qt::AlignCenter);
-                gridLayout->addWidget(layer->settingsToolButton, row, 4, Qt::AlignCenter);
-                gridLayout->addWidget(layer->metadataToolButton, row, 5, Qt::AlignCenter);
-                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6, Qt::AlignCenter);
+                gridLayout->addWidget(layer->settingsToolButton, row, 3, Qt::AlignCenter);
+                gridLayout->addWidget(layer->metadataToolButton, row, 4, Qt::AlignCenter);
+                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 5, Qt::AlignCenter);
                 
                 QVBoxLayout* arrowLayout = new QVBoxLayout();
                 WuQtUtilities::setLayoutMargins(arrowLayout, 0, 0, 0);
                 arrowLayout->addWidget(layer->upArrowToolButton);
                 arrowLayout->addWidget(layer->downArrowToolButton);
-                gridLayout->addLayout(arrowLayout, row, 7, Qt::AlignCenter);
+                gridLayout->addLayout(arrowLayout, row, 6, Qt::AlignCenter);
                 //gridLayout->addWidget(layer->upArrowToolButton, row, 7, ALIGN_TOP_HORIZONTAL_CENTER);
                 //gridLayout->addWidget(layer->downArrowToolButton, row + 1, 7, ALIGN_BOTTOM_HORIZONTAL_CENTER);
-                gridLayout->addWidget(layer->deleteToolButton, row, 8, Qt::AlignCenter);
+                gridLayout->addWidget(layer->deleteToolButton, row, 7, Qt::AlignCenter);
             }
             else {
                 int row = gridLayout->rowCount();
@@ -242,14 +240,13 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->enabledCheckBox, row, 0);
                 gridLayout->addWidget(layer->fileSelectionComboBox, row, 1);
                 gridLayout->addWidget(layer->columnSelectionComboBox, row, 2);
-                gridLayout->addWidget(layer->histogramToolButton, row, 3);
-                gridLayout->addWidget(layer->settingsToolButton, row, 4, Qt::AlignHCenter);
-                gridLayout->addWidget(layer->metadataToolButton, row, 5);
-                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6);
+                gridLayout->addWidget(layer->settingsToolButton, row, 3, Qt::AlignHCenter);
+                gridLayout->addWidget(layer->metadataToolButton, row, 4);
+                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 5);
                 
-                gridLayout->addWidget(layer->upArrowToolButton, row, 7);
-                gridLayout->addWidget(layer->downArrowToolButton, row, 8);
-                gridLayout->addWidget(layer->deleteToolButton, row, 9, Qt::AlignHCenter);
+                gridLayout->addWidget(layer->upArrowToolButton, row, 6);
+                gridLayout->addWidget(layer->downArrowToolButton, row, 7);
+                gridLayout->addWidget(layer->deleteToolButton, row, 8, Qt::AlignHCenter);
             }
                 break;
             case Qt::Vertical:
@@ -274,7 +271,6 @@ OverlaySelectionControl::createLayers()
                     gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
                     
                     QHBoxLayout* buttLayout = new QHBoxLayout();
-                    buttLayout->addWidget(layer->histogramToolButton);
                     buttLayout->addWidget(layer->settingsToolButton);
                     buttLayout->addWidget(layer->metadataToolButton);
                     buttLayout->addStretch();
@@ -305,12 +301,11 @@ OverlaySelectionControl::createLayers()
                     gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
                     gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
                     gridLayout->addWidget(layer->opacityDoubleSpinBox, row2, 2, 1, 3);
-                    gridLayout->addWidget(layer->histogramToolButton, row3, 2);
-                    gridLayout->addWidget(layer->settingsToolButton, row3, 3);
-                    gridLayout->addWidget(layer->metadataToolButton, row3, 4);
+                    gridLayout->addWidget(layer->settingsToolButton, row3, 2);
+                    gridLayout->addWidget(layer->metadataToolButton, row3, 3);
                     
                     gridLayout->addWidget(layer->upArrowToolButton, row2, 5, Qt::AlignHCenter);
-                    gridLayout->addWidget(layer->downArrowToolButton, row3, 5, Qt::AlignHCenter);
+                    gridLayout->addWidget(layer->downArrowToolButton, row3, 4, Qt::AlignHCenter);
                     gridLayout->addWidget(layer->deleteToolButton, row2, 6, 2, 1, Qt::AlignHCenter);
                 }
                 
