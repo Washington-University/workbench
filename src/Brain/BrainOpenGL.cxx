@@ -796,8 +796,10 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                     if (vf != NULL) {
                         if (vf->isMappedWithPalette()) {
                             PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+                            if (connLoadFile != NULL) {
+                                paletteColorMapping = connLoadFile->getPaletteColorMapping(mapIndex);
+                            }
                             Palette* palette = paletteFile->getPaletteByName(paletteColorMapping->getSelectedPaletteName());
-                            
                             if (palette != NULL) {
                                 bool useIt = true;
                                 
@@ -817,19 +819,11 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                     }
                                 }
                                 if (useIt) {
-                                    const DescriptiveStatistics* statistics = vf->getMapStatistics(mapIndex);
-                                    PaletteColorMapping* paletteColorMapping = vf->getMapPaletteColorMapping(mapIndex);
+                                    const DescriptiveStatistics* statistics = 
+                                        (connLoadFile != NULL) 
+                                        ? connLoadFile->getMapStatistics(mapIndex)
+                                        : vf->getMapStatistics(mapIndex);
                                     
-                                    if (connLoadFile != NULL) {
-                                        VolumeDrawInfo vdi(vf,
-                                                           palette,
-                                                           connLoadFile->getPaletteColorMapping(mapIndex),
-                                                           connLoadFile->getMapStatistics(mapIndex),
-                                                           mapIndex,
-                                                           opacity);
-                                        volumeDrawInfoOut.push_back(vdi);
-                                    }
-                                    else {
                                         VolumeDrawInfo vdi(vf,
                                                            palette,
                                                            paletteColorMapping,
@@ -837,7 +831,6 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
                                                            mapIndex,
                                                            opacity);
                                         volumeDrawInfoOut.push_back(vdi);
-                                    }
                                 }
                             }
                             else {
