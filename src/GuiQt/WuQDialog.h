@@ -48,12 +48,12 @@ namespace caret  {
     public:
         virtual ~WuQDialog();
         
-        QDialogButtonBox* getDialogButtonBox();
-        
         void setCentralWidget(QWidget* w);
         
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);
+        
+        QPushButton* addUserPushButton(const AString& text);
         
         void setDeleteWhenClosed(bool deleteFlag);
         
@@ -74,9 +74,13 @@ namespace caret  {
         void slotCaptureImageAfterTimeOut();
         
     protected:
+        QDialogButtonBox* getDialogButtonBox();
+        
         void addImageCaptureToMenu(QMenu* menu);
         
         virtual void contextMenuEvent(QContextMenuEvent*);
+        
+        virtual void userButtonPressed(QPushButton* userPushButton);        
         
     private:
         QVBoxLayout* userWidgetLayout;

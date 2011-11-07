@@ -31,6 +31,7 @@ BrainOpenGLWidget.h
 ConnectivityLoaderControl.h
 GuiManager.h
 HyperLinkTextBrowser.h
+ManageLoadedFilesDialog.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 PaletteColorMappingEditorDialog.h
@@ -65,6 +66,7 @@ EventPaletteColorMappingEditor.h
 EventUserInterfaceUpdate.h
 GuiManager.h
 HyperLinkTextBrowser.h
+ManageLoadedFilesDialog.h
 MouseEvent.h
 MouseEventTypeEnum.h
 OverlaySelectionControl.h
@@ -99,6 +101,7 @@ EventPaletteColorMappingEditor.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
+ManageLoadedFilesDialog.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
 OverlaySelectionControl.cxx

@@ -120,7 +120,9 @@ WuQDialogModal::clicked(QAbstractButton* button)
         this->cancelButtonPressed();
     }
     else {
-        CaretAssertMessage(0, "Invalid button role: " + buttonRole);
+        QPushButton* pushButton = dynamic_cast<QPushButton*>(button);
+        CaretAssert(pushButton);
+        this->userButtonPressed(pushButton);
     }
 }
 

@@ -35,6 +35,7 @@
 #include <QPushButton>
 #include <QTimer>
 
+#include "CaretAssert.h"
 #include "WuQDialog.h"
 
 using namespace caret;
@@ -248,5 +249,40 @@ void
 WuQDialog::setCentralWidget(QWidget* w)
 {
     this->userWidgetLayout->addWidget(w);
+}
+
+/**
+ * Adds a button to the dialog.  When the button is
+ * pressed, userButtonPressed(QPushButton*) will be
+ * called with the button that was created and returned
+ * by this method.  The subclass of the dialog MUST
+ * override userButtonPressed(QPushButton*).
+ *
+ * @param text
+ *     Text for the pushbutton.
+ * @return
+ *     QPushButton that was created.
+ */
+QPushButton* 
+WuQDialog::addUserPushButton(const AString& text)
+{
+    QPushButton* pushButton = this->buttonBox->addButton(text, QDialogButtonBox::ApplyRole);
+    return pushButton;
+}
+
+/**
+ * Called when a push button was added using addUserPushButton().
+ * Subclasses MUST override this if user push buttons were 
+ * added using addUserPushButton().
+ *
+ * @param userPushButton
+ *    User push button that was pressed.
+ */
+void 
+WuQDialog::userButtonPressed(QPushButton* userPushButton)
+{
+    CaretAssertMessage(0, "Subclass MUST override WuQDialog::userButtonPressed to process button labeled \""
+                + userPushButton->text()
+                + "\"");
 }
 
