@@ -31,6 +31,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "GiftiXmlElements.h"
+#include "Palette.h"
 #include "PaletteColorMapping.h"
 
 using namespace caret;
@@ -426,6 +427,8 @@ VolumeFile::createAttributes()
     m_labelTable = new GiftiLabelTable();
     m_metadata   = new GiftiMetaData();
     m_paletteColorMapping = new PaletteColorMapping();
+    m_paletteColorMapping->setSelectedPaletteName(Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME);
+    m_paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
     for (int64_t i = 0; i < m_dimensions[3]; i++) {
         m_brickAttributes.push_back(new BrickAttributes());
     }

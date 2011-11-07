@@ -111,15 +111,15 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
      * Percentage mapping 
      */
     this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(0.0);
+    this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
+    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
     this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
     
     this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(0.0);
+    this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
+    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
     this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
