@@ -162,8 +162,8 @@ void CiftiMatrix::setRow(float *rowIn, const int64_t &rowIndex) throw (CiftiFile
 void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) const throw (CiftiFileException)
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
-    int64_t rowSize = m_dimensions[1];
-    int64_t columnSize = m_dimensions[0];
+    int64_t rowSize = m_dimensions[0];
+    int64_t columnSize = m_dimensions[1];
     if(m_caching == IN_MEMORY)
     {
         for(int64_t i=0;i<columnSize;i++){ columnOut[i]=m_matrix[columnIndex+rowSize*i]; }
@@ -183,8 +183,8 @@ void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) const 
 void CiftiMatrix::setColumn(float *columnIn, const int64_t &columnIndex) throw (CiftiFileException)
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
-    int64_t rowSize = m_dimensions[1];
-    int64_t columnSize = m_dimensions[0];
+    int64_t rowSize = m_dimensions[0];
+    int64_t columnSize = m_dimensions[1];
     if(m_caching == IN_MEMORY)
     {
         for(int64_t i=0;i<columnSize;i++){ m_matrix[columnIndex+rowSize*i]=columnIn[i]; }
@@ -277,8 +277,8 @@ void CiftiMatrix::writeToNewFile(const AString &fileNameIn, const int64_t  &offs
     }
     else if(m_caching == ON_DISK)
     {
-        int64_t rowSize = m_dimensions[1];
-        int64_t columnSize = m_dimensions[0];
+        int64_t rowSize = m_dimensions[0];
+        int64_t columnSize = m_dimensions[1];
         float * row = new float[rowSize];
         file.seek(m_matrixOffset);
         for(int64_t i =0;i<columnSize;i++)

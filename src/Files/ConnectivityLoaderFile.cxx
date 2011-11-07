@@ -735,7 +735,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->getRowFromNode(this->data, 
+                if (this->ciftiInterface->getRowFromNode(this->data,
                                                          nodeIndex,
                                                          structure)) {
                     CaretLogFine("Read row for node " + AString::number(nodeIndex));
