@@ -76,8 +76,10 @@ using namespace caret;
  */
 BrainOpenGL::BrainOpenGL()
 {
+    this->initializeMembersBrainOpenGL();
     this->identificationManager = new IdentificationManager();
     this->colorIdentification   = new IdentificationWithColor();
+    this->sphereDisplayList = 0;
 }
 
 /**
@@ -87,7 +89,7 @@ BrainOpenGL::BrainOpenGL()
  *
  * @return 
  *    Pointer to BrainOpenGL for drawing.
- */
+ *
 BrainOpenGL* 
 BrainOpenGL::getBrainOpenGL()
 {
@@ -96,12 +98,16 @@ BrainOpenGL::getBrainOpenGL()
     }
     return BrainOpenGL::brainOpenGLSingleton;
 }
+*/
 
 /**
  * Destructor.
  */
 BrainOpenGL::~BrainOpenGL()
 {
+    if (this->sphereDisplayList > 0) {
+        glDeleteLists(this->sphereDisplayList, 1);
+    }
     delete this->identificationManager;
     this->identificationManager = NULL;
     
@@ -438,6 +444,16 @@ BrainOpenGL::initializeOpenGL()
     
     float ambient[] = { 0.8f, 0.8f, 0.8f, 1.0f };
     glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient); 
+    
+    this->sphereDisplayList = glGenLists(1);
+    glNewList(this->sphereDisplayList, GL_COMPILE);
+    GLUquadric* sphereQuadric = gluNewQuadric();
+    gluQuadricDrawStyle(sphereQuadric, (GLenum)GLU_FILL);
+    gluQuadricOrientation(sphereQuadric, (GLenum)GLU_OUTSIDE);
+    gluQuadricNormals(sphereQuadric, (GLenum)GLU_SMOOTH);
+    gluSphere(sphereQuadric, 0.5, 10, 10);
+    gluDeleteQuadric(sphereQuadric);
+    glEndList();
     
     if (this->initializedOpenGLFlag) {
         return;
@@ -794,16 +810,21 @@ BrainOpenGL::drawSurfaceNodeAttributes(Surface* surface)
     
     const float* coordinates = surface->getCoordinate(0);
 
+    //glDisable(GL_COLOR_MATERIAL);
+    
     glColor3f(0.0, 1.0, 0.0);
-    glPointSize(5.0);
-    glBegin(GL_POINTS);
+    //glPointSize(5.0);
+    //glBegin(GL_POINTS);
     for (int32_t i = 0; i < numNodes; i++) {
         if (brainStructure->getNodeAttributes(i)->isIdentified()) {
             const int32_t i3 = i * 3;
-            glVertex3fv(&coordinates[i3]);
+            glPushMatrix();
+            glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
+            this->drawSphere(10.0);
+            glPopMatrix();
         }
     }
-    glEnd();
+    //glEnd();
 }
 
 /**
@@ -1729,6 +1750,93 @@ BrainOpenGL::setIdentifiedItemScreenXYZ(IdentificationItem* item,
         item->setModelXYZ(modelXYZ);
     }
 }
+
+/**
+ * Draw sphere.
+ */
+void 
+BrainOpenGL::drawSphere(const double radius)
+{
+    glPushMatrix();
+    glScaled(radius, radius, radius);
+    glCallList(this->sphereDisplayList);
+    glPopMatrix();
+
+/*
+    const int numLat = 10;
+    const int numLon = 10;
+    
+    glPushMatrix();
+    glScaled(radius, radius, radius);
+    
+
+    int i, j;
+    for(i = 0; i <= numLat; i++) {
+        double lat0 = M_PI * (-0.5 + (double) (i - 1) / numLat);
+        double z0  = sin(lat0);
+        double zr0 =  cos(lat0);
+        
+        double lat1 = M_PI * (-0.5 + (double) i / numLat);
+        double z1 = sin(lat1);
+        double zr1 = cos(lat1);
+        
+        glBegin(GL_QUAD_STRIP);
+        for(j = 0; j <= numLon; j++) {
+            double lng = 2 * M_PI * (double) (j - 1) / numLon;
+            double x = cos(lng);
+            double y = sin(lng);
+            
+            glNormal3f(x * zr0, y * zr0, z0);
+            glVertex3f(x * zr0, y * zr0, z0);
+            glNormal3f(x * zr1, y * zr1, z1);
+            glVertex3f(x * zr1, y * zr1, z1);
+        }
+        glEnd();
+    }
+ 
+
+    const int numLat = 10;
+    const int numLon = 10;
+    const float floatNumLat = numLat;
+    const float floatNumLon = numLon;
+    
+    const float po2 = M_PI / 2.0;
+    
+    glBegin(GL_QUADS);
+    for (int iLat = 0; iLat < numLat; iLat++) {
+        const float rad1 = (-po2 + M_PI * (static_cast<float>(iLat) / floatNumLat));
+        const float z1 = std::sin(rad1);
+        const float rad2 = (-po2 + M_PI * (static_cast<float>(iLat + 1) / floatNumLat));
+        const float z2 = std::sin(rad2);
+        
+        for (int iLon = 0; iLon < numLon; iLon++) {
+            const float rad1 = (-po2 + M_PI * (static_cast<float>(iLon) / floatNumLon));
+            const float x1 = std::cos(rad1);
+            const float y1 = std::sin(rad1);
+            const float rad2 = (-po2 + M_PI * (static_cast<float>(iLon + 1) / floatNumLon));
+            const float x2 = std::cos(rad2);
+            const float y2 = std::sin(rad2);
+            
+            glNormal3f(x1, y1, z1);
+            glVertex3f(x1, y1, z1);
+
+            glNormal3f(x2, y2, z1);
+            glVertex3f(x2, y2, z1);
+            
+            glNormal3f(x2, y2, z2);
+            glVertex3f(x2, y2, z2);
+            
+            glNormal3f(x1, y1, z2);
+            glVertex3f(x1, y1, z2);
+        }
+    }
+    glEnd();
+
+    
+    glPopMatrix();
+ */
+}
+
 
 
 //============================================================================

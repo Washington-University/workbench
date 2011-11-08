@@ -76,6 +76,10 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
+    if (this->openGL != NULL) {
+        delete this->openGL;
+        this->openGL = NULL;
+    }
     delete this->userInputViewModeProcessor;
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -86,7 +90,7 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 void 
 BrainOpenGLWidget::initializeGL()
 {
-    this->openGL = GuiManager::get()->getBrainOpenGL();
+    this->openGL = new BrainOpenGL(); //GuiManager::get()->getBrainOpenGL();
     this->openGL->initializeOpenGL();
     
     this->lastMouseX = 0;

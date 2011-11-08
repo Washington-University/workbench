@@ -40,7 +40,7 @@ namespace caret {
     
     class Brain;
     class BrainBrowserWindow;
-    class BrainOpenGL;
+    //class BrainOpenGL;
     class BrowserTabContent;
     
     /**
@@ -70,7 +70,7 @@ namespace caret {
         
         QString applicationName() const;
         
-        BrainOpenGL* getBrainOpenGL();
+        //BrainOpenGL* getBrainOpenGL();
         
         BrowserTabContent* getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
                                                                 const bool allowInvalidBrowserWindowIndex);
@@ -110,7 +110,7 @@ namespace caret {
         QString nameOfApplication;
         
         /* Performs OpenGL drawing commands */
-        BrainOpenGL* brainOpenGL;
+        //BrainOpenGL* brainOpenGL;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__

@@ -123,7 +123,7 @@ IdentificationManager::filterSelections(const double selectionX,
             logText += ("\n" + item->toString() + "\n");
         }
     }
-    CaretLogSevere("Selected Items BEFORE filtering: " + logText);
+    CaretLogFine("Selected Items BEFORE filtering: " + logText);
     
     IdentificationItemSurfaceTriangle* triangleID = this->surfaceTriangleIdentification;
     IdentificationItemSurfaceNode* nodeID = this->surfaceNodeIdentification;
@@ -213,7 +213,7 @@ IdentificationManager::filterSelections(const double selectionX,
             logText += ("\n" + item->toString() + "\n");
         }
     }
-    CaretLogSevere("Selected Items AFTER filtering: " + logText);
+    CaretLogFine("Selected Items AFTER filtering: " + logText);
 }
 
 /**

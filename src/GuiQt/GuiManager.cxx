@@ -54,7 +54,7 @@ GuiManager::GuiManager(QObject* parent)
 : QObject(parent)
 {
     this->nameOfApplication = "Connectome Workbench";
-    this->brainOpenGL = NULL;
+    //this->brainOpenGL = NULL;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
 }
@@ -66,10 +66,10 @@ GuiManager::~GuiManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
-    if (this->brainOpenGL != NULL) {
-        delete this->brainOpenGL;
-        this->brainOpenGL = NULL;
-    }
+//    if (this->brainOpenGL != NULL) {
+//        delete this->brainOpenGL;
+//        this->brainOpenGL = NULL;
+//    }
     
 }
 
@@ -126,15 +126,15 @@ GuiManager::getBrain()
  * @return 
  *    Point to the brain.
  */
-BrainOpenGL* 
-GuiManager::getBrainOpenGL()
-{
-    if (this->brainOpenGL == NULL) {
-        this->brainOpenGL = BrainOpenGL::getBrainOpenGL();
-    }
-    
-    return this->brainOpenGL;
-}
+//BrainOpenGL* 
+//GuiManager::getBrainOpenGL()
+//{
+//    if (this->brainOpenGL == NULL) {
+//        this->brainOpenGL = BrainOpenGL::getBrainOpenGL();
+//    }
+//    
+//    return this->brainOpenGL;
+//}
 
 /**
  * See if a brain browser window can be closed.  If there is only

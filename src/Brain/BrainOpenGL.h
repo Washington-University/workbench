@@ -62,14 +62,14 @@ namespace caret {
             MODE_IDENTIFICATION
         };
         
-        BrainOpenGL();
-
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);
         
     public:
-        static BrainOpenGL* getBrainOpenGL();
+        //static BrainOpenGL* getBrainOpenGL();
         
+        BrainOpenGL();
+
         ~BrainOpenGL();
         
         void drawModel(ModelDisplayController* controller,
@@ -182,8 +182,10 @@ namespace caret {
         
         void drawSurfaceAxes();
         
+        void drawSphere(const double radius);
+        
         /** contains single instance of this class */
-        static BrainOpenGL* brainOpenGLSingleton;
+        //static BrainOpenGL* brainOpenGLSingleton;
         
         /** version number of OpenGL */
         static float versionOfOpenGL;
@@ -212,6 +214,8 @@ namespace caret {
         /** Identify using color */
         IdentificationWithColor* colorIdentification;
         
+        uint32_t sphereDisplayList;
+        
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;
         
@@ -224,7 +228,7 @@ namespace caret {
     };
 
 #ifdef __BRAIN_OPENGL_DEFINE_H
-    BrainOpenGL* BrainOpenGL::brainOpenGLSingleton = NULL;
+//    BrainOpenGL* BrainOpenGL::brainOpenGLSingleton = NULL;
     float BrainOpenGL::versionOfOpenGL = 0.0f;
 #endif //__BRAIN_OPENGL_DEFINE_H
 
