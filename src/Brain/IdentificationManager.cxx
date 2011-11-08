@@ -123,7 +123,7 @@ IdentificationManager::filterSelections(const double selectionX,
             logText += ("\n" + item->toString() + "\n");
         }
     }
-    CaretLogFine("Selected Items BEFORE filtering: " + logText);
+    CaretLogSevere("Selected Items BEFORE filtering: " + logText);
     
     
     //
@@ -206,7 +206,7 @@ IdentificationManager::filterSelections(const double selectionX,
             logText += ("\n" + item->toString() + "\n");
         }
     }
-    CaretLogFine("Selected Items AFTER filtering: " + logText);
+    CaretLogSevere("Selected Items AFTER filtering: " + logText);
 }
 
 /**

@@ -51,9 +51,17 @@ namespace caret {
         
         void setBrain(Brain* brain);
         
-        float getScreenDepth() const;
+        double getScreenDepth() const;
         
-        void setScreenDepth(const float screenDepth);
+        void setScreenDepth(const double screenDepth);
+        
+        void getScreenXYZ(double screenXYZ[3]) const;
+        
+        void setScreenXYZ(const double screenXYZ[3]);
+        
+        void getModelXYZ(double modelXYZ[3]) const;
+        
+        void setModelXYZ(const double modelXYZ[3]);
         
         /**
          * @return  Is the identified item valid?
@@ -77,7 +85,11 @@ namespace caret {
         
         Brain* brain;
         
-        float screenDepth;
+        double screenDepth;
+        
+        double screenXYZ[3];
+        
+        double modelXYZ[3];
     };
     
 #ifdef __IDENTIFICATION_ITEM_DECLARE__

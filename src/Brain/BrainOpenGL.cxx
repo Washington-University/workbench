@@ -650,10 +650,24 @@ BrainOpenGL::drawSurfaceTriangles(Surface* surface)
                                          this->mouseY,
                                          triangleIndex,
                                          depth);
+        
+        
         if (triangleIndex >= 0) {
             triangleID->setSurface(surface);
             triangleID->setTriangleNumber(triangleIndex);
             triangleID->setScreenDepth(depth);
+            
+            const int32_t n1 = triangles[triangleIndex*3];
+            const int32_t n2 = triangles[triangleIndex*3 + 1];
+            const int32_t n3 = triangles[triangleIndex*3 + 2];
+            
+            float average[3] = {
+                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0,
+                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0,
+                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0
+            };
+            this->setIdentifiedItemScreenXYZ(triangleID, average);
+                   
             CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
         }
         
@@ -720,6 +734,7 @@ BrainOpenGL::drawSurfaceNodes(Surface* surface)
             nodeID->setSurface(surface);
             nodeID->setNodeNumber(nodeIndex);
             nodeID->setScreenDepth(depth);
+            this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
             CaretLogFine("Selected Node: " + QString::number(nodeIndex));   
         }
     }
@@ -1430,6 +1445,11 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
                 voxelID->setVolumeFile(underlayVolumeFile);
                 voxelID->setVoxelIJK(voxelIndices);
                 voxelID->setScreenDepth(depth);
+                
+                float voxelXYZ[3];
+                underlayVolumeFile->indexToSpace(voxelIndices, voxelXYZ);
+                
+                this->setIdentifiedItemScreenXYZ(voxelID, voxelXYZ);
                 CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
             }
         }
@@ -1668,6 +1688,48 @@ BrainOpenGL::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dat
     }
     this->colorIdentification->reset();
 }
+
+/**
+ * Set the identified item's screen coordinates.
+ * @param item
+ *    Item that has screen coordinates set.
+ * @param itemXYZ
+ *    Model's coordinate.
+ */
+void 
+BrainOpenGL::setIdentifiedItemScreenXYZ(IdentificationItem* item,
+                                        const float itemXYZ[3])
+{
+    GLdouble selectionModelviewMatrix[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, selectionModelviewMatrix);
+    
+    GLdouble selectionProjectionMatrix[16];
+    glGetDoublev(GL_PROJECTION_MATRIX, selectionProjectionMatrix);
+    
+    GLint selectionViewport[4];
+    glGetIntegerv(GL_VIEWPORT, selectionViewport);
+    
+    const double modelXYZ[3] = {
+        itemXYZ[0],
+        itemXYZ[1],
+        itemXYZ[2]
+    };
+    
+    double windowPos[3];
+    if (gluProject(modelXYZ[0], 
+                   modelXYZ[1], 
+                   modelXYZ[2],
+                   selectionModelviewMatrix,
+                   selectionProjectionMatrix,
+                   selectionViewport,
+                   &windowPos[0],
+                   &windowPos[1],
+                   &windowPos[2])) {
+        item->setScreenXYZ(windowPos);
+        item->setModelXYZ(modelXYZ);
+    }
+}
+
 
 //============================================================================
 /**

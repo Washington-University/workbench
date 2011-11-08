@@ -38,6 +38,7 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class DescriptiveStatistics;
+    class IdentificationItem;
     class IdentificationManager;
     class IdentificationWithColor;
     class Surface;
@@ -165,6 +166,9 @@ namespace caret {
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
+        
+        void setIdentifiedItemScreenXYZ(IdentificationItem* item,
+                                        const float itemXYZ[3]);
         
         void setViewportAndOrthographicProjection(const int32_t viewport[4]);
         

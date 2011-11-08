@@ -48,6 +48,12 @@ IdentificationItem::IdentificationItem(const IdentificationItemDataTypeEnum::Enu
     this->enabledForSelection = true;
     this->brain = NULL;
     this->screenDepth = 0.0;
+    this->screenXYZ[0] = 0.0;
+    this->screenXYZ[1] = 0.0;
+    this->screenXYZ[2] = std::numeric_limits<double>::max();
+    this->modelXYZ[0] = 0.0;
+    this->modelXYZ[1] = 0.0;
+    this->modelXYZ[2] = 0.0;
 }
 
 /**
@@ -69,6 +75,12 @@ IdentificationItem::reset()
 {
     this->brain = NULL;
     this->screenDepth = 0.0;
+    this->screenXYZ[0] = 0.0;
+    this->screenXYZ[1] = 0.0;
+    this->screenXYZ[2] = std::numeric_limits<double>::max();
+    this->modelXYZ[0] = 0.0;
+    this->modelXYZ[1] = 0.0;
+    this->modelXYZ[2] = 0.0;
 }
 
 
@@ -80,7 +92,9 @@ AString
 IdentificationItem::toString() const
 {
     AString text = "";
-    text += "Depth: " + AString::number(screenDepth); 
+    text += ("Depth: " + AString::number(screenDepth) + "\n");
+    text += ("Model XYZ:  " + AString::fromNumbers(this->modelXYZ, 3, ", "));
+    text += ("Screen XYZ: " + AString::fromNumbers(this->screenXYZ, 3, ", "));
     return text;
 }
 
@@ -137,7 +151,7 @@ IdentificationItem::setBrain(Brain* brain)
 /**
  * @return Screen depth of item.
  */
-float 
+double 
 IdentificationItem::getScreenDepth() const
 {
     return this->screenDepth;
@@ -149,11 +163,61 @@ IdentificationItem::getScreenDepth() const
  *    New value for screen depth.
  */
 void 
-IdentificationItem::setScreenDepth(const float screenDepth)
+IdentificationItem::setScreenDepth(const double screenDepth)
 {
     this->screenDepth = screenDepth;
 }
 
+/**
+ * Get the screen XYZ of the identified item.
+ * @param screenXYZ
+ *    XYZ out.
+ */
+void 
+IdentificationItem::getScreenXYZ(double screenXYZ[3]) const
+{
+    screenXYZ[0] = this->screenXYZ[0];
+    screenXYZ[1] = this->screenXYZ[1];
+    screenXYZ[2] = this->screenXYZ[2];
+}
 
+/**
+ * Set the screen XYZ of the identified item.
+ * @param screenXYZ
+ *    new XYZ.
+ */
+void 
+IdentificationItem::setScreenXYZ(const double screenXYZ[3])
+{
+    this->screenXYZ[0] = screenXYZ[0];
+    this->screenXYZ[1] = screenXYZ[1];
+    this->screenXYZ[2] = screenXYZ[2];
+}
+
+/**
+ * Get the model XYZ of the identified item.
+ * @param modelXYZ
+ *    XYZ out.
+ */
+void 
+IdentificationItem::getModelXYZ(double modelXYZ[3]) const
+{
+    modelXYZ[0] = this->modelXYZ[0];
+    modelXYZ[1] = this->modelXYZ[1];
+    modelXYZ[2] = this->modelXYZ[2];
+}
+
+/**
+ * Set the model XYZ of the identified item.
+ * @param modelXYZ
+ *    new XYZ.
+ */
+void 
+IdentificationItem::setModelXYZ(const double modelXYZ[3])
+{
+    this->modelXYZ[0] = modelXYZ[0];
+    this->modelXYZ[1] = modelXYZ[1];
+    this->modelXYZ[2] = modelXYZ[2];
+}
 
 
