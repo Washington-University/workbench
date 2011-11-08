@@ -199,6 +199,22 @@ ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTab
                                                          const SurfaceTypeEnum::Enum surfaceType)
 {
     this->selectedSurfaceType[windowTabNumber] = surfaceType;
+    
+    /*
+     * If surface type is neither anatomical nor reconstruction,
+     * turn of the display of volume slices.
+     */
+    switch (surfaceType) {
+        case SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL:
+            break;
+        case SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION:
+            break;
+        default:
+            this->volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
+            this->volumeSlicesSelected[windowTabNumber].setSliceCoronalEnabled(false);
+            this->volumeSlicesSelected[windowTabNumber].setSliceParasagittalEnabled(false);
+            break;
+    }
     this->updateController();
 }
 

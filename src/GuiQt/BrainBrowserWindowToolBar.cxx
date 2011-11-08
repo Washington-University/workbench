@@ -2130,6 +2130,7 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceTypeComboBoxIndexChanged(int /*indx*
         if (isValid) {
             wholeBrainController->setSelectedSurfaceType(tabIndex, surfaceType);
             //this->updateUserInterface();
+            this->updateVolumeIndicesWidget(btc); // slices may get deselected
             this->updateGraphicsWindow();
         }
     }

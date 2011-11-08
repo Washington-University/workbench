@@ -1448,12 +1448,18 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
                     case StructureEnum::CORTEX_LEFT:
                         drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
                         dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                        dx -= surface->getBoundingBox()->getMaxX();
+                        if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
+                            && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                            dx -= surface->getBoundingBox()->getMaxX();
+                        }
                         break;
                     case StructureEnum::CORTEX_RIGHT:
                         drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
                         dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                        dx -= surface->getBoundingBox()->getMinX();
+                        if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
+                            && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                            dx -= surface->getBoundingBox()->getMinX();
+                        }
                         break;
                     case StructureEnum::CEREBELLUM:
                         drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);
