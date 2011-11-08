@@ -102,7 +102,9 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     
     QLabel* selectorLabel = new QLabel("Selector");
     QLabel* fileLabel = new QLabel("File");
-    QLabel* animateLabel = new QLabel("Timepoint");
+    QLabel* graphLabel = new QLabel("Graph");
+    QLabel* timeLabel = new QLabel("Time");
+    QLabel* animateLabel = new QLabel("Animate");
     QLabel* sourceLabel = new QLabel("Data Source");
     QLabel* fileTypeLabel = new QLabel("File Type");
     QLabel* removeLabel = new QLabel("Remove");
@@ -111,7 +113,9 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
     this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE);
     this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
-    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_CHECKBOX, 1, 3);
+    this->loaderLayout->addWidget(graphLabel, 0, COLUMN_TIME_CHECKBOX);
+    this->loaderLayout->addWidget(timeLabel, 0, COLUMN_TIME_SPINBOX);
+    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_ANIMATE);
     this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2);
     this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
 
@@ -176,6 +180,8 @@ ConnectivityLoaderControl::updateControl()
             
             QToolButton* removeButton = new QToolButton();
             removeButton->setText("X");
+            WuQtUtilities::setToolTipAndStatusTip(removeButton,
+                                                  "Clear this connectivity selector");
             
             QCheckBox* timeCheckBox = new QCheckBox(" ");
             QObject::connect(timeCheckBox, SIGNAL(stateChanged(int)),
