@@ -182,7 +182,7 @@ ConnectivityLoaderFile::setup(const AString& path,
     }
     
     try {
-        if (path.startsWith("https://")) {
+        if (path.startsWith("http")) {
             this->ciftiXnatFile = new CiftiXnat();
             if (username.isEmpty() == false) {
                 this->ciftiXnatFile->setAuthentication(path, username, password);
