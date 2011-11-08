@@ -151,9 +151,14 @@ ConnectivityLoaderControl::updateControl()
     int32_t numLoaderWidgets = static_cast<int32_t>(this->loaderNumberLabels.size());
     
     /*
-     * Create new rows, as needed
+     * Create new animators, as needed
      */
     const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
+    if(animators.size()<numberOfConnectivityLoaders) animators.resize(numberOfConnectivityLoaders,NULL);
+    /*
+     * Create new rows, as needed
+     */
+
     for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
         if (i >= numLoaderWidgets) {
             QLabel* numberLabel = new QLabel(AString::number(i + 1));
@@ -237,7 +242,7 @@ ConnectivityLoaderControl::updateControl()
             this->timeSpinBoxes.push_back(timeSpinBox);
             this->showTimeGraphCheckBoxes.push_back(timeCheckBox);
 
-        }
+        }        
     }
     
     /*
@@ -265,10 +270,21 @@ ConnectivityLoaderControl::updateControl()
                 this->timeSpinBoxes[i]->setEnabled(false);
                 this->animateButtons[i]->setEnabled(false);
             }
-            
+            if((animators[i]== NULL) && clf->isDenseTimeSeries())
+            {
+                animators[i] = new TimeSeriesManager(i,manager);
+            }
+
             this->rowWidgetGroups[i]->setVisible(true);
+
         }
         else {
+            if(animators[i]) {
+                animators[i]->stop();
+                delete animators[i];
+                animators[i] == NULL;
+            }
+
             this->rowWidgetGroups[i]->setVisible(false);
         }
     }
@@ -291,8 +307,7 @@ ConnectivityLoaderControl::animateButtonPressed(QAbstractButton* button)
         }
     }
     CaretAssert(fileIndex >= 0);
-    
-    animators[fileIndex]->toggleAnimation();
+    if(animators[fileIndex])  animators[fileIndex]->toggleAnimation();
     std::cout << "Animate button " << fileIndex << " was pressed." << std::endl;
 }
 
@@ -371,7 +386,8 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                 else
                 {
                     TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex,manager);//TODO, time series needs a handle to ConnectivityLoaderFile
-                    this->animators.push_back(tsManager);
+                    this->animators.resize(fileIndex+1,NULL);
+                    this->animators[fileIndex] = tsManager;
                 }
             }
             else
@@ -387,7 +403,8 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                 }
                 else
                 {
-                    this->animators.push_back(NULL);
+                    this->animators.resize(fileIndex+1,NULL);
+                    this->animators[fileIndex] = NULL;
                 }
             }
         }        
@@ -532,6 +549,8 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
     if(animators[fileIndex])
     {
         animators[fileIndex]->stop();//removes animation thread if it exists
+        delete animators[fileIndex];
+        animators[fileIndex]=NULL;
     }
 
     Brain* brain = GuiManager::get()->getBrain();

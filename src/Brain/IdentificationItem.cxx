@@ -26,7 +26,7 @@
 #define __IDENTIFICATION_ITEM_DECLARE__
 #include "IdentificationItem.h"
 #undef __IDENTIFICATION_ITEM_DECLARE__
-
+#include <limits>
 using namespace caret;
 
 #include "IdentificationItemDataTypeEnum.h"
