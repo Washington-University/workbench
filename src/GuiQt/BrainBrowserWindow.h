@@ -59,6 +59,8 @@ namespace caret {
         
         BrowserTabContent* getBrowserTabContent();
         
+        QMenu* createPopupMenu();
+        
     protected:
         void closeEvent(QCloseEvent* event);
         

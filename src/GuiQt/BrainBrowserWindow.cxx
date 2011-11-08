@@ -1025,3 +1025,18 @@ BrainBrowserWindow::getBrowserTabContent()
     return this->toolbar->getTabContentFromSelectedTab();
 }
 
+/**
+ * Returns a popup menu for the main window.
+ * Overrides that in QMainWindow and prevents the 
+ * default context menu from appearing.
+ *
+ * @return Context menu for display or NULL if
+ * nothing available.
+ */
+QMenu* 
+BrainBrowserWindow::createPopupMenu()
+{
+    return NULL;
+}
+
+
