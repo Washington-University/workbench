@@ -23,6 +23,10 @@
  */ 
 
 #include "TimeSeriesManager.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "QCoreApplication"
 using namespace caret;
 TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderManager *clm)
 {
@@ -41,7 +45,7 @@ void TimeSeriesManager::toggleAnimation()
 TimeSeriesManager::~TimeSeriesManager()
 {
     stop();
-    m_helper->terminate();
+    //m_helper->terminate();
     delete m_helper;
 }
 
@@ -49,7 +53,7 @@ void TimeSeriesManager::play()
 {
     if(m_isPlaying) return;
     m_isPlaying = true;
-    m_helper->play();
+    m_helper->doAnimation();
 }
 void TimeSeriesManager::stop()
 {
@@ -74,7 +78,7 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm)
     m_timeIndex = 0;
     m_updateInterval = 100;
     m_stopThread = false;
-    moveToThread(this);
+    //moveToThread(this);
 }
 
 void AnimationHelper::run()
@@ -90,15 +94,43 @@ void AnimationHelper::run()
             m_stopThread = false;
             return;
         }
-        clf->loadTimePointAtTime(m_timeIndex);
-        this->wait(m_updateInterval);
+        m_clm->loadTimePointAtTime(clf, m_timeIndex);
+        //this->wait(m_updateInterval);
     }
     m_timeIndex = 0;//reset so that user can play again
 }
 
+void AnimationHelper::doAnimation()
+{
+    ConnectivityLoaderFile *clf = m_clm->getConnectivityLoaderFile(m_index);
+    if(!clf) return;
+    int64_t timePoints = clf->getNumberOfTimePoints();
+    for(;m_timeIndex<timePoints;m_timeIndex++)
+    {
+        if(m_stopThread)
+        {
+            m_stopThread = false;
+            return;
+        }
+        bool dataLoaded = m_clm->loadTimePointAtTime(clf, m_timeIndex);
+        //this->wait(m_updateInterval);
+        QCoreApplication::instance()->processEvents();
+        sleep(m_updateInterval/1000.0);
+
+
+        if(dataLoaded) {
+            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        }
+
+    }
+    m_timeIndex = 0;//reset so that user can play again
+
+}
+
 void AnimationHelper::play()
 {
-    this->start();
+    //this->start();
 }
 
 void AnimationHelper::pause()

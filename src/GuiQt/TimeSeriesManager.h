@@ -28,13 +28,14 @@
 #include "ConnectivityLoaderFile.h"
 namespace caret {
 
-class AnimationHelper : public QThread {
+class AnimationHelper/*: public QThread*/ {
 public:
     AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm);
     void run();
     void play();
     void pause();
     void stop();
+    void doAnimation();
 private:
     int32_t m_index; //index for connectivity loader file
     ConnectivityLoaderManager *m_clm;
