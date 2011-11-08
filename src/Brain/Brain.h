@@ -108,7 +108,8 @@ namespace caret {
                             
         void readBorderProjectionFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityFile(const AString& filename) throw (DataFileException);
+        void readConnectivityFile(const AString& filename,
+                                  const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
         
         void readFociProjectionFile(const AString& filename) throw (DataFileException);
         

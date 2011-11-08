@@ -31,10 +31,14 @@
 
 #include "Brain.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainStructure.h"
+#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
+#include "EventBrainStructureGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventInformationTextDisplay.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
@@ -133,7 +137,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     IdentificationManager* idManager =
         openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
     
-    bool haveConnectivityDataFlag = false;
+    bool updateGraphicsFlag = false;
     
     const IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
     const Surface* surface = idNode->getSurface();
@@ -141,7 +145,17 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     if ((surface != NULL) &&
         (nodeIndex >= 0)) {
         try {
-            haveConnectivityDataFlag = connMan->loadDataForSurfaceNode(surface, nodeIndex);
+            updateGraphicsFlag = connMan->loadDataForSurfaceNode(surface, nodeIndex);
+            updateGraphicsFlag = true;
+            
+            EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
+            EventManager::get()->sendEvent(brainStructureEvent.getPointer());
+            BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+            CaretAssert(brainStructure);
+            
+            BrainStructureNodeAttributes* nodeAtts = brainStructure->getNodeAttributes(nodeIndex);
+            nodeAtts->setIdentified(true);
+
         }
         catch (DataFileException e) {
             QMessageBox::critical(openGLWidget, "", e.whatString());
@@ -157,7 +171,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
             float xyz[3];
             volumeFile->indexToSpace(voxelIJK, xyz);
             try {
-                haveConnectivityDataFlag = connMan->loadDataForVoxelAtCoordinate(xyz);
+                updateGraphicsFlag = connMan->loadDataForVoxelAtCoordinate(xyz);
             }
             catch (DataFileException e) {
                 QMessageBox::critical(openGLWidget, "", e.whatString());
@@ -170,7 +184,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
                                                                EventInformationTextDisplay::TYPE_HTML).getPointer());
 
-    if (haveConnectivityDataFlag) {
+    if (updateGraphicsFlag) {
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
 }

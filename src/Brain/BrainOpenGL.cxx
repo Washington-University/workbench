@@ -43,12 +43,15 @@
 
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
+#include "EventBrainStructureGet.h"
+#include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
@@ -565,6 +568,7 @@ BrainOpenGL::drawSurface(Surface* surface)
     switch (this->mode) {
         case MODE_DRAWING:
             this->drawSurfaceTrianglesWithVertexArrays(surface);
+            this->drawSurfaceNodeAttributes(surface);
             break;
         case MODE_IDENTIFICATION:
             glShadeModel(GL_FLAT);
@@ -756,6 +760,35 @@ BrainOpenGL::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_COLOR_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+}
+
+/**
+ * Draw attributes for the given surface.
+ * @param surface
+ *    Surface for which attributes are drawn.
+ */
+void 
+BrainOpenGL::drawSurfaceNodeAttributes(Surface* surface)
+{
+    EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
+    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
+    BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+    CaretAssert(brainStructure);
+    
+    const int numNodes = surface->getNumberOfNodes();
+    
+    const float* coordinates = surface->getCoordinate(0);
+
+    glColor3f(0.0, 1.0, 0.0);
+    glPointSize(5.0);
+    glBegin(GL_POINTS);
+    for (int32_t i = 0; i < numNodes; i++) {
+        if (brainStructure->getNodeAttributes(i)->isIdentified()) {
+            const int32_t i3 = i * 3;
+            glVertex3fv(&coordinates[i3]);
+        }
+    }
+    glEnd();
 }
 
 /**

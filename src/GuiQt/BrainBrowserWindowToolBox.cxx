@@ -24,6 +24,7 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderControl.h"
 #include "ConnectivityLoaderFile.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
@@ -426,6 +427,7 @@ void
 BrainBrowserWindowToolBox::removeIdSymbols()
 {
     EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 

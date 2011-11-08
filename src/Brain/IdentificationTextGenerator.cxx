@@ -27,6 +27,10 @@
 #include "IdentificationTextGenerator.h"
 #undef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
 
+#include "BrainStructure.h"
+#include "CaretAssert.h"
+#include "EventBrainStructureGet.h"
+#include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
@@ -81,7 +85,8 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
-        idText.addLine(false, "NODE", nodeNumber, false);
+        AString surfaceID = ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
+        idText.addLine(false, surfaceID, nodeNumber, false);
         
         const float* xyz = surface->getCoordinate(nodeNumber);
         
@@ -92,6 +97,12 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                        + AString::number(xyz[1])
                        + ", "
                        + AString::number(xyz[2]));
+        
+        EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
+        EventManager::get()->sendEvent(brainStructureEvent.getPointer());
+        BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+        CaretAssert(brainStructure);
+        
     }
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();

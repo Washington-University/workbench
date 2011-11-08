@@ -28,6 +28,7 @@
 
 #include "CaretObject.h"
 #include "DataFileException.h"
+#include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 
 namespace caret {
@@ -43,6 +44,9 @@ namespace caret {
         ConnectivityLoaderManager(Brain* brain);
         
         virtual ~ConnectivityLoaderManager();
+        
+        ConnectivityLoaderFile* addConnectivityLoaderFile(const AString& path,
+                                       const DataFileTypeEnum::Enum connectivityFileType)  throw (DataFileException);
         
         int32_t getNumberOfConnectivityLoaderFiles() const;
         

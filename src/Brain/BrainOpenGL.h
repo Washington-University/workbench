@@ -133,6 +133,8 @@ namespace caret {
         
         void drawSurfaceTriangles(Surface* surface);
         
+        void drawSurfaceNodeAttributes(Surface* surface);
+        
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelDisplayControllerVolume* volumeController,
                                   const int32_t viewport[4]);

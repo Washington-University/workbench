@@ -498,9 +498,11 @@ Brain::readBorderProjectionFile(const AString& /*filename*/) throw (DataFileExce
  *    If reading failed.
  */
 void 
-Brain::readConnectivityFile(const AString& /*filename*/) throw (DataFileException)
+Brain::readConnectivityFile(const AString& filename,
+                            const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException)
 {
-    throw DataFileException("Reading not implemented for: connectivity");
+    this->connectivityLoaderManager->addConnectivityLoaderFile(filename,
+                                                               connectivityFileType);
 }
 
 /**
@@ -666,10 +668,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readBorderProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->readConnectivityFile(dataFileName);
+            this->readConnectivityFile(dataFileName, dataFileType);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            this->readConnectivityFile(dataFileName);
+            this->readConnectivityFile(dataFileName, dataFileType);
             break;
         case DataFileTypeEnum::FOCI_PROJECTION:
             this->readFociProjectionFile(dataFileName);

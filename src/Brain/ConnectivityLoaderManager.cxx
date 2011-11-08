@@ -122,6 +122,32 @@ ConnectivityLoaderManager::getConnectivityLoaderFile(const int32_t indx) const
  *    Connectivity loader file that was created.
  */
 ConnectivityLoaderFile* 
+ConnectivityLoaderManager::addConnectivityLoaderFile(const AString& path,
+                                                     const DataFileTypeEnum::Enum connectivityFileType)  throw (DataFileException)
+{  
+    ConnectivityLoaderFile* newConnectivityLoaderFile = NULL;
+    const int32_t numLoaders = this->getNumberOfConnectivityLoaderFiles();
+    for (int32_t i = 0; i < numLoaders; i++) {
+        ConnectivityLoaderFile* clf = this->getConnectivityLoaderFile(i);
+        if (clf->isEmpty()) {
+            newConnectivityLoaderFile = clf;
+            break;
+        }
+    }
+    
+    if (newConnectivityLoaderFile == NULL) {
+        newConnectivityLoaderFile = this->addConnectivityLoaderFile();
+    }
+    newConnectivityLoaderFile->setupLocalFile(path, connectivityFileType);
+    return newConnectivityLoaderFile;
+}
+
+/**
+ * Add a connectivity loader.
+ * @return 
+ *    Connectivity loader file that was created.
+ */
+ConnectivityLoaderFile* 
 ConnectivityLoaderManager::addConnectivityLoaderFile()
 {
     ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();

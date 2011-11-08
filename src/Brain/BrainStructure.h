@@ -39,6 +39,7 @@
 namespace caret {
     
     class Brain;
+    class BrainStructureNodeAttributes;
     class LabelFile;
     class MetricFile;
     class ModelDisplayControllerSurface;
@@ -112,6 +113,10 @@ namespace caret {
         
         int64_t getBrainStructureIdentifier() const;
         
+        BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex);
+        
+        const BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex) const;
+        
     private:
         Brain* brain;
         
@@ -133,6 +138,8 @@ namespace caret {
         
         /** Generates unique number assigned to each brain structure */
         static int64_t brainStructureIdentifierCounter;
+        
+        std::vector<BrainStructureNodeAttributes*> nodeAttributes;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__

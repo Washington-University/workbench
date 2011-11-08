@@ -30,8 +30,10 @@
 #define __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
+#include "BrainStructureNodeAttributes.h"
 #include "EventBrainStructureGet.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
 #include "EventModelDisplayControllerAdd.h"
@@ -63,6 +65,8 @@ BrainStructure::BrainStructure(Brain* brain,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
 }
 
 /**
@@ -101,6 +105,12 @@ BrainStructure::~BrainStructure()
         this->rgbaFiles[i] = NULL;
     }
     this->rgbaFiles.clear();
+
+    for (uint64_t i = 0; i < this->nodeAttributes.size(); i++) {
+        delete this->nodeAttributes[i];
+        this->nodeAttributes[i] = NULL;
+    }
+    this->nodeAttributes.clear();
 }
 
 /**
@@ -244,6 +254,16 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
             DataFileException e(message);
             CaretLogThrowing(e);
             throw e;
+        }
+    }
+    
+    if (numNodes == 0) {
+        const int32_t numSurfaceNodes = surface->getNumberOfNodes();
+        if (numSurfaceNodes > 0) {
+            this->nodeAttributes.resize(numSurfaceNodes);
+            for (int32_t i = 0; i < numSurfaceNodes; i++) {
+                this->nodeAttributes[i] = new BrainStructureNodeAttributes();
+            }
         }
     }
     
@@ -612,6 +632,16 @@ BrainStructure::receiveEvent(Event* event)
             brainStructureEvent->setEventProcessed();
         }
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
+        EventIdentificationSymbolRemoval* idRemovalEvent =
+            dynamic_cast<EventIdentificationSymbolRemoval*>(event);
+        CaretAssert(idRemovalEvent);
+        
+        for (uint32_t i = 0; i < this->nodeAttributes.size(); i++) {
+            this->nodeAttributes[i]->setIdentified(false);
+        }
+        idRemovalEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -621,6 +651,34 @@ int64_t
 BrainStructure::getBrainStructureIdentifier() const
 {
     return this->brainStructureIdentifier;
+}
+
+/**
+ * Get the attributes for a node.
+ * @param nodeIndex
+ *    Index of the node.
+ * @return
+ *    Attributes for the given node.
+ */
+BrainStructureNodeAttributes* 
+BrainStructure::getNodeAttributes(const int32_t nodeIndex)
+{
+    CaretAssertVectorIndex(this->nodeAttributes, nodeIndex);
+    return this->nodeAttributes[nodeIndex];
+}
+
+/**
+ * Get the attributes for a node.
+ * @param nodeIndex
+ *    Index of the node.
+ * @return
+ *    Attributes for the given node.
+ */
+const BrainStructureNodeAttributes* 
+BrainStructure::getNodeAttributes(const int32_t nodeIndex) const
+{
+    CaretAssertVectorIndex(this->nodeAttributes, nodeIndex);
+    return this->nodeAttributes[nodeIndex];
 }
 
 
