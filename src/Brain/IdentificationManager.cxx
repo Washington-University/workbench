@@ -125,17 +125,19 @@ IdentificationManager::filterSelections(const double selectionX,
     }
     CaretLogSevere("Selected Items BEFORE filtering: " + logText);
     
+    IdentificationItemSurfaceTriangle* triangleID = this->surfaceTriangleIdentification;
+    IdentificationItemSurfaceNode* nodeID = this->surfaceNodeIdentification;
     
     //
     // If both a node and triangle are found
     //
-    if ((this->surfaceNodeIdentification->getNodeNumber() >= 0) &&
-        (this->surfaceTriangleIdentification->getTriangleNumber() >= 0)) {
+    if ((nodeID->getNodeNumber() >= 0) &&
+        (triangleID->getTriangleNumber() >= 0)) {
         //
-        // Is triangle closer to user?
+        // Is node further from user than triangle?
         //
         double depthDiff = this->surfaceNodeIdentification->getScreenDepth()
-        - this->surfaceNodeIdentification->getScreenDepth();
+        - triangleID->getScreenDepth();
         if (depthDiff > 0.00001) {
             //
             // Do not use node
@@ -147,9 +149,9 @@ IdentificationManager::filterSelections(const double selectionX,
     //
     // Have a triangle ?
     //
-    const int32_t triangleNumber = this->surfaceTriangleIdentification->getTriangleNumber();
+    const int32_t triangleNumber = triangleID->getTriangleNumber();
     if (triangleNumber >= 0) {
-        Surface* sf = this->surfaceTriangleIdentification->getSurface();
+        Surface* sf = triangleID->getSurface();
         if (sf != NULL) {
             //
             // Find node in triangle closest to cursor
@@ -186,10 +188,15 @@ IdentificationManager::filterSelections(const double selectionX,
             if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
                 if (nearestNode >= 0) {
                     CaretLogFine("Switched node to triangle.");
-                    this->surfaceNodeIdentification->setNodeNumber(nearestNode);
-                    this->surfaceNodeIdentification->setScreenDepth(nearestDistance);
-                    this->surfaceNodeIdentification->setSurface(sf);
-                    this->surfaceNodeIdentification->setBrain(this->surfaceTriangleIdentification->getBrain());
+                    nodeID->setNodeNumber(nearestNode);
+                    nodeID->setScreenDepth(triangleID->getScreenDepth());
+                    nodeID->setSurface(sf);
+                    double xyz[3];
+                    triangleID->getScreenXYZ(xyz);
+                    nodeID->setScreenXYZ(xyz);
+                    triangleID->getModelXYZ(xyz);
+                    nodeID->setModelXYZ(xyz);
+                    nodeID->setBrain(triangleID->getBrain());
                 }
             }
         }
