@@ -727,15 +727,15 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
     }
-    
-    this->zeroizeData();
-    
+        
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
                 break;
             case LOADER_TYPE_DENSE:
             {
+                this->zeroizeData();
+
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
@@ -777,14 +777,14 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
-    this->zeroizeData();
-
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
                 break;
             case LOADER_TYPE_DENSE:
             {
+                this->zeroizeData();
+                
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
