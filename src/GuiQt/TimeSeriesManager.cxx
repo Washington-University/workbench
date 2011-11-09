@@ -85,11 +85,12 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
     m_spinBox = clc->getTimeSpinBox(index);
 
 
-    moveToThread(this);
+
     QObject::connect(this, SIGNAL(doubleSpinBoxValueChanged(const double)),
                      m_spinBox, SLOT(setValue(double)), Qt::QueuedConnection);
     m_timer = new QTimer(this);
     connect(m_timer, SIGNAL(timeout()), this, SLOT(update()), Qt::DirectConnection);
+    moveToThread(this);
 }
 
 AnimationHelper::~AnimationHelper()
@@ -125,7 +126,7 @@ void AnimationHelper::update()
     {
         emit doubleSpinBoxValueChanged((double)m_timeIndex*m_timeStep);
         m_timeIndex++;
-        m_spinBox->thread()->wait(m_updateInterval-10);
+        //m_spinBox->thread()->wait(m_updateInterval-10);
     }
     else {
         m_timer->stop();
