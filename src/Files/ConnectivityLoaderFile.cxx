@@ -234,8 +234,8 @@ ConnectivityLoaderFile::setupNetworkFile(const AString& url,
                                          const AString& password) throw (DataFileException)
 {
     this->clear();
-    if (url.startsWith("https://") == false) {
-        throw DataFileException("For network files, name must begin with \"http://\"");
+    if (url.startsWith("http") == false) {
+        throw DataFileException("For network files, name must begin with \"http\"");
     }
     this->setup(url, connectivityFileType, username, password);
 }
