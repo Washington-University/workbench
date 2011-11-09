@@ -440,11 +440,11 @@ void CommandParser::addComponentDescriptions(AString& info, ParameterComponent* 
 {
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
-        info += formatString("<" + myComponent->m_paramList[i]->m_shortName + "> - " + myComponent->m_paramList[i]->m_description, curIndent, true);
+        info += formatString("<" + myComponent->m_paramList[i]->m_shortName + "> - " + myComponent->m_paramList[i]->m_description, curIndent, true) + "\n";
     }
     for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
     {
-        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - output - " + myComponent->m_outputList[i]->m_description, curIndent, true);
+        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - output - " + myComponent->m_outputList[i]->m_description, curIndent, true) + "\n";
     }
     addOptionDescriptions(info, myComponent, curIndent);
 }
