@@ -30,6 +30,7 @@
 
 namespace caret {
 
+    class Brain;
     class BrowserTabContent;
     class IdentificationManager;
     
@@ -41,7 +42,8 @@ namespace caret {
         virtual ~IdentificationTextGenerator();
         
         AString createIdentificationText(const IdentificationManager* idManager,
-                                         const BrowserTabContent* browserTabContent) const;
+                                         const BrowserTabContent* browserTabContent,
+                                         const Brain* brain) const;
         
     private:
         IdentificationTextGenerator(const IdentificationTextGenerator&);

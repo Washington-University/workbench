@@ -28,6 +28,7 @@
 #include "CaretObject.h"
 
 namespace caret {
+    class Brain;
     class BrowserTabContent;
     class IdentificationItem;
     class IdentificationItemSurfaceNode;
@@ -56,7 +57,8 @@ namespace caret {
         
         IdentificationItemVoxel* getVoxelIdentification();
         
-        AString getIdentificationText(const BrowserTabContent* browserTabContent) const;
+        AString getIdentificationText(const BrowserTabContent* browserTabContent,
+                                      const Brain* brain) const;
         
         void filterSelections();
         

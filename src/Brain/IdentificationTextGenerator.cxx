@@ -27,8 +27,11 @@
 #include "IdentificationTextGenerator.h"
 #undef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
 
+#include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderManager.h"
 #include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
@@ -73,11 +76,12 @@ IdentificationTextGenerator::~IdentificationTextGenerator()
  * @param idManager
  *    Identification manager containing selection.
  * @param browserTabContent
- *    
+ * @param brain
  */
 AString 
 IdentificationTextGenerator::createIdentificationText(const IdentificationManager* idManager,
-                                                      const BrowserTabContent* /*browserTabConent*/) const
+                                                      const BrowserTabContent* /*browserTabConent*/,
+                                                      const Brain* brain) const
 {
     IdentificationStringBuilder idText;
     
@@ -92,7 +96,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
         
         const float* xyz = surface->getCoordinate(nodeNumber);
         
-        idText.addLine(true, SurfaceTypeEnum::toGuiName(surface->getSurfaceType())
+        idText.addLine(true, SurfaceTypeEnum::toGuiName(surface->getSurfaceType()).toUpper()
                        + " XYZ: "
                        + AString::number(xyz[0])
                        + ", "
@@ -104,6 +108,24 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
         EventManager::get()->sendEvent(brainStructureEvent.getPointer());
         BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
         CaretAssert(brainStructure);
+        
+        Brain* brain = brainStructure->getBrain();
+        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
+        for (int32_t i = 0; i < numConnFiles; i++) {
+            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+            if (clf->isEmpty() == false) {
+                float value = 0.0;
+                if (clf->getSurfaceNodeValue(surface->getStructure(),
+                                             nodeNumber,
+                                             surface->getNumberOfNodes(),
+                                             value)) {
+                    AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
+                    AString text = AString::number(value);
+                    idText.addLine(true, boldText, text);
+                }
+            }
+        }
         
         const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
         for (int32_t i = 0; i < numLabelFiles; i++) {
@@ -137,19 +159,64 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
         int64_t ijk[3];
-        const VolumeFile* vf = voxelID->getVolumeFile();
+        const VolumeFile* idVolumeFile = voxelID->getVolumeFile();
         voxelID->getVoxelIJK(ijk);
+        float xyz[3];
+        idVolumeFile->indexToSpace(ijk, xyz);
+                
+        idText.addLine(false,
+                       "Voxel XYZ ("
+                       + AString::number(xyz[0])
+                       + ", "
+                       + AString::number(xyz[1])
+                       + ", "
+                       + AString::number(xyz[2])
+                       + ")");
         
-        idText.addLine(true,
-                       vf->getFileNameNoPath()
-                       + " "
-                       + AString::number(ijk[0])
-                       + ", "
-                       + AString::number(ijk[1])
-                       + ", "
-                       + AString::number(ijk[2])
-                       + ": "
-                       + AString::number(vf->getValue(ijk)));
+        const int32_t numVolumeFiles = brain->getNumberOfVolumeFiles();
+        
+        /*
+         * In first loop, show values for 'idVolumeFile' (the underlay volume)
+         * In second loop, show values for all other volume files
+         */
+        for (int32_t iLoop = 0; iLoop < 2; iLoop++) {
+            for (int32_t i = 0; i < numVolumeFiles; i++) {
+                const VolumeFile* vf = brain->getVolumeFile(i);
+                if (vf == idVolumeFile) {
+                    if (iLoop != 0) {
+                        continue;
+                    }
+                }
+                else if (iLoop == 0) {
+                    continue;
+                }
+                
+                int64_t vfIJK[3];
+                vf->closestVoxel(xyz, 
+                                 vfIJK);
+                
+                if (vf->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
+                    AString boldText = vf->getFileNameNoPath();
+                    boldText += (" IJK ("
+                                 + AString::number(vfIJK[0])
+                                 + ", "
+                                 + AString::number(vfIJK[1])
+                                 + ", "
+                                 + AString::number(vfIJK[2])
+                                 + ")  ");
+                    
+                    AString text;
+                    const int32_t numMaps = vf->getNumberOfMaps();
+                    for (int j = 0; j < numMaps; j++) {
+                        text += AString::number(vf->getValue(vfIJK));
+                    }
+                    
+                    idText.addLine(true,
+                                   boldText,
+                                   text);
+                }
+            }            
+        }
     }
     
     return idText.toString();

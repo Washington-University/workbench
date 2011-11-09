@@ -835,6 +835,67 @@ ConnectivityLoaderFile::getDataRGBA()
     return this->dataRGBA;
 }
 
+bool 
+ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
+                                            const int nodeIndex,
+                                            const int32_t /* numberOfNodes */,
+                                            float& valueOut) const
+{
+    if (this->numberOfDataElements <= 0) {
+        return false;
+    }
+    
+    bool validMapToType = false;
+    switch (this->mapToType) {
+        case MAP_TO_TYPE_INVALID:
+            validMapToType = false;
+            break;
+        case MAP_TO_TYPE_BRAINORDINATES:
+            validMapToType = true;
+            break;
+        case MAP_TO_TYPE_TIMEPOINTS:
+            validMapToType = false;
+            break;
+    }
+    if (validMapToType == false) {
+        return false;
+    }
+    
+    bool useColumnsFlag = false;
+    bool useRowsFlag = false;
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            useColumnsFlag = true;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            useRowsFlag = true;
+            break;
+    }
+    
+    std::vector<CiftiSurfaceMap> nodeMap;
+    if (useColumnsFlag) {
+        this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
+    }
+    if (useRowsFlag) {
+        this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
+    }
+    
+    if (nodeMap.empty() == false) {
+        const int64_t numNodeMaps = static_cast<int32_t>(nodeMap.size());
+        for (int i = 0; i < numNodeMaps; i++) {
+            if (nodeMap[i].m_surfaceNode == nodeIndex) {
+                CaretAssertArrayIndex(this->data, this->numberOfDataElements, nodeMap[i].m_ciftiIndex);
+                valueOut = this->data[nodeMap[i].m_ciftiIndex];
+                return true;
+            }
+        }
+    }
+    
+    return false;
+}
+
 /**
  * Get the node coloring for the surface.
  * @param surface

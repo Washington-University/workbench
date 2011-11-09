@@ -127,6 +127,11 @@ namespace caret {
         
         float* getDataRGBA();
         
+        bool getSurfaceNodeValue(const StructureEnum::Enum structure,
+                                 const int nodeIndex,
+                                 const int32_t numberOfNodes,
+                                 float& valueOut) const;
+        
         bool getSurfaceNodeColoring(const StructureEnum::Enum structure,
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);

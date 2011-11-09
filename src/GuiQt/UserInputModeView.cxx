@@ -132,7 +132,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                          BrowserTabContent* /*browserTabContent*/,
                                          BrainOpenGLWidget* openGLWidget)
 {
-    ConnectivityLoaderManager* connMan = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    Brain* brain = GuiManager::get()->getBrain();
+    ConnectivityLoaderManager* connMan = brain->getConnectivityLoaderManager();
     
     IdentificationManager* idManager =
         openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
@@ -179,7 +180,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         }
     }
     const BrowserTabContent* btc = NULL;
-    const AString idMessage = idManager->getIdentificationText(btc);
+    const AString idMessage = idManager->getIdentificationText(btc,
+                                                               brain);
     
     EventManager::get()->sendEvent(EventInformationTextDisplay(idMessage,
                                                                EventInformationTextDisplay::TYPE_HTML).getPointer());

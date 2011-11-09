@@ -269,11 +269,16 @@ IdentificationManager::getMinimumDepthFromMultipleSelections(std::vector<Identif
  * Get text describing the current identification data.
  * @param browserTabContent
  *    Tab content in which identification took place.
+ * @param brain
+ *    Brain containing the data.
  */
 AString 
-IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent) const
+IdentificationManager::getIdentificationText(const BrowserTabContent* browserTabContent,
+                                             const Brain* brain) const
 {
-    const AString text = this->idTextGenerator->createIdentificationText(this, browserTabContent);
+    const AString text = this->idTextGenerator->createIdentificationText(this, 
+                                                                         browserTabContent,
+                                                                         brain);
     return text;
 }
 
