@@ -53,6 +53,7 @@ private:
     float m_timeStep;
     int64_t m_timePoints;
     QTimer *m_timer;
+    QDoubleSpinBox *m_spinBox;
 };
 
 /*void spinBoxChangeReceiver(QSpinBox* spinBox,
