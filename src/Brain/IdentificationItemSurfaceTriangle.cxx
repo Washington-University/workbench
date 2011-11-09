@@ -45,8 +45,15 @@ using namespace caret;
 IdentificationItemSurfaceTriangle::IdentificationItemSurfaceTriangle()
 : IdentificationItem(IdentificationItemDataTypeEnum::SURFACE_TRIANGLE)
 {
-    this->triangleNumber = -1;
     this->surface = NULL;
+    this->triangleNumber = -1;
+    this->nearestNodeNumber = -1;
+    this->nearestNodeScreenXYZ[0] = 0.0;
+    this->nearestNodeScreenXYZ[1] = 0.0;
+    this->nearestNodeScreenXYZ[2] = std::numeric_limits<double>::max();
+    this->nearestNodeModelXYZ[0] = 0.0;
+    this->nearestNodeModelXYZ[1] = 0.0;
+    this->nearestNodeModelXYZ[2] = 0.0;
 }
 
 /**
@@ -66,6 +73,13 @@ IdentificationItemSurfaceTriangle::reset()
     IdentificationItem::reset();
     this->surface = NULL;
     this->triangleNumber = -1;
+    this->nearestNodeNumber = -1;
+    this->nearestNodeScreenXYZ[0] = 0.0;
+    this->nearestNodeScreenXYZ[1] = 0.0;
+    this->nearestNodeScreenXYZ[2] = std::numeric_limits<double>::max();
+    this->nearestNodeModelXYZ[0] = 0.0;
+    this->nearestNodeModelXYZ[1] = 0.0;
+    this->nearestNodeModelXYZ[2] = 0.0;
 }
 
 /**
@@ -102,7 +116,7 @@ IdentificationItemSurfaceTriangle::setSurface(Surface* surface)
  * return Number of identified triangle.
  */
 int32_t 
-IdentificationItemSurfaceTriangle::getTriangleNumber()
+IdentificationItemSurfaceTriangle::getTriangleNumber() const
 {
     return this->triangleNumber;
 }
@@ -119,6 +133,27 @@ IdentificationItemSurfaceTriangle::setTriangleNumber(const int32_t triangleNumbe
 }
 
 /**
+ * @return Node nearest the mouse click in screen X&Y coordinates.
+ * Will return negative if invalid.
+ */
+int32_t 
+IdentificationItemSurfaceTriangle::getNearestNodeNumber() const
+{
+    return this->nearestNodeNumber;
+}
+
+/**
+ * Set the node nearest to the mouse click in screen X&Y coordinates.
+ * @param nearestNodeNumber
+ *    New value for the node.
+ */
+void 
+IdentificationItemSurfaceTriangle::setNearestNode(const int32_t nearestNodeNumber)
+{
+    this->nearestNodeNumber = nearestNodeNumber;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -129,7 +164,60 @@ IdentificationItemSurfaceTriangle::toString() const
     text += IdentificationItem::toString() + "\n";
     text += "Surface: " + surface->getFileNameNoPath() + "\n";
     text += "Triangle: " + AString::number(this->triangleNumber);
+    text += "Nearest Node: " + AString::number(this->nearestNodeNumber);
     return text;
+}
+
+/**
+ * Get the screen XYZ of the nearest node.
+ * @param nearestNodeScreenXYZ
+ *    XYZ out.
+ */
+void 
+IdentificationItemSurfaceTriangle::getNearestNodeScreenXYZ(double nearestNodeScreenXYZ[3]) const
+{
+    nearestNodeScreenXYZ[0] = this->nearestNodeScreenXYZ[0];
+    nearestNodeScreenXYZ[1] = this->nearestNodeScreenXYZ[1];
+    nearestNodeScreenXYZ[2] = this->nearestNodeScreenXYZ[2];
+}
+
+/**
+ * Set the screen XYZ of the nearest node.
+ * @param nearestNodeScreenXYZ
+ *    new XYZ.
+ */
+void 
+IdentificationItemSurfaceTriangle::setNearestNodeScreenXYZ(const double nearestNodeScreenXYZ[3])
+{
+    this->nearestNodeScreenXYZ[0] = nearestNodeScreenXYZ[0];
+    this->nearestNodeScreenXYZ[1] = nearestNodeScreenXYZ[1];
+    this->nearestNodeScreenXYZ[2] = nearestNodeScreenXYZ[2];
+}
+
+/**
+ * Get the model XYZ of the nearest node.
+ * @param nearestNodeModelXYZ
+ *    XYZ out.
+ */
+void 
+IdentificationItemSurfaceTriangle::getNearestNodeModelXYZ(double nearestNodeModelXYZ[3]) const
+{
+    nearestNodeModelXYZ[0] = this->nearestNodeModelXYZ[0];
+    nearestNodeModelXYZ[1] = this->nearestNodeModelXYZ[1];
+    nearestNodeModelXYZ[2] = this->nearestNodeModelXYZ[2];
+}
+
+/**
+ * Set the model XYZ of the nearest node.
+ * @param nearestNodeModelXYZ
+ *    new XYZ.
+ */
+void 
+IdentificationItemSurfaceTriangle::setNearestNodeModelXYZ(const double nearestNodeModelXYZ[3])
+{
+    this->nearestNodeModelXYZ[0] = nearestNodeModelXYZ[0];
+    this->nearestNodeModelXYZ[1] = nearestNodeModelXYZ[1];
+    this->nearestNodeModelXYZ[2] = nearestNodeModelXYZ[2];
 }
 
 

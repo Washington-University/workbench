@@ -101,18 +101,9 @@ IdentificationManager::~IdentificationManager()
 /**
  * Filter selections to arbitrate between triangle/node
  * and to remove any selections behind another selection.
- * @param selectionX  Selection X.
- * @param selectionY  Selection Y.
- * @param selectionModelviewMatrix  Selection modelview matrix.
- * @param selectionProjectionMatrix Selection projection matrix.
- * @param selectionViewport         Selection viewport.
  */
 void 
-IdentificationManager::filterSelections(const double selectionX,
-                                        const double selectionY,
-                                        const double selectionModelviewMatrix[],
-                                        const double selectionProjectionMatrix[],
-                                        const int selectionViewport[4])
+IdentificationManager::filterSelections()
 {
     AString logText;
     for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
@@ -151,53 +142,23 @@ IdentificationManager::filterSelections(const double selectionX,
     //
     const int32_t triangleNumber = triangleID->getTriangleNumber();
     if (triangleNumber >= 0) {
-        Surface* sf = triangleID->getSurface();
-        if (sf != NULL) {
-            //
-            // Find node in triangle closest to cursor
-            //
-            int32_t nearestNode = -1;
-            double nearestDistance = std::numeric_limits<float>::max();
-            const int32_t* triangleNodes = sf->getTriangle(triangleNumber);
-            for (int in = 0; in < 3; in++) {
-                int nodeNum = triangleNodes[in];
-                const float* xyz = sf->getCoordinate(nodeNum);
-                double windowPos[3];
-                if (gluProject(xyz[0], 
-                                   xyz[1], 
-                                   xyz[2],
-                                   selectionModelviewMatrix,
-                                   selectionProjectionMatrix,
-                                   selectionViewport,
-                                   &windowPos[0],
-                                   &windowPos[1],
-                                   &windowPos[2])) {
-                    double dx = windowPos[0] - selectionX;
-                    double dy = windowPos[1] - selectionY;
-                    double dist = std::sqrt(dx*dx + dy*dy);
-                    if (dist < nearestDistance) {
-                        nearestNode = nodeNum;
-                        nearestDistance = dist;
-                    }
-                }
-            }
-            
-            //
-            // If no node, use node in nearest triangle
-            //
-            if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
-                if (nearestNode >= 0) {
-                    CaretLogFine("Switched node to triangle.");
-                    nodeID->setNodeNumber(nearestNode);
-                    nodeID->setScreenDepth(triangleID->getScreenDepth());
-                    nodeID->setSurface(sf);
-                    double xyz[3];
-                    triangleID->getScreenXYZ(xyz);
-                    nodeID->setScreenXYZ(xyz);
-                    triangleID->getModelXYZ(xyz);
-                    nodeID->setModelXYZ(xyz);
-                    nodeID->setBrain(triangleID->getBrain());
-                }
+        //
+        // If no node, use node in nearest triangle
+        //
+        if (this->surfaceNodeIdentification->getNodeNumber() < 0) {
+            const int32_t nearestNode = triangleID->getNearestNodeNumber();
+            if (nearestNode >= 0) {
+                CaretLogFine("Switched node to triangle nearest node ."
+                             + AString::number(nearestNode));
+                nodeID->setNodeNumber(nearestNode);
+                nodeID->setScreenDepth(triangleID->getScreenDepth());
+                nodeID->setSurface(triangleID->getSurface());
+                double xyz[3];
+                triangleID->getNearestNodeScreenXYZ(xyz);
+                nodeID->setScreenXYZ(xyz);
+                triangleID->getNearestNodeModelXYZ(xyz);
+                nodeID->setModelXYZ(xyz);
+                nodeID->setBrain(triangleID->getBrain());
             }
         }
     }

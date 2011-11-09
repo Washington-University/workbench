@@ -45,9 +45,21 @@ namespace caret {
         
         void setSurface(Surface* surface);
         
-        int32_t getTriangleNumber();
+        int32_t getTriangleNumber() const;
         
         void setTriangleNumber(const int32_t triangleNumber);
+        
+        int32_t getNearestNodeNumber() const;
+        
+        void setNearestNode(const int32_t nearestNodeNumber);
+        
+        void getNearestNodeScreenXYZ(double screenXYZ[3]) const;
+        
+        void setNearestNodeScreenXYZ(const double screenXYZ[3]);
+        
+        void getNearestNodeModelXYZ(double modelXYZ[3]) const;
+        
+        void setNearestNodeModelXYZ(const double modelXYZ[3]);
         
         virtual void reset();
         
@@ -61,6 +73,13 @@ namespace caret {
         Surface* surface;
         
         int32_t triangleNumber;
+        
+        int32_t nearestNodeNumber;
+        
+        double nearestNodeScreenXYZ[3];
+        
+        double nearestNodeModelXYZ[3];
+        
     };
     
 #ifdef __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__

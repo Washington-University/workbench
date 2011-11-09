@@ -1415,4 +1415,24 @@ MathFunctions::toDegrees(float radians)
     return degrees;
 }
 
+/**
+ * Distance SQUARED from (x1, y1) to (x2, y2)
+ * @param X-coordinate of first point.
+ * @param Y-coordinate of first point.
+ * @param X-coordinate of second point.
+ * @param Y-coordinate of second point.
+ * @return  Distance squared between the points.
+ */
+double 
+MathFunctions::distanceSquared2D(const double x1,
+                                 const double y1,
+                                 const double x2,
+                                 const double y2)
+{
+    const double dx = x2 - x1;
+    const double dy = y2 - y1;
+    const double d = (dx*dx) + (dy*dy);
+    return d;
+}
+
 

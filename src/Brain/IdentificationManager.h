@@ -58,11 +58,7 @@ namespace caret {
         
         AString getIdentificationText(const BrowserTabContent* browserTabContent) const;
         
-        void filterSelections(const double selectionX,
-                              const double selectionY,
-                              const double selectionModelviewMatrix[16],
-                              const double selectionProjectionMatrix[16],
-                              const int selectionViewport[4]);
+        void filterSelections();
         
         void clearDistantSelections();
         

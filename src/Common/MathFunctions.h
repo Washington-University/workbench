@@ -136,6 +136,11 @@ public:
                     const double p1[3],
                     const double p2[3]);
 
+    static double distanceSquared2D(const double x1,
+                                    const double y1,
+                                    const double x2,
+                                    const double y2);
+    
     static void subtractVectors(
                     const float v1[],
                     const float v2[],

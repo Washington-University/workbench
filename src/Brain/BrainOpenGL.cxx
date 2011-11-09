@@ -57,6 +57,7 @@
 #include "IdentificationItemVoxel.h"
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
+#include "MathFunctions.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -150,26 +151,8 @@ BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
                             browserTabContent, 
                             windowTabIndex, 
                             viewport);
-    
-    GLdouble selectionModelviewMatrix[16];
-    glGetDoublev(GL_MODELVIEW_MATRIX, selectionModelviewMatrix);
-    
-    GLdouble selectionProjectionMatrix[16];
-    glGetDoublev(GL_PROJECTION_MATRIX, selectionProjectionMatrix);
 
-    const int viewportInt[4] = {
-        viewport[0],
-        viewport[1],
-        viewport[2],
-        viewport[3]
-    };
-    
-    this->identificationManager->filterSelections(mouseX, 
-                                                  mouseY, 
-                                                  selectionModelviewMatrix, 
-                                                  selectionProjectionMatrix, 
-                                                  viewportInt);
-    
+    this->identificationManager->filterSelections();
 }
 
 /**
@@ -673,17 +656,96 @@ BrainOpenGL::drawSurfaceTriangles(Surface* surface)
             triangleID->setTriangleNumber(triangleIndex);
             triangleID->setScreenDepth(depth);
             
+            /*
+             * Node indices
+             */
             const int32_t n1 = triangles[triangleIndex*3];
             const int32_t n2 = triangles[triangleIndex*3 + 1];
             const int32_t n3 = triangles[triangleIndex*3 + 2];
             
-            float average[3] = {
-                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0,
-                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0,
-                (coordinates[n1*3] + coordinates[n2*3] + coordinates[n3*3]) / 3.0
+            /*
+             * Node coordinates
+             */
+            const float* c1 = &coordinates[n1*3];
+            const float* c2 = &coordinates[n2*3];
+            const float* c3 = &coordinates[n3*3];
+            
+            const float average[3] = {
+                c1[0] + c2[0] + c3[0],
+                c1[1] + c2[1] + c3[1],
+                c1[2] + c2[2] + c3[2]
             };
             this->setIdentifiedItemScreenXYZ(triangleID, average);
                    
+            GLdouble selectionModelviewMatrix[16];
+            glGetDoublev(GL_MODELVIEW_MATRIX, selectionModelviewMatrix);
+            
+            GLdouble selectionProjectionMatrix[16];
+            glGetDoublev(GL_PROJECTION_MATRIX, selectionProjectionMatrix);
+            
+            GLint selectionViewport[4];
+            glGetIntegerv(GL_VIEWPORT, selectionViewport);
+            
+            /*
+             * Window positions of each coordinate
+             */
+            double dc1[3] = { c1[0], c1[1], c1[2] };
+            double dc2[3] = { c2[0], c2[1], c2[2] };
+            double dc3[3] = { c3[0], c3[1], c3[2] };
+            double wc1[3], wc2[3], wc3[3];
+            if (gluProject(dc1[0], 
+                           dc1[1], 
+                           dc1[2],
+                           selectionModelviewMatrix,
+                           selectionProjectionMatrix,
+                           selectionViewport,
+                           &wc1[0],
+                           &wc1[1],
+                           &wc1[2])
+                && gluProject(dc2[0], 
+                              dc2[1], 
+                              dc2[2],
+                              selectionModelviewMatrix,
+                              selectionProjectionMatrix,
+                              selectionViewport,
+                              &wc2[0],
+                              &wc2[1],
+                              &wc2[2])
+                && gluProject(dc3[0], 
+                              dc3[1], 
+                              dc3[2],
+                              selectionModelviewMatrix,
+                              selectionProjectionMatrix,
+                              selectionViewport,
+                              &wc3[0],
+                              &wc3[1],
+                              &wc3[2])) {
+                    const double d1 = MathFunctions::distanceSquared2D(wc1[0], 
+                                                                       wc1[1], 
+                                                                       this->mouseX, 
+                                                                       this->mouseY);
+                    const double d2 = MathFunctions::distanceSquared2D(wc2[0], 
+                                                                       wc2[1], 
+                                                                       this->mouseX, 
+                                                                       this->mouseY);
+                    const double d3 = MathFunctions::distanceSquared2D(wc3[0], 
+                                                                       wc3[1], 
+                                                                       this->mouseX, 
+                                                                       this->mouseY);
+                    triangleID->setNearestNode(n3);
+                    triangleID->setNearestNodeScreenXYZ(wc3);
+                    triangleID->setNearestNodeModelXYZ(dc3);
+                    if ((d1 < d2) && (d1 < d3)) {
+                        triangleID->setNearestNode(n1);
+                        triangleID->setNearestNodeScreenXYZ(wc1);
+                        triangleID->setNearestNodeModelXYZ(dc1);
+                    }
+                    else if ((d2 < d1) && (d2 < d3)) {
+                        triangleID->setNearestNode(n2);
+                        triangleID->setNearestNodeScreenXYZ(wc2);
+                        triangleID->setNearestNodeModelXYZ(dc2);
+                    }
+            }
             CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
         }
         
