@@ -112,12 +112,12 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     
     this->loaderLayout = new QGridLayout();
     this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
-    this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE);
+    this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE, Qt::AlignHCenter);
     this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
     this->loaderLayout->addWidget(graphLabel, 0, COLUMN_TIME_CHECKBOX);
     this->loaderLayout->addWidget(timeLabel, 0, COLUMN_TIME_SPINBOX);
     this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_ANIMATE);
-    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2);
+    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2, Qt::AlignHCenter);
     this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
 
     this->loaderLayout->setColumnStretch(COLUMN_FILE, 100);
@@ -199,6 +199,7 @@ ConnectivityLoaderControl::updateControl()
             timeSpinBox->setMinimum(0);
             timeSpinBox->setMaximum(std::numeric_limits<double>::max());
             timeSpinBox->setSingleStep(1.0);
+            timeSpinBox->setMaximumWidth(80);
             WuQtUtilities::setToolTipAndStatusTip(timeSpinBox,
                                                   "Select timepoint for display on brainordinates");
             
@@ -218,13 +219,13 @@ ConnectivityLoaderControl::updateControl()
             const int row = this->loaderLayout->rowCount();
             this->loaderLayout->addWidget(numberLabel, row, COLUMN_SELECTOR);
             this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
-            this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX);
+            this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX, Qt::AlignHCenter);
             this->loaderLayout->addWidget(timeSpinBox, row, COLUMN_TIME_SPINBOX);
-            this->loaderLayout->addWidget(animateButton, row, COLUMN_TIME_ANIMATE);
+            this->loaderLayout->addWidget(animateButton, row, COLUMN_TIME_ANIMATE, Qt::AlignHCenter);
             this->loaderLayout->addWidget(fileTypeLabel, row, COLUMN_FILE_TYPE);
             this->loaderLayout->addWidget(fileButton, row, COLUMN_FILE_BUTTON);
             this->loaderLayout->addWidget(networkButton, row, COLUMN_NETWORK_BUTTON);
-            this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE);
+            this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE, Qt::AlignHCenter);
             
             this->animateButtonsGroup->addButton(animateButton);
             this->fileButtonsGroup->addButton(fileButton);
