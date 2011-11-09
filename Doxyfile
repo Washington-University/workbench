@@ -8,7 +8,7 @@ EXTRACT_ALL            = YES
 
 EXTRACT_PRIVATE        = YES
 
-HAVE_DOT         = YES
+HAVE_DOT         = NO
 
 CALL_GRAPH = NO
 CALLER_GRAPH = NO
