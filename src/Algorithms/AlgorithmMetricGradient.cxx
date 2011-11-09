@@ -299,8 +299,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
                 somevec[2] = 0.0;
                 if (myNormal[0] > myNormal[1])
                 {//generate a vector not parallel to normal
-                somevec[0] = 0.0;
-                somevec[1] = 1.0;
+                    somevec[0] = 0.0;
+                    somevec[1] = 1.0;
                 } else {
                     somevec[0] = 1.0;
                     somevec[1] = 0.0;
