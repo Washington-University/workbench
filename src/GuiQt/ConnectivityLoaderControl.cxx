@@ -47,6 +47,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
@@ -252,6 +253,8 @@ ConnectivityLoaderControl::updateControl()
      */
     numLoaderWidgets = static_cast<int32_t>(this->loaderNumberLabels.size());
     for (int32_t i = 0; i < numLoaderWidgets; i++) {
+        this->rowWidgetGroups[i]->blockSignals(true);
+        
         ConnectivityLoaderFile* clf = NULL;
         if (i < numberOfConnectivityLoaders) {
             clf = manager->getConnectivityLoaderFile(i);
@@ -289,6 +292,8 @@ ConnectivityLoaderControl::updateControl()
 
             this->rowWidgetGroups[i]->setVisible(false);
         }
+        
+        this->rowWidgetGroups[i]->blockSignals(false);
     }
     
     //this->adjustSize();
@@ -595,7 +600,8 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinB
     
     if (dataLoadedFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());   
+        this->sendUserInterfaceUpdate();
     }
 }
 
@@ -638,3 +644,13 @@ ConnectivityLoaderControl::getTimeSpinBox(int32_t &index)
 {
     return this->timeSpinBoxes[index];
 }
+
+/**
+ * Send out a user-interface update.
+ */
+void 
+ConnectivityLoaderControl::sendUserInterfaceUpdate()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+

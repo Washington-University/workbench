@@ -77,6 +77,8 @@ namespace caret {
                                        double value);
         void showTimeGraphCheckBoxesStateChanged(int state);
     private:
+        void sendUserInterfaceUpdate();
+        
         QGridLayout* loaderLayout;
 
         std::vector<QLabel*> loaderNumberLabels;
