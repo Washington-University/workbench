@@ -882,7 +882,7 @@ BrainOpenGL::drawSurfaceNodeAttributes(Surface* surface)
             const int32_t i3 = i * 3;
             glPushMatrix();
             glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
-            this->drawSphere(10.0);
+            this->drawSphere(5.0);
             glPopMatrix();
         }
     }
