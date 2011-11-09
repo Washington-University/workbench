@@ -27,6 +27,7 @@
 #include "IdentificationItemSurfaceTriangle.h"
 #undef __IDENTIFICATION_ITEM_SURFACE_TRIANGLE_DECLARE__
 
+#include <limits>
 #include "Surface.h"
 
 using namespace caret;
