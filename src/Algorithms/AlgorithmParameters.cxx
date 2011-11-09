@@ -45,6 +45,10 @@ ParameterComponent::~ParameterComponent()
     {
         delete m_paramList[i];
     }
+    for (i = 0; i < m_outputList.size(); ++i)
+    {
+        delete m_outputList[i];
+    }
     for (i = 0; i < m_optionList.size(); ++i)
     {
         delete m_optionList[i];
@@ -53,15 +57,6 @@ ParameterComponent::~ParameterComponent()
 
 AlgorithmParameters::AlgorithmParameters()
 {
-}
-
-AlgorithmParameters::~AlgorithmParameters()
-{
-    uint32_t i;
-    for (i = 0; i < m_outputList.size(); ++i)
-    {
-        delete m_outputList[i];
-    }
 }
 
 void ParameterComponent::addOptionalParameter(OptionalParameter* param)

@@ -36,7 +36,15 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricGradient(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetricIn, MetricFile* myMetricOut, const float myPresmooth = -1.0f, const bool myAvgNormals = false, MetricFile* myRoi = NULL, const int32_t myColumn = -1);
+        AlgorithmMetricGradient(ProgressObject* myProgObj,
+                                SurfaceFile* mySurf,
+                                MetricFile* myMetricIn,
+                                MetricFile* myMetricOut,
+                                MetricFile* myVectorsOut = NULL,
+                                const float myPresmooth = -1.0f,
+                                const bool myAvgNormals = false,
+                                MetricFile* myRoi = NULL,
+                                const int32_t myColumn = -1);
         static AlgorithmParameters* getParameters();
         static void useParameters(AlgorithmParameters*, ProgressObject*);
         static AString getCommandSwitch();

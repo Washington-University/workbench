@@ -205,9 +205,6 @@ namespace caret {
         ///constructor
         AlgorithmParameters();
         
-        ///destructor
-        ~AlgorithmParameters();
-        
         ///set the help text of the algorithm - you DO NOT need to add newlines within paragraphs or list the parameters, or give a description of each parameter! describe ONLY what it does, plus any quirks
         void setHelpText(const AString& textIn);
         
