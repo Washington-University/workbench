@@ -180,6 +180,26 @@ LabelFile::copyHelperLabelFile(const LabelFile& /*sf*/)
 }
 
 /**
+ * Get label name for a node.
+ * 
+ * @param nodeIndex
+ *     Node index.
+ * @param columnIndex
+ *     Column index.
+ * @return
+ *     Label name at the given node and column indices
+ *     Empty string if label is not available.
+ */
+AString 
+LabelFile::getLabelName(const int32_t nodeIndex,
+                        const int32_t columnIndex) const
+{
+    const int32_t labelKey = this->getLabelKey(nodeIndex, columnIndex);
+    AString label = this->giftiFile->getLabelTable()->getLabelName(labelKey);
+    return label;
+}
+
+/**
  * Get label key for a node.
  * 
  * @param nodeIndex

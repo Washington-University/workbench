@@ -35,6 +35,8 @@
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "IdentificationStringBuilder.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 
@@ -103,6 +105,33 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
         BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
         CaretAssert(brainStructure);
         
+        const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
+        for (int32_t i = 0; i < numLabelFiles; i++) {
+            const LabelFile* lf = brainStructure->getLabelFile(i);
+            AString boldText = "LABEL " + lf->getFileNameNoPath() + ":";
+            AString text;
+            const int numMaps = lf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                AString labelName = lf->getLabelName(nodeNumber, j);
+                if (labelName.isEmpty()) {
+                    labelName = ("Map-" + AString::number(j + 1));
+                }
+                text += (" " + labelName);
+            }
+            idText.addLine(true, boldText, text);
+        }
+
+        const int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
+        for (int32_t i = 0; i < numMetricFiles; i++) {
+            const MetricFile* mf = brainStructure->getMetricFile(i);
+            AString boldText = "METRIC " + mf->getFileNameNoPath() + ":";
+            AString text;
+            const int numMaps = mf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                text += (" " + AString::number(mf->getValue(nodeNumber, j)));
+            }
+            idText.addLine(true, boldText, text);
+        }
     }
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();

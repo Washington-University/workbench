@@ -63,6 +63,9 @@ namespace caret {
         int32_t getLabelKey(const int32_t nodeIndex,
                             const int32_t columnIndex) const;
         
+        AString getLabelName(const int32_t nodeIndex,
+                             const int32_t columnIndex) const;
+        
         void setLabelKey(const int32_t nodeIndex,
                          const int32_t columnIndex,
                          const int32_t labelIndex);
