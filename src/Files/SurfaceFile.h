@@ -32,6 +32,7 @@
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
 #include "CaretPointer.h"
+#include "CaretMutex.h"
 #include "TopologyHelper.h"
 #include "GeodesicHelper.h"
 
@@ -62,7 +63,11 @@ namespace caret {
         
         const float* getCoordinate(const int32_t nodeIndex) const;
         
+        const float* getCoordinateData() const;
+        
         const float* getNormalVector(const int32_t nodeIndex) const;
+        
+        const float* getNormalData() const;
         
         int getNumberOfTriangles() const;
         
@@ -135,6 +140,8 @@ namespace caret {
         void invalidateTopoHelpers();
         
         mutable BoundingBox* boundingBox;
+        
+        mutable CaretMutex m_helperMutex;
     };
 
 } // namespace

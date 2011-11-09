@@ -25,7 +25,7 @@
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmException.h"
-
+#include "CaretOMP.h"
 #include "CaretLogger.h"
 #include "FloatMatrix.h"
 #include "MathFunctions.h"
@@ -126,6 +126,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
         AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, toProcess, myPresmooth, myRoi, myColumn);
     }
     mySurf->computeNormals(myAvgNormals);
+    const float* myNormals = mySurf->getNormalData();
+    const float* myCoords = mySurf->getCoordinateData();
     bool haveWarned = false, haveFailed = false;//print warning or failure messages only once
     if (myColumn == -1)
     {
@@ -136,18 +138,157 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
         }
+        float* myScratch = new float[numNodes];
         for (int32_t col = 0; col < numColumns; ++col)
+        {
+            const float* myMetricColumn = toProcess->getValuePointerForColumn(col);
+            myMetricOut->setColumnName(col, toProcess->getColumnName(col) + ", gradient");
+#pragma omp CARET_PAR
+            {
+                float somevec[3], xhat[3], yhat[3];
+                float sanity;
+                CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//this stores and reuses helpers, so it isn't really a problem to call inside the loop
+#pragma omp CARET_FOR
+                for (int32_t i = 0; i < numNodes; ++i)
+                {
+                    if (myRoi != NULL && myRoiColumn[i] <= 0.0f)
+                    {
+                        myScratch[i] = 0.0f;
+                        continue;
+                    }
+                    int32_t numNeigh;
+                    int32_t i3 = i * 3;
+                    const int32_t* myNeighbors = myTopoHelp->getNodeNeighbors(i, numNeigh);//one function call isn't that bad, most time spent is floating point math anyway
+                    const float* myNormal = myNormals + i3;
+                    const float* myCoord = myCoords + i3;
+                    float nodeValue = myMetricColumn[i];
+                    somevec[2] = 0.0;
+                    if (myNormal[0] > myNormal[1])
+                    {//generate a vector not parallel to normal
+                        somevec[0] = 0.0;
+                        somevec[1] = 1.0;
+                    } else {
+                        somevec[0] = 1.0;
+                        somevec[1] = 0.0;
+                    }
+                    MathFunctions::crossProduct(myNormal, somevec, xhat);
+                    MathFunctions::normalizeVector(xhat);
+                    MathFunctions::crossProduct(myNormal, xhat, yhat);
+                    MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
+                    if (numNeigh >= 2)
+                    {
+                        FloatMatrix myRegress = FloatMatrix::zeros(3, 4);
+                        for (int32_t j = 0; j < numNeigh; ++j)
+                        {
+                            int32_t whichNode = myNeighbors[j];
+                            int32_t whichNode3 = whichNode * 3;
+                            if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                            {
+                                float tempf = myMetricColumn[whichNode] - nodeValue;
+                                const float* neighCoord = myCoords + whichNode3;
+                                MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
+                                float origMag = MathFunctions::vectorLength(somevec);//save the original length
+                                float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
+                                float ymag = MathFunctions::dotProduct(yhat, somevec);
+                                float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
+                                xmag *= origMag / mag2d;//normalize the 2d vector and multiply by original length to unfold
+                                ymag *= origMag / mag2d;
+                                myRegress[0][0] += xmag * xmag;//gather A'A and A'b sums for regression
+                                myRegress[0][1] += xmag * ymag;
+                                myRegress[0][2] += xmag;
+                                myRegress[1][1] += ymag * ymag;
+                                myRegress[1][2] += ymag;
+                                myRegress[2][2] += 1.0f;
+                                myRegress[0][3] += xmag * tempf;
+                                myRegress[1][3] += ymag * tempf;
+                                myRegress[2][3] += tempf;
+                            }
+                        }
+                        myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
+                        myRegress[2][0] = myRegress[0][2];
+                        myRegress[2][1] = myRegress[1][2];
+                        myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
+                        FloatMatrix myRref = myRegress.reducedRowEchelon();
+                        somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
+                        somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
+                        somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
+                        sanity = somevec[0] + somevec[1] + somevec[2];
+                    }
+                    if (numNeigh > 0 && (numNeigh < 2 || sanity != sanity))
+                    {
+                        if (!haveWarned && myRoi != NULL)
+                        {//don't issue this warning with an ROI, because it is somewhat expected
+                            haveWarned = true;
+                            CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
+                        }
+                        float xgrad = 0.0f, ygrad = 0.0f;
+                        int32_t totalNeigh = 0;
+                        for (int32_t j = 0; j < numNeigh; ++j)
+                        {
+                            int32_t whichNode = myNeighbors[j];
+                            int32_t whichNode3 = whichNode * 3;
+                            if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
+                            {
+                                ++totalNeigh;
+                                float tempf = myMetricColumn[whichNode] - nodeValue;
+                                const float* neighCoord = myCoords + whichNode3;
+                                MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
+                                float origMag = MathFunctions::vectorLength(somevec);//save the original length
+                                float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
+                                float ymag = MathFunctions::dotProduct(yhat, somevec);
+                                float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
+                                tempf /= origMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize it at the same time
+                                xgrad += xmag * tempf;//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
+                                ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
+                            }
+                        }
+                        xgrad /= totalNeigh;//average
+                        ygrad /= totalNeigh;
+                        somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
+                        somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
+                        somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
+                    }
+                    if (numNeigh <= 0 || sanity != sanity)
+                    {
+                        if (!haveFailed)
+                        {
+                            haveFailed = true;
+                            CaretLogWarning("Failed to compute gradient for a node with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
+                        }
+                        somevec[0] = 0.0f;
+                        somevec[1] = 0.0f;
+                        somevec[2] = 0.0f;
+                    }
+                    //TODO: save the vector components in something
+                    myScratch[i] = MathFunctions::vectorLength(somevec);
+                }
+            }
+            myMetricOut->setValuesForColumn(col, myScratch);
+            myProgress.reportProgress(((float)col + 1) / numColumns);
+        }
+        delete[] myScratch;
+    } else {
+        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
+        myMetricOut->setStructure(mySurf->getStructure());
+        myMetricOut->setColumnName(myColumn, toProcess->getColumnName(myColumn) + ", gradient");
+        const float* myRoiColumn;
+        if (myRoi != NULL)
+        {
+            myRoiColumn = myRoi->getValuePointerForColumn(0);
+        }
+        float* myScratch = new float[numNodes];
+#pragma omp CARET_PAR
         {
             float somevec[3], xhat[3], yhat[3];
             float sanity;
-            const float* myMetricColumn = toProcess->getValuePointerForColumn(col);
-            myMetricOut->setColumnName(col, toProcess->getColumnName(col) + ", gradient");
+            const float* myMetricColumn = toProcess->getValuePointerForColumn(myColumn);
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+#pragma omp CARET_FOR
             for (int32_t i = 0; i < numNodes; ++i)
             {
                 if (myRoi != NULL && myRoiColumn[i] <= 0.0f)
                 {
-                    myMetricOut->setValue(i, col, 0.0f);
+                    myScratch[i] = 0.0f;
                     continue;
                 }
                 int32_t numNeigh;
@@ -158,8 +299,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
                 somevec[2] = 0.0;
                 if (myNormal[0] > myNormal[1])
                 {//generate a vector not parallel to normal
-                    somevec[0] = 0.0;
-                    somevec[1] = 1.0;
+                somevec[0] = 0.0;
+                somevec[1] = 1.0;
                 } else {
                     somevec[0] = 1.0;
                     somevec[1] = 0.0;
@@ -210,8 +351,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
                 {
                     if (!haveWarned && myRoi != NULL)
                     {//don't issue this warning with an ROI, because it is somewhat expected
-                        haveWarned = true;
-                        CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
+                    haveWarned = true;
+                    CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
                     }
                     float xgrad = 0.0f, ygrad = 0.0f;
                     int32_t totalNeigh = 0;
@@ -251,132 +392,11 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj, Surf
                     somevec[2] = 0.0f;
                 }
                 //TODO: save the vector components in something
-                myMetricOut->setValue(i, col, MathFunctions::vectorLength(somevec));
+                myScratch[i] = MathFunctions::vectorLength(somevec);
             }
+            myMetricOut->setValuesForColumn(myColumn, myScratch);
         }
-    } else {
-        myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
-        myMetricOut->setStructure(mySurf->getStructure());
-        myMetricOut->setColumnName(myColumn, toProcess->getColumnName(myColumn) + ", gradient");
-        const float* myRoiColumn;
-        if (myRoi != NULL)
-        {
-            myRoiColumn = myRoi->getValuePointerForColumn(0);
-        }
-        float somevec[3], xhat[3], yhat[3];
-        float sanity;
-        const float* myMetricColumn = toProcess->getValuePointerForColumn(myColumn);
-        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-        for (int32_t i = 0; i < numNodes; ++i)
-        {
-            if (myRoi != NULL && myRoiColumn[i] <= 0.0f)
-            {
-                myMetricOut->setValue(i, myColumn, 0.0f);
-                continue;
-            }
-            int32_t numNeigh;
-            const int32_t* myNeighbors = myTopoHelp->getNodeNeighbors(i, numNeigh);
-            const float* myNormal = mySurf->getNormalVector(i);
-            const float* myCoord = mySurf->getCoordinate(i);//TODO: make this not require a function call
-            float nodeValue = myMetricColumn[i];
-            somevec[2] = 0.0;
-            if (myNormal[0] > myNormal[1])
-            {//generate a vector not parallel to normal
-            somevec[0] = 0.0;
-            somevec[1] = 1.0;
-            } else {
-                somevec[0] = 1.0;
-                somevec[1] = 0.0;
-            }
-            MathFunctions::crossProduct(myNormal, somevec, xhat);
-            MathFunctions::normalizeVector(xhat);
-            MathFunctions::crossProduct(myNormal, xhat, yhat);
-            MathFunctions::normalizeVector(yhat);//xhat, yhat are orthogonal unit vectors describing the coord system with k = surface normal
-            if (numNeigh >= 2)
-            {
-                FloatMatrix myRegress = FloatMatrix::zeros(3, 4);
-                for (int32_t j = 0; j < numNeigh; ++j)
-                {
-                    int32_t whichNode = myNeighbors[j];
-                    if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
-                    {
-                        float tempf = myMetricColumn[whichNode] - nodeValue;
-                        const float* neighCoord = mySurf->getCoordinate(whichNode);//TODO: make this not require a function call
-                        MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                        float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                        float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                        float ymag = MathFunctions::dotProduct(yhat, somevec);
-                        float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                        xmag *= origMag / mag2d;//normalize the 2d vector and multiply by original length to unfold
-                        ymag *= origMag / mag2d;
-                        myRegress[0][0] += xmag * xmag;//gather A'A and A'b sums for regression
-                        myRegress[0][1] += xmag * ymag;
-                        myRegress[0][2] += xmag;
-                        myRegress[1][1] += ymag * ymag;
-                        myRegress[1][2] += ymag;
-                        myRegress[2][2] += 1.0f;
-                        myRegress[0][3] += xmag * tempf;
-                        myRegress[1][3] += ymag * tempf;
-                        myRegress[2][3] += tempf;
-                    }
-                }
-                myRegress[1][0] = myRegress[0][1];//complete the symmetric elements
-                myRegress[2][0] = myRegress[0][2];
-                myRegress[2][1] = myRegress[1][2];
-                myRegress[2][2] += 1.0f;//include center (metric and coord differences will be zero, so this is all that is needed)
-                FloatMatrix myRref = myRegress.reducedRowEchelon();
-                somevec[0] = xhat[0] * myRref[0][3] + yhat[0] * myRref[1][3];
-                somevec[1] = xhat[1] * myRref[0][3] + yhat[1] * myRref[1][3];
-                somevec[2] = xhat[2] * myRref[0][3] + yhat[2] * myRref[1][3];//somevec is now our surface gradient
-                sanity = somevec[0] + somevec[1] + somevec[2];
-            }
-            if (numNeigh > 0 && (numNeigh < 2 || sanity != sanity))
-            {
-                if (!haveWarned && myRoi != NULL)
-                {//don't issue this warning with an ROI, because it is somewhat expected
-                haveWarned = true;
-                CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
-                }
-                float xgrad = 0.0f, ygrad = 0.0f;
-                int32_t totalNeigh = 0;
-                for (int32_t j = 0; j < numNeigh; ++j)
-                {
-                    int32_t whichNode = myNeighbors[j];
-                    if (myRoi == NULL || myRoiColumn[whichNode] > 0.0f)
-                    {
-                        ++totalNeigh;
-                        float tempf = myMetricColumn[whichNode] - nodeValue;
-                        const float* neighCoord = mySurf->getCoordinate(whichNode);//TODO: make this not require a function call
-                        MathFunctions::subtractVectors(neighCoord, myCoord, somevec);
-                        float origMag = MathFunctions::vectorLength(somevec);//save the original length
-                        float xmag = MathFunctions::dotProduct(xhat, somevec);//dot product to get the direction in 2d
-                        float ymag = MathFunctions::dotProduct(yhat, somevec);
-                        float mag2d = sqrt(xmag * xmag + ymag * ymag);//get the new magnitude, to divide out
-                        tempf /= origMag * mag2d;//difference divided by distance gives point estimate of gradient magnitude, also divide by magnitude of 2d vector to normalize it at the same time
-                        xgrad += xmag * tempf;//point estimate of gradient magnitude times normalized projected direction gives 2d estimate of gradient
-                        ygrad += ymag * tempf;//average point estimates for each neighbor to estimate local gradient
-                    }
-                }
-                xgrad /= totalNeigh;//average
-                ygrad /= totalNeigh;
-                somevec[0] = xhat[0] * xgrad + yhat[0] * ygrad;//unproject back into 3d
-                somevec[1] = xhat[1] * xgrad + yhat[1] * ygrad;
-                somevec[2] = xhat[2] * xgrad + yhat[2] * ygrad;
-            }
-            if (numNeigh <= 0 || sanity != sanity)
-            {
-                if (!haveFailed)
-                {
-                    haveFailed = true;
-                    CaretLogWarning("Failed to compute gradient for a node with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
-                }
-                somevec[0] = 0.0f;
-                somevec[1] = 0.0f;
-                somevec[2] = 0.0f;
-            }
-            //TODO: save the vector components in something
-            myMetricOut->setValue(i, myColumn, MathFunctions::vectorLength(somevec));
-        }
+        delete[] myScratch;
     }
     if (myPresmooth > 0.0f)
     {

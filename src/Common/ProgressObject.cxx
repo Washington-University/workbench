@@ -30,7 +30,9 @@
 using namespace std;
 using namespace caret;
 
-const float ProgressObject::MAX_CHILD_RESOLUTION = 0.002f;//up to 500 calls per child algorithm
+///decrease these values to reduce progress bar overhead everywhere
+///or, manually set them for any fast algorithm that calls reportProgress a lot (or change it so it calls reportProgress less often)
+const float ProgressObject::MAX_CHILD_RESOLUTION = 0.01f;//up to 100 calls per child algorithm
 const float ProgressObject::MAX_INTERNAL_RESOLUTION = 0.001f;//up to 1000 calls during internal processing
 
 ProgressObject* ProgressObject::addAlgorithm(const float weight, const float childResolution)

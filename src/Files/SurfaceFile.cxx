@@ -26,6 +26,7 @@
 #include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
+#include "CaretOMP.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -227,6 +228,12 @@ SurfaceFile::getCoordinate(const int32_t nodeIndex) const
     return &(this->coordinatePointer[offset]);    
 }
 
+const float* SurfaceFile::getCoordinateData() const
+{
+    CaretAssert(this->coordinatePointer);
+    return this->coordinatePointer;
+}
+
 /**
  * Get the number of triangles.
  *
@@ -307,6 +314,11 @@ SurfaceFile::getNormalVector(const int32_t nodeIndex) const
     return &(this->normalVectors[offset]);    
 }
 
+const float* SurfaceFile::getNormalData() const
+{
+    return normalVectors.data();
+}
+
 /**
  * Compute surface normals.
  */
@@ -326,90 +338,102 @@ SurfaceFile::computeNormals(const bool averageNormals)
         float* normalPointer = &this->normalVectors[0];
         std::vector<float> numContribute(numCoords, 0.0f);
 
-        float triangleNormal[3];
-
-        for (int32_t i = 0; i < numTriangles; i++) {
-            const int32_t it3 = i * 3;
-            const int n1 = this->trianglePointer[it3];
-            const int n2 = this->trianglePointer[it3 + 1];
-            const int n3 = this->trianglePointer[it3 + 2];
-            const int32_t c1 = n1 * 3;
-            const int32_t c2 = n2 * 3;
-            const int32_t c3 = n3 * 3;
-            if ((n1 >= 0)
-                && (n2 >= 0)
-                && (n3 >= 0)) {
-                
-                MathFunctions::normalVector(&this->coordinatePointer[c1],
-                                            &this->coordinatePointer[c2],
-                                            &this->coordinatePointer[c3],
-                                            triangleNormal);
-                
-                normalPointer[c1 + 0] += triangleNormal[0];
-                normalPointer[c1 + 1] += triangleNormal[1];
-                normalPointer[c1 + 2] += triangleNormal[2];
-                numContribute[n1] += 1.0;
-                normalPointer[c2 + 0] += triangleNormal[0];
-                normalPointer[c2 + 1] += triangleNormal[1];
-                normalPointer[c2 + 2] += triangleNormal[2];
-                numContribute[n2] += 1.0;
-                normalPointer[c3 + 0] += triangleNormal[0];
-                normalPointer[c3 + 1] += triangleNormal[1];
-                normalPointer[c3 + 2] += triangleNormal[2];
-                numContribute[n3] += 1.0;
+#pragma omp CARET_PAR
+        {
+            float triangleNormal[3];
+#pragma omp CARET_FOR
+            for (int32_t i = 0; i < numTriangles; i++) {
+                const int32_t it3 = i * 3;
+                const int n1 = this->trianglePointer[it3];
+                const int n2 = this->trianglePointer[it3 + 1];
+                const int n3 = this->trianglePointer[it3 + 2];
+                const int32_t c1 = n1 * 3;
+                const int32_t c2 = n2 * 3;
+                const int32_t c3 = n3 * 3;
+                if ((n1 >= 0)
+                    && (n2 >= 0)
+                    && (n3 >= 0)) {
+                    
+                    MathFunctions::normalVector(&this->coordinatePointer[c1],
+                                                &this->coordinatePointer[c2],
+                                                &this->coordinatePointer[c3],
+                                                triangleNormal);
+                    
+                    normalPointer[c1 + 0] += triangleNormal[0];
+                    normalPointer[c1 + 1] += triangleNormal[1];
+                    normalPointer[c1 + 2] += triangleNormal[2];
+                    numContribute[n1] += 1.0;
+                    normalPointer[c2 + 0] += triangleNormal[0];
+                    normalPointer[c2 + 1] += triangleNormal[1];
+                    normalPointer[c2 + 2] += triangleNormal[2];
+                    numContribute[n2] += 1.0;
+                    normalPointer[c3 + 0] += triangleNormal[0];
+                    normalPointer[c3 + 1] += triangleNormal[1];
+                    normalPointer[c3 + 2] += triangleNormal[2];
+                    numContribute[n3] += 1.0;
+                }
             }
         }
         
-        float normal[3];
-        for (int32_t i = 0; i < numCoords; i++) {
-            const int32_t i3 = i * 3;
-            if (numContribute[i] > 0.0) {
-                normal[0] = normalPointer[i3 + 0];// / numContribute[i];//TSC: this is not needed if you normalize the vector afterwards, save a few flops
-                normal[1] = normalPointer[i3 + 1];// / numContribute[i];
-                normal[2] = normalPointer[i3 + 2];// / numContribute[i];
-                MathFunctions::normalizeVector(normal);//this function should probably be changed to accept a float*
-                normalPointer[i3 + 0] = normal[0];
-                normalPointer[i3 + 1] = normal[1];
-                normalPointer[i3 + 2] = normal[2];
-            } else {
-                normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
-                normalPointer[i3 + 1] = 0.0f;
-                normalPointer[i3 + 2] = 0.0f;
+#pragma omp CARET_PAR
+        {
+            float normal[3];
+#pragma omp CARET_FOR
+            for (int32_t i = 0; i < numCoords; i++) {
+                const int32_t i3 = i * 3;
+                if (numContribute[i] > 0.0) {
+                    normal[0] = normalPointer[i3 + 0];// / numContribute[i];//TSC: this is not needed if you normalize the vector afterwards, save a few flops
+                    normal[1] = normalPointer[i3 + 1];// / numContribute[i];
+                    normal[2] = normalPointer[i3 + 2];// / numContribute[i];
+                    MathFunctions::normalizeVector(normal);//this function should probably be changed to accept a float*
+                    normalPointer[i3 + 0] = normal[0];
+                    normalPointer[i3 + 1] = normal[1];
+                    normalPointer[i3 + 2] = normal[2];
+                } else {
+                    normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
+                    normalPointer[i3 + 1] = 0.0f;
+                    normalPointer[i3 + 2] = 0.0f;
+                }
             }
         }
+        
         if (averageNormals)
         {
             std::vector<float> avgTemp;
-            std::vector<int32_t> neighbors;
-            float tempVec[3];
-            CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();
             avgTemp.resize(numCoords * 3);
-            for (int32_t i = 0; i < numCoords; ++i)
+#pragma omp CARET_PAR
             {
-                int32_t i3 = i * 3;
-                tempVec[0] = 0.0f;
-                tempVec[1] = 0.0f;
-                tempVec[2] = 0.0f;
-                myTopoHelp->getNodeNeighbors(i, neighbors);
-                int32_t numNeigh = (int32_t)neighbors.size();
-                for (int32_t j = 0; j < numNeigh; ++j)
+                std::vector<int32_t> neighbors;
+                float tempVec[3];
+                CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();
+    #pragma omp CARET_FOR
+                for (int32_t i = 0; i < numCoords; ++i)
                 {
-                    int32_t j3 = j * 3;
-                    tempVec[0] += normalPointer[j3];
-                    tempVec[1] += normalPointer[j3 + 1];
-                    tempVec[2] += normalPointer[j3 + 2];
+                    int32_t i3 = i * 3;
+                    tempVec[0] = 0.0f;
+                    tempVec[1] = 0.0f;
+                    tempVec[2] = 0.0f;
+                    myTopoHelp->getNodeNeighbors(i, neighbors);
+                    int32_t numNeigh = (int32_t)neighbors.size();
+                    for (int32_t j = 0; j < numNeigh; ++j)
+                    {
+                        int32_t neighbase = neighbors[j] * 3;
+                        tempVec[0] += normalPointer[neighbase];
+                        tempVec[1] += normalPointer[neighbase + 1];
+                        tempVec[2] += normalPointer[neighbase + 2];
+                    }
+                    MathFunctions::normalizeVector(tempVec);
+                    avgTemp[i3] = tempVec[0];
+                    avgTemp[i3 + 1] = tempVec[1];
+                    avgTemp[i3 + 2] = tempVec[2];
                 }
-                MathFunctions::normalizeVector(tempVec);
-                avgTemp[i3] = tempVec[0];
-                avgTemp[i3 + 1] = tempVec[1];
-                avgTemp[i3 + 2] = tempVec[2];
-            }
-            for (int32_t i = 0; i < numCoords; ++i)
-            {
-                int32_t i3 = i * 3;
-                normalPointer[i3] = avgTemp[i3];
-                normalPointer[i3 + 1] = avgTemp[i3 + 1];
-                normalPointer[i3 + 2] = avgTemp[i3 + 2];
+                for (int32_t i = 0; i < numCoords; ++i)
+                {
+                    int32_t i3 = i * 3;
+                    normalPointer[i3] = avgTemp[i3];
+                    normalPointer[i3 + 1] = avgTemp[i3 + 1];
+                    normalPointer[i3 + 2] = avgTemp[i3 + 2];
+                }
             }
         }
     }
@@ -468,24 +492,28 @@ SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
 
 CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper()
 {
-    if (m_geoBase == NULL)
-    {
-        m_geoHelpers.clear();//just to be sure
-        m_geoHelperIndex = 0;
-        m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));
-    }
-    int32_t myIndex = m_geoHelperIndex;
-    int32_t myEnd = m_geoHelpers.size();
-    for (int32_t i = 0; i < myEnd; ++i)
-    {
-        if (myIndex > myEnd) myIndex = 0;
-        if (m_geoHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
+    {//lock before modifying member (base)
+        CaretMutexLocker myLock(&m_helperMutex);
+        if (m_geoBase == NULL)
         {
-            return m_geoHelpers[myIndex];
+            m_geoHelpers.clear();//just to be sure
+            m_geoHelperIndex = 0;
+            m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and will often do so single threaded at the moment
+        }//keep locked while searching
+        int32_t myIndex = m_geoHelperIndex;
+        int32_t myEnd = m_geoHelpers.size();
+        for (int32_t i = 0; i < myEnd; ++i)
+        {
+            if (myIndex > myEnd) myIndex = 0;
+            if (m_geoHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
+            {
+                return m_geoHelpers[myIndex];
+            }
+            ++myIndex;
         }
-        ++myIndex;
-    }
+    }//UNLOCK before building a new one, so it can be built in parallel
     CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
+    CaretMutexLocker myLock(&m_helperMutex);//relock before modifying the array
     m_geoHelpers.push_back(ret);
     return ret;
 }
@@ -494,29 +522,35 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted)
 {
     int32_t myIndex = m_topoHelperIndex;
     int32_t myEnd = m_topoHelpers.size();
-    for (int32_t i = 0; i < myEnd; ++i)
     {
-        if (myIndex > myEnd) myIndex = 0;
-        if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
-        {//NOTE: assumes not asking for sorted info can use sorted info, but it would have to be REALLY broken to require a specific unsorted ordering that can't be changed
-            return m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+        CaretMutexLocker myLock(&m_helperMutex);//for efficiency, avoiding locks when not needed, use readonly things to find a candidate, then lock, recheck candidate, and return
+        for (int32_t i = 0; i < myEnd; ++i)
+        {
+            if (myIndex > myEnd) myIndex = 0;
+            if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
+            {
+                return m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+            }
+            ++myIndex;
         }
-        ++myIndex;
-    }
+    }//UNLOCK the mutex while we build a new helper, so that they can be built in parallel
     CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));
+    CaretMutexLocker myLock(&m_helperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     return ret;
 }
 
 void SurfaceFile::invalidateGeoHelpers()
 {
-    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
+    CaretMutexLocker myLock(&m_helperMutex);//make this function threadsafe
     m_geoHelperIndex = 0;
     m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
 }
 
 void caret::SurfaceFile::invalidateTopoHelpers()
 {
+    CaretMutexLocker myLock(&m_helperMutex);//make this function threadsafe
     m_topoHelperIndex = 0;
     m_topoHelpers.clear();
 }

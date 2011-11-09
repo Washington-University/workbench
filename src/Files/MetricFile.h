@@ -66,6 +66,8 @@ namespace caret {
         
         const float* getValuePointerForColumn(const int32_t columnIndex) const;
         
+        void setValuesForColumn(const int32_t columnIndex, const float* valuesIn);
+        
     protected:
         /**
          * Validate the contents of the file after it

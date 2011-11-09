@@ -37,6 +37,7 @@ CaretHttpManager.h
 CaretLogger.h
 CaretMutex.h
 CaretObject.h
+CaretOMP.h
 CaretPointer.h
 DataCompressZLib.h
 DataFile.h

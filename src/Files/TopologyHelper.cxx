@@ -748,7 +748,7 @@ TopologyHelper::getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const
       if (numNeighborsOut <= 0) {
          return NULL;
       }
-      return &nodes[nodeNum].neighbors[0];
+      return nodes[nodeNum].neighbors.data();
    }
    numNeighborsOut = 0;
    return NULL;

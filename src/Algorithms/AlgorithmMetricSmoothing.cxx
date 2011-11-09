@@ -28,6 +28,7 @@
 #include "MetricFile.h"
 #include "GeodesicHelper.h"
 #include "TopologyHelper.h"
+#include "CaretOMP.h"
 #include <cmath>
 
 using namespace caret;
@@ -118,11 +119,13 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
         }
+        float* myScratch = new float[numNodes];
         for (int32_t col = 0; col < numCols; ++col)
         {
             myProgress.setTask("Smoothing Column " + AString::number(col));
             myMetricOut->setColumnName(col, myMetric->getColumnName(col) + ", smooth " + AString::number(myKernel));
             const float* myColumn = myMetric->getValuePointerForColumn(col);
+#pragma omp CARET_PARFOR
             for (int32_t i = 0; i < numNodes; ++i)
             {
                 if (myRoi == NULL || myRoiColumn[i] > 0.0f)
@@ -134,13 +137,15 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
                     {
                         sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
                     }
-                    myMetricOut->setValue(i, col, sum / myWeightRef.m_weightSum);//TODO: implement and use a better way to set an entire column
+                    myScratch[i] = sum / myWeightRef.m_weightSum;
                 } else {
-                    myMetricOut->setValue(i, col, 0.0f);//zero other stuff
+                    myScratch[i] = 0.0f;//zero other stuff
                 }
             }
-            myProgress.reportProgress(precomputeWeightWork + ((float)col) / numCols);
+            myMetricOut->setValuesForColumn(col, myScratch);
+            myProgress.reportProgress(precomputeWeightWork + ((float)col + 1) / numCols);
         }
+        delete[] myScratch;
     } else {
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         myMetricOut->setStructure(mySurf->getStructure());
@@ -148,10 +153,12 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         myProgress.setTask("Smoothing Column " + AString::number(columnNum));
         const float* myColumn = myMetric->getValuePointerForColumn(columnNum);
         const float* myRoiColumn;
+        float* myScratch = new float[numNodes];
         if (myRoi != NULL)
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
         }
+#pragma omp CARET_PARFOR
         for (int32_t i = 0; i < numNodes; ++i)
         {
             if (myRoi == NULL || myRoiColumn[i] > 0.0f)
@@ -163,11 +170,13 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
                 {
                     sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
                 }
-                myMetricOut->setValue(i, 0, sum / myWeightRef.m_weightSum);
+                myScratch[i] = sum / myWeightRef.m_weightSum;
             } else {
-                myMetricOut->setValue(i, 0, 0.0f);//zero other stuff
+                myScratch[i] = 0.0f;//zero other stuff
             }
         }//should go incredibly fast, don't worry about progress for one column
+        myMetricOut->setValuesForColumn(columnNum, myScratch);
+        delete[] myScratch;
     }
 }
 
@@ -178,26 +187,30 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-    CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-    vector<float> distances;
-    for (int32_t i = 0; i < numNodes; ++i)
+#pragma omp CARET_PAR
     {
-        myGeoHelp->getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
-        if (distances.size() < 7)
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
         {
-            myTopoHelp->getNodeNeighbors(i, m_weightLists[i].m_nodes);
-            m_weightLists[i].m_nodes.push_back(i);
-            myGeoHelp->getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
-        }
-        int32_t numNeigh = (int32_t)distances.size();
-        m_weightLists[i].m_weights.resize(numNeigh);
-        m_weightLists[i].m_weightSum = 0.0f;
-        for (int32_t j = 0; j < numNeigh; ++j)
-        {
-            float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
-            m_weightLists[i].m_weights[j] = weight;
-            m_weightLists[i].m_weightSum += weight;
+            myGeoHelp->getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
+            if (distances.size() < 7)
+            {
+                myTopoHelp->getNodeNeighbors(i, m_weightLists[i].m_nodes);
+                m_weightLists[i].m_nodes.push_back(i);
+                myGeoHelp->getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
+            }
+            int32_t numNeigh = (int32_t)distances.size();
+            m_weightLists[i].m_weights.resize(numNeigh);
+            m_weightLists[i].m_weightSum = 0.0f;
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                m_weightLists[i].m_weights[j] = weight;
+                m_weightLists[i].m_weightSum += weight;
+            }
         }
     }
 }
@@ -209,33 +222,37 @@ void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double 
     float myGeoDist = myKernelF * 4.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
-    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-    CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
-    vector<float> distances;
-    vector<int32_t> nodes;
-    const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
-    for (int32_t i = 0; i < numNodes; ++i)
+#pragma omp CARET_PAR
     {
-        myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
-        if (distances.size() < 7)
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+        vector<int32_t> nodes;
+        const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
         {
-            myTopoHelp->getNodeNeighbors(i, nodes);
-            nodes.push_back(i);
-            myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
-        }
-        int32_t numNeigh = (int32_t)distances.size();
-        m_weightLists[i].m_weights.reserve(numNeigh);
-        m_weightLists[i].m_nodes.reserve(numNeigh);
-        m_weightLists[i].m_weightSum = 0.0f;
-        for (int32_t j = 0; j < numNeigh; ++j)
-        {
-            if (myRoiColumn[nodes[j]] > 0.0f)
+            myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+            if (distances.size() < 7)
             {
-                float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
-                m_weightLists[i].m_weights.push_back(weight);
-                m_weightLists[i].m_nodes.push_back(nodes[j]);
-                m_weightLists[i].m_weightSum += weight;
-                
+                myTopoHelp->getNodeNeighbors(i, nodes);
+                nodes.push_back(i);
+                myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
+            }
+            int32_t numNeigh = (int32_t)distances.size();
+            m_weightLists[i].m_weights.reserve(numNeigh);
+            m_weightLists[i].m_nodes.reserve(numNeigh);
+            m_weightLists[i].m_weightSum = 0.0f;
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                if (myRoiColumn[nodes[j]] > 0.0f)
+                {
+                    float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                    m_weightLists[i].m_weights.push_back(weight);
+                    m_weightLists[i].m_nodes.push_back(nodes[j]);
+                    m_weightLists[i].m_weightSum += weight;
+                    
+                }
             }
         }
     }

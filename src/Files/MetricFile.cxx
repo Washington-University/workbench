@@ -201,6 +201,7 @@ MetricFile::setValue(const int32_t nodeIndex,
     CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()), "Node Index out of range.");
     
     this->columnDataPointers[columnIndex][nodeIndex] = value;
+    setModified();
 }
 
 const float* 
@@ -219,6 +220,18 @@ void MetricFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
     {
         giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_NORMAL, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, dimensions, GiftiEncodingEnum::GZIP_BASE64_BINARY));
         columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerFloat());
+    }
+    setModified();
+}
+
+void MetricFile::setValuesForColumn(const int32_t columnIndex, const float* valuesIn)
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    float* myColumn = columnDataPointers[columnIndex];
+    int numNodes = (int)getNumberOfNodes();
+    for (int i = 0; i < numNodes; ++i)
+    {
+        myColumn[i] = valuesIn[i];
     }
     setModified();
 }
