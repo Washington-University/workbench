@@ -288,7 +288,7 @@ ConnectivityLoaderControl::updateControl()
             if(animators[i]) {
                 animators[i]->stop();
                 delete animators[i];
-                animators[i] == NULL;
+                animators[i] = NULL;
             }
 
             this->rowWidgetGroups[i]->setVisible(false);
