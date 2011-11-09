@@ -59,6 +59,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->connectivityVolumeFile = NULL;
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->timeSeriesGraphEnabled = false;
+    this->selectedTimePoint = 0.0;
 }
 
 /**
@@ -103,6 +104,7 @@ ConnectivityLoaderFile::clearData()
         delete this->connectivityVolumeFile;
         this->connectivityVolumeFile = NULL;
     }
+    this->selectedTimePoint = 0.0;
     this->ciftiInterface = NULL; // pointer to disk or network file so do not delete
     this->loaderType = LOADER_TYPE_INVALID;
     this->mapToType = MAP_TO_TYPE_INVALID;
@@ -694,6 +696,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 
                 if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    this->selectedTimePoint = seconds;
                 }
                 else {
                     CaretLogSevere("FAILED to read column for seconds " + AString::number(seconds));
@@ -1315,4 +1318,14 @@ ConnectivityLoaderFile::getTimeStep() const
     
     return 0.0;
 }
+
+/**
+ * @return Get the selected time point.
+ */ 
+float 
+ConnectivityLoaderFile::getSelectedTimePoint() const
+{
+    return this->selectedTimePoint;
+}
+
 

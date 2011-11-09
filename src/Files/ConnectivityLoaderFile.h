@@ -150,6 +150,8 @@ namespace caret {
         
         void setTimeSeriesGraphEnabled(const bool showGraph);
         
+        float getSelectedTimePoint() const;
+        
     private:
         enum LoaderType {
             LOADER_TYPE_INVALID,
@@ -201,6 +203,8 @@ namespace caret {
         VolumeFile* connectivityVolumeFile;
         
         bool timeSeriesGraphEnabled;
+        
+        float selectedTimePoint;
     };
     
 } // namespace

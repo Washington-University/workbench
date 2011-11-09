@@ -268,6 +268,7 @@ ConnectivityLoaderControl::updateControl()
                 this->showTimeGraphCheckBoxes[i]->setEnabled(true);
                 this->timeSpinBoxes[i]->setEnabled(true);
                 this->timeSpinBoxes[i]->setSingleStep(clf->getTimeStep());
+                this->timeSpinBoxes[i]->setValue(clf->getSelectedTimePoint());
                 this->animateButtons[i]->setEnabled(true);
             }
             else {
