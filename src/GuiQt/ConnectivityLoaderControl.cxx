@@ -418,6 +418,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     }
     
     this->updateControl();
+    this->sendUserInterfaceUpdate();
 }
 
 /**
@@ -535,6 +536,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         }
 
         this->updateControl();
+        this->sendUserInterfaceUpdate();
     }
 }
 
@@ -569,6 +571,7 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
     this->updateControl();
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());        
+    this->sendUserInterfaceUpdate();
 }
 
 /**
@@ -622,6 +625,7 @@ ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int /*state*/)
             clf->setTimeSeriesGraphEnabled(this->showTimeGraphCheckBoxes[i]->isChecked());
         }
     }
+    this->sendUserInterfaceUpdate();
 }
 
 /**
@@ -634,6 +638,7 @@ ConnectivityLoaderControl::addConnectivityLoader()
     ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
     manager->addConnectivityLoaderFile();
     this->updateControl();
+    this->sendUserInterfaceUpdate();
 }
 
 /**
