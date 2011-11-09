@@ -39,13 +39,15 @@ class QGridLayout;
 class QLabel;
 class QLineEdit;
 class QToolButton;
-#include "TimeSeriesManager.h"
+
 
 namespace caret {
 
     class ConnectivityLoaderFile;
     class WuQSpinBoxGroup;
     class WuQWidgetObjectGroup;
+    class SpinBoxReceiver;
+    class TimeSeriesManager;
     
     class ConnectivityLoaderControl : public QWidget {
         
@@ -57,6 +59,7 @@ namespace caret {
         virtual ~ConnectivityLoaderControl();
         
         void updateControl();
+        QDoubleSpinBox *getTimeSpinBox(int32_t &index);
         
     private:
         ConnectivityLoaderControl(const ConnectivityLoaderControl&);

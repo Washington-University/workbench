@@ -37,6 +37,7 @@ OverlaySelectionControlLayer.h
 PaletteColorMappingEditorDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
+TimeSeriesManager.h
 WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h

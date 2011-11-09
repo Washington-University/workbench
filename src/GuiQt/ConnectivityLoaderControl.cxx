@@ -53,6 +53,7 @@
 #include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
+#include "TimeSeriesManager.h"
 
 using namespace caret;
 
@@ -272,7 +273,7 @@ ConnectivityLoaderControl::updateControl()
             }
             if((animators[i]== NULL) && clf->isDenseTimeSeries())
             {
-                animators[i] = new TimeSeriesManager(i,manager);
+                animators[i] = new TimeSeriesManager(i,this);
             }
 
             this->rowWidgetGroups[i]->setVisible(true);
@@ -380,12 +381,12 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                         animators[fileIndex]->stop();
                         delete animators[fileIndex];
                     }
-                    TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex,manager);//TODO, time series needs a handle to ConnectivityLoaderFile
+                    TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex,this);//TODO, time series needs a handle to ConnectivityLoaderFile
                     this->animators[fileIndex] = tsManager;
                 }
                 else
                 {
-                    TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex,manager);//TODO, time series needs a handle to ConnectivityLoaderFile
+                    TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex,this);//TODO, time series needs a handle to ConnectivityLoaderFile
                     this->animators.resize(fileIndex+1,NULL);
                     this->animators[fileIndex] = tsManager;
                 }
@@ -501,12 +502,12 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
                     animators[fileIndex]->stop();
                     delete animators[fileIndex];
                 }
-                TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex, manager);//TODO, time series needs a handle to ConnectivityLoaderFile
+                TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex, this);//TODO, time series needs a handle to ConnectivityLoaderFile
                 this->animators[fileIndex] = tsManager;
             }
             else
             {
-                TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex, manager);//TODO, time series needs a handle to ConnectivityLoaderFile
+                TimeSeriesManager *tsManager = new TimeSeriesManager(fileIndex, this);//TODO, time series needs a handle to ConnectivityLoaderFile
                 this->animators.push_back(tsManager);
             }
         }
@@ -626,4 +627,13 @@ ConnectivityLoaderControl::addConnectivityLoader()
     ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
     manager->addConnectivityLoaderFile();
     this->updateControl();
+}
+
+/**
+  * Setup signal for Time SpinBox
+  */
+QDoubleSpinBox*
+ConnectivityLoaderControl::getTimeSpinBox(int32_t &index)
+{
+    return this->timeSpinBoxes[index];
 }

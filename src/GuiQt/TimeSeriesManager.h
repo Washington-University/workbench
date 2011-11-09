@@ -24,30 +24,45 @@
  * 
  */ 
 #include "QThread"
-#include "ConnectivityLoaderManager.h"
-#include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderControl.h"
+#include "QTimer"
 namespace caret {
 
-class AnimationHelper/*: public QThread*/ {
+
+class AnimationHelper : public QThread {
+    Q_OBJECT
 public:
-    AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm);
+    AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc);
+    ~AnimationHelper();
     void run();
     void play();
     void pause();
-    void stop();
-    void doAnimation();
+    void stop();    
+    void getCurrentTime();
+    void toggle();
+public slots:
+    void update();
+signals:
+    void doubleSpinBoxValueChanged(double);
 private:
     int32_t m_index; //index for connectivity loader file
-    ConnectivityLoaderManager *m_clm;
+    ConnectivityLoaderControl *m_clc;
     int64_t m_timeIndex;
     int64_t m_updateInterval;
     bool m_stopThread;
+    float m_timeStep;
+    int64_t m_timePoints;
+    QTimer *m_timer;
 };
+
+/*void spinBoxChangeReceiver(QSpinBox* spinBox,
+                                 const int i);
+void setUpSignal(const char *object, const char *method);*/
 
 class TimeSeriesManager
 {
 public:
-    TimeSeriesManager(int32_t &index, ConnectivityLoaderManager *clm);
+    TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc);
     virtual ~TimeSeriesManager();
     void play();
     void pause();
@@ -57,7 +72,7 @@ private:
     AnimationHelper *m_helper;
     bool m_isPlaying;
     int32_t m_index;
-    ConnectivityLoaderManager *m_clm;
+    ConnectivityLoaderControl *m_clc;
 };
 
 

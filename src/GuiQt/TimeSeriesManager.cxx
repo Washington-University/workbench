@@ -23,123 +23,145 @@
  */ 
 
 #include "TimeSeriesManager.h"
+#include "ConnectivityLoaderFile.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "WuQSpinBoxGroup.h"
 #include "QCoreApplication"
+#include "Brain.h"
+#include "GuiManager.h"
+#include "QSpinBox"
 using namespace caret;
-TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderManager *clm)
+TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc)
 {
     m_index = index;
-    m_clm = clm;
-    m_helper = new AnimationHelper(index,clm);
+    m_clc = clc;
+    m_helper = new AnimationHelper(index,clc);
     m_isPlaying = false;
 }
 
 void TimeSeriesManager::toggleAnimation()
 {
-    if(m_isPlaying) pause();
-    else play();
+    m_helper->toggle();
 }
 
 TimeSeriesManager::~TimeSeriesManager()
 {
-    stop();
-    //m_helper->terminate();
+    stop();    
     delete m_helper;
 }
 
 void TimeSeriesManager::play()
 {
-    if(m_isPlaying) return;
-    m_isPlaying = true;
-    m_helper->doAnimation();
+    m_helper->play();
+    //m_helper->doAnimation();
 }
 void TimeSeriesManager::stop()
 {
-    if(!m_isPlaying) return;
-    m_isPlaying = false;
     m_helper->stop();
 }
 
 void TimeSeriesManager::pause()
 {
-    if(!m_isPlaying) return;
-    m_isPlaying = false;
     m_helper->pause();
 }
 
 
 
-AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderManager *clm)
+AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
 {
     m_index = index;
-    m_clm = clm;
+    m_clc = clc;
     m_timeIndex = 0;
-    m_updateInterval = 100;
+    m_updateInterval = 200;
     m_stopThread = false;
-    //moveToThread(this);
+
+    ConnectivityLoaderManager *clm = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    ConnectivityLoaderFile *clf = clm->getConnectivityLoaderFile(m_index);
+    if(!clf) return;
+    m_timePoints = clf->getNumberOfTimePoints();
+    m_timeStep  = clf->getTimeStep();
+    QDoubleSpinBox* spinBox = clc->getTimeSpinBox(index);
+
+    QObject::connect(this, SIGNAL(doubleSpinBoxValueChanged(const double)),
+                     spinBox, SLOT(setValue(double)), Qt::BlockingQueuedConnection);
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(update()), Qt::DirectConnection);
+
+    moveToThread(this);
+
+}
+
+AnimationHelper::~AnimationHelper()
+{
+    stop();
+    delete m_timer;
+}
+
+void AnimationHelper::getCurrentTime()
+{
+    ConnectivityLoaderManager *clm = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    ConnectivityLoaderFile *clf = clm->getConnectivityLoaderFile(m_index);
+    if(!clf) return;
+    m_timePoints = clf->getNumberOfTimePoints();
+    m_timeStep  = clf->getTimeStep();
+    QDoubleSpinBox* spinBox = m_clc->getTimeSpinBox(m_index);
+    m_timeIndex = spinBox->value()/m_timeStep;
+    if(m_timePoints<=m_timeIndex) m_timeIndex = 0;
 }
 
 void AnimationHelper::run()
 {
-    //moveToThread(this);
-    ConnectivityLoaderFile *clf = m_clm->getConnectivityLoaderFile(m_index);
-    if(!clf) return;
-    int64_t timePoints = clf->getNumberOfTimePoints();
-    for(;m_timeIndex<timePoints;m_timeIndex++)
-    {
-        if(m_stopThread)
-        {
-            m_stopThread = false;
-            return;
-        }
-        m_clm->loadTimePointAtTime(clf, m_timeIndex);
-        //this->wait(m_updateInterval);
-    }
-    m_timeIndex = 0;//reset so that user can play again
+    getCurrentTime();
+    m_timer->start(m_updateInterval);
+    exec();
+
 }
 
-void AnimationHelper::doAnimation()
+void AnimationHelper::update()
 {
-    ConnectivityLoaderFile *clf = m_clm->getConnectivityLoaderFile(m_index);
-    if(!clf) return;
-    int64_t timePoints = clf->getNumberOfTimePoints();
-    for(;m_timeIndex<timePoints;m_timeIndex++)
+
+    if(m_timeIndex<m_timePoints&&!(this->m_stopThread))
     {
-        if(m_stopThread)
-        {
-            m_stopThread = false;
-            return;
-        }
-        bool dataLoaded = m_clm->loadTimePointAtTime(clf, m_timeIndex);
-        //this->wait(m_updateInterval);
-        QCoreApplication::instance()->processEvents();
-        sleep(m_updateInterval/1000.0);
+        emit doubleSpinBoxValueChanged((double)m_timeIndex*m_timeStep);
+        m_timeIndex++;
+        //wait(m_updateInterval);
+        //QCoreApplication::instance()->thread()->wait(m_updateInterval);
 
-
-        if(dataLoaded) {
-            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-        }
+        //yieldCurrentThread();
+        //sleep(m_updateInterval/1000.0);
+        //QCoreApplication::instance()->processEvents();
 
     }
-    m_timeIndex = 0;//reset so that user can play again
-
+    else {
+        m_timer->stop();
+        exit();
+    }
 }
 
 void AnimationHelper::play()
 {
-    //this->start();
+    this->m_stopThread = false;
+    this->start();
 }
 
 void AnimationHelper::pause()
 {
-    m_stopThread = true;
+    if(m_timer->isActive()) {
+        this->m_stopThread = true;
+    }
 }
 
 void AnimationHelper::stop()
 {
-    m_stopThread = true;
-    m_timeIndex = 0;
+    pause();
 }
+
+void AnimationHelper::toggle()
+{
+    if(m_timer->isActive())
+        stop();
+    else play();
+}
+
