@@ -934,7 +934,7 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
 bool 
 ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
                                             const int nodeIndex,
-                                            const int32_t /* numberOfNodes */,
+                                            const int32_t numberOfNodes,
                                             float& valueOut) const
 {
     if (this->numberOfDataElements <= 0) {
@@ -972,9 +972,17 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
     
     std::vector<CiftiSurfaceMap> nodeMap;
     if (useColumnsFlag) {
+        const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+        if (numberOfNodes != numCiftiNodes) {
+            return false;
+        }
         this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
     }
     if (useRowsFlag) {
+        const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+        if (numberOfNodes != numCiftiNodes) {
+            return false;
+        }
         this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
     }
     
@@ -1044,9 +1052,33 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
     
     std::vector<CiftiSurfaceMap> nodeMap;
     if (useColumnsFlag) {
+        const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+        if (numberOfNodes != numCiftiNodes) {
+            CaretLogWarning("CIFTI file "
+                            + this->getFileNameNoPath()
+                            + " has "
+                            + AString::number(numCiftiNodes)
+                            + " but surface with structure "
+                            + StructureEnum::toGuiName(structure)
+                            + " contains "
+                            + AString::number(numberOfNodes));
+            return false;
+        }
         this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
     }
     if (useRowsFlag) {
+        const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+        if (numberOfNodes != numCiftiNodes) {
+            CaretLogWarning("CIFTI file "
+                            + this->getFileNameNoPath()
+                            + " has "
+                            + AString::number(numCiftiNodes)
+                            + " but surface with structure "
+                            + StructureEnum::toGuiName(structure)
+                            + " contains "
+                            + AString::number(numberOfNodes));
+            return false;
+        }
         this->ciftiInterface->getSurfaceMapForRows(nodeMap, structure);
     }
     
