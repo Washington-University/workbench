@@ -127,6 +127,10 @@ namespace caret {
         
         float* getDataRGBA();
         
+        bool getVolumeVoxelValue(const float xyz[3],
+                                 int64_t ijkOut[3],
+                                 float &valueOut) const;
+        
         bool getSurfaceNodeValue(const StructureEnum::Enum structure,
                                  const int nodeIndex,
                                  const int32_t numberOfNodes,

@@ -109,8 +109,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
         BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
         CaretAssert(brainStructure);
         
-        Brain* brain = brainStructure->getBrain();
-        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
         const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
         for (int32_t i = 0; i < numConnFiles; i++) {
             const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
@@ -216,6 +215,30 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                                    text);
                 }
             }            
+        }
+        
+        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
+        for (int32_t i = 0; i < numConnFiles; i++) {
+            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+            if (clf->isEmpty() == false) {
+                float value = 0.0;
+                int64_t connIJK[3];
+                if (clf->getVolumeVoxelValue(xyz, connIJK, value)) {
+                    AString boldText = (clf->getCiftiTypeName().toUpper() 
+                                        + " "  
+                                        + clf->getFileNameNoPath());
+                    boldText += (" IJK ("
+                                 + AString::number(connIJK[0])
+                                 + ", "
+                                 + AString::number(connIJK[1])
+                                 + ", "
+                                 + AString::number(connIJK[2])
+                                 + ")  ");
+                    AString text = AString::number(value);
+                    idText.addLine(true, boldText, text);
+                }
+            }
         }
     }
     

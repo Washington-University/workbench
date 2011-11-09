@@ -855,3 +855,12 @@ Brain::getConnectivityLoaderManager()
     return this->connectivityLoaderManager;
 }
 
+/**
+ * @return The connectivity loader manager.
+ */
+const ConnectivityLoaderManager* 
+Brain::getConnectivityLoaderManager() const
+{
+    return this->connectivityLoaderManager;
+}
+

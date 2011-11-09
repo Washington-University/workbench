@@ -85,6 +85,8 @@ namespace caret {
         
         ConnectivityLoaderManager* getConnectivityLoaderManager();
         
+        const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         

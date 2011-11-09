@@ -835,6 +835,102 @@ ConnectivityLoaderFile::getDataRGBA()
     return this->dataRGBA;
 }
 
+/**
+ * Get connectivity value for a voxel at the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @param ijkOut
+ *     Voxel indices of value.
+ * @param valueOut
+ *     Output containing the node's value, value only if true returned.
+ * @return
+ *    true if a value was available for the voxel, else false.
+ */
+bool 
+ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
+                                            int64_t ijkOut[3],
+                                            float &valueOut) const
+{
+    if (this->numberOfDataElements <= 0) {
+        return false;
+    }
+    
+    if (this->connectivityVolumeFile != NULL) {
+        int64_t vfIJK[3];
+        this->connectivityVolumeFile->closestVoxel(xyz, 
+                         vfIJK);
+        
+        if (this->connectivityVolumeFile->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
+            bool validMapToType = false;
+            switch (this->mapToType) {
+                case MAP_TO_TYPE_INVALID:
+                    validMapToType = false;
+                    break;
+                case MAP_TO_TYPE_BRAINORDINATES:
+                    validMapToType = true;
+                    break;
+                case MAP_TO_TYPE_TIMEPOINTS:
+                    validMapToType = false;
+                    break;
+            }
+            if (validMapToType == false) {
+                return false;
+            }
+            
+            bool useColumnsFlag = false;
+            bool useRowsFlag = false;
+            switch (this->loaderType) {
+                case LOADER_TYPE_INVALID:
+                    break;
+                case LOADER_TYPE_DENSE:
+                    useColumnsFlag = true;
+                    break;
+                case LOADER_TYPE_DENSE_TIME_SERIES:
+                    useRowsFlag = true;
+                    break;
+            }
+            
+            std::vector<CiftiVolumeMap> volumeMap;
+            if (useColumnsFlag) {
+                this->ciftiInterface->getVolumeMapForColumns(volumeMap);
+            }
+            if (useRowsFlag) {
+                this->ciftiInterface->getVolumeMapForRows(volumeMap);
+            }
+            
+            const int64_t numMaps = static_cast<int64_t>(volumeMap.size());
+            for (int64_t i = 0; i < numMaps; i++) {
+                if (volumeMap[i].m_ijk[0] == vfIJK[0]
+                    && volumeMap[i].m_ijk[1] == vfIJK[1]
+                    && volumeMap[i].m_ijk[2] == vfIJK[2]) {
+                    CaretAssertArrayIndex(this->data, this->numberOfDataElements, volumeMap[i].m_ciftiIndex);
+                    valueOut = this->data[volumeMap[i].m_ciftiIndex];
+                    ijkOut[0] = vfIJK[0];
+                    ijkOut[1] = vfIJK[1];
+                    ijkOut[2] = vfIJK[2];
+                    return true;
+                }
+            }
+        }
+
+    }
+    
+    return false;
+}
+
+/**
+ * Get connectivity value for a surface's node.
+ * @param structure
+ *     Surface's structure.
+ * @param nodeIndex
+ *     Index of the node
+ * @param numberOfNodes
+ *     Number of nodes in the surface.
+ * @param valueOut
+ *     Output containing the node's value, value only if true returned.
+ * @return
+ *    true if a value was available for the node, else false.
+ */
 bool 
 ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
                                             const int nodeIndex,
