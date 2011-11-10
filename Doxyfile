@@ -21,6 +21,7 @@ GENERATE_RTF = NO
 
 
 INPUT = \
+	src/Algorithms \
 	src/Brain \
 	src/Cifti \
 	src/CommandLine \
@@ -31,6 +32,7 @@ INPUT = \
 	src/Gifti \
 	src/GuiQt \
 	src/Nifti \
+	src/Palette \
 	src/Xml
 
 
