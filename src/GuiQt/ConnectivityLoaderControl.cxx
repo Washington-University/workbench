@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <cmath>
+
 #define __CONNECTIVITY_LOADER_CONTROL_DECLARE__
 #include "ConnectivityLoaderControl.h"
 #undef __CONNECTIVITY_LOADER_CONTROL_DECLARE__
@@ -584,7 +586,7 @@ ConnectivityLoaderControl::removeButtonPressed(QAbstractButton* button)
  */
 void 
 ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinBox,
-                                                     const double /*value*/)
+                                                     const double value)
 {
     int32_t fileIndex = -1;
     for (int32_t i = 0; i < static_cast<int32_t>(this->timeSpinBoxes.size()); i++) {
@@ -593,11 +595,18 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinB
         }
     }
     CaretAssert(fileIndex >= 0);
+    
     ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     
     bool dataLoadedFlag = false;
     
     ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(fileIndex);
+    const double currentValue = clf->getSelectedTimePoint();
+    if (std::fabs(currentValue - value) < 0.001) {
+        std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
+        return;
+    }
+    
     if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[fileIndex]->value())) {
             dataLoadedFlag = true;
     }

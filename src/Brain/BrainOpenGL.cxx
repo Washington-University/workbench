@@ -50,6 +50,7 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
+#include "ElapsedTimer.h"
 #include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
@@ -201,6 +202,9 @@ BrainOpenGL::drawModelInternal(Mode mode,
                        const int32_t windowTabIndex,
                        const int32_t viewport[4])
 {
+    ElapsedTimer et;
+    et.start();
+    
     this->mode = mode;
     
     this->browserTabContent = browserTabContent;
@@ -246,6 +250,14 @@ BrainOpenGL::drawModelInternal(Mode mode,
     }
     
     this->checkForOpenGLError(modelDisplayController, "At end of drawModel()");
+    
+    if (modelDisplayController != NULL) {
+        CaretLogFine("Time to draw " 
+                    + modelDisplayController->getNameForGUI(false)
+                    + " was "
+                    + AString::number(et.getElapsedTimeSeconds())
+                    + " seconds");
+    }
 }
 
 /**

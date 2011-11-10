@@ -22,7 +22,10 @@
  * 
  */ 
 
+#include <QThread>
+
 #include <algorithm>
+#include <iostream>
 #include <typeinfo>
 
 #define __EVENT_MANAGER_MAIN__
@@ -211,6 +214,13 @@ EventManager::sendEvent(Event* event)
     EventTypeEnum::Enum eventType = event->getEventType();
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
     
+    AString msg = ("Sending event: " 
+                   + event->toString() 
+                   + " from thread: " 
+                   + AString::number((uint64_t)QThread::currentThread()));
+    CaretLogFiner(msg);
+    //std::cout << msg << std::endl;
+    
     /*
      * Send event to each of the listeners.
      */
@@ -225,7 +235,6 @@ EventManager::sendEvent(Event* event)
         //<< EventTypeEnum::toName(eventType)
         //<< std::endl;
 
-        CaretLogFiner("Sending event: " + event->toString());
         
         listener->receiveEvent(event);
         

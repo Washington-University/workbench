@@ -81,6 +81,7 @@ NodeAndVoxelColoring.h
 Overlay.h
 OverlaySet.h
 SessionManager.h
+SphereOpenGL.h
 Surface.h
 SurfaceNodeColoring.h
 VolumeSliceIndicesSelection.h
@@ -127,6 +128,7 @@ NodeAndVoxelColoring.cxx
 Overlay.cxx
 OverlaySet.cxx
 SessionManager.cxx
+SphereOpenGL.cxx
 Surface.cxx
 SurfaceNodeColoring.cxx
 VolumeSliceIndicesSelection.cxx
