@@ -490,7 +490,7 @@ SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
                                         geometricTypeName);
 }
 
-CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper()
+void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
 {
     {//lock before modifying member (base)
         CaretMutexLocker myLock(&m_helperMutex);
@@ -500,36 +500,47 @@ CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper()
             m_geoHelperIndex = 0;
             m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and will often do so single threaded at the moment
         }//keep locked while searching
-        int32_t myIndex = m_geoHelperIndex;
+        int32_t& myIndex = m_geoHelperIndex;
         int32_t myEnd = m_geoHelpers.size();
         for (int32_t i = 0; i < myEnd; ++i)
         {
-            if (myIndex > myEnd) myIndex = 0;
+            if (myIndex >= myEnd) myIndex = 0;
             if (m_geoHelpers[myIndex].getReferenceCount() == 1)//1 reference: in this class, so unused elsewhere
             {
-                return m_geoHelpers[myIndex];
+                helpOut = m_geoHelpers[myIndex];
+                ++myIndex;
+                return;
             }
             ++myIndex;
         }
-    }//UNLOCK before building a new one, so it can be built in parallel
+    }//UNLOCK before building a new one, so they can be built in parallel - this actually just involves initializing the marked array
     CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
     CaretMutexLocker myLock(&m_helperMutex);//relock before modifying the array
     m_geoHelpers.push_back(ret);
-    return ret;
+    helpOut = ret;
 }
 
-CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted)
+CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper() const
+{//this convenience function is here because in order to guarantee thread safety, the real function explicitly copies to a reference argument before letting the mutex unlock
+    CaretPointer<GeodesicHelper> ret;//gcc seems to make it so that the copy of a return takes place before destructors, but just to be safe
+    getGeodesicHelper(ret);//this call is therefore thread safe and guaranteed to modify reference count before it unlocks the mutex for helpers
+    return ret;//so we are already safe by here
+}
+
+void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted) const
 {
-    int32_t myIndex = m_topoHelperIndex;
-    int32_t myEnd = m_topoHelpers.size();
     {
-        CaretMutexLocker myLock(&m_helperMutex);//for efficiency, avoiding locks when not needed, use readonly things to find a candidate, then lock, recheck candidate, and return
+        CaretMutexLocker myLock(&m_helperMutex);//lock before searching with the shared index
+        int32_t& myIndex = m_topoHelperIndex;
+        int32_t myEnd = m_topoHelpers.size();
         for (int32_t i = 0; i < myEnd; ++i)
         {
-            if (myIndex > myEnd) myIndex = 0;
+            if (myIndex >= myEnd) myIndex = 0;
             if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
             {
-                return m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+                helpOut = m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+                ++myIndex;
+                return;
             }
             ++myIndex;
         }
@@ -537,6 +548,13 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted)
     CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));
     CaretMutexLocker myLock(&m_helperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
+    helpOut = ret;
+}
+
+CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted) const
+{//see convenience function for geo helper for explanation
+    CaretPointer<TopologyHelper> ret;
+    getTopologyHelper(ret, infoSorted);
     return ret;
 }
 

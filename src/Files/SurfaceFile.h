@@ -81,9 +81,13 @@ namespace caret {
         
         void setSurfaceType(const SurfaceTypeEnum::Enum surfaceType);
         
-        CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false);
+        CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false) const;
         
-        CaretPointer<GeodesicHelper> getGeodesicHelper();
+        void getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted = false) const;
+        
+        CaretPointer<GeodesicHelper> getGeodesicHelper() const;
+        
+        void getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const;
         
         const BoundingBox* getBoundingBox() const;
         
@@ -121,19 +125,19 @@ namespace caret {
         std::vector<float> nodeColoring;
         
         ///tracks allocated TopologyHelpers for this class
-        std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
+        mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
         
         ///used to search through topology helpers without starting from 0 every time, wraps around
-        int32_t m_topoHelperIndex;
+        mutable int32_t m_topoHelperIndex;
         
         ///the geodesic base for this surface
-        CaretPointer<GeodesicHelperBase> m_geoBase;
+        mutable CaretPointer<GeodesicHelperBase> m_geoBase;
         
         ///tracks allocated geodesic helpers for this class
-        std::vector<CaretPointer<GeodesicHelper> > m_geoHelpers;
+        mutable std::vector<CaretPointer<GeodesicHelper> > m_geoHelpers;
         
         ///used to search through geodesic helpers without starting from 0 every time, wraps around
-        int32_t m_geoHelperIndex;
+        mutable int32_t m_geoHelperIndex;
         
         ///used to track when the surface file gets changed
         void invalidateGeoHelpers();
