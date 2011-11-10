@@ -98,7 +98,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     if(this->isCompressed())
     {
         AString temp = fileName;
-        gzFile ext = gzopen(temp, "r+");
+        gzFile ext = gzopen(temp, "r");
         gzseek(ext,eOffset,0);
         gzread(ext,extension_bytes,eLength);
         gzclose(ext);
