@@ -106,7 +106,8 @@ LogHandlerInformationTextDisplay::publish(const LogRecord& logRecord)
         eitd.setNotImportant();
     }
     
-    EventManager::get()->sendEvent(eitd.getPointer());
+    //FIXME: this causes an INFINITE LOOP when there is nothing set to handle this event, because the event manager logs an event not handled, and the logger gives another event, and the event manager logs an event not handled and...
+    //EventManager::get()->sendEvent(eitd.getPointer());
 }
 
 
