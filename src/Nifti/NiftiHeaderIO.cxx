@@ -84,8 +84,8 @@ void NiftiHeaderIO::readFile(const AString &inputFileIn) throw (NiftiException)
     if(this->isCompressed(inputFileIn))
     {
         AString temp = inputFileIn;
-        gzFile fh = gzopen(temp, "r+");
-        if(fh==NULL) throw NiftiException("There was an error openining file "+inputFileIn+" for writing\n");
+        gzFile fh = gzopen(temp, "rb");
+        if(fh==NULL) throw NiftiException("There was an error openining file "+inputFileIn+" for reading\n");
 
         bytes_read = gzread(fh,(char *)bytes, NIFTI1_HEADER_SIZE);
         memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
