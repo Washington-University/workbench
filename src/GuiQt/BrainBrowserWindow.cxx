@@ -90,8 +90,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->setCentralWidget(this->openGLWidget);
     
     this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
-                                                           "ToolBox",
-                                                           Qt::Horizontal);
+                                                  "ToolBox",
+                                                  Qt::Horizontal,
+                                                  this);
     this->addDockWidget(Qt::BottomDockWidgetArea,
                         this->toolBox,
                         Qt::Horizontal);
@@ -100,7 +101,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
-                                                  this->toolBox->toggleViewAction());
+                                                  this->toolBox->toggleViewAction(),
+                                                  this);
     this->addToolBar(this->toolbar);
     
     this->createActions();

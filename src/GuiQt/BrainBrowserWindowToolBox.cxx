@@ -47,8 +47,9 @@ using namespace caret;
  */
 BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindowIndex,
                                                      const QString& title,
-                                                     const Qt::Orientation defaultOrientation)
-:   QDockWidget()
+                                                     const Qt::Orientation defaultOrientation,
+                                                     QWidget* parent)
+:   QDockWidget(parent)
 {
     this->orientation = defaultOrientation;
     

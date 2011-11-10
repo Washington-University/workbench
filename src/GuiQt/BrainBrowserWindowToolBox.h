@@ -23,7 +23,8 @@ namespace caret {
     public:
         BrainBrowserWindowToolBox(const int32_t browserWindowIndex,
                                   const QString& title,
-                                  const Qt::Orientation defaultOrientation);
+                                  const Qt::Orientation defaultOrientation,
+                                  QWidget* parent = 0);
         
         ~BrainBrowserWindowToolBox();
         
