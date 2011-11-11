@@ -85,7 +85,7 @@ SurfaceNodeColoring::toString() const
  *    Tab in which this coloring is applied.
  * @param surface
  *    Surface that has its nodes colored.
- * @param surfaceOverlaySet
+ * @param overlaySet
  *    Surface overlay assignments for surface.
  * @param rgbaNodeColors
  *    RGBA color components that are set by this method.

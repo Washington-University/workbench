@@ -78,7 +78,7 @@ namespace caret {
  *
  * Log a message at the SEVERE level.
  * Severe items typically prevent normal program execution.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogSevere(TEXT) \
@@ -91,7 +91,7 @@ namespace caret {
  *
  * Log a message at the WARNING level.
  * Warning messages indicate potential problems.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogWarning(TEXT) \
@@ -104,7 +104,7 @@ namespace caret {
  *
  * Log a message at the INFO level.
  * Informational messages that may be helpful to end users.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogInfo(TEXT) \
@@ -119,7 +119,7 @@ namespace caret {
  * Configuration messages typically involve versions of 
  * libraries, operating system, etc, and may help with
  * issues on specific configurations.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogConfig(TEXT) \
@@ -133,7 +133,7 @@ namespace caret {
  *
  * Log a message at the FINE level.
  * Fine messages are for developers such as minor, recoverable failures.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogFine(TEXT) \
@@ -147,7 +147,7 @@ namespace caret {
  * Log a message at the FINER level.
  * Finer messages for for developers to provide detailed tracing messages.
  * Typically events and exceptions are logged at the this level.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogFiner(TEXT) \
@@ -160,7 +160,7 @@ namespace caret {
  *
  * Log a message at the FINEST level.
  * Finest messages are for developers to provide highly detailed tracing messages.
- * @param text 
+ * @param TEXT 
  *    Text that is logged.
  */
 #define CaretLogFinest(TEXT) \

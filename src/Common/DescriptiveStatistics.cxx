@@ -50,6 +50,8 @@ using namespace std;
  *
  * @param histogramNumberOfElements
  *    Number of elemnents for the histogram.  Must be positive!!
+ * @param percentileDivisions
+ *    Number of percentiles.
  */
 DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElements, const int64_t percentileDivisions)
 : CaretObject()

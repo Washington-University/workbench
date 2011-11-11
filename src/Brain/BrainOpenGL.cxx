@@ -525,6 +525,8 @@ BrainOpenGL::disableLighting()
  * Draw contents of a surface controller.
  * @param surfaceController
  *    Controller that is drawn.
+ * @param viewport
+ *    Viewport for drawing region.
  */
 void 
 BrainOpenGL::drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
@@ -906,6 +908,8 @@ BrainOpenGL::drawSurfaceNodeAttributes(Surface* surface)
  *
  * @param browserTabContent
  *    Content in the browser tab.
+ * @param paletteFile
+ *    File from which palette is obtained.
  * @param volumeDrawInfoOut
  *    Output containing information for volume drawing.
  */
@@ -994,6 +998,8 @@ BrainOpenGL::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
  *    Content of the window.
  * @param volumeController
  *    Controller for slices.
+ * @param viewport
+ *    Region of drawing.
  */
 void 
 BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
@@ -1139,7 +1145,11 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
 /**
  * Draw a single volume orthogonal slice.
  * @param slicePlane
+ *    Plane that is drawn
  * @param sliceIndex
+ *    Index of slice in plane.
+ * @param volumeDrawInfo
+ *    Describes volumes that are drawn.
  */
 void 
 BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
@@ -1561,6 +1571,8 @@ BrainOpenGL::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slic
  *    Content of the window.
  * @param wholeBrainController
  *    Controller for whole brain.
+ * @param viewport
+ *    Region for drawing.
  */
 void 
 BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,

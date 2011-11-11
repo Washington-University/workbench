@@ -197,7 +197,7 @@ VolumeSliceIndicesSelection::getSliceIndexCoronal() const
 
 /**
  * Set the coronal slice index.
- * @param 
+ * @param sliceIndexCoronal
  *    New value for coronal slice index.
  */
 void 
@@ -219,7 +219,7 @@ VolumeSliceIndicesSelection::getSliceIndexParasagittal() const
 
 /**
  * Set the parasagittal slice index.
- * @param 
+ * @param sliceIndexParasagittal
  *    New value for parasagittal slice index.
  */
 void 
@@ -285,7 +285,7 @@ VolumeSliceIndicesSelection::isSliceAxialEnabled() const
 
 /**
  * Set the enabled status of the axial slice.
- * @param sliceEnabledParasagittal 
+ * @param sliceEnabledAxial 
  *    New enabled status.
  */ 
 void 

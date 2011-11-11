@@ -88,7 +88,7 @@ ConnectivityLoaderManager::getNumberOfConnectivityLoaderFiles() const
 
 /**
  * Get the connectivity loader file at the given index.
- * @indx
+ * @param indx
  *    Index of file.
  * @return
  *    File at given index.
@@ -157,7 +157,7 @@ ConnectivityLoaderManager::addConnectivityLoaderFile()
 
 /**
  * Remove the connectivity loader at the given index.
- * @parm indx
+ * @param indx
  *    Index of connectivity loader for removal.
  */
 void 

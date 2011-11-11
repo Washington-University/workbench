@@ -168,6 +168,8 @@ BoundingBox::resetForUpdate()
  * Set bounding box using the array of points.
  * @param points3D
  *     Array of three dimensional points.
+ * @param numPoints
+ *     Number of points.
  */
 void
 BoundingBox::set(const float* points3D, const int64_t numPoints)

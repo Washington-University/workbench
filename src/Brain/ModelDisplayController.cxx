@@ -33,8 +33,8 @@ using namespace caret;
 /**
  * Constructor.
  * @param controllerType Type of this controller.
- * @param allowsYokingFlag  This controller can be yoked.
- * @param allowsRotationFlag This controller can be rotated.
+ * @param allowsYokingStatus  This controller can be yoked.
+ * @param allowsRotationStatus This controller can be rotated.
  *
  */
 ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,

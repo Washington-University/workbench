@@ -92,7 +92,7 @@ Surface::getNameForGUI(bool includeStructureFlag) const
 /**
  * Set a bounding box using this surface's coordinates.
  *
- * @param
+ * @param boundingBoxOut
  *    Bounding box that is updated.
  */
 void 

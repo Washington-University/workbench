@@ -38,8 +38,7 @@ using namespace caret;
 
 /**
  * Constructor.
- * @param brain - brain to which this surface controller belongs.
- * @param surface - surface for this controller.
+ * @param brain - brain to which this whole brain controller belongs.
  *
  */
 ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)

@@ -160,7 +160,8 @@ IdentificationStringBuilder::addLine(
  * 
  * @param indentFlag   Indent the text.
  * @param boldText     The bold text that starts the line.
- * @param fa           The float array placed after the bold text.
+ * @param floatArray          The float array placed after the bold text.
+ * @param floatArrayNumberOfElements  Number of elements in the array.
  * @param displayOnlyIfNonZeroElementInArrayFlag - only display text if
  *   array contains at least one non-zero element.
  *
@@ -170,7 +171,7 @@ IdentificationStringBuilder::addLine(
                    const bool indentFlag,
                    const AString& boldText,
                    const float floatArray[],
-                                     const int floatArrayNumberOfElements,
+                   const int floatArrayNumberOfElements,
                    const bool displayOnlyIfNonZeroElementInArrayFlag)
 {
     bool displayIt = true;

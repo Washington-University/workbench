@@ -34,8 +34,12 @@ using namespace caret;
  *
  * @param e
  *    An enumerated value.
+ * @param integerCode
+ *    The integer code.
  * @param name
  *    Name of enumberated value.
+ * @param name
+ *    GUI Name of enumberated value.
  */
 YokingTypeEnum::YokingTypeEnum(const Enum e,
                            const int32_t integerCode,

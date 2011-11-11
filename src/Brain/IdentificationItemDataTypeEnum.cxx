@@ -202,7 +202,7 @@ IdentificationItemDataTypeEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiName
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -341,7 +341,7 @@ IdentificationItemDataTypeEnum::getAllNames(std::vector<AString>& allNames, cons
 /**
  * Get all of the GUI names of the enumerated type values.
  *
- * @param allNames
+ * @param allGuiNames
  *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.

@@ -144,8 +144,8 @@ ModelDisplayControllerVolume::getSliceViewPlane(const int32_t windowTabNumber) c
  * Set the axis mode in the given window tab.
  * @param windowTabNumber
  *    Tab number of window.
- * @param sliceAxisMode
- *    New value for axis mode
+ * @param slicePlane
+ *    New value for slice plane.
  */
 void 
 ModelDisplayControllerVolume::setSliceViewPlane(const int32_t windowTabNumber,
@@ -231,7 +231,7 @@ ModelDisplayControllerVolume::getMontageNumberOfColumns(const int32_t windowTabN
  * Set the montage number of columns in the given window tab.
  * @param windowTabNumber
  *    Tab number of window.
- * @param 
+ * @param montageNumberOfColumns
  *    New value for montage number of columns 
  */
 void 
@@ -258,7 +258,7 @@ ModelDisplayControllerVolume::getMontageNumberOfRows(const int32_t windowTabNumb
  * Set the montage number of rows in the given window tab.
  * @param windowTabNumber
  *    Tab number of window.
- * @param 
+ * @param montageNumberOfRows
  *    New value for montage number of rows 
  */
 void 
@@ -285,7 +285,7 @@ ModelDisplayControllerVolume::getMontageSliceSpacing(const int32_t windowTabNumb
  * Set the montage slice spacing in the given window tab.
  * @param windowTabNumber
  *    Tab number of window.
- * @param 
+ * @param montageSliceSpacing
  *    New value for montage slice spacing 
  */
 void 
@@ -295,6 +295,11 @@ ModelDisplayControllerVolume::setMontageSliceSpacing(const int32_t windowTabNumb
     this->montageSliceSpacing[windowTabNumber] = montageSliceSpacing;
 }
 
+/**
+ * Update the controller.
+ * @param windowTabNumber
+ *    Tab number of window.
+ */
 void 
 ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
 {

@@ -158,10 +158,8 @@ CaretObject::printListOfObjectsNotDeleted(const bool showCallStack)
 
 /**
  * Constructor.
- * @param caretObject
- *     A caret object.
- * @param callStack
- *     A callstack showing where the object was created.
+ * @param backtrace
+ *     The backtrace.
  */
 CaretObject::CaretObjectInfo::CaretObjectInfo(const SystemBacktrace& backtrace)
 {

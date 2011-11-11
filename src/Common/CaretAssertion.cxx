@@ -47,7 +47,7 @@ using namespace caret;
  * also be printed.  Lastly, abort() is called.
  * 
  *
- * @param expression.
+ * @param expression
  *    Expression that failed assertion testing.
  * @param filename
  *    Name of file in which assertion failed.
@@ -74,7 +74,7 @@ CaretAssertion::assertFailed(const char* expression,
  * also be printed.  Lastly, abort() is called.
  * 
  *
- * @param expression.
+ * @param expression
  *    Expression that failed assertion testing.
  * @param message
  *    Message that is printed.
@@ -246,6 +246,8 @@ CaretAssertion::assertVectorIndexFailed(const char* vectorName,
  * 
  * @param stream
  *    Stream to which messages are written.
+ * @param isVerbose
+ *    Print detailed messages.
  */
 void 
 CaretAssertion::unitTest(std::ostream& stream,

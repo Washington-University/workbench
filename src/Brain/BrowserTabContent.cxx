@@ -112,7 +112,7 @@ BrowserTabContent::getName() const
     return s;
 }
 
-/**
+/*
  * Set the name of this tab.  This is typically
  * called by the user-interface with a name that
  * indicates the content of the tab.
@@ -524,7 +524,8 @@ BrowserTabContent::invalidateSurfaceColoring()
 
 /**
  * Get the surface node coloring for a surface.
- * @param Surface for coloring.
+ * @param surface
+ *    Surface for coloring.
  * @return Returns pointer to a float array with 
  * four elements per node containing the red, green,
  * blue, and alpha color components.

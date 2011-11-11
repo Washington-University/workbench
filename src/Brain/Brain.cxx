@@ -195,6 +195,8 @@ Brain::resetBrain()
  *
  * @param filename
  *    Name of the file.
+ * @param structureIn
+ *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
  */
@@ -239,6 +241,8 @@ Brain::readSurfaceFile(const AString& filename,
  *
  * @param filename
  *    Name of the file.
+ * @param structureIn
+ *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
  */
@@ -290,6 +294,8 @@ Brain::readLabelFile(const AString& filename,
  *
  * @param filename
  *    Name of the file.
+ * @param structureIn
+ *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
  */
@@ -341,6 +347,8 @@ Brain::readMetricFile(const AString& filename,
  *
  * @param filename
  *    Name of the file.
+ * @param structureIn
+ *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
  */
@@ -494,6 +502,8 @@ Brain::readBorderProjectionFile(const AString& /*filename*/) throw (DataFileExce
  *
  * @param filename
  *    Name of the file.
+ * @param connectivityFileType
+ *    Type of connectivity file to read.
  * @throws DataFileException
  *    If reading failed.
  */

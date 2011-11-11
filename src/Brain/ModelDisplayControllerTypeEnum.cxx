@@ -189,7 +189,7 @@ ModelDisplayControllerTypeEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiName
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -227,7 +227,8 @@ ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isVali
 
 /**
  * Get the integer code for a data type.
- *
+ * @param enumValue
+ *    Enumerated value.
  * @return
  *    Integer code for data type.
  */

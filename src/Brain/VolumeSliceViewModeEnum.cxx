@@ -35,9 +35,9 @@ using namespace caret;
     
 /**
  * \class VolumeSliceViewModeEnum 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Slice view mode enumerated type
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * Slice view mode enumerated type
  */
 /**
  * Constructor.
@@ -191,7 +191,7 @@ VolumeSliceViewModeEnum::toGuiName(Enum enumValue) {
 
 /**
  * Get an enumerated value corresponding to its GUI name.
- * @param s 
+ * @param guiName
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -283,6 +283,8 @@ VolumeSliceViewModeEnum::fromGuiNameAbbreviation(const AString& guiNameAbbreviat
 /**
  * Get the integer code for a data type.
  *
+ * @param enumValue 
+ *     Enumerated value.
  * @return
  *    Integer code for data type.
  */
@@ -383,7 +385,7 @@ VolumeSliceViewModeEnum::getAllNames(std::vector<AString>& allNames, const bool 
 /**
  * Get all of the GUI names of the enumerated type values.
  *
- * @param allNames
+ * @param allGuiNames
  *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.

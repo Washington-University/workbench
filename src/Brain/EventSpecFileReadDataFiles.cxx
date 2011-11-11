@@ -32,10 +32,8 @@ using namespace caret;
  * 
  * @param loadIntoBrain
  *    Brain into which file is loaded.
- * @param dataFileType
- *    Type of file this for loading.
- * @param dataFileName
- *    Name of data file to load.
+ * @param specFile
+ *    Spec file that has its files read.
  */
 EventSpecFileReadDataFiles::EventSpecFileReadDataFiles(Brain* loadIntoBrain,
                                      SpecFile* specFile)

@@ -58,7 +58,7 @@ EventBrowserTabGet::getBrowserTab()
 
 /**
  * Set the browser tab for the requested tab number.
- * @browserTab The tab.
+ * @param browserTab The tab.
  */
 void 
 EventBrowserTabGet::setBrowserTab(BrowserTabContent* browserTab)

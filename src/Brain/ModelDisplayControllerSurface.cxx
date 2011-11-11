@@ -70,7 +70,6 @@ ModelDisplayControllerSurface::initializeMembersModelDisplayControllerSurface()
 /**
  * Get the surface in this controller.
  * @return  Surface in this controller.
- *
  */
 Surface*
 ModelDisplayControllerSurface::getSurface()

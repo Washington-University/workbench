@@ -67,6 +67,10 @@ IdentificationWithColor::~IdentificationWithColor()
 /**
  * Gets an RGB color that is associated with the
  * specified indices.
+ * @param rgbOut
+ *    Output color components.
+ * @param dataType
+ *    Type of data.
  * @param index1
  *    First index of item.
  * @param index2
@@ -101,6 +105,10 @@ IdentificationWithColor::addItem(uint8_t rgbOut[3],
 
 /**
  * Gets indices associated with an RGB color.
+ * @param rgbOut
+ *    Output color components.
+ * @param dataType
+ *    Type of data.
  * @param index1Out
  *    Set to first index of item.
  * @param index2
