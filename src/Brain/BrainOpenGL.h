@@ -49,6 +49,7 @@ namespace caret {
     class Palette;
     class PaletteColorMapping;
     class PaletteFile;
+    class SphereOpenGL;
     class VolumeFile;
     
     /**
@@ -215,6 +216,8 @@ namespace caret {
         IdentificationWithColor* colorIdentification;
         
         uint32_t sphereDisplayList;
+        
+        SphereOpenGL* sphereOpenGL;
         
         /** Caret Window that OpenGL is being drawn within */
         //CaretWindowEnum CaretWindowEnum;
