@@ -34,14 +34,18 @@ namespace caret {
     class EventGraphicsUpdateAllWindows : public Event {
         
     public:
-        EventGraphicsUpdateAllWindows();
+        EventGraphicsUpdateAllWindows(const bool doRepaint = false);
         
         virtual ~EventGraphicsUpdateAllWindows();
+        
+        bool isRepaint() const;
         
     private:
         EventGraphicsUpdateAllWindows(const EventGraphicsUpdateAllWindows&);
         
         EventGraphicsUpdateAllWindows& operator=(const EventGraphicsUpdateAllWindows&);
+        
+        bool doRepaint;
     };
 
 } // namespace

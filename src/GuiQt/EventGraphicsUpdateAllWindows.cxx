@@ -28,10 +28,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param doRepaint
+ *    If true, a repaint is performed and this event does not
+ *    return until painting is complete.  If false, an update
+ *    is performed which schedules a repaint but does not dictate
+ *    when the repaint is performed.
  */
-EventGraphicsUpdateAllWindows::EventGraphicsUpdateAllWindows()
+EventGraphicsUpdateAllWindows::EventGraphicsUpdateAllWindows(const bool doRepaint)
 : Event(EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS)
 {
+    this->doRepaint = doRepaint;
 }
 
 /*
@@ -40,5 +46,15 @@ EventGraphicsUpdateAllWindows::EventGraphicsUpdateAllWindows()
 EventGraphicsUpdateAllWindows::~EventGraphicsUpdateAllWindows()
 {
     
+}
+
+/**
+ * @return Indicates a repaint (instead of updates) is 
+ * to be performed.
+ */
+bool 
+EventGraphicsUpdateAllWindows::isRepaint() const 
+{ 
+    return this->doRepaint; 
 }
 

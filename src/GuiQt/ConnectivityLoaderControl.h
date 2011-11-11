@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include <set>
 #include <vector>
 
 #include <QWidget>
@@ -76,8 +77,12 @@ namespace caret {
         void timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinBox,
                                        double value);
         void showTimeGraphCheckBoxesStateChanged(int state);
+        
+        
     private:
         void sendUserInterfaceUpdate();
+        
+        void updateOtherConnectivityLoaderControls();
         
         QGridLayout* loaderLayout;
 
@@ -106,10 +111,12 @@ namespace caret {
         AString previousCiftiFileTypeFilter;
         AString previousNetworkUserName;
         AString previousNetworkPassword;
+        
+        static std::set<ConnectivityLoaderControl*> allConnectivityLoaderControls;
     };
     
 #ifdef __CONNECTIVITY_LOADER_CONTROL_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<ConnectivityLoaderControl*> ConnectivityLoaderControl::allConnectivityLoaderControls;
 #endif // __CONNECTIVITY_LOADER_CONTROL_DECLARE__
 
 } // namespace

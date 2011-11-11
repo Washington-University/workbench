@@ -44,6 +44,7 @@ public slots:
     void update();
 signals:
     void doubleSpinBoxValueChanged(double);
+    void doubleSpinBoxValueChanged(QDoubleSpinBox*,const double);
 private:
     int32_t m_index; //index for connectivity loader file
     ConnectivityLoaderControl *m_clc;

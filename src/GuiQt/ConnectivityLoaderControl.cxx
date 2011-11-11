@@ -29,6 +29,7 @@
 #include "ConnectivityLoaderControl.h"
 #undef __CONNECTIVITY_LOADER_CONTROL_DECLARE__
 
+#include <QApplication>
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QCheckBox>
@@ -46,6 +47,7 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
+#include "ElapsedTimer.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
@@ -84,6 +86,9 @@ static const int COLUMN_REMOVE    = 8;
 ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
 : QWidget(parent)
 {
+    
+    ConnectivityLoaderControl::allConnectivityLoaderControls.insert(this);
+    
     this->animateButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->animateButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
                      this, SLOT(animateButtonPressed(QAbstractButton*)));
@@ -141,7 +146,7 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
  */
 ConnectivityLoaderControl::~ConnectivityLoaderControl()
 {
-    
+    ConnectivityLoaderControl::allConnectivityLoaderControls.erase(this);
 }
 
 /**
@@ -317,8 +322,8 @@ ConnectivityLoaderControl::animateButtonPressed(QAbstractButton* button)
         }
     }
     CaretAssert(fileIndex >= 0);
-    if(animators[fileIndex])  animators[fileIndex]->toggleAnimation();
     std::cout << "Animate button " << fileIndex << " was pressed." << std::endl;
+    if(animators[fileIndex])  animators[fileIndex]->toggleAnimation();
 }
 
 /**
@@ -606,15 +611,35 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinB
         std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
         return;
     }
+
+    ElapsedTimer et;
+    et.start();
     
     if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[fileIndex]->value())) {
             dataLoadedFlag = true;
     }
+    const float loadTime = et.getElapsedTimeSeconds();
     
     if (dataLoadedFlag) {
+        this->updateOtherConnectivityLoaderControls();
+        const float guiUpdateTime = et.getElapsedTimeSeconds() - loadTime;
+        
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());   
-        this->sendUserInterfaceUpdate();
+        const float invalidateTime = et.getElapsedTimeSeconds() - guiUpdateTime;
+        
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());   
+        const float graphicsTime= et.getElapsedTimeSeconds() - invalidateTime;
+
+        const float totalTime = et.getElapsedTimeSeconds();
+        
+        std::cout 
+        << "Time load/conngui/invalidate/graphics/total " 
+        << loadTime << " "
+        << guiUpdateTime << " "
+        << invalidateTime << " "
+        << graphicsTime << " "
+        << totalTime << " "
+        << std::endl;
     }
 }
 
@@ -635,7 +660,7 @@ ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int /*state*/)
             clf->setTimeSeriesGraphEnabled(this->showTimeGraphCheckBoxes[i]->isChecked());
         }
     }
-    this->sendUserInterfaceUpdate();
+    this->updateOtherConnectivityLoaderControls();
 }
 
 /**
@@ -668,4 +693,18 @@ ConnectivityLoaderControl::sendUserInterfaceUpdate()
 {
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
+
+void 
+ConnectivityLoaderControl::updateOtherConnectivityLoaderControls()
+{
+    for (std::set<ConnectivityLoaderControl*>::iterator iter = ConnectivityLoaderControl::allConnectivityLoaderControls.begin();
+         iter != ConnectivityLoaderControl::allConnectivityLoaderControls.end();
+         iter++) {
+        ConnectivityLoaderControl* clc = *iter;
+        if (clc != this) {
+            clc->updateControl();
+        }
+    }
+}
+
 

@@ -74,7 +74,7 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
     m_index = index;
     m_clc = clc;
     m_timeIndex = 0;
-    m_updateInterval = 2000; //200;
+    m_updateInterval = 500; //200;
     m_stopThread = false;
 
     ConnectivityLoaderManager *clm = GuiManager::get()->getBrain()->getConnectivityLoaderManager();

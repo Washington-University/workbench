@@ -348,7 +348,12 @@ BrainOpenGLWidget::receiveEvent(Event* event)
         
         updateAllEvent->setEventProcessed();
         
-        this->updateGL();
+        if (updateAllEvent->isRepaint()) {
+            this->repaint();
+        }
+        else {
+            this->updateGL();
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW) {
         EventGraphicsUpdateOneWindow* updateOneEvent =
