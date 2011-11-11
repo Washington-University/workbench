@@ -37,7 +37,7 @@ git pull -u
 # Generate doxygen documentation
 #
 echo "Generating Documentation"
-doxygen
+/usr/local/bin/doxygen
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 
