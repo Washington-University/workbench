@@ -128,7 +128,7 @@ NodeAndVoxelColoring.cxx
 Overlay.cxx
 OverlaySet.cxx
 SessionManager.cxx
-sphereOpenGL.cxx
+SphereOpenGL.cxx
 Surface.cxx
 SurfaceNodeColoring.cxx
 VolumeSliceIndicesSelection.cxx
