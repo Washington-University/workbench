@@ -63,13 +63,7 @@ public:
 
     static void getBackTrace(SystemBacktrace& backTraceOut);
 
-    static AString getCurrentDirectory();
-
-    static void setCurrentDirectory(const AString& path);
-
     static AString getTempDirectory();
-
-    static AString getUsersHomeDirectory();
 
     static AString getUserName();
 
@@ -79,23 +73,16 @@ public:
 
     static AString getDateAndTime();
 
-    static AString getOperatingSystemName();
-
     static bool isWindowsOperatingSystem();
 
     static bool isMacOperatingSystem();
 
     static int32_t getNumberOfProcessors();
 
-    static AString basename(const AString& name);
-
-    static AString dirname(const AString& path);
-
-    static AString getFileExtension(const AString& path);
-
     static AString createUniqueID();
     
-    static void unitTest();
+    static void unitTest(std::ostream& stream,
+                         const bool isVerbose);
 
     static bool testRelativePath(
                     const AString& otherPath,
@@ -106,14 +93,6 @@ public:
                     const AString& otherPathIn,
                     const AString& myPathIn);
 
-    static void deleteAllFilesInDirectory(
-                    const AString& directoryPath,
-                    const bool deleteDirectoryFlag);
-
-    static AString createFileAbsolutePath(
-                    const AString& directoryName,
-                    const AString& fileName);
-    
     static void setHandlersForUnexpected();
 };
 

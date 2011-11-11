@@ -44,6 +44,8 @@ namespace caret {
         
         AString getHelpInformation(const AString& /*programName*/) { return ""; };
             
+        virtual bool takesParameters() { return false; }
+        
     private:
         
         CommandUnitTest(const CommandUnitTest&);

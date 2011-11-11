@@ -26,6 +26,10 @@
 #include <iostream>
 #include <sstream>
 
+#include <QDateTime>
+
+#include "CaretOMP.h"
+
 #ifndef _WIN32
 #include "execinfo.h"
 #else
@@ -36,6 +40,9 @@
 
 using namespace caret;
 
+/**
+ * Constructor.
+ */
 SystemUtilities::SystemUtilities()
 {
 }
@@ -122,6 +129,9 @@ SystemBacktrace::SystemBacktrace()
 #endif
 }
 
+/**
+ * @return String containing the backtrace symbols.
+ */
 AString SystemBacktrace::toSymbolString() const
 {
     std::stringstream str;
@@ -138,28 +148,6 @@ AString SystemBacktrace::toSymbolString() const
 }
 
 /**
- * Get the current directory.
- *
- * @return  Path of current directory.
- *
- */
-AString
-SystemUtilities::getCurrentDirectory()
-{
-    return AString("");
-}
-
-/**
- * Set the current directory.
- * @param path
- *
- */
-void
-SystemUtilities::setCurrentDirectory(const AString& path)
-{
-}
-
-/**
  * Get the temporary directory.
  * 
  * @return  Path of temporary directory.
@@ -168,19 +156,7 @@ SystemUtilities::setCurrentDirectory(const AString& path)
 AString
 SystemUtilities::getTempDirectory()
 {
-    return AString("");
-}
-
-/**
- * Get the user's home directory.
- * 
- * @return  Path to user's home directory.
- *
- */
-AString
-SystemUtilities::getUsersHomeDirectory()
-{
-    return AString("");
+    return QDir::tempPath();
 }
 
 /**
@@ -192,7 +168,15 @@ SystemUtilities::getUsersHomeDirectory()
 AString
 SystemUtilities::getUserName()
 {
-    return AString("");
+#ifdef DCARET_OS_WINDOWS
+    const QString name(getenv("USERNAME"));
+#else // DCARET_OS_WINDOWS
+    QString name(getlogin());
+    if (name.isEmpty()) {
+        name = getenv("USERNAME");
+    }
+#endif // DCARET_OS_WINDOWS
+    return name;
 }
 
 /**
@@ -204,7 +188,9 @@ SystemUtilities::getUserName()
 AString
 SystemUtilities::getDate()
 {
-    return AString("");
+    QDateTime dateTime = QDateTime::currentDateTime();
+    AString s = dateTime.toString("yyyy:MM:dd");
+    return s;
 }
 
 /**
@@ -216,7 +202,9 @@ SystemUtilities::getDate()
 AString
 SystemUtilities::getTime()
 {
-    return AString("");
+    QDateTime dateTime = QDateTime::currentDateTime();
+    AString s = dateTime.toString("hh:mm:ss");
+    return s;
 }
 
 /**
@@ -228,18 +216,10 @@ SystemUtilities::getTime()
 AString
 SystemUtilities::getDateAndTime()
 {
-    return AString("");
-}
-
-/**
- * Get the name of the operating system.
- * @return  Name of operating system.
- *
- */
-AString
-SystemUtilities::getOperatingSystemName()
-{
-    return AString("");
+    AString s = (SystemUtilities::getDate()
+                 + "T"
+                 + SystemUtilities::getTime());
+    return s;
 }
 
 /**
@@ -251,6 +231,9 @@ SystemUtilities::getOperatingSystemName()
 bool
 SystemUtilities::isWindowsOperatingSystem()
 {
+#ifdef CARET_OS_WINDOWS
+    return true;
+#endif
     return false;
 }
 
@@ -263,6 +246,9 @@ SystemUtilities::isWindowsOperatingSystem()
 bool
 SystemUtilities::isMacOperatingSystem()
 {
+#ifdef CARET_OS_MACOSX
+    return true;
+#endif
     return false;
 }
 
@@ -275,53 +261,64 @@ SystemUtilities::isMacOperatingSystem()
 int32_t
 SystemUtilities::getNumberOfProcessors()
 {
+#ifdef CARET_OMP
+    return omp_get_num_procs();
+#endif
     return 1;
 }
 
 /**
- * basename function (gets name of file without any path.
- * @param  name  File name that may have path in it.
- * @return File name without any path.
- *
- */
-AString
-SystemUtilities::basename(const AString& name)
-{
-    return AString("");
-}
-
-/**
- * dirname functions (get path of file without file name.)(
- * @param  path  File name that my contain the path.
- * @return Path of file.
- *
- */
-AString
-SystemUtilities::dirname(const AString& path)
-{
-    return AString("");
-}
-
-/**
- * Get the extension of a file's name.
+ * Unit testing of assertions.
  * 
- * @param path The file.
- * @return  The part of the file after the last "." in the file name.
- *
+ * @param stream
+ *    Stream to which messages are written.
+ * @param isVerbose
+ *    Print detailed messages.
  */
-AString
-SystemUtilities::getFileExtension(const AString& path)
+void 
+SystemUtilities::unitTest(std::ostream& stream,
+                         const bool /*isVerbose*/)
 {
-    return AString("");
-}
-
-/**
- * Test some of the methods in this class.
- *
- */
-void
-SystemUtilities::unitTest()
-{
+#ifdef NDEBUG
+    stream << "Unit testing of CaretAssertion will not take place since software is not compiled with debug on." << std::endl;
+    return;
+#endif
+    
+    stream << "SystemUtilities::unitTest is starting" << std::endl;
+    
+    /*
+     * Redirect std::err to the string stream.
+     */
+    std::ostringstream str;
+    std::streambuf* cerrSave = std::cerr.rdbuf();
+    std::cerr.rdbuf(str.rdbuf());
+    
+    testRelativePath("/surface02/john/caret_data/HUMAN.COLIN.ATLAS",
+                     "/surface02/john/caret_data/HUMAN.COLIN.ATLAS/RIGHT_HEM",
+                     "..");
+    
+    testRelativePath("/surface02/john/caret_data/HUMAN.COLIN.ATLAS/RIGHT_HEM",
+                     "/surface02/john/caret_data/HUMAN.COLIN.ATLAS",
+                     "RIGHT_HEM");
+    
+    testRelativePath("/surface02/john/caret_data/HUMAN.COLIN.ATLAS/RIGHT_HEM/subdir",
+                     "/surface02/john/caret_data/HUMAN.COLIN.ATLAS/RIGHT_HEM",
+                     "subdir");
+    
+    testRelativePath("/surface02/john/caret_data/HUMAN.COLIN.ATLAS/LEFT_HEM/subdir",
+                     "/surface02/john/caret_data/HUMAN.COLIN.ATLAS/RIGHT_HEM",
+                     "../LEFT_HEM/subdir");
+    
+    testRelativePath("root:/var/etc",
+                     "remove:/usr/local",
+                     "root:/var/etc");
+    
+    /*
+     * Restore std::err
+     */
+    std::cerr.rdbuf(cerrSave);
+    
+    stream << "SystemUtilities::unitTest has ended" << std::endl << std::endl;;
 }
 
 /**
@@ -338,7 +335,21 @@ SystemUtilities::testRelativePath(
                    const AString& myPath,
                    const AString& correctResult)
 {
-   return false;
+    bool correctFlag = false;
+    
+    AString result = relativePath(otherPath, myPath);
+    if (result == correctResult) {
+        correctFlag = true;
+    }
+    else {
+        std::cerr << "SystemUtilities.relativePath() failed:" << std::endl;
+        std::cerr << "   otherPath: " + otherPath << std::endl;
+        std::cerr << "   myPath:    " + myPath << std::endl;
+        std::cerr << "   result:    " + result << std::endl;
+        std::cerr << "   correct:   " + correctResult << std::endl;
+    }
+    
+    return correctFlag;
 }
 
 AString
@@ -375,43 +386,93 @@ SystemUtilities::relativePath(
                    const AString& otherPathIn,
                    const AString& myPathIn)
 {
-   return AString("");
+    //
+    // Check for either path being empty
+    //
+    if (otherPathIn.isEmpty() || myPathIn.isEmpty()) {
+        return "";
+    }
+    
+#ifdef CARET_OS_WINDOWS
+    //
+    // Both paths must be absolute paths
+    //
+    if (otherPathIn.indexOf(":") < 0) {
+        return;
+    }
+    if (myPathIn.indexOf(":") < 0) {
+        return;
+    }
+#else
+    //
+    // Both paths must be absolute paths
+    //
+    if ((otherPathIn[0] != '/') || (myPathIn[0] != '/')) {
+        return "";
+    }
+#endif
+    
+    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegExp("[/\\]"));
+    QStringList myPath = QDir::cleanPath(myPathIn).split("[/\\]");    
+    
+    const unsigned int minLength = std::min(myPath.size(), otherPath.size());
+    
+    int sameCount = 0;
+    for (unsigned int i = 0; i < minLength; i++) {
+        if (myPath[i] == otherPath[i]) {
+            //cout << "Match: |" << myPath[i] << "|" << std::endl;
+            sameCount++;
+        }
+        else {
+            break;
+        }
+    }
+    //cout << "same count: " << sameCount << std::endl;
+    
+    AString result = otherPathIn;
+    
+    //
+    // Is root of both paths different
+    //
+    if (sameCount == 0) {
+        result = otherPathIn;
+    }
+    
+    //const char separator[2] = { QDir::separator(), '\0' };
+    
+    //
+    // Is other path a subdirectory of mypath
+    //
+    if (sameCount == myPath.size()) {
+        result = "";
+        for (int j = sameCount; j < otherPath.size(); j++) {
+            result.append(otherPath[j]);
+            if (j < (otherPath.size() - 1)) {
+                result.append(QDir::separator());
+            }
+        }
+    }
+    
+    //
+    // otherpath is above this one
+    //
+    result = "";
+    for (int j = sameCount; j < myPath.size(); j++) {
+        result.append("..");
+        if (j < (myPath.size() - 1)) {
+            result.append(QDir::separator());
+        }
+    }
+    for (int k = sameCount; k < otherPath.size(); k++) {
+        if (result.isEmpty() == false) {
+            result.append(QDir::separator());
+        }
+        result.append(otherPath[k]);
+    }   
+    
+    return result;
 }
 
-/**
- * Delete all files contained in a directory.  If the directory contains
- * subdirectories they are not deleted.
- * @param directoryPath  directory path.
- * @param deleteDirectoryFlag  If true, the directory is deleted after the
- * files in the directory have been deleted.
- *
- */
-void
-SystemUtilities::deleteAllFilesInDirectory(
-                   const AString& directoryPath,
-                   const bool deleteDirectoryFlag)
-{
-}
-
-/**
- * Combine the directory and file names to create an absolute path.
- * If the file's name is an absolute path, it is simply returned.
- * Otherwise, the directory name followed by a directory separator
- * followed by the filename is returned.  Note that if the directory
- * is not an absolute path, a relative path is returned.
- * 
- * @param directoryName Name of directory.
- * @param fileName      Name of file.
- * @return  "directory/file"
- *
- */
-AString
-SystemUtilities::createFileAbsolutePath(
-                   const AString& directoryName,
-                   const AString& fileName)
-{
-    return AString("");
-}
 /**
  * Unexpected handler
  */
