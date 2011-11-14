@@ -33,6 +33,7 @@ namespace caret {
     
     class Brain;
     class BrowserTabContent;
+    class CaretPreferences;
     class ModelDisplayController;
     
     /// Manages a Caret session which contains 'global' brain data.
@@ -53,6 +54,7 @@ namespace caret {
         
         Brain* getBrain(const int32_t brainIndex);
         
+        CaretPreferences* getCaretPreferences();
     private:
         SessionManager();
         
@@ -79,6 +81,9 @@ namespace caret {
         
         /** Holds all loaded brains */
         std::vector<Brain*> brains;
+        
+        /** Caret's preferences */
+        CaretPreferences* caretPreferences;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

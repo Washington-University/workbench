@@ -39,6 +39,7 @@ CaretMutex.h
 CaretObject.h
 CaretOMP.h
 CaretPointer.h
+CaretPreferences.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
@@ -86,6 +87,7 @@ CaretHttpManager.cxx
 CaretLogger.cxx
 CaretMutex.cxx
 CaretObject.cxx
+CaretPreferences.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx

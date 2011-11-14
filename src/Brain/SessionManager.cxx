@@ -32,6 +32,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
@@ -51,6 +52,8 @@ using namespace caret;
 SessionManager::SessionManager()
 : CaretObject(), EventListenerInterface()
 {
+    this->caretPreferences = new CaretPreferences();
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->browserTabs[i] = NULL;
     }
@@ -78,6 +81,8 @@ SessionManager::~SessionManager()
     this->brains.clear();
     
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete this->caretPreferences;
 }
 
 /**
@@ -312,6 +317,15 @@ SessionManager::updateBrowserTabContents()
             this->browserTabs[i]->update(this->modelDisplayControllers);
         }
     }
+}
+
+/**
+ * @return The caret preferences
+ */
+CaretPreferences* 
+SessionManager::getCaretPreferences()
+{
+    return this->caretPreferences;
 }
 
 
