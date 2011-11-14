@@ -27,6 +27,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
 #include "EventModelDisplayControllerAdd.h"
@@ -40,6 +41,7 @@
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
+#include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
@@ -768,6 +770,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                 }
             }
         }
+    }
+    
+    const AString specFileName = this->specFile->getFileName();
+    FileInformation specFileInfo(specFileName);
+    if (specFileInfo.isAbsolute()) {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->addToPreviousSpecFiles(specFileName);
     }
     
     if (errorMessage.isEmpty() == false) {

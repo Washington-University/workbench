@@ -56,6 +56,8 @@ namespace caret {
         
         void addToPreviousSpecFiles(const AString& specFileName);
         
+        void clearPreviousSpecFiles();
+        
         void getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const;
         
         void addToPreviousOpenFileDirectories(const AString& directoryName);
@@ -76,7 +78,19 @@ namespace caret {
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
         
+        void readPreferences();
+        
         mutable QSettings* qSettings;
+        
+        uint8_t colorForeground[3];
+        
+        uint8_t colorBackground[3];
+        
+        std::vector<AString> previousSpecFiles;
+        
+        std::vector<AString> previousOpenFileDirectories;
+        
+        LogLevelEnum::Enum loggingLevel;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__

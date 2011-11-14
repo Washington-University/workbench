@@ -33,6 +33,7 @@
 #include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "EventDataFileRead.h"
@@ -42,8 +43,10 @@
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
 #include "PaletteColorMappingEditorDialog.h"
+#include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
 #include "WuQFileDialog.h"
@@ -386,6 +389,11 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->newTabAction);
     menu->addSeparator();
     menu->addAction(this->openFileAction);
+    this->recentSpecFileMenu = menu->addMenu("Open Recent Spec File");
+    QObject::connect(this->recentSpecFileMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
+    QObject::connect(this->recentSpecFileMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processRecentSpecFileMenuSelection(QAction*)));
     menu->addAction(this->openFileViaSpecFileAction);
     menu->addAction(this->manageFilesAction);
     menu->addAction(this->closeSpecFileAction);
@@ -401,6 +409,99 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->exitProgramAction);
     
     return menu;
+}
+
+/**
+ * Called when Open Recent Spec File Menu is about to be displayed
+ * and creates the content of the menu.
+ */
+void 
+BrainBrowserWindow::processRecentSpecFileMenuAboutToBeDisplayed()
+{
+    this->recentSpecFileMenu->clear();
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<AString> recentSpecFiles;
+    prefs->getPreviousSpecFiles(recentSpecFiles);
+    
+    const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
+    for (int32_t i = 0; i < numRecentSpecFiles; i++) {
+        FileInformation fileInfo(recentSpecFiles[i]);
+        QString path = fileInfo.getPathName();
+        QString name = fileInfo.getFileName();
+        if (path.isEmpty() == false) {
+            name += (" (" + path + ")");
+        }
+        QString fullPath = fileInfo.getFilePath();
+        
+        QAction* action = new QAction(name,
+                                      this->recentSpecFileMenu);
+        action->setData(fullPath);
+        this->recentSpecFileMenu->addAction(action);
+    } 
+    
+    if (numRecentSpecFiles > 0) {
+        this->recentSpecFileMenu->addSeparator();
+        QAction* action = new QAction("Clear Menu",
+                                      this->recentSpecFileMenu);
+        action->setData("CLEAR_CLEAR");
+        this->recentSpecFileMenu->addAction(action);
+    }
+}
+
+/**
+ * Called when an item is selected from the recent spec file
+ * menu.
+ * @param itemAction
+ *    Action of the menu item that was selected.
+ */
+void 
+BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
+{
+    AString errorMessages;
+    
+    const AString specFileName = itemAction->data().toString();
+    if (specFileName == "CLEAR_CLEAR") {
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->clearPreviousSpecFiles();
+        return;
+    }
+    
+    if (specFileName.isEmpty() == false) {
+        SpecFile specFile;
+        try {
+            specFile.readFile(specFileName);
+        }
+        catch (DataFileException e) {
+            errorMessages += e.whatString();
+        }
+        
+        SpecFileDialog sfd(&specFile,
+                           this);
+        if (sfd.exec() == QDialog::Accepted) {
+            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                         &specFile);
+            
+            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+            
+            if (readSpecFileEvent.isError()) {
+                if (errorMessages.isEmpty() == false) {
+                    errorMessages += "\n";
+                }
+                errorMessages += readSpecFileEvent.getErrorMessage();
+            }
+        }
+    }
+    
+    if (errorMessages.isEmpty() == false) {
+        QMessageBox::critical(this, 
+                              "ERROR", 
+                              errorMessages);
+    }
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -582,7 +683,19 @@ BrainBrowserWindow::processDataFileOpen()
         filenameFilterList.append(filterName);
     }
     
-    AString errorMessages;
+    /*
+     * Previous directories
+     */
+    QStringList historyList;
+    historyList.append(SystemUtilities::systemCurrentDirectory());
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    std::vector<AString> previousDirectories;
+    prefs->getPreviousOpenFileDirectories(previousDirectories);
+    for (std::vector<AString>::iterator iter = previousDirectories.begin();
+         iter != previousDirectories.end();
+         iter++) {
+        historyList.append(*iter);
+    }
     
     /*
      * Setup file selection dialog.
@@ -593,6 +706,11 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setFileMode(WuQFileDialog::ExistingFiles);
     fd.setViewMode(WuQFileDialog::List);
     fd.selectFilter(this->previousOpenFileNameFilter);
+    if (historyList.empty() == false) {
+        fd.setHistory(historyList);
+    }
+    
+    AString errorMessages;
     
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
@@ -604,6 +722,12 @@ BrainBrowserWindow::processDataFileOpen()
         QStringListIterator nameIter(selectedFiles);
         while (nameIter.hasNext()) {
             AString name = nameIter.next();
+            
+            FileInformation fileInfo(name);
+            if (fileInfo.isAbsolute()) {
+                prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+            }
+            
             bool isValidType = false;
             DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
             if (isValidType) {
@@ -644,7 +768,7 @@ BrainBrowserWindow::processDataFileOpen()
                             errorMessages += "\n";
                         }
                         errorMessages += loadFileEvent.getErrorMessage();
-                    }
+                    }                    
                 }
                 
                 this->toolbar->addDefaultTabsAfterLoadingSpecFile();

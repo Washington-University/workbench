@@ -37,9 +37,12 @@ using namespace caret;
     
 /**
  * \class CaretPreferences 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief Preferences for use in Caret.
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * Maintains preferences for use in Caret.  The
+ * preferences are read only one time, when an 
+ * instance is created.  If a preference is changed,
+ * it is written.
  */
 /**
  * Constructor.
@@ -49,6 +52,7 @@ CaretPreferences::CaretPreferences()
 {
     this->qSettings = new QSettings("brainvis.wustl.edu",
                                     "Caret7");
+    this->readPreferences();
 }
 
 /**
@@ -69,15 +73,9 @@ CaretPreferences::~CaretPreferences()
 void 
 CaretPreferences::getColorForeground(uint8_t colorForeground[3]) const
 {
-    colorForeground[0] = 255;
-    colorForeground[1] = 255;
-    colorForeground[2] = 255;
-    
-    const int num = this->qSettings->beginReadArray("colorForeground");
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        colorForeground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
-    }
+    colorForeground[0] = this->colorForeground[0];
+    colorForeground[1] = this->colorForeground[1];
+    colorForeground[2] = this->colorForeground[2];
 }
 
 /**
@@ -108,6 +106,10 @@ CaretPreferences::getColorForeground(float colorForeground[3]) const
 void 
 CaretPreferences::setColorForeground(const uint8_t colorForeground[3])
 {
+    this->colorForeground[0] = colorForeground[0];
+    this->colorForeground[1] = colorForeground[1];
+    this->colorForeground[2] = colorForeground[2];
+    
     this->qSettings->beginWriteArray("colorForeground");
     for (int i = 0; i < 3; i++) {
         this->qSettings->setArrayIndex(i);
@@ -128,15 +130,9 @@ CaretPreferences::setColorForeground(const uint8_t colorForeground[3])
 void 
 CaretPreferences::getColorBackground(uint8_t colorBackground[3]) const
 {
-    colorBackground[0] = 0;
-    colorBackground[1] = 0;
-    colorBackground[2] = 0;
-    
-    const int num = this->qSettings->beginReadArray("colorBackground");
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        colorBackground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
-    }
+    colorBackground[0] = this->colorBackground[0];
+    colorBackground[1] = this->colorBackground[1];
+    colorBackground[2] = this->colorBackground[2];
 }
 
 /**
@@ -186,13 +182,7 @@ CaretPreferences::setColorBackground(const uint8_t colorBackground[3])
 void 
 CaretPreferences::getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) const
 {
-    previousSpecFiles.clear();
-    
-    const int num = this->qSettings->beginReadArray("previousSpecFiles");
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
-    }
+    previousSpecFiles = this->previousSpecFiles;
 }
 
 /**
@@ -204,21 +194,29 @@ CaretPreferences::getPreviousSpecFiles(std::vector<AString>& previousSpecFiles) 
 void 
 CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
 {
-    std::vector<AString> previousSpecFiles;
-    this->getPreviousSpecFiles(previousSpecFiles);
+    if (specFileName.isEmpty() == false) {
+        this->addToPrevious(this->previousSpecFiles,
+                            specFileName);
+    }
     
-    this->addToPrevious(previousSpecFiles,
-                        specFileName);
-    const int32_t num = static_cast<int32_t>(previousSpecFiles.size());
-    
+    const int32_t num = static_cast<int32_t>(this->previousSpecFiles.size());
     this->qSettings->beginWriteArray("previousSpecFiles");
     for (int i = 0; i < num; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
-                                  previousSpecFiles[i]);
+                                  this->previousSpecFiles[i]);
     }
     this->qSettings->endArray();
     this->qSettings->sync();
+
+    QSettings::Status status = this->qSettings->status();
+}
+
+void 
+CaretPreferences::clearPreviousSpecFiles()
+{
+    this->previousSpecFiles.clear();
+    this->addToPreviousSpecFiles("");
 }
 
 /**
@@ -230,13 +228,7 @@ CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
 void 
 CaretPreferences::getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const
 {
-    previousOpenFileDirectories.clear();
-    
-    const int num = this->qSettings->beginReadArray("previousOpenFileDirectories");
-    for (int i = 0; i < num; i++) {
-        this->qSettings->setArrayIndex(i);
-        previousOpenFileDirectories.push_back(this->qSettings->value(AString::number(i)).toString());
-    }
+    previousOpenFileDirectories = this->previousOpenFileDirectories;
 }
 
 /**
@@ -248,18 +240,15 @@ CaretPreferences::getPreviousOpenFileDirectories(std::vector<AString>& previousO
 void 
 CaretPreferences::addToPreviousOpenFileDirectories(const AString& directoryName)
 {
-    std::vector<AString> previousOpenFileDirectories;
-    this->getPreviousOpenFileDirectories(previousOpenFileDirectories);
-    
-    this->addToPrevious(previousOpenFileDirectories,
+    this->addToPrevious(this->previousOpenFileDirectories,
                         directoryName);
-    const int32_t num = static_cast<int32_t>(previousOpenFileDirectories.size());
     
+    const int32_t num = static_cast<int32_t>(this->previousOpenFileDirectories.size());    
     this->qSettings->beginWriteArray("previousOpenFileDirectories");
     for (int i = 0; i < num; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
-                                  previousOpenFileDirectories[i]);
+                                  this->previousOpenFileDirectories[i]);
     }
     this->qSettings->endArray();
     this->qSettings->sync();
@@ -305,17 +294,7 @@ CaretPreferences::addToPrevious(std::vector<AString>& previousVector,
 LogLevelEnum::Enum 
 CaretPreferences::getLoggingLevel() const
 {
-    LogLevelEnum::Enum defaultValue = LogLevelEnum::INFO;
-    
-    AString name = this->qSettings->value("loggingLevel", 
-                                          LogLevelEnum::toName(defaultValue)).toString();
-    bool valid = false;
-    
-    LogLevelEnum::Enum logEnum = LogLevelEnum::fromName(name, &valid);
-    if (valid == false) {
-        logEnum = defaultValue;
-    }
-    return logEnum;
+    return this->loggingLevel;
 }
 
 /**
@@ -326,9 +305,66 @@ CaretPreferences::getLoggingLevel() const
 void 
 CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
 {
-    const AString name = LogLevelEnum::toName(loggingLevel);
+    this->loggingLevel = loggingLevel;
+    
+    const AString name = LogLevelEnum::toName(this->loggingLevel);
     this->qSettings->setValue("loggingLevel", name);
     this->qSettings->sync();
+}
+
+/**
+ * Initialize/Read the preferences
+ */
+void 
+CaretPreferences::readPreferences()
+{
+    this->colorForeground[0] = 255;
+    this->colorForeground[1] = 255;
+    this->colorForeground[2] = 255;
+    const int numFG = this->qSettings->beginReadArray("colorForeground");
+    for (int i = 0; i < numFG; i++) {
+        this->qSettings->setArrayIndex(i);
+        colorForeground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
+    }
+    this->qSettings->endArray();
+    
+    this->colorBackground[0] = 0;
+    this->colorBackground[1] = 0;
+    this->colorBackground[2] = 0;
+    const int numBG = this->qSettings->beginReadArray("colorBackground");
+    for (int i = 0; i < numBG; i++) {
+        this->qSettings->setArrayIndex(i);
+        colorBackground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
+    }
+    this->qSettings->endArray();
+    
+    this->previousSpecFiles.clear();    
+    const int numPrevSpec = this->qSettings->beginReadArray("previousSpecFiles");
+    for (int i = 0; i < numPrevSpec; i++) {
+        this->qSettings->setArrayIndex(i);
+        previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
+    }
+    this->qSettings->endArray();
+    
+    this->previousOpenFileDirectories.clear();
+    const int numPrevDir = this->qSettings->beginReadArray("previousOpenFileDirectories");
+    for (int i = 0; i < numPrevDir; i++) {
+        this->qSettings->setArrayIndex(i);
+        previousOpenFileDirectories.push_back(this->qSettings->value(AString::number(i)).toString());
+    }
+    this->qSettings->endArray();
+    
+    
+    LogLevelEnum::Enum defaultValue = LogLevelEnum::INFO;
+    AString levelName = this->qSettings->value("loggingLevel", 
+                                          LogLevelEnum::toName(defaultValue)).toString();
+    bool valid = false;
+    this->loggingLevel = LogLevelEnum::fromName(levelName, &valid);
+    if (valid == false) {
+        this->loggingLevel = LogLevelEnum::INFO;
+    }
+    
+    QSettings::Status status = this->qSettings->status();
 }
 
 /**

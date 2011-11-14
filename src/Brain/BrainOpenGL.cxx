@@ -48,6 +48,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
@@ -65,6 +66,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
 #include "ModelDisplayControllerSurface.h"
@@ -223,11 +225,13 @@ BrainOpenGL::drawModelInternal(Mode mode,
         glClearColor(1.0, 1.0, 1.0, 0.0);
     }
     else {
-        float backgroundColor[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+        float backgroundColor[3];
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        prefs->getColorBackground(backgroundColor);
         glClearColor(backgroundColor[0],
                      backgroundColor[1],
                      backgroundColor[2],
-                     backgroundColor[3]);
+                     1.0);
     }
     
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

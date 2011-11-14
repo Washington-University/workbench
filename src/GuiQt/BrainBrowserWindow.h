@@ -31,6 +31,7 @@
 #include <QMainWindow>
 
 #include "AString.h"
+#include "DataFileException.h"
 #include "EventListenerInterface.h"
 
 class QAction;
@@ -84,6 +85,9 @@ namespace caret {
         void processMoveTabToWindowMenuAboutToBeDisplayed();
         void processMoveTabToWindowMenuSelection(QAction*);
         
+        void processRecentSpecFileMenuAboutToBeDisplayed();
+        void processRecentSpecFileMenuSelection(QAction*);
+        
         void shrinkToolbox();
         
     private:
@@ -118,6 +122,8 @@ namespace caret {
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs,
                                        bool hideComponents);
+        
+        void openSpecFile(const AString& specFileName) throw (DataFileException);
         
         /** Index of this window */
         int32_t browserWindowIndex;
@@ -173,6 +179,8 @@ namespace caret {
         QAction* searchHelpOnlineAction;
         
         QMenu* moveTabToThisWindowMenu;
+        
+        QMenu* recentSpecFileMenu;
         
         BrainBrowserWindowToolBox* toolBox;
         
