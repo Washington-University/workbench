@@ -372,11 +372,14 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
+    if (historyList.empty() == false) {
+        fd.setHistory(historyList);
+        fd.setDirectory(historyList.at(0));
+    }
     fd.setAcceptMode(WuQFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFile);
     fd.setViewMode(WuQFileDialog::List);
-    fd.setHistory(historyList);
     if (this->previousCiftiFileTypeFilter.isEmpty() == false) {
         fd.selectFilter(this->previousCiftiFileTypeFilter);
     }

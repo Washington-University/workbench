@@ -702,14 +702,15 @@ BrainBrowserWindow::processDataFileOpen()
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
+    if (historyList.empty() == false) {
+        fd.setHistory(historyList);
+        fd.setDirectory(historyList.at(0));
+    }
     fd.setAcceptMode(WuQFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFiles);
     fd.setViewMode(WuQFileDialog::List);
     fd.selectFilter(this->previousOpenFileNameFilter);
-    if (historyList.empty() == false) {
-        fd.setHistory(historyList);
-    }
     
     AString errorMessages;
     
