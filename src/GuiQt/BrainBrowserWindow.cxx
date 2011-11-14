@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QTabBar>
 
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowToolBox.h"
@@ -686,11 +687,11 @@ BrainBrowserWindow::processDataFileOpen()
     /*
      * Previous directories
      */
-    QStringList historyList;
-    historyList.append(SystemUtilities::systemCurrentDirectory());
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->addToPreviousOpenFileDirectories(GuiManager::get()->getBrain()->getCurrentDirectory());
     std::vector<AString> previousDirectories;
     prefs->getPreviousOpenFileDirectories(previousDirectories);
+    QStringList historyList;
     for (std::vector<AString>::iterator iter = previousDirectories.begin();
          iter != previousDirectories.end();
          iter++) {

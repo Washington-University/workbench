@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "ElapsedTimer.h"
@@ -53,6 +54,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
+#include "SessionManager.h"
 #include "WuQDialogModal.h"
 #include "WuQFileDialog.h"
 #include "WuQSpinBoxGroup.h"
@@ -353,6 +355,20 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     }
     
     /*
+     * Previous directories
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->addToPreviousOpenFileDirectories(GuiManager::get()->getBrain()->getCurrentDirectory());
+    std::vector<AString> previousDirectories;
+    prefs->getPreviousOpenFileDirectories(previousDirectories);
+    QStringList historyList;
+    for (std::vector<AString>::iterator iter = previousDirectories.begin();
+         iter != previousDirectories.end();
+         iter++) {
+        historyList.append(*iter);
+    }
+    
+    /*
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
@@ -360,6 +376,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFile);
     fd.setViewMode(WuQFileDialog::List);
+    fd.setHistory(historyList);
     if (this->previousCiftiFileTypeFilter.isEmpty() == false) {
         fd.selectFilter(this->previousCiftiFileTypeFilter);
     }
