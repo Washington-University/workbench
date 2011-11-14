@@ -52,6 +52,7 @@
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
 #include "EventBrowserTabDelete.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowNew.h"
@@ -1464,6 +1465,16 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* /*browserTabCon
     
     this->windowWidgetGroup->blockSignals(true);
     
+    EventBrowserTabGetAll allTabsEvent;
+    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    
+    this->windowYokeToTabComboBox->clear();
+    
+    const int32_t numTabs = allTabsEvent.getNumberOfBrowserTabs();
+    for (int32_t i = 0; i < numTabs; i++) {
+        BrowserTabContent* btc = allTabsEvent.getBrowserTab(i);
+        this->windowYokeToTabComboBox->addItem(btc->getName());
+    }
     this->windowWidgetGroup->blockSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);

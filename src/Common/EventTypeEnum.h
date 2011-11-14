@@ -44,8 +44,10 @@ public:
         EVENT_BRAIN_STRUCTURE_GET,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
-        /** Get a new browser tab by tab number */
+        /** Get a browser tab by tab number */
         EVENT_BROWSER_TAB_GET,
+        /** Get a ALL browser tabs */
+        EVENT_BROWSER_TAB_GET_ALL,
         /** Create a new browser tab */
         EVENT_BROWSER_TAB_NEW,
         /** Get the content of a browser window */

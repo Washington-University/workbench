@@ -36,6 +36,7 @@
 #include "EventManager.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGet.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
@@ -60,6 +61,7 @@ SessionManager::SessionManager()
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
@@ -262,6 +264,19 @@ SessionManager::receiveEvent(Event* event)
         CaretAssertArrayIndex(this->browserTabs, BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, tabNumber);
         
         tabEvent->setBrowserTab(this->browserTabs[tabNumber]);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_GET_ALL) {
+        EventBrowserTabGetAll* tabEvent =
+        dynamic_cast<EventBrowserTabGetAll*>(event);
+        CaretAssert(tabEvent);
+        
+        tabEvent->setEventProcessed();
+        
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+            if (this->browserTabs[i] != NULL) {
+                tabEvent->addBrowserTab(this->browserTabs[i]);
+            }
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
         EventModelDisplayControllerAdd* addModelsEvent =

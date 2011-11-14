@@ -52,6 +52,7 @@ ConnectivityLoaderManager.h
 EventBrainStructureGet.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
+EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
 EventDataFileRead.h
@@ -99,6 +100,7 @@ BrowserTabContent.cxx
 ConnectivityLoaderManager.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
+EventBrowserTabGetAll.cxx
 EventBrowserTabNew.cxx
 EventDataFileRead.cxx
 EventCaretMappableDataFilesGet.cxx

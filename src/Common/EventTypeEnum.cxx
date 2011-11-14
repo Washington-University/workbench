@@ -78,6 +78,10 @@ EventTypeEnum::initialize()
                                     "EVENT_BROWSER_TAB_GET", 
                                     "Get a browser tab by number"));
     
+    enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_GET_ALL, 
+                                     "EVENT_BROWSER_TAB_GET_ALL", 
+                                     "Get ALL browser tabs"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_NEW, 
                                      "EVENT_BROWSER_TAB_NEW", 
                                      "Create a browser tab"));
