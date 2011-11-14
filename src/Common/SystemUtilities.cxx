@@ -27,6 +27,7 @@
 #include <sstream>
 
 #include <QDateTime>
+#include <QDir>
 
 #include "CaretOMP.h"
 
@@ -531,3 +532,22 @@ SystemUtilities::setHandlersForUnexpected()
     std::set_new_handler(newHandler);
 
 }
+
+
+/**
+ * Return the current directory as indicated 
+ * by the system.  In most cases, use the
+ * methods in Brain to get and set the current
+ * directory since it may be possible to have
+ * multiple Brains each of which has its current
+ * directory set to the directory containing the
+ * SpecFile that was read.
+ *
+ * @return The path of the current directory.
+ */
+AString 
+SystemUtilities::systemCurrentDirectory()
+{
+    return QDir::currentPath(); 
+}
+

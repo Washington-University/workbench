@@ -94,6 +94,8 @@ public:
                     const AString& myPathIn);
 
     static void setHandlersForUnexpected();
+    
+    static AString systemCurrentDirectory();
 };
 
 } // namespace

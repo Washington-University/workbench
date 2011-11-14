@@ -87,6 +87,10 @@ namespace caret {
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
         
+        AString getCurrentDirectory() const;
+        
+        void setCurrentDirectory(const AString& currentDirectory);
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
@@ -129,7 +133,7 @@ namespace caret {
         
         PaletteFile* paletteFile;
         
-        AString currentDirectory;
+        mutable AString currentDirectory;
         
         SpecFile* specFile;
         

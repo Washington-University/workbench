@@ -44,6 +44,7 @@
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "Surface.h"
+#include "SystemUtilities.h"
 #include "VolumeFile.h"
 #include <algorithm>
 
@@ -741,7 +742,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     this->specFile = new SpecFile(*sf);
     
     FileInformation fileInfo(sf->getFileName());
-    this->currentDirectory = fileInfo.getPathName();
+    this->setCurrentDirectory(fileInfo.getPathName());
     
     
     const int32_t numFileGroups = sf->getNumberOfDataFileTypeGroups();
@@ -787,8 +788,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
 AString 
 Brain::updateFileNameForReading(const AString& filename)
 {
-    FileInformation info(filename);
-    if (info.isAbsolute()) {
+    FileInformation fileInfo(filename);
+    if (fileInfo.isAbsolute()) {
         return filename;
     }
     
@@ -796,10 +797,8 @@ Brain::updateFileNameForReading(const AString& filename)
         return filename;
     }
     
-    AString fullPathName =
-    this->currentDirectory 
-    + "/"
-    + filename;
+    FileInformation pathFileInfo(this->currentDirectory, filename);
+    AString fullPathName = pathFileInfo.getFilePath();
     
     return fullPathName;
 }
@@ -873,4 +872,28 @@ Brain::getConnectivityLoaderManager() const
 {
     return this->connectivityLoaderManager;
 }
+
+/**
+ * @return  The current directory.
+ */
+AString 
+Brain::getCurrentDirectory() const
+{
+    if (this->currentDirectory.isEmpty()) {
+        this->currentDirectory = SystemUtilities::systemCurrentDirectory();
+    }
+    return this->currentDirectory;
+}
+
+/**
+ * Set the current directory.
+ * @param currentDirectory
+ *    New value for current directory.
+ */
+void 
+Brain::setCurrentDirectory(const AString& currentDirectory)
+{
+    this->currentDirectory = currentDirectory;
+}
+
 
