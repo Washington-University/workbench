@@ -492,17 +492,19 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
                 errorMessages += readSpecFileEvent.getErrorMessage();
             }
         }
+        
+        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+        
+        if (errorMessages.isEmpty() == false) {
+            QMessageBox::critical(this, 
+                                  "ERROR", 
+                                  errorMessages);
+        }
+        
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     }
-    
-    if (errorMessages.isEmpty() == false) {
-        QMessageBox::critical(this, 
-                              "ERROR", 
-                              errorMessages);
-    }
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -757,6 +759,8 @@ BrainBrowserWindow::processDataFileOpen()
                             errorMessages += readSpecFileEvent.getErrorMessage();
                         }
                     }
+                    
+                    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
                 }
                 else {
                     EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
@@ -772,8 +776,6 @@ BrainBrowserWindow::processDataFileOpen()
                         errorMessages += loadFileEvent.getErrorMessage();
                     }                    
                 }
-                
-                this->toolbar->addDefaultTabsAfterLoadingSpecFile();
             }
             else {
                 if (errorMessages.isEmpty() == false) {
