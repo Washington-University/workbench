@@ -74,40 +74,45 @@ void CiftiFile::init()
  */
 void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
-    m_caching = caching;
-    //Read CiftiHeader
-    m_headerIO.readFile(fileName);
-
-    //read XML
-    m_swapNeeded = m_headerIO.getSwapNeeded();
-    {
-        QFile inputFile(fileName);
-        inputFile.setFileName(fileName);
-        inputFile.open(QIODevice::ReadWrite);
-        inputFile.seek(NIFTI2_HEADER_SIZE);
-        char extensions[4];
-        inputFile.read(extensions,4);
-        unsigned int length;
-        inputFile.read((char *)&length, 4);
-        if(m_swapNeeded)ByteSwapping::swapBytes(&length,1);
-        unsigned int ecode;
-        inputFile.read((char *)&ecode,4);
-        if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
-        if(ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
-        QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
-        inputFile.close();
-        m_xml.readXML(bytes);
-
+    try {
+        m_caching = caching;
+        //Read CiftiHeader
+        m_headerIO.readFile(fileName);
+        
+        //read XML
+        m_swapNeeded = m_headerIO.getSwapNeeded();
+        {
+            QFile inputFile(fileName);
+            inputFile.setFileName(fileName);
+            inputFile.open(QIODevice::ReadWrite);
+            inputFile.seek(NIFTI2_HEADER_SIZE);
+            char extensions[4];
+            inputFile.read(extensions,4);
+            unsigned int length;
+            inputFile.read((char *)&length, 4);
+            if(m_swapNeeded)ByteSwapping::swapBytes(&length,1);
+            unsigned int ecode;
+            inputFile.read((char *)&ecode,4);
+            if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
+            if(ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
+            QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
+            inputFile.close();
+            m_xml.readXML(bytes);
+            
+        }
+        
+        //set up Matrix for reading..
+        m_matrix.setMatrixFile(fileName);
+        CiftiHeader header;
+        m_headerIO.getHeader(header);
+        std::vector <int64_t> vec;
+        
+        header.getDimensions(vec);
+        m_matrix.setup(vec,header.getVolumeOffset(),m_caching,m_swapNeeded);
     }
-
-    //set up Matrix for reading..
-    m_matrix.setMatrixFile(fileName);
-    CiftiHeader header;
-    m_headerIO.getHeader(header);
-    std::vector <int64_t> vec;
-
-    header.getDimensions(vec);
-    m_matrix.setup(vec,header.getVolumeOffset(),m_caching,m_swapNeeded);
+    catch (NiftiException e) {
+        throw CiftiFileException(e.whatString());
+    }
 }
 
 /** 
