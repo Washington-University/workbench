@@ -81,7 +81,7 @@ void
 DataFile::copyHelperDataFile(const DataFile& df)
 {
     this->filename = df.filename;
-    this->modifiedFlag = false;
+    clearModified();
 }
 
 /**
@@ -91,7 +91,7 @@ void
 DataFile::initializeMembersDataFile()
 {
     this->filename = "";
-    this->modifiedFlag = false;
+    clearModified();
 }
 
 /**
@@ -135,32 +135,4 @@ DataFile::setFileName(const AString& filename)
         this->filename = filename;
         this->setModified();
     }
-}
-
-/**
- * Set the status to modified.
- */
-void 
-DataFile::setModified()
-{
-    this->modifiedFlag = true;
-}
-
-/**
- * Set the status to unmodified.
- */
-void 
-DataFile::clearModified()
-{
-    this->modifiedFlag = false;
-}
-
-/**
- * Is the object modified?
- * @return true if modified, else false.
- */
-bool 
-DataFile::isModified() const
-{
-    return this->modifiedFlag;
 }

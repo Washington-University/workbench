@@ -32,18 +32,14 @@ namespace caret {
  *
  * Interface for tracking an objects modification status.
  * <br>
- * When the class DOES NOT extend a class that implements
- * this interface, the class must implmenent the three
- * methods setModified(), clearModified(), and isModified().
- * <br>
- * setModified() should just set a boolean that indicates
+ * setModified() sets a boolean that indicates
  * the modified status.
  * <br>
- * clearModified() should clear the boolean that indicates
- * the modified status AND is should call clearModified()
+ * clearModified() clears the boolean that indicates
+ * the modified status AND should call clearModified()
  * on any members that implement this interface.
  * <br>
- * isModified() should return the boolean that indicates
+ * isModified() returns the boolean that indicates
  * the modified status.
  * <br>
  * <br>
@@ -78,7 +74,7 @@ protected:
     /**
      * Constructor.
      */
-    TracksModificationInterface() { }
+    TracksModificationInterface() { modifiedFlag = false; }
 
     /**
      * Destructor.
@@ -90,22 +86,25 @@ private:
     
     TracksModificationInterface& operator=(const TracksModificationInterface&);
     
+    /** modification status */
+    bool modifiedFlag;
+
 public:
     /**
      * Set the status to modified.
      */
-    virtual void setModified() = 0;
+    virtual void setModified() { modifiedFlag = true; }
 
     /**
      * Set the status to unmodified.
      */
-    virtual void clearModified() = 0;
+    virtual void clearModified() { modifiedFlag = false; }
 
     /**
      * Is the object modified?
      * @return true if modified, else false.
      */
-    virtual bool isModified() const = 0;
+    virtual bool isModified() const { return modifiedFlag; }
 
 };
 

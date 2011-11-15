@@ -21,21 +21,15 @@ ADD_LIBRARY(Nifti
 Layout.h
 Matrix.h
 Matrix4x4.h
-NiftiEnums.h
-NiftiException.h
 NiftiFile.h
 NiftiHeaderIO.h
 Nifti1Header.h
 Nifti2Header.h
 NiftiMatrix.h
-nifti1.h
-nifti2.h
 
 Layout.cxx
 Matrix.cxx
 Matrix4x4.cxx
-NiftiEnums.cxx
-NiftiException.cxx
 NiftiFile.cxx
 NiftiHeaderIO.cxx
 Nifti1Header.cxx
@@ -47,10 +41,11 @@ NiftiMatrix.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Nifti
+${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Cifti
-${CMAKE_SOURCE_DIR}/Nifti
 ${CMAKE_SOURCE_DIR}/Xml
 )

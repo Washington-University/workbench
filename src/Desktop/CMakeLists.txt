@@ -63,6 +63,7 @@ Palette
 Cifti
 Gifti
 Nifti
+FilesBase
 Xml
 Common
 ${QT_LIBRARIES}
@@ -104,6 +105,7 @@ ${CMAKE_SOURCE_DIR}/Desktop
 ${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
+${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Cifti

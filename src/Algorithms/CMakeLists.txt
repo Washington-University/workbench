@@ -37,6 +37,7 @@ AlgorithmParametersEnum.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Cifti

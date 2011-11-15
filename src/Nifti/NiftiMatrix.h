@@ -24,6 +24,8 @@
 
 #ifndef NIFTIMATRIX_H
 #define NIFTIMATRIX_H
+#include "Nifti1Header.h"
+#include "Nifti2Header.h"
 #include "NiftiEnums.h"
 #include "NiftiException.h"
 #include "QFile"

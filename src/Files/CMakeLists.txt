@@ -27,9 +27,7 @@ GeodesicHelper.h
 GiftiTypeFile.h
 LabelFile.h
 MetricFile.h
-Palette.h
 PaletteFile.h
-PaletteScalarAndColor.h
 RgbaFile.h
 SpecFile.h
 SpecFileDataFileTypeGroup.h
@@ -50,9 +48,7 @@ GeodesicHelper.cxx
 GiftiTypeFile.cxx
 LabelFile.cxx
 MetricFile.cxx
-Palette.cxx
 PaletteFile.cxx
-PaletteScalarAndColor.cxx
 RgbaFile.cxx
 SpecFile.cxx
 SpecFileDataFileTypeGroup.cxx
@@ -70,8 +66,9 @@ VolumeFile.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Files
+${CMAKE_SOURCE_DIR}/FilesBase
+${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti

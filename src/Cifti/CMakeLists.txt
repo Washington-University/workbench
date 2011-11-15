@@ -48,6 +48,7 @@ CiftiXnat.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Gifti
 ${CMAKE_SOURCE_DIR}/Nifti

@@ -18,14 +18,17 @@ INCLUDE (${QT_USE_FILE})
 # Create the NIFTI library
 #
 ADD_LIBRARY(Palette
+Palette.h
 PaletteColorMapping.h
 PaletteColorMappingSaxReader.h
 PaletteEnums.h
+PaletteScalarAndColor.h
 
+Palette.cxx
 PaletteColorMapping.cxx
 PaletteColorMappingSaxReader.cxx
 PaletteEnums.cxx
-
+PaletteScalarAndColor.cxx
 )
 
 #
@@ -33,6 +36,7 @@ PaletteEnums.cxx
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Palette
+${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Common
 ${CMAKE_SOURCE_DIR}/Cifti
 ${CMAKE_SOURCE_DIR}/Nifti

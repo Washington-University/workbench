@@ -511,8 +511,11 @@ void NiftiMatrix::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, 
 
 void NiftiMatrix::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component)
 {
-    //TODO, this is evil, but fast, as I'm handing it the internal matrix
     setFrame(timeSlice);
-    frameIn.getFrame(this->matrix,timeSlice, component);
+    const float* frameRef = frameIn.getFrame(timeSlice, component);
+    for (int64_t i = 0; i < frameLength; ++i)
+    {
+        matrix[i] = frameRef[i];
+    }
 }
 
