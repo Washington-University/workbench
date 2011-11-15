@@ -34,6 +34,13 @@ namespace caret {
     class BrowserTabContent;
     class ModelDisplayControllerYokingGroup;
     
+    /**
+     * \class BrowserTabYoking 
+     * \brief Controls the yoking status for a browser tab.
+     *
+     * Controls the yoking status for a browser tab.
+     */
+    
     class BrowserTabYoking : public CaretObject {
 
     public:

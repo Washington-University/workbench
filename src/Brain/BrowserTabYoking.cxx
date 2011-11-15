@@ -35,13 +35,6 @@ using namespace caret;
 
     
 /**
- * @class BrowserTabYoking 
- * @brief Controls the yoking status for a browser tab.
- *
- * Controls the yoking status for a browser tab.
- */
-
-/**
  * Constructor.
  */
 BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
