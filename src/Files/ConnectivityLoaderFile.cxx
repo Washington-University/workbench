@@ -1298,11 +1298,11 @@ int64_t
 ConnectivityLoaderFile::getNumberOfTimePoints()
 {
     if(this->isDenseTimeSeries()) {
-        return this->ciftiInterface->getNumberOfColumns();
+        if (this->ciftiInterface != NULL) {
+            return this->ciftiInterface->getNumberOfColumns();
+        }
     }
-    else {
-        return -1;
-    }
+    return -1;
 }
 
 /**
@@ -1311,9 +1311,13 @@ ConnectivityLoaderFile::getNumberOfTimePoints()
 float
 ConnectivityLoaderFile::getTimeStep() const
 {
-    float timeStep = 0.0;
-    if (this->ciftiInterface->getColumnTimestep(timeStep)) {
-        return timeStep;
+    if (this->isDenseTimeSeries()) {
+        if (this->ciftiInterface != NULL) {
+            float timeStep = 0.0;
+            if (this->ciftiInterface->getColumnTimestep(timeStep)) {
+                return timeStep;
+            }
+        }
     }
     
     return 0.0;
