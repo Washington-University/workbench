@@ -382,13 +382,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
             for (int32_t i = 0; i < numCoords; i++) {
                 const int32_t i3 = i * 3;
                 if (numContribute[i] > 0.0) {
-                    normal[0] = normalPointer[i3 + 0];// / numContribute[i];//TSC: this is not needed if you normalize the vector afterwards, save a few flops
-                    normal[1] = normalPointer[i3 + 1];// / numContribute[i];
-                    normal[2] = normalPointer[i3 + 2];// / numContribute[i];
-                    MathFunctions::normalizeVector(normal);//this function should probably be changed to accept a float*
-                    normalPointer[i3 + 0] = normal[0];
-                    normalPointer[i3 + 1] = normal[1];
-                    normalPointer[i3 + 2] = normal[2];
+                    MathFunctions::normalizeVector(normalPointer + i3);
                 } else {
                     normalPointer[i3 + 0] = 0.0f;//zero the normals for unconnected nodes
                     normalPointer[i3 + 1] = 0.0f;
@@ -399,13 +393,12 @@ SurfaceFile::computeNormals(const bool averageNormals)
         
         if (averageNormals)
         {
-            std::vector<float> avgTemp;
-            avgTemp.resize(numCoords * 3);
+            float* avgTemp = new float[numCoords * 3];
 #pragma omp CARET_PAR
             {
                 std::vector<int32_t> neighbors;
                 float tempVec[3];
-                CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();
+                CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
     #pragma omp CARET_FOR
                 for (int32_t i = 0; i < numCoords; ++i)
                 {
@@ -435,6 +428,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
                     normalPointer[i3 + 2] = avgTemp[i3 + 2];
                 }
             }
+            delete[] avgTemp;
         }
     }
 }

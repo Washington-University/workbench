@@ -103,17 +103,17 @@ public:
                     float vectorsAll[],
                     const int32_t offset);
 
-    static float normalizeVector(float vectorInOut[]);
+    static float normalizeVector(float* vectorInOut);
 
-    static double normalizeVector(double vectorInOut[]);
+    static double normalizeVector(double* vectorInOut);
 
-    static float vectorLength(const float vector[]);
+    static float vectorLength(const float* vector);
 
     static float vectorLength(
                     const float vectorsAll[],
                     const int32_t offset);
 
-    static double vectorLength(const double vector[3]);
+    static double vectorLength(const double* vector);
 
     static float distanceSquared3D(
                     const float p1[3],
