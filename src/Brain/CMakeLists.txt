@@ -62,6 +62,7 @@ EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
+EventModelDisplayControllerYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfaceColoringInvalidate.h
 IdentificationItemDataTypeEnum.h
@@ -79,6 +80,7 @@ ModelDisplayControllerSurfaceSelector.h
 ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
+ModelDisplayControllerYokingGroup.h
 NodeAndVoxelColoring.h
 Overlay.h
 OverlaySet.h
@@ -111,6 +113,7 @@ EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
+EventModelDisplayControllerYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
 IdentificationItemDataTypeEnum.cxx
@@ -128,6 +131,7 @@ ModelDisplayControllerSurfaceSelector.cxx
 ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
+ModelDisplayControllerYokingGroup.cxx
 NodeAndVoxelColoring.cxx
 Overlay.cxx
 OverlaySet.cxx

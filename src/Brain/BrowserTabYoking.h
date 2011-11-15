@@ -32,25 +32,25 @@
 namespace caret {
 
     class BrowserTabContent;
+    class ModelDisplayControllerYokingGroup;
     
     class BrowserTabYoking : public CaretObject {
 
     public:
-        BrowserTabYoking(BrowserTabContent* parentBrowserTabContent);
+        BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
+                         ModelDisplayControllerYokingGroup* selectedYokingGroup);
         
         virtual ~BrowserTabYoking();
         
         BrowserTabContent* getParentBrowserTabContent();
         
-        void getYokableBrowserTabContent(std::vector<BrowserTabContent*>& yokableBrowserTabContentOut) const;
+        ModelDisplayControllerYokingGroup* getSelectedYokingGroup();
         
-        BrowserTabContent* getYokedToBrowserTabContent();
+        void setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup);
         
-        void setYokedToBrowserTabContent(BrowserTabContent* yokedToBrowserTabConent);
+        YokingTypeEnum::Enum getSelectedYokingType() const;
         
-        YokingTypeEnum::Enum getYokingType() const;
-        
-        void setYokingType(YokingTypeEnum::Enum yokingType);
+        void setSelectedYokingType(YokingTypeEnum::Enum yokingType);
         
     private:
         BrowserTabYoking(const BrowserTabYoking&);
@@ -63,15 +63,13 @@ namespace caret {
     private:
         BrowserTabContent* parentBrowserTabContent;
         
-        BrowserTabContent* yokedToBrowserTabContent;
+        ModelDisplayControllerYokingGroup* selectedYokingGroup;
         
-        YokingTypeEnum::Enum yokingType;
+        YokingTypeEnum::Enum selectedYokingType;
         
-        static std::vector<BrowserTabYoking*> allBrowserTabYoking; 
     };
     
 #ifdef __BROWSER_TAB_YOKING_DECLARE__
-    std::vector<BrowserTabYoking*> BrowserTabYoking::allBrowserTabYoking;
 #endif // __BROWSER_TAB_YOKING_DECLARE__
 
 } // namespace

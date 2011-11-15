@@ -37,6 +37,7 @@
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "ModelDisplayControllerYokingGroup.h"
 #include "OverlaySet.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
@@ -50,7 +51,8 @@ using namespace caret;
  * @param tabNumber
  *    Number for this tab.
  */
-BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
+BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
+                                     ModelDisplayControllerYokingGroup* defaultYokingGroup)
 : CaretObject()
 {
     this->tabNumber = tabNumber;
@@ -60,8 +62,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->wholeBrainModel = NULL;
     this->guiName = "";
     this->userName = "";
-    this->yokeToTabNumber = 0;
-    this->browserTabYoking = new BrowserTabYoking(this);
+    this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
     this->overlaySet = new OverlaySet();
     
     this->surfaceColoring = new SurfaceNodeColoring();
@@ -108,7 +109,7 @@ BrowserTabContent::getName() const
     }
     else {
         const ModelDisplayController* displayedController =
-            this->getDisplayedModelController();
+            this->getModelControllerForDisplay();
         if (displayedController != NULL) {
             const AString name = displayedController->getNameForBrowserTab();
             s += name;
@@ -190,13 +191,15 @@ BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum sel
 }
 
 /**
- * Get the displayed model controller.
+ * Get the model controller for DISPLAY purposes.  Note: When applying
+ * transformations, use getModelControllerForTransformation() so that
+ * any yoking is properly carried out.
  * 
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
  */   
 ModelDisplayController* 
-BrowserTabContent::getDisplayedModelController()
+BrowserTabContent::getModelControllerForDisplay()
 {
     ModelDisplayController* mdc = NULL;
     
@@ -211,6 +214,9 @@ BrowserTabContent::getDisplayedModelController()
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = this->wholeBrainModel;
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
             break;
     }
     
@@ -218,13 +224,15 @@ BrowserTabContent::getDisplayedModelController()
 }
 
 /**
- * Get the displayed model controller.
+ * Get the model controller for DISPLAY purposes.  Note: When applying
+ * transformations, use getModelControllerForTransformation() so that
+ * any yoking is properly carried out.
  * 
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
  */   
 const ModelDisplayController* 
-BrowserTabContent::getDisplayedModelController() const
+BrowserTabContent::getModelControllerForDisplay() const
 {
     ModelDisplayController* mdc = NULL;
     
@@ -240,10 +248,67 @@ BrowserTabContent::getDisplayedModelController() const
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = this->wholeBrainModel;
             break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
+            break;
     }
     
     return mdc;
 }
+
+/**
+ * Get the model controller for TRANSFORMATION purposes.  If yoked
+ * to a different tab, this will return the model controller for
+ * the tab to which this is yoked.
+ * 
+ * @return  Pointer to transformation controller or NULL
+ *          if none are available.
+ */   
+ModelDisplayController* 
+BrowserTabContent::getModelControllerForTransformation()
+{
+    ModelDisplayController* mdc = this->getModelControllerForDisplay();
+    if (mdc == NULL) {
+        return NULL;
+    }
+    
+    if (mdc->isYokeable()) {
+        switch (this->browserTabYoking->getSelectedYokingType()) {
+            case YokingTypeEnum::OFF:
+                break;
+            case YokingTypeEnum::ON:
+            case YokingTypeEnum::ON_LATERAL_MEDIAL:
+                /*
+                 * Use the yoking controller
+                 */
+                mdc = this->browserTabYoking->getSelectedYokingGroup();
+                break;
+        }
+    }
+    
+    return mdc;
+}
+
+/**
+ * Update the transformations for yoking prior to drawing.
+ * Does nothing if not yoked.
+ */
+void 
+BrowserTabContent::updateTransformationsForYoking()
+{
+    ModelDisplayController* transformController = this->getModelControllerForTransformation();
+    ModelDisplayControllerYokingGroup* yokingController = 
+        dynamic_cast<ModelDisplayControllerYokingGroup*>(transformController);
+    if (yokingController != NULL) {
+        ModelDisplayController* mdc = this->getModelControllerForDisplay();
+        if (mdc != NULL) {
+            mdc->copyTransformations(*yokingController, 
+                                     0, // always used window 0  
+                                     this->tabNumber);
+        }
+    }
+}
+
 
 /**
  * Get the displayed surface model.
@@ -256,7 +321,7 @@ ModelDisplayControllerSurface*
 BrowserTabContent::getDisplayedSurfaceModel()
 {
     ModelDisplayControllerSurface* mdcs =
-        dynamic_cast<ModelDisplayControllerSurface*>(this->getDisplayedModelController());
+        dynamic_cast<ModelDisplayControllerSurface*>(this->getModelControllerForDisplay());
     return mdcs;
 }
 
@@ -271,7 +336,7 @@ ModelDisplayControllerVolume*
 BrowserTabContent::getDisplayedVolumeModel()
 {
     ModelDisplayControllerVolume* mdcv =
-        dynamic_cast<ModelDisplayControllerVolume*>(this->getDisplayedModelController());
+        dynamic_cast<ModelDisplayControllerVolume*>(this->getModelControllerForDisplay());
     return mdcv;
 }
 
@@ -286,7 +351,7 @@ ModelDisplayControllerWholeBrain*
 BrowserTabContent::getDisplayedWholeBrainModel()
 {
     ModelDisplayControllerWholeBrain* mdcwb =
-        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getDisplayedModelController());
+        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getModelControllerForDisplay());
     return mdcwb;
 
 }
@@ -302,7 +367,7 @@ ModelDisplayControllerVolume*
 BrowserTabContent::getSelectedVolumeModel()
 {
     ModelDisplayControllerVolume* mdcv =
-        dynamic_cast<ModelDisplayControllerVolume*>(this->getDisplayedModelController());
+        dynamic_cast<ModelDisplayControllerVolume*>(this->getModelControllerForDisplay());
     return mdcv;
 }
 
@@ -317,7 +382,7 @@ ModelDisplayControllerWholeBrain*
 BrowserTabContent::getSelectedWholeBrainModel()
 {
     ModelDisplayControllerWholeBrain* mdcwb =
-        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getDisplayedModelController());
+        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getModelControllerForDisplay());
     return mdcwb;
 }
 
@@ -351,29 +416,6 @@ OverlaySet*
 BrowserTabContent::getOverlaySet()
 {
     return this->overlaySet;
-}
-
-/**
- * Get the tab number to which this tab is yoked.
- * 
- * @return  Tab number to which this tab is yoked.
- */
-int32_t 
-BrowserTabContent::getYokeToTabNumber() const
-{
-    return this->yokeToTabNumber;
-}
-
-/**
- * Set the tab number to which this tab is yoked.
- *
- * @param yokeToTabNumber
- *    Tab number to which this tab is yoked.
- */
-void 
-BrowserTabContent::setYokeToTabNumber(const int32_t yokeToTabNumber)
-{
-    this->yokeToTabNumber = yokeToTabNumber;
 }
 
 /**
@@ -451,6 +493,9 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
             if (this->wholeBrainModel == NULL) {
                 this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
             }
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+            CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
             break;
     }
     

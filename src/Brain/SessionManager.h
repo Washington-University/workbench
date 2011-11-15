@@ -35,6 +35,7 @@ namespace caret {
     class BrowserTabContent;
     class CaretPreferences;
     class ModelDisplayController;
+    class ModelDisplayControllerYokingGroup;
     
     /// Manages a Caret session which contains 'global' brain data.
     class SessionManager : public CaretObject, public EventListenerInterface {
@@ -55,6 +56,7 @@ namespace caret {
         Brain* getBrain(const int32_t brainIndex);
         
         CaretPreferences* getCaretPreferences();
+        
     private:
         SessionManager();
         
@@ -84,6 +86,9 @@ namespace caret {
         
         /** Caret's preferences */
         CaretPreferences* caretPreferences;
+        
+        /** Yoking Groups */
+        ModelDisplayControllerYokingGroup* yokingGroups[BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS];
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__

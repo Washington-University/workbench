@@ -43,7 +43,7 @@ using namespace caret;
  */
 ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
-                         YOKING_ALLOWED_NO,
+                         YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES)
 {
     this->brain = brain;

@@ -34,6 +34,8 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
+#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
@@ -364,6 +366,26 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             updateOneEvent->setEventProcessed();
             
             this->updateGL();
+        }
+        else {
+            /*
+             * If a window is yoked, update its graphics.
+             */
+            EventBrowserWindowContentGet getModelEvent(this->windowIndex);
+            EventManager::get()->sendEvent(getModelEvent.getPointer());
+            
+            if (getModelEvent.isError()) {
+                return;
+            }
+            
+            BrowserTabContent* btc = getModelEvent.getBrowserTabContent();
+            ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+            if (mdc != NULL) {
+                BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
+                if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
+                    this->updateGL();
+                }
+            }
         }
     }
     else {

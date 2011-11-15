@@ -41,8 +41,10 @@
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "EventModelDisplayControllerYokingGroupGetAll.h"
 #include "LogManager.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "ModelDisplayControllerYokingGroup.h"
 
 using namespace caret;
 
@@ -58,6 +60,9 @@ SessionManager::SessionManager()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->browserTabs[i] = NULL;
     }
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
+        this->yokingGroups[i] = new ModelDisplayControllerYokingGroup(i);
+    }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_GET);
@@ -66,6 +71,7 @@ SessionManager::SessionManager()
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL);
     
     Brain* brain = new Brain();
     this->brains.push_back(brain);    
@@ -83,6 +89,11 @@ SessionManager::~SessionManager()
     this->brains.clear();
     
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
+        delete this->yokingGroups[i];
+        this->yokingGroups[i] = NULL;
+    }
     
     delete this->caretPreferences;
 }
@@ -228,7 +239,7 @@ SessionManager::receiveEvent(Event* event)
         
         for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
             if (this->browserTabs[i] == NULL) {
-                BrowserTabContent* tab = new BrowserTabContent(i);
+                BrowserTabContent* tab = new BrowserTabContent(i, this->yokingGroups[0]);
                 tab->update(this->modelDisplayControllers);
                 this->browserTabs[i] = tab;
                 tabEvent->setBrowserTab(tab);
@@ -318,6 +329,17 @@ SessionManager::receiveEvent(Event* event)
         getModelsEvent->setEventProcessed();
         
         getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL) {
+        EventModelDisplayControllerYokingGroupGetAll* getYokingEvent =
+            dynamic_cast<EventModelDisplayControllerYokingGroupGetAll*>(event);
+        CaretAssert(getYokingEvent);
+        
+        getYokingEvent->setEventProcessed();
+        
+        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
+            getYokingEvent->addYokingGroup(this->yokingGroups[i]);
+        }
     }
 }
 

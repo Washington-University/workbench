@@ -49,6 +49,14 @@ ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeE
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->resetViewPrivate(i);
     }
+    
+    /*
+     * Set this last in constructor or else resetViewPrivate() may
+     * not function correctly.
+     */
+    this->isYokingController = (controllerType ==
+                                ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING);
+    
 }
 
 /**
@@ -61,6 +69,7 @@ ModelDisplayController::~ModelDisplayController()
 void
 ModelDisplayController::initializeMembersModelDisplayController()
 {
+    this->isYokingController = false;
     this->defaultModelScaling = 1.0f;
 }
 
@@ -113,8 +122,10 @@ ModelDisplayController::copyTransformations(
                    const int32_t windowTabNumberSource,
                    const int32_t windowTabNumberTarget)
 {
-    if (windowTabNumberSource == windowTabNumberTarget) {
-        return;
+    if (this == &controllerSource) {
+        if (windowTabNumberSource == windowTabNumberTarget) {
+            return;
+        }
     }
     
     CaretAssertArrayIndex(this->translation,
@@ -140,8 +151,16 @@ ModelDisplayController::copyTransformations(
  *
  */
 const Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumber) const
+ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn) const
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -156,8 +175,16 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumber) 
  *
  */
 Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumber)
+ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -172,8 +199,16 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumber)
  *
  */
 const float*
-ModelDisplayController::getTranslation(const int32_t windowTabNumber) const
+ModelDisplayController::getTranslation(const int32_t windowTabNumberIn) const
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -188,9 +223,17 @@ ModelDisplayController::getTranslation(const int32_t windowTabNumber) const
  *
  */
 void
-ModelDisplayController::setTranslation(const int32_t windowTabNumber,
+ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
                           const float t[3])
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -209,11 +252,19 @@ ModelDisplayController::setTranslation(const int32_t windowTabNumber,
  *
  */
 void
-ModelDisplayController::setTranslation(const int32_t windowTabNumber,
+ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
                           const float tx,
                           const float ty,
                           const float tz)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -230,8 +281,16 @@ ModelDisplayController::setTranslation(const int32_t windowTabNumber,
  *
  */
 float
-ModelDisplayController::getScaling(const int32_t windowTabNumber) const
+ModelDisplayController::getScaling(const int32_t windowTabNumberIn) const
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->scaling,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -247,9 +306,17 @@ ModelDisplayController::getScaling(const int32_t windowTabNumber) const
  */
 void
 ModelDisplayController::setScaling(
-                   const int32_t windowTabNumber,
+                   const int32_t windowTabNumberIn,
                    const float s)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->scaling,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -268,8 +335,16 @@ ModelDisplayController::setScaling(
  * reset the view.
  */
 void 
-ModelDisplayController::resetViewPrivate(const int windowTabNumber)
+ModelDisplayController::resetViewPrivate(const int windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -285,8 +360,16 @@ ModelDisplayController::resetViewPrivate(const int windowTabNumber)
  * reset the view.
  */
 void
-ModelDisplayController::resetView(const int32_t windowTabNumber)
+ModelDisplayController::resetView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     this->resetViewPrivate(windowTabNumber);
 }
 
@@ -296,8 +379,16 @@ ModelDisplayController::resetView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::rightView(const int32_t windowTabNumber)
+ModelDisplayController::rightView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -312,8 +403,16 @@ ModelDisplayController::rightView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::leftView(const int32_t windowTabNumber)
+ModelDisplayController::leftView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -328,8 +427,16 @@ ModelDisplayController::leftView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::anteriorView(const int32_t windowTabNumber)
+ModelDisplayController::anteriorView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -343,8 +450,16 @@ ModelDisplayController::anteriorView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::posteriorView(const int32_t windowTabNumber)
+ModelDisplayController::posteriorView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -358,8 +473,16 @@ ModelDisplayController::posteriorView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::dorsalView(const int32_t windowTabNumber)
+ModelDisplayController::dorsalView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -372,8 +495,16 @@ ModelDisplayController::dorsalView(const int32_t windowTabNumber)
  *
  */
 void
-ModelDisplayController::ventralView(const int32_t windowTabNumber)
+ModelDisplayController::ventralView(const int32_t windowTabNumberIn)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
@@ -393,9 +524,17 @@ ModelDisplayController::ventralView(const int32_t windowTabNumber)
  */
 void
 ModelDisplayController::setTransformation(
-                   const int32_t windowTabNumber,
+                   const int32_t windowTabNumberIn,
                    const std::vector<float>& transformationData)
 {
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    int32_t windowTabNumber = windowTabNumberIn;
+    if (this->isYokingController) {
+        windowTabNumber = 0;
+    }
+    
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);

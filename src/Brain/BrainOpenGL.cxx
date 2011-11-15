@@ -217,6 +217,12 @@ BrainOpenGL::drawModelInternal(Mode mode,
     this->browserTabContent = browserTabContent;
     this->windowTabIndex = windowTabIndex;
     
+    /*
+     * Update transformations with those from the yoked 
+     * group.  Does nothing if not yoked.
+     */
+    browserTabContent->updateTransformationsForYoking();
+    
     if (this->mode == MODE_IDENTIFICATION) {
         /*
          * For identification, set the background

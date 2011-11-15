@@ -74,6 +74,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
+        /** model display yoking group controllers - get all*/
+        EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
         /** display palette color mapping editor */
         EVENT_PALETTE_COLOR_MAPPING_EDITOR,
         /** Read the selected files in a spec file */

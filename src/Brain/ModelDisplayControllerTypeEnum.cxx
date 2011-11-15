@@ -94,6 +94,11 @@ ModelDisplayControllerTypeEnum::initialize()
                                     "MODEL_TYPE_WHOLE_BRAIN", 
                                     "Whole Brain"));
     
+    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_YOKING, 
+                                                      4, 
+                                                      "MODEL_TYPE_YOKING", 
+                                                      "Yoking"));
+    
 }
 
 /**

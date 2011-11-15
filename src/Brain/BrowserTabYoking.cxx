@@ -35,8 +35,8 @@ using namespace caret;
 
     
 /**
- * \class BrowserTabYoking 
- * \brief Controls the yoking status for a browser tab.
+ * @class BrowserTabYoking 
+ * @brief Controls the yoking status for a browser tab.
  *
  * Controls the yoking status for a browser tab.
  */
@@ -44,18 +44,13 @@ using namespace caret;
 /**
  * Constructor.
  */
-BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent)
+BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
+                                   ModelDisplayControllerYokingGroup* selectedYokingGroup)
 : CaretObject()
 {
-    if (BrowserTabYoking::allBrowserTabYoking.empty()) {
-        BrowserTabYoking::allBrowserTabYoking.resize(BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                                                     NULL);
-    }
-    BrowserTabYoking::allBrowserTabYoking[parentBrowserTabContent->getTabNumber()] = this;
-    
     this->parentBrowserTabContent = parentBrowserTabContent;
-    this->yokedToBrowserTabContent = NULL;
-    this->yokingType = YokingTypeEnum::OFF;
+    this->selectedYokingGroup = selectedYokingGroup;
+    this->selectedYokingType = YokingTypeEnum::OFF;
 }
 
 /**
@@ -63,7 +58,6 @@ BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent)
  */
 BrowserTabYoking::~BrowserTabYoking()
 {
-    BrowserTabYoking::allBrowserTabYoking[parentBrowserTabContent->getTabNumber()] = NULL;
 }
 
 /**
@@ -85,73 +79,25 @@ BrowserTabYoking::getParentBrowserTabContent()
     return this->parentBrowserTabContent;
 }
 
-/**
- * @return Browser tab to which this is yoked to.
- * May be NULL
- */
-BrowserTabContent* 
-BrowserTabYoking::getYokedToBrowserTabContent()
+ModelDisplayControllerYokingGroup* 
+BrowserTabYoking::getSelectedYokingGroup()
 {
-    std::vector<BrowserTabContent*> allYokableBrowserTabConent;
-    this->getYokableBrowserTabContent(allYokableBrowserTabConent);
-    
-    if (this->yokedToBrowserTabContent != NULL) {
-        if (std::find(allYokableBrowserTabConent.begin(),
-                      allYokableBrowserTabConent.end(),
-                      this->yokedToBrowserTabContent) == allYokableBrowserTabConent.end()) {
-            this->yokedToBrowserTabContent = NULL;
-        }
-    }
-    
-    if (this->yokedToBrowserTabContent == NULL) {
-        if (allYokableBrowserTabConent.empty() == false) {
-            this->yokedToBrowserTabContent = allYokableBrowserTabConent[0];
-        }
-    }
-                  
-    return this->yokedToBrowserTabContent;
+    return this->selectedYokingGroup;
 }
 
-/**
- * Set the browser tab to which this is yoked.
- * @param yokedToBrowserTabConent
- *    Tab to which this is yoked.
- */
 void 
-BrowserTabYoking::setYokedToBrowserTabContent(BrowserTabContent* yokedToBrowserTabContent)
+BrowserTabYoking::setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup)
 {
-    this->yokedToBrowserTabContent = yokedToBrowserTabContent;
-}
-
-/**
- * Get all browser tabs to which this can be yoked.  Essentially,
- * this is all browser tabs that are active with the exception of
- * the browser tab that is the parent of this yoking.
- */
-void 
-BrowserTabYoking::getYokableBrowserTabContent(std::vector<BrowserTabContent*>& yokableBrowserTabContentOut) const
-{
-    yokableBrowserTabContentOut.clear();
-    
-    for (std::vector<BrowserTabYoking*>::iterator iter = BrowserTabYoking::allBrowserTabYoking.begin();
-         iter != BrowserTabYoking::allBrowserTabYoking.end();
-         iter++) {
-        BrowserTabYoking* bty = *iter;
-        if (bty != NULL) {
-            if (bty != this) {
-                yokableBrowserTabContentOut.push_back(bty->getParentBrowserTabContent());
-            }
-        }
-    }
+    this->selectedYokingGroup = selectedYokingGroup;
 }
 
 /**
  * @return The type of yoking.
  */
 YokingTypeEnum::Enum 
-BrowserTabYoking::getYokingType() const
+BrowserTabYoking::getSelectedYokingType() const
 {
-    return this->yokingType;
+    return this->selectedYokingType;
 }
 
 /**
@@ -160,8 +106,8 @@ BrowserTabYoking::getYokingType() const
  *    New value for yoking type.
  */
 void 
-BrowserTabYoking::setYokingType(YokingTypeEnum::Enum yokingType)
+BrowserTabYoking::setSelectedYokingType(YokingTypeEnum::Enum yokingType)
 {
-    this->yokingType = yokingType;
+    this->selectedYokingType = yokingType;
 }
 

@@ -137,6 +137,7 @@ namespace caret {
         
         RotationAllowedType allowsRotationStatus;
         
+        bool isYokingController;
     };
 
 } // namespace

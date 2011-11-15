@@ -37,6 +37,7 @@ namespace caret {
     class ModelDisplayControllerSurfaceSelector;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
+    class ModelDisplayControllerYokingGroup;
     class OverlaySet;
     class Surface;
     class SurfaceNodeColoring;
@@ -45,7 +46,8 @@ namespace caret {
     class BrowserTabContent : public CaretObject, public EventListenerInterface {
         
     public:
-        BrowserTabContent(const int32_t tabNumber);
+        BrowserTabContent(const int32_t tabNumber,
+                          ModelDisplayControllerYokingGroup* defaultYokingGroup);
         
         virtual ~BrowserTabContent();
         
@@ -63,10 +65,6 @@ namespace caret {
         
         OverlaySet* getOverlaySet();
         
-        int32_t getYokeToTabNumber() const;
-        
-        void setYokeToTabNumber(const int32_t yokeToTabNumber);
-        
         BrowserTabYoking* getBrowserTabYoking();
         
         int32_t getTabNumber() const;
@@ -75,9 +73,11 @@ namespace caret {
         
         void setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType);
         
-        const ModelDisplayController* getDisplayedModelController() const;
+        const ModelDisplayController* getModelControllerForDisplay() const;
         
-        ModelDisplayController* getDisplayedModelController();
+        ModelDisplayController* getModelControllerForDisplay();
+        
+        ModelDisplayController* getModelControllerForTransformation();
         
         ModelDisplayControllerSurface* getDisplayedSurfaceModel();
         
@@ -104,6 +104,9 @@ namespace caret {
         void invalidateSurfaceColoring();
         
         const float* getSurfaceColoring(const Surface* surface);
+        
+        void updateTransformationsForYoking();
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
@@ -137,9 +140,6 @@ namespace caret {
          * User can set the name of the tab.
          */
         AString userName;
-        
-        /** Tab number to which this controller is yoked */
-        int32_t yokeToTabNumber;
         
         /** Controls yoking */
         BrowserTabYoking* browserTabYoking;

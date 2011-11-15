@@ -61,12 +61,14 @@
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "EventModelDisplayControllerYokingGroupGetAll.h"
 #include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "ModelDisplayControllerYokingGroup.h"
 #include "Surface.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "VolumeFile.h"
@@ -653,6 +655,9 @@ BrainBrowserWindowToolBar::updateToolBar()
             showVolumeIndicesWidget = true;
             spacerWidgetStretchFactor = 100;
             break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+            CaretAssertMessage(0, "Yoking model display controller should NEVER be displayed");
+            break;
     }
     
     /*
@@ -788,6 +793,9 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             this->viewModeWholeBrainRadioButton->setChecked(true);
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+            CaretAssertMessage(0, "Yoking model display controller should NEVER be displayed");
             break;
     }
     
@@ -1418,12 +1426,22 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
 QWidget* 
 BrainBrowserWindowToolBar::createWindowWidget()
 {
+    EventModelDisplayControllerYokingGroupGetAll getAllYokingEvent;
+    EventManager::get()->sendEvent(getAllYokingEvent.getPointer());
+    std::vector<ModelDisplayControllerYokingGroup*> yokingGroups;
+    getAllYokingEvent.getYokingGroups(yokingGroups);
+    
     QLabel* yokeToLabel = new QLabel("Yoke to:");
-    this->windowYokeToTabComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeToTabComboBox,
-                                          "Select the tab to which the current tab is yoked (view linked)");
-    QObject::connect(this->windowYokeToTabComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(windowYokeToTabComboBoxIndexChanged(int)));
+    this->windowYokeGroupComboBox = new QComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeGroupComboBox,
+                                          "Select the group to which the current tab is yoked (view linked)");
+    const int32_t numYokingGroups = static_cast<int>(yokingGroups.size());
+    for (int32_t i = 0; i < numYokingGroups; i++) {
+        this->windowYokeGroupComboBox->addItem(yokingGroups[i]->getNameForBrowserTab());
+        this->windowYokeGroupComboBox->setItemData(i, qVariantFromValue((void*)yokingGroups[i]));
+    }
+    QObject::connect(this->windowYokeGroupComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(windowYokeToGroupComboBoxIndexChanged(int)));
     
     std::vector<YokingTypeEnum::Enum> allYokingEnums;
     YokingTypeEnum::getAllEnums(allYokingEnums);
@@ -1444,11 +1462,11 @@ BrainBrowserWindowToolBar::createWindowWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2, 0);
     layout->addWidget(yokeToLabel);
-    layout->addWidget(this->windowYokeToTabComboBox);
+    layout->addWidget(this->windowYokeGroupComboBox);
     layout->addWidget(this->windowYokeTypeComboBox);
     
     this->windowWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->windowWidgetGroup->add(this->windowYokeToTabComboBox);
+    this->windowWidgetGroup->add(this->windowYokeGroupComboBox);
     this->windowWidgetGroup->add(this->windowYokeTypeComboBox);
     
     QWidget* w = this->createToolWidget("Window", 
@@ -1478,26 +1496,11 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     
     BrowserTabYoking* browserTabYoking = browserTabContent->getBrowserTabYoking();
     std::vector<BrowserTabContent*> yokableBrowserTabContent;
-    browserTabYoking->getYokableBrowserTabContent(yokableBrowserTabContent);
-    BrowserTabContent* yokeToBrowserTab = browserTabYoking->getYokedToBrowserTabContent();
+    ModelDisplayControllerYokingGroup* yokeToGroup = browserTabYoking->getSelectedYokingGroup();
     
-    this->windowYokeToTabComboBox->clear();
-    int32_t defaultIndex = -1;
+    this->windowYokeGroupComboBox->setCurrentIndex(yokeToGroup->getYokingGroupIndex());
     
-    const int32_t numTabs = static_cast<int>(yokableBrowserTabContent.size());
-    for (int32_t i = 0; i < numTabs; i++) {
-        if (yokableBrowserTabContent[i] == yokeToBrowserTab) {
-            defaultIndex = i;
-        }
-        this->windowYokeToTabComboBox->addItem(yokableBrowserTabContent[i]->getName());
-        this->windowYokeToTabComboBox->setItemData(i, qVariantFromValue((void*)yokableBrowserTabContent[i]));
-    }
-    
-    if (defaultIndex >= 0) {
-        this->windowYokeToTabComboBox->setCurrentIndex(defaultIndex);
-    }
-    
-    const int yokeTypeIndex = YokingTypeEnum::toIntegerCode(browserTabYoking->getYokingType());
+    const int yokeTypeIndex = YokingTypeEnum::toIntegerCode(browserTabYoking->getSelectedYokingType());
     this->windowYokeTypeComboBox->setCurrentIndex(yokeTypeIndex);
     
     this->windowWidgetGroup->blockSignals(false);
@@ -1995,7 +1998,7 @@ void
 BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->leftView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2011,7 +2014,7 @@ void
 BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->rightView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2027,7 +2030,7 @@ void
 BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->anteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2043,7 +2046,7 @@ void
 BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->posteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2059,7 +2062,7 @@ void
 BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->dorsalView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2075,7 +2078,7 @@ void
 BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->ventralView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2091,7 +2094,7 @@ void
 BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getDisplayedModelController();
+    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
     if (mdc != NULL) {
         mdc->resetView(btc->getTabNumber());
         this->updateVolumeIndicesWidget(btc);
@@ -2495,7 +2498,7 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
  * Called when window yoke to tab combo box is selected.
  */
 void 
-BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
+BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged(int indx)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
@@ -2504,9 +2507,9 @@ BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
         BrowserTabContent* btc = this->getTabContentFromSelectedTab();
         BrowserTabYoking* browserTabYoking = btc->getBrowserTabYoking();
 
-        void* pointer = this->windowYokeToTabComboBox->itemData(indx).value<void*>();
-        BrowserTabContent* yokeBTC = (BrowserTabContent*)pointer;
-        browserTabYoking->setYokedToBrowserTabContent(yokeBTC);
+        void* pointer = this->windowYokeGroupComboBox->itemData(indx).value<void*>();
+        ModelDisplayControllerYokingGroup* yokingGroup = (ModelDisplayControllerYokingGroup*)pointer;
+        browserTabYoking->setSelectedYokingGroup(yokingGroup);
     }
     this->updateGraphicsWindow();
 }
@@ -2526,7 +2529,7 @@ BrainBrowserWindowToolBar::windowYokeTypeComboBoxIndexChanged(int indx)
         
         int32_t integerCode = this->windowYokeTypeComboBox->itemData(indx).toInt();
         YokingTypeEnum::Enum yokeType = YokingTypeEnum::fromIntegerCode(integerCode, NULL);
-        browserTabYoking->setYokingType(yokeType);
+        browserTabYoking->setSelectedYokingType(yokeType);
     }
     this->updateGraphicsWindow();
 }
@@ -2753,7 +2756,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrowserTabContent* btc = this->getTabContentFromSelectedTab();
             getModelEvent->setBrowserTabContent(btc);
-            getModelEvent->setModelDisplayController(btc->getDisplayedModelController());
+            getModelEvent->setModelDisplayController(btc->getModelControllerForDisplay());
             getModelEvent->setWindowTabNumber(btc->getTabNumber());
             getModelEvent->setEventProcessed();
         }
@@ -2803,7 +2806,7 @@ BrainBrowserWindowToolBar::getDisplayedModelController()
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     if (btc != NULL) {
-        mdc = btc->getDisplayedModelController();
+        mdc = btc->getModelControllerForDisplay();
     }
     
     return mdc;

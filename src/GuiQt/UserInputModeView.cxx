@@ -207,7 +207,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrowserTabContent* browserTabContent,
                                                   BrainOpenGLWidget* /*openGLWidget*/)
 {
-    ModelDisplayController* modelController = browserTabContent->getDisplayedModelController();
+    ModelDisplayController* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
         const float dx = mouseEvent->getDx();
