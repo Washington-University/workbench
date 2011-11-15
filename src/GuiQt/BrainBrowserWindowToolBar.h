@@ -263,11 +263,11 @@ namespace caret {
     private:
         
         QComboBox* windowYokeToTabComboBox;
-        QCheckBox* windowYokeMirroredCheckBox;
+        QComboBox* windowYokeTypeComboBox;
     
     private slots:
         void windowYokeToTabComboBoxIndexChanged(int indx);
-        void windowYokeMirroredCheckBoxStateChanged(int state);
+        void windowYokeTypeComboBoxIndexChanged(int indx);
         
     private:
         StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;

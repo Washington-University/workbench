@@ -27,6 +27,7 @@
 #include "BrowserTabContent.h"
 #undef __BROWSER_TAB_CONTENT_DECLARE__
 
+#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
@@ -60,7 +61,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
     this->guiName = "";
     this->userName = "";
     this->yokeToTabNumber = 0;
-    this->yokingType = YokingTypeEnum::OFF;
+    this->browserTabYoking = new BrowserTabYoking(this);
     this->overlaySet = new OverlaySet();
     
     this->surfaceColoring = new SurfaceNodeColoring();
@@ -76,8 +77,13 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber)
 BrowserTabContent::~BrowserTabContent()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete this->browserTabYoking;
+    this->browserTabYoking = NULL;
+    
     delete this->surfaceColoring;
     this->surfaceColoring = NULL;
+   
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
     
@@ -371,26 +377,12 @@ BrowserTabContent::setYokeToTabNumber(const int32_t yokeToTabNumber)
 }
 
 /**
- * Get the type of yoking.
- *
- * @return The type of yoking.
+ * @return The yoking for this browser tab.
  */
-YokingTypeEnum::Enum 
-BrowserTabContent::getYokingType() const
+BrowserTabYoking* 
+BrowserTabContent::getBrowserTabYoking()
 {
-    return this->yokingType;
-}
-
-/**
- * Set the type of yoking.
- *
- * @param yokingType
- *    New type of yoking.
- */
-void 
-BrowserTabContent::setYokingType(const YokingTypeEnum::Enum yokingType)
-{
-    this->yokingType = yokingType;
+    return this->browserTabYoking;
 }
 
 /**

@@ -25,14 +25,13 @@
  * 
  */ 
 
-
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
 #include "ModelDisplayControllerTypeEnum.h"
-#include "YokingTypeEnum.h"
 
 namespace caret {
 
+    class BrowserTabYoking;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
     class ModelDisplayControllerSurfaceSelector;
@@ -68,9 +67,7 @@ namespace caret {
         
         void setYokeToTabNumber(const int32_t yokeToTabNumber);
         
-        YokingTypeEnum::Enum getYokingType() const;
-        
-        void setYokingType(const YokingTypeEnum::Enum yokingType);
+        BrowserTabYoking* getBrowserTabYoking();
         
         int32_t getTabNumber() const;
         
@@ -144,8 +141,8 @@ namespace caret {
         /** Tab number to which this controller is yoked */
         int32_t yokeToTabNumber;
         
-        /** Type of yoking */
-        YokingTypeEnum::Enum yokingType;
+        /** Controls yoking */
+        BrowserTabYoking* browserTabYoking;
         
         /** The overlay assignments */
         OverlaySet* overlaySet;

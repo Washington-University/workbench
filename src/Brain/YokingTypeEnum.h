@@ -63,6 +63,8 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
+    static void getAllEnums(std::vector<Enum>& allEnums);
+
 private:
     YokingTypeEnum(const Enum e, 
                  const int32_t integerCode, 

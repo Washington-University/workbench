@@ -48,6 +48,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
+#include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
@@ -602,6 +603,8 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
     
     const int numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 2);
+    
+    this->updateUserInterface();
 }
 
 
@@ -1422,23 +1425,31 @@ BrainBrowserWindowToolBar::createWindowWidget()
     QObject::connect(this->windowYokeToTabComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(windowYokeToTabComboBoxIndexChanged(int)));
     
-    this->windowYokeMirroredCheckBox = new QCheckBox("Mirrored");
-    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeMirroredCheckBox,
-                                          "Enable/Disable left/right mirroring when yoked");
-    QObject::connect(this->windowYokeMirroredCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(windowYokeMirroredCheckBoxStateChanged(int)));
+    std::vector<YokingTypeEnum::Enum> allYokingEnums;
+    YokingTypeEnum::getAllEnums(allYokingEnums);
+    const int32_t numYokingEnums = static_cast<int32_t>(allYokingEnums.size());
     
+    this->windowYokeTypeComboBox = new QComboBox();
+    for (int32_t i = 0; i < numYokingEnums; i++) {
+        this->windowYokeTypeComboBox->addItem(YokingTypeEnum::toGuiName(allYokingEnums[i]));
+        this->windowYokeTypeComboBox->setItemData(i, YokingTypeEnum::toIntegerCode(allYokingEnums[i]));
+    }
+    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeTypeComboBox,
+                                          "Selects type of yoking");
+    QObject::connect(this->windowYokeTypeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(windowYokeTypeComboBoxIndexChanged(int)));
+
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(this->windowYokeToTabComboBox);
-    layout->addWidget(this->windowYokeMirroredCheckBox);
+    layout->addWidget(this->windowYokeTypeComboBox);
     
     this->windowWidgetGroup = new WuQWidgetObjectGroup(this);
     this->windowWidgetGroup->add(this->windowYokeToTabComboBox);
-    this->windowWidgetGroup->add(this->windowYokeMirroredCheckBox);
+    this->windowWidgetGroup->add(this->windowYokeTypeComboBox);
     
     QWidget* w = this->createToolWidget("Window", 
                                         widget, 
@@ -1455,7 +1466,7 @@ BrainBrowserWindowToolBar::createWindowWidget()
  *   The active model display controller (may be NULL).
  */
 void 
-BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* /*browserTabContent*/)
+BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabContent)
 {
     if (this->windowWidget->isHidden()) {
         return;
@@ -1465,16 +1476,30 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* /*browserTabCon
     
     this->windowWidgetGroup->blockSignals(true);
     
-    EventBrowserTabGetAll allTabsEvent;
-    EventManager::get()->sendEvent(allTabsEvent.getPointer());
+    BrowserTabYoking* browserTabYoking = browserTabContent->getBrowserTabYoking();
+    std::vector<BrowserTabContent*> yokableBrowserTabContent;
+    browserTabYoking->getYokableBrowserTabContent(yokableBrowserTabContent);
+    BrowserTabContent* yokeToBrowserTab = browserTabYoking->getYokedToBrowserTabContent();
     
     this->windowYokeToTabComboBox->clear();
+    int32_t defaultIndex = -1;
     
-    const int32_t numTabs = allTabsEvent.getNumberOfBrowserTabs();
+    const int32_t numTabs = static_cast<int>(yokableBrowserTabContent.size());
     for (int32_t i = 0; i < numTabs; i++) {
-        BrowserTabContent* btc = allTabsEvent.getBrowserTab(i);
-        this->windowYokeToTabComboBox->addItem(btc->getName());
+        if (yokableBrowserTabContent[i] == yokeToBrowserTab) {
+            defaultIndex = i;
+        }
+        this->windowYokeToTabComboBox->addItem(yokableBrowserTabContent[i]->getName());
+        this->windowYokeToTabComboBox->setItemData(i, qVariantFromValue((void*)yokableBrowserTabContent[i]));
     }
+    
+    if (defaultIndex >= 0) {
+        this->windowYokeToTabComboBox->setCurrentIndex(defaultIndex);
+    }
+    
+    const int yokeTypeIndex = YokingTypeEnum::toIntegerCode(browserTabYoking->getYokingType());
+    this->windowYokeTypeComboBox->setCurrentIndex(yokeTypeIndex);
+    
     this->windowWidgetGroup->blockSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -2470,20 +2495,40 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
  * Called when window yoke to tab combo box is selected.
  */
 void 
-BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int /*indx*/)
+BrainBrowserWindowToolBar::windowYokeToTabComboBoxIndexChanged(int indx)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+
+    if (indx >= 0) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        BrowserTabYoking* browserTabYoking = btc->getBrowserTabYoking();
+
+        void* pointer = this->windowYokeToTabComboBox->itemData(indx).value<void*>();
+        BrowserTabContent* yokeBTC = (BrowserTabContent*)pointer;
+        browserTabYoking->setYokedToBrowserTabContent(yokeBTC);
+    }
+    this->updateGraphicsWindow();
 }
 
 /**
  * Called when yoke mirrored checkbox is toggled.
  */
 void 
-BrainBrowserWindowToolBar::windowYokeMirroredCheckBoxStateChanged(int /*state*/)
+BrainBrowserWindowToolBar::windowYokeTypeComboBoxIndexChanged(int indx)
 {
     CaretLogEntering();
     this->checkUpdateCounter();
+
+    if (indx >= 0) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        BrowserTabYoking* browserTabYoking = btc->getBrowserTabYoking();
+        
+        int32_t integerCode = this->windowYokeTypeComboBox->itemData(indx).toInt();
+        YokingTypeEnum::Enum yokeType = YokingTypeEnum::fromIntegerCode(integerCode, NULL);
+        browserTabYoking->setYokingType(yokeType);
+    }
+    this->updateGraphicsWindow();
 }
 
 /**

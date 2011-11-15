@@ -260,3 +260,25 @@ YokingTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     return e;
 }
 
+/**
+ * Get all of the enumerated type values.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allEnums
+ *     A vector that is OUTPUT containing all of the enumerated values.
+ */
+void
+YokingTypeEnum::getAllEnums(std::vector<YokingTypeEnum::Enum>& allEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    allEnums.clear();
+    
+    for (std::vector<YokingTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        allEnums.push_back(iter->e);
+    }
+}
+
+
