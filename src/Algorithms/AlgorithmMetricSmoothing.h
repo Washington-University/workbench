@@ -54,7 +54,7 @@ namespace caret {
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoAlgorithm<AlgorithmMetricSmoothing> AutoAlgorithmMetricSmoothing;
+    typedef TemplateAutoOperation<AlgorithmMetricSmoothing> AutoAlgorithmMetricSmoothing;
 
 }
 

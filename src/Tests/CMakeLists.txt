@@ -65,6 +65,8 @@ ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(test_driver
 Tests
 Algorithms
+Operations
+OperationsBase
 GuiQt
 Brain
 Palette
@@ -112,6 +114,8 @@ ENDIF (APPLE)
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Tests
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Operations
+${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/GuiQt
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Palette

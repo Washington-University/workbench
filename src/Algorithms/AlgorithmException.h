@@ -1,5 +1,5 @@
-#ifndef __COMMAND_EXCEPTION_H__
-#define __COMMAND_EXCEPTION_H__
+#ifndef __ALGORITHM_EXCEPTION_H__
+#define __ALGORITHM_EXCEPTION_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -55,4 +55,4 @@ private:
 
 } // namespace
 
-#endif // __COMMAND_EXCEPTION_H__
+#endif // __ALGORITHM_EXCEPTION_H__

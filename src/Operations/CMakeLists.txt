@@ -1,7 +1,7 @@
 #
 # Name of project
 #
-PROJECT (Algorithms)
+PROJECT (Operations)
 
 #
 # Need XML from Qt
@@ -16,23 +16,16 @@ INCLUDE (${QT_USE_FILE})
 #
 # Create the helper library
 #
-ADD_LIBRARY(Algorithms
-AbstractAlgorithm.h
-AlgorithmException.h
-AlgorithmMetricGradient.h
-AlgorithmMetricSmoothing.h
+ADD_LIBRARY(Operations
+AbstractOperation.h
 
-AbstractAlgorithm.cxx
-AlgorithmException.cxx
-AlgorithmMetricGradient.cxx
-AlgorithmMetricSmoothing.cxx
+AbstractOperation.cxx
 )
 
 #
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/FilesBase

@@ -34,22 +34,22 @@
 using namespace caret;
 using namespace std;
 
-CommandParser::CommandParser(AutoAlgorithmInterface* myAutoAlg) :
-    CommandOperation(myAutoAlg->getCommandSwitch(), myAutoAlg->getShortDescription()),
-    AlgorithmParserInterface(myAutoAlg)
+CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
+    CommandOperation(myAutoOper->getCommandSwitch(), myAutoOper->getShortDescription()),
+    OperationParserInterface(myAutoOper)
 {
 }
 
 void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
-    CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
+    CaretPointer<AlgorithmParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
     parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
     parameters.verifyAllParametersProcessed();
     //code to show what arguments map to what parameters should go here
     
-    m_autoAlg->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
+    m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
     
     writeOutput(myOutAssoc);
     
@@ -57,7 +57,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
 
 void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
-    CaretPointer<AlgorithmParameters> myAlgParams(m_autoAlg->getParameters());//could be an autopointer, but this is safer
+    CaretPointer<AlgorithmParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
     parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc, true);//parsing block
@@ -78,8 +78,8 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             {
                 switch (myComponent->m_paramList[i]->getType())
                 {
-                case AlgorithmParametersEnum::INT:
-                case AlgorithmParametersEnum::DOUBLE:
+                case OperationParametersEnum::INT:
+                case OperationParametersEnum::DOUBLE:
                     break;//it is probably a negative number, so don't throw an exception unless it fails to parse as one
                 default:
                     throw ProgramParametersException("Invalid Option switch \"" + nextArg + "\" while next non-option argument is <" + myComponent->m_paramList[i]->m_shortName +
@@ -92,7 +92,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         }
         switch (myComponent->m_paramList[i]->getType())
         {
-            case AlgorithmParametersEnum::BOOL:
+            case OperationParametersEnum::BOOL:
             {
                 parameters.backup();
                 ((BooleanParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextBoolean(myComponent->m_paramList[i]->m_shortName);
@@ -103,7 +103,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::CIFTI:
+            case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = new CiftiFile();
                 myFile->openFile(nextArg);
@@ -115,7 +115,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::DOUBLE:
+            case OperationParametersEnum::DOUBLE:
             {
                 parameters.backup();
                 ((DoubleParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextDouble(myComponent->m_paramList[i]->m_shortName);
@@ -126,7 +126,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::INT:
+            case OperationParametersEnum::INT:
             {
                 parameters.backup();
                 ((IntParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
@@ -137,7 +137,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::LABEL:
+            case OperationParametersEnum::LABEL:
             {
                 LabelFile* myFile = new LabelFile();
                 myFile->readFile(nextArg);
@@ -149,7 +149,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::METRIC:
+            case OperationParametersEnum::METRIC:
             {
                 MetricFile* myFile = new MetricFile();
                 myFile->readFile(nextArg);
@@ -161,7 +161,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::STRING:
+            case OperationParametersEnum::STRING:
             {
                 ((StringParameter*)myComponent->m_paramList[i])->m_parameter = nextArg;
                 if (debug)
@@ -171,7 +171,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::SURFACE:
+            case OperationParametersEnum::SURFACE:
             {
                 SurfaceFile* myFile = new SurfaceFile();
                 myFile->readFile(nextArg);
@@ -183,7 +183,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
                 }
                 break;
             }
-            case AlgorithmParametersEnum::VOLUME:
+            case OperationParametersEnum::VOLUME:
             {
                 VolumeFile* myFile = new VolumeFile();
                 myFile->readFile(nextArg);
@@ -280,31 +280,31 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
         AbstractParameter* myParam = outAssociation[i].m_param;
         switch (myParam->getType())
         {
-            case AlgorithmParametersEnum::BOOL://ignores the name you give the output for now, but what gives primitive type output and how is it used?
+            case OperationParametersEnum::BOOL://ignores the name you give the output for now, but what gives primitive type output and how is it used?
                 cout << "Output Boolean \"" << myParam->m_shortName << "\" value is " << ((BooleanParameter*)myParam)->m_parameter << endl;
                 break;
-            case AlgorithmParametersEnum::CIFTI:
+            case OperationParametersEnum::CIFTI:
                 ((CiftiParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
                 break;
-            case AlgorithmParametersEnum::DOUBLE:
+            case OperationParametersEnum::DOUBLE:
                 cout << "Output Floating Point \"" << myParam->m_shortName << "\" value is " << ((DoubleParameter*)myParam)->m_parameter << endl;
                 break;
-            case AlgorithmParametersEnum::INT:
+            case OperationParametersEnum::INT:
                 cout << "Output Integer \"" << myParam->m_shortName << "\" value is " << ((IntParameter*)myParam)->m_parameter << endl;
                 break;
-            case AlgorithmParametersEnum::LABEL:
+            case OperationParametersEnum::LABEL:
                 ((LabelParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
                 break;
-            case AlgorithmParametersEnum::METRIC:
+            case OperationParametersEnum::METRIC:
                 ((MetricParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
                 break;
-            case AlgorithmParametersEnum::STRING:
+            case OperationParametersEnum::STRING:
                 cout << "Output String \"" << myParam->m_shortName << "\" value is " << ((StringParameter*)myParam)->m_parameter << endl;
                 break;
-            case AlgorithmParametersEnum::SURFACE:
+            case OperationParametersEnum::SURFACE:
                 ((SurfaceParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
                 break;
-            case AlgorithmParametersEnum::VOLUME:
+            case OperationParametersEnum::VOLUME:
                 ((VolumeParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);
                 break;
             default:
@@ -326,7 +326,7 @@ AString CommandParser::getHelpInformation(const AString& programName)
     curIndent += m_indentIncrement;
     ret += getIndentString(curIndent) + programName + " " + getCommandLineSwitch() + "\n";//DO NOT format the command that people may want to copy and paste, added hyphens would be disastrous
     curIndent += m_indentIncrement;
-    AlgorithmParameters* myAlgParams = m_autoAlg->getParameters();
+    AlgorithmParameters* myAlgParams = m_autoOper->getParameters();
     addHelpComponent(ret, myAlgParams, curIndent);
     addHelpProse(ret, myAlgParams, curIndent);
     ret += getIndentString(curIndent) + "Descriptions of parameters and options:\n\n";

@@ -22,46 +22,20 @@
  *
  */
 
-#include "AbstractAlgorithm.h"
+#include "AbstractOperation.h"
 
 using namespace std;
 using namespace caret;
 
-AbstractAlgorithm::AbstractAlgorithm(ProgressObject* myProgressObject)
+AbstractOperation::AbstractOperation()
 {
-    m_progObj = myProgressObject;
-    m_finish = true;
-    if (m_progObj == NULL)
-    {
-        m_finish = false;
-        return;
-    }
-    myProgressObject->algorithmStartSentinel();
-    if (myProgressObject->isDisabled())
-    {
-        m_finish = false;//don't let a subalgorithm finish the progress bar if the main algorithm ignores it
-    }
 }
 
-float AbstractAlgorithm::getAlgorithmInternalWeight()
+AbstractOperation::~AbstractOperation()
 {
-    return 1.0f;
 }
 
-float AbstractAlgorithm::getSubAlgorithmWeight()
+OperationParserInterface::~OperationParserInterface()
 {
-    return 0.0f;
-}
-
-float AbstractAlgorithm::getAlgorithmWeight()
-{
-    return getAlgorithmInternalWeight() + getSubAlgorithmWeight();
-}
-
-AbstractAlgorithm::~AbstractAlgorithm()
-{
-    if ((m_progObj != NULL) && m_finish)
-    {
-        m_progObj->forceFinish();
-    }
+    delete m_autoOper;
 }

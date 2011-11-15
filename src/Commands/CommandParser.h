@@ -25,8 +25,8 @@
  *
  */
 
-#include "AlgorithmParameters.h"
-#include "AbstractAlgorithm.h"
+#include "OperationParameters.h"
+#include "AbstractOperation.h"
 #include "CommandOperation.h"
 #include "ProgramParameters.h"
 #include "CommandException.h"
@@ -35,7 +35,7 @@
 
 namespace caret {
 
-    class CommandParser : public CommandOperation, AlgorithmParserInterface
+    class CommandParser : public CommandOperation, OperationParserInterface
     {
         int m_minIndent, m_maxIndent, m_indentIncrement, m_maxWidth;
         struct OutputAssoc
@@ -55,7 +55,7 @@ namespace caret {
         void addOptionDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         AString formatString(const AString& in, int curIndent, bool addIndent);
     public:
-        CommandParser(AutoAlgorithmInterface* myAutoAlg);
+        CommandParser(AutoOperationInterface* myAutoOper);
         void executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
         void showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException);
         AString getHelpInformation(const AString& programName);

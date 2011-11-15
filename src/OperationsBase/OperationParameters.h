@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_PARAMETERS_H__
-#define __ALGORITHM_PARAMETERS_H__
+#ifndef __OPERATION_PARAMETERS_H__
+#define __OPERATION_PARAMETERS_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -29,7 +29,7 @@
 #include <vector>
 #include "stdint.h"
 #include "CaretPointer.h"
-#include "AlgorithmParametersEnum.h"
+#include "OperationParametersEnum.h"
 
 namespace caret {
 
@@ -39,16 +39,13 @@ namespace caret {
     class LabelFile;
     class CiftiFile;
     
-    class AlgorithmParserInterface;
-    class AutoAlgorithmInterface;
-    struct AbstractOutputParameter;
     struct OptionalParameter;
     
     struct AbstractParameter
     {
         int32_t m_key;//identifies this parameter uniquely for this algorithm
         AString m_shortName, m_description;
-        virtual AlgorithmParametersEnum::Enum getType() = 0;
+        virtual OperationParametersEnum::Enum getType() = 0;
         AbstractParameter(int32_t key, const AString& shortName, const AString& description) :
         m_key(key),
         m_shortName(shortName),
@@ -174,10 +171,10 @@ namespace caret {
         OptionalParameter* createOptionalParameter(const int32_t key, const AString& optionSwitch, const AString& description);
         
         ///return pointer to an input parameter
-        AbstractParameter* getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
+        AbstractParameter* getInputParameter(const int32_t key, const OperationParametersEnum::Enum type);
         
         ///return pointer to an output
-        AbstractParameter* getOutputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type);
+        AbstractParameter* getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type);
         
         ///return pointer to an option
         OptionalParameter* getOptionalParameter(const int32_t key);
@@ -214,10 +211,10 @@ namespace caret {
     };
 
     //templates for the common cases
-    template<typename T, AlgorithmParametersEnum::Enum TYPE>
+    template<typename T, OperationParametersEnum::Enum TYPE>
     struct PointerTemplateParameter : public AbstractParameter
     {
-        virtual AlgorithmParametersEnum::Enum getType() { return TYPE; };
+        virtual OperationParametersEnum::Enum getType() { return TYPE; };
         CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
         PointerTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
@@ -225,10 +222,10 @@ namespace caret {
         };
     };
     
-    template<typename T, AlgorithmParametersEnum::Enum TYPE>
+    template<typename T, OperationParametersEnum::Enum TYPE>
     struct PrimitiveTemplateParameter : public AbstractParameter
     {
-        virtual AlgorithmParametersEnum::Enum getType() { return TYPE; };
+        virtual OperationParametersEnum::Enum getType() { return TYPE; };
         T m_parameter;
         PrimitiveTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
@@ -237,16 +234,16 @@ namespace caret {
     };
     
     //some friendlier names
-    typedef PointerTemplateParameter<SurfaceFile, AlgorithmParametersEnum::SURFACE> SurfaceParameter;
-    typedef PointerTemplateParameter<VolumeFile, AlgorithmParametersEnum::VOLUME> VolumeParameter;
-    typedef PointerTemplateParameter<MetricFile, AlgorithmParametersEnum::METRIC> MetricParameter;
-    typedef PointerTemplateParameter<LabelFile, AlgorithmParametersEnum::LABEL> LabelParameter;
-    typedef PointerTemplateParameter<CiftiFile, AlgorithmParametersEnum::CIFTI> CiftiParameter;
-    typedef PrimitiveTemplateParameter<double, AlgorithmParametersEnum::DOUBLE> DoubleParameter;
-    typedef PrimitiveTemplateParameter<int64_t, AlgorithmParametersEnum::INT> IntParameter;
-    typedef PrimitiveTemplateParameter<AString, AlgorithmParametersEnum::STRING> StringParameter;
-    typedef PrimitiveTemplateParameter<bool, AlgorithmParametersEnum::BOOL> BooleanParameter;
+    typedef PointerTemplateParameter<SurfaceFile, OperationParametersEnum::SURFACE> SurfaceParameter;
+    typedef PointerTemplateParameter<VolumeFile, OperationParametersEnum::VOLUME> VolumeParameter;
+    typedef PointerTemplateParameter<MetricFile, OperationParametersEnum::METRIC> MetricParameter;
+    typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
+    typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
+    typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
+    typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntParameter;
+    typedef PrimitiveTemplateParameter<AString, OperationParametersEnum::STRING> StringParameter;
+    typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;
     
 }
 
-#endif //__ALGORITHM_PARAMETERS_H__
+#endif //__OPERATION_PARAMETERS_H__

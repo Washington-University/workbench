@@ -65,8 +65,10 @@ caret_command.cxx
 # Libraries that are linked
 #
 TARGET_LINK_LIBRARIES(caret_command 
-CommandOperations
+Commands
 Algorithms
+Operations
+OperationsBase
 Brain
 Files
 Palette
@@ -85,8 +87,10 @@ ${LIBS})
 #
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
-${CMAKE_SOURCE_DIR}/CommandOperations
+${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Operations
+${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/FilesBase

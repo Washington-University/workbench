@@ -51,7 +51,7 @@ namespace caret {
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoAlgorithm<AlgorithmMetricGradient> AutoAlgorithmMetricGradient;
+    typedef TemplateAutoOperation<AlgorithmMetricGradient> AutoAlgorithmMetricGradient;
 
 }
 

@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include "AlgorithmParameters.h"
+#include "OperationParameters.h"
 #include "CaretAssert.h"
 
 #include "CiftiFile.h"
@@ -71,7 +71,7 @@ OptionalParameter* ParameterComponent::createOptionalParameter(const int32_t key
     return ret;
 }
 
-AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type)
+AbstractParameter* ParameterComponent::getInputParameter(const int32_t key, const OperationParametersEnum::Enum type)
 {
     uint32_t i;
     for (i = 0; i < m_paramList.size(); ++i)
@@ -99,7 +99,7 @@ OptionalParameter* ParameterComponent::getOptionalParameter(const int32_t key)
     return NULL;
 }
 
-AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, const AlgorithmParametersEnum::Enum type)
+AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, const OperationParametersEnum::Enum type)
 {
     uint32_t i;
     for (i = 0; i < m_outputList.size(); ++i)
@@ -220,80 +220,80 @@ AbstractParameter::~AbstractParameter()
 
 CiftiFile* ParameterComponent::getCifti(const int32_t key)
 {
-    return ((CiftiParameter*)getInputParameter(key, AlgorithmParametersEnum::CIFTI))->m_parameter.getPointer();
+    return ((CiftiParameter*)getInputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
 }
 
 double ParameterComponent::getDouble(const int32_t key)
 {
-    return ((DoubleParameter*)getInputParameter(key, AlgorithmParametersEnum::DOUBLE))->m_parameter;
+    return ((DoubleParameter*)getInputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter;
 }
 
 int64_t ParameterComponent::getInt(const int32_t key)
 {
-    return ((IntParameter*)getInputParameter(key, AlgorithmParametersEnum::INT))->m_parameter;
+    return ((IntParameter*)getInputParameter(key, OperationParametersEnum::INT))->m_parameter;
 }
 
 LabelFile* ParameterComponent::getLabel(const int32_t key)
 {
-    return ((LabelParameter*)getInputParameter(key, AlgorithmParametersEnum::LABEL))->m_parameter.getPointer();
+    return ((LabelParameter*)getInputParameter(key, OperationParametersEnum::LABEL))->m_parameter.getPointer();
 }
 
 MetricFile* ParameterComponent::getMetric(const int32_t key)
 {
-    return ((MetricParameter*)getInputParameter(key, AlgorithmParametersEnum::METRIC))->m_parameter.getPointer();
+    return ((MetricParameter*)getInputParameter(key, OperationParametersEnum::METRIC))->m_parameter.getPointer();
 }
 
 const AString& ParameterComponent::getString(const int32_t key)
 {
-    return ((StringParameter*)getInputParameter(key, AlgorithmParametersEnum::STRING))->m_parameter;
+    return ((StringParameter*)getInputParameter(key, OperationParametersEnum::STRING))->m_parameter;
 }
 
 SurfaceFile* ParameterComponent::getSurface(const int32_t key)
 {
-    return ((SurfaceParameter*)getInputParameter(key, AlgorithmParametersEnum::SURFACE))->m_parameter.getPointer();
+    return ((SurfaceParameter*)getInputParameter(key, OperationParametersEnum::SURFACE))->m_parameter.getPointer();
 }
 
 VolumeFile* ParameterComponent::getVolume(const int32_t key)
 {
-    return ((VolumeParameter*)getInputParameter(key, AlgorithmParametersEnum::VOLUME))->m_parameter.getPointer();
+    return ((VolumeParameter*)getInputParameter(key, OperationParametersEnum::VOLUME))->m_parameter.getPointer();
 }
 
 CiftiFile* ParameterComponent::getOutputCifti(const int32_t key)
 {
-    return ((CiftiParameter*)getOutputParameter(key, AlgorithmParametersEnum::CIFTI))->m_parameter.getPointer();
+    return ((CiftiParameter*)getOutputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
 }
 
 double* ParameterComponent::getOutputDouble(const int32_t key)
 {
-    return &(((DoubleParameter*)getOutputParameter(key, AlgorithmParametersEnum::DOUBLE))->m_parameter);
+    return &(((DoubleParameter*)getOutputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter);
 }
 
 int64_t* ParameterComponent::getOutputInt(const int32_t key)
 {
-    return &(((IntParameter*)getOutputParameter(key, AlgorithmParametersEnum::INT))->m_parameter);
+    return &(((IntParameter*)getOutputParameter(key, OperationParametersEnum::INT))->m_parameter);
 }
 
 LabelFile* ParameterComponent::getOutputLabel(const int32_t key)
 {
-    return ((LabelParameter*)getOutputParameter(key, AlgorithmParametersEnum::LABEL))->m_parameter.getPointer();
+    return ((LabelParameter*)getOutputParameter(key, OperationParametersEnum::LABEL))->m_parameter.getPointer();
 }
 
 AString* ParameterComponent::getOutputString(const int32_t key)
 {
-    return &(((StringParameter*)getOutputParameter(key, AlgorithmParametersEnum::STRING))->m_parameter);
+    return &(((StringParameter*)getOutputParameter(key, OperationParametersEnum::STRING))->m_parameter);
 }
 
 SurfaceFile* ParameterComponent::getOutputSurface(const int32_t key)
 {
-    return ((SurfaceParameter*)getOutputParameter(key, AlgorithmParametersEnum::SURFACE))->m_parameter.getPointer();
+    return ((SurfaceParameter*)getOutputParameter(key, OperationParametersEnum::SURFACE))->m_parameter.getPointer();
 }
 
 VolumeFile* ParameterComponent::getOutputVolume(const int32_t key)
 {
-    return ((VolumeParameter*)getOutputParameter(key, AlgorithmParametersEnum::VOLUME))->m_parameter.getPointer();
+    return ((VolumeParameter*)getOutputParameter(key, OperationParametersEnum::VOLUME))->m_parameter.getPointer();
 }
 
 MetricFile* ParameterComponent::getOutputMetric(const int32_t key)
 {
-    return ((MetricParameter*)getOutputParameter(key, AlgorithmParametersEnum::METRIC))->m_parameter.getPointer();
+    return ((MetricParameter*)getOutputParameter(key, OperationParametersEnum::METRIC))->m_parameter.getPointer();
 }

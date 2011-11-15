@@ -1,7 +1,7 @@
 #
 # Name of project
 #
-PROJECT (CommandOperations)
+PROJECT (Commands)
 
 #
 # Need XML from Qt
@@ -16,7 +16,7 @@ INCLUDE (${QT_USE_FILE})
 #
 # Create the brain library
 #
-ADD_LIBRARY(CommandOperations
+ADD_LIBRARY(Commands
 CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
@@ -44,8 +44,10 @@ CommandUnitTest.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
-${CMAKE_SOURCE_DIR}/CommandOperations
+${CMAKE_SOURCE_DIR}/Commands
 ${CMAKE_SOURCE_DIR}/Algorithms
+${CMAKE_SOURCE_DIR}/Operations
+${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
