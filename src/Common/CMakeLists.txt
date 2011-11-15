@@ -64,7 +64,6 @@ LogManager.h
 LogRecord.h
 MathFunctions.h
 MatrixFunctions.h
-MessageManager.h
 NetworkException.h
 ProgramParameters.h
 ProgramParametersException.h
@@ -109,7 +108,6 @@ LogLevelEnum.cxx
 LogManager.cxx
 LogRecord.cxx
 MathFunctions.cxx
-MessageManager.cxx
 NetworkException.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx

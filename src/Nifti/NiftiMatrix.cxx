@@ -499,7 +499,7 @@ int64_t NiftiMatrix::calculateMatrixSizeInBytes(const int64_t &frameSizeIn, cons
 }
 
 
-void NiftiMatrix::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component)
+void NiftiMatrix::getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component)
 {
     readFrame(timeSlice);
 
@@ -509,7 +509,7 @@ void NiftiMatrix::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, 
 
 }
 
-void NiftiMatrix::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component)
+void NiftiMatrix::setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component)
 {
     setFrame(timeSlice);
     const float* frameRef = frameIn.getFrame(timeSlice, component);

@@ -28,7 +28,6 @@
 #include "NiftiException.h"
 #include "QFile"
 #include "AString.h"
-#include "VolumeFile.h"
 #include "stdint.h"
 #include "zlib.h"
 #include "QMap"

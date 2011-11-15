@@ -30,7 +30,7 @@
 #include "NiftiException.h"
 #include "QFile"
 #include "AString.h"
-#include "VolumeFile.h"
+#include "VolumeBase.h"
 #include "stdint.h"
 #include "zlib.h"
 #include "QMap"
@@ -109,9 +109,9 @@ public:
     void setComponent(const int64_t &index, const int64_t &componentIndex, const float &value) throw (NiftiException);
     /// Volume read/write Functions
     /// get VolumeFrame
-    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
+    void getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component=0);
     /// Set VolumeFrame
-    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
+    void setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component=0);
     /* void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
     void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
     */

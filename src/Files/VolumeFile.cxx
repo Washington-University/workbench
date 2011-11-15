@@ -38,17 +38,17 @@ using namespace caret;
 using namespace std;
 
 VolumeFile::VolumeFile()
-: CaretMappableDataFile(DataFileTypeEnum::VOLUME), VolumeBase()
+: VolumeBase(), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
 }
 
 VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
-: CaretMappableDataFile(DataFileTypeEnum::VOLUME), VolumeBase(dimensionsIn, indexToSpace, numComponents)
+: VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
 }
 
 VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
-: CaretMappableDataFile(DataFileTypeEnum::VOLUME), VolumeBase(dimensionsIn, indexToSpace, numComponents)
+: VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
 }
 

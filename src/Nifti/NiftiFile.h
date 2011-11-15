@@ -30,7 +30,7 @@
 #include "NiftiHeaderIO.h"
 #include "ByteSwapping.h"
 #include "NiftiMatrix.h"
-#include "VolumeFile.h"
+#include "VolumeBase.h"
 #include "zlib.h"
 
 /** TODOS: there are a BUNCH...
@@ -112,19 +112,19 @@ public:
 
     /// volume file read/write Functions
     /// get VolumeFrame
-    void getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component=0);
+    void getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component=0);
     /// set VolumeFrame
-    void setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component=0);
+    void setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component=0);
 
     /// Read the entire nifti file into a volume file
-    void readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
+    void readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException);
     /// Write the entire Volume File to a nifti file
-    void writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException);
+    void writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException);
 
     /// Gets a Nifti1Header from a previously defined volume file
-    void getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header & header);
+    void getHeaderFromVolumeFile(VolumeBase &vol, Nifti1Header & header);
     /// Gets a Nifti2Header from a previously defined volume file
-    void getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header & header);
+    void getHeaderFromVolumeFile(VolumeBase &vol, Nifti2Header & header);
 
     void getLayout(LayoutType &layout) throw(NiftiException) {
         return matrix.getMatrixLayoutOnDisk(layout);

@@ -338,7 +338,7 @@ int NiftiFile::getNiftiVersion()
 
 // Volume IO
 
-void NiftiFile::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, const int64_t component)
+void NiftiFile::getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component)
 {
     //get dimensions, sform and component size
     Nifti2Header header;
@@ -356,7 +356,7 @@ void NiftiFile::getVolumeFrame(VolumeFile &frameOut, const int64_t timeSlice, co
     matrix.getVolumeFrame(frameOut,timeSlice,component);
 }
 
-void NiftiFile::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, const int64_t component)
+void NiftiFile::setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component)
 {
     //get dimensions, sform and component size
     Nifti2Header header;
@@ -374,7 +374,7 @@ void NiftiFile::setVolumeFrame(VolumeFile &frameIn, const int64_t & timeSlice, c
     matrix.setVolumeFrame(frameIn,timeSlice,component);
 }
 
-void NiftiFile::readVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
     this->openFile(filename);
 
@@ -399,7 +399,7 @@ void NiftiFile::readVolumeFile(VolumeFile &vol, const AString &filename) throw (
     }
 }
 
-void NiftiFile::getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header &header)
+void NiftiFile::getHeaderFromVolumeFile(VolumeBase &vol, Nifti1Header &header)
 {
     /*need to get the following:
      dimensions
@@ -426,14 +426,14 @@ void NiftiFile::getHeaderFromVolumeFile(VolumeFile &vol, Nifti1Header &header)
       */
 }
 
-void NiftiFile::getHeaderFromVolumeFile(VolumeFile &vol, Nifti2Header &header)
+void NiftiFile::getHeaderFromVolumeFile(VolumeBase &vol, Nifti2Header &header)
 {
 
 
 
 }
 
-void NiftiFile::writeVolumeFile(VolumeFile &vol, const AString &filename) throw (NiftiException)
+void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
     //get dimensions, sform and component size
     std::vector <int64_t> dim;
