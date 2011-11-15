@@ -177,7 +177,7 @@ void NiftiMatrix::readFrame(int64_t timeSlice) throw (NiftiException)
         if(this->isCompressed())
         {
             AString aFileName = file.fileName();
-            gzFile matFile = gzopen(aFileName,"r+");
+            gzFile matFile = gzopen(aFileName.toStdString().c_str(),"rb");
             gzseek(matFile,frameOffset,0);
             gzread(matFile,bytes,frameSize);
             gzclose(matFile);

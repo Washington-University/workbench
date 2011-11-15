@@ -60,7 +60,7 @@ bool Matrix::isCompressed()
 {
     if(file.fileName().length()!=0)
     {
-        if(file.fileName().endsWith(".")) return true;
+        if(file.fileName().endsWith(".gz")) return true;
         else return false;
     }
     else return false;
@@ -174,7 +174,7 @@ void Matrix::readFrame(int64_t timeSlice) throw (NiftiException)
         if(this->isCompressed())
         {
             AString aFileName = file.fileName();
-            gzFile matFile = gzopen(aFileName,"r");
+            gzFile matFile = gzopen(aFileName,"rb");
             gzseek(matFile,frameOffset,0);
             gzread(matFile,bytes,frameSize);
             gzclose(matFile);

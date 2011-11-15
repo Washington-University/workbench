@@ -79,9 +79,9 @@ bool NiftiFile::isCompressed()
  */
 void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
 {
+    this->m_fileName = fileName;
     if(!QFile::exists(fileName))//opening file for writing
     {
-        this->m_fileName = fileName;
         matrix.setMatrixFile(m_fileName);
         newFile=true;
         return;
@@ -98,7 +98,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     if(this->isCompressed())
     {
         AString temp = fileName;
-        gzFile ext = gzopen(temp, "r");
+        gzFile ext = gzopen(temp.toStdString().c_str(), "rb");
         gzseek(ext,eOffset,0);
         gzread(ext,extension_bytes,eLength);
         gzclose(ext);

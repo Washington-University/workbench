@@ -33,7 +33,7 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor.mp
  *
  */
 HtmlStringBuilder::HtmlStringBuilder()
