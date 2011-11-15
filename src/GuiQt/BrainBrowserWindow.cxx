@@ -210,7 +210,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processCloseSpecFile()));
-    this->closeSpecFileAction->setEnabled(false);
     
     this->closeTabAction =
     WuQtUtilities::createAction("Close Tab",
@@ -650,9 +649,15 @@ BrainBrowserWindow::processCaptureImage()
 void 
 BrainBrowserWindow::processCloseSpecFile()
 {
-    
+    Brain* brain = GuiManager::get()->getBrain();
+    brain->resetBrain();
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Create a new window.
+ */
 void 
 BrainBrowserWindow::processNewWindow()
 {
