@@ -45,9 +45,9 @@ AString AlgorithmMetricGradient::getShortDescription()
     return "SURFACE GRADIENT OF A METRIC FILE";
 }
 
-AlgorithmParameters* AlgorithmMetricGradient::getParameters()
+OperationParameters* AlgorithmMetricGradient::getParameters()
 {
-    AlgorithmParameters* ret = new AlgorithmParameters();
+    OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to compute the gradient on");
     ret->addMetricParameter(2, "metric-in", "the metric to compute the gradient of");
     ret->addMetricOutputParameter(3, "metric-out", "the magnitude of the gradient");
@@ -72,7 +72,7 @@ AlgorithmParameters* AlgorithmMetricGradient::getParameters()
     return ret;
 }
 
-void AlgorithmMetricGradient::useParameters(AlgorithmParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
     MetricFile* myMetricIn = myParams->getMetric(2);

@@ -48,8 +48,8 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi = NULL, int64_t columnNum = -1);
-        static AlgorithmParameters* getParameters();
-        static void useParameters(AlgorithmParameters*, ProgressObject*);
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

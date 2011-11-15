@@ -55,7 +55,7 @@ ParameterComponent::~ParameterComponent()
     }
 }
 
-AlgorithmParameters::AlgorithmParameters()
+OperationParameters::OperationParameters()
 {
 }
 
@@ -154,7 +154,7 @@ void ParameterComponent::addVolumeParameter(const int32_t key, const AString& na
     m_paramList.push_back(new VolumeParameter(key, name, description));
 }
 
-void AlgorithmParameters::setHelpText(const AString& textIn)
+void OperationParameters::setHelpText(const AString& textIn)
 {
     m_helpText = textIn;
 }
@@ -209,7 +209,7 @@ void ParameterComponent::addVolumeOutputParameter(const int32_t key, const AStri
     m_outputList.push_back(myParam);
 }
 
-AString& AlgorithmParameters::getHelpText()
+AString& OperationParameters::getHelpText()
 {
     return m_helpText;
 }

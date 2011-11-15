@@ -195,12 +195,12 @@ namespace caret {
         }
     };
     
-    struct AlgorithmParameters : public ParameterComponent
+    struct OperationParameters : public ParameterComponent
     {
         AString m_helpText;//formatted by the parser object for display in terminal or modal window
 
         ///constructor
-        AlgorithmParameters();
+        OperationParameters();
         
         ///set the help text of the algorithm - you DO NOT need to add newlines within paragraphs or list the parameters, or give a description of each parameter! describe ONLY what it does, plus any quirks
         void setHelpText(const AString& textIn);

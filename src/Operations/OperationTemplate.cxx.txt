@@ -22,23 +22,23 @@
  *
  */
 
-#include "AlgorithmName.h"
-#include "AlgorithmException.h"
+#include "OperationName.h"
+#include "OperationException.h"
 
 using namespace caret;
 using namespace std;
 
-AString AlgorithmName::getCommandSwitch()
+AString OperationName::getCommandSwitch()
 {
     return "-command-switch";
 }
 
-AString AlgorithmName::getShortDescription()
+AString OperationName::getShortDescription()
 {
     return "SHORT DESCRIPTION";
 }
 
-OperationParameters* AlgorithmName::getParameters()
+OperationParameters* OperationName::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     //ret->addSurfaceParameter(1, "surface", "the surface to compute on");
@@ -53,8 +53,9 @@ OperationParameters* AlgorithmName::getParameters()
     return ret;
 }
 
-void AlgorithmName::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void OperationName::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
+    LevelProgress myProgress(myProgObj);
     //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface with key 1
     //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric with key 2
     //OptionalParameter* columnSelect = myParams->getOptionalParameter(3);//gets optional parameter with key 3
@@ -63,28 +64,6 @@ void AlgorithmName::useParameters(OperationParameters* myParams, ProgressObject*
     {//set up to use the single column
         columnNum = columnSelect->getInt(4);get the integer argument to the option
     }//*/
-    AlgorithmName(myProgObj /*INSERT PARAMETERS HERE*/);//executes the algorithm
-}
-
-AlgorithmName::AlgorithmName(ProgressObject* myProgObj /*INSERT PARAMETERS HERE*/) : AbstractAlgorithm(myProgObj)
-{
-    /*ProgressObject* subAlgProgress1 = NULL;//uncomment these if you use another algorithm inside here
-    if (myProgObj != NULL)
-    {
-        subAlgProgress1 = myProgObj->addAlgorithm(AlgorithmInsertNameHere::getAlgorithmWeight());
-    }//*/
-    LevelProgress myProgress(myProgObj);//this line sets the algorithm up to use the progress object, and will finish the progress object automatically when the algorithm terminates
-    //myProgress.reportProgress(0.5f);//this is how you say you are halfway done with the INTERNAL work of the algorithm
-    //will report finished automatically when this function ends (myProgress goes out of scope, destructor triggers finish)
-}
-
-float AlgorithmName::getAlgorithmInternalWeight()
-{
-    return 1.0f;//override this if needed, if the progress bar isn't smooth
-}
-
-float AlgorithmName::getSubAlgorithmWeight()
-{
-    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
-    return 0.0f;
+    //do the work here
+    //myProgress.reportProgress(0.5f);//this is how you would report being half finished, if the operation takes a while (probably not)
 }

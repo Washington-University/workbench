@@ -73,10 +73,6 @@ StructureEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(StructureEnum(INVALID, 
-                                     "INVALID", 
-                                     "Invalid"));
-    
     enumData.push_back(StructureEnum(ALL, 
                                      "ALL", 
                                      "All"));
@@ -88,6 +84,26 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(CORTEX_RIGHT, 
                                      "CORTEX_RIGHT", 
                                      "CortexRight"));
+    
+    enumData.push_back(StructureEnum(CEREBELLUM, 
+                                     "CEREBELLUM", 
+                                     "Cerebellum"));
+    
+    enumData.push_back(StructureEnum(CEREBELLUM_LEFT, 
+                                     "CEREBELLUM_LEFT", 
+                                     "CerebellumLeft"));
+    
+    enumData.push_back(StructureEnum(CEREBELLUM_RIGHT, 
+                                     "CEREBELLUM_RIGHT", 
+                                     "CerebellumRight"));
+    
+    enumData.push_back(StructureEnum(OTHER, 
+                                     "OTHER", 
+                                     "Other"));
+    
+    enumData.push_back(StructureEnum(INVALID, 
+                                     "INVALID", 
+                                     "Invalid"));
     
     enumData.push_back(StructureEnum(ACCUMBENS_LEFT, 
                                      "ACCUMBENS_LEFT", 
@@ -117,18 +133,6 @@ StructureEnum::initialize()
                                      "CAUDATE_RIGHT", 
                                      "CaudateRight"));
     
-    enumData.push_back(StructureEnum(CEREBELLUM, 
-                                     "CEREBELLUM", 
-                                     "Cerebellum"));
-    
-    enumData.push_back(StructureEnum(CEREBELLUM_LEFT, 
-                                     "CEREBELLUM_LEFT", 
-                                     "CerebellumLeft"));
-    
-    enumData.push_back(StructureEnum(CEREBELLUM_RIGHT, 
-                                     "CEREBELLUM_RIGHT", 
-                                     "CerebellumRight"));
-    
     enumData.push_back(StructureEnum(DIENCEPHALON_VENTRAL_LEFT, 
                                      "DIENCEPHALON_VENTRAL_LEFT", 
                                      "DiencephalonVentralLeft"));
@@ -152,10 +156,6 @@ StructureEnum::initialize()
     enumData.push_back(StructureEnum(PALLIDUM_RIGHT, 
                                      "PALLIDUM_RIGHT", 
                                      "PallidumRight"));
-    
-    enumData.push_back(StructureEnum(OTHER, 
-                                     "OTHER", 
-                                     "Other"));
     
     enumData.push_back(StructureEnum(PUTAMEN_LEFT, 
                                      "PUTAMEN_LEFT", 

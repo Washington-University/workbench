@@ -50,7 +50,7 @@ namespace caret {
         AString getIndentString(int desired);
         void addHelpComponent(AString& info, ParameterComponent* myComponent, int curIndent);
         void addHelpOptions(AString& info, ParameterComponent* myAlgParams, int curIndent);
-        void addHelpProse(AString& info, AlgorithmParameters* myAlgParams, int curIndent);
+        void addHelpProse(AString& info, OperationParameters* myAlgParams, int curIndent);
         void addComponentDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         void addOptionDescriptions(AString& info, ParameterComponent* myComponent, int curIndent);
         AString formatString(const AString& in, int curIndent, bool addIndent);

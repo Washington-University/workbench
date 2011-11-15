@@ -42,7 +42,7 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
 
 void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
-    CaretPointer<AlgorithmParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
+    CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
     parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc);//parsing block
@@ -57,7 +57,7 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
 
 void CommandParser::showParsedOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
-    CaretPointer<AlgorithmParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
+    CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
     parseComponent(myAlgParams.getPointer(), parameters, myOutAssoc, true);//parsing block
@@ -326,7 +326,7 @@ AString CommandParser::getHelpInformation(const AString& programName)
     curIndent += m_indentIncrement;
     ret += getIndentString(curIndent) + programName + " " + getCommandLineSwitch() + "\n";//DO NOT format the command that people may want to copy and paste, added hyphens would be disastrous
     curIndent += m_indentIncrement;
-    AlgorithmParameters* myAlgParams = m_autoOper->getParameters();
+    OperationParameters* myAlgParams = m_autoOper->getParameters();
     addHelpComponent(ret, myAlgParams, curIndent);
     addHelpProse(ret, myAlgParams, curIndent);
     ret += getIndentString(curIndent) + "Descriptions of parameters and options:\n\n";
@@ -357,7 +357,7 @@ void CommandParser::addHelpOptions(AString& info, ParameterComponent* myComponen
     }
 }
 
-void CommandParser::addHelpProse(AString& info, AlgorithmParameters* myAlgParams, int curIndent)
+void CommandParser::addHelpProse(AString& info, OperationParameters* myAlgParams, int curIndent)
 {//NOTE: does not currently format tabs well, don't use them
     AString* rawProse = &(myAlgParams->getHelpText());//friendlier name
     info += "\n";//separate prose with another newline
@@ -390,17 +390,19 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
         {//start by crawling until newline or at max width
             ++endIndex;
         }
-        if (in[endIndex - 1] == '\n')
+        if (endIndex >= in.size())
         {
-            while (endIndex < in.size() && in[endIndex] == '\n')
-            {//crawl over any additional newlines
-                ++endIndex;
-            }
-            haveAddedBreak = false;
-            ret += curIndentString + in.mid(curIndex, endIndex - curIndex);
+            ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
         } else {
-            if (endIndex < in.size())
+            if (in[endIndex] == '\n')
             {
+                while (endIndex < in.size() && in[endIndex] == '\n')
+                {//crawl over any additional newlines
+                    ++endIndex;
+                }
+                haveAddedBreak = false;
+                ret += curIndentString + in.mid(curIndex, endIndex - curIndex);
+            } else {
                 int savedEnd = endIndex;
                 while (endIndex > curIndex && in[endIndex] != ' ')
                 {//crawl in reverse until a space, or reaching curIndex - change this if you want hyphenation to take place more often than lines without any spaces
@@ -423,8 +425,6 @@ AString CommandParser::formatString(const AString& in, int curIndent, bool addIn
                     haveAddedBreak = true;
                     ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "-\n";
                 }
-            } else {
-                ret += curIndentString + in.mid(curIndex, endIndex - curIndex) + "\n";
             }
         }
         curIndex = endIndex;

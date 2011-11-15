@@ -196,6 +196,7 @@ bool ProgressObject::isDisabled()
 
 ProgressObject::~ProgressObject()
 {
+    finishLevel();//so that things listening for progress events are kept consistent
     vector<ProgressInfo>::iterator myend = m_children.end();
     for (vector<ProgressInfo>::iterator iter = m_children.begin(); iter != myend; ++iter)
     {

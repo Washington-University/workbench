@@ -45,8 +45,8 @@ namespace caret {
                                 const bool myAvgNormals = false,
                                 MetricFile* myRoi = NULL,
                                 const int32_t myColumn = -1);
-        static AlgorithmParameters* getParameters();
-        static void useParameters(AlgorithmParameters*, ProgressObject*);
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

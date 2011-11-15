@@ -44,9 +44,9 @@ AString AlgorithmMetricSmoothing::getShortDescription()
     return "SMOOTH A METRIC FILE";
 }
 
-AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
+OperationParameters* AlgorithmMetricSmoothing::getParameters()
 {
-    AlgorithmParameters* ret = new AlgorithmParameters();
+    OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to smooth on");
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
     ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
@@ -63,7 +63,7 @@ AlgorithmParameters* AlgorithmMetricSmoothing::getParameters()
     return ret;
 }
 
-void AlgorithmMetricSmoothing::useParameters(AlgorithmParameters* myParams, ProgressObject* myProgObj)
+void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
     MetricFile* myMetric = myParams->getMetric(2);

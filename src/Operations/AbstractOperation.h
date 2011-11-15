@@ -41,10 +41,10 @@ namespace caret {
     public:
 
         ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
-        static AlgorithmParameters* getParameters() { CaretAssert(false); return NULL; }
+        static OperationParameters* getParameters() { CaretAssert(false); return NULL; }
 
         ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
-        static void useParameters(AlgorithmParameters*, ProgressObject*) { CaretAssert(false); }
+        static void useParameters(OperationParameters*, ProgressObject*) { CaretAssert(false); }
         
         ///override this to set the command switch
         static AString getCommandSwitch() { CaretAssert(false); return ""; }
@@ -59,8 +59,8 @@ namespace caret {
     ///interface class for use by algorithm parsers
     struct AutoOperationInterface
     {
-        virtual AlgorithmParameters* getParameters() = 0;
-        virtual void useParameters(AlgorithmParameters* a, ProgressObject* b) = 0;
+        virtual OperationParameters* getParameters() = 0;
+        virtual void useParameters(OperationParameters* a, ProgressObject* b) = 0;
         virtual const AString& getCommandSwitch() = 0;
         virtual const AString& getShortDescription() = 0;
         virtual bool takesParameters() = 0;
@@ -72,8 +72,8 @@ namespace caret {
     {
         AString m_switch, m_shortInfo;
         TemplateAutoOperation() : m_switch(T::getCommandSwitch()), m_shortInfo(T::getShortDescription()) { }
-        AlgorithmParameters* getParameters() { return T::getParameters(); }
-        void useParameters(AlgorithmParameters* a, ProgressObject* b) { T::useParameters(a, b); }
+        OperationParameters* getParameters() { return T::getParameters(); }
+        void useParameters(OperationParameters* a, ProgressObject* b) { T::useParameters(a, b); }
         const AString& getCommandSwitch() { return m_switch; }
         const AString& getShortDescription() { return m_shortInfo; }
         bool takesParameters() { return T::takesParameters(); }

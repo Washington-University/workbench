@@ -18,8 +18,12 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Operations
 AbstractOperation.h
+OperationAddToSpecFile.h
+OperationException.h
 
 AbstractOperation.cxx
+OperationException.cxx
+OperationAddToSpecFile.cxx
 )
 
 #

@@ -28,7 +28,7 @@
 /*
 file->save as... and enter what you will name the class, plus .h
 
-find and replace these strings, without matching "whole word only":
+find and replace these strings, without matching "whole word only" (plain text mode):
 
 AlgorithmName     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
 ALGORITHM_NAME    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
@@ -45,7 +45,7 @@ cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmN
 
 or manually copy and replace, and implement its functions - the algorithm work goes in the CONSTRUCTOR
 
-afterwards, place the following lines into CommandOperations/CommandOperationManager.cxx
+afterwards, place the following lines into Commands/CommandOperationManager.cxx
 
 #include "AlgorithmName.h"        //near the top
 this->commandOperations.push_back(new CommandParser(new AutoAlgorithmName()));          //in CommandOperationManager()
@@ -71,8 +71,8 @@ namespace caret {
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmName(ProgressObject* myProgObj /*INSERT PARAMETERS HERE//*/);
-        static AlgorithmParameters* getParameters();
-        static void useParameters(AlgorithmParameters*, ProgressObject*);
+        static OperationParameters* getParameters();
+        static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
         static AString getShortDescription();
         //static bool takesParameters() { return false; };

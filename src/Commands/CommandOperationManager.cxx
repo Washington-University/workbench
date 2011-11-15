@@ -29,6 +29,8 @@
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 
+#include "OperationAddToSpecFile.h"
+
 #include "CommandParser.h"
 
 #include "CommandClassCreate.h"
@@ -77,6 +79,8 @@ CommandOperationManager::CommandOperationManager()
 {
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
+    
+    this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());
     this->commandOperations.push_back(new CommandClassCreate());
