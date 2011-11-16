@@ -27,6 +27,7 @@
 
 
 #include "WuQDialogModal.h"
+#include "DataFileException.h"
 
 class QCheckBox;
 class QLabel;
@@ -39,6 +40,7 @@ namespace caret {
     class CaretDataFile;
     class CaretMappableDataFile;
     class ManageFileRow;
+    class WuQWidgetObjectGroup;
     
     class ManageLoadedFilesDialog : public WuQDialogModal {
         Q_OBJECT
@@ -70,10 +72,13 @@ namespace caret {
             COLUMN_FILE_NAME
         };
         
+        void updateUserInterfaceAndGraphics();
+        
         QPushButton* saveCheckedFilesPushButton;
         
         std::vector<ManageFileRow*> fileRows;
         
+        Brain* brain;
         
         friend class ManageFileRow;
     };
@@ -82,12 +87,13 @@ namespace caret {
     class ManageFileRow : public QObject {
         Q_OBJECT
     private:
-        ManageFileRow(QWidget* parentWidget,
+        ManageFileRow(ManageLoadedFilesDialog* parentWidget,
+                      Brain* brain,
                       CaretDataFile* caretDataFile);
         
         ~ManageFileRow();
         
-        QWidget* parentWidget;
+        ManageLoadedFilesDialog* parentWidget;
         CaretDataFile* caretDataFile;
         CaretMappableDataFile* caretMappableDataFile;
         
@@ -100,13 +106,19 @@ namespace caret {
         QToolButton* fileNameToolButton;
         QLineEdit* fileNameLineEdit; 
         
+        WuQWidgetObjectGroup* widgetGroup;
+        
+        Brain* brain;
+        
+        void saveFile() throw (DataFileException);
+        
     private slots:
         void metaDataToolButtonPressed();
         void removeFileToolButtonPressed();
         void removeMapToolButtonPressed();
         void fileNameToolButtonPressed();
-        void saveFile();
         
+    private:
         friend class ManageLoadedFilesDialog;
     };
     

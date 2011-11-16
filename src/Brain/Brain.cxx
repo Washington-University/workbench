@@ -237,6 +237,8 @@ Brain::readSurfaceFile(const AString& filename,
         CaretLogThrowing(e);
         throw e;
     }
+    
+    surface->clearModified();
 }
 
 /**
@@ -290,6 +292,8 @@ Brain::readLabelFile(const AString& filename,
         CaretLogThrowing(e);
         throw e;
     }
+    
+    labelFile->clearModified();
 }
 
 /**
@@ -343,6 +347,9 @@ Brain::readMetricFile(const AString& filename,
         CaretLogThrowing(e);
         throw e;
     }
+    
+    metricFile->clearModified();
+    std::cout << "Metric modifieds status: " << metricFile->isModified() << std::endl;
 }
 
 /**
@@ -396,6 +403,8 @@ Brain::readRgbaFile(const AString& filename,
         CaretLogThrowing(e);
         throw e;
     }
+    
+    rgbaFile->clearModified();
 }
 
 /**
@@ -446,6 +455,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
         delete vf;
         throw e;
     }
+    //vf->clearModified();
     this->volumeFiles.push_back(vf);
 }
 
@@ -925,6 +935,61 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
     allDataFilesOut.insert(allDataFilesOut.end(),
                            this->volumeFiles.begin(),
                            this->volumeFiles.end());    
+}
+
+/**
+ * Write a data file.
+ * @param caretDataFile
+ *    Data file to write.
+ * @return
+ *    true if file was written, else false.
+ * @throw
+ *    DataFileException if there was an error writing the file.
+ */
+void 
+Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
+{
+    caretDataFile->writeFile(caretDataFile->getFileName());
+    caretDataFile->clearModified();
+    
+    this->specFile->addDataFile(caretDataFile->getDataFileType(), 
+                                caretDataFile->getStructure(), 
+                                caretDataFile->getFileName());
+    this->specFile->writeFile(this->specFile->getFileName());
+}
+
+/**
+ * Remove a data file from memory (does NOT delete file on disk.)
+ * @param caretDataFile
+ *    Data file to remove.
+ * @return
+ *    true if file was written, else false.
+ */
+bool 
+Brain::removeDataFile(CaretDataFile* caretDataFile)
+{
+    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        if (this->getBrainStructure(i)->removeDataFile(caretDataFile)) {
+            return true;
+        }
+    }
+    
+    if (this->paletteFile == caretDataFile) {
+        throw DataFileException("Cannot remove PaletteFile.");
+    }
+    
+    std::vector<VolumeFile*>::iterator volumeIterator = 
+    std::find(this->volumeFiles.begin(),
+              this->volumeFiles.end(),
+              caretDataFile);
+    if (volumeIterator != this->volumeFiles.end()) {
+        delete caretDataFile;
+        this->volumeFiles.erase(volumeIterator);
+        return true;
+    }
+    
+    return false;
 }
 
 

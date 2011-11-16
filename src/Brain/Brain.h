@@ -94,6 +94,10 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
+        void writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException);
+        
+        bool removeDataFile(CaretDataFile* caretDataFile);
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         

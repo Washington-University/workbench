@@ -1549,6 +1549,7 @@ GiftiDataArray::getPaletteColorMapping()
                 CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
             }
         }
+        this->paletteColorMapping->clearModified();
     }
     
     return this->paletteColorMapping;

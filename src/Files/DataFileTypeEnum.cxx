@@ -152,7 +152,8 @@ DataFileTypeEnum::initialize()
                                         "Metric",
                                         true,
                                         true,
-                                        "func.gii"));
+                                        "func.gii",
+                                        "shape.gii"));
     
     enumData.push_back(DataFileTypeEnum(PALETTE, 
                                         "PALETTE", 
@@ -430,6 +431,27 @@ DataFileTypeEnum::isFileUsedWithOneStructure(const Enum enumValue)
     const DataFileTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->oneStructureFlag;
 }
+
+/**
+ * Get the primary file extension for the file type.
+ * @param enumValue
+ *    The data file type.
+ * @return 
+ *    Extension for file type.
+ */
+AString 
+DataFileTypeEnum::toFileExtension(const Enum enumValue)
+{
+    if (initializedFlag == false) initialize();
+    const DataFileTypeEnum* enumInstance = findData(enumValue);
+    
+    AString ext = "file";
+    if (enumInstance->fileExtensions.empty() == false) {
+        ext = enumInstance->fileExtensions[0];
+    }
+    return ext;
+}
+
 
 /**
  * For the filename, match its extension to a DataFileType enumerated type.

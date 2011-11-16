@@ -92,6 +92,8 @@ public:
     
     static Enum fromFileExtension(const AString& filename, bool* isValidOut);
     
+    static AString toFileExtension(const Enum enumValue);
+    
     static bool isFileUsedWithOneStructure(const Enum enumValue);
     
     static void getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOut);

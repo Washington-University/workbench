@@ -311,6 +311,11 @@ BrainStructure::deleteSurface(Surface* surface)
     this->surfaceControllerMap.erase(controllerIter);
     
     /*
+     * Remove the surface.
+     */
+    this->surfaces.erase(iter);
+    
+    /*
      * Send the controller deleted event.
      */
     EventModelDisplayControllerDelete deleteEvent(mdcs);
@@ -703,4 +708,56 @@ BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
                            this->rgbaFiles.end());
 }
 
+/**
+ * Remove a data file from memory (does NOT delete file on disk.)
+ * @param caretDataFile
+ *    Data file to remove.
+ * @return
+ *    true if file was written, else false.
+ */
+bool 
+BrainStructure::removeDataFile(CaretDataFile* caretDataFile)
+{
+    std::vector<Surface*>::iterator surfaceIterator = 
+        std::find(this->surfaces.begin(),
+                  this->surfaces.end(),
+                  caretDataFile);
+    if (surfaceIterator != this->surfaces.end()) {
+        Surface* s = *surfaceIterator;
+        this->deleteSurface(s);
+        return true;
+    }
+    
+    std::vector<LabelFile*>::iterator labelIterator = 
+    std::find(this->labelFiles.begin(),
+              this->labelFiles.end(),
+              caretDataFile);
+    if (labelIterator != this->labelFiles.end()) {
+        delete caretDataFile;
+        this->labelFiles.erase(labelIterator);
+        return true;
+    }
+    
+    std::vector<MetricFile*>::iterator metricIterator = 
+    std::find(this->metricFiles.begin(),
+              this->metricFiles.end(),
+              caretDataFile);
+    if (metricIterator != this->metricFiles.end()) {
+        delete caretDataFile;
+        this->metricFiles.erase(metricIterator);
+        return true;
+    }
+    
+    std::vector<RgbaFile*>::iterator rgbaIterator = 
+    std::find(this->rgbaFiles.begin(),
+              this->rgbaFiles.end(),
+              caretDataFile);
+    if (rgbaIterator != this->rgbaFiles.end()) {
+        delete caretDataFile;
+        this->rgbaFiles.erase(rgbaIterator);
+        return true;
+    }
+    
+    return false;
+}
 

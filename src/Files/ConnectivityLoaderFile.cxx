@@ -60,6 +60,8 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->timeSeriesGraphEnabled = false;
     this->selectedTimePoint = 0.0;
+    
+    this->setFileName("");
 }
 
 /**

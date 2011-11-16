@@ -120,6 +120,8 @@ namespace caret {
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
+        bool removeDataFile(CaretDataFile* caretDataFile);
+        
     private:
         Brain* brain;
         

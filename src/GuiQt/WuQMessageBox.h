@@ -35,6 +35,9 @@ namespace caret {
         
     public:
         
+        static void errorOk(QWidget* parent,
+                                  const QString& text);
+        
         static void informationOk(QWidget* parent,
                                   const QString& text);
         

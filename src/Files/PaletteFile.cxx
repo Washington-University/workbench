@@ -40,6 +40,7 @@ PaletteFile::PaletteFile()
     this->metadata = new GiftiMetaData();
     this->initializeMembersPaletteFile();
     this->addDefaultPalettes();
+    this->clearModified();
 }
 
 /**

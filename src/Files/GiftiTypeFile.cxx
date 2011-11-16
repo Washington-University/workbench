@@ -100,7 +100,7 @@ GiftiTypeFile::clear()
 void 
 GiftiTypeFile::clearModified()
 {
-    DataFile::clearModified();
+    CaretDataFile::clearModified();
     this->giftiFile->clearModified();
 }
 
@@ -112,7 +112,7 @@ GiftiTypeFile::clearModified()
 bool 
 GiftiTypeFile::isModified() const
 {
-    if (DataFile::isModified()) {
+    if (CaretDataFile::isModified()) {
         return true;
     }
     if (this->giftiFile->isModified()) {

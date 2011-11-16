@@ -31,8 +31,13 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
+#include "EventManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
+#include "WuQFileDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 #include <QAction>
 #include <QCheckBox>
@@ -62,6 +67,8 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
 : WuQDialogModal("Manager Loaded Files",
                  parent)
 {
+    this->brain = brain;
+    
     this->setOkButtonText("");
     this->setCancelButtonText("Close");
     this->saveCheckedFilesPushButton = this->addUserPushButton("Save Checked Files");
@@ -100,6 +107,7 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     const int32_t numFiles = static_cast<int32_t>(caretDataFiles.size());
     for (int32_t i = 0; i < numFiles; i++) {
         ManageFileRow* fileRow = new ManageFileRow(this,
+                                                   this->brain,
                                                    caretDataFiles[i]);
         this->fileRows.push_back(fileRow);
         
@@ -159,11 +167,39 @@ void
 ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 {
     if (this->saveCheckedFilesPushButton == userPushButton) {
-        std::cout << "Save checked files pushbutton was pressed." << std::endl;
+        AString msg;
+        try {
+            const int32_t numFiles = static_cast<int32_t>(this->fileRows.size());
+            for (int32_t i = 0; i < numFiles; i++) {
+                this->fileRows[i]->saveFile();
+            }
+        }
+        catch (DataFileException e) {
+            if (msg.isEmpty() == false) {
+                msg += "\n";
+            }
+            msg += e.whatString();
+        }
+        
+        if (msg.isEmpty() == false) {
+            WuQMessageBox::errorOk(this, msg);
+        }
     }
     else {
         CaretAssert(0);
     }
+    
+    this->updateUserInterfaceAndGraphics();
+}
+
+/**
+ * Update the user-interface.
+ */
+void 
+ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 
@@ -172,9 +208,11 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
  * @param caretDataFile
  *    Data file for the row.
  */
-ManageFileRow::ManageFileRow(QWidget* parentWidget,
+ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
+                             Brain* brain,
                              CaretDataFile* caretDataFile)
 {
+    this->brain = brain;
     this->parentWidget  = parentWidget;
     this->caretDataFile = caretDataFile;
     this->caretMappableDataFile = dynamic_cast<CaretMappableDataFile*>(this->caretDataFile);
@@ -200,7 +238,7 @@ ManageFileRow::ManageFileRow(QWidget* parentWidget,
                                                           "Remove the file from memory (does NOT delete the file from disk)",
                                                           this,
                                                           this,
-                                                          SLOT(metaDataToolButtonPressed()));
+                                                          SLOT(removeFileToolButtonPressed()));
     this->removeFileToolButton = new QToolButton();
     this->removeFileToolButton->setDefaultAction(removeFileAction);
     
@@ -208,7 +246,7 @@ ManageFileRow::ManageFileRow(QWidget* parentWidget,
                                                           "Remove a map from the file",
                                                           this,
                                                           this,
-                                                          SLOT(metaDataToolButtonPressed()));
+                                                          SLOT(removeMapToolButtonPressed()));
     if (this->caretMappableDataFile == NULL) {
         removeMapAction->setEnabled(false);
     }
@@ -219,13 +257,22 @@ ManageFileRow::ManageFileRow(QWidget* parentWidget,
                                                           "Use a File Dialog to set the name of the file",
                                                           this,
                                                           this,
-                                                          SLOT(metaDataToolButtonPressed()));
+                                                          SLOT(fileNameToolButtonPressed()));
     this->fileNameToolButton = new QToolButton();
     this->fileNameToolButton->setDefaultAction(fileNameAction);
     
     this->fileNameLineEdit = new QLineEdit(); 
     this->fileNameLineEdit->setText(this->caretDataFile->getFileName());
     
+    this->widgetGroup = new WuQWidgetObjectGroup(this);
+    this->widgetGroup->add(this->saveCheckBox);
+    this->widgetGroup->add(this->fileTypeLabel);
+    this->widgetGroup->add(this->modifiedLabel);
+    this->widgetGroup->add(this->metaDataToolButton);
+    this->widgetGroup->add(this->removeFileToolButton);
+    this->widgetGroup->add(this->removeMapToolButton);
+    this->widgetGroup->add(this->fileNameToolButton);
+    this->widgetGroup->add(this->fileNameLineEdit);
 }
 
 /**
@@ -250,7 +297,15 @@ ManageFileRow::metaDataToolButtonPressed()
 void
 ManageFileRow::removeFileToolButtonPressed()
 {
-    WuQMessageBox::informationOk(this->parentWidget, ("remove file not implemented " + this->caretDataFile->getFileNameNoPath()));
+    try {
+        this->brain->removeDataFile(this->caretDataFile);
+        this->widgetGroup->setEnabled(false);
+        this->parentWidget->updateUserInterfaceAndGraphics();
+    }
+    catch (DataFileException e) {
+        this->parentWidget->updateUserInterfaceAndGraphics();
+        WuQMessageBox::errorOk(this->parentWidget, e.whatString());
+    }
 }
 
 /**
@@ -260,6 +315,7 @@ void
 ManageFileRow::removeMapToolButtonPressed()
 {
     WuQMessageBox::informationOk(this->parentWidget, ("remove map not implemented " + this->caretDataFile->getFileNameNoPath()));
+    this->parentWidget->updateUserInterfaceAndGraphics();
 }
 
 /**
@@ -268,16 +324,29 @@ ManageFileRow::removeMapToolButtonPressed()
 void 
 ManageFileRow::fileNameToolButtonPressed()
 {
-    WuQMessageBox::informationOk(this->parentWidget, ("name not implemented " + this->caretDataFile->getFileNameNoPath()));
+    AString filename = WuQFileDialog::getSaveFileName(this->parentWidget,
+                                                      "Choose File",
+                                                      this->brain->getCurrentDirectory(),
+                                                      DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));
+    if (filename.isEmpty() == false) {
+        this->fileNameLineEdit->setText(filename);
+    }
 }
 
 /**
  * Called to save the file
  */
 void 
-ManageFileRow::saveFile()
+ManageFileRow::saveFile()  throw (DataFileException)
 {
-    WuQMessageBox::informationOk(this->parentWidget, ("Saving " + this->caretDataFile->getFileNameNoPath()));    
+    if (this->saveCheckBox->isChecked()) {
+        AString name = this->fileNameLineEdit->text().trimmed();
+        this->caretDataFile->setFileName(name);
+        this->brain->writeDataFile(this->caretDataFile);
+        this->modifiedLabel->setText("   ");
+        this->saveCheckBox->setChecked(false);
+        this->parentWidget->updateUserInterfaceAndGraphics();
+    }
 }
 
 
