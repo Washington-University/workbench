@@ -60,6 +60,11 @@ namespace caret {
 
         bool isEmpty() const { return VolumeBase::isEmpty(); }
         
+        virtual void setModified() { VolumeBase::setModified(); }
+        
+        virtual void clearModified() { VolumeBase::clearModified(); }
+        
+        virtual bool isModified() { return VolumeBase::isModified(); }
         
         /**
          * @return The structure for this file.
