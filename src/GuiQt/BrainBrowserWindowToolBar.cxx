@@ -1998,7 +1998,7 @@ void
 BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->leftView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2014,7 +2014,7 @@ void
 BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->rightView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2030,7 +2030,7 @@ void
 BrainBrowserWindowToolBar::orientationAnteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->anteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2046,7 +2046,7 @@ void
 BrainBrowserWindowToolBar::orientationPosteriorToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->posteriorView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2062,7 +2062,7 @@ void
 BrainBrowserWindowToolBar::orientationDorsalToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->dorsalView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2078,7 +2078,7 @@ void
 BrainBrowserWindowToolBar::orientationVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->ventralView(btc->getTabNumber());
         this->updateGraphicsWindow();
@@ -2094,7 +2094,7 @@ void
 BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
         mdc->resetView(btc->getTabNumber());
         this->updateVolumeIndicesWidget(btc);
@@ -2110,8 +2110,11 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
 void 
 BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool /*checked*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
+    if (mdc != NULL) {
+        WuQMessageBox::errorOk(this, "User View not implemented yet");
+    }
 }
 
 /**
@@ -2120,8 +2123,11 @@ BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool /*chec
 void 
 BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool /*checked*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
+    if (mdc != NULL) {
+        WuQMessageBox::errorOk(this, "User View not implemented yet");
+    }
 }
 
 /**
@@ -2130,8 +2136,6 @@ BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool /*chec
 void 
 BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
 }
 
 /**
@@ -2140,8 +2144,11 @@ BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
 void 
 BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* /*action*/)
 {
-    CaretLogEntering();
-    this->checkUpdateCounter();
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
+    if (mdc != NULL) {
+        WuQMessageBox::errorOk(this, "User View not implemented yet");
+    }
 }
 
 /**
