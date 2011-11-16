@@ -34,6 +34,8 @@
 #include "OperationVolumePalette.h"
 
 #include "CommandParser.h"
+#include "AlgorithmException.h"
+#include "OperationException.h"
 
 #include "CommandClassCreate.h"
 #include "CommandClassCreateEnum.h"
@@ -158,6 +160,12 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
         }
     }
     catch (ProgramParametersException& e) {
+        throw CommandException(e);
+    }
+    catch (OperationException e) {
+        throw CommandException(e);
+    }
+    catch (AlgorithmException e) {
         throw CommandException(e);
     }
 }
