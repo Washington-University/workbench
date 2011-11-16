@@ -22,17 +22,21 @@
  * 
  */ 
 
+#include <fstream>
 #include <memory>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "FileInformation.h"
 #include "GiftiMetaData.h"
 #define __SPEC_FILE_DEFINE__
 #include "SpecFile.h"
 #undef __SPEC_FILE_DEFINE__
 #include "SpecFileDataFileTypeGroup.h"
 #include "SpecFileSaxReader.h"
+#include "SystemUtilities.h"
 #include "XmlSaxParser.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -152,8 +156,8 @@ SpecFile::copyHelperSpecFile(const SpecFile& sf)
     }
     this->metadata = new GiftiMetaData(*sf.metadata);
     
-    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
-         iter != dataFileTypeGroups.end();
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = sf.dataFileTypeGroups.begin();
+         iter != sf.dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* group = *iter;
         const int numFiles = group->getNumberOfFiles();
@@ -186,12 +190,28 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
                       const StructureEnum::Enum structure,
                       const AString& filename) throw (DataFileException)
 {
+    AString name = filename;
+    
+    if (this->getFileName().isEmpty() == false) {
+        name = SystemUtilities::relativePath(name, FileInformation(this->getFileName()).getPathName());
+    }
+    
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
         if (dataFileTypeGroup->getDataFileType() == dataFileType) {
-            SpecFileDataFile* sfdf = new SpecFileDataFile(filename,
+            /*
+             * If already in file, no need to add it a second time.
+             */
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                if (dataFileTypeGroup->getFileInformation(i)->getFileName() == name) {
+                    return;
+                }
+            }
+            
+            SpecFileDataFile* sfdf = new SpecFileDataFile(name,
                                                           structure);
             dataFileTypeGroup->addFileInformation(sfdf);
             return;
@@ -367,11 +387,89 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
 void 
 SpecFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    CaretLogSevere("Not implemented");
-    
     this->setFileName(filename);
+
+    try {
+        //
+        // Format the version string so that it ends with at most one zero
+        //
+        const AString versionString = AString::number(1.0);
+        
+        //
+        // Open the file
+        //
+        std::ofstream xmlFileOutputStream(this->getFileName().c_str());
+        if (! xmlFileOutputStream) {
+            AString msg = "Unable to open " + this->getFileName() + " for writing.";
+            throw GiftiException(msg);
+        }
+        //
+        // Create the xml writer
+        //
+        XmlWriter xmlWriter(xmlFileOutputStream);
+        
+        //
+        // Write header info
+        //
+        xmlWriter.writeStartDocument("1.0");
+        
+        //
+        // Write GIFTI root element
+        //
+        XmlAttributes attributes;
+        
+        //attributes.addAttribute("xmlns:xsi",
+        //                        "http://www.w3.org/2001/XMLSchema-instance");
+        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+        attributes.addAttribute(SpecFile::XML_ATTRIBUTE_VERSION,
+                                versionString);
+        xmlWriter.writeStartElement(SpecFile::XML_TAG_SPEC_FILE,
+                                           attributes);
+        
+        //
+        // Write Metadata
+        //
+        if (metadata != NULL) {
+            metadata->writeAsXML(xmlWriter);
+        }
     
-    this->clearModified();
+        //
+        // Write files
+        //
+        const int32_t numGroups = this->getNumberOfDataFileTypeGroups();
+        for (int32_t i = 0; i < numGroups; i++) {
+            SpecFileDataFileTypeGroup* group = this->getDataFileTypeGroup(i);
+            const int32_t numFiles = group->getNumberOfFiles();
+            for (int32_t j = 0; j < numFiles; j++) {
+                SpecFileDataFile* file = group->getFileInformation(j);
+                
+                
+                XmlAttributes atts;
+                atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
+                                  StructureEnum::toGuiName(file->getStructure()));
+                atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
+                                  DataFileTypeEnum::toName(group->getDataFileType()));
+                xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
+                                            atts);
+                xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
+                xmlWriter.writeEndElement();
+            }
+        }
+        
+        xmlWriter.writeEndElement();
+        xmlWriter.writeEndDocument();
+        
+        xmlFileOutputStream.close();
+        
+        this->clearModified();
+    }
+    catch (GiftiException e) {
+        throw e;
+    }
+    catch (XmlException e) {
+        throw e;
+    }
 }
 
 /**

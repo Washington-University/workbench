@@ -239,6 +239,7 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->modifiedLabel = new QLabel("   ");
     if (this->caretDataFile->isModified()) {
         this->modifiedLabel->setText(" * ");
+        this->saveCheckBox->setChecked(true);
     }
     
     QAction* metaDataAction = WuQtUtilities::createAction("Edit...",

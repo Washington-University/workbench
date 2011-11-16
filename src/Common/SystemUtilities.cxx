@@ -387,11 +387,13 @@ SystemUtilities::relativePath(
                    const AString& otherPathIn,
                    const AString& myPathIn)
 {
+    AString result = otherPathIn;
+    
     //
     // Check for either path being empty
     //
     if (otherPathIn.isEmpty() || myPathIn.isEmpty()) {
-        return "";
+        return result;
     }
     
 #ifdef CARET_OS_WINDOWS
@@ -399,22 +401,24 @@ SystemUtilities::relativePath(
     // Both paths must be absolute paths
     //
     if (otherPathIn.indexOf(":") < 0) {
-        return;
+        return result;
     }
     if (myPathIn.indexOf(":") < 0) {
-        return;
+        return result;
     }
 #else
     //
     // Both paths must be absolute paths
     //
     if ((otherPathIn[0] != '/') || (myPathIn[0] != '/')) {
-        return "";
+        return result;
     }
 #endif
     
-    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegExp("[/\\]"));
-    QStringList myPath = QDir::cleanPath(myPathIn).split("[/\\]");    
+    QStringList otherPath = QDir::cleanPath(otherPathIn).split(QRegExp("[/\\\\]"), 
+                                                               QString::SkipEmptyParts);
+    QStringList myPath = QDir::cleanPath(myPathIn).split(QRegExp("[/\\\\]"), 
+                                                         QString::SkipEmptyParts);    
     
     const unsigned int minLength = std::min(myPath.size(), otherPath.size());
     
@@ -429,8 +433,6 @@ SystemUtilities::relativePath(
         }
     }
     //cout << "same count: " << sameCount << std::endl;
-    
-    AString result = otherPathIn;
     
     //
     // Is root of both paths different
