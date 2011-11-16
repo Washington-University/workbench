@@ -129,11 +129,11 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::INT:
             {
                 parameters.backup();
-                ((IntParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
+                ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter = parameters.nextLong(myComponent->m_paramList[i]->m_shortName);
                 if (debug)
                 {
                     cout << "Parameter <" << myComponent->m_paramList[i]->m_shortName << "> parsed as ";
-                    cout << ((IntParameter*)myComponent->m_paramList[i])->m_parameter << endl;
+                    cout << ((IntegerParameter*)myComponent->m_paramList[i])->m_parameter << endl;
                 }
                 break;
             }
@@ -290,7 +290,7 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
                 cout << "Output Floating Point \"" << myParam->m_shortName << "\" value is " << ((DoubleParameter*)myParam)->m_parameter << endl;
                 break;
             case OperationParametersEnum::INT:
-                cout << "Output Integer \"" << myParam->m_shortName << "\" value is " << ((IntParameter*)myParam)->m_parameter << endl;
+                cout << "Output Integer \"" << myParam->m_shortName << "\" value is " << ((IntegerParameter*)myParam)->m_parameter << endl;
                 break;
             case OperationParametersEnum::LABEL:
                 ((LabelParameter*)myParam)->m_parameter->writeFile(outAssociation[i].m_fileName);

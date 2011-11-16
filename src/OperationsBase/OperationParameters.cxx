@@ -114,6 +114,11 @@ AbstractParameter* ParameterComponent::getOutputParameter(const int32_t key, con
 }
 
 //sadly, lots of boilerplate for convenience functions
+void ParameterComponent::addBooleanParameter(const int32_t key, const caret::AString& name, const caret::AString& description)
+{
+    m_paramList.push_back(new BooleanParameter(key, name, description));
+}
+
 void ParameterComponent::addCiftiParameter(const int32_t key, const AString& name, const AString& description)
 {
     m_paramList.push_back(new CiftiParameter(key, name, description));
@@ -129,9 +134,9 @@ void ParameterComponent::addMetricParameter(const int32_t key, const AString& na
     m_paramList.push_back(new MetricParameter(key, name, description));
 }
 
-void ParameterComponent::addIntParameter(const int32_t key, const AString& name, const AString& description)
+void ParameterComponent::addIntegerParameter(const int32_t key, const AString& name, const AString& description)
 {
-    m_paramList.push_back(new IntParameter(key, name, description));
+    m_paramList.push_back(new IntegerParameter(key, name, description));
 }
 
 void ParameterComponent::addLabelParameter(const int32_t key, const AString& name, const AString& description)
@@ -178,9 +183,9 @@ void ParameterComponent::addMetricOutputParameter(const int32_t key, const AStri
     m_outputList.push_back(myParam);
 }
 
-void ParameterComponent::addIntOutputParameter(const int32_t key, const AString& name, const AString& description)
+void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
-    m_outputList.push_back(new IntParameter(key, name, description));
+    m_outputList.push_back(new IntegerParameter(key, name, description));
 }
 
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
@@ -218,6 +223,11 @@ AbstractParameter::~AbstractParameter()
 {
 }
 
+bool ParameterComponent::getBoolean(const int32_t key)
+{
+    return ((BooleanParameter*)getInputParameter(key, OperationParametersEnum::BOOL))->m_parameter;
+}
+
 CiftiFile* ParameterComponent::getCifti(const int32_t key)
 {
     return ((CiftiParameter*)getInputParameter(key, OperationParametersEnum::CIFTI))->m_parameter.getPointer();
@@ -228,9 +238,9 @@ double ParameterComponent::getDouble(const int32_t key)
     return ((DoubleParameter*)getInputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter;
 }
 
-int64_t ParameterComponent::getInt(const int32_t key)
+int64_t ParameterComponent::getInteger(const int32_t key)
 {
-    return ((IntParameter*)getInputParameter(key, OperationParametersEnum::INT))->m_parameter;
+    return ((IntegerParameter*)getInputParameter(key, OperationParametersEnum::INT))->m_parameter;
 }
 
 LabelFile* ParameterComponent::getLabel(const int32_t key)
@@ -268,9 +278,9 @@ double* ParameterComponent::getOutputDouble(const int32_t key)
     return &(((DoubleParameter*)getOutputParameter(key, OperationParametersEnum::DOUBLE))->m_parameter);
 }
 
-int64_t* ParameterComponent::getOutputInt(const int32_t key)
+int64_t* ParameterComponent::getOutputInteger(const int32_t key)
 {
-    return &(((IntParameter*)getOutputParameter(key, OperationParametersEnum::INT))->m_parameter);
+    return &(((IntegerParameter*)getOutputParameter(key, OperationParametersEnum::INT))->m_parameter);
 }
 
 LabelFile* ParameterComponent::getOutputLabel(const int32_t key)

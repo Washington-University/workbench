@@ -58,7 +58,7 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     OptionalParameter* vecOut = ret->createOptionalParameter(11, "-vectors", "output vectors");
     vecOut->addMetricOutputParameter(12, "vector-metric-out", "the vectors as a metric with 3x the number of input columns");
     OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column to compute the gradient of");
-    columnSelect->addIntParameter(9, "column-num", "the column number");
+    columnSelect->addIntegerParameter(9, "column-num", "the column number");
     ret->createOptionalParameter(10, "-average-normals", "average the normals of each node with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
@@ -93,7 +93,7 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* columnSelect = myParams->getOptionalParameter(8);
     if (columnSelect->m_present)
     {
-        myColumn = (int32_t)columnSelect->getInt(9);//todo: subtract one for 1-based conventions?
+        myColumn = (int32_t)columnSelect->getInteger(9);//todo: subtract one for 1-based conventions?
     }
     OptionalParameter* avgNormals = myParams->getOptionalParameter(10);
     bool myAvgNormals = avgNormals->m_present;

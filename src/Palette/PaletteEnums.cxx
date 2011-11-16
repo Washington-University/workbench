@@ -252,6 +252,17 @@ PaletteScaleModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     return e;
 }
 
+void PaletteScaleModeEnum::getAllEnums(std::vector< PaletteScaleModeEnum::Enum >& enumsOut)
+{
+    initialize();
+    enumsOut.resize(enumData.size());
+    for (int i = 0; i < (int)enumData.size(); ++i)
+    {
+        enumsOut[i] = enumData[i].e;
+    }
+}
+
+
 /**
  * Constructor.
  *

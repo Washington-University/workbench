@@ -60,7 +60,7 @@ OperationParameters* OperationAddToSpecFile::getParameters()
 void OperationAddToSpecFile::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    bool ok;
+    bool ok = false;
     AString mySpecName = myParams->getString(1);//spec file
     AString myStructureName = myParams->getString(2);//file structure
     StructureEnum::Enum myStrucure = StructureEnum::fromName(myStructureName, &ok);

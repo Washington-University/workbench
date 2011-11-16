@@ -74,11 +74,17 @@ namespace caret {
         ///get a string with a key
         const AString& getString(const int32_t key);
         
+        ///add a parameter to get next item as a string
+        void addBooleanParameter(const int32_t key, const AString& name, const AString& description);
+        
+        ///get a string with a key
+        bool getBoolean(const int32_t key);
+        
         ///add a parameter to get next item as an int32
-        void addIntParameter(const int32_t key, const AString& name, const AString& description);
+        void addIntegerParameter(const int32_t key, const AString& name, const AString& description);
         
         ///get an integer with a key
-        int64_t getInt(const int32_t key);
+        int64_t getInteger(const int32_t key);
         
         ///add a parameter to get next item as a double
         void addDoubleParameter(const int32_t key, const AString& name, const AString& description);
@@ -126,10 +132,10 @@ namespace caret {
         AString* getOutputString(const int32_t key);
         
         ///add a parameter to get next item as an int32
-        void addIntOutputParameter(const int32_t key, const AString& name, const AString& description);
+        void addIntegerOutputParameter(const int32_t key, const AString& name, const AString& description);
         
         ///get an integer with a key
-        int64_t* getOutputInt(const int32_t key);
+        int64_t* getOutputInteger(const int32_t key);
         
         ///add a parameter to get next item as a double
         void addDoubleOutputParameter(const int32_t key, const AString& name, const AString& description);
@@ -240,7 +246,7 @@ namespace caret {
     typedef PointerTemplateParameter<LabelFile, OperationParametersEnum::LABEL> LabelParameter;
     typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
     typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
-    typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntParameter;
+    typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntegerParameter;
     typedef PrimitiveTemplateParameter<AString, OperationParametersEnum::STRING> StringParameter;
     typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;
     

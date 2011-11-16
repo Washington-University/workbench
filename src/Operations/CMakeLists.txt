@@ -20,10 +20,12 @@ ADD_LIBRARY(Operations
 AbstractOperation.h
 OperationAddToSpecFile.h
 OperationException.h
+OperationMetricPalette.h
 
 AbstractOperation.cxx
-OperationException.cxx
 OperationAddToSpecFile.cxx
+OperationException.cxx
+OperationMetricPalette.cxx
 )
 
 #
@@ -32,6 +34,7 @@ OperationAddToSpecFile.cxx
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
+${CMAKE_SOURCE_DIR}/Palette
 ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Files
 ${CMAKE_SOURCE_DIR}/Gifti

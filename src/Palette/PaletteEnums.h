@@ -63,6 +63,8 @@ public:
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
     
+    static void getAllEnums(std::vector<Enum>& enumsOut);
+    
 private:
     PaletteScaleModeEnum(const Enum e, const int32_t integerCode, const AString& name, const AString& guiName);
 

@@ -1,5 +1,5 @@
-#ifndef __OPERATION_ADD_TO_SPEC_FILE_H__
-#define __OPERATION_ADD_TO_SPEC_FILE_H__
+#ifndef __OPERATION_METRIC_PALETTE_H__
+#define __OPERATION_METRIC_PALETTE_H__
 
 /*LICENSE_START*/
 /*
@@ -29,7 +29,7 @@
 
 namespace caret {
     
-    class OperationAddToSpecFile : public AbstractOperation
+    class OperationMetricPalette : public AbstractOperation
     {
     public:
         static OperationParameters* getParameters();
@@ -38,8 +38,8 @@ namespace caret {
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<OperationAddToSpecFile> AutoOperationAddToSpecFile;
+    typedef TemplateAutoOperation<OperationMetricPalette> AutoOperationMetricPalette;
 
 }
 
-#endif //__OPERATION_ADD_TO_SPEC_FILE_H__
+#endif //__OPERATION_METRIC_PALETTE_H__

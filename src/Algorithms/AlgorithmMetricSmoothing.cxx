@@ -54,7 +54,7 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to smooth");
     roiOption->addMetricParameter(6, "roi-metric", "the roi to smooth within, as a metric");
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to smooth");
-    columnSelect->addIntParameter(8, "column-number", "the column number to smooth");
+    columnSelect->addIntegerParameter(8, "column-number", "the column number to smooth");
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
@@ -79,7 +79,7 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
     OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
     if (columnSelect->m_present)
     {
-        columnNum = columnSelect->getInt(8);//todo: subtract one for 1-based conventions?
+        columnNum = columnSelect->getInteger(8);//todo: subtract one for 1-based conventions?
     }
     AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myMetricOut, myKernel, myRoi, columnNum);
 }
