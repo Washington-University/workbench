@@ -25,6 +25,7 @@
 #include "OperationAddToSpecFile.h"
 #include "OperationException.h"
 #include "SpecFile.h"
+#include "FileInformation.h"
 #include <vector>
 
 using namespace caret;
@@ -46,7 +47,8 @@ OperationParameters* OperationAddToSpecFile::getParameters()
     ret->addStringParameter(1, "specfile", "the specification file to add to");
     ret->addStringParameter(2, "structure", "the structure of the data file");
     ret->addStringParameter(3, "filename", "the path to the file");
-    AString myText = "!!!NOTE: currently broken, can't write a spec file!!!\n  The resulting spec file overwrites the existing spec file.  The structure argument must be one of the following:\n\n";
+    AString myText = AString("!!!NOTE: currently broken, can't write a spec file!!!\n  The resulting spec file overwrites the existing spec file.  If the spec file doesn't exist, ") +
+        "it is created with default metadata.  The structure argument must be one of the following:\n\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
@@ -75,7 +77,11 @@ void OperationAddToSpecFile::useParameters(OperationParameters* myParams, Progre
         throw OperationException("unrecognized data file type");
     }
     SpecFile mySpec;
-    mySpec.readFile(mySpecName);
+    FileInformation mySpecInfo(mySpecName);
+    if (mySpecInfo.exists())
+    {
+        mySpec.readFile(mySpecName);
+    }
     mySpec.addDataFile(myType, myStrucure, myDataFileName);
     mySpec.writeFile(mySpecName);
 }
