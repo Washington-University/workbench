@@ -681,4 +681,26 @@ BrainStructure::getNodeAttributes(const int32_t nodeIndex) const
     return this->nodeAttributes[nodeIndex];
 }
 
+/**
+ * Get all loaded data files.
+ * @param allDataFilesOut
+ *    Data files are loaded into this parameter.
+ */
+void 
+BrainStructure::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
+{
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->surfaces.begin(),
+                           this->surfaces.end());
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->labelFiles.begin(),
+                           this->labelFiles.end());
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->metricFiles.begin(),
+                           this->metricFiles.end());
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->rgbaFiles.begin(),
+                           this->rgbaFiles.end());
+}
+
 

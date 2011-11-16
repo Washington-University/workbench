@@ -23,6 +23,7 @@
  */ 
 
 #include "GiftiLabel.h"
+#include "GiftiMetaData.h"
 #include "Palette.h"
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
@@ -34,8 +35,9 @@ using namespace caret;
  *
  */
 PaletteFile::PaletteFile()
-    : DataFile()
+: CaretDataFile(DataFileTypeEnum::PALETTE)
 {
+    this->metadata = new GiftiMetaData();
     this->initializeMembersPaletteFile();
     this->addDefaultPalettes();
 }
@@ -46,6 +48,7 @@ PaletteFile::PaletteFile()
 PaletteFile::~PaletteFile()
 {
     this->clearAll();
+    delete this->metadata;
 }
 
 void
@@ -75,7 +78,8 @@ PaletteFile::clearAll()
         delete this->palettes[i];
     }
     this->palettes.clear();
-    this->labelTable.clear();       
+    this->labelTable.clear();   
+    this->metadata->clear();
 }
 
 /**
@@ -1012,4 +1016,42 @@ PaletteFile::addDefaultPalettes()
     }
 }
 
+/**
+ * @return The structure for this file.
+ */
+StructureEnum::Enum 
+PaletteFile::getStructure() const
+{
+    // palette files do not have structure
+    return StructureEnum::INVALID;
+}
+
+/**
+ * Set the structure for this file.
+ * @param structure
+ *   New structure for this file.
+ */
+void 
+PaletteFile::setStructure(const StructureEnum::Enum /*structure*/)
+{
+    // palette files do not have structure
+}
+
+/**
+ * @return Get access to the file's metadata.
+ */
+GiftiMetaData* 
+PaletteFile::getFileMetaData()
+{
+    return this->metadata;
+}
+
+/**
+ * @return Get access to unmodifiable file's metadata.
+ */
+const GiftiMetaData* 
+PaletteFile::getFileMetaData() const
+{
+    return this->metadata;
+}
 

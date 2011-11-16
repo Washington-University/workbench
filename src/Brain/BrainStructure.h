@@ -40,6 +40,7 @@ namespace caret {
     
     class Brain;
     class BrainStructureNodeAttributes;
+    class CaretDataFile;
     class LabelFile;
     class MetricFile;
     class ModelDisplayControllerSurface;
@@ -116,6 +117,8 @@ namespace caret {
         BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex);
         
         const BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex) const;
+        
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
     private:
         Brain* brain;

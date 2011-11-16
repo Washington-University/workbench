@@ -46,6 +46,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "ManageLoadedFilesDialog.h"
 #include "PaletteColorMappingEditorDialog.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
@@ -202,7 +203,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
-    this->manageFilesAction->setEnabled(false);
     
     this->closeSpecFileAction =
     WuQtUtilities::createAction("Close Spec File",
@@ -817,7 +817,9 @@ BrainBrowserWindow::processDataFileOpenFromSpecFile()
 void 
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
-    
+    ManageLoadedFilesDialog manageLoadedFile(this,
+                                             GuiManager::get()->getBrain());
+    manageLoadedFile.exec();
 }
 
 /**

@@ -219,3 +219,29 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
 {
     return WuQMessageBox::warningOkCancel(parent, text, "");
 }
+
+/**
+ * Display an information message box with the
+ * given text and an OK button.
+ * 
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ */
+void
+WuQMessageBox::informationOk(QWidget* parent,
+                             const QString& text)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Information);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    msgBox.addButton(QMessageBox::Ok);
+    msgBox.setDefaultButton(QMessageBox::Ok);
+    msgBox.setEscapeButton(QMessageBox::Ok);
+    
+    msgBox.exec();
+}
+
+

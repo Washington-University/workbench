@@ -38,6 +38,7 @@
 namespace caret {
     
     class BrainStructure;
+    class CaretDataFile;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
     class ModelDisplayControllerVolume;
@@ -90,6 +91,8 @@ namespace caret {
         AString getCurrentDirectory() const;
         
         void setCurrentDirectory(const AString& currentDirectory);
+        
+        void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);

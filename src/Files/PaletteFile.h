@@ -26,7 +26,7 @@
  */ 
 
 
-#include "DataFile.h"
+#include "CaretDataFile.h"
 
 #include <stdint.h>
 
@@ -39,11 +39,13 @@ namespace caret {
 
     class GiftiLabel;
     class GiftiLabelTable;
+    class GiftiMetaData;
     class Palette;
+    
     /**
      * File for storing color palettes.
      */
-    class PaletteFile : public DataFile {
+    class PaletteFile : public CaretDataFile {
         
     public:
         PaletteFile();
@@ -104,6 +106,16 @@ namespace caret {
         
         virtual void writeFile(const AString& filename) throw (DataFileException);
         
+        virtual StructureEnum::Enum getStructure() const;
+        
+        virtual void setStructure(const StructureEnum::Enum structure);
+        
+        DataFileTypeEnum::Enum getDataFileType() const;
+        
+        virtual GiftiMetaData* getFileMetaData();
+        
+        virtual const GiftiMetaData* getFileMetaData() const;
+        
     private:
         void assignColorsToPalette(Palette& p);
         
@@ -117,6 +129,8 @@ namespace caret {
         
         /**the palettes */
         std::vector<Palette*> palettes;
+        
+        GiftiMetaData* metadata;
         
     };
 

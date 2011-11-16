@@ -28,11 +28,20 @@
 
 #include "WuQDialogModal.h"
 
+class QCheckBox;
+class QLabel;
+class QLineEdit;
+class QToolButton;
+
 namespace caret {
 
     class Brain;
+    class CaretDataFile;
+    class CaretMappableDataFile;
+    class ManageFileRow;
     
     class ManageLoadedFilesDialog : public WuQDialogModal {
+        Q_OBJECT
         
     public:
         ManageLoadedFilesDialog(QWidget* parent,
@@ -50,8 +59,55 @@ namespace caret {
         
     public:
     private:
+        enum Column {
+            COLUMN_SAVE_CHECKBOX,
+            COLUMN_MODIFIED,
+            COLUMN_FILE_TYPE,
+            COLUMN_METADATA,
+            COLUMN_REMOVE_BUTTON,
+            COLUMN_REMOVE_MAP_BUTTON,
+            COLUMN_FILE_NAME_BUTTON,
+            COLUMN_FILE_NAME
+        };
+        
         QPushButton* saveCheckedFilesPushButton;
         
+        std::vector<ManageFileRow*> fileRows;
+        
+        
+        friend class ManageFileRow;
+    };
+    
+    
+    class ManageFileRow : public QObject {
+        Q_OBJECT
+    private:
+        ManageFileRow(QWidget* parentWidget,
+                      CaretDataFile* caretDataFile);
+        
+        ~ManageFileRow();
+        
+        QWidget* parentWidget;
+        CaretDataFile* caretDataFile;
+        CaretMappableDataFile* caretMappableDataFile;
+        
+        QCheckBox* saveCheckBox;
+        QLabel* fileTypeLabel;
+        QLabel* modifiedLabel;
+        QToolButton* metaDataToolButton;
+        QToolButton* removeFileToolButton;
+        QToolButton* removeMapToolButton;
+        QToolButton* fileNameToolButton;
+        QLineEdit* fileNameLineEdit; 
+        
+    private slots:
+        void metaDataToolButtonPressed();
+        void removeFileToolButtonPressed();
+        void removeMapToolButtonPressed();
+        void fileNameToolButtonPressed();
+        void saveFile();
+        
+        friend class ManageLoadedFilesDialog;
     };
     
 #ifdef __MANAGE_LOADED_FILES_DIALOG_DECLARE__

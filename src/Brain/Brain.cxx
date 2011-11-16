@@ -905,4 +905,27 @@ Brain::setCurrentDirectory(const AString& currentDirectory)
     this->currentDirectory = currentDirectory;
 }
 
+/**
+ * Get all loaded data files.
+ * @param allDataFilesOut
+ *    Data files are loaded into this parameter.
+ */
+void 
+Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
+{
+    allDataFilesOut.clear();
+    
+    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        this->getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
+    }
+    
+    allDataFilesOut.push_back(this->paletteFile);
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->volumeFiles.begin(),
+                           this->volumeFiles.end());    
+}
+
+
 
