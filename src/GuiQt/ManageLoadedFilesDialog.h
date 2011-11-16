@@ -64,12 +64,14 @@ namespace caret {
         enum Column {
             COLUMN_SAVE_CHECKBOX,
             COLUMN_MODIFIED,
+            COLUMN_STRUCTURE,
             COLUMN_FILE_TYPE,
             COLUMN_METADATA,
             COLUMN_REMOVE_BUTTON,
             COLUMN_REMOVE_MAP_BUTTON,
             COLUMN_FILE_NAME_BUTTON,
-            COLUMN_FILE_NAME
+            COLUMN_FILE_NAME,
+            COLUMN_LAST   // MUST BE LAST
         };
         
         void updateUserInterfaceAndGraphics();
@@ -98,6 +100,7 @@ namespace caret {
         CaretMappableDataFile* caretMappableDataFile;
         
         QCheckBox* saveCheckBox;
+        QLabel* structureLabel;
         QLabel* fileTypeLabel;
         QLabel* modifiedLabel;
         QToolButton* metaDataToolButton;

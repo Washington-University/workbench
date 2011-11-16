@@ -64,7 +64,7 @@ using namespace caret;
  */
 ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                                                  Brain* brain)
-: WuQDialogModal("Manager Loaded Files",
+: WuQDialogModal("Manage and Save Loaded Files",
                  parent)
 {
     this->brain = brain;
@@ -79,6 +79,9 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     gridLayout->addWidget(new QLabel("Save"),
                           gridRow,
                           COLUMN_SAVE_CHECKBOX);
+    gridLayout->addWidget(new QLabel("Structure"),
+                          gridRow,
+                          COLUMN_STRUCTURE);
     gridLayout->addWidget(new QLabel("File Type"),
                           gridRow,
                           COLUMN_FILE_TYPE);
@@ -101,6 +104,11 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                           gridRow,
                           COLUMN_FILE_NAME);
     
+    for (int i = 0; i < COLUMN_LAST; i++) {
+        gridLayout->setColumnStretch(i, 0);
+    }
+    gridLayout->setColumnStretch(COLUMN_FILE_NAME, 100);
+    
     std::vector<CaretDataFile*> caretDataFiles;
     brain->getAllDataFiles(caretDataFiles);
     
@@ -115,6 +123,9 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         gridLayout->addWidget(fileRow->saveCheckBox,
                               gridRow,
                               COLUMN_SAVE_CHECKBOX);
+        gridLayout->addWidget(fileRow->structureLabel,
+                              gridRow,
+                              COLUMN_STRUCTURE);
         gridLayout->addWidget(fileRow->fileTypeLabel,
                               gridRow,
                               COLUMN_FILE_TYPE);
@@ -136,8 +147,6 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
         gridLayout->addWidget(fileRow->fileNameLineEdit,
                               gridRow,
                               COLUMN_FILE_NAME);
-        
-
     }
     
     QWidget* w = new QWidget();
@@ -219,6 +228,12 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     
     this->saveCheckBox = new QCheckBox(" ");
     
+    this->structureLabel = new QLabel("");
+    const StructureEnum::Enum structure = caretDataFile->getStructure();
+    if (structure != StructureEnum::INVALID) {
+        this->structureLabel->setText(StructureEnum::toGuiName(structure));
+    }
+    
     this->fileTypeLabel = new QLabel(DataFileTypeEnum::toGuiName(caretDataFile->getDataFileType()));
     
     this->modifiedLabel = new QLabel("   ");
@@ -261,11 +276,14 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->fileNameToolButton = new QToolButton();
     this->fileNameToolButton->setDefaultAction(fileNameAction);
     
+    const int lineEditWidth = 300;
     this->fileNameLineEdit = new QLineEdit(); 
+    this->fileNameLineEdit->setMinimumWidth(lineEditWidth);
     this->fileNameLineEdit->setText(this->caretDataFile->getFileName());
     
     this->widgetGroup = new WuQWidgetObjectGroup(this);
     this->widgetGroup->add(this->saveCheckBox);
+    this->widgetGroup->add(this->structureLabel);
     this->widgetGroup->add(this->fileTypeLabel);
     this->widgetGroup->add(this->modifiedLabel);
     this->widgetGroup->add(this->metaDataToolButton);
