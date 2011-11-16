@@ -686,6 +686,14 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 {
     const AString dataFileName = this->updateFileNameForReading(dataFileNameIn);
     
+    if (dataFileName.contains("://") == false) {
+        FileInformation fileInfo(dataFileName);
+        if (fileInfo.exists() == false) {
+            throw DataFileException(dataFileName
+                                    + " does not exist!");
+        }
+    }
+    
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER_PROJECTION:
             this->readBorderProjectionFile(dataFileName);
