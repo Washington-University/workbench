@@ -50,13 +50,15 @@ next, implement its functions - the algorithm work goes in the CONSTRUCTOR
 add these into Algorithms/CMakeLists.txt:
 
 AlgorithmName.h
-
 AlgorithmName.cxx
 
 place the following lines into Commands/CommandOperationManager.cxx:
 
-#include "AlgorithmName.h"        //near the top
-this->commandOperations.push_back(new CommandParser(new AutoAlgorithmName()));          //in CommandOperationManager()
+#include "AlgorithmName.h"
+    //near the top
+
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmName()));
+        //in CommandOperationManager()
 
 finally, remove this block comment
 */

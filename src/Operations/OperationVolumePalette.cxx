@@ -22,32 +22,31 @@
  *
  */
 
-#include "OperationMetricPalette.h"
+#include "OperationVolumePalette.h"
 #include "OperationException.h"
-#include "MetricFile.h"
 #include "PaletteColorMapping.h"
-#include <vector>
+#include "VolumeFile.h"
 
 using namespace caret;
 using namespace std;
 
-AString OperationMetricPalette::getCommandSwitch()
+AString OperationVolumePalette::getCommandSwitch()
 {
-    return "-metric-palette";
+    return "-volume-palette";
 }
 
-AString OperationMetricPalette::getShortDescription()
+AString OperationVolumePalette::getShortDescription()
 {
-    return "SET THE PALETTE OF A METRIC FILE";
+    return "SET THE PALETTE OF A VOLUME FILE";
 }
 
-OperationParameters* OperationMetricPalette::getParameters()
+OperationParameters* OperationVolumePalette::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    ret->addStringParameter(1, "metric", "the metric to modify");
+    ret->addStringParameter(1, "volume", "the volume file to modify");
     ret->addStringParameter(2, "mode", "the mapping mode");
-    OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "select a single column");
-    columnSelect->addIntegerParameter(1, "col-num", "the column number to modify");
+    OptionalParameter* subvolumeSelect = ret->createOptionalParameter(3, "-subvolume", "select a single subvolume");
+    subvolumeSelect->addIntegerParameter(1, "sub-num", "the subvolume number to modify");
     
     OptionalParameter* posMinMaxPercent = ret->createOptionalParameter(4, "-pos-percent", "percentage min/max for positive data coloring");
     posMinMaxPercent->addDoubleParameter(1, "pos-min-%", "the percentile for the least positive data");
@@ -82,8 +81,8 @@ OperationParameters* OperationMetricPalette::getParameters()
     
     //TODO: add thresholding options once you can write good descriptions of what they do
     
-    AString myText = AString("The original metric file is overwritten with the modified version.  By default, all columns of the metric file are adjusted ") +
-            "to the new settings, use the -column option to change only one column.  Mapping settings not specified in options will be taken from the first column.  " +
+    AString myText = AString("The original volume file is overwritten with the modified version.  By default, all columns of the volume file are adjusted ") +
+            "to the new settings, use the -subvolume option to change only one subvolume.  Mapping settings not specified in options will be taken from the first subvolume.  " +
             "The mode argument must be one of the following:\n\n";
     vector<PaletteScaleModeEnum::Enum> myEnums;
     PaletteScaleModeEnum::getAllEnums(myEnums);
@@ -95,10 +94,10 @@ OperationParameters* OperationMetricPalette::getParameters()
     return ret;
 }
 
-void OperationMetricPalette::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
+void OperationVolumePalette::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    AString myMetricName = myParams->getString(1);
+    AString myVolumeName = myParams->getString(1);
     AString myModeName = myParams->getString(2);
     bool ok = false;
     PaletteScaleModeEnum::Enum myMode = PaletteScaleModeEnum::fromName(myModeName, &ok);
@@ -106,23 +105,23 @@ void OperationMetricPalette::useParameters(OperationParameters* myParams, Progre
     {
         throw OperationException("unknown mapping mode");
     }
-    int myColumn = -1;
-    OptionalParameter* columnSelect = myParams->getOptionalParameter(3);
-    if (columnSelect->m_present)
+    int mySubvolume = -1;
+    OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(3);
+    if (subvolumeSelect->m_present)
     {
-        myColumn = columnSelect->getInteger(1);
-        if (myColumn < 0)//don't allow them to use the special value -1
+        mySubvolume = subvolumeSelect->getInteger(1);
+        if (mySubvolume < 0)//don't allow them to use the special value -1
         {
             throw OperationException("invalid column number");
         }
     }
-    MetricFile myMetric;
-    myMetric.readFile(myMetricName);
-    if (myColumn >= myMetric.getNumberOfMaps())
+    VolumeFile myVolume;
+    myVolume.readFile(myVolumeName);
+    if (mySubvolume >= myVolume.getNumberOfMaps())
     {
-        throw OperationException("invalid column number");
+        throw OperationException("invalid subvolume number");
     }
-    PaletteColorMapping myMapping = *(myMetric.getMapPaletteColorMapping(0));//create the mapping, then use operator= to set for all requested columns, take defaults from first map
+    PaletteColorMapping myMapping = *(myVolume.getMapPaletteColorMapping(0));//create the mapping, then use operator= to set for all requested columns, take defaults from first map
     myMapping.setScaleMode(myMode);
     OptionalParameter* posMinMaxPercent = myParams->getOptionalParameter(4);
     if (posMinMaxPercent->m_present)
@@ -173,14 +172,14 @@ void OperationMetricPalette::useParameters(OperationParameters* myParams, Progre
     {
         myMapping.setSelectedPaletteName(paletteName->getString(1));
     }
-    if (myColumn == -1)
+    if (mySubvolume == -1)
     {
-        for (int i = 0; i < myMetric.getNumberOfMaps(); ++i)
+        for (int i = 0; i < myVolume.getNumberOfMaps(); ++i)
         {
-            *(myMetric.getMapPaletteColorMapping(i)) = myMapping;
+            *(myVolume.getMapPaletteColorMapping(i)) = myMapping;
         }
     } else {
-        *(myMetric.getMapPaletteColorMapping(myColumn)) = myMapping;
+        *(myVolume.getMapPaletteColorMapping(mySubvolume)) = myMapping;
     }
-    myMetric.writeFile(myMetricName);
+    myVolume.writeFile(myVolumeName);
 }

@@ -31,6 +31,7 @@
 
 #include "OperationAddToSpecFile.h"
 #include "OperationMetricPalette.h"
+#include "OperationVolumePalette.h"
 
 #include "CommandParser.h"
 
@@ -78,11 +79,12 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());
     this->commandOperations.push_back(new CommandClassCreate());

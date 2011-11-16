@@ -776,7 +776,7 @@ VolumeBase::BrickAttributes::~BrickAttributes()
     }
 }
 
-AbstractExtension::~AbstractExtension()
+AbstractVolumeExtension::~AbstractVolumeExtension()
 {
     if (m_bytes != NULL)
     {

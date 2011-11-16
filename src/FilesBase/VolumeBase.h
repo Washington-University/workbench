@@ -40,7 +40,7 @@ namespace caret {
     class GiftiMetaData;
     class PaletteColorMapping;
     
-    struct AbstractExtension
+    struct AbstractVolumeExtension
     {
         enum ExtensionType
         {
@@ -49,9 +49,9 @@ namespace caret {
         };
         uint8_t* m_bytes;
         int64_t m_numBytes;
-        AbstractExtension() { m_bytes = NULL; }
+        AbstractVolumeExtension() { m_bytes = NULL; }
         virtual ExtensionType getType() = 0;
-        virtual ~AbstractExtension();
+        virtual ~AbstractVolumeExtension();
     };
     
     class VolumeBase : public TracksModificationInterface
@@ -107,7 +107,7 @@ namespace caret {
         virtual ~VolumeBase();
 
         ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public - USE delete ON EXTENSIONS THAT YOU ERASE!
-        std::vector<AbstractExtension*> m_extensions;
+        std::vector<AbstractVolumeExtension*> m_extensions;
         
         ///recreates the volume file storage with new size and spacing
         void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);

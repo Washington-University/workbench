@@ -47,16 +47,18 @@ or manually copy and replace
 
 next, implement its functions
 
-add these into Operations/CMakeLists.txt:
+add these to Operations/CMakeLists.txt:
 
 OperationName.h
-
 OperationName.cxx
 
 place the following lines into Commands/CommandOperationManager.cxx:
 
-#include "OperationName.h"        //near the top
-this->commandOperations.push_back(new CommandParser(new AutoOperationName()));          //in CommandOperationManager()
+#include "OperationName.h"
+    //near the top
+
+this->commandOperations.push_back(new CommandParser(new AutoOperationName()));
+    //in CommandOperationManager()
 
 finally, remove this block comment
 */
