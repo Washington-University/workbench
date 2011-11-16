@@ -48,6 +48,7 @@ namespace caret {
             NIFTI2
         };
         uint8_t* m_bytes;
+        int64_t m_numBytes;
         AbstractExtension() { m_bytes = NULL; }
         virtual ExtensionType getType() = 0;
         virtual ~AbstractExtension();
