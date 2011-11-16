@@ -312,7 +312,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processMoveAllTabsToOneWindow()));
-    this->moveTabsFromAllWindowsToOneWindowAction->setEnabled(false);
     
     this->bringAllToFrontAction =
     WuQtUtilities::createAction("Bring All To Front",

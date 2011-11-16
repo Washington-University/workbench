@@ -455,7 +455,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
         delete vf;
         throw e;
     }
-    //vf->clearModified();
+    vf->clearModified();
     this->volumeFiles.push_back(vf);
 }
 
