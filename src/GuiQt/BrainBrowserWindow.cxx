@@ -692,11 +692,6 @@ BrainBrowserWindow::processDataFileOpen()
     }
     
     /*
-     * Previous directories
-     */
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
-    /*
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
