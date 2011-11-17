@@ -238,7 +238,8 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     
     this->modifiedLabel = new QLabel("   ");
     if (this->caretDataFile->isModified()) {
-        this->modifiedLabel->setText(" * ");
+        this->modifiedLabel->setText("***");
+        this->modifiedLabel->setStyleSheet("QLabel { color: red; }");
         this->saveCheckBox->setChecked(true);
     }
     
