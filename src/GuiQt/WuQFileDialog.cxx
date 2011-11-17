@@ -71,6 +71,7 @@
 #include <QSet>
 #include <QSplitter>
 #include <QStackedWidget>
+#include <QStringList>
 #include <QTreeWidget>
 #include <QTreeWidgetItem>
 #include <QToolButton>
@@ -79,6 +80,14 @@
 #include "WuQFileDialog.h"
 #include "WuQFileDialogIcons.h"
 #undef _WU_Q_FILE_DIALOG_MAIN_H_
+
+#include "Brain.h"
+#include "CaretPreferences.h"
+#include "FileInformation.h"
+#include "GuiManager.h"
+#include "SessionManager.h"
+
+using namespace caret;
 
 static const qint32 WUQFileDialogMagic = 0x57554644;  //'WUFD';
 static const qint32 WUQFileDialogVersion = 1;
@@ -230,10 +239,20 @@ WuQFileDialog::initializeDialog()
       firstTime = false;
    }
    
-   //
-   // Place into current directory
-   //
-   setDirectory(QDir::currentPath());
+    /*
+     * Previous directories and set to current directory
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->addToPreviousOpenFileDirectories(GuiManager::get()->getBrain()->getCurrentDirectory());
+    QStringList previousDirectoriesList;
+    prefs->getPreviousOpenFileDirectories(previousDirectoriesList);
+    if (previousDirectoriesList.empty() == false) {
+        this->setHistory(previousDirectoriesList);
+        this->setDirectory(previousDirectoriesList.at(0));
+    }
+    else {
+        this->setDirectory(GuiManager::get()->getBrain()->getCurrentDirectory());
+    }
 }
 
 /**
@@ -437,6 +456,21 @@ WuQFileDialog::slotAcceptPushButton()
    }
   
    accept();
+    
+    /*
+     * For any file with absolute path, add the path to the
+     * previous directories
+     */
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    QStringListIterator nameIter(this->selectedFiles());
+    while (nameIter.hasNext()) {
+        AString name = nameIter.next();
+        
+        FileInformation fileInfo(name);
+        if (fileInfo.isAbsolute()) {
+            prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+        }
+    }
 /*
    if (isModal()) {
       accept();

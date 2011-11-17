@@ -30,6 +30,7 @@
 #include "LogLevelEnum.h"
 
 class QSettings;
+class QStringList;
 
 namespace caret {
 
@@ -59,6 +60,8 @@ namespace caret {
         void clearPreviousSpecFiles();
         
         void getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const;
+        
+        void getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectories) const;
         
         void addToPreviousOpenFileDirectories(const AString& directoryName);
         

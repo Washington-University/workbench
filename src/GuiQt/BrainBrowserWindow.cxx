@@ -695,24 +695,11 @@ BrainBrowserWindow::processDataFileOpen()
      * Previous directories
      */
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->addToPreviousOpenFileDirectories(GuiManager::get()->getBrain()->getCurrentDirectory());
-    std::vector<AString> previousDirectories;
-    prefs->getPreviousOpenFileDirectories(previousDirectories);
-    QStringList historyList;
-    for (std::vector<AString>::iterator iter = previousDirectories.begin();
-         iter != previousDirectories.end();
-         iter++) {
-        historyList.append(*iter);
-    }
     
     /*
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
-    if (historyList.empty() == false) {
-        fd.setHistory(historyList);
-        fd.setDirectory(historyList.at(0));
-    }
     fd.setAcceptMode(WuQFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFiles);
@@ -732,10 +719,10 @@ BrainBrowserWindow::processDataFileOpen()
         while (nameIter.hasNext()) {
             AString name = nameIter.next();
             
-            FileInformation fileInfo(name);
-            if (fileInfo.isAbsolute()) {
-                prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
-            }
+            //FileInformation fileInfo(name);
+            //if (fileInfo.isAbsolute()) {
+            //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+            //}
             
             bool isValidType = false;
             DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);

@@ -358,24 +358,11 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
      * Previous directories
      */
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->addToPreviousOpenFileDirectories(GuiManager::get()->getBrain()->getCurrentDirectory());
-    std::vector<AString> previousDirectories;
-    prefs->getPreviousOpenFileDirectories(previousDirectories);
-    QStringList historyList;
-    for (std::vector<AString>::iterator iter = previousDirectories.begin();
-         iter != previousDirectories.end();
-         iter++) {
-        historyList.append(*iter);
-    }
     
     /*
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
-    if (historyList.empty() == false) {
-        fd.setHistory(historyList);
-        fd.setDirectory(historyList.at(0));
-    }
     fd.setAcceptMode(WuQFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(WuQFileDialog::ExistingFile);

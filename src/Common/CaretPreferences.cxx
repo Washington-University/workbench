@@ -30,6 +30,7 @@
 #include <algorithm>
 
 #include <QSettings>
+#include <QStringList>
 
 using namespace caret;
 
@@ -229,6 +230,22 @@ void
 CaretPreferences::getPreviousOpenFileDirectories(std::vector<AString>& previousOpenFileDirectories) const
 {
     previousOpenFileDirectories = this->previousOpenFileDirectories;
+}
+
+/**
+ * Get the directories that were used in the Open File Dialog.
+ *
+ * @param previousOpenFileDirectories
+ *    Will contain previous directories.
+ */
+void 
+CaretPreferences::getPreviousOpenFileDirectories(QStringList& previousOpenFileDirectoriesList) const
+{
+    previousOpenFileDirectoriesList.clear();
+    const int32_t numDirectories = static_cast<int32_t>(this->previousOpenFileDirectories.size());
+    for (int32_t i = 0; i < numDirectories; i++) {
+        previousOpenFileDirectoriesList.append(this->previousOpenFileDirectories[i]);
+    }
 }
 
 /**
