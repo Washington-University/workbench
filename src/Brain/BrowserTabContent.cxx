@@ -305,6 +305,25 @@ BrowserTabContent::updateTransformationsForYoking()
             mdc->copyTransformations(*yokingController, 
                                      0, // always used window 0  
                                      this->tabNumber);
+            switch (this->browserTabYoking->getSelectedYokingType()) {
+                case YokingTypeEnum::OFF:
+                    break;
+                case YokingTypeEnum::ON:
+                    break;
+                case YokingTypeEnum::ON_LATERAL_MEDIAL:
+                {
+                    ModelDisplayControllerSurface* surfaceModel = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+                    if (surfaceModel != NULL) {
+                        Surface* surface = surfaceModel->getSurface();
+                        if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
+                            Matrix4x4* rotationMatrix = surfaceModel->getViewingRotationMatrix(this->tabNumber);
+                            rotationMatrix->rotateY(180.0);
+                            //rotationMatrix->invert();
+                        }
+                    }
+                }
+                    break;
+            }
         }
     }
 }

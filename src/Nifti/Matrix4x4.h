@@ -166,10 +166,16 @@ private:
 
     void UpperTriangle3(const double inputMatrix[3][3], double outputMatrix[3][3]) const;
     
-    double Determinant4(const double matrix[4][4]) const;
+    double Determinant4x4(const double matrix[4][4]) const;
 
     double Determinant3(const double matrix[3][3]) const;
     
+    static double Determinant3x3(double a1, double a2, double a3,
+                              double b1, double b2, double b3,
+                                 double c1, double c2, double c3);
+    
+    static double Determinant2x2(double a, double b, double c, double d);
+
 protected:
     /**the 4x4 matrix */
     double matrix[4][4];

@@ -34,12 +34,24 @@
      the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
      PURPOSE.  See the above copyright notice for more information.
 
-=========================================================================*/
+ Program:   Visualization Toolkit
+ Module:    $RCSfile: vtkMatrix4x4.cxx,v $
+ 
+ Copyright (c) Ken Martin, Will Schroeder, Bill Lorensen
+ All rights reserved.
+ See Copyright.txt or http://www.kitware.com/Copyright.htm for details.
+ 
+ This software is distributed WITHOUT ANY WARRANTY; without even
+ the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+ PURPOSE.  See the above copyright notice for more information.
+
+ =========================================================================*/
 
 
 
 #include <cmath>
 
+#include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "XmlWriter.h"
@@ -757,30 +769,27 @@ Matrix4x4::fixNumericalError()
  * @return true if inversion of matrix is successful,
  * else false.
  *
- *
+ */
 bool
 Matrix4x4::invert()
 {
-    bool valid = false;
-    double[][] m = Matrix4x4.Inverse(this->matrix, &valid);
-    if (m == null) {
+    double m[4][4];
+    const bool valid = Matrix4x4::Inverse(this->matrix, m);
+    if (valid) {
+        for (int i = 0; i < 4; i++) {
+            for (int j = 0; j < 4; j++) {
+                this->matrix[i][j] = m[i][j];
+            }
+        }
+        this->setModified();
+        return true;
+    }
+    else {
+        CaretLogWarning("Matrix inversion failed for " + this->toString());
         return false;
     }
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            this->matrix[i][j] = m[i][j];
-        }
-    }
-    this->setModified();
 }
-catch (Exception e) {
-    NiftiLogger.getLogger().severe(e.getMessage());
-}
-this->fixNumericalError();
 
-return true;
-}
-*/
 /* ---------------------------------------------------------------------------
  *  Matrix Calculator - Java Application Version
  *  Original Date: October 1997
@@ -812,36 +821,41 @@ Matrix4x4::Transpose(double matrix[4][4])
     }
 }
 */
+/**
+ * Inverse from VTK
+ */
 bool
 Matrix4x4::Inverse(const double a[4][4], double matrixOut[4][4]) const
 {
-    // Formula used to Calculate Inverse:
-    // inv(A) = 1/det(A) * adj(A)
-    //    if (INFO) {
-    //        System.out.println("Performing Inverse...");
-    //    }
-    int tms = 4;
+    /////SqMatPtr outElem = (SqMatPtr)outElements;
     
-    double mm[4][4];
-    Adjoint(a, mm);
+    // inverse( original_matrix, inverse_matrix )
+    // calculate the inverse of a 4x4 matrix
+    //
+    //     -1
+    //     A  = ___1__ adjoint A
+    //         det A
+    //
     
-    double det = Determinant4(a);
-    double dd = 0;
+    // calculate the 4x4 determinent
+    // if the determinent is zero,
+    // then the inverse matrix is not unique.
     
-    if (det == 0) {
-        //if (INFO) {
-        //    System.out.println("Determinant Equals 0, Not Invertible.");
-        //    return null;
-        //}
+    const double det = Determinant4x4(a);
+    if ( det == 0.0 ) {
         return false;
-    } else {
-        dd = 1 / det;
     }
     
-    for (int i = 0; i < tms; i++)
-        for (int j = 0; j < tms; j++) {
-            matrixOut[i][j] = dd * mm[i][j];
+    // calculate the adjoint matrix
+    Adjoint(a, matrixOut);
+    //vtkMatrix4x4::Adjoint(inElements, outElements );
+    
+    // scale the adjoint matrix to get the inverse
+    for (int i=0; i<4; i++) {
+        for(int j=0; j<4; j++) {
+            matrixOut[i][j] = matrixOut[i][j] / det;
         }
+    }
     
     return true;
 }
@@ -849,51 +863,79 @@ Matrix4x4::Inverse(const double a[4][4], double matrixOut[4][4]) const
 void
 Matrix4x4::Adjoint(const double inputMatrix[4][4], double outputMatrix[4][4]) const
 {
-    //    if (INFO) {
-    //        System.out.println("Performing Adjoint...");
-    //    }
-    const int tms = 4;
+    // 
+    //   adjoint( original_matrix, inverse_matrix )
+    // 
+    //     calculate the adjoint of a 4x4 matrix
+    //
+    //      Let  a   denote the minor determinant of matrix A obtained by
+    //           ij
+    //
+    //      deleting the ith row and jth column from A.
+    //
+    //                    i+j
+    //     Let  b   = (-1)    a
+    //          ij            ji
+    //
+    //    The matrix B = (b  ) is the adjoint of A
+    //                     ij
+    //
+    double a1, a2, a3, a4, b1, b2, b3, b4;
+    double c1, c2, c3, c4, d1, d2, d3, d4;
     
-    double a[4][4];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            a[i][j] = inputMatrix[i][j];
-        }
-    }
-    double m[4][4];
+    // assign to individual variable names to aid
+    // selecting correct values
     
-    int ii, jj, ia, ja;
-    double det;
+    a1 = inputMatrix[0][0]; b1 = inputMatrix[0][1]; 
+    c1 = inputMatrix[0][2]; d1 = inputMatrix[0][3];
     
-    for (int i = 0; i < tms; i++)
-        for (int j = 0; j < tms; j++) {
-            ia = ja = 0;
-            
-            double ap[3][3];
-            
-            for (ii = 0; ii < tms; ii++) {
-                for (jj = 0; jj < tms; jj++) {
-                    
-                    if ((ii != i) && (jj != j)) {
-                        ap[ia][ja] = a[ii][jj];
-                        ja++;
-                    }
-                    
-                }
-                if ((ii != i) && (jj != j)) {
-                    ia++;
-                }
-                ja = 0;
-            }
-            
-            det = Determinant3(ap);
-            m[i][j] = std::pow((float)-1, (float)(i + j)) * det;
-        }
+    a2 = inputMatrix[1][0]; b2 = inputMatrix[1][1]; 
+    c2 = inputMatrix[1][2]; d2 = inputMatrix[1][3];
     
-    Matrix4x4 mout;
-    mout.setMatrix(m);
-    mout.transpose();
-    mout.getMatrix(outputMatrix);
+    a3 = inputMatrix[2][0]; b3 = inputMatrix[2][1];
+    c3 = inputMatrix[2][2]; d3 = inputMatrix[2][3];
+    
+    a4 = inputMatrix[3][0]; b4 = inputMatrix[3][1]; 
+    c4 = inputMatrix[3][2]; d4 = inputMatrix[3][3];
+    
+    
+    // row column labeling reversed since we transpose rows & columns
+    
+    outputMatrix[0][0]  =   
+    Matrix4x4::Determinant3x3( b2, b3, b4, c2, c3, c4, d2, d3, d4);
+    outputMatrix[1][0]  = 
+    - Matrix4x4::Determinant3x3( a2, a3, a4, c2, c3, c4, d2, d3, d4);
+    outputMatrix[2][0]  =   
+    Matrix4x4::Determinant3x3( a2, a3, a4, b2, b3, b4, d2, d3, d4);
+    outputMatrix[3][0]  = 
+    - Matrix4x4::Determinant3x3( a2, a3, a4, b2, b3, b4, c2, c3, c4);
+    
+    outputMatrix[0][1]  = 
+    - Matrix4x4::Determinant3x3( b1, b3, b4, c1, c3, c4, d1, d3, d4);
+    outputMatrix[1][1]  =   
+    Matrix4x4::Determinant3x3( a1, a3, a4, c1, c3, c4, d1, d3, d4);
+    outputMatrix[2][1]  = 
+    - Matrix4x4::Determinant3x3( a1, a3, a4, b1, b3, b4, d1, d3, d4);
+    outputMatrix[3][1]  =   
+    Matrix4x4::Determinant3x3( a1, a3, a4, b1, b3, b4, c1, c3, c4);
+    
+    outputMatrix[0][2]  =   
+    Matrix4x4::Determinant3x3( b1, b2, b4, c1, c2, c4, d1, d2, d4);
+    outputMatrix[1][2]  = 
+    - Matrix4x4::Determinant3x3( a1, a2, a4, c1, c2, c4, d1, d2, d4);
+    outputMatrix[2][2]  =   
+    Matrix4x4::Determinant3x3( a1, a2, a4, b1, b2, b4, d1, d2, d4);
+    outputMatrix[3][2]  = 
+    - Matrix4x4::Determinant3x3( a1, a2, a4, b1, b2, b4, c1, c2, c4);
+    
+    outputMatrix[0][3]  = 
+    - Matrix4x4::Determinant3x3( b1, b2, b3, c1, c2, c3, d1, d2, d3);
+    outputMatrix[1][3]  =   
+    Matrix4x4::Determinant3x3( a1, a2, a3, c1, c2, c3, d1, d2, d3);
+    outputMatrix[2][3]  = 
+    - Matrix4x4::Determinant3x3( a1, a2, a3, b1, b2, b3, d1, d2, d3);
+    outputMatrix[3][3]  =   
+    Matrix4x4::Determinant3x3( a1, a2, a3, b1, b2, b3, c1, c2, c3);
 }
 
 void
@@ -1037,35 +1079,48 @@ outahere: while (m[col][col] == 0) // check if 0 in diagonal
 }
 
 double
-Matrix4x4::Determinant4(const double matrixIn[4][4]) const
+Matrix4x4::Determinant4x4(const double matrixIn[4][4]) const
 {
-    //    if (INFO) {
-    //        System.out.println("Getting Determinant...");
-    //    }
-    double matrix[4][4];
-    for (int i = 0; i < 4; i++) {
-        for (int j = 0; j < 4; j++) {
-            matrix[i][j] = matrixIn[i][j];
-        }
-    }
-    int tms = 4; //matrix.length;
+    double a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4;
     
-    double det = 1;
+    // assign to individual variable names to aid selecting
+    //  correct elements
     
-    double uppTriMatrix[4][4];
-    UpperTriangle4(matrix, uppTriMatrix);
+    a1 = matrixIn[0][0]; b1 = matrixIn[0][1];
+    c1 = matrixIn[0][2]; d1 = matrixIn[0][3];
     
-    for (int i = 0; i < tms; i++) {
-        det = det * uppTriMatrix[i][i];
-    } // multiply down diagonal
+    a2 = matrixIn[1][0]; b2 = matrixIn[1][1];
+    c2 = matrixIn[1][2]; d2 = matrixIn[1][3];
     
-    det = det * iDF; // adjust w/ determinant factor
+    a3 = matrixIn[2][0]; b3 = matrixIn[2][1];
+    c3 = matrixIn[2][2]; d3 = matrixIn[2][3];
     
-    //    if (INFO) {
-    //        System.out.println("Determinant: " + det);
-    //    }
-    return det;
+    a4 = matrixIn[3][0]; b4 = matrixIn[3][1];
+    c4 = matrixIn[3][2]; d4 = matrixIn[3][3];
+    
+    const double result = a1 * Matrix4x4::Determinant3x3( b2, b3, b4, c2, c3, c4, d2, d3, d4)
+    - b1 * Matrix4x4::Determinant3x3( a2, a3, a4, c2, c3, c4, d2, d3, d4)
+    + c1 * Matrix4x4::Determinant3x3( a2, a3, a4, b2, b3, b4, d2, d3, d4)
+    - d1 * Matrix4x4::Determinant3x3( a2, a3, a4, b2, b3, b4, c2, c3, c4);
+    return result;
 }
+
+double 
+Matrix4x4::Determinant3x3(double a1, double a2, double a3,
+                                      double b1, double b2, double b3,
+                                      double c1, double c2, double c3)
+{
+    return ( a1 * Matrix4x4::Determinant2x2( b2, b3, c2, c3 )
+            - b1 * Matrix4x4::Determinant2x2( a2, a3, c2, c3 )
+            + c1 * Matrix4x4::Determinant2x2( a2, a3, b2, b3 ) );
+}
+
+double 
+Matrix4x4::Determinant2x2(double a, double b, double c, double d) 
+{
+    return (a * d - b * c);
+};
+
 double
 Matrix4x4::Determinant3(const double matrixIn[3][3]) const
 {
