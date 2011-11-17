@@ -62,6 +62,8 @@ namespace caret {
         
         QMenu* createPopupMenu();
         
+        void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         

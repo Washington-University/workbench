@@ -77,6 +77,9 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
+                                                       std::vector<BrowserTabContent*>& tabContents);
+        
     public slots:
         void processBringAllWindowsToFront();
         void processShowIdentifyWindow();
@@ -108,6 +111,9 @@ namespace caret {
         
         /** Name of application */
         QString nameOfApplication;
+        
+        /** Skips confirmation of browser window closing when all tabs are moved to one window */
+        bool allowBrowserWindowsToCloseWithoutConfirmation;
         
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;

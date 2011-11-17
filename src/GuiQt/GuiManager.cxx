@@ -55,6 +55,7 @@ GuiManager::GuiManager(QObject* parent)
 {
     this->nameOfApplication = "Connectome Workbench";
     //this->brainOpenGL = NULL;
+    this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
 }
@@ -155,6 +156,10 @@ bool
 GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindow,
                                            const int32_t numberOfOpenTabs)
 {
+    if (this->allowBrowserWindowsToCloseWithoutConfirmation) {
+        return true;
+    }
+    
     bool isBrowserWindowAllowedToClose = false;
     
     if (this->getNumberOfBrainBrowserWindows() > 1) {
@@ -326,13 +331,13 @@ GuiManager::exitProgram(QWidget* parent)
  * @param browserWindowIndex
  *    Index of browser window.
  * @param allowInvalidBrowserWindowIndex
- *    In some instance, such as GUI construction, the window is not
- *    fully created, thus "this->brainBrowserWindows" is invalid for
+ *    In some instance, such as GUI construction or destruction, the window is not
+ *    fully created or deleted, thus "this->brainBrowserWindows" is invalid for
  *    the given index.  If this parameter is true, NULL will be 
  *    returned in this case.
  * @return
  *    Browser tab content in the browser window.  Value may be NULL
- *    is allowInvalidBrowserWindowIndex is true.
+ *    is allowInvalidBrowserWindowIndex is true
  */
 BrowserTabContent* 
 GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowIndex,
@@ -346,10 +351,15 @@ GuiManager::getBrowserTabContentForBrowserWindow(const int32_t browserWindowInde
     
     CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
     BrainBrowserWindow* browserWindow = brainBrowserWindows[browserWindowIndex];
+    if (allowInvalidBrowserWindowIndex) {
+        if (browserWindow == NULL) {
+            return NULL;
+        }
+    }
     CaretAssert(browserWindow);
     
     BrowserTabContent* tabContent = browserWindow->getBrowserTabContent();
-    CaretAssert(tabContent);
+    //CaretAssert(tabContent);
     return tabContent;
 }
 
@@ -360,8 +370,10 @@ void
 GuiManager::processBringAllWindowsToFront()
 {
     for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        this->brainBrowserWindows[i]->show();
-        this->brainBrowserWindows[i]->activateWindow();
+        if (this->brainBrowserWindows[i] != NULL) {
+            this->brainBrowserWindows[i]->show();
+            this->brainBrowserWindows[i]->activateWindow();
+        }
     }
 }
 
@@ -430,6 +442,51 @@ GuiManager::receiveEvent(Event* event)
         
         eventNewBrowser->setEventProcessed();
     }
+}
+
+/**
+ * Remove the tab content from all browser windows except for the given
+ * browser windows, close the other browser windows, and then return
+ * the tab content.
+ *
+ * @param browserWindow
+ *    Browser window that gets tab content from all other windows.
+ * @param tabContents
+ *    Tab content from all other windows.
+ */
+void 
+GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
+                                                      std::vector<BrowserTabContent*>& tabContents)
+{
+    tabContents.clear();
+    
+    const int32_t numWindows = this->brainBrowserWindows.size();
+    for (int32_t i = 0; i < numWindows; i++) {
+        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        if (bbw != NULL) {
+            if (bbw != browserWindow) {
+                std::vector<BrowserTabContent*> tabs;
+                bbw->removeAndReturnAllTabs(tabs);
+                tabContents.insert(tabContents.end(), 
+                                   tabs.begin(), 
+                                   tabs.end());
+                this->allowBrowserWindowsToCloseWithoutConfirmation = true;
+                bbw->close();
+                
+                /*
+                 * Should delete the windows that were closed!
+                 * When a window is closed, Qt uses 'deleteLater'
+                 * but we need them deleted now so that event listeners
+                 * are shut down since the closed windows no longer
+                 * have any content.
+                 */
+                QCoreApplication::sendPostedEvents(0,  QEvent::DeferredDelete);
+                
+                this->allowBrowserWindowsToCloseWithoutConfirmation = false;
+            }
+        }
+    }
+    
 }
 
 

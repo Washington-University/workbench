@@ -162,6 +162,8 @@ namespace caret {
         void checkUpdateCounter();
         int updateCounter;
         
+        void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
+        
     public slots:
         void addNewTab();
 

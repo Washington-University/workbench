@@ -469,6 +469,29 @@ BrainBrowserWindowToolBar::moveTabsToNewWindows()
 }
 
 /**
+ * Remove and return all tabs from this toolbar.
+ * After this the window containing this toolbar 
+ * will contain no tabs!
+ *
+ * @param allTabContent
+ *    Will contain the content from the tabs upon return.
+ */
+void 
+BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent)
+{
+    allTabContent.clear();
+    
+    int32_t numTabs = this->tabBar->count();
+    for (int32_t i = (numTabs - 1); i >= 0; i--) {
+        void* p = this->tabBar->tabData(i).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        allTabContent.push_back(btc);
+        this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+    }
+}
+
+
+/**
  * Select the next tab.
  */
 void 
@@ -690,14 +713,16 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->toolsWidget->setVisible(showToolsWidget);
     this->windowWidget->setVisible(showWindowWidget);
 
-    this->updateOrientationWidget(browserTabContent);
-    this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
-    this->updateVolumeIndicesWidget(browserTabContent);
-    this->updateSingleSurfaceOptionsWidget(browserTabContent);
-    this->updateVolumeMontageWidget(browserTabContent);
-    this->updateVolumePlaneWidget(browserTabContent);
-    this->updateToolsWidget(browserTabContent);
-    this->updateWindowWidget(browserTabContent);
+    if (browserTabContent != NULL) {
+        this->updateOrientationWidget(browserTabContent);
+        this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
+        this->updateVolumeIndicesWidget(browserTabContent);
+        this->updateSingleSurfaceOptionsWidget(browserTabContent);
+        this->updateVolumeMontageWidget(browserTabContent);
+        this->updateVolumePlaneWidget(browserTabContent);
+        this->updateToolsWidget(browserTabContent);
+        this->updateWindowWidget(browserTabContent);
+    }
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
@@ -767,9 +792,10 @@ BrainBrowserWindowToolBar::createViewWidget()
 ModelDisplayControllerTypeEnum::Enum
 BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent)
 {
-    CaretAssert(browserTabContent);
-    
-    ModelDisplayControllerTypeEnum::Enum modelType = browserTabContent->getSelectedModelType();
+    ModelDisplayControllerTypeEnum::Enum modelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+    if (browserTabContent != NULL) {
+        modelType = browserTabContent->getSelectedModelType();
+    }
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
@@ -778,9 +804,11 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
     /*
      * Enable buttons for valid types
      */
-    this->viewModeSurfaceRadioButton->setEnabled(browserTabContent->isSurfaceModelValid());
-    this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
-    this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
+    if (browserTabContent != NULL) {
+        this->viewModeSurfaceRadioButton->setEnabled(browserTabContent->isSurfaceModelValid());
+        this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
+        this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
+    }
     
     switch (modelType) {
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:

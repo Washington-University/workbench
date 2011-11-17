@@ -40,6 +40,7 @@
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventPaletteColorMappingEditor.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -901,7 +902,19 @@ BrainBrowserWindow::processViewFullScreen()
 void 
 BrainBrowserWindow::processMoveAllTabsToOneWindow()
 {
+    std::vector<BrowserTabContent*> otherTabContent;
+    GuiManager::get()->closeOtherWindowsAndReturnTheirTabContent(this,
+                                                                 otherTabContent);
     
+    const int32_t numOtherTabs = static_cast<int32_t>(otherTabContent.size());
+    for (int32_t i = 0; i < numOtherTabs; i++) {
+        this->toolbar->addNewTab(otherTabContent[i]);
+        this->toolbar->updateToolBar();
+    }
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -1098,6 +1111,20 @@ BrainBrowserWindow::shrinkToolbox()
      this->setMaximumWidth(maxWidth);
      this->centralWidget()->setMinimumHeight(centralMinHeight);
      this->centralWidget()->setMaximumHeight(centralMaxHeight);
+}
+
+/**
+ * Remove and return all tabs from this toolbar.
+ * After this the window containing this toolbar 
+ * will contain no tabs!
+ *
+ * @param allTabContent
+ *    Will contain the content from the tabs upon return.
+ */
+void 
+BrainBrowserWindow::removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent)
+{
+    this->toolbar->removeAndReturnAllTabs(allTabContent);
 }
 
 /**
