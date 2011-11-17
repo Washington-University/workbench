@@ -349,7 +349,6 @@ Brain::readMetricFile(const AString& filename,
     }
     
     metricFile->clearModified();
-    std::cout << "Metric modifieds status: " << metricFile->isModified() << std::endl;
 }
 
 /**
