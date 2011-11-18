@@ -454,7 +454,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                     tempf = crossingDists[j];
                 }
             }
-            if (direction == -1 || !(tempf == tempf) || tempf * 2.0f == tempf)
+            if (direction == -1 || !(tempf == tempf) || (tempf != 0.0f && tempf * 2.0f == tempf))
             {//panic!
                 throw AlgorithmException("volume spacing produced an error initializing shortest path sources");
             }

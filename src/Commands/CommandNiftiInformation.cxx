@@ -58,7 +58,7 @@ void CommandNiftiInformation::executeOperation(ProgramParameters& parameters) th
     }
 
     if(!QFile::exists(fileName)) throw CommandException("File "+fileName+" does not exist.");
-    else if(!fileName.endsWith(".nii")) throw CommandException("File doesn't end with .nii extension, is this really a Nifti file?");
+    else if(!fileName.endsWith(".nii") && !fileName.endsWith(".nii.gz")) throw CommandException("File doesn't end with .nii extension, is this really a Nifti file?");
 
     if(fileName.endsWith(".dtseries.nii") || fileName.endsWith(".dconn.nii"))
     {

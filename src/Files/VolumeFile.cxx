@@ -23,16 +23,8 @@
  */ 
 
 #include "VolumeFile.h"
-#include "FloatMatrix.h"
-#include <algorithm>
 #include <cmath>
 #include "NiftiFile.h"
-#include "DescriptiveStatistics.h"
-#include "GiftiLabelTable.h"
-#include "GiftiMetaData.h"
-#include "GiftiXmlElements.h"
-#include "Palette.h"
-#include "PaletteColorMapping.h"
 
 using namespace caret;
 using namespace std;
@@ -161,14 +153,14 @@ bool VolumeFile::compareVolumeSpace(const VolumeFile* right)
             return false;
         }
     }
-    const float TOLER_RATIO = 1.00001f;//ratio a spacing element can mismatch by
+    const float TOLER_RATIO = 1.0002f;//ratio a spacing element can mismatch by
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
             float leftelem = m_indexToSpace[i][j];
             float rightelem = right->m_indexToSpace[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem > TOLER_RATIO || rightelem / leftelem > TOLER_RATIO)))
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (abs(leftelem / rightelem) > TOLER_RATIO || abs(rightelem / leftelem) > TOLER_RATIO)))
             {
                 return false;
             }
