@@ -48,6 +48,8 @@ namespace caret {
         
         virtual ~ImageCaptureDialog();
 
+        void updateDialog();
+        
     protected:
         virtual void applyButtonPressed();
         

@@ -44,6 +44,9 @@ namespace caret {
         
         void setCloseButtonText(const AString& text);
         
+        /** May be called requesting the dialog to update its content */
+        virtual void updateDialog() = 0;
+        
     protected slots:
         void apply();
         

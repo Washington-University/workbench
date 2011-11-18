@@ -539,6 +539,8 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
         this->imageCaptureDialog = new ImageCaptureDialog(browserWindow);
         this->nonModalDialogs.push_back(this->imageCaptureDialog);
     }
+    this->imageCaptureDialog->updateDialog();
+    this->preferencesDialog->setVisible(true);
     this->imageCaptureDialog->show();
     this->imageCaptureDialog->activateWindow();
 }
@@ -553,6 +555,7 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
         this->preferencesDialog = new PreferencesDialog(browserWindow);
         this->nonModalDialogs.push_back(this->preferencesDialog);
     }
+    this->preferencesDialog->updateDialog();
     this->preferencesDialog->setVisible(true);
     this->preferencesDialog->show();
     this->preferencesDialog->activateWindow();

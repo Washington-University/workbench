@@ -26,31 +26,23 @@
 #include <limits>
 
 #include <QBoxLayout>
-#include <QButtonGroup>
-#include <QCheckBox>
+#include <QColorDialog>
 #include <QComboBox>
-#include <QDoubleSpinBox>
 #include <QGridLayout>
-#include <QGroupBox>
 #include <QLabel>
-#include <QRadioButton>
+#include <QPushButton>
 
 #define __PREFERENCES_DIALOG__H__DECLARE__
 #include "PreferencesDialog.h"
 #undef __PREFERENCES_DIALOG__H__DECLARE__
 
 #include "Brain.h"
-#include "CaretMappableDataFile.h"
+#include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventGraphicsUpdateAllWindows.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
-#include "Palette.h"
-#include "PaletteColorMapping.h"
-#include "PaletteFile.h"
-#include "PaletteEnums.h"
-#include "WuQWidgetObjectGroup.h"
-#include "WuQtUtilities.h"
+#include "SessionManager.h"
 
 using namespace caret;
 
@@ -81,160 +73,43 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
      */
     this->setApplyButtonText("");
     
-    this->paletteColorMapping = NULL;
+    QPushButton* foregroundPushButton = new QPushButton("Set Foreground...");
+    QObject::connect(foregroundPushButton, SIGNAL(clicked()),
+                     this, SLOT(foregroundColorPushButtonPressed()));
+    this->foregroundColorWidget = new QWidget();
+    //this->foregroundColorWidget->setFixedSize(40, 20);
     
-    /*
-     * Palette Selection
-     */
-    this->paletteNameComboBox = new QComboBox();
-    QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(apply()));
-    QGroupBox* paletteSelectionGroupBox = new QGroupBox("Palette Selection");
-    QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionGroupBox);
-    paletteSelectionLayout->addWidget(this->paletteNameComboBox);
+    QPushButton* backgroundPushButton = new QPushButton("Set Background...");
+    QObject::connect(backgroundPushButton, SIGNAL(clicked()),
+                     this, SLOT(backgroundColorPushButtonPressed()));
+    this->backgroundColorWidget = new QWidget();
+    //this->backgroundColorWidget->setFixedSize(40, 20);
     
-    /*
-     * Color Mapping
-     */
-    this->scaleAutoRadioButton = new QRadioButton("Full"); //Auto Scale");
-    this->scaleAutoPercentageRadioButton = new QRadioButton("Percentage"); //"Auto Scale Percentage");
-    this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
+    QLabel* loggingLevelLabel = new QLabel("Logging Level: ");
+    this->loggingLevelComboBox = new QComboBox();
     
-    QButtonGroup* scaleButtonGroup = new QButtonGroup(this);
-    scaleButtonGroup->addButton(this->scaleAutoRadioButton);
-    scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
-    scaleButtonGroup->addButton(this->scaleFixedRadioButton);
-    QObject::connect(scaleButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(apply()));
+    std::vector<LogLevelEnum::Enum> loggingLevels;
+    LogLevelEnum::getAllEnums(loggingLevels);
+    const int32_t numLogLevels = static_cast<int32_t>(loggingLevels.size());
+    for (int32_t i = 0; i < numLogLevels; i++) {
+        const LogLevelEnum::Enum logLevel = loggingLevels[i];
+        this->loggingLevelComboBox->addItem(LogLevelEnum::toGuiName(logLevel));
+        this->loggingLevelComboBox->setItemData(i, LogLevelEnum::toIntegerCode(logLevel));
+    }
+    QObject::connect(this->loggingLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(loggingLevelComboBoxChanged(int)));
     
-    /*
-     * Percentage mapping 
-     */
-    this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    /*
-     * Fixed mapping
-     */
-    this->scaleFixedNegativeMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMaximumSpinBox->setMaximum(0.0);
-    this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMinimumSpinBox->setMaximum(0.0);
-    this->scaleFixedNegativeMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedPositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedPositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
-    QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
-                     this, SLOT(apply()));
-    QWidget* colorMapHorizLine = WuQtUtilities::createHorizontalLineWidget();
-    
-    QGroupBox* colorMappingGroupBox = new QGroupBox("Color Mapping");
-    QGridLayout* colorMappingLayout = new QGridLayout(colorMappingGroupBox);
-    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
-    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
-    colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Neg Max"), 4, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 1);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 2);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
-    colorMappingLayout->addWidget(colorMapHorizLine, 5, 0, 1, 3);
-    colorMappingLayout->addWidget(this->interpolateColorsCheckBox, 6, 0, 1, 3);
-    
-    /*
-     * Display Mode
-     */
-    this->displayModePositiveCheckBox = new QCheckBox("Positive");
-    QObject::connect(this->displayModePositiveCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    this->displayModeZeroCheckBox = new QCheckBox("Zero");
-    QObject::connect(this->displayModeZeroCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    this->displayModeNegativeCheckBox = new QCheckBox("Negative");
-    QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    QGroupBox* displayModeGroupBox = new QGroupBox("Display Mode");
-    QVBoxLayout* displayModeLayout = new QVBoxLayout(displayModeGroupBox);
-    displayModeLayout->addWidget(this->displayModePositiveCheckBox);
-    displayModeLayout->addWidget(this->displayModeZeroCheckBox);
-    displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
-    
-    /*
-     * Widget group used to block signals when updating.
-     */
-    this->widgetGroup = new WuQWidgetObjectGroup(this);
-    this->widgetGroup->add(this->paletteNameComboBox);
-    this->widgetGroup->add(scaleButtonGroup);
-    this->widgetGroup->add(this->interpolateColorsCheckBox);
-    this->widgetGroup->add(this->displayModePositiveCheckBox);
-    this->widgetGroup->add(this->displayModeZeroCheckBox);
-    this->widgetGroup->add(this->displayModeNegativeCheckBox);
-    this->widgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
-    this->widgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
-    this->widgetGroup->add(this->scaleFixedNegativeMinimumSpinBox);
-    this->widgetGroup->add(this->scaleFixedPositiveMinimumSpinBox);
-    this->widgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
+    QGridLayout* gridLayout = new QGridLayout();
+    gridLayout->addWidget(foregroundPushButton, 0, 0);
+    gridLayout->addWidget(this->foregroundColorWidget, 0, 1);
+    gridLayout->addWidget(backgroundPushButton, 1, 0);
+    gridLayout->addWidget(this->backgroundColorWidget, 1, 1);
+    gridLayout->addWidget(loggingLevelLabel, 2, 0);
+    gridLayout->addWidget(this->loggingLevelComboBox, 2, 1);
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(paletteSelectionGroupBox);
-    layout->addWidget(colorMappingGroupBox);
-    layout->addWidget(displayModeGroupBox);
+    layout->addLayout(gridLayout);
     this->setCentralWidget(w);
 }
 
@@ -247,45 +122,104 @@ PreferencesDialog::~PreferencesDialog()
 }
 
 /**
+ * May be called to update the dialog's content.
+ */
+void 
+PreferencesDialog::updateDialog()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    
+    uint8_t backgroundColor[3];
+    prefs->getColorBackground(backgroundColor);
+    this->backgroundColorWidget->setStyleSheet("background-color: rgb("
+                                               + AString::number(backgroundColor[0])
+                                               + ", " + AString::number(backgroundColor[1])
+                                               + ", " + AString::number(backgroundColor[2])
+                                               + ");");
+
+    uint8_t foregroundColor[3];
+    prefs->getColorForeground(foregroundColor);
+    this->foregroundColorWidget->setStyleSheet("background-color: rgb("
+                                               + AString::number(foregroundColor[0])
+                                               + ", " + AString::number(foregroundColor[1])
+                                               + ", " + AString::number(foregroundColor[2])
+                                               + ");");
+    
+    const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
+    this->loggingLevelComboBox->blockSignals(true);
+    const int count = this->loggingLevelComboBox->count();
+    int indx = this->loggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
+    if (indx >= 0) {
+        this->loggingLevelComboBox->setCurrentIndex(indx);
+    }
+    this->loggingLevelComboBox->blockSignals(false);
+}
+
+/**
+ * Called when the background color push button is pressed. 
+ */
+void 
+PreferencesDialog::backgroundColorPushButtonPressed()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t backgroundColor[3];
+    prefs->getColorBackground(backgroundColor);
+    const QColor initialColor(backgroundColor[0],
+                              backgroundColor[1],
+                              backgroundColor[2]);
+    QColor newColor = QColorDialog::getColor(initialColor, this, "Background");
+    if (newColor.isValid()) {
+        backgroundColor[0] = newColor.red();
+        backgroundColor[1] = newColor.green();
+        backgroundColor[2] = newColor.blue();
+        prefs->setColorBackground(backgroundColor);
+        this->updateDialog();
+        this->applyButtonPressed();
+    }
+    
+}
+
+/**
+ * Called when the foreground color push button is pressed. 
+ */
+void 
+PreferencesDialog::foregroundColorPushButtonPressed()
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    uint8_t foregroundColor[3];
+    prefs->getColorForeground(foregroundColor);
+    const QColor initialColor(foregroundColor[0],
+                              foregroundColor[1],
+                              foregroundColor[2]);
+    QColor newColor = QColorDialog::getColor(initialColor, this, "Foreground");
+    if (newColor.isValid()) {
+        foregroundColor[0] = newColor.red();
+        foregroundColor[1] = newColor.green();
+        foregroundColor[2] = newColor.blue();
+        prefs->setColorForeground(foregroundColor);
+        this->updateDialog();
+        this->applyButtonPressed();
+    }
+}
+
+/**
+ * Called when the logging level is changed.
+ * @param int indx
+ *   New index of logging level combo box.
+ */
+void 
+PreferencesDialog::loggingLevelComboBoxChanged(int indx)
+{    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const int32_t logLevelIntegerCode = this->loggingLevelComboBox->itemData(indx).toInt();
+    prefs->setLoggingLevel(LogLevelEnum::fromIntegerCode(logLevelIntegerCode, NULL));
+}
+
+/**
  * Called when the apply button is pressed.
  */
 void PreferencesDialog::applyButtonPressed()
 {
-    const int itemIndex = this->paletteNameComboBox->currentIndex();
-    if (itemIndex >= 0) {
-        const AString name = this->paletteNameComboBox->itemData(itemIndex).toString();
-        if (this->paletteColorMapping != NULL) {
-            this->paletteColorMapping->setSelectedPaletteName(name);
-        }
-    }
-    
-    if (this->scaleAutoRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE);
-    }
-    else if (this->scaleAutoPercentageRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-    }
-    else if (this->scaleFixedRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_USER_SCALE);
-    }
-        
-    this->paletteColorMapping->setUserScaleNegativeMaximum(this->scaleFixedNegativeMaximumSpinBox->value());
-    this->paletteColorMapping->setUserScaleNegativeMinimum(this->scaleFixedNegativeMinimumSpinBox->value());
-    this->paletteColorMapping->setUserScalePositiveMinimum(this->scaleFixedPositiveMinimumSpinBox->value());
-    this->paletteColorMapping->setUserScalePositiveMaximum(this->scaleFixedPositiveMaximumSpinBox->value());
-
-    this->paletteColorMapping->setAutoScalePercentageNegativeMaximum(this->scaleAutoPercentageNegativeMaximumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentageNegativeMinimum(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentagePositiveMinimum(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentagePositiveMaximum(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
-    
-    this->paletteColorMapping->setDisplayPositiveDataFlag(this->displayModePositiveCheckBox->isChecked());
-    this->paletteColorMapping->setDisplayNegativeDataFlag(this->displayModeNegativeCheckBox->isChecked());
-    this->paletteColorMapping->setDisplayZeroDataFlag(this->displayModeZeroCheckBox->isChecked());
-    
-    this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 

@@ -247,6 +247,14 @@ PaletteColorMappingEditorDialog::~PaletteColorMappingEditorDialog()
 }
 
 /**
+ * May be called to update the dialog's content.
+ */
+void 
+PaletteColorMappingEditorDialog::updateDialog()
+{
+}
+
+/**
  * Update contents for editing a palette in a caret
  * mappable data file.
  *

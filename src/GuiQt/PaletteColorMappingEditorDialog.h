@@ -51,6 +51,8 @@ namespace caret {
                     
         virtual ~PaletteColorMappingEditorDialog();
 
+        void updateDialog();
+        
     protected:
         virtual void applyButtonPressed();
         

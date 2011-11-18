@@ -245,6 +245,15 @@ ImageCaptureDialog::~ImageCaptureDialog()
 }
 
 /**
+ * May be called to update the dialog's content.
+ */
+void 
+ImageCaptureDialog::updateDialog()
+{
+    
+}
+
+/**
  * Called when the apply button is pressed.
  */
 void ImageCaptureDialog::applyButtonPressed()

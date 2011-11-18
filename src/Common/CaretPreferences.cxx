@@ -164,6 +164,9 @@ CaretPreferences::getColorBackground(float colorBackground[3]) const
 void 
 CaretPreferences::setColorBackground(const uint8_t colorBackground[3])
 {
+    this->colorBackground[0] = colorBackground[0];
+    this->colorBackground[1] = colorBackground[1];
+    this->colorBackground[2] = colorBackground[2];
     this->qSettings->beginWriteArray("colorBackground");
     for (int i = 0; i < 3; i++) {
         this->qSettings->setArrayIndex(i);

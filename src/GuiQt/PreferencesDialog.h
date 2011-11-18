@@ -28,17 +28,9 @@
 
 #include "WuQDialogNonModal.h"
 
-class QCheckBox;
-class QDoubleSpinBox;
 class QComboBox;
-class QRadioButton;
-
 
 namespace caret {
-    
-    class CaretMappableDataFile;
-    class PaletteColorMapping;
-    class WuQWidgetObjectGroup;
     
     class PreferencesDialog : public WuQDialogNonModal {
         Q_OBJECT
@@ -46,45 +38,27 @@ namespace caret {
     public:
         PreferencesDialog(QWidget* parent);
         
-        void updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
-                                 const int32_t mapIndex);
-                    
         virtual ~PreferencesDialog();
 
+        void updateDialog();
+        
     protected:
         virtual void applyButtonPressed();
+
+    private slots:
+        void backgroundColorPushButtonPressed();
+        void foregroundColorPushButtonPressed();
+        void loggingLevelComboBoxChanged(int);
         
     private:
         PreferencesDialog(const PreferencesDialog&);
 
         PreferencesDialog& operator=(const PreferencesDialog&);
         
-    private:
-        PaletteColorMapping* paletteColorMapping;
-        
-        QComboBox* paletteNameComboBox;
-        
-        QRadioButton* scaleAutoRadioButton;
-        QRadioButton* scaleAutoPercentageRadioButton;
-        QRadioButton* scaleFixedRadioButton;
-        
-        QDoubleSpinBox* scaleAutoPercentageNegativeMaximumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentageNegativeMinimumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentagePositiveMinimumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentagePositiveMaximumSpinBox;
-        
-        QDoubleSpinBox* scaleFixedNegativeMaximumSpinBox;
-        QDoubleSpinBox* scaleFixedNegativeMinimumSpinBox;
-        QDoubleSpinBox* scaleFixedPositiveMinimumSpinBox;
-        QDoubleSpinBox* scaleFixedPositiveMaximumSpinBox;
-        
-        QCheckBox* displayModePositiveCheckBox;
-        QCheckBox* displayModeZeroCheckBox;
-        QCheckBox* displayModeNegativeCheckBox;
-        
-        QCheckBox* interpolateColorsCheckBox;
-        
-        WuQWidgetObjectGroup* widgetGroup;
+        QWidget* foregroundColorWidget;
+        QWidget* backgroundColorWidget;
+
+        QComboBox* loggingLevelComboBox;
     };
     
 #ifdef __PREFERENCES_DIALOG__H__DECLARE__
