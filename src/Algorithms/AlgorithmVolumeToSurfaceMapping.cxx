@@ -298,7 +298,10 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                                     totalWeight += thisWeight;
                                     myScratch[node] += myWeights[node][voxel].weight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);
                                 }
-                                myScratch[node] /= totalWeight;
+                                if (totalWeight > 0.0f)
+                                {
+                                    myScratch[node] /= totalWeight;
+                                }//should already be zero due to initialization above
                             }
                             myMetricOut->setValuesForColumn(thisCol, myScratch);
                         }
