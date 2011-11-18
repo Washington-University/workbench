@@ -156,29 +156,30 @@ bool
 GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindow,
                                            const int32_t numberOfOpenTabs)
 {
-    if (this->allowBrowserWindowsToCloseWithoutConfirmation) {
-        return true;
-    }
-    
     bool isBrowserWindowAllowedToClose = false;
-    
-    if (this->getNumberOfBrainBrowserWindows() > 1) {
-        /*
-         * Warn if multiple tabs in window
-         */
-        if (numberOfOpenTabs > 1) {
-            QString tabMessage = QString::number(numberOfOpenTabs) + " tabs are open.";
-            isBrowserWindowAllowedToClose =
+
+    if (this->allowBrowserWindowsToCloseWithoutConfirmation) {
+        isBrowserWindowAllowedToClose = true;
+    }
+    else {
+        if (this->getNumberOfBrainBrowserWindows() > 1) {
+            /*
+             * Warn if multiple tabs in window
+             */
+            if (numberOfOpenTabs > 1) {
+                QString tabMessage = QString::number(numberOfOpenTabs) + " tabs are open.";
+                isBrowserWindowAllowedToClose =
                 WuQMessageBox::warningCloseCancel(brainBrowserWindow, 
                                                   "Are you sure you want to close this window?", 
                                                   tabMessage);
+            }
+            else {
+                isBrowserWindowAllowedToClose = true;
+            }
         }
         else {
-            isBrowserWindowAllowedToClose = true;
+            isBrowserWindowAllowedToClose = this->exitProgram(brainBrowserWindow);
         }
-    }
-    else {
-        isBrowserWindowAllowedToClose = this->exitProgram(brainBrowserWindow);
     }
     
     if (isBrowserWindowAllowedToClose) {
