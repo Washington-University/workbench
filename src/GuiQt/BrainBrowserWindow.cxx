@@ -98,7 +98,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->setCentralWidget(this->openGLWidget);
     
     this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
-                                                  "ToolBox",
+                                                  ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
                                                   Qt::Horizontal,
                                                   this);
     this->addDockWidget(Qt::BottomDockWidgetArea,

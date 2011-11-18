@@ -78,8 +78,6 @@ namespace caret {
         
         QWidget* metricWidget;
         
-        QString dockTitle;
-        
         Qt::Orientation orientation;
         
         int32_t browserWindowIndex;

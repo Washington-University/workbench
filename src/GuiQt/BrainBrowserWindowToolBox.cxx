@@ -75,7 +75,8 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
 //            break;
 //    }
     
-    this->dockTitle = title + " Toolbox";
+    this->toggleViewAction()->setText(title);
+    this->setWindowTitle(title);
     
     this->topBottomOverlayControl = this->createLayersWidget(Qt::Horizontal);
     this->leftRightOverlayControl = this->createLayersWidget(Qt::Vertical);
@@ -135,15 +136,8 @@ BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
 }
 
 void 
-BrainBrowserWindowToolBox::dockFloated(bool isFloated)
+BrainBrowserWindowToolBox::dockFloated(bool /*isFloated*/)
 {
-    QString text = "Toolbox";
-    if (isFloated) {
-        //text = this->dockTitle;
-    }
-    
-    this->setWindowTitle(text);
-    
     this->updateMySize();
 }
 
