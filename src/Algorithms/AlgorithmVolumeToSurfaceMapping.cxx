@@ -76,7 +76,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
 {
     VolumeFile* myVolume = myParams->getVolume(1);
     SurfaceFile* mySurface = myParams->getSurface(2);
-    MetricFile* myMetricOut = myParams->getMetric(3);
+    MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* trilinearOpt = myParams->getOptionalParameter(4);
     OptionalParameter* nearestOpt = myParams->getOptionalParameter(5);
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);

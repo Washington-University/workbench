@@ -162,12 +162,7 @@ CommandOperationManager::runCommand(ProgramParameters& parameters) throw (Comman
         }
     }
     catch (ProgramParametersException& e) {
-        throw CommandException(e);
-    }
-    catch (OperationException e) {
-        throw CommandException(e);
-    }
-    catch (AlgorithmException e) {
+        std::cerr << "caught PPE" << std::endl;
         throw CommandException(e);
     }
 }

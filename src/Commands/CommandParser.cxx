@@ -29,6 +29,9 @@
 #include "LabelFile.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
+#include "OperationException.h"
+#include "AlgorithmException.h"
+#include "DataFileException.h"
 #include <iostream>
 
 using namespace caret;
@@ -42,6 +45,8 @@ CommandParser::CommandParser(AutoOperationInterface* myAutoOper) :
 
 void CommandParser::executeOperation(ProgramParameters& parameters) throw (CommandException, ProgramParametersException)
 {
+    try
+    {
     CaretPointer<OperationParameters> myAlgParams(m_autoOper->getParameters());//could be an autopointer, but this is safer
     vector<OutputAssoc> myOutAssoc;
     
@@ -52,6 +57,13 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
     m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
     
     writeOutput(myOutAssoc);
+    } catch (OperationException& e) {
+        throw CommandException(e);
+    } catch (AlgorithmException& e) {
+        throw CommandException(e);
+    } catch (DataFileException& e) {
+        throw CommandException(e);
+    }
     
 }
 

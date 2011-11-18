@@ -161,7 +161,7 @@ bool VolumeFile::compareVolumeSpace(const VolumeFile* right)
             return false;
         }
     }
-    const float TOLER_RATIO = 1.0001f;//ratio a spacing element can mismatch by
+    const float TOLER_RATIO = 1.00001f;//ratio a spacing element can mismatch by
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 4; ++j)
