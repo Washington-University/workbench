@@ -27,6 +27,7 @@
  *
  */
 
+#include <set>
 #include <vector>
 #include <stdint.h>
 
@@ -34,14 +35,16 @@
 
 #include "EventListenerInterface.h"
 
+class QDialog;
 class QWidget;
 
 namespace caret {
     
     class Brain;
     class BrainBrowserWindow;
-    //class BrainOpenGL;
     class BrowserTabContent;
+    class ImageCaptureDialog;
+    class PreferencesDialog;
     
     /**
      * Manages the graphical user-interface.
@@ -80,6 +83,9 @@ namespace caret {
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         
+        void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
+        void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
+        
     public slots:
         void processBringAllWindowsToFront();
         void processShowIdentifyWindow();
@@ -99,6 +105,8 @@ namespace caret {
         BrainBrowserWindow* newBrainBrowserWindow(QWidget* parent,
                                                   BrowserTabContent* browserTabContent);
         
+        void reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow);
+        
         /** One instance of the GuiManager */
         static GuiManager* singletonGuiManager;
         
@@ -117,6 +125,18 @@ namespace caret {
         
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
+        
+        ImageCaptureDialog* imageCaptureDialog;
+        
+        PreferencesDialog* preferencesDialog;
+        
+        /** 
+         * Tracks non-modal dialogs that are created only one time
+         * and may need to be reparented if the original parent, a
+         * BrainBrowserWindow is closed in which case the dialog
+         * is reparented to a different BrainBrowserWindow.
+         */
+        std::vector<QDialog*> nonModalDialogs;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__

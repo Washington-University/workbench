@@ -229,12 +229,18 @@ BrainBrowserWindow::createActions()
                                 SLOT(close()));
     
     this->captureImageAction =
-    WuQtUtilities::createAction("Capture Image",
+    WuQtUtilities::createAction("Capture Image...",
                                 "Capture an Image of the windows content",
                                 this,
                                 this,
                                 SLOT(processCaptureImage()));
-    this->captureImageAction->setEnabled(false);
+    
+    this->preferencesAction = 
+    WuQtUtilities::createAction("Preferences...",
+                                "Edit the preferences",
+                                this,
+                                this,
+                                SLOT(processEditPreferences()));
     
     this->exitProgramAction =
     WuQtUtilities::createAction("Exit", 
@@ -385,6 +391,10 @@ BrainBrowserWindow::createMenuFile()
 {
     QMenu* menu = new QMenu("File", this);
 
+    menu->addAction(this->preferencesAction);
+#ifndef CARET_OS_MACOSX
+    menu->addSeparator();
+#endif // CARET_OS_MACOSX
     menu->addAction(this->newWindowAction);
     menu->addAction(this->newTabAction);
     menu->addSeparator();
@@ -403,9 +413,9 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->closeTabAction);
     menu->addAction(this->closeWindowAction);
     menu->addSeparator();
-#ifndef Q_OS_MACX
+#ifndef CARET_OS_MACOSX
     menu->addSeparator();
-#endif // Q_OS_MACX
+#endif // CARET_OS_MACOSX
     menu->addAction(this->exitProgramAction);
     
     return menu;
@@ -640,7 +650,16 @@ BrainBrowserWindow::createMenuHelp()
 void 
 BrainBrowserWindow::processCaptureImage()
 {
-    
+    GuiManager::get()->processShowImageCaptureDialog(this);
+}
+
+/**
+ * Called when capture image is selected.
+ */
+void 
+BrainBrowserWindow::processEditPreferences()
+{
+    GuiManager::get()->processShowPreferencesDialog(this);
 }
 
 /**

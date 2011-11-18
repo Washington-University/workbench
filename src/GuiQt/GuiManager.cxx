@@ -36,6 +36,8 @@
 #include "CaretMappableDataFile.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
+#include "ImageCaptureDialog.h"
+#include "PreferencesDialog.h"
 #include "SessionManager.h"
 
 #include "WuQMessageBox.h"
@@ -57,6 +59,8 @@ GuiManager::GuiManager(QObject* parent)
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
+    this->imageCaptureDialog = NULL;
+    this->preferencesDialog = NULL;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
 }
 
@@ -185,6 +189,7 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
     if (isBrowserWindowAllowedToClose) {
         for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
             if (this->brainBrowserWindows[i] == brainBrowserWindow) {
+                this->reparentNonModalDialogs(this->brainBrowserWindows[i]);
                 this->brainBrowserWindows[i] = NULL;
             }
         }
@@ -490,6 +495,68 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
     
 }
 
+/** 
+ * Reparent non-modal dialogs that may need to be reparented if the 
+ * original parent, a BrainBrowserWindow is closed in which case the
+ * dialog is reparented to a different BrainBrowserWindow.
+ *
+ * @param closingBrainBrowserWindow
+ *    Browser window that is closing.
+ */
+void 
+GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindow)
+{
+    BrainBrowserWindow* firstBrainBrowserWindow = NULL;
+    
+    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
+        if (this->brainBrowserWindows[i] != NULL) {
+            if (this->brainBrowserWindows[i] != closingBrainBrowserWindow) {
+                firstBrainBrowserWindow = this->brainBrowserWindows[i];
+                break;
+            }
+        }
+    }
+    
+    if (firstBrainBrowserWindow != NULL) {
+        const int32_t numNonModalDialogs = static_cast<int32_t>(this->nonModalDialogs.size());
+        for (int32_t i = 0; i < numNonModalDialogs; i++) {
+            QDialog* d = this->nonModalDialogs[i];
+            if (d->parent() == closingBrainBrowserWindow) {
+                d->setParent(firstBrainBrowserWindow, d->windowFlags());
+                d->hide();
+            }
+        }
+    }
+}
+
+/**
+ * Show the image capture window.
+ */
+void 
+GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
+{
+    if (this->imageCaptureDialog == NULL) {
+        this->imageCaptureDialog = new ImageCaptureDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->imageCaptureDialog);
+    }
+    this->imageCaptureDialog->show();
+    this->imageCaptureDialog->activateWindow();
+}
+
+/**
+ * Show the preferences window.
+ */
+void 
+GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
+{
+    if (this->preferencesDialog == NULL) {
+        this->preferencesDialog = new PreferencesDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->preferencesDialog);
+    }
+    this->preferencesDialog->setVisible(true);
+    this->preferencesDialog->show();
+    this->preferencesDialog->activateWindow();
+}
 
 
 

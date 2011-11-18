@@ -62,6 +62,8 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                      Qt::WindowFlags f)
    : QDialog(parent, f)
 {
+    this->setAttribute(Qt::WA_DeleteOnClose, false);
+    
     this->setWindowTitle(dialogTitle);
     
     this->setFocusPolicy(Qt::ClickFocus);
