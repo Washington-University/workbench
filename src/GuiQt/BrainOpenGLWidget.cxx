@@ -66,6 +66,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
                                      const int32_t windowIndex)
 : QGLWidget(parent)
 {
+    this->openGL = NULL;
     this->windowIndex = windowIndex;
     this->modelController = NULL;
     this->userInputViewModeProcessor = new UserInputModeView();
@@ -92,7 +93,9 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
 void 
 BrainOpenGLWidget::initializeGL()
 {
-    this->openGL = new BrainOpenGL(); //GuiManager::get()->getBrainOpenGL();
+    if (this->openGL == NULL) {
+        this->openGL = new BrainOpenGL(); //GuiManager::get()->getBrainOpenGL();
+    }
     this->openGL->initializeOpenGL();
     
     this->lastMouseX = 0;
@@ -393,4 +396,32 @@ BrainOpenGLWidget::receiveEvent(Event* event)
     }
 }
 
+/**
+ * Capture an image of the window's graphics area using 
+ * the given image size.  If either of the image dimensions
+ * is zero, the image will be the size of the graphcis 
+ * area.
+ *
+ * @param imageSizeX
+ *    Desired X size of image.
+ * @param imageSizeY
+ *    Desired X size of image.
+ * @return
+ *    An image of the graphics area.
+ */
+QImage 
+BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
+                                const int32_t imageSizeY)
+{
+    const int oldSizeX = this->windowWidth[this->windowIndex];
+    const int oldSizeY = this->windowHeight[this->windowIndex];
+
+    QPixmap pixmap = this->renderPixmap(imageSizeX,
+                                        imageSizeY);
+    QImage image = pixmap.toImage();
+    
+    this->resizeGL(oldSizeX, oldSizeY);
+    
+    return image;
+}
 

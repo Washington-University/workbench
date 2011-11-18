@@ -27,6 +27,7 @@
 /*LICENSE_END*/
 
 #include <QGLWidget>
+#include <QImage>
 
 #include <stdint.h>
 #include "BrainConstants.h"
@@ -59,6 +60,8 @@ namespace caret {
         IdentificationManager* performIdentification(const int x,
                                                      const int y);
         
+        QImage  captureImage(const int32_t imageSizeX,
+                             const int32_t imageSizeY);
     protected:
         void initializeGL();
         

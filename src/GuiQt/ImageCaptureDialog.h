@@ -29,22 +29,21 @@
 #include "WuQDialogNonModal.h"
 
 class QCheckBox;
-class QDoubleSpinBox;
-class QComboBox;
+class QLineEdit;
 class QRadioButton;
+class QSpinBox;
 
 
 namespace caret {
     
-    class CaretMappableDataFile;
-    class PaletteColorMapping;
+    class BrainBrowserWindow;
     class WuQWidgetObjectGroup;
     
     class ImageCaptureDialog : public WuQDialogNonModal {
         Q_OBJECT
         
     public:
-        ImageCaptureDialog(QWidget* parent);
+        ImageCaptureDialog(BrainBrowserWindow* parent);
         
         virtual ~ImageCaptureDialog();
 
@@ -53,37 +52,26 @@ namespace caret {
     protected:
         virtual void applyButtonPressed();
         
+    private slots:
+        void selectImagePushButtonPressed();
+        
     private:
         ImageCaptureDialog(const ImageCaptureDialog&);
 
         ImageCaptureDialog& operator=(const ImageCaptureDialog&);
         
-    private:
-        PaletteColorMapping* paletteColorMapping;
+
+        QCheckBox* saveImageToFileCheckBox;
+        QCheckBox* copyImageToClipboardCheckBox;
+        QLineEdit* imageFileNameLineEdit;
         
-        QComboBox* paletteNameComboBox;
+        QRadioButton* imageSizeWindowRadioButton;
+        QRadioButton* imageSizeCustomRadioButton;
+        QSpinBox* imageSizeCustomXSpinBox;
+        QSpinBox* imageSizeCustomYSpinBox;
         
-        QRadioButton* scaleAutoRadioButton;
-        QRadioButton* scaleAutoPercentageRadioButton;
-        QRadioButton* scaleFixedRadioButton;
         
-        QDoubleSpinBox* scaleAutoPercentageNegativeMaximumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentageNegativeMinimumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentagePositiveMinimumSpinBox;
-        QDoubleSpinBox* scaleAutoPercentagePositiveMaximumSpinBox;
-        
-        QDoubleSpinBox* scaleFixedNegativeMaximumSpinBox;
-        QDoubleSpinBox* scaleFixedNegativeMinimumSpinBox;
-        QDoubleSpinBox* scaleFixedPositiveMinimumSpinBox;
-        QDoubleSpinBox* scaleFixedPositiveMaximumSpinBox;
-        
-        QCheckBox* displayModePositiveCheckBox;
-        QCheckBox* displayModeZeroCheckBox;
-        QCheckBox* displayModeNegativeCheckBox;
-        
-        QCheckBox* interpolateColorsCheckBox;
-        
-        WuQWidgetObjectGroup* widgetGroup;
+        QSpinBox* windowSelectionSpinBox;
     };
     
 #ifdef __IMAGE_CAPTURE_DIALOG__H__DECLARE__

@@ -147,7 +147,6 @@ PreferencesDialog::updateDialog()
     
     const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
     this->loggingLevelComboBox->blockSignals(true);
-    const int count = this->loggingLevelComboBox->count();
     int indx = this->loggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
     if (indx >= 0) {
         this->loggingLevelComboBox->setCurrentIndex(indx);

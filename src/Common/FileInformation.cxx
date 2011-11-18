@@ -133,6 +133,7 @@ FileInformation::initialize(const QFileInfo& fileInfo)
     this->fileName = "";
     this->pathName = "";
     this->filePath = "";
+    this->fileExtension = "";
     
     this->pathExists = fileInfo.exists();
     if (this->pathExists) {
@@ -152,6 +153,8 @@ FileInformation::initialize(const QFileInfo& fileInfo)
     this->pathName = fileInfo.path();
     
     this->filePath = fileInfo.absoluteFilePath();
+    
+    this->fileExtension = fileInfo.suffix();
 }
 
 /**

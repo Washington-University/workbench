@@ -36,6 +36,7 @@
 #include "EventListenerInterface.h"
 
 class QDialog;
+class QImage;
 class QWidget;
 
 namespace caret {
@@ -86,6 +87,10 @@ namespace caret {
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         
+        bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
+                                                     const int32_t imageSizeX,
+                                                     const int32_t imageSizeY,
+                                                     QImage& imageOut);
     public slots:
         void processBringAllWindowsToFront();
         void processShowIdentifyWindow();

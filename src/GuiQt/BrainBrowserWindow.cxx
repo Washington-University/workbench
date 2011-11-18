@@ -83,7 +83,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->browserWindowIndex = browserWindowIndex;
     
-    this->setWindowTitle(guiManager->applicationName());
+    this->setWindowTitle(guiManager->applicationName() 
+                         + " "
+                         + AString::number(this->browserWindowIndex + 1));
     
     this->openGLWidget = new BrainOpenGLWidget(this,
                                                browserWindowIndex);
@@ -127,6 +129,15 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 BrainBrowserWindow::~BrainBrowserWindow()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
+}
+
+/**
+ * @return the index of this browser window.
+ */
+int32_t 
+BrainBrowserWindow::getBrowserWindowIndex() const 
+{ 
+    return this->browserWindowIndex; 
 }
 
 /**
@@ -1195,12 +1206,35 @@ BrainBrowserWindow::getBrowserTabContent()
  * default context menu from appearing.
  *
  * @return Context menu for display or NULL if
- * nothing available.
+ * nothing available. 
  */
 QMenu* 
 BrainBrowserWindow::createPopupMenu()
 {
     return NULL;
+}
+
+/**
+ * Capture an image of the window's graphics area using 
+ * the given image size.  If either of the image dimensions
+ * is zero, the image will be the size of the graphcis 
+ * area.
+ *
+ * @param imageSizeX
+ *    Desired X size of image.
+ * @param imageSizeY
+ *    Desired X size of image.
+ * @return
+ *    An image of the graphics area.
+ */
+QImage 
+BrainBrowserWindow::captureImageOfGraphicsArea(const int32_t imageSizeX,
+                                               const int32_t imageSizeY)
+{
+    QImage image = this->openGLWidget->captureImage(imageSizeX, 
+                                                    imageSizeY);
+    
+    return image;
 }
 
 

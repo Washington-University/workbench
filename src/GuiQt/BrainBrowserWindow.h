@@ -28,6 +28,7 @@
 
 #include <stdint.h>
 
+#include <QImage>
 #include <QMainWindow>
 
 #include "AString.h"
@@ -63,6 +64,11 @@ namespace caret {
         QMenu* createPopupMenu();
         
         void removeAndReturnAllTabs(std::vector<BrowserTabContent*>& allTabContent);
+        
+        int32_t getBrowserWindowIndex() const;
+
+        QImage captureImageOfGraphicsArea(const int32_t imageSizeX,
+                                          const int32_t imageSizeY);
         
     protected:
         void closeEvent(QCloseEvent* event);

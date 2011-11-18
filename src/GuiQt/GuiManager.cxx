@@ -35,6 +35,7 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EventBrowserWindowNew.h"
+#include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "ImageCaptureDialog.h"
 #include "PreferencesDialog.h"
@@ -540,7 +541,7 @@ GuiManager::processShowImageCaptureDialog(BrainBrowserWindow* browserWindow)
         this->nonModalDialogs.push_back(this->imageCaptureDialog);
     }
     this->imageCaptureDialog->updateDialog();
-    this->preferencesDialog->setVisible(true);
+    this->imageCaptureDialog->setVisible(true);
     this->imageCaptureDialog->show();
     this->imageCaptureDialog->activateWindow();
 }
@@ -561,5 +562,47 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
     this->preferencesDialog->activateWindow();
 }
 
+/**
+ * Capture an image of the browser window's graphics area.
+ * If either of the image dimensions
+ * is zero, the image will be the size of the graphcis 
+ * area.
+ *
+ * @param browserWindowIndex
+ *    Index of the browser window.
+ * @param imageSizeX
+ *    Desired X size of image.
+ * @param imageSizeY
+ *    Desired X size of image.
+ * @param imageOut
+ *    Image that was created.
+ * @return 
+ *    true if the browser window index was valid, else false.
+ */
+bool 
+GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
+                                             const int32_t imageSizeX,
+                                             const int32_t imageSizeY,
+                                             QImage& imageOut)
+{
+    bool valid = false;
+    
+    const int32_t numBrowserWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
+    if ((browserWindowIndex >= 0) 
+        && (browserWindowIndex < numBrowserWindows)) {
+        BrainBrowserWindow* bbw = this->brainBrowserWindows[browserWindowIndex];
+        if (bbw != NULL) {
+            imageOut = bbw->captureImageOfGraphicsArea(imageSizeX, imageSizeY);
+            valid = true;
+        }
+    }
+
+    /*
+     * Image capture sometimes messes up window so redraw it.
+     */
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(browserWindowIndex).getPointer());
+
+    return valid;
+}
 
 

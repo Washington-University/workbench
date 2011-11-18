@@ -65,6 +65,9 @@ WuQDialogModal::WuQDialogModal(const AString& dialogTitle,
     
     QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
                      this, SLOT(clicked(QAbstractButton*)));
+    
+    this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setDefault(true);
+    this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setAutoDefault(true);
 }
 
 /**
@@ -161,6 +164,15 @@ void
 WuQDialogModal::setOkButtonText(const AString& text)
 {
     this->setStandardButtonText(QDialogButtonBox::Ok, text);
+
+    if (text.isEmpty()) {
+        this->getDialogButtonBox()->button(QDialogButtonBox::Cancel)->setDefault(true);
+        this->getDialogButtonBox()->button(QDialogButtonBox::Cancel)->setAutoDefault(true);
+    }
+    else {
+        this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setDefault(true);
+        this->getDialogButtonBox()->button(QDialogButtonBox::Ok)->setAutoDefault(true);
+    }
 }
 
 /**

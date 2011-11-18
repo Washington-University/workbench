@@ -25,32 +25,30 @@
 
 #include <limits>
 
+#include <QApplication>
 #include <QBoxLayout>
 #include <QButtonGroup>
 #include <QCheckBox>
-#include <QComboBox>
-#include <QDoubleSpinBox>
+#include <QClipboard>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPushButton>
 #include <QRadioButton>
+#include <QSpinBox>
+#include <QImageWriter>
 
 #define __IMAGE_CAPTURE_DIALOG__H__DECLARE__
 #include "ImageCaptureDialog.h"
 #undef __IMAGE_CAPTURE_DIALOG__H__DECLARE__
 
 #include "Brain.h"
-#include "CaretMappableDataFile.h"
-#include "EventGraphicsUpdateAllWindows.h"
-#include "EventSurfaceColoringInvalidate.h"
-#include "EventManager.h"
+#include "BrainBrowserWindow.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
-#include "Palette.h"
-#include "PaletteColorMapping.h"
-#include "PaletteFile.h"
-#include "PaletteEnums.h"
-#include "WuQWidgetObjectGroup.h"
-#include "WuQtUtilities.h"
+#include "WuQFileDialog.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
 
@@ -68,171 +66,90 @@ using namespace caret;
  * @param parent
  *    Parent widget on which this dialog is displayed.
  */
-ImageCaptureDialog::ImageCaptureDialog(QWidget* parent)
+ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
 : WuQDialogNonModal("Image Capture",
                     parent)
 {
     this->setDeleteWhenClosed(false);
 
     /*
-     * No apply button
+     * Use Apply button for image capture
      */
-    this->setApplyButtonText("");
+    this->setApplyButtonText("Capture");
+
+    /*
+     * Image Source
+     */
+    QLabel* windowLabel = new QLabel("Workbench Window: ");
+    this->windowSelectionSpinBox = new QSpinBox();
+    this->windowSelectionSpinBox->setRange(1, 1000000);
+    this->windowSelectionSpinBox->setSingleStep(1);
+    this->windowSelectionSpinBox->setValue(parent->getBrowserWindowIndex() + 1);
+    this->windowSelectionSpinBox->setFixedWidth(60);
     
-    this->paletteColorMapping = NULL;
+    QGroupBox* imageSourceGroupBox = new QGroupBox("Image Source");
+    QGridLayout* imageSourceLayout = new QGridLayout(imageSourceGroupBox);
+    imageSourceLayout->addWidget(windowLabel, 0, 0);
+    imageSourceLayout->addWidget(this->windowSelectionSpinBox, 0, 1);
+    imageSourceLayout->setColumnStretch(0, 0);
+    imageSourceLayout->setColumnStretch(1, 0);
+    imageSourceLayout->setColumnStretch(1000, 100);
     
     /*
-     * Palette Selection
+     * Image Options
      */
-    this->paletteNameComboBox = new QComboBox();
-    QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(apply()));
-    QGroupBox* paletteSelectionGroupBox = new QGroupBox("Palette Selection");
-    QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionGroupBox);
-    paletteSelectionLayout->addWidget(this->paletteNameComboBox);
+    this->imageSizeWindowRadioButton = new QRadioButton("Size of Window");
+    this->imageSizeCustomRadioButton = new QRadioButton("Custom");
+    QButtonGroup* sizeButtonGroup = new QButtonGroup(this);
+    sizeButtonGroup->addButton(this->imageSizeWindowRadioButton);
+    sizeButtonGroup->addButton(this->imageSizeCustomRadioButton);
+    this->imageSizeWindowRadioButton->setChecked(true);
+    this->imageSizeCustomXSpinBox = new QSpinBox();
+    this->imageSizeCustomXSpinBox->setFixedWidth(80);
+    this->imageSizeCustomXSpinBox->setRange(1, 1000000);
+    this->imageSizeCustomXSpinBox->setSingleStep(1);
+    this->imageSizeCustomXSpinBox->setValue(2560);
+    this->imageSizeCustomYSpinBox = new QSpinBox();
+    this->imageSizeCustomYSpinBox->setFixedWidth(80);
+    this->imageSizeCustomYSpinBox->setRange(1, 1000000);
+    this->imageSizeCustomYSpinBox->setSingleStep(1);
+    this->imageSizeCustomYSpinBox->setValue(2048);
+    QGroupBox* imageOptionsGroupBox = new QGroupBox("Image Options");
+    QGridLayout* imageOptionsLayout = new QGridLayout(imageOptionsGroupBox);
+    imageOptionsLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 3);
+    imageOptionsLayout->addWidget(this->imageSizeCustomRadioButton, 1, 0);
+    imageOptionsLayout->addWidget(this->imageSizeCustomXSpinBox, 1, 1);
+    imageOptionsLayout->addWidget(this->imageSizeCustomYSpinBox, 1, 2);
+    imageOptionsLayout->setColumnStretch(0, 0);
+    imageOptionsLayout->setColumnStretch(1, 0);
+    imageOptionsLayout->setColumnStretch(2, 0);
+    imageOptionsLayout->setColumnStretch(1000, 100);
     
     /*
-     * Color Mapping
+     * Image Destination
      */
-    this->scaleAutoRadioButton = new QRadioButton("Full"); //Auto Scale");
-    this->scaleAutoPercentageRadioButton = new QRadioButton("Percentage"); //"Auto Scale Percentage");
-    this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
+    this->copyImageToClipboardCheckBox = new QCheckBox("Copy to Clipboard");
+    this->copyImageToClipboardCheckBox->setChecked(true);
+    this->saveImageToFileCheckBox = new QCheckBox("Save to File: " );
+    this->imageFileNameLineEdit = new QLineEdit();
+    this->imageFileNameLineEdit->setText("capture.jpg");
+    QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
+    QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
+                     this, SLOT(selectImagePushButtonPressed()));
     
-    QButtonGroup* scaleButtonGroup = new QButtonGroup(this);
-    scaleButtonGroup->addButton(this->scaleAutoRadioButton);
-    scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
-    scaleButtonGroup->addButton(this->scaleFixedRadioButton);
-    QObject::connect(scaleButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(apply()));
-    
-    /*
-     * Percentage mapping 
-     */
-    this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    /*
-     * Fixed mapping
-     */
-    this->scaleFixedNegativeMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMaximumSpinBox->setMaximum(0.0);
-    this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
-    this->scaleFixedNegativeMinimumSpinBox->setMaximum(0.0);
-    this->scaleFixedNegativeMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMinimumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedPositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
-    this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleFixedPositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
-    this->scaleFixedPositiveMaximumSpinBox->setSingleStep(1.0);
-    QObject::connect(this->scaleFixedPositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
-    
-    this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
-    QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
-                     this, SLOT(apply()));
-    QWidget* colorMapHorizLine = WuQtUtilities::createHorizontalLineWidget();
-    
-    QGroupBox* colorMappingGroupBox = new QGroupBox("Color Mapping");
-    QGridLayout* colorMappingLayout = new QGridLayout(colorMappingGroupBox);
-    colorMappingLayout->addWidget(this->scaleAutoRadioButton, 0, 0);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageRadioButton, 0, 1);
-    colorMappingLayout->addWidget(this->scaleFixedRadioButton, 0, 2);
-    colorMappingLayout->addWidget(new QLabel("Pos Max"), 1, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Pos Min"), 2, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Neg Min"), 3, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(new QLabel("Neg Max"), 4, 0, Qt::AlignRight);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMaximumSpinBox, 1, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentagePositiveMinimumSpinBox, 2, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMinimumSpinBox, 3, 1);
-    colorMappingLayout->addWidget(this->scaleAutoPercentageNegativeMaximumSpinBox, 4, 1);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMaximumSpinBox, 1, 2);
-    colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
-    colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
-    colorMappingLayout->addWidget(colorMapHorizLine, 5, 0, 1, 3);
-    colorMappingLayout->addWidget(this->interpolateColorsCheckBox, 6, 0, 1, 3);
-    
-    /*
-     * Display Mode
-     */
-    this->displayModePositiveCheckBox = new QCheckBox("Positive");
-    QObject::connect(this->displayModePositiveCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    this->displayModeZeroCheckBox = new QCheckBox("Zero");
-    QObject::connect(this->displayModeZeroCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    this->displayModeNegativeCheckBox = new QCheckBox("Negative");
-    QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
-                     this, SLOT(apply()));
-    QGroupBox* displayModeGroupBox = new QGroupBox("Display Mode");
-    QVBoxLayout* displayModeLayout = new QVBoxLayout(displayModeGroupBox);
-    displayModeLayout->addWidget(this->displayModePositiveCheckBox);
-    displayModeLayout->addWidget(this->displayModeZeroCheckBox);
-    displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
-    
-    /*
-     * Widget group used to block signals when updating.
-     */
-    this->widgetGroup = new WuQWidgetObjectGroup(this);
-    this->widgetGroup->add(this->paletteNameComboBox);
-    this->widgetGroup->add(scaleButtonGroup);
-    this->widgetGroup->add(this->interpolateColorsCheckBox);
-    this->widgetGroup->add(this->displayModePositiveCheckBox);
-    this->widgetGroup->add(this->displayModeZeroCheckBox);
-    this->widgetGroup->add(this->displayModeNegativeCheckBox);
-    this->widgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
-    this->widgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
-    this->widgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
-    this->widgetGroup->add(this->scaleFixedNegativeMinimumSpinBox);
-    this->widgetGroup->add(this->scaleFixedPositiveMinimumSpinBox);
-    this->widgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
-    
+    QGroupBox* imageDestinationGroupBox = new QGroupBox("Image Destination");
+    QGridLayout* imageDestinationLayout = new QGridLayout(imageDestinationGroupBox);
+    imageDestinationLayout->addWidget(this->copyImageToClipboardCheckBox, 0, 0, 1, 3);
+    imageDestinationLayout->addWidget(this->saveImageToFileCheckBox, 1, 0);
+    imageDestinationLayout->addWidget(this->imageFileNameLineEdit, 1, 1);
+    imageDestinationLayout->addWidget(fileNameSelectionPushButton, 1, 2);
+        
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(paletteSelectionGroupBox);
-    layout->addWidget(colorMappingGroupBox);
-    layout->addWidget(displayModeGroupBox);
+    layout->addWidget(imageSourceGroupBox);
+    layout->addWidget(imageOptionsGroupBox);
+    layout->addWidget(imageDestinationGroupBox);
+    
     this->setCentralWidget(w);
 }
 
@@ -254,46 +171,73 @@ ImageCaptureDialog::updateDialog()
 }
 
 /**
+ * Called when choose file pushbutton is pressed.
+ */
+void 
+ImageCaptureDialog::selectImagePushButtonPressed()
+{
+    AString name = WuQFileDialog::getSaveFileName(this,
+                                                  "Choose File Name",
+                                                  GuiManager::get()->getBrain()->getCurrentDirectory());
+    if (name.isEmpty() == false) {
+        this->imageFileNameLineEdit->setText(name.trimmed());
+    }
+}
+
+/**
  * Called when the apply button is pressed.
  */
 void ImageCaptureDialog::applyButtonPressed()
 {
-    const int itemIndex = this->paletteNameComboBox->currentIndex();
-    if (itemIndex >= 0) {
-        const AString name = this->paletteNameComboBox->itemData(itemIndex).toString();
-        if (this->paletteColorMapping != NULL) {
-            this->paletteColorMapping->setSelectedPaletteName(name);
+    const int browserWindowIndex = this->windowSelectionSpinBox->value() - 1;
+    
+    int32_t imageX = 0;
+    int32_t imageY = 0;
+    if (this->imageSizeCustomRadioButton->isChecked()) {
+        imageX = this->imageSizeCustomXSpinBox->value();
+        imageY = this->imageSizeCustomYSpinBox->value();
+    }
+    QImage image;
+    bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
+                                                                            imageX,
+                                                                            imageY,
+                                                                            image);
+    
+    if (valid == false) {
+        WuQMessageBox::errorOk(this, 
+                               "Invalid window selected");
+        return;
+    }
+    
+    if (this->copyImageToClipboardCheckBox->isChecked()) {
+        QApplication::clipboard()->setImage(image, QClipboard::Clipboard);
+    }
+
+    if (this->saveImageToFileCheckBox->isChecked()) {
+        AString filename = this->imageFileNameLineEdit->text().trimmed();
+        FileInformation fileInfo(filename);
+        AString ext = fileInfo.getFileExtension();
+        
+        QImageWriter writer(filename, ext.toAscii());
+        if (writer.supportsOption(QImageIOHandler::Quality)) {
+            if (ext.compare("png", Qt::CaseInsensitive) == 0) {
+                const int quality = 1;
+                writer.setQuality(quality);
+            }
+            else {
+                const int quality = 100;
+                writer.setQuality(quality);
+            }
+        }
+        if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
+            writer.setCompression(1);
+        }
+        if (writer.write(image) == false) {
+            QString msg("Unable to save: " + filename);
+            WuQMessageBox::errorOk(this, msg);
+            return;
         }
     }
-    
-    if (this->scaleAutoRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE);
-    }
-    else if (this->scaleAutoPercentageRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-    }
-    else if (this->scaleFixedRadioButton->isChecked()) {
-        this->paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_USER_SCALE);
-    }
-        
-    this->paletteColorMapping->setUserScaleNegativeMaximum(this->scaleFixedNegativeMaximumSpinBox->value());
-    this->paletteColorMapping->setUserScaleNegativeMinimum(this->scaleFixedNegativeMinimumSpinBox->value());
-    this->paletteColorMapping->setUserScalePositiveMinimum(this->scaleFixedPositiveMinimumSpinBox->value());
-    this->paletteColorMapping->setUserScalePositiveMaximum(this->scaleFixedPositiveMaximumSpinBox->value());
-
-    this->paletteColorMapping->setAutoScalePercentageNegativeMaximum(this->scaleAutoPercentageNegativeMaximumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentageNegativeMinimum(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentagePositiveMinimum(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
-    this->paletteColorMapping->setAutoScalePercentagePositiveMaximum(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
-    
-    this->paletteColorMapping->setDisplayPositiveDataFlag(this->displayModePositiveCheckBox->isChecked());
-    this->paletteColorMapping->setDisplayNegativeDataFlag(this->displayModeNegativeCheckBox->isChecked());
-    this->paletteColorMapping->setDisplayZeroDataFlag(this->displayModeZeroCheckBox->isChecked());
-    
-    this->paletteColorMapping->setInterpolatePaletteFlag(this->interpolateColorsCheckBox->isChecked());
-    
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 

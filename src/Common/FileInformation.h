@@ -108,6 +108,11 @@ namespace caret {
          */
         AString getFilePath() const { return this->filePath; }
         
+        /**
+         * @return The file name's extension.
+         */
+        AString getFileExtension() const { return this->fileExtension; }
+        
         bool remove();
         
     private:
@@ -148,6 +153,8 @@ namespace caret {
         AString fileName;
         
         AString pathName;
+        
+        AString fileExtension;
     };
     
 #ifdef __FILE_INFORMATION_DECLARE__

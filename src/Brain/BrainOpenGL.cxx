@@ -85,6 +85,7 @@ BrainOpenGL::BrainOpenGL()
     this->identificationManager = new IdentificationManager();
     this->colorIdentification   = new IdentificationWithColor();
     this->sphereDisplayList = 0;
+    this->sphereOpenGL = NULL;
 }
 
 /**
@@ -469,7 +470,9 @@ BrainOpenGL::initializeOpenGL()
     }
     
     
-    this->sphereOpenGL = new SphereOpenGL(1.0);
+    if (this->sphereOpenGL != NULL) {
+        this->sphereOpenGL = new SphereOpenGL(1.0);
+    }
     
     if (this->initializedOpenGLFlag) {
         return;
