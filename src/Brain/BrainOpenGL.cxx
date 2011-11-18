@@ -1054,6 +1054,9 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                 const int vpSizeY = viewport[3] / numRows;
                 
                 int sliceIndex = -1;
+                int maximumSliceIndex = -1;
+                std::vector<int64_t> dimensions;
+                volumeDrawInfo[0].volumeFile->getDimensions(dimensions);
                 const int sliceStep = volumeController->getMontageSliceSpacing(tabNumber);
                 const VolumeSliceViewPlaneEnum::Enum slicePlane = volumeController->getSliceViewPlane(this->windowTabIndex);
                 switch (slicePlane) {
@@ -1062,29 +1065,34 @@ BrainOpenGL::drawVolumeController(BrowserTabContent* browserTabContent,
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
                         sliceIndex = selectedSlices->getSliceIndexAxial();
+                        maximumSliceIndex = dimensions[2];
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
                         sliceIndex = selectedSlices->getSliceIndexCoronal();
+                        maximumSliceIndex = dimensions[1];
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                         sliceIndex = selectedSlices->getSliceIndexParasagittal();
+                        maximumSliceIndex = dimensions[0];
                         break;
                 }
 
-                if (sliceIndex >= 0){
+                if (sliceIndex >= 0) {
                     for (int i = 0; i < numRows; i++) {
                         for (int j = 0; j < numCols; j++) {
-                            const int vpX = j * vpSizeX;
-                            const int vpY = i * vpSizeY;
-                            const int vp[4] = { vpX, vpY, vpSizeX, vpSizeY };
-                            
-                            this->setViewportAndOrthographicProjection(vp);
-                            this->applyViewingTransformationsVolumeSlice(volumeController, 
-                                                                         this->windowTabIndex, 
-                                                                         slicePlane);
-                            this->drawVolumeOrthogonalSlice(slicePlane, 
-                                                            sliceIndex, 
-                                                            volumeDrawInfo);
+                            if (sliceIndex < maximumSliceIndex) {
+                                const int vpX = j * vpSizeX;
+                                const int vpY = i * vpSizeY;
+                                const int vp[4] = { vpX, vpY, vpSizeX, vpSizeY };
+                                
+                                this->setViewportAndOrthographicProjection(vp);
+                                this->applyViewingTransformationsVolumeSlice(volumeController, 
+                                                                             this->windowTabIndex, 
+                                                                             slicePlane);
+                                this->drawVolumeOrthogonalSlice(slicePlane, 
+                                                                sliceIndex, 
+                                                                volumeDrawInfo);
+                            }
                             sliceIndex += sliceStep;
                         }
                     }
