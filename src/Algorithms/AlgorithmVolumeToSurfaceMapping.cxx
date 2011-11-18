@@ -162,6 +162,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
+    myMetricOut->setStructure(mySurface->getStructure());
     switch (myMethod)
     {
         case TRILINEAR:
