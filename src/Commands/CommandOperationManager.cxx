@@ -28,6 +28,7 @@
 
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
+#include "AlgorithmVolumeToSurfaceMapping.h"
 
 #include "OperationAddToSpecFile.h"
 #include "OperationMetricPalette.h"
@@ -83,6 +84,7 @@ CommandOperationManager::CommandOperationManager()
 {
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));

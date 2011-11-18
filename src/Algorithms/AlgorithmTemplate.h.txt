@@ -82,7 +82,7 @@ namespace caret {
         //static bool takesParameters() { return false; };
     };
 
-    typedef TemplateAutoAlgorithm<AlgorithmName> AutoAlgorithmName;
+    typedef TemplateAutoOperation<AlgorithmName> AutoAlgorithmName;
 
 }
 

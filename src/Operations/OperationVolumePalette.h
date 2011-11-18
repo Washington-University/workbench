@@ -36,7 +36,6 @@ namespace caret {
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
         static AString getShortDescription();
-        //static bool takesParameters() { return false; };
     };
 
     typedef TemplateAutoOperation<OperationVolumePalette> AutoOperationVolumePalette;

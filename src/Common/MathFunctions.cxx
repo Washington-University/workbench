@@ -344,7 +344,7 @@ MathFunctions::normalizeVector(
  *
  */
 float
-MathFunctions::normalizeVector(float* vector)
+MathFunctions::normalizeVector(float vector[3])
 {
     float len = vectorLength(vector);
     if (len != 0.0) {
@@ -363,7 +363,7 @@ MathFunctions::normalizeVector(float* vector)
  *
  */
 double
-MathFunctions::normalizeVector(double* vector)
+MathFunctions::normalizeVector(double vector[3])
 {
     double len = vectorLength(vector);
     if (len != 0.0) {
@@ -383,7 +383,7 @@ MathFunctions::normalizeVector(double* vector)
  *
  */
 float
-MathFunctions::vectorLength(const float* vector)
+MathFunctions::vectorLength(const float vector[3])
 {
     float len =
     (float)std::sqrt(vector[0]*vector[0] +
@@ -422,7 +422,7 @@ MathFunctions::vectorLength(
  *
  */
 double
-MathFunctions::vectorLength(const double* vector)
+MathFunctions::vectorLength(const double vector[3])
 {
     double len = std::sqrt(vector[0]*vector[0] +
                      vector[1]*vector[1] +
@@ -1208,7 +1208,7 @@ MathFunctions::averageOfThreeCoordinates(
                    const int32_t offsetCoord1,
                    const int32_t offsetCoord2,
                    const int32_t offsetCoord3,
-                   float outputAverage[3],
+                   float outputAverage[],
                    const int32_t outputOffset)
 {
     outputAverage[outputOffset] = (xyzAll[offsetCoord1]   + xyzAll[offsetCoord2]   + xyzAll[offsetCoord3]) / 3.0f;

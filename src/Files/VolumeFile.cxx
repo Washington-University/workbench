@@ -151,3 +151,28 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     if (validOut != NULL) *validOut = false;
     return INVALID_INTERP_VALUE;
 }
+
+bool VolumeFile::compareVolumeSpace(const VolumeFile* right)
+{
+    for (int i = 0; i < 3; ++i)//only check the spatial dimensions
+    {
+        if (m_dimensions[i] != right->m_dimensions[i])
+        {
+            return false;
+        }
+    }
+    const float TOLER_RATIO = 1.0001f;//ratio a spacing element can mismatch by
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            float leftelem = m_indexToSpace[i][j];
+            float rightelem = right->m_indexToSpace[i][j];
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem > TOLER_RATIO || rightelem / leftelem > TOLER_RATIO)))
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}

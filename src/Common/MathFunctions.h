@@ -103,17 +103,17 @@ public:
                     float vectorsAll[],
                     const int32_t offset);
 
-    static float normalizeVector(float* vectorInOut);
+    static float normalizeVector(float vectorInOut[3]);
 
-    static double normalizeVector(double* vectorInOut);
+    static double normalizeVector(double vectorInOut[3]);
 
-    static float vectorLength(const float* vector);
+    static float vectorLength(const float vector[3]);
 
     static float vectorLength(
                     const float vectorsAll[],
                     const int32_t offset);
 
-    static double vectorLength(const double* vector);
+    static double vectorLength(const double vector[3]);
 
     static float distanceSquared3D(
                     const float p1[3],
@@ -254,7 +254,7 @@ public:
                     const int32_t offsetCoord1,
                     const int32_t offsetCoord2,
                     const int32_t offsetCoord3,
-                    float outputAverage[3],
+                    float outputAverage[],
                     const int32_t outputOffset);
 
     static float angle(

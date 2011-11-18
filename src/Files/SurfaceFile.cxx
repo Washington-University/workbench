@@ -377,7 +377,6 @@ SurfaceFile::computeNormals(const bool averageNormals)
         
 #pragma omp CARET_PAR
         {
-            float normal[3];
 #pragma omp CARET_FOR
             for (int32_t i = 0; i < numCoords; i++) {
                 const int32_t i3 = i * 3;

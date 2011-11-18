@@ -184,7 +184,7 @@ void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myK
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
-    float myGeoDist = myKernelF * 4.0f;
+    float myGeoDist = myKernelF * 3.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
 #pragma omp CARET_PAR
@@ -219,7 +219,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROI(SurfaceFile* mySurf, double 
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
-    float myGeoDist = myKernelF * 4.0f;
+    float myGeoDist = myKernelF * 3.0f;
     float gaussianDenom = -0.5f / myKernelF / myKernelF;
     m_weightLists.resize(numNodes);
 #pragma omp CARET_PAR

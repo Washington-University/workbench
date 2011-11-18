@@ -21,11 +21,13 @@ AbstractAlgorithm.h
 AlgorithmException.h
 AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
+AlgorithmVolumeToSurfaceMapping.h
 
 AbstractAlgorithm.cxx
 AlgorithmException.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx
+AlgorithmVolumeToSurfaceMapping.cxx
 )
 
 #

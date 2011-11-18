@@ -56,6 +56,7 @@ namespace caret {
     
     class VolumeBase : public TracksModificationInterface
     {
+    protected:
         std::vector<std::vector<float> > m_indexToSpace;
         std::vector<std::vector<float> > m_spaceToIndex;//not valid yet, need MathUtilities
         float* m_data;
@@ -228,6 +229,16 @@ namespace caret {
             } else {//otherwise, calculate via precalculated multiply arrays
                 return indexIn1 + m_jMult[indexIn2] + m_kMult[indexIn3] + m_bMult[brickIndex] + m_cMult[component];
             }
+        }
+        
+        inline int64_t getIndex(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0)
+        {
+            return getIndex(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
+        }
+
+        inline bool indexValid(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
+        {
+            return indexValid(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
 
         ///checks if an index is within array dimensions
