@@ -270,10 +270,27 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     
     this->tabBar->blockSignals(true);
     
-    const int newTabIndex = this->tabBar->addTab("NewTab");
+    const int32_t tabContentIndex = tabContent->getTabNumber();
+    
+    int insertIndex = 0;
+    const int32_t numTabs = this->tabBar->count();
+    for (int32_t i = 0; i < numTabs; i++) {
+        if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
+            insertIndex = i + 1;
+        }
+    }
+    
+    int32_t newTabIndex = -1;
+    if (numTabs <= 0) {
+        newTabIndex = this->tabBar->addTab("NewTab");
+    }
+    else {
+        this->tabBar->insertTab(insertIndex, "Tab");
+        newTabIndex = insertIndex;
+    }
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
-    const int numOpenTabs = this->tabBar->count();
+    const int32_t numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
     
     //this->tabBar->setTabText(newTabIndex, tabContent->getName());
@@ -627,7 +644,7 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
     this->tabBar->blockSignals(false);
     
     const int numOpenTabs = this->tabBar->count();
-    this->tabBar->setTabsClosable(numOpenTabs > 2);
+    this->tabBar->setTabsClosable(numOpenTabs > 1);
     
     this->updateUserInterface();
 }
@@ -2819,6 +2836,28 @@ BrowserTabContent*
 BrainBrowserWindowToolBar::getTabContentFromSelectedTab()
 {
     const int tabIndex = this->tabBar->currentIndex();
+    BrowserTabContent* btc = this->getTabContentFromTab(tabIndex);
+    return btc;
+/*
+   if ((tabIndex >= 0) && (tabIndex < this->tabBar->count())) {
+        void* p = this->tabBar->tabData(tabIndex).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        return btc;
+    }
+    return NULL;
+*/
+}
+
+/**
+ * Get the content in the given browser tab
+ * @param tabIndex
+ *    Index of tab.
+ * @return
+ *    Browser tab contents in the selected tab or NULL if none.
+ */
+BrowserTabContent* 
+BrainBrowserWindowToolBar::getTabContentFromTab(const int tabIndex)
+{
     if ((tabIndex >= 0) && (tabIndex < this->tabBar->count())) {
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;

@@ -87,6 +87,7 @@ namespace caret {
         BrainBrowserWindowToolBar& operator=(const BrainBrowserWindowToolBar&);
         
         BrowserTabContent* getTabContentFromSelectedTab();
+        BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
         ModelDisplayController* getDisplayedModelController();
         
