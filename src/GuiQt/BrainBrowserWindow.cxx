@@ -339,15 +339,6 @@ BrainBrowserWindow::createActions()
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
     
-    this->identifyWindowAction =
-    WuQtUtilities::createAction("Identify Window...",
-                                "Show the Identify Window",
-                                Qt::CTRL + Qt::Key_I,
-                                this,
-                                guiManager,
-                                SLOT(processShowIdentifyWindow()));
-    this->identifyWindowAction->setEnabled(false);
-    
     this->dataDisplayAction =
     WuQtUtilities::createAction("Data Display...",
                                 "Show the Data Display Window",
@@ -633,7 +624,6 @@ BrainBrowserWindow::createMenuWindow()
     menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
     menu->addAction(this->dataDisplayAction);
-    menu->addAction(this->identifyWindowAction);
     menu->addSeparator();
     menu->addAction(this->bringAllToFrontAction);
     

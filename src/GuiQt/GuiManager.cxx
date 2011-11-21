@@ -385,15 +385,6 @@ GuiManager::processBringAllWindowsToFront()
 }
 
 /**
- * Called when show identify window is selected.
- */
-void 
-GuiManager::processShowIdentifyWindow()
-{
-    
-}
-
-/**
  * Called when show data display window is selected.
  */
 void 

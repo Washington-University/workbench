@@ -93,7 +93,6 @@ namespace caret {
                                                      QImage& imageOut);
     public slots:
         void processBringAllWindowsToFront();
-        void processShowIdentifyWindow();
         void processShowDataDisplayWindow();
         void processShowHelpOnlineWindow();
         void processShowSearchHelpOnlineWindow();

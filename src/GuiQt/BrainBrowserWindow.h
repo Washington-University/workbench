@@ -181,8 +181,6 @@ namespace caret {
         
         QAction* bringAllToFrontAction;
         
-        QAction* identifyWindowAction;
-        
         QAction* dataDisplayAction;
         
         QAction* helpOnlineAction;
