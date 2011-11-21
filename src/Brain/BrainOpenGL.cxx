@@ -1619,58 +1619,57 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
     
-    
+    /*
+     * Draw the surfaces. 
+     */
     Brain* brain = wholeBrainController->getBrain();
     const int32_t numberOfBrainStructures = brain->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numberOfBrainStructures; i++) {
         BrainStructure* brainStructure = brain->getBrainStructure(i);
-        const int32_t numberOfSurfaces = brainStructure->getNumberOfSurfaces();
-        for (int32_t j = 0; j < numberOfSurfaces; j++) {
-            Surface* surface = brainStructure->getSurface(j);
-                        
-            if (surface->getSurfaceType() == surfaceType) {
-                
-                float dx = 0.0;
-                float dy = 0.0;
-                float dz = 0.0;
-                
-                bool drawIt = false;
-                const StructureEnum::Enum structure = surface->getStructure();
-                switch (structure) {
-                    case StructureEnum::CORTEX_LEFT:
-                        drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
-                        dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                        if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
-                            && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
-                            dx -= surface->getBoundingBox()->getMaxX();
-                        }
-                        break;
-                    case StructureEnum::CORTEX_RIGHT:
-                        drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
-                        dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                        if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
-                            && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
-                            dx -= surface->getBoundingBox()->getMinX();
-                        }
-                        break;
-                    case StructureEnum::CEREBELLUM:
-                        drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);
-                        dz = wholeBrainController->getCerebellumSeparation(tabNumberIndex);
-                        break;
-                    default:
-                        break;
-                }
-                
-                if (drawIt) {
-                    glPushMatrix();
-                    glTranslatef(dx, dy, dz);
-                    this->drawSurface(surface);
-                    glPopMatrix();
-                }
+        const StructureEnum::Enum structure = brainStructure->getStructure();
+        Surface* surface = wholeBrainController->getSelectedSurface(structure, 
+                                                                    tabNumberIndex);
+        if (surface != NULL) {
+            float dx = 0.0;
+            float dy = 0.0;
+            float dz = 0.0;
+            
+            bool drawIt = false;
+            switch (structure) {
+                case StructureEnum::CORTEX_LEFT:
+                    drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
+                    dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                    if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMaxX();
+                    }
+                    break;
+                case StructureEnum::CORTEX_RIGHT:
+                    drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
+                    dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
+                    if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                        dx -= surface->getBoundingBox()->getMinX();
+                    }
+                    break;
+                case StructureEnum::CEREBELLUM:
+                    drawIt = wholeBrainController->isCerebellumEnabled(tabNumberIndex);
+                    dz = wholeBrainController->getCerebellumSeparation(tabNumberIndex);
+                    break;
+                default:
+                    CaretLogWarning("programmer-issure: Surface type not left/right/cerebellum");
+                    break;
+            }
+            
+            if (drawIt) {
+                glPushMatrix();
+                glTranslatef(dx, dy, dz);
+                this->drawSurface(surface);
+                glPopMatrix();
             }
         }
     }
-    
+        
     /*
      * Determine volumes that are to be drawn  
      */

@@ -357,6 +357,27 @@ BrainStructure::getSurface(int indx)
 }
 
 /**
+ * Get all surfaces of the given type in this brain structure.
+ * @param surfaceType
+ *   Type of surface
+ * @param surfacesOut
+ *   Output that will contain the surfaces.
+ */
+void 
+BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
+                                  std::vector<Surface*>& surfacesOut) const
+{
+    surfacesOut.clear();
+    
+    const int32_t numSurfaces = this->getNumberOfSurfaces();
+    for (int32_t i = 0; i < numSurfaces; i++) {
+        if (this->surfaces[i]->getSurfaceType() == surfaceType) {
+            surfacesOut.push_back(this->surfaces[i]);
+        }
+    }
+}
+
+/**
  * Is the surface in this brain structure?
  * @param surface
  *   Surface that is tested for being in this brain structure.

@@ -86,6 +86,14 @@ namespace caret {
         
         virtual void setSlicesToOrigin(const int32_t windowTabNumber);
         
+        Surface* getSelectedSurface(const StructureEnum::Enum structure,
+                                    const int32_t windowTabNumber);
+        
+        void setSelectedSurface(const StructureEnum::Enum structure,
+                                    const int32_t windowTabNumber,
+                                    Surface* surface);
+        
+                                    
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
@@ -107,6 +115,9 @@ namespace caret {
         
         /** Type of surface for display */
         mutable SurfaceTypeEnum::Enum selectedSurfaceType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Selected surface for structure/surface-type */
+        std::map<std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum>, Surface*> selectedSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Available surface types */
         std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;

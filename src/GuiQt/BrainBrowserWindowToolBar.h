@@ -230,9 +230,6 @@ namespace caret {
         QCheckBox*      wholeBrainSurfaceLeftCheckBox;
         QCheckBox*      wholeBrainSurfaceRightCheckBox;
         QCheckBox*      wholeBrainSurfaceCerebellumCheckBox;
-        QMenu* wholeBrainSurfaceLeftMenu;
-        QMenu* wholeBrainSurfaceRightMenu;
-        QMenu* wholeBrainSurfaceCerebellumMenu;
         QDoubleSpinBox* wholeBrainSurfaceSeparationLeftRightSpinBox;
         QDoubleSpinBox* wholeBrainSurfaceSeparationCerebellumSpinBox;
 
@@ -243,9 +240,9 @@ namespace caret {
         void wholeBrainSurfaceCerebellumCheckBoxStateChanged(int state);
         void wholeBrainSurfaceSeparationLeftRightSpinBoxValueChanged(double d);
         void wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(double d);
-        void wholeBrainSurfaceLeftMenuTriggered(QAction*);
-        void wholeBrainSurfaceRightMenuTriggered(QAction*);
-        void wholeBrainSurfaceCerebellumMenuTriggered(QAction*);
+        void wholeBrainSurfaceLeftToolButtonTriggered(bool checked);
+        void wholeBrainSurfaceRightToolButtonTriggered(bool checked);
+        void wholeBrainSurfaceCerebellumToolButtonTriggered(bool checked);
     
     private:
         QCheckBox* volumeIndicesParasagittalCheckBox;

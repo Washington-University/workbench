@@ -25,6 +25,7 @@
 #include <algorithm>
 
 #include "Brain.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
@@ -423,5 +424,81 @@ ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumbe
     if (vf != NULL) {
         this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
     }
+}
+
+/**
+ * Get the surface for the given structure in the given tab that is for
+ * the currently selected surface type.
+ *
+ * @param structure
+ *    Structure for the surface
+ * @param windowTabNumber
+ *    Tab number of window.
+ */
+Surface* 
+ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
+                                                     const int32_t windowTabNumber)
+
+{
+    const SurfaceTypeEnum::Enum surfaceType = this->getSelectedSurfaceType(windowTabNumber);
+    std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum> key = 
+        std::make_pair(structure, 
+                       surfaceType);
+    
+    /*
+     * Get the currently selected surface.
+     */
+    Surface* s = this->selectedSurface[windowTabNumber][key];
+    
+    /*
+     * See if currently selected surface is valid.
+     */
+    BrainStructure* brainStructure = this->brain->getBrainStructure(structure, 
+                                                                    false);
+    std::vector<Surface*> surfaces;
+    brainStructure->getSurfacesOfType(surfaceType,
+                                      surfaces);
+    if (std::find(surfaces.begin(),
+                  surfaces.end(),
+                  s) == surfaces.end()) {
+        s = NULL;
+    }
+    
+    /*
+     * If no selected surface, use first surface.
+     */
+    if (s == NULL) {
+        if (surfaces.empty() == false) {
+            s = surfaces[0];
+        }
+    }
+    
+    this->selectedSurface[windowTabNumber][key] = s;
+    
+    return s;
+}
+
+/**
+ * Set the selected surface for the given structure in the given window tab 
+ * that is for the currently selected surface type.
+ * surface type.
+ *
+ * @param structure
+ *    Structure for the surface
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param surface
+ *    Newly selected surface.
+ */
+void ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
+                                                          const int32_t windowTabNumber,
+                                                          Surface* surface)
+{
+    const SurfaceTypeEnum::Enum surfaceType = this->getSelectedSurfaceType(windowTabNumber);
+    std::pair<StructureEnum::Enum,SurfaceTypeEnum::Enum> key = 
+    std::make_pair(structure, 
+                   surfaceType);
+    
+    this->selectedSurface[windowTabNumber][key] = surface;
 }
 

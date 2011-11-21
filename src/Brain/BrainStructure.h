@@ -35,6 +35,7 @@
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
 #include "StructureEnum.h"
+#include "SurfaceTypeEnum.h"
 
 namespace caret {
     
@@ -79,6 +80,9 @@ namespace caret {
         int getNumberOfSurfaces() const;
         
         Surface* getSurface(const int32_t indx);
+        
+        void getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
+                               std::vector<Surface*>& surfacesOut) const;
         
         bool containsSurface(const Surface* surface);
         
