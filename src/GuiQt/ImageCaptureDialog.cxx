@@ -132,7 +132,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->copyImageToClipboardCheckBox->setChecked(true);
     this->saveImageToFileCheckBox = new QCheckBox("Save to File: " );
     this->imageFileNameLineEdit = new QLineEdit();
-    this->imageFileNameLineEdit->setText("capture.jpg");
+    this->imageFileNameLineEdit->setText("capture.png");
     QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
     QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
                      this, SLOT(selectImagePushButtonPressed()));
@@ -176,9 +176,23 @@ ImageCaptureDialog::updateDialog()
 void 
 ImageCaptureDialog::selectImagePushButtonPressed()
 {
+    QString filterText = "Image File (";
+    
+    QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
+    const int numFormats = imageFormats.count();
+    for (int i = 0; i < numFormats; i++) {        
+        QByteArray format = imageFormats.at(i);
+        if (i > 0) {
+            filterText += " ";
+        }
+        filterText.append(("*." + QString(format)));
+    }
+    filterText += ")";
     AString name = WuQFileDialog::getSaveFileName(this,
                                                   "Choose File Name",
-                                                  GuiManager::get()->getBrain()->getCurrentDirectory());
+                                                  GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                                  filterText,
+                                                  &filterText);
     if (name.isEmpty() == false) {
         this->imageFileNameLineEdit->setText(name.trimmed());
     }
