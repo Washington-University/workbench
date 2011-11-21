@@ -272,21 +272,26 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     
     const int32_t tabContentIndex = tabContent->getTabNumber();
     
-    int insertIndex = 0;
-    const int32_t numTabs = this->tabBar->count();
-    for (int32_t i = 0; i < numTabs; i++) {
-        if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
-            insertIndex = i + 1;
-        }
-    }
     
     int32_t newTabIndex = -1;
+    const int32_t numTabs = this->tabBar->count();
     if (numTabs <= 0) {
         newTabIndex = this->tabBar->addTab("NewTab");
     }
     else {
-        this->tabBar->insertTab(insertIndex, "Tab");
-        newTabIndex = insertIndex;
+        int insertIndex = 0;
+        for (int32_t i = 0; i < numTabs; i++) {
+            if (tabContentIndex > this->getTabContentFromTab(i)->getTabNumber()) {
+                insertIndex = i + 1;
+            }
+        }
+        if (insertIndex >= numTabs) {
+            newTabIndex = this->tabBar->addTab("NewTab");
+        }
+        else {
+            this->tabBar->insertTab(insertIndex, "NewTab");
+            newTabIndex = insertIndex;
+        }
     }
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
@@ -504,7 +509,34 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
         BrowserTabContent* btc = (BrowserTabContent*)p;
         allTabContent.push_back(btc);
         this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+        this->tabClosed(i);
     }
+}
+
+/**
+ * Remove the tab that contains the given tab content.
+ * Note: The tab content is NOT deleted and the caller must
+ * either delete it or move it into a window.
+ * After this method completes, the windowo may contain no tabs.
+ *
+ * @param browserTabContent
+ */
+void 
+BrainBrowserWindowToolBar::removeTabWithContent(BrowserTabContent* browserTabContent)
+{
+    int32_t numTabs = this->tabBar->count();
+    for (int32_t i = 0; i < numTabs; i++) {
+        void* p = this->tabBar->tabData(i).value<void*>();
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        if (btc == browserTabContent) {
+            this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
+            this->tabClosed(i);
+            if (this->tabBar->count() <= 0) {
+                EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
+            }
+            break;
+        }
+    }    
 }
 
 

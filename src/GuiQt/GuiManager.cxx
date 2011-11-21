@@ -222,10 +222,10 @@ GuiManager::getNumberOfBrainBrowserWindows() const
  * @return 
  *   Vector containing all open brain browser windows.
  */
-QVector<BrainBrowserWindow*> 
+std::vector<BrainBrowserWindow*> 
 GuiManager::getAllBrainBrowserWindows() const
 { 
-    QVector<BrainBrowserWindow*> windows;
+    std::vector<BrainBrowserWindow*> windows;
     
     int32_t numWindows = static_cast<int32_t>(this->brainBrowserWindows.size());
     for (int32_t i = 0; i < numWindows; i++) {
@@ -322,8 +322,8 @@ GuiManager::exitProgram(QWidget* parent)
     }
     
     if (okToExit) {
-        QVector<BrainBrowserWindow*> bws = this->getAllBrainBrowserWindows();
-        for (int i = 0; i < bws.size(); i++) {
+        std::vector<BrainBrowserWindow*> bws = this->getAllBrainBrowserWindows();
+        for (int i = 0; i < static_cast<int>(bws.size()); i++) {
             bws[i]->deleteLater();
         }
         

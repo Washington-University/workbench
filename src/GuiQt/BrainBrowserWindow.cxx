@@ -33,6 +33,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
@@ -325,8 +326,8 @@ BrainBrowserWindow::createActions()
                                 SLOT(moveTabsToNewWindows()));
     
     this->moveTabsFromAllWindowsToOneWindowAction =
-    WuQtUtilities::createAction("Move All Tabs From All Windows Into One Window",
-                                "Move all tabs from all windows into one window",
+    WuQtUtilities::createAction("Move All Tabs From All Windows Into Selected Window",
+                                "Move all tabs from all windows into selected window",
                                 this,
                                 this,
                                 SLOT(processMoveAllTabsToOneWindow()));
@@ -615,12 +616,11 @@ BrainBrowserWindow::createMenuVolume()
 QMenu* 
 BrainBrowserWindow::createMenuWindow()
 {
-    this->moveTabToThisWindowMenu = new QMenu("Move tab to this window");
-    QObject::connect(this->moveTabToThisWindowMenu, SIGNAL(aboutToShow()),
-                     this, SLOT(processMoveTabToWindowMenuAboutToBeDisplayed()));
-    QObject::connect(this->moveTabToThisWindowMenu, SIGNAL(triggered(QAction*)),
-                     this, SLOT(processMoveTabToWindowMenuSelection(QAction*)));
-    this->moveTabToThisWindowMenu->setEnabled(false);
+    this->moveSelectedTabToWindowMenu = new QMenu("Move Selected Tab to Window");
+    QObject::connect(this->moveSelectedTabToWindowMenu, SIGNAL(aboutToShow()),
+                     this, SLOT(processMoveSelectedTabToWindowMenuAboutToBeDisplayed()));
+    QObject::connect(this->moveSelectedTabToWindowMenu, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processMoveSelectedTabToWindowMenuSelection(QAction*)));
     
     QMenu* menu = new QMenu("Window", this);
     
@@ -630,7 +630,7 @@ BrainBrowserWindow::createMenuWindow()
     menu->addSeparator();
     menu->addAction(this->moveTabsInWindowToNewWindowsAction);
     menu->addAction(this->moveTabsFromAllWindowsToOneWindowAction);
-    menu->addMenu(this->moveTabToThisWindowMenu);
+    menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
     menu->addAction(this->dataDisplayAction);
     menu->addAction(this->identifyWindowAction);
@@ -933,18 +933,69 @@ BrainBrowserWindow::processMoveAllTabsToOneWindow()
  * Called when the move tab to window is about to be displayed.
  */
 void 
-BrainBrowserWindow::processMoveTabToWindowMenuAboutToBeDisplayed()
+BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
 {
+    this->moveSelectedTabToWindowMenu->clear();
+
+    if (this->getBrowserTabContent() == NULL) {
+        return;
+    }
     
+    /*
+     * Allow movement of tab to new window ONLY if this window
+     * contains more than one tab.
+     */
+    if (this->toolbar->tabBar->count() > 1) {
+        QAction* toNewWindowAction = new QAction("New Window",
+                                                 this->moveSelectedTabToWindowMenu);
+        toNewWindowAction->setData(qVariantFromValue((void*)NULL));
+        this->moveSelectedTabToWindowMenu->addAction(toNewWindowAction);
+    }
+    
+    std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllBrainBrowserWindows();
+    for (int32_t i = 0; i < static_cast<int32_t>(browserWindows.size()); i++) {
+        if (browserWindows[i] != this) {
+            QString name = "Window " + QString::number(browserWindows[i]->getBrowserWindowIndex() + 1);
+            QAction* action = new QAction(name,
+                                          this->moveSelectedTabToWindowMenu);
+            action->setData(qVariantFromValue((void*)browserWindows[i]));
+            this->moveSelectedTabToWindowMenu->addAction(action);
+        }
+    }    
 }
 
 /**
  * Called when move tab to window menu item is selected.
+ * This window may close if there are no more tabs after
+ * the tab is removed.
+ * @param action
+ *    Action from menu item that was selected.
  */
 void 
-BrainBrowserWindow::processMoveTabToWindowMenuSelection(QAction*)
+BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
 {
-    
+    if (action != NULL) {
+        void* p = action->data().value<void*>();
+        BrainBrowserWindow* moveToBrowserWindow = (BrainBrowserWindow*)p;
+        
+        BrowserTabContent* btc = this->getBrowserTabContent();
+        
+        this->toolbar->removeTabWithContent(btc);
+            
+        if (moveToBrowserWindow != NULL) {
+            moveToBrowserWindow->toolbar->addNewTab(btc);
+        }
+        else {
+            EventBrowserWindowNew newWindow(this,
+                                            btc);
+            EventManager::get()->sendEvent(newWindow.getPointer());
+        }
+        
+        if (this->toolbar->tabBar->count() <= 0) {
+            EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
+            this->close();
+        }
+    }
 }
 
 /**

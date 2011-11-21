@@ -91,8 +91,8 @@ namespace caret {
         void processMoveToolBoxToBottom();
         void processMoveToolBoxToFloat();
         
-        void processMoveTabToWindowMenuAboutToBeDisplayed();
-        void processMoveTabToWindowMenuSelection(QAction*);
+        void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
+        void processMoveSelectedTabToWindowMenuSelection(QAction*);
         
         void processRecentSpecFileMenuAboutToBeDisplayed();
         void processRecentSpecFileMenuSelection(QAction*);
@@ -189,7 +189,7 @@ namespace caret {
         
         QAction* searchHelpOnlineAction;
         
-        QMenu* moveTabToThisWindowMenu;
+        QMenu* moveSelectedTabToWindowMenu;
         
         QMenu* recentSpecFileMenu;
         
