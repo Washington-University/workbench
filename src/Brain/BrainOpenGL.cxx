@@ -470,7 +470,7 @@ BrainOpenGL::initializeOpenGL()
     }
     
     
-    if (this->sphereOpenGL != NULL) {
+    if (this->sphereOpenGL == NULL) {
         this->sphereOpenGL = new SphereOpenGL(1.0);
     }
     
