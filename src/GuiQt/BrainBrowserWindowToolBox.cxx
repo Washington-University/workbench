@@ -194,7 +194,10 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindowToolBox::updateMySize()
 {
+    return;
+
     this->adjustSize();
+    return;
 //    this->adjustSize();
 //    this->setFixedHeight(this->sizeHint().height());
 
