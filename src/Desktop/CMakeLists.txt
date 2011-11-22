@@ -22,6 +22,14 @@ SET(QT_USE_QTNETWORK TRUE)
 INCLUDE (${QT_USE_FILE})
 
 #
+# Added by JWH to eliminate OpenGL linking errors in Ubuntu Linux
+#
+IF (UNIX)
+    IF (NOT APPLE)
+        FIND_PACKAGE(OpenGL)
+    ENDIF (NOT APPLE)
+ENDIF (UNIX)
+#
 # Images
 #
 SET (IMAGE_RCS ./images/images.qrc)
@@ -81,6 +89,7 @@ ENDIF(WIN32)
 IF (UNIX)
    IF (NOT APPLE) 
       TARGET_LINK_LIBRARIES(${EXE_NAME}
+         ${OPENGL_LIBRARIES}
          gobject-2.0
       )
    ENDIF (NOT APPLE)
