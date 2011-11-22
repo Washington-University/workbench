@@ -102,6 +102,23 @@ BrainOpenGLWidget::initializeGL()
     this->lastMouseY = 0;
 
     this->setFocusPolicy(Qt::StrongFocus);
+    
+    QGLFormat format = this->format();
+    
+    AString msg = ("Accum: " + AString::fromBool(format.accum())
+                   + "\nAccum size: " + AString::number(format.accumBufferSize())
+                   + "\nAlpha: " + AString::fromBool(format.alpha())
+                   + "\nAlpha size: " + AString::number(format.alphaBufferSize())
+                   + "\nDepth: " + AString::fromBool(format.depth())
+                   + "\nDepth size: " + AString::number(format.depthBufferSize())
+                   + "\nRed size: " + AString::number(format.redBufferSize())
+                   + "\nGreen size: " + AString::number(format.greenBufferSize())
+                   + "\nBlue size: " + AString::number(format.blueBufferSize())
+                   + "\nDouble Buffer: " + AString::fromBool(format.doubleBuffer())
+                   + "\nRGBA: " + AString::fromBool(format.rgba())
+                   + "\nMajor Version: " + AString::number(format.majorVersion())
+                   + "\nMinor Version: " + AString::number(format.minorVersion()));
+    CaretLogConfig(msg);
 }
 
 /**

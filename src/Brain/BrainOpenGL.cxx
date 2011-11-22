@@ -265,6 +265,8 @@ BrainOpenGL::drawModelInternal(Mode mode,
         }
     }
     
+    glFlush();
+    
     this->checkForOpenGLError(modelDisplayController, "At end of drawModel()");
     
     if (modelDisplayController != NULL) {
@@ -415,7 +417,11 @@ BrainOpenGL::initializeOpenGL()
         //
         const char* versionStr = (char*)(glGetString(GL_VERSION));
         BrainOpenGL::versionOfOpenGL = std::atof(versionStr);
-        CaretLogConfig("OpenGL version: " + AString::number(BrainOpenGL::versionOfOpenGL));
+        const char* vendorStr = (char*)(glGetString(GL_VENDOR));
+        const char* renderStr = (char*)(glGetString(GL_RENDERER));
+        CaretLogConfig("OpenGL version: " + AString(versionStr)
+                       + "\nOpenGL vendor: " + AString(vendorStr)
+                       + "\nOpenGL renderer: " + AString(renderStr));
     }
     
     glEnable(GL_DEPTH_TEST);

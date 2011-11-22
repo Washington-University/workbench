@@ -66,6 +66,9 @@ main(int argc, char* argv[])
      * Setup OpenGL
      */
     QGLFormat glfmt;
+    glfmt.setRedBufferSize(8);
+    glfmt.setGreenBufferSize(8);
+    glfmt.setBlueBufferSize(8);
     glfmt.setDoubleBuffer(true);
     glfmt.setDirectRendering(true);
     QGLFormat::setDefaultFormat(glfmt);
