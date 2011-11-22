@@ -138,7 +138,6 @@ BrainBrowserWindowToolBox::~BrainBrowserWindowToolBox()
 void 
 BrainBrowserWindowToolBox::dockFloated(bool /*isFloated*/)
 {
-    this->updateMySize();
 }
 
 void 
@@ -186,51 +185,7 @@ BrainBrowserWindowToolBox::dockMoved(Qt::DockWidgetArea area)
 //        GuiHelper::printSize("Widget 1 Size Hint: ", this->surfaceLayersStackedWidget->widget(1)->sizeHint());
 //        */
 //    }
-    
-    this->updateMySize();
     //this->updateGeometry();
-}
-
-void 
-BrainBrowserWindowToolBox::updateMySize()
-{
-    return;
-
-    this->adjustSize();
-    return;
-//    this->adjustSize();
-//    this->setFixedHeight(this->sizeHint().height());
-
-/*
-    this->resize(this->minimumSizeHint());
-    this->updateGeometry();
-    this->adjustSize();
-    this->updateGeometry();
- */
-    /*
-    QWidget* viewedWidget = this->layersTabWidget->currentWidget();
-    GuiHelper::shrinkToMinimumSize(viewedWidget);
-    GuiHelper::shrinkToMinimumSize(this->layersTabWidget);
-    GuiHelper::shrinkToMinimumSize(this->tabWidget);
-    */
-    /*    
-    this->updateGeometry();
-    
-    switch (this->dockWidgetArea) {
-        case Qt::LeftDockWidgetArea:
-        case Qt::RightDockWidgetArea:
-            //this->setMaximumWidth(500);
-            //GuiHelper::applyMinimumSizeForWidth(this);
-            break;
-        case Qt::TopDockWidgetArea:
-        case Qt::BottomDockWidgetArea:
-            //GuiHelper::applyMinimumSizeForHeight(this);
-            break;
-        default:
-            break;
-    }
-    this->updateGeometry();
-*/
 }
 
 OverlaySelectionControl* 
@@ -240,9 +195,6 @@ BrainBrowserWindowToolBox::createLayersWidget(const Qt::Orientation orientation)
     new OverlaySelectionControl(this->browserWindowIndex,
                                 orientation);
 
-    QObject::connect(overlaySelectionControl, SIGNAL(layersChanged()),
-                     this, SLOT(updateMySize()));
-    
     QObject::connect(overlaySelectionControl, SIGNAL(controlRemoved()),
                      this, SIGNAL(controlRemoved()));
     
@@ -525,8 +477,6 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
             this->informationWidget->setMaximumHeight(5000);
             break;
     }
-    
-    this->updateMySize();
 }
 
 

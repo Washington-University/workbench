@@ -42,8 +42,6 @@ namespace caret {
         
         void removeIdSymbols();
         
-        void updateMySize();
-        
         void updateDisplayedPanel();
         
     private:
