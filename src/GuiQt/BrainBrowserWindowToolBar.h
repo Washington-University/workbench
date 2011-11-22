@@ -209,6 +209,7 @@ namespace caret {
         QAction* orientationUserViewTwoToolButtonAction;
         QAction* orientationUserViewSelectToolButtonAction;
         QMenu* orientationUserViewSelectToolButtonMenu;
+        QToolButton* orientationUserViewSelectToolButton;
         
     private slots:
         void orientationLeftToolButtonTriggered(bool checked);

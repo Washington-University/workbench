@@ -40,6 +40,7 @@ PreferencesDialog.h
 SpecFileDialog.h
 StructureSurfaceSelectionControl.h
 TimeSeriesManager.h
+WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h
@@ -84,6 +85,7 @@ TimeSeriesManager.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
+WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h
@@ -121,6 +123,7 @@ StructureSurfaceSelectionControl.cxx
 TimeSeriesManager.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
+WuQDataEntryDialog.cxx
 WuQDialog.cxx
 WuQDialogModal.cxx
 WuQDialogNonModal.cxx

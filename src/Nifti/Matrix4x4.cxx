@@ -570,6 +570,39 @@ Matrix4x4::getMatrix(double m[4][4]) const
 /**
  * Set the matrix.
  *
+ * @param  m  A 4x4 array of float.
+ *
+ */
+void
+Matrix4x4::setMatrix(const float m[4][4])
+{
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            matrix[i][j] = m[i][j];
+        }
+    }
+    this->setModified();
+}
+
+/**
+ * Get the matrix.
+ *
+ * @param  m  A 4x4 array of floats.
+ *
+ */
+void
+Matrix4x4::getMatrix(float m[4][4]) const
+{
+    for (int i = 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            m[i][j] = matrix[i][j];
+        }
+    }
+}
+
+/**
+ * Set the matrix.
+ *
  * @param  cm  A Matrix.
  *
  */

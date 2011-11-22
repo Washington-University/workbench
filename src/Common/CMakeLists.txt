@@ -73,6 +73,7 @@ StereotaxicSpaceEnum.h
 StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
+UserView.h
 
 ${MOC_SOURCE_FILES}
 AString.cxx
@@ -116,6 +117,7 @@ SpeciesEnum.cxx
 StereotaxicSpaceEnum.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
+UserView.cxx
 )
 
 #

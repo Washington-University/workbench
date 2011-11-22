@@ -52,6 +52,7 @@
 #include "CaretAssert.h"
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
@@ -69,11 +70,14 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "ModelDisplayControllerYokingGroup.h"
+#include "SessionManager.h"
 #include "Surface.h"
 #include "StructureSurfaceSelectionControl.h"
+#include "UserView.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
@@ -1000,20 +1004,12 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                      this, SLOT(orientationUserViewSelectToolButtonMenuAboutToShow()));
     QObject::connect(this->orientationUserViewSelectToolButtonMenu, SIGNAL(triggered(QAction*)),
                      this, SLOT(orientationUserViewSelectToolButtonMenuTriggered(QAction*)));
-    this->orientationUserViewSelectToolButtonMenu->addAction("View xx");
-    this->orientationUserViewSelectToolButtonMenu->addAction("View yy");
-    this->orientationUserViewSelectToolButtonMenu->addSeparator();
-    this->orientationUserViewSelectToolButtonMenu->addAction("Set User View 1");
-    this->orientationUserViewSelectToolButtonMenu->addAction("Set User View 2");
-    this->orientationUserViewSelectToolButtonMenu->addSeparator();
-    this->orientationUserViewSelectToolButtonMenu->addAction("Add View...");
-    this->orientationUserViewSelectToolButtonMenu->addAction("Edit Views...");
     
     this->orientationUserViewSelectToolButtonAction = new QAction(this);
-    this->orientationUserViewSelectToolButtonAction->setText("View");
+    this->orientationUserViewSelectToolButtonAction->setText("User Views");
     this->orientationUserViewSelectToolButtonAction->setMenu(this->orientationUserViewSelectToolButtonMenu);
-    this->orientationUserViewSelectToolButtonAction->setToolTip("Add, edit, and select user-defined views");
-    this->orientationUserViewSelectToolButtonAction->setStatusTip("Add, edit, and select user-defined views");
+    this->orientationUserViewSelectToolButtonAction->setToolTip("Select, add, and delete user-defined views");
+    this->orientationUserViewSelectToolButtonAction->setStatusTip("Select, add, and delete user-defined views");
 
 
     QToolButton* orientationLeftToolButton = new QToolButton();
@@ -1052,22 +1048,22 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     QToolButton* userViewTwoToolButton = new QToolButton();
     userViewTwoToolButton->setDefaultAction(this->orientationUserViewTwoToolButtonAction);
     
-    QToolButton* orientationUserViewSelectToolButton = new QToolButton();
-    orientationUserViewSelectToolButton->setDefaultAction(this->orientationUserViewSelectToolButtonAction);
+    this->orientationUserViewSelectToolButton = new QToolButton();
+    this->orientationUserViewSelectToolButton->setDefaultAction(this->orientationUserViewSelectToolButtonAction);
     
-    QHBoxLayout* userOrientLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 2, 0);
-    userOrientLayout->addWidget(userViewOneToolButton);
-    userOrientLayout->addWidget(userViewTwoToolButton);
-    //userOrientLayout->addWidget(orientationUserViewAddToolButton);
-    userOrientLayout->addWidget(orientationUserViewSelectToolButton);
-    userOrientLayout->addStretch();
+//    QHBoxLayout* userOrientLayout = new QHBoxLayout();
+//    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 2, 0);
+//    userOrientLayout->addWidget(userViewOneToolButton);
+//    userOrientLayout->addWidget(userViewTwoToolButton);
+//    userOrientLayout->addWidget(this->orientationUserViewSelectToolButton);
+//    userOrientLayout->addStretch();
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
     layout->addLayout(buttonLayout);
-    layout->addLayout(userOrientLayout);
+//    layout->addLayout(userOrientLayout, Qt::AlignHCenter);
+    layout->addWidget(this->orientationUserViewSelectToolButton, 0, Qt::AlignHCenter);
     layout->addWidget(orientationResetToolButton, 0, Qt::AlignHCenter);
     
     this->orientationWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -2231,18 +2227,89 @@ BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool /*chec
 void 
 BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuAboutToShow()
 {
+    this->orientationUserViewSelectToolButtonMenu->clear();
+    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+    
+    const int32_t numViews = static_cast<int32_t>(userViews.size());
+    for (int32_t i = 0; i < numViews; i++) {
+        const QString viewName = userViews[i]->getName();
+        QAction* viewAction = new QAction(viewName,
+                                          this->orientationUserViewSelectToolButtonMenu);
+        this->orientationUserViewSelectToolButtonMenu->addAction(viewAction);
+    }
+    
+    if (numViews > 0) {
+        this->orientationUserViewSelectToolButtonMenu->addSeparator();
+    }
+    this->orientationUserViewSelectToolButtonMenu->addAction("Add...");
+    QAction* editAction = this->orientationUserViewSelectToolButtonMenu->addAction("Delete...");
+    editAction->setEnabled(numViews > 0);
 }
 
 /**
  * Called when orientation user view selection is made from the menu.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* /*action*/)
+BrainBrowserWindowToolBar::orientationUserViewSelectToolButtonMenuTriggered(QAction* action)
 {
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
     ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
-        WuQMessageBox::errorOk(this, "User View not implemented yet");
+        const QString actionText = action->text();
+        if (actionText == "Add...") {
+            bool ok = false;
+            QString text = QInputDialog::getText(this->orientationUserViewSelectToolButtonMenu, 
+                                                 "", 
+                                                 "Name of New View",
+                                                 QLineEdit::Normal,
+                                                 "",
+                                                 &ok);
+            if (ok && (text.isEmpty() == false)) {
+                UserView uv;
+                mdc->getTransformationsInUserView(tabIndex,
+                                                  uv);
+                uv.setName(text);
+                prefs->addUserView(uv);
+            }
+        }
+        else if (actionText == "Delete...") {
+            const std::vector<const UserView*> userViews = prefs->getAllUserViews();
+            const int32_t numViews = static_cast<int32_t>(userViews.size());
+            if (numViews > 0) {
+                WuQDataEntryDialog dialog("Edit Views",
+                                          this->orientationUserViewSelectToolButtonMenu,
+                                          (numViews > 10));
+                dialog.setTextAtTop("Unchecked views will be deleted", false);
+                std::vector<QCheckBox*> viewNameCheckBoxes;
+                for (int32_t i = 0; i < numViews; i++) {
+                    const QString viewName = userViews[i]->getName();
+                    viewNameCheckBoxes.push_back(dialog.addCheckBox(viewName,
+                                                                    true));
+                }
+                
+                if (dialog.exec() == QDialog::Accepted) {
+                    for (int32_t i = 0; i < numViews; i++) {
+                        QCheckBox* cb = viewNameCheckBoxes[i];
+                        if (cb->isChecked() == false) {
+                            prefs->removeUserView(cb->text());
+                        }
+                    }
+                }
+            }
+        }
+        else {
+            const UserView* uv = prefs->getUserView(actionText);
+            CaretAssert(uv);
+            if (uv != NULL) {
+                mdc->setTransformationsFromUserView(tabIndex, *uv);
+                this->updateGraphicsWindow();
+            }
+        }
     }
 }
 

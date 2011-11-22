@@ -108,6 +108,10 @@ public:
 
     void getMatrix(double m[4][4]) const;
 
+    void setMatrix(const float m[4][4]);
+    
+    void getMatrix(float m[4][4]) const;
+    
     void setMatrix(const Matrix4x4& cm);
 
     void multiplyPoint4(float p[4]) const;

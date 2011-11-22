@@ -33,6 +33,8 @@
 
 namespace caret {
 
+    class UserView;
+    
     /// Base class for controlling a model
     class ModelDisplayController : public CaretObject {
         
@@ -107,9 +109,12 @@ namespace caret {
         virtual void dorsalView(const int32_t windowTabNumber);
         
         virtual void ventralView(const int32_t windowTabNumber);
+                
+        void getTransformationsInUserView(const int32_t windowTabNumber,
+                                          UserView& userView) const;
         
-        void setTransformation(const int32_t windowTabNumber,
-                               const std::vector<float>& transformationData);
+        void setTransformationsFromUserView(const int32_t windowTabNumber,
+                                            const UserView& userView);
         
         virtual AString toString() const;
         

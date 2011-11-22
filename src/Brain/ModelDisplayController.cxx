@@ -22,11 +22,14 @@
  * 
  */ 
 
+#include <QStringList>
 
 #include "ModelDisplayController.h"
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "Matrix4x4.h"
+#include "UserView.h"
 
 using namespace caret;
 
@@ -513,55 +516,50 @@ ModelDisplayController::ventralView(const int32_t windowTabNumberIn)
 }
 
 /**
- * Set the transformation.
- *
- * @param windowTabNumber  Window of this view.
- * @param transformationData - the transformation data:
- *          translation(3)
- *          viewing matrix[4][4],
- *          scaling(1)
- *
+ * Place the transformations for the given window tab into
+ * the userView.
+ * @param windowTabNumber
+ *    Tab number for transformations.
+ * @param userView
+ *    View into which transformations are loaded.
  */
-void
-ModelDisplayController::setTransformation(
-                   const int32_t windowTabNumberIn,
-                   const std::vector<float>& transformationData)
+void 
+ModelDisplayController::getTransformationsInUserView(const int32_t windowTabNumber,
+                                                     UserView& userView) const
 {
-    /*
-     * Yoking ALWAYS uses first window index.
-     */
-    int32_t windowTabNumber = windowTabNumberIn;
-    if (this->isYokingController) {
-        windowTabNumber = 0;
-    }
-    
-    CaretAssertArrayIndex(this->viewingRotationMatrix,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+    CaretAssertArrayIndex(this->scaling, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           windowTabNumber);
-    uint32_t ctr = 0;
     
-    if (transformationData.size() >= (ctr + 3)) {
-        this->setTranslation(windowTabNumber,
-                            transformationData[ctr + 0],
-                            transformationData[ctr + 1],
-                            transformationData[ctr + 2]);
-        ctr += 3;
-    }
+    userView.setTranslation(this->translation[windowTabNumber]);
+    float m[4][4];
+    this->viewingRotationMatrix[windowTabNumber].getMatrix(m);
+    userView.setRotation(m);
+    userView.setScaling(this->scaling[windowTabNumber]);
+}
+
+/**
+ * Apply the transformations to the given window tab from
+ * the userView.
+ * @param windowTabNumber
+ *    Tab number whose transformations are updated.
+ * @param userView
+ *    View into which transformations are retrieved.
+ */
+void 
+ModelDisplayController::setTransformationsFromUserView(const int32_t windowTabNumber,
+                                                       const UserView& userView)
+{
+    CaretAssertArrayIndex(this->scaling, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          windowTabNumber);
     
-    if (transformationData.size() >= (ctr + 16)) {
-        for (int j = 0; j < 4; j++) {
-            for (int i = 0; i < 4; i++) {
-                this->viewingRotationMatrix[windowTabNumber].setMatrixElement(
-                        i, j, transformationData[ctr]);
-                ctr++;
-            }
-        }
-    }
-    
-    if (transformationData.size() >= (ctr + 17)) {
-        this->setScaling(windowTabNumber, transformationData[ctr]);
-        ctr++;
-    }
+
+    userView.getTranslation(this->translation[windowTabNumber]);
+    float m[4][4];
+    userView.getRotation(m);
+    this->viewingRotationMatrix[windowTabNumber].setMatrix(m);
+    this->setScaling(windowTabNumber, userView.getScaling());
 }
 
 /**

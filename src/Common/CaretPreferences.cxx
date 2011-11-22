@@ -32,6 +32,9 @@
 #include <QSettings>
 #include <QStringList>
 
+#include "CaretAssert.h"
+#include "UserView.h"
+
 using namespace caret;
 
 
@@ -61,8 +64,123 @@ CaretPreferences::CaretPreferences()
  */
 CaretPreferences::~CaretPreferences()
 {
+    this->removeAllUserViews();
+    
     delete this->qSettings;
 }
+
+/**
+ * Remove all user views.
+ */
+void 
+CaretPreferences::removeAllUserViews()
+{
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        delete *iter;
+    }
+    this->userViews.clear();
+}
+
+/**
+ * Get all of the user views.
+ * @return
+ *    All of the user views.
+ */
+std::vector<const UserView*> 
+CaretPreferences::getAllUserViews()
+{
+    std::vector<const UserView*> viewsOut;
+    viewsOut.insert(viewsOut.end(),
+                    this->userViews.begin(),
+                    this->userViews.end());
+    return viewsOut;
+}
+
+/**
+ * Get the user view with the specified name.
+ * @param viewName
+ *    Name of view.
+ * @return
+ *    Pointer to view or NULL if not found.
+ */
+const UserView* 
+CaretPreferences::getUserView(const AString& viewName)
+{
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        UserView* uv = *iter;
+        if (uv->getName() == viewName) {
+            return uv;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Add a user view.  If a view with the same name exists
+ * it is replaced.
+ * @param
+ *    New user view.
+ */
+void 
+CaretPreferences::addUserView(const UserView& userView)
+{
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        UserView* uv = *iter;
+        if (uv->getName() == userView.getName()) {
+            *uv = userView;
+            return;
+        }
+    }
+    
+    this->userViews.push_back(new UserView(userView));
+    
+    this->writeUserViews();
+}
+
+/**
+ * Remove the user view with the specified name.
+ */
+void 
+CaretPreferences::removeUserView(const AString& viewName)
+{
+    for (std::vector<UserView*>::iterator iter = this->userViews.begin();
+         iter != this->userViews.end();
+         iter++) {
+        UserView* uv = *iter;
+        if (uv->getName() == viewName) {
+            this->userViews.erase(iter);
+            delete uv;
+            break;
+        }
+    }
+    
+    this->writeUserViews();
+}
+
+/**
+ * Write the user views.
+ */
+void 
+CaretPreferences::writeUserViews()
+{
+    this->qSettings->beginWriteArray("userViews");
+    const int32_t numViews = static_cast<int32_t>(this->userViews.size());
+    for (int32_t i = 0; i < numViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        this->qSettings->setValue(AString::number(i),
+                                  this->userViews[i]->getAsString());
+    }
+    this->qSettings->endArray();
+    this->qSettings->sync();
+}
+
 
 /**
  * Get the foreground color as integer rgb components ranging in value
@@ -374,6 +492,17 @@ CaretPreferences::readPreferences()
     }
     this->qSettings->endArray();
     
+    this->removeAllUserViews();
+    const int numUserViews = this->qSettings->beginReadArray("userViews");
+    for (int i = 0; i < numUserViews; i++) {
+        this->qSettings->setArrayIndex(i);
+        const AString viewString = this->qSettings->value(AString::number(i)).toString();
+        UserView uv;
+        if (uv.setFromString(viewString)) {
+            this->userViews.push_back(new UserView(uv));
+        }        
+    }
+    this->qSettings->endArray();
     
     LogLevelEnum::Enum defaultValue = LogLevelEnum::INFO;
     AString levelName = this->qSettings->value("loggingLevel", 

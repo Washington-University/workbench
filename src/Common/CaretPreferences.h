@@ -25,7 +25,6 @@
  * 
  */ 
 
-
 #include "CaretObject.h"
 #include "LogLevelEnum.h"
 
@@ -34,6 +33,8 @@ class QStringList;
 
 namespace caret {
 
+    class UserView;
+    
     class CaretPreferences : public CaretObject {
         
     public:
@@ -69,6 +70,14 @@ namespace caret {
         
         void setLoggingLevel(const LogLevelEnum::Enum loggingLevel);
         
+        std::vector<const UserView*> getAllUserViews();
+        
+        const UserView* getUserView(const AString& viewName);
+        
+        void addUserView(const UserView& userView);
+        
+        void removeUserView(const AString& viewName);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -83,6 +92,10 @@ namespace caret {
         
         void readPreferences();
         
+        void removeAllUserViews();
+        
+        void writeUserViews();
+        
         mutable QSettings* qSettings;
         
         uint8_t colorForeground[3];
@@ -94,6 +107,8 @@ namespace caret {
         std::vector<AString> previousOpenFileDirectories;
         
         LogLevelEnum::Enum loggingLevel;
+        
+        std::vector<UserView*> userViews;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
