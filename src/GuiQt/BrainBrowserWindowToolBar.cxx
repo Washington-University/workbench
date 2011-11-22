@@ -3075,9 +3075,7 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
             BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-            getModelEvent->setBrowserTabContent(btc);
-            getModelEvent->setModelDisplayController(btc->getModelControllerForDisplay());
-            getModelEvent->setWindowTabNumber(btc->getTabNumber());
+            getModelEvent->addTabContentToDraw(btc);
             getModelEvent->setEventProcessed();
         }
     }

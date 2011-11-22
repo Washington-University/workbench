@@ -26,6 +26,8 @@
 
 using namespace caret;
 
+#include "CaretAssert.h"
+
 /**
  * Constructor.
  * @param browserWindowIndex
@@ -35,8 +37,6 @@ EventBrowserWindowContentGet::EventBrowserWindowContentGet(const int32_t browser
 : Event(EventTypeEnum::EVENT_BROWSER_WINDOW_CONTENT_GET)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->windowTabNumber = -1;
-    this->modelDisplayController = NULL;
 }
 
 /*
@@ -57,63 +57,35 @@ EventBrowserWindowContentGet::getBrowserWindowIndex() const
 }
 
 /**
- * @return Get window tab number
+ * @return The number of items to draw.
  */
 int32_t 
-EventBrowserWindowContentGet::getWindowTabNumber() const 
-{ 
-    return this->windowTabNumber; 
+EventBrowserWindowContentGet::getNumberOfItemsToDraw() const
+{
+    return this->browserTabContents.size();
 }
 
 /**
- * Get the model controller being drawn
- */
-ModelDisplayController* 
-EventBrowserWindowContentGet::getModelDisplayController()  
-{ 
-    return this->modelDisplayController; 
-}
-
-/**
- * Set the window tab number.
- *
- * @param windowTabNumber
- *     Number of tab window.
+ * Add tab content for drawing in a window.
  */
 void 
-EventBrowserWindowContentGet::setWindowTabNumber(const int32_t windowTabNumber)
+EventBrowserWindowContentGet::addTabContentToDraw(BrowserTabContent* browserTabContent)
 {
-    this->windowTabNumber = windowTabNumber;
+    this->browserTabContents.push_back(browserTabContent);
 }
 
 /**
- * Set the model display controller.
- *
- * @param modelDisplayController
- *    The model display controller.
+ * Get the tab content for drawing in a window.
+ * 
+ * @param itemIndex
+ *    Index of the item to draw.
+ * @return
+ *    Pointer to tab contents for the item index.
  */
-void 
-EventBrowserWindowContentGet::setModelDisplayController(ModelDisplayController* modelDisplayController)
+BrowserTabContent*
+EventBrowserWindowContentGet::getTabContentToDraw(const int32_t itemIndex)
 {
-    this->modelDisplayController = modelDisplayController;   
+    CaretAssertVectorIndex(this->browserTabContents, itemIndex);
+    return this->browserTabContents[itemIndex];
 }
 
-/**
- * @return Returns the browser tab content.
- */
-BrowserTabContent* 
-EventBrowserWindowContentGet::getBrowserTabContent()
-{
-    return this->browserTabContent;
-}
-
-/**
- * Sets the browser tab content.
- * @param browserTabContent
- *    New value for browser tab content.
- */
-void 
-EventBrowserWindowContentGet::setBrowserTabContent(BrowserTabContent* browserTabContent)
-{
-    this->browserTabContent = browserTabContent;
-}

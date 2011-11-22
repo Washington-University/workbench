@@ -152,14 +152,24 @@ BrainOpenGLWidget::paintGL()
         return;
     }
     
-    this->browserTabContent = getModelEvent.getBrowserTabContent();
-    this->modelController = getModelEvent.getModelDisplayController();
-    this->windowTabIndex  = getModelEvent.getWindowTabNumber();
+    this->browserTabContent = NULL;
+    this->modelController   = NULL;
+    this->windowTabIndex    = -1;
     
-    this->openGL->drawModel(this->modelController,
-                            this->browserTabContent,
-                            this->windowTabIndex,
-                            viewport);
+    const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
+    if (numToDraw == 1) {
+        this->browserTabContent = getModelEvent.getTabContentToDraw(0);
+        this->modelController = this->browserTabContent->getModelControllerForDisplay();
+        this->windowTabIndex  = this->browserTabContent->getTabNumber();
+        
+        this->openGL->drawModel(this->modelController,
+                                this->browserTabContent,
+                                this->windowTabIndex,
+                                viewport);
+    }
+    else if (numToDraw > 1) {
+        
+    }
 }
 
 /**
@@ -398,12 +408,14 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 return;
             }
             
-            BrowserTabContent* btc = getModelEvent.getBrowserTabContent();
-            ModelDisplayController* mdc = btc->getModelControllerForDisplay();
-            if (mdc != NULL) {
-                BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
-                if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
-                    this->updateGL();
+            if (getModelEvent.getNumberOfItemsToDraw() > 0) {
+                BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
+                ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+                if (mdc != NULL) {
+                    BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
+                    if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
+                        this->updateGL();
+                    }
                 }
             }
         }

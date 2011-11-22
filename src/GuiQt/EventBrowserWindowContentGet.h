@@ -43,17 +43,11 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
         
-        int32_t getWindowTabNumber() const;
+        int32_t getNumberOfItemsToDraw() const;
         
-        ModelDisplayController* getModelDisplayController();
+        void addTabContentToDraw(BrowserTabContent* browserTabContent);
         
-        void setWindowTabNumber(const int32_t windowTabNumber);
-        
-        void setModelDisplayController(ModelDisplayController* modelDisplayController);
-        
-        BrowserTabContent* getBrowserTabContent();
-        
-        void setBrowserTabContent(BrowserTabContent* browserTabContent);
+        BrowserTabContent* getTabContentToDraw(const int32_t itemIndex);
         
     private:
         EventBrowserWindowContentGet(const EventBrowserWindowContentGet&);
@@ -63,14 +57,8 @@ namespace caret {
         /** index of browswer window */
         int32_t browserWindowIndex;
         
-        /** Model Display Controller for drawing */
-        ModelDisplayController* modelDisplayController;
-        
-        /** Window tab number */
-        int32_t windowTabNumber;
-        
-        /** Tab content active in window */
-        BrowserTabContent* browserTabContent;
+        /** Tab content that are to be drawn in the window */
+        std::vector<BrowserTabContent*> browserTabContents;
     };
 
 } // namespace
