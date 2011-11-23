@@ -45,6 +45,7 @@ ADD_LIBRARY(Brain
 Brain.h
 BrainConstants.h
 BrainOpenGL.h
+BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
 BrowserTabContent.h
@@ -96,6 +97,7 @@ YokingTypeEnum.h
 Brain.cxx
 BrainConstants.cxx
 BrainOpenGL.cxx
+BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
 EventBrainStructureGet.cxx
 BrainStructureNodeAttributes.cxx

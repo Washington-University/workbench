@@ -167,7 +167,7 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
         isBrowserWindowAllowedToClose = true;
     }
     else {
-        if (this->getNumberOfBrainBrowserWindows() > 1) {
+        if (this->getNumberOfOpenBrainBrowserWindows() > 1) {
             /*
              * Warn if multiple tabs in window
              */
@@ -205,7 +205,7 @@ GuiManager::allowBrainBrowserWindowToClose(BrainBrowserWindow* brainBrowserWindo
  * @return Number of brain browser windows that are valid.
  */
 int32_t 
-GuiManager::getNumberOfBrainBrowserWindows() const
+GuiManager::getNumberOfOpenBrainBrowserWindows() const
 {
     int32_t numberOfWindows = 0;
     for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
@@ -216,6 +216,7 @@ GuiManager::getNumberOfBrainBrowserWindows() const
     return numberOfWindows;
 }
 
+
 /**
  * Get all of the brain browser windows.
  *
@@ -223,7 +224,7 @@ GuiManager::getNumberOfBrainBrowserWindows() const
  *   Vector containing all open brain browser windows.
  */
 std::vector<BrainBrowserWindow*> 
-GuiManager::getAllBrainBrowserWindows() const
+GuiManager::getAllOpenBrainBrowserWindows() const
 { 
     std::vector<BrainBrowserWindow*> windows;
     
@@ -235,6 +236,27 @@ GuiManager::getAllBrainBrowserWindows() const
     }
     
     return windows; 
+}
+
+/**
+ * Get the brain browser window with the given window index.
+ * Note that as browser windows are opened or closed, a window's
+ * index NEVER changes.  Thus, a NULL value may be returned for 
+ * a window index referring to a window that was closed.
+ *
+ * @param browserWindowIndex
+ *    Index of the window.
+ * @return
+ *    Pointer to window at given index or NULL in cases where
+ *    the window was closed.
+ */
+BrainBrowserWindow* 
+GuiManager::getBrowserWindowByWindowIndex(const int32_t browserWindowIndex)
+{
+    if (browserWindowIndex < static_cast<int32_t>(this->brainBrowserWindows.size())) {
+        return this->brainBrowserWindows[browserWindowIndex];
+    }
+    return NULL;
 }
 
 /**
@@ -322,7 +344,7 @@ GuiManager::exitProgram(QWidget* parent)
     }
     
     if (okToExit) {
-        std::vector<BrainBrowserWindow*> bws = this->getAllBrainBrowserWindows();
+        std::vector<BrainBrowserWindow*> bws = this->getAllOpenBrainBrowserWindows();
         for (int i = 0; i < static_cast<int>(bws.size()); i++) {
             bws[i]->deleteLater();
         }

@@ -3074,8 +3074,18 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         CaretAssert(getModelEvent);
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
-            BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-            getModelEvent->addTabContentToDraw(btc);
+            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+            if (bbw->isMontageTabsViewSelected()) {
+                const int32_t numTabs = this->tabBar->count();
+                for (int32_t i = 0; i < numTabs; i++) {
+                    BrowserTabContent* btc = this->getTabContentFromTab(i);
+                    getModelEvent->addTabContentToDraw(btc);
+                }
+            }
+            else {
+                BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+                getModelEvent->addTabContentToDraw(btc);
+            }
             getModelEvent->setEventProcessed();
         }
     }

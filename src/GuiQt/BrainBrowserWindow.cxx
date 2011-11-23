@@ -272,7 +272,6 @@ BrainBrowserWindow::createActions()
     this->montageTabsAction->setCheckable(true);
     this->montageTabsAction->setChecked(false);
     this->montageTabsAction->blockSignals(false);
-    this->montageTabsAction->setEnabled(false);
     
     this->showToolBarAction =
     WuQtUtilities::createAction("Toolbar", 
@@ -839,8 +838,18 @@ BrainBrowserWindow::processExitProgram()
 void 
 BrainBrowserWindow::processToggleMontageTabs()
 {
-    
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
+
+/**
+ * @return Is montage view of tabs selected?
+ */
+bool 
+BrainBrowserWindow::isMontageTabsViewSelected() const
+{
+    return this->montageTabsAction->isChecked();
+}
+
 
 /**
  * Restore the status of window components.
@@ -942,7 +951,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
         this->moveSelectedTabToWindowMenu->addAction(toNewWindowAction);
     }
     
-    std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllBrainBrowserWindows();
+    std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (int32_t i = 0; i < static_cast<int32_t>(browserWindows.size()); i++) {
         if (browserWindows[i] != this) {
             QString name = "Window " + QString::number(browserWindows[i]->getBrowserWindowIndex() + 1);

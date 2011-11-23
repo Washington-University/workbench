@@ -36,6 +36,7 @@
 namespace caret {
     
     class Brain;
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class DescriptiveStatistics;
     class IdentificationItem;
@@ -73,15 +74,14 @@ namespace caret {
 
         ~BrainOpenGL();
         
-        void drawModel(ModelDisplayController* controller,
-                       BrowserTabContent* browserTabContent,
-                       const int32_t windowTabNumber,
-                       const int32_t viewport[4]);
+//        void drawModel(ModelDisplayController* controller,
+//                       BrowserTabContent* browserTabContent,
+//                       const int32_t windowTabNumber,
+//                       const int32_t viewport[4]);
         
-        void selectModel(ModelDisplayController* controller,
-                         BrowserTabContent* browserTabContent,
-                         const int32_t windowTabNumber,
-                         const int32_t viewport[4],
+        void drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents);
+        
+        void selectModel(BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY);
         
@@ -117,10 +117,7 @@ namespace caret {
         bool isIdentifyMode() const { return this->mode == MODE_IDENTIFICATION; }
         
         void drawModelInternal(Mode mode,
-                               ModelDisplayController* controller,
-                       BrowserTabContent* browserTabContent,
-                       const int32_t windowTabNumber,
-                       const int32_t viewport[4]);
+                               BrainOpenGLViewportContent* viewportContent);
         
         void initializeMembersBrainOpenGL();
         

@@ -42,6 +42,7 @@
 #undef __BRAIN_OPENGL_DEFINE_H
 
 #include "Brain.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
@@ -128,27 +129,25 @@ BrainOpenGL::~BrainOpenGL()
 /**
  * Selection on a model.
  *
- * @param modelDisplayController
- *    Model display controller that is drawn (NULL if nothing to draw).
- * @param browserTabContent
- *    Content in the browser' tab.
- * @param windowTabIndex
- *    Index of window TAB in which controller is drawn.
- * @param viewport
- *    Viewport for drawing.
+ * @param viewportConent
+ *    Viewport content in which mouse was clicked
  * @param mouseX
  *    X position of mouse click
  * @param mouseY
  *    Y position of mouse click
  */
 void 
-BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
-                 BrowserTabContent* browserTabContent,
-                 const int32_t windowTabIndex,
-                 const int32_t viewport[4],
-                 const int32_t mouseX,
-                 const int32_t mouseY)
+BrainOpenGL::selectModel(BrainOpenGLViewportContent* viewportContent,
+                         const int32_t mouseX,
+                         const int32_t mouseY)
 {
+    /*
+     * For identification, set the background
+     * to white.
+     */
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+    
     this->mouseX = mouseX;
     this->mouseY = mouseY;
     
@@ -156,10 +155,7 @@ BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
     this->colorIdentification->reset();
 
     this->drawModelInternal(MODE_IDENTIFICATION,
-                            modelDisplayController, 
-                            browserTabContent, 
-                            windowTabIndex, 
-                            viewport);
+                            viewportContent);
 
     this->identificationManager->filterSelections();
 }
@@ -175,7 +171,7 @@ BrainOpenGL::selectModel(ModelDisplayController* modelDisplayController,
  *    Index of window TAB in which controller is drawn.
  * @param viewport
  *    Viewport for drawing.
- */
+ *
 void 
 BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                        BrowserTabContent* browserTabContent,
@@ -186,62 +182,62 @@ BrainOpenGL::drawModel(ModelDisplayController* modelDisplayController,
                             modelDisplayController, 
                             browserTabContent, 
                             windowTabIndex, 
-                            viewport);
+                            viewport,
+                            true);
 }
+*/
+
+/**
+ * Draw models in their respective viewports.
+ *
+ * @param viewportContents
+ *    Viewport info for drawing.
+ */
+void 
+BrainOpenGL::drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents)
+{
+    float backgroundColor[3];
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getColorBackground(backgroundColor);
+    glClearColor(backgroundColor[0],
+                 backgroundColor[1],
+                 backgroundColor[2],
+                 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
     
+    for (int32_t i = 0; i < static_cast<int32_t>(viewportContents.size()); i++) {
+        this->drawModelInternal(MODE_DRAWING,
+                                viewportContents[i]);
+    }
+}
 /**
  * Draw a model.
  *
  * @param mode
  *    The mode of operations (draw, select, etc).
- * @param modelDisplayController
- *    Model display controller that is drawn (NULL if nothing to draw).
- * @param browserTabContent
- *    Content in the browser' tab.
- * @param windowTabIndex
- *    Index of window TAB in which controller is drawn.
- * @param viewport
- *    Viewport for drawing.
+ * @param viewportContent
+ *    Viewport contents for drawing.
  */
 void 
 BrainOpenGL::drawModelInternal(Mode mode,
-                               ModelDisplayController* modelDisplayController,
-                       BrowserTabContent* browserTabContent,
-                       const int32_t windowTabIndex,
-                       const int32_t viewport[4])
+                               BrainOpenGLViewportContent* viewportContent)
 {
+    this->browserTabContent= viewportContent->getBrowserTabContent();
+    ModelDisplayController* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
+    this->windowTabIndex = this->browserTabContent->getTabNumber();
+    int viewport[4];
+    viewportContent->getViewport(viewport);
+    
     ElapsedTimer et;
     et.start();
     
     this->mode = mode;
-    
-    this->browserTabContent = browserTabContent;
-    this->windowTabIndex = windowTabIndex;
     
     /*
      * Update transformations with those from the yoked 
      * group.  Does nothing if not yoked.
      */
     browserTabContent->updateTransformationsForYoking();
-    
-    if (this->mode == MODE_IDENTIFICATION) {
-        /*
-         * For identification, set the background
-         * to white.
-         */
-        glClearColor(1.0, 1.0, 1.0, 0.0);
-    }
-    else {
-        float backgroundColor[3];
-        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-        prefs->getColorBackground(backgroundColor);
-        glClearColor(backgroundColor[0],
-                     backgroundColor[1],
-                     backgroundColor[2],
-                     1.0);
-    }
-    
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     if(modelDisplayController != NULL) {
         CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));

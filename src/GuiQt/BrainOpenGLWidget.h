@@ -38,6 +38,7 @@ class QMouseEvent;
 namespace caret {
 
     class BrainOpenGL;
+    class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class IdentificationManager;
     class ModelDisplayController;
@@ -78,15 +79,22 @@ namespace caret {
     private:
         void processMouseEvent(MouseEvent* mouseEvent);
         
+        void clearDrawingViewportContents();
+        
+        BrainOpenGLViewportContent* getViewportContentAtXY(const int x,
+                                                           const int y);
+        
         BrainOpenGL* openGL;
         
-        BrowserTabContent* browserTabContent;
+        //BrowserTabContent* browserTabContent;
         
         int32_t windowIndex;
         
-        int32_t windowTabIndex;
+        //int32_t windowTabIndex;
         
-        ModelDisplayController* modelController;
+        //ModelDisplayController* modelController;
+        
+        std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         
         int32_t windowWidth[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
         int32_t windowHeight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_WINDOWS];
@@ -97,6 +105,9 @@ namespace caret {
         int32_t mouseMovementMaximumY;
         
         static const int32_t MOUSE_MOVEMENT_TOLERANCE;
+        
+        int mousePressX;
+        int mousePressY;
         
         int lastMouseX;
         

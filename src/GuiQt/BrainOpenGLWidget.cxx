@@ -33,6 +33,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
+#include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "BrowserTabYoking.h"
@@ -68,8 +69,9 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 {
     this->openGL = NULL;
     this->windowIndex = windowIndex;
-    this->modelController = NULL;
     this->userInputViewModeProcessor = new UserInputModeView();
+    this->mousePressX = -10000;
+    this->mousePressY = -10000;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
 }
@@ -79,6 +81,8 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
  */
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
+    this->clearDrawingViewportContents();
+    
     if (this->openGL != NULL) {
         delete this->openGL;
         this->openGL = NULL;
@@ -133,11 +137,26 @@ BrainOpenGLWidget::resizeGL(int w, int h)
 }
 
 /**
+ * Clear the contents for drawing into the viewports.
+ */
+void 
+BrainOpenGLWidget::clearDrawingViewportContents()
+{
+    const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
+    for (int32_t i = 0; i < num; i++) {
+        delete this->drawingViewportContents[i];
+    }
+    this->drawingViewportContents.clear();
+}
+
+/**
  * Paints the graphics.
  */
 void 
 BrainOpenGLWidget::paintGL()
 {
+    this->clearDrawingViewportContents();
+    
     int viewport[4] = {
         0,
         0,
@@ -152,24 +171,55 @@ BrainOpenGLWidget::paintGL()
         return;
     }
     
-    this->browserTabContent = NULL;
-    this->modelController   = NULL;
-    this->windowTabIndex    = -1;
-    
     const int32_t numToDraw = getModelEvent.getNumberOfItemsToDraw();
     if (numToDraw == 1) {
-        this->browserTabContent = getModelEvent.getTabContentToDraw(0);
-        this->modelController = this->browserTabContent->getModelControllerForDisplay();
-        this->windowTabIndex  = this->browserTabContent->getTabNumber();
-        
-        this->openGL->drawModel(this->modelController,
-                                this->browserTabContent,
-                                this->windowTabIndex,
-                                viewport);
+        BrainOpenGLViewportContent* vc = new BrainOpenGLViewportContent(viewport,
+                                                                        getModelEvent.getTabContentToDraw(0));
+        this->drawingViewportContents.push_back(vc);
     }
     else if (numToDraw > 1) {
+        /**
+         * Determine the number of rows and columns for the montage.
+         * Since screen width typically exceeds height, always have
+         * columns greater than or equal to rows.
+         */
+        int32_t numRows = (int)std::sqrt(numToDraw);
+        int32_t numCols = numRows;
+        int32_t row2 = numRows * numRows;
+        if (row2 < numToDraw) {
+            numCols++;
+        }
+        if ((numRows * numCols) < numToDraw) {
+            numRows++;
+        }
         
+        int32_t vpX = 0;
+        int32_t vpY = 0;
+        const int32_t vpWidth = this->windowWidth[this->windowIndex] / numCols;
+        const int32_t vpHeight = this->windowHeight[this->windowIndex] / numRows;
+        
+        int32_t iModel = 0;
+        for (int32_t i = 0; i < numRows; i++) {
+            vpX = 0;
+            for (int32_t j = 0; j < numCols; j++) {
+                if (iModel < numToDraw) {
+                    viewport[0] = vpX;
+                    viewport[1] = vpY;
+                    viewport[2] = vpWidth;
+                    viewport[3] = vpHeight;
+                    BrainOpenGLViewportContent* vc = 
+                       new BrainOpenGLViewportContent(viewport,
+                                                   getModelEvent.getTabContentToDraw(iModel));
+                    this->drawingViewportContents.push_back(vc);
+                }
+                iModel++;
+                vpX += vpWidth;
+            }
+            vpY += vpHeight;
+        }
     }
+    
+    this->openGL->drawModels(this->drawingViewportContents);
 }
 
 /**
@@ -187,6 +237,9 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         const int mouseX = me->x();
         const int mouseY = this->windowHeight[this->windowIndex] - me->y();
 
+        this->mousePressX = mouseX;
+        this->mousePressY = mouseY;
+        
         MouseEvent mouseEvent(MouseEventTypeEnum::LEFT_PRESSED,
                               keyModifiers,
                               mouseX,
@@ -202,6 +255,10 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mouseMovementMaximumX = mouseX;
         this->mouseMovementMinimumY = mouseY;
         this->mouseMovementMaximumY = mouseY;
+    }
+    else {
+        this->mousePressX = -10000;
+        this->mousePressY = -10000;
     }
 }
 
@@ -250,6 +307,36 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
             this->processMouseEvent(&mouseEvent);
         }
     }
+    
+    this->mousePressX = -10000;
+    this->mousePressY = -10000;
+}
+
+/**
+ * Get the viewport content at the given location.
+ * @param x
+ *    X-coordinate.
+ * @param y
+ *    Y-coordinate.
+ */
+BrainOpenGLViewportContent* 
+BrainOpenGLWidget::getViewportContentAtXY(const int x,
+                                          const int y)
+{
+    BrainOpenGLViewportContent* viewportContent = NULL;
+    const int32_t num = static_cast<int32_t>(this->drawingViewportContents.size());
+    for (int32_t i = 0; i < num; i++) {
+        int viewport[4];
+        this->drawingViewportContents[i]->getViewport(viewport);
+        if ((x >= viewport[0])
+            && (x < (viewport[0] + viewport[2]))
+            && (y >= viewport[1])
+            && (y < (viewport[1] + viewport[3]))) {
+            viewportContent = this->drawingViewportContents[i];
+            break;
+        }
+    }
+    return viewportContent;
 }
 
 /**
@@ -266,25 +353,28 @@ IdentificationManager*
 BrainOpenGLWidget::performIdentification(const int x,
                                          const int y)
 {
-    int viewport[4] = {
-        0,
-        0,
-        this->windowWidth[this->windowIndex],
-        this->windowHeight[this->windowIndex]
-    };
-    
+    BrainOpenGLViewportContent* idViewport = this->getViewportContentAtXY(x, y);
+
     this->makeCurrent();
     CaretLogFine("Performing selection");
     IdentificationManager* idManager = this->openGL->getIdentificationManager();
     idManager->reset();
     idManager->getSurfaceTriangleIdentification()->setEnabledForSelection(true);
     idManager->getSurfaceNodeIdentification()->setEnabledForSelection(true);
-    this->openGL->selectModel(this->modelController, 
-                              this->browserTabContent, 
-                              this->windowTabIndex, 
-                              viewport, 
-                              x, 
-                              y);
+    
+    if (idViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+        int vp[4];
+        idViewport->getViewport(vp);
+        const int idX = x - vp[0];
+        const int idY = y - vp[1];
+         */
+        this->openGL->selectModel(idViewport, 
+                                  x, 
+                                  y);
+    }
     return idManager;
 }
 
@@ -346,20 +436,33 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
 {
     CaretLogFiner(mouseEvent->toString());
     
-    if (mouseEvent->isValid()) {
-        
-        this->userInputViewModeProcessor->processMouseEvent(mouseEvent,
-                                    this->browserTabContent,
-                                    this);
-        
-        if (mouseEvent->isUserInterfaceUpdateRequested()) {
-            EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-        }
-        if (mouseEvent->isGraphicsUpdateOneWindowRequested()) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
-        }
-        if (mouseEvent->isGraphicsUpdateAllWindowsRequested()) {
-            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    if (mouseEvent->isValid()) {        
+        /*
+         * Use location of mouse press so that the model
+         * being manipulated does not change if mouse moves
+         * out of its viewport without releasing the mouse
+         * button.
+         */
+        BrainOpenGLViewportContent* viewportContent =
+            this->getViewportContentAtXY(this->mousePressX, 
+                                     this->mousePressY);
+        if (viewportContent != NULL) {
+            BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
+            if (browserTabContent != NULL) {
+                this->userInputViewModeProcessor->processMouseEvent(mouseEvent,
+                                                                    browserTabContent,
+                                                                    this);
+                
+                if (mouseEvent->isUserInterfaceUpdateRequested()) {
+                    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+                }
+                if (mouseEvent->isGraphicsUpdateOneWindowRequested()) {
+                    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+                }
+                if (mouseEvent->isGraphicsUpdateAllWindowsRequested()) {
+                    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+                }
+            }
         }
     }
 }
@@ -408,15 +511,23 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 return;
             }
             
-            if (getModelEvent.getNumberOfItemsToDraw() > 0) {
-                BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
-                ModelDisplayController* mdc = btc->getModelControllerForDisplay();
-                if (mdc != NULL) {
-                    BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
-                    if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
-                        this->updateGL();
+            const int32_t numItemsToDraw = getModelEvent.getNumberOfItemsToDraw();
+            bool needUpdate = false;
+            if (numItemsToDraw > 0) {
+                for (int32_t i = 0; i < numItemsToDraw; i++) {
+                    BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
+                    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+                    if (mdc != NULL) {
+                        BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
+                        if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
+                            needUpdate = true;
+                            break;
+                        }
                     }
                 }
+            }
+            if (needUpdate) {
+                this->updateGL();
             }
         }
     }
@@ -453,4 +564,3 @@ BrainOpenGLWidget::captureImage(const int32_t imageSizeX,
     
     return image;
 }
-

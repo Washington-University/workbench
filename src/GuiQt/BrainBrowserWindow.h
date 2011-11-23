@@ -67,6 +67,8 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
 
+        bool isMontageTabsViewSelected() const;
+        
         QImage captureImageOfGraphicsArea(const int32_t imageSizeX,
                                           const int32_t imageSizeY);
         
