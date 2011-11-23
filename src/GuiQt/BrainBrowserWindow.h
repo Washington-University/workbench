@@ -199,6 +199,8 @@ namespace caret {
         
         WindowComponentStatus fullScreenEnteredWindowComponentStatus;
                 
+        WindowComponentStatus montageTabsEnteredWindowComponentStatus;
+        
         /* Editor for palette color mapping. */
         PaletteColorMappingEditorDialog* paletteColorMappingEditor;
         

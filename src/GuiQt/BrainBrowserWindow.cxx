@@ -263,7 +263,7 @@ BrainBrowserWindow::createActions()
                                 SLOT(processExitProgram()));
     
     this->montageTabsAction =
-    WuQtUtilities::createAction("Montage Tabs",
+    WuQtUtilities::createAction("View Montage of Tabs",
                                 "Show all tab content in a grid",
                                 this,
                                 this,
@@ -527,8 +527,6 @@ BrainBrowserWindow::createMenuView()
 {
     QMenu* menu = new QMenu("View", this);
     
-    menu->addAction(this->montageTabsAction);
-    menu->addSeparator();
     menu->addAction(this->showToolBarAction);
     QAction* showToolBoxAction = this->toolbar->getShowToolBoxAction();
     if (showToolBoxAction != NULL) {
@@ -540,6 +538,7 @@ BrainBrowserWindow::createMenuView()
     menu->addMenu(this->createMenuViewMoveToolBox());
     menu->addSeparator();
     menu->addAction(this->viewFullScreenAction);
+    menu->addAction(this->montageTabsAction);
     
     return menu;
 }
@@ -838,6 +837,19 @@ BrainBrowserWindow::processExitProgram()
 void 
 BrainBrowserWindow::processToggleMontageTabs()
 {
+    if (this->isMontageTabsViewSelected()) {
+        this->saveWindowComponentStatus(this->montageTabsEnteredWindowComponentStatus, true);
+        this->showToolBarAction->setEnabled(false);
+        this->toolbar->getShowToolBoxAction()->setEnabled(false);
+    }
+    else {
+        if (this->isFullScreen() == false) {
+            this->restoreWindowComponentStatus(this->montageTabsEnteredWindowComponentStatus);
+        }
+        this->showToolBarAction->setEnabled(true);
+        this->toolbar->getShowToolBoxAction()->setEnabled(true);
+    }
+    
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
@@ -859,11 +871,15 @@ BrainBrowserWindow::isMontageTabsViewSelected() const
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
-    if (this->showToolBarAction->isChecked() != wcs.isToolBarDisplayed) {
-        this->showToolBarAction->trigger();
+    if (this->showToolBarAction->isChecked() == false) {
+        if (wcs.isToolBarDisplayed) {
+            this->showToolBarAction->trigger();
+        }
     }
-    if (this->toolBox->toggleViewAction()->isChecked() != wcs.isToolBoxDisplayed) {
-        this->toolBox->toggleViewAction()->trigger();
+    if (this->toolBox->toggleViewAction()->isChecked() == false) {
+        if (wcs.isToolBoxDisplayed) {
+            this->toolBox->toggleViewAction()->trigger();
+        }
     }
 }
 
@@ -899,7 +915,9 @@ BrainBrowserWindow::processViewFullScreen()
 {
     if (this->isFullScreen()) {
         this->showNormal();
-        this->restoreWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus);
+        if (this->isMontageTabsViewSelected() == false) {
+            this->restoreWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus);
+        }
     }
     else {
         this->showFullScreen();
