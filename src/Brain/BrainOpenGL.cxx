@@ -46,6 +46,7 @@
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
+#include "BrowserTabYoking.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -561,7 +562,9 @@ BrainOpenGL::drawSurfaceController(ModelDisplayControllerSurface* surfaceControl
     Surface* surface = surfaceController->getSurface();
     float center[3];
     surface->getBoundingBox()->getCenter(center);
+
     this->setViewportAndOrthographicProjection(viewport);
+    
     this->applyViewingTransformations(surfaceController, 
                                       this->windowTabIndex,
                                       center);
@@ -1708,21 +1711,20 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
 void 
 BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
 {
-     double defaultOrthoWindowSize = BrainOpenGL::getModelViewingHalfWindowHeight();
-     double width = viewport[2];
-     double height = viewport[3];
-     double aspectRatio = (width / height);
-     double orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
-     double orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
-     double orthographicTop    =    defaultOrthoWindowSize;
-     double orthographicBottom =   -defaultOrthoWindowSize;
-     double orthographicNear   = -1000.0; //-500.0; //-10000.0;
-     double orthographicFar    =  1000.0; //500.0; // 10000.0;
-    //gl.glMatrixMode(GL.GL_PROJECTION);
-    //gl.glLoadIdentity();
-     glOrtho(orthographicLeft, orthographicRight, 
-               orthographicBottom, orthographicTop, 
-               orthographicNear, orthographicFar);    
+    double defaultOrthoWindowSize = BrainOpenGL::getModelViewingHalfWindowHeight();
+    double width = viewport[2];
+    double height = viewport[3];
+    double aspectRatio = (width / height);
+    double orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
+    double orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
+    double orthographicTop    =    defaultOrthoWindowSize;
+    double orthographicBottom =   -defaultOrthoWindowSize;
+    double orthographicNear   = -1000.0; //-500.0; //-10000.0;
+    double orthographicFar    =  1000.0; //500.0; // 10000.0;
+    
+    glOrtho(orthographicLeft, orthographicRight, 
+            orthographicBottom, orthographicTop, 
+            orthographicNear, orthographicFar);    
 }
 
 /**
