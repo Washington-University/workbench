@@ -61,6 +61,8 @@ namespace caret {
         
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
         
+        VolumeFile* setUnderlayToVolume(BrowserTabContent* browserTabContent);
+        
     public:
         virtual AString toString() const;
         

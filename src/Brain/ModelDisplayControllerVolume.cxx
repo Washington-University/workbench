@@ -104,11 +104,12 @@ ModelDisplayControllerVolume::getBrain()
 
 /**
  * Get the bottom-most active volume in the given window tab.
+ * If no overlay is set to volume data, one will be set to a 
+ * volume if there is a volume loaded.
  * @param windowTabNumber 
  *    Tab number for content.
  * @return 
- *    Bottom-most volume or NULL if not available (such as 
- *    when all overlay are not volumes or they are disabled).
+ *    Bottom-most volume or NULL if no volumes available.
  */
 VolumeFile* 
 ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
@@ -121,7 +122,9 @@ ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumbe
     if (btc != NULL) {
         OverlaySet* overlaySet = btc->getOverlaySet();
         vf = overlaySet->getUnderlayVolume(btc);
-        
+        if (vf == NULL) {
+            vf = overlaySet->setUnderlayToVolume(btc);
+        }
     }
     
     return vf;

@@ -118,6 +118,46 @@ OverlaySet::getUnderlayVolume(BrowserTabContent* browserTabContent)
 }
 
 /**
+ * If NO overlay (any overlay) is set to a volume, set the underlay to the first
+ * volume that it finds.
+ * @param browserTabContent
+ *    Content of browser tab.
+ * @return Returns the volume file that was selected or NULL if no
+ *    volume file was found.
+ */
+VolumeFile* 
+OverlaySet::setUnderlayToVolume(BrowserTabContent* browserTabContent)
+{
+    VolumeFile * vf = this->getUnderlayVolume(browserTabContent);
+    
+    if (vf == NULL) {
+        const int32_t overlayIndex = this->getNumberOfDisplayedOverlays() - 1;
+        if (overlayIndex >= 0) {
+            std::vector<CaretMappableDataFile*> mapFiles;
+            CaretMappableDataFile* mapFile;
+            AString mapName;
+            int32_t mapIndex;
+            this->overlays[overlayIndex].getSelectionData(browserTabContent, 
+                                                          mapFiles, 
+                                                          mapFile, 
+                                                          mapName, 
+                                                          mapIndex);
+            
+            const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
+            for (int32_t i = 0; i < numMapFiles; i++) {
+                vf = dynamic_cast<VolumeFile*>(mapFiles[i]);
+                if (vf != NULL) {
+                    this->overlays[overlayIndex].setSelectionData(vf, 0);
+                    break;
+                }
+            }
+        }
+    }
+    
+    return vf;
+}
+
+/**
  * Get the overlay at the specified index.
  * @param overlayNumber
  *   Index of the overlay.
