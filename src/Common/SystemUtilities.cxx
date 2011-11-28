@@ -169,14 +169,14 @@ SystemUtilities::getTempDirectory()
 AString
 SystemUtilities::getUserName()
 {
-#ifdef DCARET_OS_WINDOWS
+#ifdef CARET_OS_WINDOWS
     const QString name(getenv("USERNAME"));
-#else // DCARET_OS_WINDOWS
+#else // CARET_OS_WINDOWS
     QString name(getlogin());
     if (name.isEmpty()) {
         name = getenv("USERNAME");
     }
-#endif // DCARET_OS_WINDOWS
+#endif // CARET_OS_WINDOWS
     return name;
 }
 
