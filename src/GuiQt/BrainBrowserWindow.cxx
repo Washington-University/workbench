@@ -282,8 +282,10 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this->toolbar,
                                 SLOT(showHideToolBar(bool)));
+    this->showToolBarAction->blockSignals(true);
     this->showToolBarAction->setCheckable(true);
     this->showToolBarAction->setChecked(true);
+    this->showToolBarAction->blockSignals(false);
     
     this->viewFullScreenAction =
     WuQtUtilities::createAction("View Full Screen",
@@ -874,15 +876,21 @@ BrainBrowserWindow::isMontageTabsViewSelected() const
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
-    if (this->showToolBarAction->isChecked() == false) {
-        if (wcs.isToolBarDisplayed) {
-            this->showToolBarAction->trigger();
-        }
+    if (wcs.isToolBarDisplayed) {
+        this->showToolBarAction->setChecked(false);
+        this->showToolBarAction->trigger();
     }
-    if (this->toolBox->toggleViewAction()->isChecked() == false) {
-        if (wcs.isToolBoxDisplayed) {
-            this->toolBox->toggleViewAction()->trigger();
-        }
+    else {
+        this->showToolBarAction->setChecked(true);
+        this->showToolBarAction->trigger();
+    }
+    if (wcs.isToolBoxDisplayed) {
+        this->toolBox->toggleViewAction()->setChecked(false);
+        this->toolBox->toggleViewAction()->trigger();
+    }
+    else {
+        this->toolBox->toggleViewAction()->setChecked(true);
+        this->toolBox->toggleViewAction()->trigger();
     }
 }
 
@@ -902,9 +910,11 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs,
     
     if (hideComponents) {
         if (wcs.isToolBarDisplayed) {
+            this->showToolBarAction->setChecked(true);
             this->showToolBarAction->trigger();
         }
         if (wcs.isToolBoxDisplayed) {
+            this->toolBox->toggleViewAction()->setChecked(true);
             this->toolBox->toggleViewAction()->trigger();
         }
     }

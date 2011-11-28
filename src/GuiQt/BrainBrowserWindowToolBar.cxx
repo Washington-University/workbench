@@ -321,6 +321,14 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 void 
 BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 {
+    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    if (bbw->isMontageTabsViewSelected()
+        || bbw->isFullScreen()) {
+        this->tabBar->setVisible(false);
+    }
+    else {
+        this->tabBar->setVisible(true);
+    }
     this->toolbarWidget->setVisible(showIt);
 }
 
