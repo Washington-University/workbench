@@ -29,6 +29,7 @@
 #include "MetricFile.h"
 #include "MathFunctions.h"
 #include <cmath>
+#include "FloatMatrix.h"
 
 using namespace caret;
 using namespace std;
@@ -54,11 +55,15 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ret->createOptionalParameter(5, "-nearest", "use nearest neighbor volume interpolation");
     
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
-    ribbonOpt->addMetricParameter(1, "thickness", "the metric file containing the ribbon thickness measure");
-    ribbonOpt->addVolumeParameter(2, "ribbon", "the ribbon mask volume");
-    ribbonOpt->addDoubleParameter(3, "ribbon-val", "the value to use from the ribbon mask");
-    ribbonOpt->addDoubleParameter(4, "ribbon-dist-kernel", "the sigma for the gaussian kernel based on distance within connected ribbon voxels");
-    ribbonOpt->createOptionalParameter(5, "-average-normals", "average each node's normals with its neighbors");
+    //ribbonOpt->addMetricParameter(1, "thickness", "the metric file containing the ribbon thickness measure");
+    //ribbonOpt->addVolumeParameter(2, "ribbon", "the ribbon mask volume");
+    //ribbonOpt->addDoubleParameter(3, "ribbon-val", "the value to use from the ribbon mask");
+    //ribbonOpt->addDoubleParameter(4, "ribbon-dist-kernel", "the sigma for the gaussian kernel based on distance within connected ribbon voxels");
+    //ribbonOpt->createOptionalParameter(5, "-average-normals", "average each node's normals with its neighbors");
+    ribbonOpt->addSurfaceParameter(1, "outer-surf", "the outer surface of the ribbon");
+    ribbonOpt->addSurfaceParameter(2, "inner-surf", "the inner surface of the ribbon");
+    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "number of subdivisions of each voxel edge when estimating partial voluming");
+    ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addIntegerParameter(1, "subvol-num", "the index of the subvolume");
@@ -115,7 +120,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
         haveMethod = true;
         myMethod = RIBBON_CONSTRAINED;
-        if (ribbonOpt->getOptionalParameter(5)->m_present)
+        if (ribbonOpt->m_present)
         {
             averageNormals = true;
         }
@@ -132,11 +137,20 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
             break;
         case RIBBON_CONSTRAINED:
             {
-                MetricFile* thickness = ribbonOpt->getMetric(1);
-                VolumeFile* ribbonVol = ribbonOpt->getVolume(2);
-                float ribbonValue = (float)(ribbonOpt->getDouble(3));
-                float kernel = (float)(ribbonOpt->getDouble(4));
-                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, thickness, ribbonVol, ribbonValue, kernel, averageNormals);
+                //MetricFile* thickness = ribbonOpt->getMetric(1);
+                //VolumeFile* ribbonVol = ribbonOpt->getVolume(2);
+                //float ribbonValue = (float)(ribbonOpt->getDouble(3));
+                //float kernel = (float)(ribbonOpt->getDouble(4));
+                //AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, thickness, ribbonVol, ribbonValue, kernel, averageNormals);
+                SurfaceFile* outerSurf = ribbonOpt->getSurface(1);
+                SurfaceFile* innerSurf = ribbonOpt->getSurface(2);
+                int32_t subdivisions = 3;
+                OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(3);
+                if (ribbonSubdiv->m_present)
+                {
+                    subdivisions = ribbonSubdiv->getInteger(1);
+                }
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, innerSurf, outerSurf, subdivisions);
             }
             break;
         default:
@@ -144,7 +158,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     }
 }
 
-AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol, MetricFile* thickness, VolumeFile* ribbonVol, float ribbonValue, float kernel, bool averageNormals) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int32_t subdivisions) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -257,21 +271,16 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             break;
         case RIBBON_CONSTRAINED:
             {
-                if (thickness == NULL || ribbonVol == NULL)
+                if (outerSurf == NULL || innerSurf == NULL)
                 {
                     throw AlgorithmException("missing required parameter for this mapping method");
                 }
-                if (mySurface->getNumberOfNodes() != thickness->getNumberOfNodes())
-                {
-                    throw AlgorithmException("thickness metric has the wrong number of nodes");
+                if (mySurface->getNumberOfNodes() != outerSurf->getNumberOfNodes() || mySurface->getNumberOfNodes() != innerSurf->getNumberOfNodes())
+                {//TODO: also compare topologies?
+                    throw AlgorithmException("all surfaces must be in node correspondence");
                 }
-                if (myVolume->compareVolumeSpace(ribbonVol) == false)
-                {
-                    throw AlgorithmException("volume spaces must match");
-                }
-                mySurface->computeNormals(averageNormals);
                 vector<vector<VoxelWeight> > myWeights;
-                precomputeWeights(myWeights, ribbonVol, thickness, mySurface, ribbonValue, kernel);
+                precomputeWeights(myWeights, myVolume, innerSurf, outerSurf, subdivisions);
                 CaretArray<float> myScratchArray(new float[numNodes]);
                 float* myScratch = myScratchArray.getArray();
                 if (mySubVol == -1)
@@ -297,12 +306,14 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                                 {
                                     float thisWeight = myWeights[node][voxel].weight;
                                     totalWeight += thisWeight;
-                                    myScratch[node] += myWeights[node][voxel].weight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);
+                                    myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, i, j);
                                 }
-                                if (totalWeight > 0.0f)
+                                if (totalWeight != 0.0f)
                                 {
                                     myScratch[node] /= totalWeight;
-                                }//should already be zero due to initialization above
+                                } else {
+                                    myScratch[node] = 0.0f;
+                                }
                             }
                             myMetricOut->setValuesForColumn(thisCol, myScratch);
                         }
@@ -327,9 +338,14 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                                 {
                                     float thisWeight = myWeights[node][voxel].weight;
                                     totalWeight += thisWeight;
-                                    myScratch[node] += myWeights[node][voxel].weight * myVolume->getValue(myWeights[node][voxel].ijk, mySubVol, j);
+                                    myScratch[node] += thisWeight * myVolume->getValue(myWeights[node][voxel].ijk, mySubVol, j);
                                 }
-                                myScratch[node] /= totalWeight;
+                                if (totalWeight != 0.0f)
+                                {
+                                    myScratch[node] /= totalWeight;
+                                } else {
+                                    myScratch[node] = 0.0f;
+                                }
                         }
                         myMetricOut->setValuesForColumn(thisCol, myScratch);
                     }
@@ -547,6 +563,388 @@ void AlgorithmVolumeToSurfaceMapping::dijkstra(VolumeFile* mask, VoxelDistMinHea
     {//reset the marked array
         marked[changed[i]] = 0;
     }
+}
+
+void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeight> >& myWeights, VolumeFile* myVolume, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int numDivisions)
+{
+    int64_t numNodes = outerSurf->getNumberOfNodes();
+    myWeights.resize(numNodes);
+    const vector<vector<float> >& myVolSpace = myVolume->getVolumeSpace();
+    Vector3d origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
+    ivec[0] = myVolSpace[0][0]; jvec[0] = myVolSpace[0][1]; kvec[0] = myVolSpace[0][2]; origin[0] = myVolSpace[0][3];
+    ivec[1] = myVolSpace[1][0]; jvec[0] = myVolSpace[1][1]; kvec[0] = myVolSpace[1][2]; origin[0] = myVolSpace[1][3];
+    ivec[2] = myVolSpace[2][0]; jvec[0] = myVolSpace[2][1]; kvec[0] = myVolSpace[2][2]; origin[0] = myVolSpace[2][3];
+    CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
+    vector<int> myNeighList, myTileList;
+    //const float* mySurfCoords = mySurface->getCoordinateData();
+    const float* outerCoords = outerSurf->getCoordinateData();
+    const float* innerCoords = innerSurf->getCoordinateData();
+    int maxVoxelCount = 10;//guess for preallocating vectors
+    for (int64_t node = 0; node < numNodes; ++node)
+    {
+        myWeights[node].clear();
+        myWeights[node].reserve(maxVoxelCount);
+        float tempf;
+        int64_t node3 = node * 3;
+        PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
+        Vector3d minIndex, maxIndex, tempvec;
+        myVolume->spaceToIndex(innerCoords + node3, minIndex.m_vec);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
+        maxIndex = minIndex;
+        myVolume->spaceToIndex(outerCoords + node3, tempvec.m_vec);
+        for (int i = 0; i < 3; ++i)
+        {
+            if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+            if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+        }
+        myTopoHelp->getNodeNeighbors(node, myNeighList);//and now the neighbors
+        int numNeigh = (int)myNeighList.size();
+        for (int j = 0; j < numNeigh; ++j)
+        {
+            int neigh3 = myNeighList[j] * 3;
+            myVolume->spaceToIndex(outerCoords + neigh3, tempvec.m_vec);
+            for (int i = 0; i < 3; ++i)
+            {
+                if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+            }
+            myVolume->spaceToIndex(innerCoords + neigh3, tempvec.m_vec);
+            for (int i = 0; i < 3; ++i)
+            {
+                if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+            }
+        }
+        vector<int64_t> myDims;
+        myVolume->getDimensions(myDims);
+        int startIndex[3], endIndex[3];
+        for (int i = 0; i < 3; ++i)
+        {
+            startIndex[i] = (int)ceil(minIndex[i] - 0.5f);//give an extra half voxel in order to get anything which could have some polygon in it
+            endIndex[i] = (int)floor(maxIndex[i] + 0.5f) + 1;//ditto, plus the one-after end convention
+            if (startIndex[i] < 0) startIndex[i] = 0;//keep it inside the volume boundaries
+            if (endIndex[i] > myDims[i]) endIndex[i] = myDims[i];
+        }
+        int64_t ijk[3];
+        for (ijk[0] = startIndex[0]; ijk[0] < endIndex[0]; ++ijk[0])
+        {
+            for (ijk[1] = startIndex[1]; ijk[1] < endIndex[1]; ++ijk[1])
+            {
+                for (ijk[2] = startIndex[2]; ijk[2] < endIndex[2]; ++ijk[2])
+                {
+                    tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
+                    if (tempf != 0.0f)
+                    {
+                        myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                    }
+                }
+            }
+        }
+        /*if (node == 100634)//debug - get the "kernel" for any single node
+        {
+            vector<int64_t> myDims;
+            myVolume->getDimensions(myDims);
+            myDims.resize(3);
+            VolumeFile debugVol(myDims, myVolSpace);
+            debugVol.setValueAllVoxels(0.0f);
+            for (int i = 0; i < (int)myWeights[node].size(); ++i)
+            {
+                debugVol.setValue(myWeights[node][i].weight, myWeights[node][i].ijk);
+            }
+            debugVol.writeFile("debug.nii");
+        }//*/
+        if ((int)myWeights[node].size() > maxVoxelCount)
+        {//capacity() might result in a faster stabilization, but would use more memory
+            maxVoxelCount = myWeights[node].size();
+        }
+        //sphere based code for finding all voxels that could be within range, UNTESTED, wrote it before I realized a box based version can work without orthogonal axes, and might be more efficient
+        /*float maxDist = MathFunctions::distance3D(mySurfCoords + node3, outerCoords + node3);//find the maximum sphere we need to test voxel centers inside of
+        float tempf = MathFunctions::distance3D(mySurfCoords + node3, innerCoords + node3);//start with the corresponding nodes
+        if (tempf > maxDist)
+        {
+            maxDist = tempf;
+        }
+        int numNeigh = (int)myNeighList.size();
+        for (int i = 0; i < numNeigh; ++i)
+        {
+            int myNeigh = myNeighList[i];
+            int myNeigh3 = myNeigh * 3;
+            tempf = MathFunctions::distance3D(mySurfCoords + node3, outerCoords + myNeigh3);//search neighbors
+            if (tempf > maxDist)
+            {
+                maxDist = tempf;
+            }
+            tempf = MathFunctions::distance3D(mySurfCoords + node3, innerCoords + myNeigh3);
+            if (tempf > maxDist)
+            {
+                maxDist = tempf;
+            }
+        }//now, add half the length of the longest voxel diagonal
+        Vector3d tempvec, tempvec2;
+        float tempf2;
+        tempvec = ivec + jvec;//the brute force way, because there are only 4 cases that need to be tested
+        tempvec2 = tempvec + kvec;
+        tempf = tempvec2.length();
+        tempvec2 = tempvec - kvec;
+        tempf2 = tempvec2.length();
+        if (tempf2 > tempf)
+        {
+            tempf = tempf2;
+        }
+        tempvec = ivec - jvec;
+        tempvec2 = tempvec + kvec;
+        tempf2 = tempvec2.length();
+        if (tempf2 > tempf)
+        {
+            tempf = tempf2;
+        }
+        tempvec2 = tempvec - kvec;
+        tempf2 = tempvec2.length();
+        if (tempf2 > tempf)
+        {
+            tempf = tempf2;
+        }
+        maxDist += tempf * 0.5f;
+        Vector3d khat = kvec.normal(), iorth, jorth, iorthhat, jorthhat;//generate an orthogonal basis that will let us find the voxels inside a sphere
+        if (myVolume->isPlumb())
+        {
+            iorth = ivec;
+            jorth = jvec;
+            iorthhat = iorth.normal();
+            jorthhat = jorth.normal();
+        } else {
+            jorth = jvec - jvec.dot(khat) * khat;
+            jorthhat = jorth.normal();
+            iorth = ivec - ivec.dot(khat) * khat;
+            iorth -= iorth.dot(jorthhat) * jorthhat;//due to jorthhat being orthogonal to khat, we could probably combine these into one step
+            iorthhat = iorth.normal();//k will use the given vector, since we need it to not disturb other indexes
+        }
+        tempvec = iorthhat + jorthhat + khat;//sanity check
+        tempf = tempvec.length();
+        if (tempf != tempf || (abs(tempf) > 0.0f && tempf * 2.0f == tempf))
+        {
+            throw AlgorithmException("volume spacing is singular");
+        }
+        Vector3d myCenter = mySurfCoords + node3;//this is overloaded to accept assignment/construction from a plain float triplet
+        vector<int64_t> myDims;
+        myVolume->getDimensions(myDims);
+        tempvec = myCenter - maxDist * iorthhat;//this will give us our lowest first "index" in our orthogonal space
+        myVolume->spaceToIndex(tempvec.m_vec, tempvec2.m_vec);//which was crafted to match the i index, but letting j and k wander (since we subtracted some of each of their normals)
+        int64_t istart = (int64_t)ceil(tempvec2[0]);
+        if (istart < 0) istart = 0;
+        tempvec = myCenter + maxDist * iorthhat;//and our highest first "index"
+        myVolume->spaceToIndex(tempvec.m_vec, tempvec2.m_vec);
+        int64_t iend = (int64_t)floor(tempvec2[0]) + 1;//use the 1 after idiom
+        if (iend > myDims[0]) iend = myDims[0];
+        int64_t ijk[3];
+        float maxDistSquare = maxDist * maxDist;
+        Vector3d tempvec3, tempvec4;//need even more temporaries for volume space interaction
+        for (ijk[0] = istart; ijk[0] < iend; ++ijk[0])
+        {//now, the j orthogonal basis is crafted to keep i constant, but k can wander (since we only subtracted some of the k normal, and moving along the k normal changes only k)
+            tempf = ijk[0] * iorth.length();
+            float remDistSquarei = maxDistSquare - tempf * tempf;
+            if (remDistSquarei < 0.0f) continue;//because floats aren't exact
+            Vector3d myCenteri = myCenter + iorth * ijk[0];
+            tempvec2 = sqrt(remDistSquarei) * jorthhat;//avoid repeat calculation
+            tempvec3 = myCenteri - tempvec2;//get our minimum j
+            myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
+            int64_t jstart = (int64_t)ceil(tempvec4[1]);
+            if (jstart < 0) jstart = 0;
+            tempvec3 = myCenteri + tempvec2;//get our maximum j
+            myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
+            int64_t jend = (int64_t)floor(tempvec4[1]) + 1;
+            if (jend > myDims[1]) jend = myDims[1];
+            for (ijk[1] = jstart; ijk[1] < jend; ++ijk[1])
+            {
+                tempf = ijk[1] * jorth.length();
+                float remDistSquarej = remDistSquarei - tempf * tempf;
+                if (remDistSquarej < 0.0f) continue;
+                Vector3d myCenterj = myCenteri + jorth * ijk[1];
+                tempvec2 = sqrt(remDistSquarej) * khat;
+                tempvec3 = myCenterj - tempvec2;//minimum k
+                myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
+                int64_t kstart = (int64_t)ceil(tempvec4.m_vec[2]);//same as tempvec4[2], but without the function call, using it here because it is more of an inner loop
+                if (kstart < 0) kstart = 0;
+                tempvec3 = myCenterj + tempvec2;//maximum j
+                myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
+                int64_t kend = (int64_t)floor(tempvec4.m_vec[2]) + 1;
+                if (kend > myDims[2]) kend = myDims[2];
+                for (ijk[2] = kstart; ijk[2] < kend; ++ijk[2])
+                {//compute partial volume of this voxel inside the polygon - estimation by point tests
+                    tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
+                    myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                }
+            }
+        }//*/
+    }
+}
+
+float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const caret::VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3d& ivec, const Vector3d& jvec, const Vector3d& kvec)
+{
+    Vector3d myLowCorner;
+    myVolume->indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner.m_vec);
+    int inside = 0;
+    Vector3d istep = ivec / divisions;
+    Vector3d jstep = jvec / divisions;
+    Vector3d kstep = kvec / divisions;
+    myLowCorner += istep * 0.5f + jstep * 0.5f + kstep * 0.5f;
+    for (int i = 0; i < divisions; ++i)
+    {
+        Vector3d tempVeci = myLowCorner + istep * i;
+        for (int j = 0; j < divisions; ++j)
+        {
+            Vector3d tempVecj = tempVeci + jstep * j;
+            for (int k = 0; k < divisions; ++k)
+            {
+                Vector3d thisPoint = tempVecj + kstep * k;
+                inside += myPoly.isInside(thisPoint.m_vec);
+            }
+        }
+    }
+    return ((float)inside) / (divisions * divisions * divisions * 2);
+}
+
+void PolyInfo::addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t root, const int32_t node2, const int32_t node3)
+{
+    TriInfo myTriInfo;
+    myTriInfo.initialize(innerSurf->getCoordinate(root), innerSurf->getCoordinate(node2), innerSurf->getCoordinate(node3));
+    m_tris.push_back(myTriInfo);
+    myTriInfo.initialize(outerSurf->getCoordinate(root), outerSurf->getCoordinate(node2), outerSurf->getCoordinate(node3));
+    m_tris.push_back(myTriInfo);
+    QuadInfo myQuadInfo;
+    myQuadInfo.initialize(innerSurf->getCoordinate(node2), innerSurf->getCoordinate(node3), outerSurf->getCoordinate(node3), outerSurf->getCoordinate(node2));
+    m_quads.push_back(myQuadInfo);
+}
+
+int PolyInfo::isInside(const float* xyz)
+{
+    int i, temp, numQuads = (int)m_quads.size();
+    bool toggle = false;
+    for (i = 0; i < numQuads; ++i)
+    {
+        temp = m_quads[i].vertRayHit(xyz);
+        if (temp == 1) return 1;//means only one of the two triangulations has a hit, therefore, we can return early
+        if (temp) toggle = !toggle;//even/odd winding rule
+    }
+    int numTris = (int)m_tris.size();
+    for (i = 0; i < numTris; ++i)
+    {
+        if (m_tris[i].vertRayHit(xyz)) toggle = !toggle;
+    }
+    if (toggle) return 2;
+    return 0;
+}
+
+PolyInfo::PolyInfo(const caret::SurfaceFile* innerSurf, const caret::SurfaceFile* outerSurf, const int32_t node)
+{
+    CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
+    vector<int> myTiles;
+    myTopoHelp->getNodeTiles(node, myTiles);
+    int numTiles = (int)myTiles.size();
+    for (int i = 0; i < numTiles; ++i)
+    {
+        const int32_t* myTri = innerSurf->getTriangle(myTiles[i]);
+        if (myTri[0] == node)
+        {
+            addTri(innerSurf, outerSurf, myTri[0], myTri[1], myTri[2]);
+        } else {
+            if (myTri[1] == node)
+            {
+                addTri(innerSurf, outerSurf, myTri[1], myTri[2], myTri[0]);
+            } else {
+                addTri(innerSurf, outerSurf, myTri[2], myTri[0], myTri[1]);
+            }
+        }
+    }
+}
+
+void QuadInfo::initialize(const float* xyz1, const float* xyz2, const float* xyz3, const float* xyz4)
+{
+    m_tris[0][0].initialize(xyz1, xyz2, xyz3);
+    m_tris[0][1].initialize(xyz1, xyz3, xyz4);
+    m_tris[1][0].initialize(xyz1, xyz2, xyz4);
+    m_tris[1][1].initialize(xyz2, xyz3, xyz4);
+}
+
+int QuadInfo::vertRayHit(const float* xyz)
+{
+    int ret = 0;
+    if (m_tris[0][0].vertRayHit(xyz) != m_tris[0][1].vertRayHit(xyz)) ++ret;
+    if (m_tris[1][0].vertRayHit(xyz) != m_tris[1][1].vertRayHit(xyz)) ++ret;
+    return ret;
+}
+
+void TriInfo::initialize(const float* xyz1, const float* xyz2, const float* xyz3)
+{
+    m_xyz[0] = xyz1; m_xyz[1] = xyz2; m_xyz[2] = xyz3;
+    FloatMatrix myRref;
+    myRref.resize(3, 4);
+    for (int i = 0; i < 3; ++i)//ax + by + c = z
+    {
+        myRref[i][0] = m_xyz[i][0];//coefficient of a
+        myRref[i][1] = m_xyz[i][1];//coefficient of b
+        myRref[i][2] = 1;//coefficient of c
+        myRref[i][3] = m_xyz[i][2];//what it equals
+    }
+    FloatMatrix myResult = myRref.reducedRowEchelon();
+    m_planeEq[0] = myResult[0][3];//a
+    m_planeEq[1] = myResult[1][3];//b
+    m_planeEq[2] = myResult[2][3];//c
+    float sanity = m_planeEq[0] + m_planeEq[1] + m_planeEq[2];
+    if (sanity != sanity || (sanity != 0.0f && sanity * 2.0f == sanity))
+    {
+        m_planeEq[0] = sanity;//make sure the first element easily identifies vertical triangles
+    }
+}
+
+//Original copyright for PNPOLY, even though my version is entirely rewritten
+//Source: http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+/**
+Copyright (c) 1970-2003, Wm. Randolph Franklin
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+and associated documentation files (the "Software"), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge, publish, distribute,
+sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+1. Redistributions of source code must retain the above copyright notice, this list of conditions
+and the following disclaimers.
+2. Redistributions in binary form must reproduce the above copyright notice in the documentation
+and/or other materials provided with the distribution.
+3. The name of W. Randolph Franklin may not be used to endorse or promote products derived from this
+Software without specific prior written permission.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+
+bool TriInfo::vertRayHit(const float* xyz)
+{
+    if (m_planeEq[0] != m_planeEq[0] || (m_planeEq[0] != 0.0f && m_planeEq[0] * 2.0f == m_planeEq[0]))
+    {//plane is vertical, nothing can hit it
+        return false;
+    }
+    float planeZ = xyz[0] * m_planeEq[0] + xyz[1] * m_planeEq[1] + m_planeEq[2];//ax + by + c = z
+    if (xyz[2] >= planeZ)
+    {//point is above the plane
+        return false;
+    }//test if the x, y projection has the point inside the triangle
+    //below code inspired by (lifted from) PNPOLY by Wm. Randolph Franklin, swapped x for y, and slightly rewritten, for the special case of 3 vertices
+    bool inside = false;
+    for (int j = 2, i = 0; i < 3; ++i)//start with the wraparound case
+    {
+        if ((m_xyz[i][0] < xyz[0]) != (m_xyz[j][0] < xyz[0]))
+        {//if one vertex is on one side of the point in the x direction, and the other is on the other side (equal case is treated as greater)
+            if ((m_xyz[i][1] - m_xyz[j][1]) / (m_xyz[i][0] - m_xyz[j][0]) * (xyz[0] - m_xyz[j][0]) + m_xyz[j][1] > xyz[1])
+            {//if the point on the line described by the two vertices with the same x coordinate is above (greater y) than the test point
+                inside = !inside;//even/odd winding rule again
+            }
+        }
+        j = i;//consecutive vertices, does 2,0 then 0,1 then 1,2
+    }
+    return inside;
 }
 
 float AlgorithmVolumeToSurfaceMapping::getAlgorithmInternalWeight()

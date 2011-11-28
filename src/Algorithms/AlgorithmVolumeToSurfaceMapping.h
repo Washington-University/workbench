@@ -25,47 +25,10 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-AlgorithmVolumeToSurfaceMapping     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_VOLUME_TO_SURFACE_MAPPING    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--volume-to-surface-mapping   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-MAP VOLUME TO SURFACE : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the algorithm takes no parameters (???) uncomment the line below for takesParameters(), otherwise delete it
-
-next, make AlgorithmVolumeToSurfaceMapping.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeToSurfaceMapping/g' | sed 's/-[c]ommand-switch/-volume-to-surface-mapping/g' | sed 's/[S]HORT DESCRIPTION/MAP VOLUME TO SURFACE/g' > AlgorithmVolumeToSurfaceMapping.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeToSurfaceMapping/g' | sed 's/-[c]ommand-switch/-volume-to-surface-mapping/g' | sed 's/[S]HORT DESCRIPTION/MAP VOLUME TO SURFACE/g' > Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeToSurfaceMapping/g' | sed 's/-[c]ommand-switch/-volume-to-surface-mapping/g' | sed 's/[S]HORT DESCRIPTION/MAP VOLUME TO SURFACE/g' > src/Algorithms/AlgorithmVolumeToSurfaceMapping.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmVolumeToSurfaceMapping.h
-AlgorithmVolumeToSurfaceMapping.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmVolumeToSurfaceMapping.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 #include <vector>
 #include <algorithm>
+#include "Vector3d.h"
 
 namespace caret {
     
@@ -93,6 +56,14 @@ namespace caret {
     {//for precomputation in ribbon mapping
         float weight;
         int64_t ijk[3];
+        VoxelWeight() { };
+        VoxelWeight(const float weightIn, const int64_t* ijkIn)
+        {
+            weight = weightIn;
+            ijk[0] = ijkIn[0];
+            ijk[1] = ijkIn[1];
+            ijk[2] = ijkIn[2];
+        }
     };
     
     class VoxelDistMinHeap
@@ -129,11 +100,38 @@ namespace caret {
         }
     };
     
+    struct TriInfo
+    {
+        Vector3d m_xyz[3];
+        float m_planeEq[3];//x coef, y coef, const : z = [0] * x + [1] * y + [2]
+        bool vertRayHit(const float* xyz);//true if a +z ray from point hits this triangle
+        void initialize(const float* xyz1, const float* xyz2, const float* xyz3);
+    };
+    
+    struct QuadInfo
+    {
+        TriInfo m_tris[2][2];
+        int vertRayHit(const float* xyz);//+z ray intersect: 0 if never, 1 if only 1 of the 2 triangulations, 2 if both
+        void initialize(const float* xyz1, const float* xyz2, const float* xyz3, const float* xyz4);
+    };
+    
+    struct PolyInfo
+    {
+        std::vector<TriInfo> m_tris;
+        std::vector<QuadInfo> m_quads;
+        PolyInfo(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t node);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
+        int isInside(const float* xyz);//0 for no, 2 for yes, 1 for if only one of the two triangulations
+    private:
+        void addTri(const SurfaceFile* innerSurf, const SurfaceFile* outerSurf, const int32_t root, const int32_t node2, const int32_t node3);//adds the tri for each surface, plus the quad
+    };
+    
     class AlgorithmVolumeToSurfaceMapping : public AbstractAlgorithm
     {
         AlgorithmVolumeToSurfaceMapping();
         void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* ribbonVol, MetricFile* thickness, SurfaceFile* mySurface, float ribbonValue, float kernel);
         void dijkstra(VolumeFile* mask, VoxelDistMinHeap& myHeap, float voxNeighDist[3][3][3], int* marked, int* changed, float* distances, std::vector<VoxelDist>& myVoxelsOut, float maxDist);
+        void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* myVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
+        float computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3d& ivec, const Vector3d& jvec, const Vector3d& kvec);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
@@ -144,7 +142,7 @@ namespace caret {
             NEAREST_NEIGHBOR,
             RIBBON_CONSTRAINED
         };
-        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, MetricFile* thickness = NULL, VolumeFile* ribbonVol = NULL, float ribbonValue = 1.0f, float kernel = 1.0f, bool averageNormals = false);
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, int32_t subdivisions = 3);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();

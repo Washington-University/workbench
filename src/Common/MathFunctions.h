@@ -142,10 +142,15 @@ public:
                                     const double y2);
     
     static void subtractVectors(
-                    const float v1[],
-                    const float v2[],
-                    float result[3]);
+                    const float v1[3],
+                    const float v2[3],
+                    float resultOut[3]);
 
+    static void addVectors(
+                    const float v1[3],
+                    const float v2[3],
+                    float resultOut[3]);
+    
     static void createUnitVector(
                     const float startXYZ[3],
                     const float endXYZ[3],

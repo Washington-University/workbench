@@ -541,13 +541,20 @@ MathFunctions::distance3D(
  */
 void
 MathFunctions::subtractVectors(
-                   const float v1[],
-                   const float v2[],
+                   const float v1[3],
+                   const float v2[3],
                                float resultOut[3])
 {
     resultOut[0] = v1[0] - v2[0];
     resultOut[1] = v1[1] - v2[1];
     resultOut[2] = v1[2] - v2[2];
+}
+
+void MathFunctions::addVectors(const float v1[3], const float v2[3], float resultOut[3])
+{
+    resultOut[0] = v1[0] + v2[0];
+    resultOut[1] = v1[1] + v2[1];
+    resultOut[2] = v1[2] + v2[2];
 }
 
 /**
