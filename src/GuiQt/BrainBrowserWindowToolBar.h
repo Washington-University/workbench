@@ -74,6 +74,9 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+    signals:
+        void viewedModelChanged();
+        
     private:        
         enum WidgetPlacement {
             WIDGET_PLACEMENT_NONE,

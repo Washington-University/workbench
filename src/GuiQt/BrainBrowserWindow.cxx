@@ -122,6 +122,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR);
+    
+    QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
+                     this->toolBox, SLOT(updateDisplayedPanel()));
 }
 
 /**

@@ -657,8 +657,10 @@ void
 BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 {
     this->updateTabName(indx);
-    this->updateGraphicsWindow();
-    this->updateUserInterface();
+//    this->updateGraphicsWindow();
+//    this->updateUserInterface();
+    this->updateToolBar();
+    emit viewedModelChanged();
     this->updateGraphicsWindow(); // yes, do a second time
 }
 
@@ -682,7 +684,9 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
     const int numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
     
-    this->updateUserInterface();
+//    this->updateUserInterface();
+    this->updateToolBar();
+    emit viewedModelChanged();
 }
 
 
@@ -2078,8 +2082,12 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
     }
     
     this->checkUpdateCounter();
-    this->updateToolBar();   
+    this->updateToolBar();
     this->updateTabName(-1);
+    emit viewedModelChanged();
+
+//    this->updateToolBar();   
+//    this->updateTabName(-1);
     this->updateGraphicsWindow();
 }
 
