@@ -2080,6 +2080,7 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
     this->checkUpdateCounter();
     this->updateToolBar();   
     this->updateTabName(-1);
+    this->updateGraphicsWindow();
 }
 
 /**
