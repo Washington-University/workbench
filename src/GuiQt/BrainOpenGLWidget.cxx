@@ -183,7 +183,7 @@ BrainOpenGLWidget::paintGL()
          * Since screen width typically exceeds height, always have
          * columns greater than or equal to rows.
          */
-        int32_t numRows = (int)std::sqrt(numToDraw);
+        int32_t numRows = (int)std::sqrt((double)numToDraw);
         int32_t numCols = numRows;
         int32_t row2 = numRows * numRows;
         if (row2 < numToDraw) {
