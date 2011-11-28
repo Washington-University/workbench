@@ -46,6 +46,8 @@ namespace caret {
         
         void lateralView(const int32_t windowTabNumber);
         
+        void medialView(const int32_t windowTabNumber);
+        
     private:
         ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);
         
@@ -56,6 +58,8 @@ namespace caret {
         
     public:
         Surface* getSurface();
+        
+        const Surface* getSurface() const;
         
         AString getNameForGUI(const bool includeStructureFlag) const;
         

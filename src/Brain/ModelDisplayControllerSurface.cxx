@@ -78,6 +78,16 @@ ModelDisplayControllerSurface::getSurface()
 }
 
 /**
+ * Get the surface in this controller.
+ * @return  Surface in this controller.
+ */
+const Surface*
+ModelDisplayControllerSurface::getSurface() const
+{
+    return this->surface;
+}
+
+/**
  * Get the name for use in a GUI.
  *
  * @param includeStructureFlag - Prefix label with structure to which
@@ -161,6 +171,31 @@ ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
                 break;
             case StructureEnum::CORTEX_RIGHT:
                 this->rightView(windowTabNumber);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+/**
+ * Switch to a medial view.  This method only affects
+ * surfaces that are the left or right cerebral cortex and
+ * are not flat.
+ *
+ * @param  windowTabNumber  Window for which view is requested
+ * reset the view.
+ */
+void
+ModelDisplayControllerSurface::medialView(const int32_t windowTabNumber)
+{
+    if (this->surface->getSurfaceType() != SurfaceTypeEnum::SURFACE_TYPE_FLAT) {
+        switch (this->surface->getStructure()) {
+            case StructureEnum::CORTEX_LEFT:
+                this->rightView(windowTabNumber);
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                this->leftView(windowTabNumber);
                 break;
             default:
                 break;

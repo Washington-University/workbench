@@ -143,18 +143,27 @@ ModelDisplayController::copyTransformations(
     this->translation[windowTabNumberTarget][2] = controllerSource.translation[windowTabNumberSource][2];
     this->scaling[windowTabNumberTarget] = controllerSource.scaling[windowTabNumberSource];
     
-    this->viewingRotationMatrix[windowTabNumberTarget].setMatrix(*controllerSource.getViewingRotationMatrix(windowTabNumberSource));
+    this->viewingRotationMatrix[windowTabNumberTarget][0].setMatrix(*controllerSource.getViewingRotationMatrix(windowTabNumberSource,
+                                                                                                               0));
+    this->viewingRotationMatrix[windowTabNumberTarget][1].setMatrix(*controllerSource.getViewingRotationMatrix(windowTabNumberSource,
+                                                                                                               1));
 }
 
 /**
  * the viewing rotation matrix.
  *
- * @param  windowTabNumber  Window for which rotation is requested
- * @return Reference to the viewing rotation matrix.
+ * @param  windowTabNumber  
+      Window for which rotation is requested
+ * @param  matrixIndex
+ *    In almost ALL cases, this value is zero.  If the matrix requested
+ *    is for a right surface that is lateral/medial yoked, this value
+ *    should be one.
+ * @return Pointer to the viewing rotation matrix.
  *
  */
 const Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn) const
+ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn,
+                                                 const int32_t matrixIndex) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -167,18 +176,23 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    return &this->viewingRotationMatrix[windowTabNumber];
+    return &this->viewingRotationMatrix[windowTabNumber][matrixIndex];
 }
 
 /**
  * the viewing rotation matrix.
  *
- * @param  windowTabNumber  Window for which rotation is requested
- * @return Reference to the viewing rotation matrix.
+ * @param  windowTabNumber  
+ *    Window for which rotation is requested
+ * @param  matrixIndex
+ *    In almost ALL cases, this value is zero.  If the matrix requested
+ *    is for a right surface that is lateral/medial yoked, this value
+ *    should be one.
  *
  */
 Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn)
+ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn,
+                                                 const int32_t matrixIndex)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -191,7 +205,7 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    return &this->viewingRotationMatrix[windowTabNumber];
+    return &this->viewingRotationMatrix[windowTabNumber][matrixIndex];
 }
 
 /**
@@ -352,7 +366,8 @@ ModelDisplayController::resetViewPrivate(const int windowTabNumberIn)
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     this->setTranslation(windowTabNumber, 0.0f, 0.0f, 0.0f);
-    this->viewingRotationMatrix[windowTabNumber].identity();
+    this->viewingRotationMatrix[windowTabNumber][0].identity();
+    this->viewingRotationMatrix[windowTabNumber][1].identity();
     this->setScaling(windowTabNumber, this->defaultModelScaling);    
 }
 
@@ -395,9 +410,12 @@ ModelDisplayController::rightView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
-    viewingRotationMatrix[windowTabNumber].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][0].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][0].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][1].identity();
+    viewingRotationMatrix[windowTabNumber][1].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][1].rotateZ(-90.0);
 }
 
 /**
@@ -419,9 +437,12 @@ ModelDisplayController::leftView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
-    viewingRotationMatrix[windowTabNumber].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][0].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][0].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][1].identity();
+    viewingRotationMatrix[windowTabNumber][1].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][1].rotateZ(90.0);
 }
 
 /**
@@ -443,9 +464,12 @@ ModelDisplayController::anteriorView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
-    viewingRotationMatrix[windowTabNumber].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber].rotateY(180.0);}
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][0].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][0].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][1].identity();
+    viewingRotationMatrix[windowTabNumber][1].rotateX(-90.0);
+}
 
 /**
  * set to a posterior view.
@@ -466,8 +490,11 @@ ModelDisplayController::posteriorView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
-    viewingRotationMatrix[windowTabNumber].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][0].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][1].identity();
+    viewingRotationMatrix[windowTabNumber][1].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][1].rotateY(180.0);
 }
 
 /**
@@ -489,7 +516,9 @@ ModelDisplayController::dorsalView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][1].identity();
+    viewingRotationMatrix[windowTabNumber][1].rotateY(-180.0);
 }
 
 /**
@@ -511,8 +540,9 @@ ModelDisplayController::ventralView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber].identity();
-    viewingRotationMatrix[windowTabNumber].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][0].identity();
+    viewingRotationMatrix[windowTabNumber][0].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][1].identity();
 }
 
 /**
@@ -533,7 +563,7 @@ ModelDisplayController::getTransformationsInUserView(const int32_t windowTabNumb
     
     userView.setTranslation(this->translation[windowTabNumber]);
     float m[4][4];
-    this->viewingRotationMatrix[windowTabNumber].getMatrix(m);
+    this->viewingRotationMatrix[windowTabNumber][0].getMatrix(m);
     userView.setRotation(m);
     userView.setScaling(this->scaling[windowTabNumber]);
 }
@@ -558,7 +588,7 @@ ModelDisplayController::setTransformationsFromUserView(const int32_t windowTabNu
     userView.getTranslation(this->translation[windowTabNumber]);
     float m[4][4];
     userView.getRotation(m);
-    this->viewingRotationMatrix[windowTabNumber].setMatrix(m);
+    this->viewingRotationMatrix[windowTabNumber][0].setMatrix(m);
     this->setScaling(windowTabNumber, userView.getScaling());
 }
 

@@ -290,42 +290,29 @@ BrowserTabContent::getModelControllerForTransformation()
 }
 
 /**
- * Update the transformations for yoking prior to drawing.
- * Does nothing if not yoked.
+ * @return Is the displayed model a right surface that is lateral/medial yoked?
  */
-void 
-BrowserTabContent::updateTransformationsForYoking()
+bool 
+BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
 {
-    ModelDisplayController* transformController = this->getModelControllerForTransformation();
-    ModelDisplayControllerYokingGroup* yokingController = 
-        dynamic_cast<ModelDisplayControllerYokingGroup*>(transformController);
-    if (yokingController != NULL) {
-        ModelDisplayController* mdc = this->getModelControllerForDisplay();
-        if (mdc != NULL) {
-            mdc->copyTransformations(*yokingController, 
-                                     0, // always used window 0  
-                                     this->tabNumber);
+    bool itIs = false;
+    
+    const ModelDisplayControllerSurface* surfaceController = this->getDisplayedSurfaceModel();
+    if (surfaceController != NULL) {
+        const Surface* surface = surfaceController->getSurface();
+        if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
             switch (this->browserTabYoking->getSelectedYokingType()) {
                 case YokingTypeEnum::OFF:
                     break;
                 case YokingTypeEnum::ON:
                     break;
                 case YokingTypeEnum::ON_LATERAL_MEDIAL:
-                {
-                    ModelDisplayControllerSurface* surfaceModel = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
-                    if (surfaceModel != NULL) {
-                        Surface* surface = surfaceModel->getSurface();
-                        if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-                            Matrix4x4* rotationMatrix = surfaceModel->getViewingRotationMatrix(this->tabNumber);
-                            rotationMatrix->rotateY(180.0);
-                            //rotationMatrix->invert();
-                        }
-                    }
-                }
+                    itIs = true;
                     break;
             }
         }
     }
+    return itIs;
 }
 
 
@@ -341,6 +328,21 @@ BrowserTabContent::getDisplayedSurfaceModel()
 {
     ModelDisplayControllerSurface* mdcs =
         dynamic_cast<ModelDisplayControllerSurface*>(this->getModelControllerForDisplay());
+    return mdcs;
+}
+
+/**
+ * Get the displayed surface model.
+ * 
+ * @return  Pointer to displayed surface model or 
+ *          NULL if the displayed model is NOT a 
+ *          surface.
+ */   
+const ModelDisplayControllerSurface* 
+BrowserTabContent::getDisplayedSurfaceModel() const
+{
+    const ModelDisplayControllerSurface* mdcs =
+    dynamic_cast<const ModelDisplayControllerSurface*>(this->getModelControllerForDisplay());
     return mdcs;
 }
 
@@ -682,3 +684,25 @@ BrowserTabContent::receiveEvent(Event* event)
         this->invalidateSurfaceColoring();
     }    
 }
+
+/**
+ * Update the transformations for yoking prior to drawing.
+ * Does nothing if not yoked.
+ */
+void 
+BrowserTabContent::updateTransformationsForYoking()
+{
+    ModelDisplayController* transformController = this->getModelControllerForTransformation();
+    ModelDisplayControllerYokingGroup* yokingController = 
+    dynamic_cast<ModelDisplayControllerYokingGroup*>(transformController);
+    if (yokingController != NULL) {
+        ModelDisplayController* mdc = this->getModelControllerForDisplay();
+        if (mdc != NULL) {
+            mdc->copyTransformations(*yokingController, 
+                                     0, // always used window 0  
+                                     this->tabNumber);
+        }
+    }
+}
+
+

@@ -28,7 +28,6 @@
 #include "BrainConstants.h"
 #include "CaretObject.h"
 #include "ModelDisplayControllerTypeEnum.h"
-
 #include "Matrix4x4.h"
 
 namespace caret {
@@ -77,9 +76,11 @@ namespace caret {
                                  const int32_t windowTabNumberSource,
                                  const int32_t windowTabNumberTarget);
         
-        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber);
+        Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
+                                            const int32_t matrixIndex = 0);
         
-        const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber) const;
+        const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
+                                                  const int32_t matrixIndex = 0) const;
         
         const float* getTranslation(const int32_t windowTabNumber) const;
         
@@ -126,8 +127,12 @@ namespace caret {
     protected:
         float defaultModelScaling;
         
-        /**the viewing rotation matrix. */
-        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        /** 
+         * The viewing rotation matrix. In most cases, the second dimension is zero.
+         * The second dimension equal to one is used only for a right surface that
+         * is lateral/medial yoked.
+         */
+        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][2];
         
         /**translation. */
         float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][3];

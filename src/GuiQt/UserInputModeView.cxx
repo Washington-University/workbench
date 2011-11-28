@@ -218,9 +218,37 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         //
         if (mouseEvent->isAnyKeyDown() == false) {
             //if (modelController->isRotationAllowed()) {
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex);
+            /*
+             * Special case when the surface is a right surface that is
+             * lateral/medial yoked.
+             * Matrix index 0 is used in almost all cases.
+             * Matrix index 1 is ONLY used when the surface is a right surface
+             * that is lateral/medial yoked.
+             */ 
+            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 0);
+                rotationMatrix->rotateX(-dy);
+                rotationMatrix->rotateY(-dx);
+                
+                /*
+                 * Matrix "1" is used for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRight = modelController->getViewingRotationMatrix(tabIndex, 1);
+                rotationMatrixRight->rotateX(dy);
+                rotationMatrixRight->rotateY(dx);
+            }
+            else {
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 0);
                 rotationMatrix->rotateX(-dy);
                 rotationMatrix->rotateY(dx);
+                
+                /*
+                 * Matrix "1" is used for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRight = modelController->getViewingRotationMatrix(tabIndex, 1);
+                rotationMatrixRight->rotateX(dy);
+                rotationMatrixRight->rotateY(-dx);
+            }
             //}
         }
         //

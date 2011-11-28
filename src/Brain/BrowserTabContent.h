@@ -81,6 +81,8 @@ namespace caret {
         
         ModelDisplayControllerSurface* getDisplayedSurfaceModel();
         
+        const ModelDisplayControllerSurface* getDisplayedSurfaceModel() const;
+        
         ModelDisplayControllerVolume* getDisplayedVolumeModel();
         
         ModelDisplayControllerWholeBrain* getDisplayedWholeBrainModel();
@@ -106,6 +108,8 @@ namespace caret {
         const float* getSurfaceColoring(const Surface* surface);
         
         void updateTransformationsForYoking();
+        
+        bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
         
     private:
         BrowserTabContent(const BrowserTabContent&);

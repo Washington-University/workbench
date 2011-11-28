@@ -150,7 +150,8 @@ namespace caret {
                                       ModelDisplayControllerWholeBrain* wholeBrainController,
                                       const int32_t viewport[4]);
         
-        void setOrthographicProjection(const int32_t viewport[4]);
+        void setOrthographicProjection(const int32_t viewport[4],
+                                       const bool isRightSurfaceLateralMedialYoked);
         
         void checkForOpenGLError(const ModelDisplayController* modelController,
                                  const AString& msg);
@@ -168,11 +169,13 @@ namespace caret {
         void setIdentifiedItemScreenXYZ(IdentificationItem* item,
                                         const float itemXYZ[3]);
         
-        void setViewportAndOrthographicProjection(const int32_t viewport[4]);
+        void setViewportAndOrthographicProjection(const int32_t viewport[4],
+                                                  const bool isRightSurfaceLateralMedialYoked = false);
         
         void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
                                          const int32_t tabIndex,
-                                         const float objectCenterXYZ[3]);
+                                         const float objectCenterXYZ[3],
+                                         const bool isRightSurfaceLateralMedialYoked);
         
         void applyViewingTransformationsVolumeSlice(const ModelDisplayController* modelDisplayController,
                                          const int32_t tabIndex,

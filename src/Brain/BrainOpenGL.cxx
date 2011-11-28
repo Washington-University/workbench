@@ -279,9 +279,13 @@ BrainOpenGL::drawModelInternal(Mode mode,
  * Set the viewport.
  * @param viewport
  *   Values for viewport (x, y, x-size, y-size)
+ * @param isRightSurfaceLateralMedialYoked
+ *    True if the displayed model is a right surface that is 
+ *    lateral/medial yoked.
  */
 void 
-BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4])
+BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4],
+                                                  const bool isRightSurfaceLateralMedialYoked)
 {
     glViewport(viewport[0], 
                viewport[1], 
@@ -290,7 +294,8 @@ BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4])
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    this->setOrthographicProjection(viewport);
+    this->setOrthographicProjection(viewport,
+                                    isRightSurfaceLateralMedialYoked);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -305,11 +310,15 @@ BrainOpenGL::setViewportAndOrthographicProjection(const int32_t viewport[4])
  * @param objectCenterXYZ
  *    If not NULL, contains center of object about
  *    which rotation should take place.
+ * @param isRightSurfaceLateralMedialYoked
+ *    True if the displayed model is a right surface that is 
+ *    lateral/medial yoked.
  */
 void 
 BrainOpenGL::applyViewingTransformations(const ModelDisplayController* modelDisplayController,
                                          const int32_t tabIndex,
-                                         const float objectCenterXYZ[3])
+                                         const float objectCenterXYZ[3],
+                                         const bool isRightSurfaceLateralMedialYoked)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -319,7 +328,9 @@ BrainOpenGL::applyViewingTransformations(const ModelDisplayController* modelDisp
                  translation[1], 
                  translation[2]);
     
-    const Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(tabIndex);
+    const int32_t matrixIndex = (isRightSurfaceLateralMedialYoked ? 1 : 0);
+    const Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(tabIndex,
+                                                                                       matrixIndex);
     double rotationMatrixElements[16];
     rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
@@ -563,11 +574,15 @@ BrainOpenGL::drawSurfaceController(ModelDisplayControllerSurface* surfaceControl
     float center[3];
     surface->getBoundingBox()->getCenter(center);
 
-    this->setViewportAndOrthographicProjection(viewport);
+    const bool isRightSurfaceLateralMedialYoked = 
+        this->browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked();
+    this->setViewportAndOrthographicProjection(viewport,
+                                               isRightSurfaceLateralMedialYoked);
     
     this->applyViewingTransformations(surfaceController, 
                                       this->windowTabIndex,
-                                      center);
+                                      center,
+                                      isRightSurfaceLateralMedialYoked);
     
     this->drawSurface(surface);
 }
@@ -1619,7 +1634,8 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
     this->setViewportAndOrthographicProjection(viewport);
     this->applyViewingTransformations(wholeBrainController, 
                                       this->windowTabIndex,
-                                      NULL);
+                                      NULL,
+                                      false);
     
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
@@ -1707,9 +1723,15 @@ BrainOpenGL::drawWholeBrainController(BrowserTabContent* browserTabContent,
 
 /**
  * Setup the orthographic projection.
+ * @param viewport
+ *    The viewport (x, y, width, height)
+ * @param isRightSurfaceLateralMedialYoked
+ *    True if the displayed model is a right surface that is 
+ *    lateral/medial yoked.
  */
 void 
-BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
+BrainOpenGL::setOrthographicProjection(const int32_t viewport[4],
+                                       const bool isRightSurfaceLateralMedialYoked)
 {
     double defaultOrthoWindowSize = BrainOpenGL::getModelViewingHalfWindowHeight();
     double width = viewport[2];
@@ -1722,9 +1744,16 @@ BrainOpenGL::setOrthographicProjection(const int32_t viewport[4])
     double orthographicNear   = -1000.0; //-500.0; //-10000.0;
     double orthographicFar    =  1000.0; //500.0; // 10000.0;
     
-    glOrtho(orthographicLeft, orthographicRight, 
-            orthographicBottom, orthographicTop, 
-            orthographicNear, orthographicFar);    
+    if (isRightSurfaceLateralMedialYoked) {
+        glOrtho(orthographicRight, orthographicLeft, 
+                orthographicBottom, orthographicTop, 
+                orthographicFar, orthographicNear);    
+    }
+    else {
+        glOrtho(orthographicLeft, orthographicRight, 
+                orthographicBottom, orthographicTop, 
+                orthographicNear, orthographicFar);            
+    }
 }
 
 /**
