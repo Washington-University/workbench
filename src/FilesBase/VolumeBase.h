@@ -54,7 +54,7 @@ namespace caret {
         virtual ~AbstractVolumeExtension();
     };
     
-    class VolumeBase : public TracksModificationInterface
+    class VolumeBase : public TracksModification
     {
     protected:
         std::vector<std::vector<float> > m_indexToSpace;

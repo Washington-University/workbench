@@ -74,6 +74,12 @@ namespace caret {
          */
         virtual void writeFile(const AString& filename) throw (DataFileException) = 0;
         
+        virtual void setModified();
+
+        virtual void clearModified();
+
+        virtual bool isModified() const;
+
         virtual void clear();
         
     private:
@@ -83,6 +89,9 @@ namespace caret {
         
         /** name of data file */
         AString filename;
+        
+        /** modification status */
+        bool modifiedFlag;
         
     };
     
