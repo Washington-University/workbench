@@ -31,11 +31,3 @@ echo "Copying Files"
 c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%
 c:\cygwin\bin\scp build/CommandLine/caret_command.exe %DIST_DIR%
 echo "Finished Copying Files"
-@echo=off
-REM
-REM Send output as email
-REM
-REM cat %ERROR_FILE% | email -n caret -f 'caret@jonsdev-win.wustl.edu' -s 'Caret7 Windows 32 Build Result' john@brainvis.wustl.edu,jschindl@brainvis.wustl.edu,tsc5yc@mst.edu
-
-
-
