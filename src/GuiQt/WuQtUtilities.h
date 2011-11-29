@@ -62,6 +62,11 @@ namespace caret {
                                      const QString& toolAndStatusTipText,
                                      QObject* parent);
         
+        static QAction* createAction(const QString& text,
+                                     const QString& toolAndStatusTipText,
+                                     const QKeySequence& shortcut,
+                                     QObject* parent);
+        
         static QWidget* createVerticalLineWidget();
         
         static QWidget* createHorizontalLineWidget();
@@ -72,6 +77,9 @@ namespace caret {
                                        const int yOffset);
         
         static void setToolTipAndStatusTip(QWidget* widget,
+                                           const QString& text);
+        
+        static void setToolTipAndStatusTip(QAction* action,
                                            const QString& text);
         
         static void sendListOfResourcesToCaretLogger();

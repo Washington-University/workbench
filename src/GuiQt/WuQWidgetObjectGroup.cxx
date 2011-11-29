@@ -52,10 +52,17 @@ WuQWidgetObjectGroup::WuQWidgetObjectGroup(QObject* parent)
  */
 WuQWidgetObjectGroup::~WuQWidgetObjectGroup()
 {
-   //
-   // Note: Do not "delete" the widgets !!!!
-   //
-   this->objects.clear();
+    this->clear();
+}
+
+/**
+ * Remove all objects from this group.  The objects are NOT deleted
+ * since widgets are typically 'owned' by their parents.
+ */
+void 
+WuQWidgetObjectGroup::clear()
+{
+    this->objects.clear();
 }
 
 /**

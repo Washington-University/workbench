@@ -32,10 +32,12 @@
 #include <QMainWindow>
 
 #include "AString.h"
+#include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
 
 class QAction;
+class QActionGroup;
 class QMenu;
 
 namespace caret {
@@ -67,10 +69,10 @@ namespace caret {
         
         int32_t getBrowserWindowIndex() const;
 
-        bool isMontageTabsViewSelected() const;
-        
         QImage captureImageOfGraphicsArea(const int32_t imageSizeX,
                                           const int32_t imageSizeY);
+        
+        BrainBrowserWindowScreenModeEnum::Enum getScreenMode() const;
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -84,8 +86,7 @@ namespace caret {
         void processEditPreferences();
         void processCloseSpecFile();
         void processExitProgram();
-        void processToggleMontageTabs();
-        void processViewFullScreen();
+        void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
         void processMoveToolBoxToLeft();
         void processMoveToolBoxToRight();
@@ -131,8 +132,7 @@ namespace caret {
         void moveToolBox(Qt::DockWidgetArea area);
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
-        void saveWindowComponentStatus(WindowComponentStatus& wcs,
-                                       bool hideComponents);
+        void saveWindowComponentStatus(WindowComponentStatus& wcs);
         
         void openSpecFile(const AString& specFileName) throw (DataFileException);
         
@@ -165,11 +165,13 @@ namespace caret {
         
         QAction* exitProgramAction;
         
-        QAction* montageTabsAction;
-        
         QAction* showToolBarAction;
         
-        QAction* viewFullScreenAction;
+        QActionGroup* viewScreenActionGroup;
+        QAction* viewScreenNormalAction;
+        QAction* viewScreenFullAction;
+        QAction* viewScreenMontageTabsAction;
+        QAction* viewScreenFullMontageTabsAction;        
         
         QAction* nextTabAction;
         
@@ -197,10 +199,10 @@ namespace caret {
         
         AString previousOpenFileNameFilter;
         
-        WindowComponentStatus fullScreenEnteredWindowComponentStatus;
-                
-        WindowComponentStatus montageTabsEnteredWindowComponentStatus;
+        BrainBrowserWindowScreenModeEnum::Enum screenMode;
         
+        WindowComponentStatus normalWindowComponentStatus;
+                
         /* Editor for palette color mapping. */
         PaletteColorMappingEditorDialog* paletteColorMappingEditor;
         

@@ -59,6 +59,7 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 BrainBrowserWindow.h
+BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
@@ -98,6 +99,7 @@ WuQtUtilities.h
 
 
 BrainBrowserWindow.cxx
+BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx

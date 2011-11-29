@@ -77,6 +77,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 {
+    this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    
     this->paletteColorMappingEditor = NULL;
     GuiManager* guiManager = GuiManager::get();
     
@@ -133,6 +135,15 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 BrainBrowserWindow::~BrainBrowserWindow()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
+}
+
+/**
+ * @return The screen mode (normal, full screen, montage, etc)
+ */
+BrainBrowserWindowScreenModeEnum::Enum 
+BrainBrowserWindow::getScreenMode() const
+{
+    return this->screenMode;
 }
 
 /**
@@ -213,9 +224,9 @@ BrainBrowserWindow::createActions()
     
     
     this->manageFilesAction =
-    WuQtUtilities::createAction("Manage/Save Files...", 
-                                "Manage and Save Loaded Files",
-                                Qt::CTRL + Qt::Key_M,
+    WuQtUtilities::createAction("Save/Manage Files...", 
+                                "Save and Manage Loaded Files",
+                                Qt::CTRL + Qt::Key_S,
                                 this,
                                 this,
                                 SLOT(processManageSaveLoadedFiles()));
@@ -265,17 +276,43 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
-    this->montageTabsAction =
-    WuQtUtilities::createAction("View Montage of Tabs",
-                                "Show all tab content in a grid",
-                                this,
-                                this,
-                                SLOT(processToggleMontageTabs()));
-    this->montageTabsAction->blockSignals(true);
-    this->montageTabsAction->setCheckable(true);
-    this->montageTabsAction->setChecked(false);
-    this->montageTabsAction->blockSignals(false);
+    this->viewScreenNormalAction = WuQtUtilities::createAction("Normal", 
+                                                               "Normal Viewing", 
+                                                               Qt::Key_Escape, 
+                                                               this);
+    this->viewScreenNormalAction->setCheckable(true);
     
+    this->viewScreenFullAction = WuQtUtilities::createAction("Full Screen", 
+                                                             "View using all of screen", 
+                                                             Qt::CTRL+Qt::Key_F, 
+                                                             this);
+    this->viewScreenFullAction->setCheckable(true);
+    
+    this->viewScreenMontageTabsAction = WuQtUtilities::createAction("Tab Montage", 
+                                                                    "View all tabs in a grid layout", 
+                                                                    Qt::CTRL+Qt::Key_M, 
+                                                                    this);
+    this->viewScreenMontageTabsAction->setCheckable(true);
+    
+    this->viewScreenFullMontageTabsAction = WuQtUtilities::createAction("Tab Montage (Full Screen)", 
+                                                                        "View all tabs in a grid layout using all of screen", 
+                                                                        Qt::CTRL+Qt::SHIFT+Qt::Key_M, 
+                                                                        this);
+    this->viewScreenFullMontageTabsAction->setCheckable(true);
+    
+    this->viewScreenActionGroup = new QActionGroup(this);
+    QObject::connect(this->viewScreenActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(processViewScreenActionGroupSelection(QAction*)));
+    this->viewScreenActionGroup->setExclusive(true);
+    this->viewScreenActionGroup->addAction(this->viewScreenNormalAction);
+    this->viewScreenActionGroup->addAction(this->viewScreenFullAction);
+    this->viewScreenActionGroup->addAction(this->viewScreenMontageTabsAction);
+    this->viewScreenActionGroup->addAction(this->viewScreenFullMontageTabsAction);
+    
+    this->viewScreenActionGroup->blockSignals(true);
+    this->viewScreenNormalAction->setChecked(true);
+    this->viewScreenActionGroup->blockSignals(false);
+        
     this->showToolBarAction =
     WuQtUtilities::createAction("Toolbar", 
                                 "Show or hide the toolbar",
@@ -286,18 +323,6 @@ BrainBrowserWindow::createActions()
     this->showToolBarAction->setCheckable(true);
     this->showToolBarAction->setChecked(true);
     this->showToolBarAction->blockSignals(false);
-    
-    this->viewFullScreenAction =
-    WuQtUtilities::createAction("View Full Screen",
-                                "Fill the screen with only the graphics area",
-                                Qt::CTRL + Qt::Key_F,
-                                this,
-                                this,
-                                SLOT(processViewFullScreen()));
-    this->viewFullScreenAction->blockSignals(true);
-    this->viewFullScreenAction->setCheckable(true);
-    this->viewFullScreenAction->setChecked(false);
-    this->viewFullScreenAction->blockSignals(false);
     
     this->nextTabAction =
     WuQtUtilities::createAction("Next Tab",
@@ -542,8 +567,14 @@ BrainBrowserWindow::createMenuView()
     }
     menu->addMenu(this->createMenuViewMoveToolBox());
     menu->addSeparator();
-    menu->addAction(this->viewFullScreenAction);
-    menu->addAction(this->montageTabsAction);
+    
+    QMenu* screenMenu = new QMenu("Screen");
+    screenMenu->addAction(this->viewScreenNormalAction);
+    screenMenu->addAction(this->viewScreenFullAction);
+    screenMenu->addAction(this->viewScreenMontageTabsAction);
+    screenMenu->addAction(this->viewScreenFullMontageTabsAction);
+
+    menu->addMenu(screenMenu);
     
     return menu;
 }
@@ -837,36 +868,65 @@ BrainBrowserWindow::processExitProgram()
 }
 
 /**
- * Called when toggle montage tabs is selected.
+ * Called when a view screen menu item is selected.
  */
-void 
-BrainBrowserWindow::processToggleMontageTabs()
+void
+BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
 {
-    if (this->isMontageTabsViewSelected()) {
-        this->saveWindowComponentStatus(this->montageTabsEnteredWindowComponentStatus, true);
-        this->showToolBarAction->setEnabled(false);
-        this->toolbar->getShowToolBoxAction()->setEnabled(false);
+    bool showInFullScreen = false;
+    bool showInTabMontage = false;
+    
+    BrainBrowserWindowScreenModeEnum::Enum previousScreenMode = this->screenMode;
+    
+    this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    if (action == this->viewScreenNormalAction) {
+        this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
+    }
+    else if (action == this->viewScreenFullAction) {
+        this->screenMode = BrainBrowserWindowScreenModeEnum::FULL_SCREEN;
+        showInFullScreen = true;
+    }
+    else if (action == this->viewScreenMontageTabsAction) {
+        this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE;
+        showInTabMontage = true;
+    }
+    else if (action == this->viewScreenFullMontageTabsAction) {
+        this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN;
+        showInFullScreen = true;
+        showInTabMontage = true;
     }
     else {
+        CaretAssert(0);
+    }
+    
+    if (showInFullScreen) {
         if (this->isFullScreen() == false) {
-            this->restoreWindowComponentStatus(this->montageTabsEnteredWindowComponentStatus);
+            this->showFullScreen();
         }
-        this->showToolBarAction->setEnabled(true);
-        this->toolbar->getShowToolBoxAction()->setEnabled(true);
+    }
+    else {
+        if (this->isFullScreen()) {
+            this->showNormal();
+        }
+    }    
+    
+    if (previousScreenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
+        if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
+            this->saveWindowComponentStatus(this->normalWindowComponentStatus);
+        }
+    }
+    
+    if (this->screenMode == BrainBrowserWindowScreenModeEnum::NORMAL) {
+        this->restoreWindowComponentStatus(this->normalWindowComponentStatus);
+    }
+    
+    this->toolbar->updateToolBar();
+    if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
+        this->toolBox->setVisible(false);
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
-
-/**
- * @return Is montage view of tabs selected?
- */
-bool 
-BrainBrowserWindow::isMontageTabsViewSelected() const
-{
-    return this->montageTabsAction->isChecked();
-}
-
 
 /**
  * Restore the status of window components.
@@ -876,6 +936,8 @@ BrainBrowserWindow::isMontageTabsViewSelected() const
 void 
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
+    this->showToolBarAction->setEnabled(true);
+    this->toolBox->toggleViewAction()->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
         this->showToolBarAction->setChecked(false);
         this->showToolBarAction->trigger();
@@ -902,40 +964,12 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
  *    If true, any components (toolbar/toolbox) will be hidden.
  */
 void 
-BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs,
-                                              bool hideComponents)
+BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
     wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
-    
-    if (hideComponents) {
-        if (wcs.isToolBarDisplayed) {
-            this->showToolBarAction->setChecked(true);
-            this->showToolBarAction->trigger();
-        }
-        if (wcs.isToolBoxDisplayed) {
-            this->toolBox->toggleViewAction()->setChecked(true);
-            this->toolBox->toggleViewAction()->trigger();
-        }
-    }
-}
-
-/**
- * Called when view full screen is selected.
- */
-void 
-BrainBrowserWindow::processViewFullScreen()
-{
-    if (this->isFullScreen()) {
-        this->showNormal();
-        if (this->isMontageTabsViewSelected() == false) {
-            this->restoreWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus);
-        }
-    }
-    else {
-        this->showFullScreen();
-        this->saveWindowComponentStatus(this->fullScreenEnteredWindowComponentStatus, true);
-    }
+    this->showToolBarAction->setEnabled(false);
+    this->toolBox->toggleViewAction()->setEnabled(false);
 }
 
 /**

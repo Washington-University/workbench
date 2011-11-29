@@ -49,6 +49,8 @@ namespace caret {
         
         void add(QObject* w);
         
+        void clear();
+        
     public slots:
         void blockSignals(bool blockTheSignals);
         

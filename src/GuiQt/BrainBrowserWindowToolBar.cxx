@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "BrainBrowserWindowScreenModeEnum.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -223,6 +224,16 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
+    this->viewWidgetGroup->clear();
+    this->orientationWidgetGroup->clear();
+    this->wholeBrainSurfaceOptionsWidgetGroup->clear();
+    this->volumeIndicesWidgetGroup->clear();
+    this->toolsWidgetGroup->clear();
+    this->windowWidgetGroup->clear();
+    this->singleSurfaceSelectionWidgetGroup->clear();
+    this->volumeMontageWidgetGroup->clear();
+    this->volumePlaneWidgetGroup->clear();
+    
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
     }
@@ -321,14 +332,6 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
 void 
 BrainBrowserWindowToolBar::showHideToolBar(bool showIt)
 {
-    BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-    if (bbw->isMontageTabsViewSelected()
-        || bbw->isFullScreen()) {
-        this->tabBar->setVisible(false);
-    }
-    else {
-        this->tabBar->setVisible(true);
-    }
     this->toolbarWidget->setVisible(showIt);
 }
 
@@ -795,6 +798,34 @@ BrainBrowserWindowToolBar::updateToolBar()
         CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
     }
     
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+    if (browserWindow != NULL) {
+        BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
+        
+        switch (screenMode) {
+            case BrainBrowserWindowScreenModeEnum::NORMAL:
+                this->tabBar->setVisible(true);
+                this->toolbarWidget->setVisible(true);
+                break;
+            case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+                if (this->tabBar->count() > 1) {
+                    this->tabBar->setVisible(true);
+                }
+                else {
+                    this->tabBar->setVisible(false);
+                }
+                this->toolbarWidget->setVisible(false);
+                break;
+            case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
+                this->tabBar->setVisible(false);
+                this->toolbarWidget->setVisible(false);
+                break;
+            case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
+                this->tabBar->setVisible(false);
+                this->toolbarWidget->setVisible(false);
+                break;
+        }
+    }
 }
 
 /**
@@ -3091,17 +3122,34 @@ BrainBrowserWindowToolBar::receiveEvent(Event* event)
         CaretAssert(getModelEvent);
         
         if (getModelEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
-            BrainBrowserWindow* bbw = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
-            if (bbw->isMontageTabsViewSelected()) {
-                const int32_t numTabs = this->tabBar->count();
-                for (int32_t i = 0; i < numTabs; i++) {
-                    BrowserTabContent* btc = this->getTabContentFromTab(i);
+            BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
+            if (browserWindow != NULL) {
+                BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
+                
+                bool showMontage = false;
+                switch (screenMode) {
+                    case BrainBrowserWindowScreenModeEnum::NORMAL:
+                        break;
+                    case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+                        break;
+                    case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
+                        showMontage = true;
+                        break;
+                    case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
+                        showMontage = true;
+                        break;
+                }
+                if (showMontage) {
+                    const int32_t numTabs = this->tabBar->count();
+                    for (int32_t i = 0; i < numTabs; i++) {
+                        BrowserTabContent* btc = this->getTabContentFromTab(i);
+                        getModelEvent->addTabContentToDraw(btc);
+                    }
+                }
+                else {
+                    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
                     getModelEvent->addTabContentToDraw(btc);
                 }
-            }
-            else {
-                BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-                getModelEvent->addTabContentToDraw(btc);
             }
             getModelEvent->setEventProcessed();
         }

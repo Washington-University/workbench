@@ -65,6 +65,37 @@ WuQtUtilities::createAction(const QString& text,
 }
 
 /**
+ * Create an action with the specified text.
+ *
+ * @param text
+ *    Text for the action.
+ * @param toolAndStatusTipText
+ *    Text for both tool and status tips.
+ * @param shortcut
+ *    Keyboard shortcut.
+ * @param parent
+ *    Owner of the created action.
+ * @return
+ *    Action that was created.
+ */
+QAction*
+WuQtUtilities::createAction(const QString& text,
+                            const QString& toolAndStatusTipText,
+                            const QKeySequence& shortcut,
+                            QObject* parent)
+{
+    QAction* action = new QAction(parent);
+    action->setText(text);
+    if (toolAndStatusTipText.isEmpty() == false) {
+        action->setStatusTip(toolAndStatusTipText);
+        action->setToolTip(toolAndStatusTipText);
+    }
+    action->setShortcut(shortcut);
+    
+    return action;
+}
+
+/**
  * Create an action with the specified text, shortcut,
  * and calls the specified slot.
  *
@@ -250,6 +281,22 @@ WuQtUtilities::setToolTipAndStatusTip(QWidget* widget,
 {
     widget->setToolTip(text);
     widget->setStatusTip(text);
+}
+
+/**
+ * Set the tool tip and status tip for an action.
+ * 
+ * @param action
+ *    Action that has its tool and status tip set.
+ * @param text
+ *    Text for the tool and status tip.
+ */
+void
+WuQtUtilities::setToolTipAndStatusTip(QAction* action,
+                                      const QString& text)
+{
+    action->setToolTip(text);
+    action->setStatusTip(text);
 }
 
 /**
