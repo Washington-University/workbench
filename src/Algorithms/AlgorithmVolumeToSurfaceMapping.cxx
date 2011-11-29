@@ -60,8 +60,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     //ribbonOpt->addDoubleParameter(3, "ribbon-val", "the value to use from the ribbon mask");
     //ribbonOpt->addDoubleParameter(4, "ribbon-dist-kernel", "the sigma for the gaussian kernel based on distance within connected ribbon voxels");
     //ribbonOpt->createOptionalParameter(5, "-average-normals", "average each node's normals with its neighbors");
-    ribbonOpt->addSurfaceParameter(1, "outer-surf", "the outer surface of the ribbon");
-    ribbonOpt->addSurfaceParameter(2, "inner-surf", "the inner surface of the ribbon");
+    ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
+    ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "number of subdivisions of each voxel edge when estimating partial voluming");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
@@ -142,13 +142,17 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                 //float ribbonValue = (float)(ribbonOpt->getDouble(3));
                 //float kernel = (float)(ribbonOpt->getDouble(4));
                 //AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, thickness, ribbonVol, ribbonValue, kernel, averageNormals);
-                SurfaceFile* outerSurf = ribbonOpt->getSurface(1);
-                SurfaceFile* innerSurf = ribbonOpt->getSurface(2);
+                SurfaceFile* innerSurf = ribbonOpt->getSurface(1);
+                SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
                 int32_t subdivisions = 3;
                 OptionalParameter* ribbonSubdiv = ribbonOpt->getOptionalParameter(3);
                 if (ribbonSubdiv->m_present)
                 {
                     subdivisions = ribbonSubdiv->getInteger(1);
+                    if (subdivisions < 1)
+                    {
+                        throw AlgorithmException("invalid number of subdivisions specified");
+                    }
                 }
                 AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, innerSurf, outerSurf, subdivisions);
             }
@@ -572,8 +576,8 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     const vector<vector<float> >& myVolSpace = myVolume->getVolumeSpace();
     Vector3d origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
     ivec[0] = myVolSpace[0][0]; jvec[0] = myVolSpace[0][1]; kvec[0] = myVolSpace[0][2]; origin[0] = myVolSpace[0][3];
-    ivec[1] = myVolSpace[1][0]; jvec[0] = myVolSpace[1][1]; kvec[0] = myVolSpace[1][2]; origin[0] = myVolSpace[1][3];
-    ivec[2] = myVolSpace[2][0]; jvec[0] = myVolSpace[2][1]; kvec[0] = myVolSpace[2][2]; origin[0] = myVolSpace[2][3];
+    ivec[1] = myVolSpace[1][0]; jvec[1] = myVolSpace[1][1]; kvec[1] = myVolSpace[1][2]; origin[1] = myVolSpace[1][3];
+    ivec[2] = myVolSpace[2][0]; jvec[2] = myVolSpace[2][1]; kvec[2] = myVolSpace[2][2]; origin[2] = myVolSpace[2][3];
     CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
     vector<int> myNeighList, myTileList;
     //const float* mySurfCoords = mySurface->getCoordinateData();
