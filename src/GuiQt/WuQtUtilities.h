@@ -87,6 +87,9 @@ namespace caret {
         static bool loadIcon(const QString& filename,
                              QIcon& iconOut);
         
+        static bool loadPixmap(const QString& filename,
+                               QPixmap& pixmapOut);
+        
         static void moveWindowToSideOfParent(QWidget* parent,
                                              QWidget* window);
         

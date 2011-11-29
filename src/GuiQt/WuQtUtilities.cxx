@@ -329,6 +329,7 @@ bool
 WuQtUtilities::loadIcon(const QString& filename,
                         QIcon& iconOut)
 {
+/*
     QPixmap pixmap(filename);
     if (pixmap.isNull()) {
         QString msg = (QString("Failed to load icon named \"")
@@ -343,10 +344,41 @@ WuQtUtilities::loadIcon(const QString& filename,
         CaretLogSevere(msg);
         return false;
     }
+*/
+    QPixmap pixmap;
     
-    iconOut.addPixmap(pixmap);
+    const bool valid = WuQtUtilities::loadPixmap(filename, 
+                                                 pixmap);
+    if (valid) {
+        iconOut.addPixmap(pixmap);
+    }
     
-    return true;
+    return valid;
+}
+
+/**
+ * Load an pixmap.  
+ * 
+ * @param filename
+ *    Name of file (or resource) containing the pixmap.
+ * @param pixmapOut
+ *    Output that will contain the desired pixmap.
+ * @return
+ *    True if the pixmap is valid, else false.
+ */
+bool 
+WuQtUtilities::loadPixmap(const QString& filename,
+                          QPixmap& pixmapOut)
+{
+    bool valid = pixmapOut.load(filename);
+    
+    if ((pixmapOut.width() <= 0) || (pixmapOut.height() <= 0)) {
+        QString msg = "Pixmap " + filename + " has invalid size";
+        CaretLogSevere(msg);
+        valid = false;
+    }
+    
+    return valid;
 }
 
 /**

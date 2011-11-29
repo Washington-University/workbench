@@ -27,6 +27,8 @@
 #include <QApplication>
 #include <QGLFormat>
 #include <QGLPixelBuffer>
+#include <QSplashScreen>
+#include <QThread>
 
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
@@ -35,9 +37,21 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
+#include "WuQtUtilities.h"
 
 
 using namespace caret;
+
+/*
+ * From http://developer.qt.nokia.com/wiki/How_to_create_a_splash_screen_with_an_induced_delay
+ */ 
+class Sleeper : public QThread
+{
+public:
+    static void sleep(unsigned long secs) {
+        QThread::sleep(secs);
+    }
+};
 
 int 
 main(int argc, char* argv[])
@@ -53,6 +67,18 @@ main(int argc, char* argv[])
     QApplication::setOrganizationDomain("brainvis.wustl.edu");
     QApplication::setOrganizationName("Van Essen Lab");
     
+    /*
+     * Splash Screen
+     */
+    QPixmap splashPixmap;
+    QSplashScreen splashScreen;
+    if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
+        splashScreen.setPixmap(splashPixmap);
+        splashScreen.showMessage("Starting Workbench...");
+        splashScreen.show();
+        app.processEvents();
+        Sleeper::sleep(2);
+    }
     
     /*
      * Make sure OpenGL is available.
@@ -111,6 +137,7 @@ main(int argc, char* argv[])
     /*
      * Start the app which will launch the main window.
      */
+    splashScreen.close();
     int result = app.exec();
     
     /*

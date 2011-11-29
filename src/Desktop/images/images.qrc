@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+<file>splash_hcp.png</file>
 <file>view-anterior.png</file>
 <file>view-dorsal.png</file>
 <file>view-left.png</file>
