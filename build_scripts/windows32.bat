@@ -28,8 +28,8 @@ cd ..
 set DIST_DIR=caret@hippocampus:/Volumes/DS4600/caret7_distribution/caret/bin_windows32
 
 echo "Copying Files"
-c:\cygwin\bin\scp build\Desktop\workbench.exe %DIST_DIR%
-c:\cygwin\bin\scp build\CommandLine\caret_command.exe %DIST_DIR%
+c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%
+c:\cygwin\bin\scp build/CommandLine/caret_command.exe %DIST_DIR%
 echo "Finished Copying Files"
 @echo=off
 REM
