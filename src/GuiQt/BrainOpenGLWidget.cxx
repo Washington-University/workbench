@@ -32,7 +32,7 @@
 #undef __BRAIN_OPENGL_WIDGET_DEFINE__
 
 #include "Brain.h"
-#include "BrainOpenGL.h"
+#include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -98,7 +98,7 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGL(this); //GuiManager::get()->getBrainOpenGL();
+        this->openGL = new BrainOpenGLFixedPipeline(this); //GuiManager::get()->getBrainOpenGL();
     }
     this->openGL->initializeOpenGL();
     

@@ -50,6 +50,7 @@ ADD_LIBRARY(Brain
 Brain.h
 BrainConstants.h
 BrainOpenGL.h
+BrainOpenGLFixedPipeline.h
 BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h
@@ -102,6 +103,7 @@ YokingTypeEnum.h
 Brain.cxx
 BrainConstants.cxx
 BrainOpenGL.cxx
+BrainOpenGLFixedPipeline.cxx
 BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
 EventBrainStructureGet.cxx
