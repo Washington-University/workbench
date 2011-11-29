@@ -9,6 +9,11 @@ PROJECT (Brain)
 SET(QT_DONT_USE_QTGUI)
 
 #
+# Use OpenGL from QT
+#
+SET(QT_USE_QTOPENGL TRUE)
+
+#
 # Add QT for includes
 #
 INCLUDE (${QT_USE_FILE})

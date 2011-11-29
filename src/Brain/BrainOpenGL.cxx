@@ -37,6 +37,9 @@
 #include <GL/glu.h>
 #endif
 
+#include <QFont>
+#include <QGLWidget>
+
 #define __BRAIN_OPENGL_DEFINE_H
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
@@ -80,9 +83,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param parentGLWidget
+ *   The Qt QGLWidget that uses this instance for OpenGL
+ *   rendering.  The QGLWidget is used for text rendering.
+ *   This parameter may be NULL in which case no text
+ *   rendering is performed.
  */
-BrainOpenGL::BrainOpenGL()
+BrainOpenGL::BrainOpenGL(QGLWidget* parentGLWidget)
 {
+    this->parentGLWidget = parentGLWidget;
     this->initializeMembersBrainOpenGL();
     this->identificationManager = new IdentificationManager();
     this->colorIdentification   = new IdentificationWithColor();
@@ -1917,6 +1927,63 @@ BrainOpenGL::drawSphere(const double radius)
     }
     glPopMatrix();
 }
+
+/**
+ * Draw text at the given window coordinates.
+ * @param windowX
+ *    Window X-coordinate.
+ * @param windowY
+ *    Window Y-coordinate.
+ * @param text
+ *    Text that is to be drawn.
+ * @param fontHeight
+ *    Height of the font.
+ */
+void 
+BrainOpenGL::drawTextWindowCoords(const int windowX,
+                                  const int windowY,
+                                  const QString& text,
+                                  const int fontHeight)
+{
+    if (this->parentGLWidget != NULL) {
+        QFont font("times", fontHeight);
+        this->parentGLWidget->renderText(windowX,
+                                         windowY,
+                                         text,
+                                         font);
+    }
+}
+
+/**
+ * Draw text at the given window coordinates.
+ * @param modelX
+ *    Model X-coordinate.
+ * @param modelY
+ *    Model Y-coordinate.
+ * @param modelZ
+ *    Model Z-coordinate.
+ * @param text
+ *    Text that is to be drawn.
+ * @param fontHeight
+ *    Height of the font.
+ */
+void 
+BrainOpenGL::drawTextModelCoords(const double modelX,
+                                 const double modelY,
+                                 const double modelZ,
+                                 const QString& text,
+                                 const int fontHeight)
+{
+    if (this->parentGLWidget != NULL) {
+        QFont font("times", fontHeight);
+        this->parentGLWidget->renderText(modelX,
+                                         modelY,
+                                         modelZ,
+                                         text,
+                                         font);
+    }
+}
+
 
 
 

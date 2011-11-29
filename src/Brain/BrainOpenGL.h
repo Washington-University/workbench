@@ -33,6 +33,8 @@
 #include "IdentificationItemDataTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
+class QGLWidget;
+
 namespace caret {
     
     class Brain;
@@ -70,7 +72,7 @@ namespace caret {
     public:
         //static BrainOpenGL* getBrainOpenGL();
         
-        BrainOpenGL();
+        BrainOpenGL(QGLWidget* parentGLWidget);
 
         ~BrainOpenGL();
         
@@ -184,6 +186,19 @@ namespace caret {
         void drawSurfaceAxes();
         
         void drawSphere(const double radius);
+        
+        void drawTextWindowCoords(const int windowX,
+                                  const int windowY,
+                                  const QString& text,
+                                  const int fontHeight = 12);
+        
+        void drawTextModelCoords(const double modelX,
+                                 const double modelY,
+                                 const double modelZ,
+                                 const QString& text,
+                                 const int fontHeight = 12);
+        
+        QGLWidget* parentGLWidget;
         
         /** contains single instance of this class */
         //static BrainOpenGL* brainOpenGLSingleton;
