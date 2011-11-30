@@ -284,12 +284,12 @@ void AlgorithmMetricSmoothing::precomputeWeightsGeoGaussArea(SurfaceFile* mySurf
     vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
     tempList.resize(numNodes);
     mySurf->computeNodeAreas(nodeAreas);
-//#pragma omp CARET_PAR
+#pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
         CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
         vector<float> distances;
-//#pragma omp CARET_FOR schedule(dynamic)
+#pragma omp CARET_FOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
             myGeoHelp->getNodesToGeoDist(i, myGeoDist, tempList[i].m_nodes, distances, true);
@@ -346,13 +346,13 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(SurfaceFile* myS
     tempList.resize(numNodes);
     mySurf->computeNodeAreas(nodeAreas);
     const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
-//#pragma omp CARET_PAR
+#pragma omp CARET_PAR
     {
         CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
         CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
         vector<float> distances;
         vector<int32_t> nodes;
-//#pragma omp CARET_FOR schedule(dynamic)
+#pragma omp CARET_FOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
             if (myRoiColumn[i] > 0.0f)//we don't need to scatter from things outside the ROI
