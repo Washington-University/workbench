@@ -330,8 +330,6 @@ CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
     }
     this->qSettings->endArray();
     this->qSettings->sync();
-
-    QSettings::Status status = this->qSettings->status();
 }
 
 void 
@@ -512,8 +510,6 @@ CaretPreferences::readPreferences()
     if (valid == false) {
         this->loggingLevel = LogLevelEnum::INFO;
     }
-    
-    QSettings::Status status = this->qSettings->status();
 }
 
 /**
