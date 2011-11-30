@@ -30,6 +30,7 @@
 #include "MathFunctions.h"
 #include <cmath>
 #include "FloatMatrix.h"
+#include "CaretOMP.h"
 
 using namespace caret;
 using namespace std;
@@ -201,6 +202,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                             metricLabel += " trilinear";
                             int64_t thisCol = i * myVolDims[4] + j;
                             myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
                             for (int64_t node = 0; node < numNodes; ++node)
                             {
                                 myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, i, j);
@@ -219,6 +221,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         metricLabel += " trilinear";
                         int64_t thisCol = j;
                         myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
                         for (int64_t node = 0; node < numNodes; ++node)
                         {
                             myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::TRILINEAR, NULL, mySubVol, j);
@@ -246,6 +249,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                             metricLabel += " nearest neighbor";
                             int64_t thisCol = i * myVolDims[4] + j;
                             myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
                             for (int64_t node = 0; node < numNodes; ++node)
                             {
                                 myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::NEAREST_NEIGHBOR, NULL, i, j);
@@ -264,6 +268,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         metricLabel += " nearest neighbor";
                         int64_t thisCol = j;
                         myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR
                         for (int64_t node = 0; node < numNodes; ++node)
                         {
                             myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::NEAREST_NEIGHBOR, NULL, mySubVol, j);
@@ -301,6 +306,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                             metricLabel += " ribbon constrained";
                             int64_t thisCol = i * myVolDims[4] + j;
                             myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
                             for (int64_t node = 0; node < numNodes; ++node)
                             {
                                 myScratch[node] = 0.0f;
@@ -333,6 +339,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         metricLabel += " ribbon constrained";
                         int64_t thisCol = j;
                         myMetricOut->setColumnName(thisCol, metricLabel);
+#pragma omp CARET_PARFOR schedule(dynamic)
                         for (int64_t node = 0; node < numNodes; ++node)
                         {
                                 myScratch[node] = 0.0f;
@@ -357,215 +364,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             }
             break;
         default:
-            throw AlgorithmException("this method not yet implemented");
-    }
-}
-
-void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeight> >& myWeights, VolumeFile* ribbonVol, MetricFile* thickness, SurfaceFile* mySurface, float ribbonValue, float kernel)
-{
-    int numNodes = mySurface->getNumberOfNodes();
-    myWeights.resize(numNodes);
-    vector<int64_t> myDims;
-    ribbonVol->getDimensions(myDims);
-    myDims.resize(4);
-    myDims[3] = 1;
-    VolumeFile tempMask;//so that we don't have to test equal to value with tolerance everywhere
-    vector<vector<float> > myVolSpace = ribbonVol->getVolumeSpace();
-    tempMask.reinitialize(myDims, myVolSpace);
-    int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
-    const float* ribbonFrame = ribbonVol->getFrame(0, 0);
-    float* tempFrame = new float[frameSize];
-    const float TOLERANCE = 1.000001f;//need 1,000,000 labels before it will grab adjacent labels
-    for (int64_t i = 0; i < frameSize; ++i)
-    {
-        if (ribbonFrame[i] == ribbonValue)
-        {
-            tempFrame[i] = 1.0f;
-        } else {
-            if (ribbonFrame[i] != 0.0f && ribbonValue != 0.0f && ribbonFrame[i] / ribbonValue < TOLERANCE && ribbonValue / ribbonFrame[i] < TOLERANCE)
-            {
-                tempFrame[i] = 1.0f;
-            } else {
-                tempFrame[i] = 0.0f;
-            }
-        }
-    }
-    tempMask.setFrame(tempFrame);
-    delete[] tempFrame;
-    float ihat[3], jhat[3], khat[3], tempvec[3];
-    ihat[0] = myVolSpace[0][0]; ihat[1] = myVolSpace[1][0]; ihat[2] = myVolSpace[2][0];
-    jhat[0] = myVolSpace[0][1]; jhat[1] = myVolSpace[1][1]; jhat[2] = myVolSpace[2][1];
-    khat[0] = myVolSpace[0][2]; khat[1] = myVolSpace[1][2]; khat[2] = myVolSpace[2][2];
-    float voxNeighDist[3][3][3];//precompute to save a bunch of flops in dijkstras
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < 3; ++j)
-        {
-            for (int k = 0; k < 3; ++k)
-            {
-                tempvec[0] = ihat[0] * (i - 1);
-                tempvec[1] = ihat[1] * (i - 1);
-                tempvec[2] = ihat[2] * (i - 1);
-                tempvec[0] += jhat[0] * (j - 1);
-                tempvec[1] += jhat[1] * (j - 1);
-                tempvec[2] += jhat[2] * (j - 1);
-                tempvec[0] += khat[0] * (k - 1);
-                tempvec[1] += khat[1] * (k - 1);
-                tempvec[2] += khat[2] * (k - 1);
-                voxNeighDist[i][j][k] = MathFunctions::vectorLength(tempvec);
-            }
-        }
-    }
-    const float* myCoordRef = mySurface->getCoordinateData();
-    const float* myNormalRef = mySurface->getNormalData();
-    const float* myThickRef = thickness->getValuePointerForColumn(0);
-    int* marked = new int[frameSize];//temp storage for dijkstra
-    int* changed = new int[frameSize];
-    float* distances = new float[frameSize];
-    VoxelDistMinHeap myHeap;
-    vector<VoxelDist> myVoxels;
-    for (int64_t i = 0; i < frameSize; ++i)
-    {
-        marked[i] = 0;
-    }
-    for (int i = 0; i < numNodes; ++i)
-    {
-        myHeap.clear();
-        int i3 = i * 3;
-        float curCoord[3];
-        curCoord[0] = myCoordRef[i3] - myNormalRef[i3] * myThickRef[i] * 0.5f;//the normal is guaranteed to be a unit vector, thickness units and coord units must match
-        curCoord[1] = myCoordRef[i3 + 1] - myNormalRef[i3 + 1] * myThickRef[i] * 0.5f;
-        curCoord[2] = myCoordRef[i3 + 2] - myNormalRef[i3 + 2] * myThickRef[i] * 0.5f;
-        float curDist = 0.0f;
-        float endDist = myThickRef[i];
-        float crossingDists[3];
-        float curIndex[3];
-        int64_t curVoxel[3];
-        tempMask.spaceToIndex(curCoord, curIndex);
-        tempMask.closestVoxel(curCoord, curVoxel);
-        float ijksteps[3];
-        ijksteps[0] = 1.0f / MathFunctions::dotProduct(ihat, myNormalRef + i3);
-        ijksteps[1] = 1.0f / MathFunctions::dotProduct(jhat, myNormalRef + i3);
-        ijksteps[2] = 1.0f / MathFunctions::dotProduct(khat, myNormalRef + i3);
-        while (curDist < endDist)
-        {
-            if (tempMask.indexValid(curVoxel) && tempMask.getValue(curVoxel) > 0.5f)
-            {//obey the mask even if the voxel is on the normal within thickness
-                float tempCoord[3];
-                tempMask.indexToSpace(curVoxel, tempCoord);
-                float diffVec[3];
-                MathFunctions::subtractVectors(myCoordRef + i3, tempCoord, diffVec);
-                float normAmount = MathFunctions::dotProduct(myNormalRef + i3, diffVec);
-                diffVec[0] -= myNormalRef[i3] * normAmount;
-                diffVec[1] -= myNormalRef[i3 + 1] * normAmount;
-                diffVec[2] -= myNormalRef[i3 + 2] * normAmount;
-                float distFromNorm = MathFunctions::vectorLength(diffVec);
-                myHeap.push(VoxelDist(distFromNorm, curVoxel));
-            }//compute positive fractions of the normal required to change the index of the closest voxel in each direction
-            int direction = -1;
-            float tempf = -1.0f;
-            for (int j = 0; j < 3; ++j)
-            {
-                if (ijksteps[j] > 0.0f)
-                {
-                    crossingDists[j] = (0.5f - (curIndex[j] - curVoxel[j])) * ijksteps[j];
-                } else {
-                    crossingDists[j] = ((curVoxel[j] - curIndex[j]) - 0.5f) * ijksteps[j];//because step is negative, reverse the subtraction
-                }//find smallest of these, and use it
-                if (crossingDists[j] < tempf || (direction == -1 && crossingDists[j] == crossingDists[j]))
-                {//keep NaNs out, +inf will take care of itself, -inf shouldn't happen
-                    direction = j;
-                    tempf = crossingDists[j];
-                }
-            }
-            if (direction == -1 || !(tempf == tempf) || (tempf != 0.0f && tempf * 2.0f == tempf))
-            {//panic!
-                throw AlgorithmException("volume spacing produced an error initializing shortest path sources");
-            }
-            curDist += tempf;
-            for (int j = 0; j < 3; ++j)
-            {
-                curCoord[j] += tempf * myNormalRef[i3 + j];
-            }
-            tempMask.spaceToIndex(curCoord, curIndex);
-            if (ijksteps[direction] > 0.0f)
-            {
-                ++curVoxel[direction];
-            } else {
-                --curVoxel[direction];
-            }
-        }
-        dijkstra(&tempMask, myHeap, voxNeighDist, marked, changed, distances, myVoxels, kernel * 3.0f);//triple the kernel, we don't need more accuracy
-        int myEnd = (int)myVoxels.size();
-        myWeights[i].resize(myEnd);
-        float gaussDenom = -0.5f / (kernel * kernel);
-        for (int j = 0; j < myEnd; ++j)
-        {
-            myWeights[i][j].ijk[0] = myVoxels[j].ijk[0];
-            myWeights[i][j].ijk[1] = myVoxels[j].ijk[1];
-            myWeights[i][j].ijk[2] = myVoxels[j].ijk[2];
-            myWeights[i][j].weight = exp(myVoxels[j].dist * myVoxels[j].dist * gaussDenom);
-        }
-    }
-}
-
-void AlgorithmVolumeToSurfaceMapping::dijkstra(VolumeFile* mask, VoxelDistMinHeap& myHeap, float voxNeighDist[3][3][3], int* marked, int* changed, float* distances, vector<VoxelDist>& myVoxelsOut, float maxDist)
-{
-    int numChanged = 0;
-    myVoxelsOut.clear();
-    const float* maskFrame = mask->getFrame();
-    float tempf;
-    while (!myHeap.isEmpty())
-    {
-        VoxelDist thisVoxel = myHeap.pop();
-        int64_t thisIndex = mask->getIndex(thisVoxel.ijk);
-        if (!(marked[thisIndex] & 1))//already visited, happens when same voxel has multiple paths to it (which is nearly always)
-        {
-            myVoxelsOut.push_back(thisVoxel);
-            if (marked[thisIndex] == 0) changed[numChanged++] = thisIndex;//happens because initialization code in precompute doesn't mark the starting set or use the changed array
-            marked[thisIndex] |= 1;//mark as visited
-            for (int i = 0; i < 3; ++i)
-            {
-                for (int j = 0; j < 3; ++j)
-                {
-                    for (int k = 0; k < 3; ++k)
-                    {
-                        int64_t neighijk[3];
-                        neighijk[0] = thisVoxel.ijk[0] + i - 1;
-                        neighijk[1] = thisVoxel.ijk[1] + j - 1;
-                        neighijk[2] = thisVoxel.ijk[2] + k - 1;
-                        if (mask->indexValid(neighijk))
-                        {
-                            int64_t neighIndex = mask->getIndex(neighijk);
-                            if (!(marked[neighIndex] & 1) && maskFrame[neighIndex] > 0.5f)
-                            {//also stops the middle "neighbor", only happens 1/27 of the time so explicit tests for it would probably be more overhead
-                                tempf = thisVoxel.dist + voxNeighDist[i][j][k];
-                                if (tempf <= maxDist)
-                                {
-                                    if (marked[neighIndex] & 2)//denotes has a value in the distances array
-                                    {
-                                        if (distances[neighIndex] > tempf)
-                                        {
-                                            distances[neighIndex] = tempf;
-                                            myHeap.push(VoxelDist(tempf, thisVoxel.ijk[0] + i - 1, thisVoxel.ijk[1] + j - 1, thisVoxel.ijk[2] + k - 1));
-                                        }
-                                    } else {
-                                        changed[numChanged++] = neighIndex;//setting a valid value where none was before is always a new change
-                                        marked[neighIndex] |= 2;
-                                        distances[neighIndex] = tempf;
-                                        myHeap.push(VoxelDist(tempf, thisVoxel.ijk[0] + i - 1, thisVoxel.ijk[1] + j - 1, thisVoxel.ijk[2] + k - 1));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    for (int i = 0; i < numChanged; ++i)
-    {//reset the marked array
-        marked[changed[i]] = 0;
+            throw AlgorithmException("unknown mapping method specified");
     }
 }
 
@@ -578,207 +377,91 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     ivec[0] = myVolSpace[0][0]; jvec[0] = myVolSpace[0][1]; kvec[0] = myVolSpace[0][2]; origin[0] = myVolSpace[0][3];
     ivec[1] = myVolSpace[1][0]; jvec[1] = myVolSpace[1][1]; kvec[1] = myVolSpace[1][2]; origin[1] = myVolSpace[1][3];
     ivec[2] = myVolSpace[2][0]; jvec[2] = myVolSpace[2][1]; kvec[2] = myVolSpace[2][2]; origin[2] = myVolSpace[2][3];
-    CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
-    vector<int> myNeighList, myTileList;
-    //const float* mySurfCoords = mySurface->getCoordinateData();
     const float* outerCoords = outerSurf->getCoordinateData();
     const float* innerCoords = innerSurf->getCoordinateData();
-    int maxVoxelCount = 10;//guess for preallocating vectors
-    for (int64_t node = 0; node < numNodes; ++node)
+    vector<int64_t> myDims;
+    myVolume->getDimensions(myDims);
+#pragma omp CARET_PAR
     {
-        myWeights[node].clear();
-        myWeights[node].reserve(maxVoxelCount);
-        float tempf;
-        int64_t node3 = node * 3;
-        PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
-        Vector3d minIndex, maxIndex, tempvec;
-        myVolume->spaceToIndex(innerCoords + node3, minIndex.m_vec);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
-        maxIndex = minIndex;
-        myVolume->spaceToIndex(outerCoords + node3, tempvec.m_vec);
-        for (int i = 0; i < 3; ++i)
+        int maxVoxelCount = 10;//guess for preallocating vectors
+        CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
+        vector<int> myNeighList, myTileList;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int64_t node = 0; node < numNodes; ++node)
         {
-            if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
-            if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
-        }
-        myTopoHelp->getNodeNeighbors(node, myNeighList);//and now the neighbors
-        int numNeigh = (int)myNeighList.size();
-        for (int j = 0; j < numNeigh; ++j)
-        {
-            int neigh3 = myNeighList[j] * 3;
-            myVolume->spaceToIndex(outerCoords + neigh3, tempvec.m_vec);
+            myWeights[node].clear();
+            myWeights[node].reserve(maxVoxelCount);
+            float tempf;
+            int64_t node3 = node * 3;
+            PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
+            Vector3d minIndex, maxIndex, tempvec;
+            myVolume->spaceToIndex(innerCoords + node3, minIndex.m_vec);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
+            maxIndex = minIndex;
+            myVolume->spaceToIndex(outerCoords + node3, tempvec.m_vec);
             for (int i = 0; i < 3; ++i)
             {
                 if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
                 if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
             }
-            myVolume->spaceToIndex(innerCoords + neigh3, tempvec.m_vec);
-            for (int i = 0; i < 3; ++i)
+            myTopoHelp->getNodeNeighbors(node, myNeighList);//and now the neighbors
+            int numNeigh = (int)myNeighList.size();
+            for (int j = 0; j < numNeigh; ++j)
             {
-                if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
-                if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
-            }
-        }
-        vector<int64_t> myDims;
-        myVolume->getDimensions(myDims);
-        int startIndex[3], endIndex[3];
-        for (int i = 0; i < 3; ++i)
-        {
-            startIndex[i] = (int)ceil(minIndex[i] - 0.5f);//give an extra half voxel in order to get anything which could have some polygon in it
-            endIndex[i] = (int)floor(maxIndex[i] + 0.5f) + 1;//ditto, plus the one-after end convention
-            if (startIndex[i] < 0) startIndex[i] = 0;//keep it inside the volume boundaries
-            if (endIndex[i] > myDims[i]) endIndex[i] = myDims[i];
-        }
-        int64_t ijk[3];
-        for (ijk[0] = startIndex[0]; ijk[0] < endIndex[0]; ++ijk[0])
-        {
-            for (ijk[1] = startIndex[1]; ijk[1] < endIndex[1]; ++ijk[1])
-            {
-                for (ijk[2] = startIndex[2]; ijk[2] < endIndex[2]; ++ijk[2])
+                int neigh3 = myNeighList[j] * 3;
+                myVolume->spaceToIndex(outerCoords + neigh3, tempvec.m_vec);
+                for (int i = 0; i < 3; ++i)
                 {
-                    tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
-                    if (tempf != 0.0f)
+                    if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                    if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+                }
+                myVolume->spaceToIndex(innerCoords + neigh3, tempvec.m_vec);
+                for (int i = 0; i < 3; ++i)
+                {
+                    if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
+                    if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
+                }
+            }
+            int startIndex[3], endIndex[3];
+            for (int i = 0; i < 3; ++i)
+            {
+                startIndex[i] = (int)ceil(minIndex[i] - 0.5f);//give an extra half voxel in order to get anything which could have some polygon in it
+                endIndex[i] = (int)floor(maxIndex[i] + 0.5f) + 1;//ditto, plus the one-after end convention
+                if (startIndex[i] < 0) startIndex[i] = 0;//keep it inside the volume boundaries
+                if (endIndex[i] > myDims[i]) endIndex[i] = myDims[i];
+            }
+            int64_t ijk[3];
+            for (ijk[0] = startIndex[0]; ijk[0] < endIndex[0]; ++ijk[0])
+            {
+                for (ijk[1] = startIndex[1]; ijk[1] < endIndex[1]; ++ijk[1])
+                {
+                    for (ijk[2] = startIndex[2]; ijk[2] < endIndex[2]; ++ijk[2])
                     {
-                        myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                        tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
+                        if (tempf != 0.0f)
+                        {
+                            myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                        }
                     }
                 }
             }
-        }
-        /*if (node == 100634)//debug - get the "kernel" for any single node
-        {
-            vector<int64_t> myDims;
-            myVolume->getDimensions(myDims);
-            myDims.resize(3);
-            VolumeFile debugVol(myDims, myVolSpace);
-            debugVol.setValueAllVoxels(0.0f);
-            for (int i = 0; i < (int)myWeights[node].size(); ++i)
+            /*if (node == 100634)//debug - get the "kernel" for any single node
             {
-                debugVol.setValue(myWeights[node][i].weight, myWeights[node][i].ijk);
-            }
-            debugVol.writeFile("debug.nii");
-        }//*/
-        if ((int)myWeights[node].size() > maxVoxelCount)
-        {//capacity() might result in a faster stabilization, but would use more memory
-            maxVoxelCount = myWeights[node].size();
-        }
-        //sphere based code for finding all voxels that could be within range, UNTESTED, wrote it before I realized a box based version can work without orthogonal axes, and might be more efficient
-        /*float maxDist = MathFunctions::distance3D(mySurfCoords + node3, outerCoords + node3);//find the maximum sphere we need to test voxel centers inside of
-        float tempf = MathFunctions::distance3D(mySurfCoords + node3, innerCoords + node3);//start with the corresponding nodes
-        if (tempf > maxDist)
-        {
-            maxDist = tempf;
-        }
-        int numNeigh = (int)myNeighList.size();
-        for (int i = 0; i < numNeigh; ++i)
-        {
-            int myNeigh = myNeighList[i];
-            int myNeigh3 = myNeigh * 3;
-            tempf = MathFunctions::distance3D(mySurfCoords + node3, outerCoords + myNeigh3);//search neighbors
-            if (tempf > maxDist)
-            {
-                maxDist = tempf;
-            }
-            tempf = MathFunctions::distance3D(mySurfCoords + node3, innerCoords + myNeigh3);
-            if (tempf > maxDist)
-            {
-                maxDist = tempf;
-            }
-        }//now, add half the length of the longest voxel diagonal
-        Vector3d tempvec, tempvec2;
-        float tempf2;
-        tempvec = ivec + jvec;//the brute force way, because there are only 4 cases that need to be tested
-        tempvec2 = tempvec + kvec;
-        tempf = tempvec2.length();
-        tempvec2 = tempvec - kvec;
-        tempf2 = tempvec2.length();
-        if (tempf2 > tempf)
-        {
-            tempf = tempf2;
-        }
-        tempvec = ivec - jvec;
-        tempvec2 = tempvec + kvec;
-        tempf2 = tempvec2.length();
-        if (tempf2 > tempf)
-        {
-            tempf = tempf2;
-        }
-        tempvec2 = tempvec - kvec;
-        tempf2 = tempvec2.length();
-        if (tempf2 > tempf)
-        {
-            tempf = tempf2;
-        }
-        maxDist += tempf * 0.5f;
-        Vector3d khat = kvec.normal(), iorth, jorth, iorthhat, jorthhat;//generate an orthogonal basis that will let us find the voxels inside a sphere
-        if (myVolume->isPlumb())
-        {
-            iorth = ivec;
-            jorth = jvec;
-            iorthhat = iorth.normal();
-            jorthhat = jorth.normal();
-        } else {
-            jorth = jvec - jvec.dot(khat) * khat;
-            jorthhat = jorth.normal();
-            iorth = ivec - ivec.dot(khat) * khat;
-            iorth -= iorth.dot(jorthhat) * jorthhat;//due to jorthhat being orthogonal to khat, we could probably combine these into one step
-            iorthhat = iorth.normal();//k will use the given vector, since we need it to not disturb other indexes
-        }
-        tempvec = iorthhat + jorthhat + khat;//sanity check
-        tempf = tempvec.length();
-        if (tempf != tempf || (abs(tempf) > 0.0f && tempf * 2.0f == tempf))
-        {
-            throw AlgorithmException("volume spacing is singular");
-        }
-        Vector3d myCenter = mySurfCoords + node3;//this is overloaded to accept assignment/construction from a plain float triplet
-        vector<int64_t> myDims;
-        myVolume->getDimensions(myDims);
-        tempvec = myCenter - maxDist * iorthhat;//this will give us our lowest first "index" in our orthogonal space
-        myVolume->spaceToIndex(tempvec.m_vec, tempvec2.m_vec);//which was crafted to match the i index, but letting j and k wander (since we subtracted some of each of their normals)
-        int64_t istart = (int64_t)ceil(tempvec2[0]);
-        if (istart < 0) istart = 0;
-        tempvec = myCenter + maxDist * iorthhat;//and our highest first "index"
-        myVolume->spaceToIndex(tempvec.m_vec, tempvec2.m_vec);
-        int64_t iend = (int64_t)floor(tempvec2[0]) + 1;//use the 1 after idiom
-        if (iend > myDims[0]) iend = myDims[0];
-        int64_t ijk[3];
-        float maxDistSquare = maxDist * maxDist;
-        Vector3d tempvec3, tempvec4;//need even more temporaries for volume space interaction
-        for (ijk[0] = istart; ijk[0] < iend; ++ijk[0])
-        {//now, the j orthogonal basis is crafted to keep i constant, but k can wander (since we only subtracted some of the k normal, and moving along the k normal changes only k)
-            tempf = ijk[0] * iorth.length();
-            float remDistSquarei = maxDistSquare - tempf * tempf;
-            if (remDistSquarei < 0.0f) continue;//because floats aren't exact
-            Vector3d myCenteri = myCenter + iorth * ijk[0];
-            tempvec2 = sqrt(remDistSquarei) * jorthhat;//avoid repeat calculation
-            tempvec3 = myCenteri - tempvec2;//get our minimum j
-            myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
-            int64_t jstart = (int64_t)ceil(tempvec4[1]);
-            if (jstart < 0) jstart = 0;
-            tempvec3 = myCenteri + tempvec2;//get our maximum j
-            myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
-            int64_t jend = (int64_t)floor(tempvec4[1]) + 1;
-            if (jend > myDims[1]) jend = myDims[1];
-            for (ijk[1] = jstart; ijk[1] < jend; ++ijk[1])
-            {
-                tempf = ijk[1] * jorth.length();
-                float remDistSquarej = remDistSquarei - tempf * tempf;
-                if (remDistSquarej < 0.0f) continue;
-                Vector3d myCenterj = myCenteri + jorth * ijk[1];
-                tempvec2 = sqrt(remDistSquarej) * khat;
-                tempvec3 = myCenterj - tempvec2;//minimum k
-                myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
-                int64_t kstart = (int64_t)ceil(tempvec4.m_vec[2]);//same as tempvec4[2], but without the function call, using it here because it is more of an inner loop
-                if (kstart < 0) kstart = 0;
-                tempvec3 = myCenterj + tempvec2;//maximum j
-                myVolume->spaceToIndex(tempvec3.m_vec, tempvec4.m_vec);
-                int64_t kend = (int64_t)floor(tempvec4.m_vec[2]) + 1;
-                if (kend > myDims[2]) kend = myDims[2];
-                for (ijk[2] = kstart; ijk[2] < kend; ++ijk[2])
-                {//compute partial volume of this voxel inside the polygon - estimation by point tests
-                    tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
-                    myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                vector<int64_t> myDims;
+                myVolume->getDimensions(myDims);
+                myDims.resize(3);
+                VolumeFile debugVol(myDims, myVolSpace);
+                debugVol.setValueAllVoxels(0.0f);
+                for (int i = 0; i < (int)myWeights[node].size(); ++i)
+                {
+                    debugVol.setValue(myWeights[node][i].weight, myWeights[node][i].ijk);
                 }
+                debugVol.writeFile("debug.nii");//doesn't work yet
+            }//*/
+            if ((int)myWeights[node].size() > maxVoxelCount)
+            {//capacity() would use more memory
+                maxVoxelCount = myWeights[node].size();
             }
-        }//*/
+        }
     }
 }
 

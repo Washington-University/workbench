@@ -138,7 +138,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
             myProgress.setTask("Smoothing Column " + AString::number(col));
             myMetricOut->setColumnName(col, myMetric->getColumnName(col) + ", smooth " + AString::number(myKernel));
             const float* myColumn = myMetric->getValuePointerForColumn(col);
-#pragma omp CARET_PARFOR
+#pragma omp CARET_PARFOR schedule(dynamic)
             for (int32_t i = 0; i < numNodes; ++i)
             {
                 if (myRoi == NULL || myRoiColumn[i] > 0.0f)
@@ -171,7 +171,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
         }
-#pragma omp CARET_PARFOR
+#pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)
         {
             if (myRoi == NULL || myRoiColumn[i] > 0.0f)
