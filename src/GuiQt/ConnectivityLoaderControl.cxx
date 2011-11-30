@@ -45,6 +45,7 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
@@ -90,6 +91,11 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
 {
     
     ConnectivityLoaderControl::allConnectivityLoaderControls.insert(this);
+    
+    this->selectorEnabledButtonsGroup = new QButtonGroup(this);
+    this->selectorEnabledButtonsGroup->setExclusive(false);
+    QObject::connect(this->selectorEnabledButtonsGroup, SIGNAL(buttonPressed(QAbstractButton*)),
+                     this, SLOT(selectorEnabledCheckBoxToggled(QAbstractButton*)));
     
     this->animateButtonsGroup = new QButtonGroup(this);
     QObject::connect(this->animateButtonsGroup, SIGNAL(buttonClicked(QAbstractButton*)),
@@ -159,20 +165,22 @@ ConnectivityLoaderControl::updateControl()
 {
     Brain* brain = GuiManager::get()->getBrain();
     ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
-    int32_t numLoaderWidgets = static_cast<int32_t>(this->loaderNumberLabels.size());
+    int32_t numLoaderWidgets = static_cast<int32_t>(this->selectorEnabledCheckBoxes.size());
     
     /*
      * Create new animators, as needed
      */
     const int32_t numberOfConnectivityLoaders = manager->getNumberOfConnectivityLoaderFiles();
-    if(animators.size()<numberOfConnectivityLoaders) animators.resize(numberOfConnectivityLoaders,NULL);
+    if(static_cast<int32_t>(animators.size())<numberOfConnectivityLoaders) animators.resize(numberOfConnectivityLoaders,NULL);
     /*
      * Create new rows, as needed
      */
 
     for (int32_t i = 0; i < numberOfConnectivityLoaders; i++) {
         if (i >= numLoaderWidgets) {
-            QLabel* numberLabel = new QLabel(AString::number(i + 1));
+            QCheckBox* selectorEnabledCheckBox = new QCheckBox(AString::number(i + 1));
+            WuQtUtilities::setToolTipAndStatusTip(selectorEnabledCheckBox,
+                                                  "Enable/Disable this selector");
             
             QLineEdit* fileNameLineEdit = new QLineEdit();
             fileNameLineEdit->setReadOnly(true);
@@ -215,7 +223,7 @@ ConnectivityLoaderControl::updateControl()
             
             WuQWidgetObjectGroup* widgetGroup = new WuQWidgetObjectGroup(this);
             widgetGroup = new WuQWidgetObjectGroup(this);
-            widgetGroup->add(numberLabel);
+            widgetGroup->add(selectorEnabledCheckBox);
             widgetGroup->add(animateButton);
             widgetGroup->add(fileNameLineEdit);
             widgetGroup->add(fileTypeLabel);
@@ -227,7 +235,7 @@ ConnectivityLoaderControl::updateControl()
             this->rowWidgetGroups.push_back(widgetGroup);
             
             const int row = this->loaderLayout->rowCount();
-            this->loaderLayout->addWidget(numberLabel, row, COLUMN_SELECTOR);
+            this->loaderLayout->addWidget(selectorEnabledCheckBox, row, COLUMN_SELECTOR);
             this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
             this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX, Qt::AlignHCenter);
             this->loaderLayout->addWidget(timeSpinBox, row, COLUMN_TIME_SPINBOX);
@@ -237,30 +245,29 @@ ConnectivityLoaderControl::updateControl()
             this->loaderLayout->addWidget(networkButton, row, COLUMN_NETWORK_BUTTON);
             this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE, Qt::AlignHCenter);
             
+            this->selectorEnabledButtonsGroup->addButton(selectorEnabledCheckBox);
+            this->timeSpinBoxesGroup->addSpinBox(timeSpinBox);
             this->animateButtonsGroup->addButton(animateButton);
             this->fileButtonsGroup->addButton(fileButton);
             this->networkButtonsGroup->addButton(networkButton);
             this->removeButtonsGroup->addButton(removeButton);
-            this->timeSpinBoxesGroup->addSpinBox(timeSpinBox);
             
-            this->animateButtons.push_back(animateButton);
-            this->loaderNumberLabels.push_back(numberLabel);
+            this->selectorEnabledCheckBoxes.push_back(selectorEnabledCheckBox);
             this->fileNameLineEdits.push_back(fileNameLineEdit);
+            this->showTimeGraphCheckBoxes.push_back(timeCheckBox);
+            this->timeSpinBoxes.push_back(timeSpinBox);
+            this->animateButtons.push_back(animateButton);
             this->fileTypeLabels.push_back(fileTypeLabel);
             this->fileButtons.push_back(fileButton);
             this->networkButtons.push_back(networkButton);
-
             this->removeButtons.push_back(removeButton);
-            this->timeSpinBoxes.push_back(timeSpinBox);
-            this->showTimeGraphCheckBoxes.push_back(timeCheckBox);
-
         }        
     }
     
     /*
      * Update rows
      */
-    numLoaderWidgets = static_cast<int32_t>(this->loaderNumberLabels.size());
+    numLoaderWidgets = static_cast<int32_t>(this->selectorEnabledCheckBoxes.size());
     for (int32_t i = 0; i < numLoaderWidgets; i++) {
         this->rowWidgetGroups[i]->blockSignals(true);
         
@@ -270,6 +277,7 @@ ConnectivityLoaderControl::updateControl()
         }
 
         if (clf != NULL) {
+            this->selectorEnabledCheckBoxes[i]->setChecked(clf->isDataLoadingEnabled());
             this->fileNameLineEdits[i]->setText(clf->getFileName());
             this->fileTypeLabels[i]->setText(clf->getCiftiTypeName());
             if (clf->isDenseTimeSeries()) {
@@ -307,6 +315,30 @@ ConnectivityLoaderControl::updateControl()
     }
     
     //this->adjustSize();
+}
+
+/**
+ * Called when a selector checkbox is toggled.
+ * @param button
+ *   Selector checkbox that was toggled.
+ */
+void
+ConnectivityLoaderControl::selectorEnabledCheckBoxToggled(QAbstractButton* button)
+{
+    int32_t fileIndex = -1;
+    for (int32_t i = 0; i < static_cast<int32_t>(this->selectorEnabledCheckBoxes.size()); i++) {
+        if (this->selectorEnabledCheckBoxes[i] == button) {
+            fileIndex = i;
+        }
+    }
+    CaretAssert(fileIndex >= 0);
+
+    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    ConnectivityLoaderFile* loaderFile = manager->getConnectivityLoaderFile(fileIndex);
+    
+    const bool status = this->selectorEnabledCheckBoxes[fileIndex]->isChecked();
+    loaderFile->setDataLoadingEnabled( !status );
+    this->updateOtherConnectivityLoaderControls();
 }
 
 /**
@@ -355,11 +387,6 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     }
     
     /*
-     * Previous directories
-     */
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    
-    /*
      * Setup file selection dialog.
      */
     WuQFileDialog fd(this);
@@ -395,7 +422,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
             }
             if(loaderFile->isDenseTimeSeries())
             {
-                if((this->animators.size())>fileIndex)
+                if(static_cast<int32_t>(this->animators.size())>fileIndex)
                 {
                     if(this->animators[fileIndex])
                     {
@@ -414,7 +441,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
             }
             else
             {
-                if(this->animators.size()>fileIndex)
+                if(static_cast<int32_t>(this->animators.size())>fileIndex)
                 {
                     if(animators[fileIndex])
                     {
@@ -517,7 +544,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         //TODO, move boiler plate below to separate method(s)
         if(loaderFile->isDenseTimeSeries())
         {
-            if(this->animators.size()>fileIndex)
+            if(static_cast<int32_t>(this->animators.size())>fileIndex)
             {
                 if(this->animators[fileIndex])
                 {
@@ -535,7 +562,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
         }
         else
         {
-            if(this->animators.size()>fileIndex)
+            if(static_cast<int32_t>(this->animators.size())>fileIndex)
             {
                 if(animators[fileIndex])
                 {
@@ -639,14 +666,12 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinB
 
         const float totalTime = et.getElapsedTimeSeconds();
         
-        std::cout 
-        << "Time load/conngui/invalidate/graphics/total " 
-        << loadTime << " "
-        << guiUpdateTime << " "
-        << invalidateTime << " "
-        << graphicsTime << " "
-        << totalTime << " "
-        << std::endl;
+        CaretLogFiner("Time load/conngui/invalidate/graphics/total " 
+                      + AString::number(loadTime) + " "
+                      + AString::number(guiUpdateTime) + " "
+                      + AString::number(invalidateTime) + " "
+                      + AString::number(graphicsTime) + " "
+                      + AString::number(totalTime));
     }
 }
 

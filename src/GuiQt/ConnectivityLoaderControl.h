@@ -70,6 +70,7 @@ namespace caret {
     private slots:
         void addConnectivityLoader();
         
+        void selectorEnabledCheckBoxToggled(QAbstractButton* button);
         void animateButtonPressed(QAbstractButton* button);
         void fileButtonPressed(QAbstractButton* button);
         void networkButtonPressed(QAbstractButton* button);
@@ -86,7 +87,7 @@ namespace caret {
         
         QGridLayout* loaderLayout;
 
-        std::vector<QLabel*> loaderNumberLabels;
+        std::vector<QCheckBox*> selectorEnabledCheckBoxes;
         std::vector<QLineEdit*> fileNameLineEdits;
         std::vector<QLabel*> fileTypeLabels;
         std::vector<QToolButton*> animateButtons;
@@ -99,6 +100,7 @@ namespace caret {
 
         std::vector<TimeSeriesManager*> animators;
         
+        QButtonGroup* selectorEnabledButtonsGroup;
         QButtonGroup* animateButtonsGroup;
         QButtonGroup* fileButtonsGroup;
         QButtonGroup* networkButtonsGroup;

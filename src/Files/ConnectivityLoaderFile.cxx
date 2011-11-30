@@ -60,6 +60,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->timeSeriesGraphEnabled = false;
     this->selectedTimePoint = 0.0;
+    this->dataLoadingEnabled = true;
     
     this->setFileName("");
 }
@@ -111,6 +112,8 @@ ConnectivityLoaderFile::clearData()
     this->loaderType = LOADER_TYPE_INVALID;
     this->mapToType = MAP_TO_TYPE_INVALID;
     this->allocateData(0);
+
+    this->dataLoadingEnabled = true;
 }
 
 /**
@@ -149,6 +152,31 @@ bool
 ConnectivityLoaderFile::isEmpty() const
 {
     return this->getFileName().isEmpty();
+}
+
+/**
+ * @return Is loading of data enabled.  Note that if
+ * disabled, any previously loaded data is NOT removed
+ * so that it can still be displayed but not updated.
+ */
+bool 
+ConnectivityLoaderFile::isDataLoadingEnabled() const
+{
+    return this->dataLoadingEnabled;
+}
+
+/**
+ * Set loading of data enabled.  Note that if
+ * disabled, any previously loaded data is NOT removed
+ * so that it can still be displayed but not updated.
+ *
+ * @param dataLoadingEnabled
+ *   New data loading enabled status.
+ */
+void 
+ConnectivityLoaderFile::setDataLoadingEnabled(const bool dataLoadingEnabled)
+{
+    this->dataLoadingEnabled = dataLoadingEnabled;
 }
 
 /**
@@ -683,6 +711,13 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
         throw DataFileException("Connectivity Loader has not been initialized");
     }
     
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
     this->zeroizeData();
 
     try {
@@ -733,6 +768,13 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
         throw DataFileException("Connectivity Loader has not been initialized");
     }
         
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
@@ -780,6 +822,13 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
     }
     
     try {

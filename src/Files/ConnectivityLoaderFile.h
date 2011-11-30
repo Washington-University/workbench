@@ -53,6 +53,10 @@ namespace caret {
         
         virtual bool isEmpty() const;
 
+        bool isDataLoadingEnabled() const;
+        
+        void setDataLoadingEnabled(const bool enabled);
+        
         void setupLocalFile(const AString& filename,
                             const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
         
@@ -203,6 +207,8 @@ namespace caret {
         VolumeFile* connectivityVolumeFile;
         
         bool timeSeriesGraphEnabled;
+        
+        bool dataLoadingEnabled;
         
         float selectedTimePoint;
     };
