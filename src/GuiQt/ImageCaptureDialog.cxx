@@ -45,8 +45,11 @@
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "CaretPreferences.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
+#include "ImageFile.h"
+#include "SessionManager.h"
 #include "WuQFileDialog.h"
 #include "WuQMessageBox.h"
 
@@ -96,7 +99,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     imageSourceLayout->setColumnStretch(1000, 100);
     
     /*
-     * Image Options
+     * Image Size
      */
     this->imageSizeWindowRadioButton = new QRadioButton("Size of Window");
     this->imageSizeCustomRadioButton = new QRadioButton("Custom");
@@ -114,16 +117,38 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->imageSizeCustomYSpinBox->setRange(1, 1000000);
     this->imageSizeCustomYSpinBox->setSingleStep(1);
     this->imageSizeCustomYSpinBox->setValue(2048);
+    QGroupBox* imageSizeGroupBox = new QGroupBox("Image Size");
+    QGridLayout* imageSizeLayout = new QGridLayout(imageSizeGroupBox);
+    imageSizeLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 3);
+    imageSizeLayout->addWidget(this->imageSizeCustomRadioButton, 1, 0);
+    imageSizeLayout->addWidget(this->imageSizeCustomXSpinBox, 1, 1);
+    imageSizeLayout->addWidget(this->imageSizeCustomYSpinBox, 1, 2);
+    imageSizeLayout->setColumnStretch(0, 0);
+    imageSizeLayout->setColumnStretch(1, 0);
+    imageSizeLayout->setColumnStretch(2, 0);
+    imageSizeLayout->setColumnStretch(1000, 100);
+    
+    /*
+     * Image Options
+     */
+    this->imageAutoCropCheckBox = new QCheckBox("Automatically Crop Image");
+    QLabel* imageAutoCropMarginLabel = new QLabel("   Margin");
+    this->imageAutoCropMarginSpinBox = new QSpinBox();
+    this->imageAutoCropMarginSpinBox->setMinimum(0);
+    this->imageAutoCropMarginSpinBox->setMaximum(100000);
+    this->imageAutoCropMarginSpinBox->setSingleStep(1);
+    this->imageAutoCropMarginSpinBox->setValue(10);
+    this->imageAutoCropMarginSpinBox->setMaximumWidth(100);
+    
+    QHBoxLayout* cropMarginLayout = new QHBoxLayout();
+    cropMarginLayout->addWidget(imageAutoCropMarginLabel);
+    cropMarginLayout->addWidget(this->imageAutoCropMarginSpinBox);
+    cropMarginLayout->addStretch();
+    
     QGroupBox* imageOptionsGroupBox = new QGroupBox("Image Options");
-    QGridLayout* imageOptionsLayout = new QGridLayout(imageOptionsGroupBox);
-    imageOptionsLayout->addWidget(this->imageSizeWindowRadioButton, 0, 0, 1, 3);
-    imageOptionsLayout->addWidget(this->imageSizeCustomRadioButton, 1, 0);
-    imageOptionsLayout->addWidget(this->imageSizeCustomXSpinBox, 1, 1);
-    imageOptionsLayout->addWidget(this->imageSizeCustomYSpinBox, 1, 2);
-    imageOptionsLayout->setColumnStretch(0, 0);
-    imageOptionsLayout->setColumnStretch(1, 0);
-    imageOptionsLayout->setColumnStretch(2, 0);
-    imageOptionsLayout->setColumnStretch(1000, 100);
+    QVBoxLayout* imageOptionsLayout = new QVBoxLayout(imageOptionsGroupBox);
+    imageOptionsLayout->addWidget(this->imageAutoCropCheckBox);
+    imageOptionsLayout->addLayout(cropMarginLayout);
     
     /*
      * Image Destination
@@ -147,6 +172,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(imageSourceGroupBox);
+    layout->addWidget(imageSizeGroupBox);
     layout->addWidget(imageOptionsGroupBox);
     layout->addWidget(imageDestinationGroupBox);
     
@@ -211,11 +237,11 @@ void ImageCaptureDialog::applyButtonPressed()
         imageX = this->imageSizeCustomXSpinBox->value();
         imageY = this->imageSizeCustomYSpinBox->value();
     }
-    QImage image;
+    ImageFile imageFile;
     bool valid = GuiManager::get()->captureImageOfBrowserWindowGraphicsArea(browserWindowIndex,
                                                                             imageX,
                                                                             imageY,
-                                                                            image);
+                                                                            imageFile);
     
     if (valid == false) {
         WuQMessageBox::errorOk(this, 
@@ -223,33 +249,26 @@ void ImageCaptureDialog::applyButtonPressed()
         return;
     }
     
+    if (this->imageAutoCropCheckBox->isChecked()) {
+        const int marginSize = this->imageAutoCropMarginSpinBox->value();
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        uint8_t backgroundColor[3];
+        prefs->getColorBackground(backgroundColor);
+        imageFile.cropImageRemoveBackground(marginSize, backgroundColor);
+    }
+    
     if (this->copyImageToClipboardCheckBox->isChecked()) {
-        QApplication::clipboard()->setImage(image, QClipboard::Clipboard);
+        QApplication::clipboard()->setImage(*imageFile.getAsQImage(), QClipboard::Clipboard);
     }
 
     if (this->saveImageToFileCheckBox->isChecked()) {
         AString filename = this->imageFileNameLineEdit->text().trimmed();
-        FileInformation fileInfo(filename);
-        AString ext = fileInfo.getFileExtension();
-        
-        QImageWriter writer(filename, ext.toAscii());
-        if (writer.supportsOption(QImageIOHandler::Quality)) {
-            if (ext.compare("png", Qt::CaseInsensitive) == 0) {
-                const int quality = 1;
-                writer.setQuality(quality);
-            }
-            else {
-                const int quality = 100;
-                writer.setQuality(quality);
-            }
+        try {
+            imageFile.writeFile(filename);
         }
-        if (writer.supportsOption(QImageIOHandler::CompressionRatio)) {
-            writer.setCompression(1);
-        }
-        if (writer.write(image) == false) {
+        catch (DataFileException& e) {
             QString msg("Unable to save: " + filename);
             WuQMessageBox::errorOk(this, msg);
-            return;
         }
     }
 }

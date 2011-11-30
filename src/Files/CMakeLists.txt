@@ -25,6 +25,7 @@ ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 GeodesicHelper.h
 GiftiTypeFile.h
+ImageFile.h
 LabelFile.h
 MetricFile.h
 PaletteFile.h
@@ -46,6 +47,7 @@ CaretMappableDataFile.cxx
 ConnectivityLoaderFile.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
+ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx
 PaletteFile.cxx

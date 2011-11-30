@@ -37,6 +37,7 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
@@ -587,16 +588,16 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
  *    Desired X size of image.
  * @param imageSizeY
  *    Desired X size of image.
- * @param imageOut
- *    Image that was created.
+ * @param imageFileOut
+ *    ImageFile that will contain the captured image.
  * @return 
  *    true if the browser window index was valid, else false.
  */
 bool 
 GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
-                                             const int32_t imageSizeX,
-                                             const int32_t imageSizeY,
-                                             QImage& imageOut)
+                                                    const int32_t imageSizeX,
+                                                    const int32_t imageSizeY,
+                                                    ImageFile& imageFileOut)
 {
     bool valid = false;
     
@@ -605,7 +606,8 @@ GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowI
         && (browserWindowIndex < numBrowserWindows)) {
         BrainBrowserWindow* bbw = this->brainBrowserWindows[browserWindowIndex];
         if (bbw != NULL) {
-            imageOut = bbw->captureImageOfGraphicsArea(imageSizeX, imageSizeY);
+            QImage image = bbw->captureImageOfGraphicsArea(imageSizeX, imageSizeY);
+            imageFileOut.setFromQImage(image);
             valid = true;
         }
     }

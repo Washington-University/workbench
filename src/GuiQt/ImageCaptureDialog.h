@@ -70,6 +70,8 @@ namespace caret {
         QSpinBox* imageSizeCustomXSpinBox;
         QSpinBox* imageSizeCustomYSpinBox;
         
+        QCheckBox* imageAutoCropCheckBox;
+        QSpinBox*  imageAutoCropMarginSpinBox;
         
         QSpinBox* windowSelectionSpinBox;
     };
