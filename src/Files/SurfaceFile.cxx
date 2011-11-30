@@ -579,6 +579,29 @@ SurfaceFile::getBoundingBox() const
     return this->boundingBox;
 }
 
+void SurfaceFile::computeNodeAreas(std::vector<float>& areasOut) const
+{
+    CaretAssert(this->trianglePointer);
+    int32_t triEnd = getNumberOfTriangles();
+    int32_t numNodes = getNumberOfNodes();
+    areasOut.resize(numNodes);
+    for (int32_t i = 0; i < numNodes; ++i)
+    {
+        areasOut[i] = 0.0f;
+    }
+    for (int32_t i = 0; i < triEnd; ++i)
+    {
+        const int32_t* thisTri = getTriangle(i);
+        const float* node1 = getCoordinate(thisTri[0]);
+        const float* node2 = getCoordinate(thisTri[1]);
+        const float* node3 = getCoordinate(thisTri[2]);
+        float area3 = MathFunctions::triangleArea(node1, node2, node3) / 3.0f;
+        areasOut[thisTri[0]] += area3;
+        areasOut[thisTri[1]] += area3;
+        areasOut[thisTri[2]] += area3;
+    }
+}
+
 /**
  * Is the object modified?
  * @return true if modified, else false.

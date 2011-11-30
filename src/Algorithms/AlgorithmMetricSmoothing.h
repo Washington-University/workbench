@@ -33,6 +33,13 @@ namespace caret {
     
     class AlgorithmMetricSmoothing : public AbstractAlgorithm
     {
+    public:
+        enum Method
+        {
+            GEO_GAUSS_AREA,
+            GEO_GAUSS
+        };
+    private:
         struct WeightList
         {
             std::vector<int32_t> m_nodes;
@@ -41,13 +48,16 @@ namespace caret {
         };
         std::vector<WeightList> m_weightLists;
         AlgorithmMetricSmoothing();
-        void precomputeWeights(SurfaceFile* mySurf, double myKernel);
-        void precomputeWeightsROI(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi);
+        void precomputeWeights(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi, Method myMethod);
+        void precomputeWeightsGeoGauss(SurfaceFile* mySurf, double myKernel);
+        void precomputeWeightsROIGeoGauss(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi);
+        void precomputeWeightsGeoGaussArea(SurfaceFile* mySurf, double myKernel);
+        void precomputeWeightsROIGeoGaussArea(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi = NULL, int64_t columnNum = -1);
+        AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi = NULL, int64_t columnNum = -1, Method myMethod = GEO_GAUSS_AREA);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();

@@ -91,6 +91,8 @@ namespace caret {
         
         const BoundingBox* getBoundingBox() const;
         
+        void computeNodeAreas(std::vector<float>& areasOut) const;
+        
         virtual void setModified();
         
     protected:
