@@ -55,7 +55,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ConnectivityLoaderControl(QWidget* parent = NULL);
+        ConnectivityLoaderControl(const Qt::Orientation orientation,
+                                  QWidget* parent = NULL);
         
         virtual ~ConnectivityLoaderControl();
         
@@ -84,6 +85,8 @@ namespace caret {
         void sendUserInterfaceUpdate();
         
         void updateOtherConnectivityLoaderControls();
+        
+        Qt::Orientation orientation;
         
         QGridLayout* loaderLayout;
 

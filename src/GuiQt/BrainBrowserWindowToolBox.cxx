@@ -88,7 +88,13 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     this->informationWidget = this->createInformationWidget();
     
-    this->connectivityWidget   = this->createConnectivityWidget();
+    this->topBottomConnectivityLoaderControl = this->createConnectivityWidget(Qt::Horizontal);
+    this->leftRightConnectivityLoaderControl = this->createConnectivityWidget(Qt::Vertical);
+    this->connectivityWidget = new QWidget();
+    QVBoxLayout* connectivityLayout = new QVBoxLayout(this->connectivityWidget);
+    connectivityLayout->addWidget(this->topBottomConnectivityLoaderControl);
+    connectivityLayout->addWidget(this->leftRightConnectivityLoaderControl);
+    
     //this->metricWidget   = this->createMetricWidget();
     //this->labelWidget   = this->createLabelWidget();
     
@@ -201,16 +207,18 @@ BrainBrowserWindowToolBox::createLayersWidget(const Qt::Orientation orientation)
     return overlaySelectionControl;
 }
 
-QWidget* 
-BrainBrowserWindowToolBox::createConnectivityWidget()
+ConnectivityLoaderControl* 
+BrainBrowserWindowToolBox::createConnectivityWidget(const Qt::Orientation orientation)
 {
-    this->connectivityLoaderControl = new ConnectivityLoaderControl();
-    
+    ConnectivityLoaderControl* clc = new ConnectivityLoaderControl(orientation);
+    return clc;
+/*
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
     layout->addWidget(this->connectivityLoaderControl);
     return w;
+*/
 }
 
 QWidget* 
@@ -456,8 +464,18 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
         // nothing to do!
     }
     else if (selectedTopLevelWidget == this->connectivityWidget) {
-        this->connectivityLoaderControl->updateControl();
-        
+        switch (this->orientation) {
+            case Qt::Horizontal:
+                this->leftRightConnectivityLoaderControl->setVisible(false);
+                this->topBottomConnectivityLoaderControl->setVisible(true);
+                break;
+            case Qt::Vertical:
+                this->topBottomConnectivityLoaderControl->setVisible(false);
+                this->leftRightConnectivityLoaderControl->setVisible(true);
+                break;
+        }
+        this->topBottomConnectivityLoaderControl->updateControl();
+        this->leftRightConnectivityLoaderControl->updateControl();
     }
     else if (selectedTopLevelWidget == this->metricWidget) {
         

@@ -86,9 +86,11 @@ static const int COLUMN_REMOVE    = 8;
 /**
  * Constructor.
  */
-ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
+ConnectivityLoaderControl::ConnectivityLoaderControl(const Qt::Orientation orientation,
+                                                     QWidget* parent)
 : QWidget(parent)
 {
+    this->orientation = orientation;
     
     ConnectivityLoaderControl::allConnectivityLoaderControls.insert(this);
     
@@ -117,27 +119,39 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(QWidget* parent)
     QObject::connect(this->timeSpinBoxesGroup, SIGNAL(doubleSpinBoxValueChanged(QDoubleSpinBox*, const double)),
                      this, SLOT(timeSpinBoxesValueChanged(QDoubleSpinBox*, const double)));
     
-    QLabel* selectorLabel = new QLabel("Selector");
-    QLabel* fileLabel = new QLabel("File");
-    QLabel* graphLabel = new QLabel("Graph");
-    QLabel* timeLabel = new QLabel("Time");
-    QLabel* animateLabel = new QLabel("Animate");
-    QLabel* sourceLabel = new QLabel("Data Source");
-    QLabel* fileTypeLabel = new QLabel("File Type");
-    QLabel* removeLabel = new QLabel("Remove");
-    
     this->loaderLayout = new QGridLayout();
-    this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
-    this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE, Qt::AlignHCenter);
-    this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
-    this->loaderLayout->addWidget(graphLabel, 0, COLUMN_TIME_CHECKBOX);
-    this->loaderLayout->addWidget(timeLabel, 0, COLUMN_TIME_SPINBOX);
-    this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_ANIMATE);
-    this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2, Qt::AlignHCenter);
-    this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
-
-    this->loaderLayout->setColumnStretch(COLUMN_FILE, 100);
-    
+    switch (this->orientation) {
+        case Qt::Horizontal:
+        {
+            QLabel* selectorLabel = new QLabel("Selector");
+            QLabel* fileLabel = new QLabel("File");
+            QLabel* graphLabel = new QLabel("Graph");
+            QLabel* timeLabel = new QLabel("Time");
+            QLabel* animateLabel = new QLabel("Animate");
+            QLabel* sourceLabel = new QLabel("Data Source");
+            QLabel* fileTypeLabel = new QLabel("File Type");
+            QLabel* removeLabel = new QLabel("Remove");
+            
+            this->loaderLayout->addWidget(selectorLabel, 0, COLUMN_SELECTOR);
+            this->loaderLayout->addWidget(fileLabel, 0, COLUMN_FILE, Qt::AlignHCenter);
+            this->loaderLayout->addWidget(fileTypeLabel, 0, COLUMN_FILE_TYPE);
+            this->loaderLayout->addWidget(graphLabel, 0, COLUMN_TIME_CHECKBOX);
+            this->loaderLayout->addWidget(timeLabel, 0, COLUMN_TIME_SPINBOX);
+            this->loaderLayout->addWidget(animateLabel, 0, COLUMN_TIME_ANIMATE);
+            this->loaderLayout->addWidget(sourceLabel, 0, COLUMN_FILE_BUTTON, 1, 2, Qt::AlignHCenter);
+            this->loaderLayout->addWidget(removeLabel, 0, COLUMN_REMOVE);
+            
+            this->loaderLayout->setColumnStretch(COLUMN_FILE, 100);
+            
+        }
+            break;
+        case Qt::Vertical:
+        {
+            this->loaderLayout->addWidget(new QLabel("Selector"), 0, 0);
+            this->loaderLayout->addWidget(new QLabel("Controls"), 0, 1, 1, 7);
+        }
+            break;
+    }
     QPushButton* addPushButton = new QPushButton("Add Connectivity Loader");
     addPushButton->setFixedSize(addPushButton->sizeHint());
     QObject::connect(addPushButton, SIGNAL(clicked()),
@@ -208,6 +222,9 @@ ConnectivityLoaderControl::updateControl()
                                                   "Clear this connectivity selector");
             
             QCheckBox* timeCheckBox = new QCheckBox(" ");
+            if (this->orientation == Qt::Vertical) {
+                timeCheckBox->setText("Graph Time");
+            }
             QObject::connect(timeCheckBox, SIGNAL(stateChanged(int)),
                              this, SLOT(showTimeGraphCheckBoxesStateChanged(int)));
             WuQtUtilities::setToolTipAndStatusTip(timeCheckBox,
@@ -234,16 +251,48 @@ ConnectivityLoaderControl::updateControl()
             widgetGroup->add(timeSpinBox);
             this->rowWidgetGroups.push_back(widgetGroup);
             
-            const int row = this->loaderLayout->rowCount();
-            this->loaderLayout->addWidget(selectorEnabledCheckBox, row, COLUMN_SELECTOR);
-            this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
-            this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX, Qt::AlignHCenter);
-            this->loaderLayout->addWidget(timeSpinBox, row, COLUMN_TIME_SPINBOX);
-            this->loaderLayout->addWidget(animateButton, row, COLUMN_TIME_ANIMATE, Qt::AlignHCenter);
-            this->loaderLayout->addWidget(fileTypeLabel, row, COLUMN_FILE_TYPE);
-            this->loaderLayout->addWidget(fileButton, row, COLUMN_FILE_BUTTON);
-            this->loaderLayout->addWidget(networkButton, row, COLUMN_NETWORK_BUTTON);
-            this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE, Qt::AlignHCenter);
+            switch (this->orientation) {
+                case Qt::Horizontal:
+                {
+                    const int row = this->loaderLayout->rowCount();
+                    this->loaderLayout->addWidget(selectorEnabledCheckBox, row, COLUMN_SELECTOR);
+                    this->loaderLayout->addWidget(fileNameLineEdit, row, COLUMN_FILE);
+                    this->loaderLayout->addWidget(timeCheckBox, row, COLUMN_TIME_CHECKBOX, Qt::AlignHCenter);
+                    this->loaderLayout->addWidget(timeSpinBox, row, COLUMN_TIME_SPINBOX);
+                    this->loaderLayout->addWidget(animateButton, row, COLUMN_TIME_ANIMATE, Qt::AlignHCenter);
+                    this->loaderLayout->addWidget(fileTypeLabel, row, COLUMN_FILE_TYPE);
+                    this->loaderLayout->addWidget(fileButton, row, COLUMN_FILE_BUTTON);
+                    this->loaderLayout->addWidget(networkButton, row, COLUMN_NETWORK_BUTTON);
+                    this->loaderLayout->addWidget(removeButton, row, COLUMN_REMOVE, Qt::AlignHCenter);
+                    
+                }
+                    break;
+                case Qt::Vertical:
+                {
+                    QFrame* horizLine = new QFrame();
+                    horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
+                    horizLine->setLineWidth(1);
+                    horizLine->setMidLineWidth(1);
+                    
+                    const int row0 = this->loaderLayout->rowCount();
+                    this->loaderLayout->addWidget(horizLine, row0, 0, 1, 7);
+                    
+                    const int row1 = row0 + 1;
+                    this->loaderLayout->addWidget(selectorEnabledCheckBox, row1, 0);
+                    this->loaderLayout->addWidget(fileNameLineEdit, row1, 1, 1, 6);
+                    
+                    const int row2 = row1 + 1;
+                    this->loaderLayout->addWidget(fileTypeLabel, row2, 0);
+                    this->loaderLayout->addWidget(timeCheckBox, row2, 1);
+                    this->loaderLayout->addWidget(timeSpinBox, row2, 2);
+                    this->loaderLayout->addWidget(animateButton, row2, 3);
+                    this->loaderLayout->addWidget(fileButton, row2, 4);
+                    this->loaderLayout->addWidget(networkButton, row2, 5);
+                    this->loaderLayout->addWidget(removeButton, row2, 6);
+                    
+                }
+                    break;
+            }
             
             this->selectorEnabledButtonsGroup->addButton(selectorEnabledCheckBox);
             this->timeSpinBoxesGroup->addSpinBox(timeSpinBox);

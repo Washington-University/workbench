@@ -52,7 +52,7 @@ namespace caret {
         
         QWidget* createInformationWidget();
         
-        QWidget* createConnectivityWidget();
+        ConnectivityLoaderControl* createConnectivityWidget(const Qt::Orientation orientation);
         
         QWidget* createLabelWidget();
         
@@ -68,9 +68,9 @@ namespace caret {
         OverlaySelectionControl* leftRightOverlayControl;
         QWidget* overlayWidget;
         
+        ConnectivityLoaderControl* topBottomConnectivityLoaderControl;
+        ConnectivityLoaderControl* leftRightConnectivityLoaderControl;
         QWidget* connectivityWidget;
-        
-        ConnectivityLoaderControl* connectivityLoaderControl;
         
         QWidget* labelWidget;
         
