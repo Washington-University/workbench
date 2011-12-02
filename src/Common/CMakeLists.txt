@@ -40,6 +40,7 @@ CaretObject.h
 CaretOMP.h
 CaretPointer.h
 CaretPreferences.h
+CubicSpline.h
 DataCompressZLib.h
 DataFile.h
 DataFileException.h
@@ -89,6 +90,7 @@ CaretLogger.cxx
 CaretMutex.cxx
 CaretObject.cxx
 CaretPreferences.cxx
+CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx
 DataFileException.cxx
