@@ -63,11 +63,14 @@ BrainOpenGLWidgetTextRenderer::~BrainOpenGLWidgetTextRenderer()
  * Draw text at the given window coordinates.
  *
  * @param windowX
- *   X-coordinate in the window.
+ *   X-coordinate in the window of first text character
+ *   using the 'alignment'
  * @param windowY
- *   Y-coordinate in the window.
+ *   Y-coordinate in the window at which bottom of text is placed.
  * @param text
  *   Text that is to be drawn.
+ * @param alignment
+ *   Alignment of text
  * @param textStyle
  *   Style of the text.
  * @param fontHeight
@@ -79,12 +82,17 @@ void
 BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int windowX,
                                                       const int windowY,
                                                       const QString& text,
+                                                      const TextAlignment alignment,
                                                       const TextStyle textStyle,
                                                       const int fontHeight,
                                                       const AString& fontName)
 {
+    /*
+     * Set font.
+     */
     QFont font(fontName, fontHeight);
-    
+    QFontMetrics fontMetrics(font);
+
     switch (textStyle) {
         case BrainOpenGLTextRenderInterface::BOLD:
             font.setBold(true);
@@ -96,8 +104,28 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int windowX,
             break;
     }
     
-    this->glWidget->renderText(windowX,
-                               windowY,
+    /*
+     * QGLWidget has origin at top left corner
+     */
+    const int y = glWidget->height() - windowY;
+    
+    /*
+     * X-Coordinate of text
+     */
+    int x = windowX;
+    switch (alignment) {
+        case LEFT:
+            break;
+        case CENTER:
+            x -= fontMetrics.width(text) / 2;
+            break;
+        case RIGHT:
+            x -= fontMetrics.width(text);
+            break;
+    }
+    
+    this->glWidget->renderText(x,
+                               y,
                                text,
                                font);
 }
@@ -106,7 +134,7 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int windowX,
  * Draw text at the given model coordinates.
  *
  * @param modelX
- *   X-coordinate in model space.
+ *   X-coordinate in model space of first text character
  * @param modelY
  *   Y-coordinate in model space.
  * @param modelZ

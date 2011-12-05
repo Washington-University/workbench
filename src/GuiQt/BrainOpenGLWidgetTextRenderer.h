@@ -42,8 +42,9 @@ namespace caret {
         void drawTextAtWindowCoords(const int windowX,
                                     const int windowY,
                                     const QString& text,
+                                    const TextAlignment alignment = CENTER,
                                     const TextStyle textStyle = NORMAL,
-                                    const int fontHeight = 12,
+                                    const int fontHeight = 14,
                                     const AString& fontName = "times");
         
         void drawTextAtModelCoords(const double modelX,
@@ -51,7 +52,7 @@ namespace caret {
                                    const double modelZ,
                                    const QString& text,
                                    const TextStyle textStyle = NORMAL,
-                                   const int fontHeight = 12,
+                                   const int fontHeight = 14,
                                    const AString& fontName = "");
         
     private:

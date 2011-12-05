@@ -30,6 +30,7 @@
 
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
+#include "BrainOpenGLTextRenderInterface.h"
 #include "IdentificationItemDataTypeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
@@ -38,7 +39,6 @@ class QGLWidget;
 namespace caret {
     
     class Brain;
-    class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class DescriptiveStatistics;
@@ -177,15 +177,15 @@ namespace caret {
         
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
-                                  const QString& text);
+                                  const QString& text,
+                                  const BrainOpenGLTextRenderInterface::TextAlignment alignment);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,
                                  const double modelZ,
                                  const QString& text);
         
-        void drawAllPalettes(Brain* brain,
-                             const int viewport[4]);
+        void drawAllPalettes(Brain* brain);
         
         void drawPalette(const Palette* palette,
                          const PaletteColorMapping* paletteColorMapping,

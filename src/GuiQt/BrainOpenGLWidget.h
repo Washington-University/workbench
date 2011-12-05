@@ -38,6 +38,7 @@ class QMouseEvent;
 namespace caret {
 
     class BrainOpenGL;
+    class BrainOpenGLWidgetTextRenderer;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class IdentificationManager;
@@ -112,6 +113,8 @@ namespace caret {
         int lastMouseX;
         
         int lastMouseY;
+        
+        BrainOpenGLWidgetTextRenderer* textRenderer;
         
         UserInputModeView* userInputViewModeProcessor;
     };

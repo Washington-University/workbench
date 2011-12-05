@@ -33,6 +33,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -68,6 +69,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 : QGLWidget(parent)
 {
     this->openGL = NULL;
+    this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     this->windowIndex = windowIndex;
     this->userInputViewModeProcessor = new UserInputModeView();
     this->mousePressX = -10000;
@@ -82,6 +84,11 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 BrainOpenGLWidget::~BrainOpenGLWidget()
 {
     this->clearDrawingViewportContents();
+    
+    if (this->textRenderer != NULL) {
+        delete this->textRenderer;
+        this->textRenderer = NULL;
+    }
     
     if (this->openGL != NULL) {
         delete this->openGL;
@@ -98,7 +105,7 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGLFixedPipeline(NULL); //GuiManager::get()->getBrainOpenGL();
+        this->openGL = new BrainOpenGLFixedPipeline(this->textRenderer); //GuiManager::get()->getBrainOpenGL();
     }
     this->openGL->initializeOpenGL();
     

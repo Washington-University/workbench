@@ -44,7 +44,6 @@
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 #include "Brain.h"
-#include "BrainOpenGLTextRenderInterface.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
@@ -224,7 +223,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         
         int viewport[4];
         viewportContent->getViewport(viewport);
-        this->drawAllPalettes(modelDisplayController->getBrain(), viewport);
+        this->drawAllPalettes(modelDisplayController->getBrain());
     }
     
     glFlush();
@@ -1882,18 +1881,20 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
  *    Window Y-coordinate.
  * @param text
  *    Text that is to be drawn.
- * @param fontHeight
- *    Height of the font.
+ * @param alignment
+ *    Alignment of text.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
                                                const int windowY,
-                                               const QString& text)
+                                               const QString& text,
+                                               const BrainOpenGLTextRenderInterface::TextAlignment alignment)
 {
     if (this->textRenderer != NULL) {
         this->textRenderer->drawTextAtWindowCoords(windowX,
                                                    windowY,
-                                                   text);
+                                                   text,
+                                                   alignment);
     }
 }
 
@@ -1907,12 +1908,14 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
  *    Model Z-coordinate.
  * @param text
  *    Text that is to be drawn.
+ * @param alignment
+ *    Alignment of text.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
-                                 const double modelY,
-                                 const double modelZ,
-                                 const QString& text)
+                                              const double modelY,
+                                              const double modelZ,
+                                              const QString& text)
 {
     if (this->textRenderer != NULL) {
         this->textRenderer->drawTextAtModelCoords(modelX,
@@ -1931,8 +1934,7 @@ BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
  *    Viewport for the model.
  */
 void 
-BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain,
-                                          const int viewport[4])
+BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
 {
     /*
      * Turn off depth testing
@@ -2025,16 +2027,22 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                                       const int paletteDrawingIndex)
 {
     /*
+     * Save viewport.
+     */
+    GLint modelViewport[4];
+    glGetIntegerv(GL_VIEWPORT, modelViewport);
+    
+    /*
      * Create a viewport for drawing the palettes in the 
      * lower left corner of the window.
      */
     const GLint colorbarViewportWidth = 120;
-    const GLint colorbarViewportHeight = 50;    
+    const GLint colorbarViewportHeight = 35;    
     const GLint colorbarViewportX = 10;
     
-    GLint colorbarViewportY = (15 + (paletteDrawingIndex * colorbarViewportHeight));
+    GLint colorbarViewportY = (10 + (paletteDrawingIndex * colorbarViewportHeight));
     if (paletteDrawingIndex > 0) {
-        colorbarViewportY += 5;
+//        colorbarViewportY += 5;
     }
     
     glViewport(colorbarViewportX, 
@@ -2045,7 +2053,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     /*
      * Create an orthographic projection
      */
-    const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
+    //const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
     const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
     const GLdouble margin = 1.1;
     const GLdouble orthoWidth = margin;
@@ -2055,6 +2063,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     glOrtho(-orthoWidth,  orthoWidth, 
             -orthoHeight, orthoHeight, 
             -1.0, 1.0);
+    
     glMatrixMode (GL_MODELVIEW);
     glLoadIdentity();
 
@@ -2111,7 +2120,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         
         /*
          * Exclude negative regions if not displayed.
-         */
+         *
         if (isNegativeDisplayed == false) {
             if (nextScalar < 0.0) {
                 continue;
@@ -2120,10 +2129,11 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                 scalar = 0.0;
             }
         }
+        */
         
         /*
          * Exclude positive regions if not displayed.
-         */
+         *
         if (isPositiveDisplayed == false) {
             if (scalar > 0.0) {
                 continue;
@@ -2132,6 +2142,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
                 nextScalar = 0.0;
             }
         }
+        */
         
         /*
          * Normally, the first entry has a scalar value of -1.
@@ -2209,6 +2220,22 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     /*
+     * If positive not displayed, draw over it with background color
+     */
+    if (isPositiveDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(0.0, -orthoHeight, orthoWidth, orthoHeight);
+    }
+    
+    /*
+     * If negative not displayed, draw over it with background color
+     */
+    if (isNegativeDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(-orthoWidth, -orthoHeight, 0.0, orthoHeight);
+    }
+    
+    /*
      * If zeros are not displayed, draw a line in the 
      * background color at zero in the palette.
      */
@@ -2221,7 +2248,90 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
         glEnd();
     }
     
+    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+    switch (paletteColorMapping->getScaleMode()) {
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+            minMax[0] = statistics->getMostNegativeValue();
+            minMax[3] = statistics->getMostPositiveValue();
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+        {
+            const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
+            const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
+            const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
+            const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
+            
+            minMax[0] = statistics->getNegativePercentile(negMaxPct);
+            minMax[1] = statistics->getNegativePercentile(negMinPct);
+            minMax[2] = statistics->getPositivePercentile(posMinPct);
+            minMax[3] = statistics->getPositivePercentile(posMaxPct);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_USER_SCALE:
+            minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
+            minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
+            minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
+            minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
+            break;
+    }
     
+    AString textLeft = AString::number(minMax[0], 'f', 1);
+    AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+    AString textCenterPos = AString::number(minMax[2], 'f', 1);
+    AString textCenter = textCenterPos;
+    if (textCenterNeg != textCenterPos) {
+        if (textCenterNeg != AString("-" + textCenterPos)) {
+            textCenter = textCenterNeg + "/" + textCenterPos;
+        }
+    }
+    AString textRight = AString::number(minMax[3], 'f', 1);
+    
+    /*
+     * Reset to the models viewport for drawing text.
+     */
+    glViewport(modelViewport[0], 
+               modelViewport[1], 
+               modelViewport[2], 
+               modelViewport[3]);
+    
+    /*
+     * Switch to the foreground color.
+     */
+    uint8_t foregroundRGB[3];
+    prefs->getColorForeground(foregroundRGB);
+    glColor3ubv(foregroundRGB);
+    
+    /*
+     * Account for margin around colorbar when calculating text locations
+     */
+    const int textCenterX = colorbarViewportX + (colorbarViewportWidth / 2);
+    const int textHalfX   = colorbarViewportWidth / (margin * 2);
+    const int textLeftX   = textCenterX - textHalfX;
+    const int textRightX  = textCenterX + textHalfX;
+    
+    const int textY = 2 + colorbarViewportY + (colorbarViewportHeight / 2);
+    if (isNegativeDisplayed) {
+        this->drawTextWindowCoords(textLeftX, 
+                                   textY, 
+                                   textLeft,
+                                   BrainOpenGLTextRenderInterface::LEFT);
+    }
+    if (isNegativeDisplayed
+        || isZeroDisplayed
+        || isPositiveDisplayed) {
+        this->drawTextWindowCoords(textCenterX, 
+                                   textY, 
+                                   textCenter,
+                                   BrainOpenGLTextRenderInterface::CENTER);
+    }
+    if (isPositiveDisplayed) {
+        this->drawTextWindowCoords(textRightX, 
+                                   textY, 
+                                   textRight,
+                                   BrainOpenGLTextRenderInterface::RIGHT);
+    }
+    
+    return;
 }
 
 //============================================================================

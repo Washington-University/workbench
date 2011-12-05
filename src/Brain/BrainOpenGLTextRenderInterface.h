@@ -37,7 +37,7 @@ namespace caret {
         /**
          * Constructor.
          */
-        BrainOpenGLTextRenderInterface();
+        BrainOpenGLTextRenderInterface() { }
         
     public:
         /**
@@ -50,19 +50,34 @@ namespace caret {
         };
         
         /**
+         * Alignment of the text
+         */
+        enum TextAlignment {
+            /** Text is centered at X-coordinate */
+            CENTER,
+            /** First character starts at X-coordinate */
+            LEFT,
+            /** Last character ends at X-coordinate */
+            RIGHT
+        };
+        
+        /**
          * Destructor.
          */
-        virtual ~BrainOpenGLTextRenderInterface();
+        virtual ~BrainOpenGLTextRenderInterface() { }
         
         /**
          * Draw text at the given window coordinates.
          *
          * @param windowX
-         *   X-coordinate in the window.
+         *   X-coordinate in the window of first text character
+         *   using the 'alignment'
          * @param windowY
-         *   Y-coordinate in the window.
+         *   Y-coordinate in the window at which bottom of text is placed.
          * @param text
          *   Text that is to be drawn.
+         * @param alignment
+         *   Alignment of text
          * @param textStyle
          *   Style of the text.
          * @param fontHeight
@@ -71,17 +86,18 @@ namespace caret {
          *   Name of the font.
          */
         virtual void drawTextAtWindowCoords(const int windowX,
-                                    const int windowY,
-                                    const QString& text,
-                                    const TextStyle textStyle = NORMAL,
-                                    const int fontHeight = 12,
-                                    const AString& fontName = "times") = 0;
+                                            const int windowY,
+                                            const QString& text,
+                                            const TextAlignment alignment,
+                                            const TextStyle textStyle = NORMAL,
+                                            const int fontHeight = 14,
+                                            const AString& fontName = "times") = 0;
         
         /**
          * Draw text at the given model coordinates.
          *
          * @param modelX
-         *   X-coordinate in model space.
+         *   X-coordinate in model space of first text character
          * @param modelY
          *   Y-coordinate in model space.
          * @param modelZ
@@ -96,20 +112,17 @@ namespace caret {
          *   Name of the font.
          */
         virtual void drawTextAtModelCoords(const double modelX,
-                                   const double modelY,
-                                   const double modelZ,
-                                   const QString& text,
-                                   const TextStyle textStyle = NORMAL,
-                                   const int fontHeight = 12,
-                                   const AString& fontName = "") = 0;
+                                           const double modelY,
+                                           const double modelZ,
+                                           const QString& text,
+                                           const TextStyle textStyle = NORMAL,
+                                           const int fontHeight = 14,
+                                           const AString& fontName = "") = 0;
         
     private:
         BrainOpenGLTextRenderInterface(const BrainOpenGLTextRenderInterface&);
 
         BrainOpenGLTextRenderInterface& operator=(const BrainOpenGLTextRenderInterface&);
-        
-    public:
-        virtual AString toString() const;
         
     private:
     };
