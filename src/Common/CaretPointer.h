@@ -57,7 +57,6 @@ namespace caret {
       bool operator==(const T* right) const;
       T& operator*();
       T* operator->();
-      ///here to allow workarounds temporarily, please try to avoid
       T* getPointer();
       uint64_t getReferenceCount();
    };
@@ -83,8 +82,7 @@ namespace caret {
       CaretArray& operator=(const CaretArray<T>& right);
       bool operator==(const T* right) const;
       T& operator[](const uint64_t& index);
-      ///here to allow workarounds temporarily, please try to avoid
-      T* getArray();//use at your own peril
+      T* getArray();
       uint64_t getReferenceCount();
    };
 
@@ -109,7 +107,6 @@ namespace caret {
        bool operator==(const T* right) const;
        T& operator*();
        T* operator->();
-       ///here to allow workarounds temporarily, please try to avoid
        T* getPointer();
        uint64_t getReferenceCount();
    };

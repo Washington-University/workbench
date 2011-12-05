@@ -41,6 +41,24 @@ namespace caret {
         {
             return p0 * m_weights[0] + p1 * m_weights[1] + p2 * m_weights[2] + p3 * m_weights[3];
         }
+        
+        ///convenience function for edge evaluating without a dummy argument
+        inline float evalLowEdge(const float p1, const float p2, const float p3)
+        {
+            return p1 * m_weights[1] + p2 * m_weights[2] + p3 * m_weights[3];
+        }
+        
+        ///convenience function for edge evaluating without a dummy argument
+        inline float evalHighEdge(const float p0, const float p1, const float p2)
+        {
+            return p0 * m_weights[0] + p1 * m_weights[1] + p2 * m_weights[2];
+        }
+        
+        ///convenience function for edge evaluating without dummy arguments
+        inline float evalBothEdge(const float p1, const float p2)
+        {
+            return p1 * m_weights[1] + p2 * m_weights[2];
+        }
     };
 
 }

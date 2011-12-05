@@ -32,7 +32,6 @@
 
 namespace caret {
 
-    ///the constructor for algorithms does the processing, because constructor/execute cycles don't make sense for something this simple
     class AbstractOperation
     {
     protected:
@@ -40,10 +39,10 @@ namespace caret {
         virtual ~AbstractOperation();
     public:
 
-        ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
+        ///override these to allow operation parsers to use your operation without writing an explicit command class
         static OperationParameters* getParameters() { CaretAssert(false); return NULL; }
 
-        ///override these to allow algorithm parsers to use your algorithm without writing an explicit command class
+        ///override these to allow operation parsers to use your operation without writing an explicit command class
         static void useParameters(OperationParameters*, ProgressObject*) { CaretAssert(false); }
         
         ///override this to set the command switch
@@ -52,11 +51,11 @@ namespace caret {
         ///override this to set the short description
         static AString getShortDescription() { CaretAssert(false); return ""; }
         
-        ///override this if the algorithm doesn't take parameters
+        ///override this if the operation doesn't take parameters
         static bool takesParameters() { return true; }
     };
 
-    ///interface class for use by algorithm parsers
+    ///interface class for use by operation parsers
     struct AutoOperationInterface
     {
         virtual OperationParameters* getParameters() = 0;
@@ -66,7 +65,7 @@ namespace caret {
         virtual bool takesParameters() = 0;
     };
 
-    ///templated interface class to pass through to something that inherits from AbstractAlgorithm (or implements equivalent functions)
+    ///templated interface class to pass through to something that inherits from AbstractOperation (or implements equivalent functions)
     template<typename T>
     struct TemplateAutoOperation : public AutoOperationInterface
     {
