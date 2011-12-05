@@ -88,6 +88,8 @@ namespace caret {
         
         Brain* getBrain();
         
+        const Brain* getBrain() const;
+        
         int32_t getNumberOfNodes() const;
 
         StructureEnum::Enum getStructure() const;

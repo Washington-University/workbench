@@ -32,7 +32,6 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
-#include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -111,9 +110,7 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
     }
     
     
-    EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
-    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
-    BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+    const BrainStructure* brainStructure = surface->getBrainStructure();
     CaretAssert(brainStructure);
     
     bool firstOverlayFlag = true;
@@ -215,7 +212,7 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
  *    True if coloring is valid, else false.
  */
 bool 
-SurfaceNodeColoring::assignLabelColoring(BrainStructure* brainStructure, 
+SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure, 
                                          const AString& labelColumnName,
                                          const int32_t numberOfNodes,
                                          float* rgbv)
@@ -272,7 +269,7 @@ SurfaceNodeColoring::assignLabelColoring(BrainStructure* brainStructure,
 }
 
 bool 
-SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure, 
+SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure, 
                                           const AString& metricColumnName,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
@@ -318,9 +315,9 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
     
     const DescriptiveStatistics* statistics = metricFile->getMapStatistics(displayColumn);
     
-    Brain* brain = brainStructure->getBrain();
+    const Brain* brain = brainStructure->getBrain();
     const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
+    const Palette* palette = brain->getPaletteFile()->getPaletteByName(paletteName);
     if (palette != NULL) {
         
         //std::vector<float> rgbaColorsVector(numberOfNodes * 4);
@@ -341,7 +338,7 @@ SurfaceNodeColoring::assignMetricColoring(BrainStructure* brainStructure,
 }
 
 bool 
-SurfaceNodeColoring::assignConnectivityColoring(BrainStructure* brainStructure,
+SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStructure,
                                                 ConnectivityLoaderFile* connectivityLoaderFile,
                                                 const int32_t numberOfNodes,
                                                 float* rgbv)
@@ -352,7 +349,7 @@ SurfaceNodeColoring::assignConnectivityColoring(BrainStructure* brainStructure,
 }
 
 bool 
-SurfaceNodeColoring::assignRgbaColoring(BrainStructure* /*brainStructure*/, 
+SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
                                         const AString& /*rgbaColumnName*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)

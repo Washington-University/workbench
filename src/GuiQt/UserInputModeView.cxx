@@ -35,7 +35,6 @@
 #include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
-#include "EventBrainStructureGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -140,8 +139,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     
     bool updateGraphicsFlag = false;
     
-    const IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
-    const Surface* surface = idNode->getSurface();
+    IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+    Surface* surface = idNode->getSurface();
     const int32_t nodeIndex = idNode->getNodeNumber();
     if ((surface != NULL) &&
         (nodeIndex >= 0)) {
@@ -149,9 +148,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
             updateGraphicsFlag = connMan->loadDataForSurfaceNode(surface, nodeIndex);
             updateGraphicsFlag = true;
             
-            EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
-            EventManager::get()->sendEvent(brainStructureEvent.getPointer());
-            BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+            BrainStructure* brainStructure = surface->getBrainStructure();
             CaretAssert(brainStructure);
             
             BrainStructureNodeAttributes* nodeAtts = brainStructure->getNodeAttributes(nodeIndex);

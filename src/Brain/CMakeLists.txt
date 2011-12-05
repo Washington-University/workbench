@@ -58,7 +58,6 @@ BrainStructureNodeAttributes.h
 BrowserTabContent.h
 BrowserTabYoking.h
 ConnectivityLoaderManager.h
-EventBrainStructureGet.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
@@ -107,7 +106,6 @@ BrainOpenGL.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLViewportContent.cxx
 BrainStructure.cxx
-EventBrainStructureGet.cxx
 BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 BrowserTabYoking.cxx

@@ -33,7 +33,8 @@
 namespace caret {
     
     class BoundingBox;
-
+    class BrainStructure;
+    
     /**
      * Maintains view of some type of object.
      */
@@ -52,9 +53,11 @@ namespace caret {
         
         void getBounds(BoundingBox& boundingBoxOut) const;
         
-        int64_t getBrainStructureIdentifier() const;
+        const BrainStructure* getBrainStructure() const;
         
-        void setBrainStructureIdentifier(const int64_t brainStructureIdentifier);
+        BrainStructure* getBrainStructure();
+        
+        void setBrainStructure(BrainStructure* brainStructure);
         
     private:
         void initializeMemberSurface();
@@ -63,7 +66,7 @@ namespace caret {
 
         bool defaultScalingInitializedFlag;
         
-        int64_t brainStructureIdentifier;
+        BrainStructure* brainStructure;
     };
 
 } // namespace

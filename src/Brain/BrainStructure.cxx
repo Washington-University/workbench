@@ -31,7 +31,6 @@
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructureNodeAttributes.h"
-#include "EventBrainStructureGet.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
@@ -267,7 +266,7 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
         }
     }
     
-    surface->setBrainStructureIdentifier(this->brainStructureIdentifier);
+    surface->setBrainStructure(this);
     
     this->surfaces.push_back(surface);
 
@@ -401,6 +400,15 @@ BrainStructure::containsSurface(const Surface* surface)
  */
 Brain* 
 BrainStructure::getBrain()
+{
+    return this->brain;    
+}
+
+/**
+ * Get the brain that this brain structure is in.
+ */
+const Brain* 
+BrainStructure::getBrain() const
 {
     return this->brain;    
 }
@@ -648,16 +656,6 @@ BrainStructure::receiveEvent(Event* event)
         }
         
         dataFilesEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET) {
-        EventBrainStructureGet* brainStructureEvent =
-        dynamic_cast<EventBrainStructureGet*>(event);
-        CaretAssert(brainStructureEvent);
-        
-        if (this->brainStructureIdentifier == brainStructureEvent->getbrainStructureIdentifier()) {
-            brainStructureEvent->setBrainStructure(this);
-            brainStructureEvent->setEventProcessed();
-        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
         EventIdentificationSymbolRemoval* idRemovalEvent =

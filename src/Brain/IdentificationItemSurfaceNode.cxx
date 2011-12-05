@@ -69,7 +69,7 @@ IdentificationItemSurfaceNode::reset()
 }
 
 /**
- * return Is this identified item valid?
+ * @return Is this identified item valid?
  */
 bool 
 IdentificationItemSurfaceNode::isValid() const
@@ -78,10 +78,19 @@ IdentificationItemSurfaceNode::isValid() const
 }
 
 /**
- * return Surface containing identified node.
+ * @return Surface containing identified node.
  */
 const Surface* 
 IdentificationItemSurfaceNode::getSurface() const
+{
+    return this->surface;
+}
+
+/**
+ * @return Surface containing identified node.
+ */
+Surface* 
+IdentificationItemSurfaceNode::getSurface()
 {
     return this->surface;
 }

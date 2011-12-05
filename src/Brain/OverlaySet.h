@@ -32,6 +32,7 @@
 namespace caret {
 
     class BrowserTabContent;
+    class ModelDisplayController;
     class VolumeFile;
     
     class OverlaySet : public CaretObject {
@@ -62,6 +63,8 @@ namespace caret {
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
         
         VolumeFile* setUnderlayToVolume(BrowserTabContent* browserTabContent);
+        
+        void initializeOverlays(ModelDisplayController* mdc);
         
     public:
         virtual AString toString() const;

@@ -32,7 +32,6 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
-#include "EventBrainStructureGet.h"
 #include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
@@ -104,9 +103,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                        + ", "
                        + AString::number(xyz[2]));
         
-        EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
-        EventManager::get()->sendEvent(brainStructureEvent.getPointer());
-        BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+        const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
         const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();

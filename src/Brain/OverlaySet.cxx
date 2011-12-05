@@ -27,7 +27,12 @@
 #include "OverlaySet.h"
 #undef __OVERLAY_SET_DECLARE__
 
+#include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
+#include "Surface.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -269,6 +274,53 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
     const int32_t nextOverlayIndex = overlayIndex + 1;
     if (nextOverlayIndex < this->numberOfDisplayedOverlays) {
         this->overlays[overlayIndex].swapData(&this->overlays[nextOverlayIndex]);
+    }
+}
+
+/**
+ * Initialize the overlays for the model display controller.
+ * @param mdc
+ *    Model Display Controller.
+ */
+void 
+OverlaySet::initializeOverlays(ModelDisplayController* mdc)
+{
+    if (mdc == NULL) {
+        return;
+    }
+    
+    ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+    ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
+    ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+    
+    const int32_t numOverlays = this->getNumberOfDisplayedOverlays();
+    if (mdcs != NULL) {
+        Surface* surface = mdcs->getSurface();
+        BrainStructure* brainStructure = surface->getBrainStructure();
+        
+        int32_t iOver = 0;
+        if (brainStructure->getNumberOfLabelFiles() > 0) {
+            
+        }
+        if (iOver >= numOverlays) {
+            return;
+        }
+        
+        int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
+        for (int32_t i = 0; i < numMetricFiles; i++) {
+            if (iOver >= numOverlays) {
+                return;
+            }
+        }
+    }
+    else if (mdcv != NULL) {
+        
+    }
+    else if (mdcwb != NULL) {
+        
+    }
+    else {
+        CaretAssert(0);
     }
 }
 

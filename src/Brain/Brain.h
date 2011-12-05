@@ -70,6 +70,8 @@ namespace caret {
 
         PaletteFile* getPaletteFile();
         
+        const PaletteFile* getPaletteFile() const;
+        
         SpecFile* getSpecFile();
         
         int32_t getNumberOfVolumeFiles() const;

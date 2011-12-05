@@ -579,6 +579,15 @@ Brain::getPaletteFile()
 }
 
 /*
+ * @return The palette file.
+ */
+const PaletteFile* 
+Brain::getPaletteFile() const
+{
+    return this->paletteFile;
+}
+
+/*
  * @return The spec file.
  */
 SpecFile* 

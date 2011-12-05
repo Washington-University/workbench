@@ -57,8 +57,6 @@
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
-#include "EventBrainStructureGet.h"
-#include "EventManager.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
@@ -885,9 +883,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
 void 
 BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 {
-    EventBrainStructureGet brainStructureEvent(surface->getBrainStructureIdentifier());
-    EventManager::get()->sendEvent(brainStructureEvent.getPointer());
-    BrainStructure* brainStructure = brainStructureEvent.getBrainStructure();
+    BrainStructure* brainStructure = surface->getBrainStructure();
     CaretAssert(brainStructure);
     
     const int numNodes = surface->getNumberOfNodes();

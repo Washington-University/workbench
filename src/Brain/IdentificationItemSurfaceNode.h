@@ -41,6 +41,8 @@ namespace caret {
         
         virtual bool isValid() const;
         
+        Surface* getSurface();
+        
         const Surface* getSurface() const;
         
         void setSurface(Surface* surface);

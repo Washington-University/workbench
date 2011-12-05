@@ -66,22 +66,22 @@ namespace caret {
             METRIC_COLOR_TYPE_DO_NOT_COLOR
         };        
         
-        bool assignConnectivityColoring(BrainStructure* brainStructure,
+        bool assignConnectivityColoring(const BrainStructure* brainStructure,
                                         ConnectivityLoaderFile* connectivityLoaderFile,
                                         const int32_t numberOfNodes,
                                         float* rgbv);
         
-        bool assignLabelColoring(BrainStructure* brainStructure,
+        bool assignLabelColoring(const BrainStructure* brainStructure,
                                  const AString& labelColumnName,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
-        bool assignMetricColoring(BrainStructure* brainStructure,
+        bool assignMetricColoring(const BrainStructure* brainStructure,
                                   const AString& metricColumnName,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
-        bool assignRgbaColoring(BrainStructure* brainStructure,
+        bool assignRgbaColoring(const BrainStructure* brainStructure,
                                 const AString& rgbaColumnName,
                                 const int32_t numberOfNodes,
                                 float* rgbv);
