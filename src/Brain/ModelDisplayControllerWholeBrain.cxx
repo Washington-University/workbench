@@ -45,9 +45,9 @@ using namespace caret;
 ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
                          YOKING_ALLOWED_YES,
-                         ROTATION_ALLOWED_YES)
+                         ROTATION_ALLOWED_YES,
+                         brain)
 {
-    this->brain = brain;
     this->initializeMembersModelDisplayControllerWholeBrain();
 }
 
@@ -73,16 +73,6 @@ ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBr
         this->cerebellumSeparation[i] = 0.0;        
         this->volumeSlicesSelected[i].reset();
     }
-}
-
-/**
- * Get the brain that created this controller.
- * @return The brain.
- */
-Brain*
-ModelDisplayControllerWholeBrain::getBrain()
-{
-    return this->brain;
 }
 
 /**

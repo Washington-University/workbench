@@ -31,7 +31,7 @@
 #include "Matrix4x4.h"
 
 namespace caret {
-
+    class Brain;
     class UserView;
     
     /// Base class for controlling a model
@@ -50,7 +50,8 @@ namespace caret {
         
         ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
                                const YokingAllowedType allowsYokingStatus,
-                               const RotationAllowedType allowsRotationStatus);
+                               const RotationAllowedType allowsRotationStatus,
+                               Brain* brain);
         
         virtual ~ModelDisplayController();
         
@@ -62,6 +63,8 @@ namespace caret {
         void initializeMembersModelDisplayController();
         
     public:
+        Brain* getBrain();
+        
         ModelDisplayControllerTypeEnum::Enum getControllerType() const;
         
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
@@ -125,6 +128,9 @@ namespace caret {
         void resetViewPrivate(const int windowTabNumber);
         
     protected:
+        /** Brain which contains the controller */
+        Brain* brain;
+        
         float defaultModelScaling;
         
         /** 

@@ -38,6 +38,7 @@ class QGLWidget;
 namespace caret {
     
     class Brain;
+    class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class DescriptiveStatistics;
@@ -70,7 +71,7 @@ namespace caret {
         BrainOpenGLFixedPipeline& operator=(const BrainOpenGLFixedPipeline&);
         
     public:
-        BrainOpenGLFixedPipeline(QGLWidget* parentGLWidget);
+        BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer);
 
         ~BrainOpenGLFixedPipeline();
         
@@ -176,14 +177,21 @@ namespace caret {
         
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
-                                  const QString& text,
-                                  const int fontHeight = 12);
+                                  const QString& text);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,
                                  const double modelZ,
-                                 const QString& text,
-                                 const int fontHeight = 12);
+                                 const QString& text);
+        
+        void drawAllPalettes(Brain* brain,
+                             const int viewport[4]);
+        
+        void drawPalette(const Palette* palette,
+                         const PaletteColorMapping* paletteColorMapping,
+                         const DescriptiveStatistics* statistics,
+                         const int paletteDrawingIndex);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

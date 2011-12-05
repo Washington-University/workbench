@@ -26,8 +26,6 @@
 
 #include <cstdlib>
 
-#include <QGLWidget>
-
 #define __BRAIN_OPENGL_DEFINE_H
 #include "BrainOpenGL.h"
 #undef __BRAIN_OPENGL_DEFINE_H
@@ -39,15 +37,14 @@ using namespace caret;
 /**
  * Constructor.
  *
- * @param parentGLWidget
- *   The Qt QGLWidget that uses this instance for OpenGL
- *   rendering.  The QGLWidget is used for text rendering.
+ * @param textRenderer
+ *   The text renderer is used for text rendering.
  *   This parameter may be NULL in which case no text
  *   rendering is performed.
  */
-BrainOpenGL::BrainOpenGL(QGLWidget* parentGLWidget)
+BrainOpenGL::BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer)
 {
-    this->parentGLWidget = parentGLWidget;
+    this->textRenderer = textRenderer;
     this->identificationManager = new IdentificationManager();
 }
 

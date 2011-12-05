@@ -115,14 +115,10 @@ QWidget*
 OverlaySelectionControl::createLayers()
 {
     const bool smallArrowButtonsFlag = true;
-    const bool verticalCompactFlag = true;
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    gridLayout->setVerticalSpacing(0);
-    if (verticalCompactFlag) {
-        gridLayout->setVerticalSpacing(4);
-    }
+    gridLayout->setVerticalSpacing(4);
     gridLayout->setContentsMargins(0, 0, 0, 0);
     
     switch (orientation) {
@@ -132,17 +128,17 @@ OverlaySelectionControl::createLayers()
             gridLayout->addWidget(new QLabel("On"), row, 0);
             gridLayout->addWidget(new QLabel("File"), row, 1, Qt::AlignHCenter);
             gridLayout->addWidget(new QLabel("Map"), row, 2, Qt::AlignHCenter);
-            gridLayout->addWidget(new QLabel("Settings"), row, 3);
-            gridLayout->addWidget(new QLabel("Meta"), row, 4);
-            gridLayout->addWidget(new QLabel("Opacity"), row, 5);
+            gridLayout->addWidget(new QLabel("Settings"), row, 3, 1, 2);
+            gridLayout->addWidget(new QLabel("Meta"), row, 5);
+            gridLayout->addWidget(new QLabel("Opacity"), row, 6);
 
             if (smallArrowButtonsFlag) {
-                gridLayout->addWidget(new QLabel("Move"), row, 6, Qt::AlignHCenter);
-                gridLayout->addWidget(new QLabel("Remove"), row, 7);
+                gridLayout->addWidget(new QLabel("Move"), row, 7, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 8);
             }
             else {            
-                gridLayout->addWidget(new QLabel("Move"), row, 6, 1, 2, Qt::AlignHCenter);
-                gridLayout->addWidget(new QLabel("Remove"), row, 8);
+                gridLayout->addWidget(new QLabel("Move"), row, 7, 1, 2, Qt::AlignHCenter);
+                gridLayout->addWidget(new QLabel("Remove"), row, 9);
             }
             
             gridLayout->setColumnStretch(0, 0);
@@ -154,9 +150,10 @@ OverlaySelectionControl::createLayers()
             gridLayout->setColumnStretch(6, 0);
             gridLayout->setColumnStretch(7, 0);
             gridLayout->setColumnStretch(8, 0);
+            gridLayout->setColumnStretch(9, 0);
 
             if (smallArrowButtonsFlag == false) {
-                gridLayout->setColumnStretch(8, 0);
+                gridLayout->setColumnStretch(9, 0);
             }
         }
             break;
@@ -165,12 +162,7 @@ OverlaySelectionControl::createLayers()
             int row = 0;
             gridLayout->addWidget(new QLabel("On"), row, 0);
             gridLayout->addWidget(new QLabel("File/Map"), row, 1, Qt::AlignHCenter);
-            if (verticalCompactFlag == false) {
-                gridLayout->addWidget(new QLabel("Adjust"), row, 2, 1, 3, Qt::AlignHCenter);
-                gridLayout->addWidget(new QLabel("Move"), row, 5);
-                gridLayout->addWidget(new QLabel("Remove"), row, 6);
-            }
-            
+
             row++;
 /*            
             QFrame* horizLine = new QFrame();
@@ -183,12 +175,6 @@ OverlaySelectionControl::createLayers()
 */            
             gridLayout->setColumnStretch(0, 0);
             gridLayout->setColumnStretch(1, 100);
-            if (verticalCompactFlag == false) {
-                gridLayout->setColumnStretch(3, 0);
-                gridLayout->setColumnStretch(4, 0);
-                gridLayout->setColumnStretch(5, 0);
-                gridLayout->setColumnStretch(6, 0);
-            }
         };
             break;
     }
@@ -221,18 +207,19 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->enabledCheckBox, row, 0, Qt::AlignCenter);
                 gridLayout->addWidget(layer->fileSelectionComboBox, row, 1);
                 gridLayout->addWidget(layer->columnSelectionComboBox, row, 2);
-                gridLayout->addWidget(layer->settingsToolButton, row, 3, Qt::AlignCenter);
-                gridLayout->addWidget(layer->metadataToolButton, row, 4, Qt::AlignCenter);
-                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 5, Qt::AlignCenter);
+                gridLayout->addWidget(layer->paletteDisplayCheckBox, row, 3);
+                gridLayout->addWidget(layer->settingsToolButton, row, 4); //, Qt::AlignCenter);
+                gridLayout->addWidget(layer->metadataToolButton, row, 5, Qt::AlignCenter);
+                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6, Qt::AlignCenter);
                 
                 QVBoxLayout* arrowLayout = new QVBoxLayout();
                 WuQtUtilities::setLayoutMargins(arrowLayout, 0, 0, 0);
                 arrowLayout->addWidget(layer->upArrowToolButton);
                 arrowLayout->addWidget(layer->downArrowToolButton);
-                gridLayout->addLayout(arrowLayout, row, 6, Qt::AlignCenter);
+                gridLayout->addLayout(arrowLayout, row, 7, Qt::AlignCenter);
                 //gridLayout->addWidget(layer->upArrowToolButton, row, 7, ALIGN_TOP_HORIZONTAL_CENTER);
                 //gridLayout->addWidget(layer->downArrowToolButton, row + 1, 7, ALIGN_BOTTOM_HORIZONTAL_CENTER);
-                gridLayout->addWidget(layer->deleteToolButton, row, 7, Qt::AlignCenter);
+                gridLayout->addWidget(layer->deleteToolButton, row, 8, Qt::AlignCenter);
             }
             else {
                 int row = gridLayout->rowCount();
@@ -240,18 +227,18 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->enabledCheckBox, row, 0);
                 gridLayout->addWidget(layer->fileSelectionComboBox, row, 1);
                 gridLayout->addWidget(layer->columnSelectionComboBox, row, 2);
-                gridLayout->addWidget(layer->settingsToolButton, row, 3, Qt::AlignHCenter);
-                gridLayout->addWidget(layer->metadataToolButton, row, 4);
-                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 5);
+                gridLayout->addWidget(layer->paletteDisplayCheckBox, row, 3);
+                gridLayout->addWidget(layer->settingsToolButton, row, 4); //, Qt::AlignHCenter);
+                gridLayout->addWidget(layer->metadataToolButton, row, 5);
+                gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6);
                 
-                gridLayout->addWidget(layer->upArrowToolButton, row, 6);
-                gridLayout->addWidget(layer->downArrowToolButton, row, 7);
-                gridLayout->addWidget(layer->deleteToolButton, row, 8, Qt::AlignHCenter);
+                gridLayout->addWidget(layer->upArrowToolButton, row, 7);
+                gridLayout->addWidget(layer->downArrowToolButton, row, 8);
+                gridLayout->addWidget(layer->deleteToolButton, row, 9, Qt::AlignHCenter);
             }
                 break;
             case Qt::Vertical:
             {
-                if (verticalCompactFlag) {
                     int row = gridLayout->rowCount();
                     
                     const int row1 = row;
@@ -271,6 +258,8 @@ OverlaySelectionControl::createLayers()
                     gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
                     
                     QHBoxLayout* buttLayout = new QHBoxLayout();
+                    buttLayout->addWidget(layer->paletteDisplayCheckBox);
+                    buttLayout->addStretch();
                     buttLayout->addWidget(layer->settingsToolButton);
                     buttLayout->addWidget(layer->metadataToolButton);
                     buttLayout->addStretch();
@@ -281,34 +270,6 @@ OverlaySelectionControl::createLayers()
                     buttLayout->addWidget(layer->deleteToolButton);
                     
                     gridLayout->addLayout(buttLayout, row4, 1);
-
-                }
-                else {
-                    int row = gridLayout->rowCount();
-                    
-                    const int row1 = row;
-                    const int row2 = row1 + 1;
-                    const int row3 = row2 + 1;
-                    
-                    QFrame* horizLine = new QFrame();
-                    horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
-                    horizLine->setLineWidth(1);
-                    horizLine->setMidLineWidth(1);
-                    gridLayout->addWidget(horizLine, row1, 0, 1, 7);  
-                    layer->addWidget(horizLine);
-                    
-                    gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 2, 1);
-                    gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
-                    gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
-                    gridLayout->addWidget(layer->opacityDoubleSpinBox, row2, 2, 1, 3);
-                    gridLayout->addWidget(layer->settingsToolButton, row3, 2);
-                    gridLayout->addWidget(layer->metadataToolButton, row3, 3);
-                    
-                    gridLayout->addWidget(layer->upArrowToolButton, row2, 5, Qt::AlignHCenter);
-                    gridLayout->addWidget(layer->downArrowToolButton, row3, 4, Qt::AlignHCenter);
-                    gridLayout->addWidget(layer->deleteToolButton, row2, 6, 2, 1, Qt::AlignHCenter);
-                }
-                
             };
                 break;
         }

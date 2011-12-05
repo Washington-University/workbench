@@ -44,7 +44,8 @@ using namespace caret;
 ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING,
                          YOKING_ALLOWED_YES,
-                         ROTATION_ALLOWED_YES)
+                         ROTATION_ALLOWED_YES,
+                         NULL)
 {
     this->initializeMembersModelDisplayControllerYokingGroup();
     this->yokingGroupIndex = yokingGroupIndex;

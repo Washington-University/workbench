@@ -74,6 +74,10 @@ namespace caret {
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
                               const int32_t selectedMapIndex);
         
+        bool isPaletteDisplayEnabled() const;
+        
+        void setPaletteDisplayEnabled(const bool enabled);
+        
     private:
         Overlay(const Overlay&);
 
@@ -99,6 +103,9 @@ namespace caret {
         
         /* selected data file map */
         AString selectedMapName;
+        
+        /* Display palette in graphics window */
+        bool paletteDisplayedFlag;
     };
     
 #ifdef __OVERLAY_DECLARE__

@@ -41,10 +41,12 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerSurface::ModelDisplayControllerSurface(Surface* surface)
+ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
+                                                             Surface* surface)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE,
                          YOKING_ALLOWED_YES,
-                         ROTATION_ALLOWED_YES)
+                         ROTATION_ALLOWED_YES,
+                         brain)
 {
     CaretAssert(surface);
     this->initializeMembersModelDisplayControllerSurface();

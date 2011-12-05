@@ -38,13 +38,13 @@
 #endif
 
 #include <QFont>
-#include <QGLWidget>
 
 #define __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 #include "BrainOpenGLFixedPipeline.h"
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
 #include "Brain.h"
+#include "BrainOpenGLTextRenderInterface.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
@@ -53,6 +53,7 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
@@ -71,6 +72,7 @@
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "PaletteScalarAndColor.h"
 #include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
@@ -85,13 +87,12 @@ using namespace caret;
  * Constructor.
  *
  * @param parentGLWidget
- *   The Qt QGLWidget that uses this instance for OpenGL
- *   rendering.  The QGLWidget is used for text rendering.
+ *   The optional text renderer is used for text rendering.
  *   This parameter may be NULL in which case no text
  *   rendering is performed.
  */
-BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(QGLWidget* parentGLWidget)
-: BrainOpenGL(parentGLWidget)
+BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterface* textRenderer)
+: BrainOpenGL(textRenderer)
 {
     this->initializeMembersBrainOpenGL();
     this->colorIdentification   = new IdentificationWithColor();
@@ -220,6 +221,10 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         else {
             CaretAssertMessage(0, "Unknown type of model display controller for drawing");
         }
+        
+        int viewport[4];
+        viewportContent->getViewport(viewport);
+        this->drawAllPalettes(modelDisplayController->getBrain(), viewport);
     }
     
     glFlush();
@@ -1882,16 +1887,13 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
  */
 void 
 BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
-                                  const int windowY,
-                                  const QString& text,
-                                  const int fontHeight)
+                                               const int windowY,
+                                               const QString& text)
 {
-    if (this->parentGLWidget != NULL) {
-        QFont font("times", fontHeight);
-        this->parentGLWidget->renderText(windowX,
-                                         windowY,
-                                         text,
-                                         font);
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtWindowCoords(windowX,
+                                                   windowY,
+                                                   text);
     }
 }
 
@@ -1905,28 +1907,322 @@ BrainOpenGLFixedPipeline::drawTextWindowCoords(const int windowX,
  *    Model Z-coordinate.
  * @param text
  *    Text that is to be drawn.
- * @param fontHeight
- *    Height of the font.
  */
 void 
 BrainOpenGLFixedPipeline::drawTextModelCoords(const double modelX,
                                  const double modelY,
                                  const double modelZ,
-                                 const QString& text,
-                                 const int fontHeight)
+                                 const QString& text)
 {
-    if (this->parentGLWidget != NULL) {
-        QFont font("times", fontHeight);
-        this->parentGLWidget->renderText(modelX,
-                                         modelY,
-                                         modelZ,
-                                         text,
-                                         font);
+    if (this->textRenderer != NULL) {
+        this->textRenderer->drawTextAtModelCoords(modelX,
+                                                  modelY,
+                                                  modelZ,
+                                                  text);
     }
 }
 
+/**
+ * Draw the palettes showing how scalars are mapped
+ * to colors.
+ * @param brain
+ *    Brain containing model being drawn.
+ * @param viewport
+ *    Viewport for the model.
+ */
+void 
+BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain,
+                                          const int viewport[4])
+{
+    /*
+     * Turn off depth testing
+     */
+    glDisable(GL_DEPTH_TEST);
+    
 
+    /*
+     * Save the projection matrix, model matrix, and viewport.
+     */
+    glMatrixMode(GL_PROJECTION);
+    GLfloat savedProjectionMatrix[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, 
+                savedProjectionMatrix);
+    glMatrixMode(GL_MODELVIEW);
+    GLfloat savedModelviewMatrix[16];
+    glGetFloatv(GL_MODELVIEW_MATRIX, 
+                savedModelviewMatrix);
+    GLint savedViewport[4];
+    glGetIntegerv(GL_VIEWPORT, 
+                  savedViewport);
+    
+    CaretAssert(brain);
+    const bool selectFlag = (this->mode == MODE_IDENTIFICATION);
+    if (selectFlag) {
+        return;
+    }
+    this->disableLighting();
+    
+    PaletteFile* paletteFile = brain->getPaletteFile();
+    CaretAssert(paletteFile);
+    
+    std::vector<CaretMappableDataFile*> mapFiles;
+    std::vector<int32_t> mapIndices;
+    this->browserTabContent->getDisplayedPaletteMapFiles(mapFiles, 
+                                                         mapIndices);
+    
+    /*
+     * Each map file has a palette drawn to represent the
+     * datas mapping to colors.
+     */
+    const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());
+    for (int32_t i = 0; i < numMapFiles; i++) {
+        const int mapIndex = mapIndices[i];
+        const PaletteColorMapping* pcm = mapFiles[i]->getMapPaletteColorMapping(mapIndex);
+        const AString paletteName = pcm->getSelectedPaletteName();
+        const Palette* palette = paletteFile->getPaletteByName(paletteName);
+        if (palette != NULL) {
+            const DescriptiveStatistics* statistics = mapFiles[i]->getMapStatistics(mapIndex);
+            this->drawPalette(palette, 
+                              pcm, 
+                              statistics, 
+                              i);
+        }
+        else {
+            CaretLogWarning("Palette named "
+                            + paletteName
+                            + " not found in palette file.");
+        }
+    }
+    
+    /*
+     * Restore the projection matrix, model matrix, and viewport.
+     */
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixf(savedProjectionMatrix);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixf(savedModelviewMatrix);
+    glViewport(savedViewport[0],
+               savedViewport[1],
+               savedViewport[2],
+               savedViewport[3]);
+}
 
+/**
+ * Draw a palette.
+ * @param palette
+ *    Palette that is drawn.
+ * @param paletteColorMapping
+ *    Controls mapping of data to colors.
+ * @param statistics
+ *    Statistics describing the data that is mapped to the palette.
+ * @param paletteDrawingIndex
+ *    Counts number of palettes being drawn for the Y-position
+ */
+void 
+BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
+                                      const PaletteColorMapping* paletteColorMapping,
+                                      const DescriptiveStatistics* statistics,
+                                      const int paletteDrawingIndex)
+{
+    /*
+     * Create a viewport for drawing the palettes in the 
+     * lower left corner of the window.
+     */
+    const GLint colorbarViewportWidth = 120;
+    const GLint colorbarViewportHeight = 50;    
+    const GLint colorbarViewportX = 10;
+    
+    GLint colorbarViewportY = (15 + (paletteDrawingIndex * colorbarViewportHeight));
+    if (paletteDrawingIndex > 0) {
+        colorbarViewportY += 5;
+    }
+    
+    glViewport(colorbarViewportX, 
+               colorbarViewportY, 
+               colorbarViewportWidth, 
+               colorbarViewportHeight);
+    
+    /*
+     * Create an orthographic projection
+     */
+    const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
+    const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
+    const GLdouble margin = 1.1;
+    const GLdouble orthoWidth = margin;
+    const GLdouble orthoHeight = halfHeight * margin;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-orthoWidth,  orthoWidth, 
+            -orthoHeight, orthoHeight, 
+            -1.0, 1.0);
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    /*
+     * Use the background color to fill in a rectangle
+     * for display of palette, hiding anything currently drawn.
+     */
+    uint8_t backgroundRGB[3];
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getColorBackground(backgroundRGB);
+    glColor3ubv(backgroundRGB);
+    glRectf(-orthoWidth, -orthoHeight, orthoWidth, orthoHeight);
+    
+    /*
+     * Always interpolate if the palette has only two colors
+     */
+    bool interpolateColor = paletteColorMapping->isInterpolatePaletteFlag();
+    if (palette->getNumberOfScalarsAndColors() <= 2) {
+        interpolateColor = true;
+    }
+    
+    /*
+     * Types of values for display
+     */
+    const bool isPositiveDisplayed = paletteColorMapping->isDisplayPositiveDataFlag();
+    const bool isNegativeDisplayed = paletteColorMapping->isDisplayNegativeDataFlag();
+    const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
+    
+    /*
+     * Draw the colorbar starting with the color assigned
+     * to the negative end of the palette.
+     * Colorbar scalars range from -1 to 1.
+     */
+    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+    const int iEnd = 1;
+    const int iStep = -1;
+    for (int i = iStart; i >= iEnd; i += iStep) {
+        /*
+         * palette data for 'left' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+        float scalar = sc->getScalar();
+        float rgba[4];
+        sc->getColor(rgba);
+        
+        /*
+         * palette data for 'right' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+        float nextScalar = nextSC->getScalar();
+        float nextRGBA[4];
+        nextSC->getColor(nextRGBA);
+        const bool isNoneColorFlag = nextSC->isNoneColor();
+        
+        /*
+         * Exclude negative regions if not displayed.
+         */
+        if (isNegativeDisplayed == false) {
+            if (nextScalar < 0.0) {
+                continue;
+            }
+            else if (scalar < 0.0) {
+                scalar = 0.0;
+            }
+        }
+        
+        /*
+         * Exclude positive regions if not displayed.
+         */
+        if (isPositiveDisplayed == false) {
+            if (scalar > 0.0) {
+                continue;
+            }
+            else if (nextScalar > 0.0) {
+                nextScalar = 0.0;
+            }
+        }
+        
+        /*
+         * Normally, the first entry has a scalar value of -1.
+         * If it does not, use the first color draw from 
+         * -1 to the first scalar value.
+         */
+        if (i == iStart) {
+            if (sc->isNoneColor() == false) {
+                if (scalar > -1.0) {
+                    const float xStart = -1.0;
+                    const float xEnd   = scalar;
+                    glColor3fv(rgba);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+        
+        /*
+         * If the 'next' color is none, drawing
+         * is skipped to let the background show
+         * throw the 'none' region of the palette.
+         */ 
+        if (isNoneColorFlag == false) {
+            /*
+             * left and right region of an entry in the palette
+             */
+            const float xStart = scalar;
+            const float xEnd   = nextScalar;
+            
+            /*
+             * Unless interpolating, use the 'next' color.
+             */
+            float* startRGBA = nextRGBA;
+            float* endRGBA   = nextRGBA;
+            if (interpolateColor) {
+                startRGBA = rgba;
+            }
+            
+            /*
+             * Draw the region in the palette.
+             */
+            glBegin(GL_POLYGON);
+            glColor3fv(startRGBA);
+            glVertex3f(xStart, 0.0, 0.0);
+            glVertex3f(xStart, -halfHeight, 0.0);
+            glColor3fv(endRGBA);
+            glVertex3f(xEnd, -halfHeight, 0.0);
+            glVertex3f(xEnd, 0.0, 0.0);
+            glEnd();
+            
+            /*
+             * The last scalar value is normally 1.0.  If the last
+             * scalar is less than 1.0, then fill in the rest of 
+             * the palette from the last scalar to 1.0.
+             */
+            if (i == iEnd) {
+                if (nextScalar < 1.0) {
+                    const float xStart = nextScalar;
+                    const float xEnd   = 1.0;
+                    glColor3fv(nextRGBA);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+    }
+    
+    /*
+     * If zeros are not displayed, draw a line in the 
+     * background color at zero in the palette.
+     */
+    if (isZeroDisplayed == false) {
+        glLineWidth(1.0);
+        glColor3ubv(backgroundRGB);
+        glBegin(GL_LINES);
+        glVertex2f(0.0, -halfHeight);
+        glVertex2f(0.0, 0.0);
+        glEnd();
+    }
+    
+    
+}
 
 //============================================================================
 /**

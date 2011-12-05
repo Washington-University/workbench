@@ -32,6 +32,7 @@
 namespace caret {
 
     class BrowserTabYoking;
+    class CaretMappableDataFile;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
     class ModelDisplayControllerSurfaceSelector;
@@ -39,6 +40,7 @@ namespace caret {
     class ModelDisplayControllerWholeBrain;
     class ModelDisplayControllerYokingGroup;
     class OverlaySet;
+    class Palette;
     class Surface;
     class SurfaceNodeColoring;
     
@@ -110,6 +112,9 @@ namespace caret {
         void updateTransformationsForYoking();
         
         bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
+        
+        void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
+                                         std::vector<int32_t>& mapIndices);
         
     private:
         BrowserTabContent(const BrowserTabContent&);

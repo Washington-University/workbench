@@ -76,6 +76,9 @@ namespace caret {
         QVector<OverlaySelectionControlLayer*> layers;
         
         QPushButton* addLayerPushButton;
+        
+    
+        friend class OverlaySelectionControlLayer;
     };
     
 }

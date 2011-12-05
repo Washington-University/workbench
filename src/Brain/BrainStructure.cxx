@@ -274,7 +274,8 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
     /*
      * Create a model controller for the surface.
      */
-    ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(surface);
+    ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(this->brain,
+                                                                            surface);
     this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
     
     /*

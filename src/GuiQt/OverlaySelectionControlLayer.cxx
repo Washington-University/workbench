@@ -65,6 +65,8 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                       OverlaySelectionControl* overlaySelectionControl,
                                       const int32_t layerIndex)
 {
+    const bool verticalFlag = (overlaySelectionControl->orientation == Qt::Vertical);
+    
     this->overlaySelectionControl = overlaySelectionControl;
     this->browserWindowIndex = browserWindowIndex;
     this->layerIndex = layerIndex;
@@ -73,6 +75,14 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     this->enabledCheckBox->setVisible(true);
     QObject::connect(this->enabledCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(enableCheckBoxToggled(bool)));
+    
+    this->paletteDisplayCheckBox = new QCheckBox("");
+    this->paletteDisplayCheckBox->setVisible(true);
+    QObject::connect(this->paletteDisplayCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(paletteDisplayCheckBoxToggled(bool)));
+    if (verticalFlag) {
+        this->paletteDisplayCheckBox->setText("Show Palette");
+    }
     
     //const int comboBoxWidth = 200;
     
@@ -94,6 +104,9 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                                         SLOT(settingsToolButtonPressed()));
     this->settingsToolButton  = new QToolButton();
     this->settingsToolButton->setDefaultAction(this->settingsAction);
+    if (verticalFlag) {
+        this->settingsAction->setText("Settings");
+    }
     
     this->metadataAction = WuQtUtilities::createAction("M",
                                                         "Show metadata for the selected data",
@@ -102,6 +115,9 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
                                                         SLOT(metadataToolButtonPressed()));
     this->metadataToolButton  = new QToolButton();
     this->metadataToolButton->setDefaultAction(this->metadataAction);
+    if (verticalFlag) {
+        this->metadataAction->setText("Metadata");
+    }
     
     this->opacityDoubleSpinBox = new QDoubleSpinBox();
     this->opacityDoubleSpinBox->setMinimum(0.0);
@@ -141,6 +157,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     
     this->widgetGroup = new WuQWidgetObjectGroup(overlaySelectionControl);
     this->widgetGroup->add(this->enabledCheckBox);
+    this->widgetGroup->add(this->paletteDisplayCheckBox);
     this->widgetGroup->add(this->fileSelectionComboBox);
     this->widgetGroup->add(this->columnSelectionComboBox);
     this->widgetGroup->add(this->settingsToolButton);
@@ -161,6 +178,27 @@ OverlaySelectionControlLayer::~OverlaySelectionControlLayer()
 }
 
 /**
+ * Called when palette display checkbox is toggled.
+ * @param toggled
+ *   New display status.
+ */
+void 
+OverlaySelectionControlLayer::paletteDisplayCheckBoxToggled(bool toggled)
+{
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    
+    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
+    overlay->setPaletteDisplayEnabled(toggled);
+
+    this->updateControl(browserTabContent);
+    
+    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
+    EventManager::get()->sendEvent(updateGraphics.getPointer());
+}
+
+/**
  * Called when enable checkbox is toggled.
  * @param toggled
  *   New enabled status.
@@ -176,7 +214,7 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
     overlay->setEnabled(toggled);
-
+    
     this->updateControl(browserTabContent);
     
     EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
@@ -469,6 +507,7 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
         this->columnSelectionComboBox->setCurrentIndex(selectedColumnIndex);
     }
     
+    this->paletteDisplayCheckBox->setChecked(so->isPaletteDisplayEnabled());
     this->enabledCheckBox->setChecked(so->isEnabled());
     this->opacityDoubleSpinBox->setValue(so->getOpacity());
 }

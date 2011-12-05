@@ -61,6 +61,7 @@ Overlay::Overlay()
     
     this->name = "Overlay ";
     this->enabled = true;
+    this->paletteDisplayedFlag = false;
 }
 
 /**
@@ -415,6 +416,26 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
 {
     this->selectedMapFile = selectedMapFile;
     this->selectedMapName = selectedMapFile->getMapName(selectedMapIndex);    
+}
+
+/**
+ * @return Is display of palette in graphics window enabled?
+ */
+bool 
+Overlay::isPaletteDisplayEnabled() const
+{
+    return this->paletteDisplayedFlag;
+}
+
+/**
+ * Set display of palette in graphics window.
+ * @param enabled
+ *   New status for palette display in graphics window.
+ */
+void 
+Overlay::setPaletteDisplayEnabled(const bool enabled)
+{
+    this->paletteDisplayedFlag = enabled;
 }
 
 

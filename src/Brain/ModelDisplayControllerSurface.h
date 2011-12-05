@@ -38,7 +38,8 @@ namespace caret {
     class ModelDisplayControllerSurface : public ModelDisplayController {
         
     public:
-        ModelDisplayControllerSurface(Surface* surface);
+        ModelDisplayControllerSurface(Brain* brain,
+                                      Surface* surface);
         
         virtual ~ModelDisplayControllerSurface();
         

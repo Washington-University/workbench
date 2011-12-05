@@ -30,10 +30,9 @@
 
 #include "CaretObject.h"
 
-class QGLWidget;
-
 namespace caret {
     
+    class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class IdentificationManager;
     
@@ -43,7 +42,7 @@ namespace caret {
     class BrainOpenGL : public CaretObject {
         
     protected:
-        BrainOpenGL(QGLWidget* parentGLWidget);
+        BrainOpenGL(BrainOpenGLTextRenderInterface* textRenderer);
 
     public:
         virtual ~BrainOpenGL();
@@ -104,8 +103,8 @@ namespace caret {
         
         
     protected:
-        /** Optional Qt QGLWidget that uses this OpenGL rendering. */
-        QGLWidget* parentGLWidget;
+        /** Optional text rendering (if not null) */
+        BrainOpenGLTextRenderInterface* textRenderer;
         
         /** version number of OpenGL */
         static float versionOfOpenGL;

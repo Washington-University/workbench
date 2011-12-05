@@ -42,9 +42,11 @@ using namespace caret;
  */
 ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
                                                const YokingAllowedType allowsYokingStatus,
-                                               const RotationAllowedType allowsRotationStatus)
+                                               const RotationAllowedType allowsRotationStatus,
+                                               Brain* brain)
     : CaretObject()
 {
+    this->brain = brain;
     this->initializeMembersModelDisplayController();
     this->controllerType = controllerType;
     this->allowsYokingStatus = allowsYokingStatus;
@@ -617,5 +619,15 @@ ModelDisplayController::toDescriptiveString() const
     AString s = CaretObject::toString();
     
     return s;
+}
+
+/**
+ * Get the brain that created this controller.
+ * @return The brain.
+ */
+Brain*
+ModelDisplayController::getBrain()
+{
+    return this->brain;
 }
 

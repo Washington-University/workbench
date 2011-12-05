@@ -254,3 +254,15 @@ PaletteScalarAndColor::isModified() const
     return this->modifiedFlag;
 }
 
+/**
+ * @return Is the color the 'none' color meaning
+ * that no coloring is applied?
+ */
+bool 
+PaletteScalarAndColor::isNoneColor() const
+{
+    const bool isNone = (this->colorName == "none");
+    return isNone;
+}
+
+

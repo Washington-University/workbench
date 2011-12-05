@@ -41,9 +41,9 @@ using namespace caret;
 ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                          YOKING_ALLOWED_NO,
-                         ROTATION_ALLOWED_NO)
+                         ROTATION_ALLOWED_NO,
+                         brain)
 {
-    this->brain = brain;
     this->initializeMembersModelDisplayControllerVolume();
 }
 
@@ -90,16 +90,6 @@ AString
 ModelDisplayControllerVolume::getNameForBrowserTab() const
 {
     return "Volume";
-}
-
-/**
- * Get the brain that created this controller.
- * @return The brain.
- */
-Brain*
-ModelDisplayControllerVolume::getBrain()
-{
-    return this->brain;
 }
 
 /**

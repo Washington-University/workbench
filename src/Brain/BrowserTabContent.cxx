@@ -38,6 +38,7 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "ModelDisplayControllerYokingGroup.h"
+#include "Overlay.h"
 #include "OverlaySet.h"
 #include "Surface.h"
 #include "SurfaceNodeColoring.h"
@@ -704,5 +705,45 @@ BrowserTabContent::updateTransformationsForYoking()
         }
     }
 }
+
+/**
+ * Get the map files for which a palette should be displayed in the 
+ * graphcis window.  Note that the order of map files and indices starts
+ * with the bottom most layer and ends with the top most overlay.
+ *
+ * @param mapFiles
+ *    Outut Map files that should have a palette displayed in the graphics window.
+ * @param mapIndices
+ *    Output Indices of the maps in the mapFiles.
+ */
+void 
+BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
+                                               std::vector<int32_t>& mapIndices)
+{
+    mapFiles.clear();
+    mapIndices.clear();
+    
+    const int32_t numOverlays = this->overlaySet->getNumberOfDisplayedOverlays();
+    for (int32_t i = (numOverlays - 1); i >= 0; i--) {
+        Overlay* overlay = this->overlaySet->getOverlay(i);
+        if (overlay->isEnabled()) {
+            if (overlay->isPaletteDisplayEnabled()) {
+                CaretMappableDataFile* mapFile;
+                int32_t mapFileIndex;
+                overlay->getSelectionData(this, mapFile, mapFileIndex);
+                if (mapFile != NULL) {
+                    if (mapFile->isMappedWithPalette()) {
+                        if ((mapFileIndex >= 0) 
+                            && (mapFileIndex < mapFile->getNumberOfMaps())) {
+                            mapFiles.push_back(mapFile);
+                            mapIndices.push_back(mapFileIndex);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 
 

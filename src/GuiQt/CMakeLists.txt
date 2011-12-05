@@ -28,6 +28,7 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
+BrainOpenGLWidgetTextRenderer.h
 ConnectivityLoaderControl.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -63,6 +64,7 @@ BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
+BrainOpenGLWidgetTextRenderer.h
 ConnectivityLoaderControl.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
@@ -103,6 +105,7 @@ BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
+BrainOpenGLWidgetTextRenderer.cxx
 ConnectivityLoaderControl.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx

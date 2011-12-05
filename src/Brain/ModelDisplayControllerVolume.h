@@ -45,8 +45,6 @@ namespace caret {
         
         virtual ~ModelDisplayControllerVolume();
         
-        Brain* getBrain();
-        
         VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         VolumeSliceViewPlaneEnum::Enum getSliceViewPlane(const int32_t windowTabNumber) const;
@@ -96,9 +94,6 @@ namespace caret {
         virtual AString getNameForBrowserTab() const;
         
     private:
-        /** Brain which contains the volumes */
-        Brain* brain;
-        
         /** Axis of slice being viewed */
         VolumeSliceViewPlaneEnum::Enum sliceViewPlane[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

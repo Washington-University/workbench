@@ -63,6 +63,7 @@ namespace caret {
         int32_t layerIndex;
         
         QCheckBox* enabledCheckBox;
+        QCheckBox* paletteDisplayCheckBox;
         QComboBox* fileSelectionComboBox;
         QComboBox* columnSelectionComboBox;
         QToolButton* settingsToolButton;
@@ -87,6 +88,7 @@ namespace caret {
         
     public slots:
         void enableCheckBoxToggled(bool toggled);
+        void paletteDisplayCheckBoxToggled(bool toggled);
         void opacityValueChanged(double value);
         void fileSelected(int fileIndex);
         void columnSelected(int columnIndex);

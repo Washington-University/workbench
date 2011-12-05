@@ -11,7 +11,7 @@ SET(QT_DONT_USE_QTGUI)
 #
 # Use OpenGL from QT
 #
-SET(QT_USE_QTOPENGL TRUE)
+#SET(QT_USE_QTOPENGL TRUE)
 
 #
 # Add QT for includes
@@ -51,6 +51,7 @@ Brain.h
 BrainConstants.h
 BrainOpenGL.h
 BrainOpenGLFixedPipeline.h
+BrainOpenGLTextRenderInterface.h
 BrainOpenGLViewportContent.h
 BrainStructure.h
 BrainStructureNodeAttributes.h

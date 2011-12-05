@@ -44,8 +44,6 @@ namespace caret {
         
         virtual ~ModelDisplayControllerWholeBrain();
         
-        Brain* getBrain();
-        
         VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
         void getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut);
@@ -110,9 +108,6 @@ namespace caret {
         virtual AString getNameForBrowserTab() const;
         
     private:
-        /** Brain to which this controller belongs */
-        Brain* brain;
-        
         /** Type of surface for display */
         mutable SurfaceTypeEnum::Enum selectedSurfaceType[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

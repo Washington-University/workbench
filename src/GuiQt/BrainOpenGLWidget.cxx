@@ -98,7 +98,7 @@ void
 BrainOpenGLWidget::initializeGL()
 {
     if (this->openGL == NULL) {
-        this->openGL = new BrainOpenGLFixedPipeline(this); //GuiManager::get()->getBrainOpenGL();
+        this->openGL = new BrainOpenGLFixedPipeline(NULL); //GuiManager::get()->getBrainOpenGL();
     }
     this->openGL->initializeOpenGL();
     

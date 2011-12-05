@@ -79,6 +79,8 @@ public:
 
     bool isModified() const;
 
+    bool isNoneColor() const;
+    
 private:
     /** has this object been modified. (DO NOT CLONE) */
     bool modifiedFlag;
