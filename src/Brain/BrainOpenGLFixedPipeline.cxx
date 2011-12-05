@@ -1067,7 +1067,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                             if (sliceIndex < maximumSliceIndex) {
                                 const int vpX = j * vpSizeX;
                                 const int vpY = i * vpSizeY;
-                                const int vp[4] = { vpX, vpY, vpSizeX, vpSizeY };
+                                const int vp[4] = { 
+                                    viewport[0] + vpX, 
+                                    viewport[1] + vpY, 
+                                    vpSizeX, 
+                                    vpSizeY };
                                 
                                 this->setViewportAndOrthographicProjection(vp);
                                 this->applyViewingTransformationsVolumeSlice(volumeController, 
