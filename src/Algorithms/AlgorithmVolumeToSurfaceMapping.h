@@ -32,26 +32,6 @@
 
 namespace caret {
     
-    struct VoxelDist
-    {
-        float dist;
-        int64_t ijk[3];
-        VoxelDist(const float& distIn, const int64_t* ijkIn)
-        {
-            dist = distIn;
-            ijk[0] = ijkIn[0];
-            ijk[1] = ijkIn[1];
-            ijk[2] = ijkIn[2];
-        }
-        VoxelDist(const float& distIn, const int64_t& i, const int64_t& j, const int64_t& k)
-        {
-            dist = distIn;
-            ijk[0] = i;
-            ijk[1] = j;
-            ijk[2] = k;
-        }
-    };
-    
     struct VoxelWeight
     {//for precomputation in ribbon mapping
         float weight;
@@ -63,40 +43,6 @@ namespace caret {
             ijk[0] = ijkIn[0];
             ijk[1] = ijkIn[1];
             ijk[2] = ijkIn[2];
-        }
-    };
-    
-    class VoxelDistMinHeap
-    {//because STL is kinda painful for minheaps, especially without an interface
-        struct MyMinHeapCompare
-        {
-            bool operator()(const VoxelDist& left, const VoxelDist& right)
-            {
-                return (left.dist > right.dist);
-            }
-        };
-        std::vector<VoxelDist> m_heap;//because 4 assignments beat the new's it would take to build the heap on naive pointers, and I'm too lazy to put advanced memory handling in here
-        MyMinHeapCompare m_comp;
-    public:
-        void clear()
-        {
-            m_heap.clear();
-        }
-        void push(const VoxelDist& toPush)
-        {
-            m_heap.push_back(toPush);
-            std::push_heap(m_heap.begin(), m_heap.end(), m_comp);
-        }
-        bool isEmpty()
-        {
-            return (m_heap.size() == 0);
-        }
-        VoxelDist pop()
-        {
-            VoxelDist ret = m_heap[0];
-            std::pop_heap(m_heap.begin(), m_heap.end(), m_comp);
-            m_heap.pop_back();
-            return ret;
         }
     };
     
@@ -128,9 +74,7 @@ namespace caret {
     class AlgorithmVolumeToSurfaceMapping : public AbstractAlgorithm
     {
         AlgorithmVolumeToSurfaceMapping();
-        void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* ribbonVol, MetricFile* thickness, SurfaceFile* mySurface, float ribbonValue, float kernel);
-        void dijkstra(VolumeFile* mask, VoxelDistMinHeap& myHeap, float voxNeighDist[3][3][3], int* marked, int* changed, float* distances, std::vector<VoxelDist>& myVoxelsOut, float maxDist);
-        void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* myVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
+        void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* myVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
         float computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3d& ivec, const Vector3d& jvec, const Vector3d& kvec);
     protected:
         static float getSubAlgorithmWeight();
@@ -142,7 +86,7 @@ namespace caret {
             NEAREST_NEIGHBOR,
             RIBBON_CONSTRAINED
         };
-        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, int32_t subdivisions = 3);
+        AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, VolumeFile* roiVol = NULL, int32_t subdivisions = 3);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();

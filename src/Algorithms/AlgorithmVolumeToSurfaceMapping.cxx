@@ -63,6 +63,8 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     //ribbonOpt->createOptionalParameter(5, "-average-normals", "average each node's normals with its neighbors");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
+    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(4, "-volume-roi", "use an roi volume with positive values for all valid voxels");
+    roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
     OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "number of subdivisions of each voxel edge when estimating partial voluming");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
@@ -155,7 +157,13 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
                         throw AlgorithmException("invalid number of subdivisions specified");
                     }
                 }
-                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, innerSurf, outerSurf, subdivisions);
+                OptionalParameter* roiVol = ribbonOpt->getOptionalParameter(4);
+                VolumeFile* myRoiVol = NULL;
+                if (roiVol->m_present)
+                {
+                    myRoiVol = roiVol->getVolume(1);
+                }
+                AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, innerSurf, outerSurf, myRoiVol, subdivisions);
             }
             break;
         default:
@@ -163,7 +171,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     }
 }
 
-AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int32_t subdivisions) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int32_t subdivisions) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     vector<int64_t> myVolDims;
@@ -288,8 +296,12 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 {//TODO: also compare topologies?
                     throw AlgorithmException("all surfaces must be in node correspondence");
                 }
+                if (roiVol != NULL && !roiVol->matchesVolumeSpace(myVolume))
+                {
+                    throw AlgorithmException("roi volume is not in the same volume space as input volume");
+                }
                 vector<vector<VoxelWeight> > myWeights;
-                precomputeWeights(myWeights, myVolume, innerSurf, outerSurf, subdivisions);
+                precomputeWeights(myWeights, myVolume, innerSurf, outerSurf, roiVol, subdivisions);
                 CaretArray<float> myScratchArray(new float[numNodes]);
                 float* myScratch = myScratchArray.getArray();
                 if (mySubVol == -1)
@@ -368,7 +380,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     }
 }
 
-void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeight> >& myWeights, VolumeFile* myVolume, SurfaceFile* innerSurf, SurfaceFile* outerSurf, int numDivisions)
+void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeight> >& myWeights, VolumeFile* myVolume, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int numDivisions)
 {
     int64_t numNodes = outerSurf->getNumberOfNodes();
     myWeights.resize(numNodes);
@@ -436,10 +448,13 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                 {
                     for (ijk[2] = startIndex[2]; ijk[2] < endIndex[2]; ++ijk[2])
                     {
-                        tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
-                        if (tempf != 0.0f)
+                        if (roiVol == NULL || roiVol->getValue(ijk) > 0.0f)
                         {
-                            myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                            tempf = computeVoxelFraction(myVolume, ijk, myPoly, numDivisions, ivec, jvec, kvec);
+                            if (tempf != 0.0f)
+                            {
+                                myWeights[node].push_back(VoxelWeight(tempf, ijk));
+                            }
                         }
                     }
                 }

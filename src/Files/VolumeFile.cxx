@@ -144,7 +144,7 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
     return INVALID_INTERP_VALUE;
 }
 
-bool VolumeFile::compareVolumeSpace(const VolumeFile* right)
+bool VolumeFile::matchesVolumeSpace(const VolumeFile* right)
 {
     for (int i = 0; i < 3; ++i)//only check the spatial dimensions
     {
