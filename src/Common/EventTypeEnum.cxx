@@ -66,10 +66,6 @@ EventTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(EventTypeEnum(EVENT_BRAIN_STRUCTURE_GET, 
-                                    "EVENT_BRAIN_STRUCTURE_GET", 
-                                    "Find a brain structure"));
-    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE, 
                                      "EVENT_BROWSER_TAB_DELETE", 
                                      "Delete a browser tab"));

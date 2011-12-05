@@ -40,8 +40,6 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Find a brain structure */
-        EVENT_BRAIN_STRUCTURE_GET,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
         /** Get a browser tab by tab number */

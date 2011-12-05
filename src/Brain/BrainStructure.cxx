@@ -59,8 +59,6 @@ BrainStructure::BrainStructure(Brain* brain,
     this->brain = brain;
     this->structure = structure;
     EventManager::get()->addEventListener(this, 
-                                          EventTypeEnum::EVENT_BRAIN_STRUCTURE_GET);
-    EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
