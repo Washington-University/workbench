@@ -1675,10 +1675,13 @@ BrainBrowserWindowToolBar::createWindowWidget()
     std::vector<ModelDisplayControllerYokingGroup*> yokingGroups;
     getAllYokingEvent.getYokingGroups(yokingGroups);
     
-    QLabel* yokeToLabel = new QLabel("Yoke to:");
+    QLabel* yokeToLabel = new QLabel("Yoking:");
     this->windowYokeGroupComboBox = new QComboBox();
-    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeGroupComboBox,
-                                          "Select the group to which the current tab is yoked (view linked)");
+    this->windowYokeGroupComboBox->setStatusTip("Select the the type of yoking (linked views)");
+    this->windowYokeGroupComboBox->setToolTip(("Select the the type of yoking (linked views)\n"
+                                               "Off    - Turns yoking off\n"
+                                               "On     - All surfaces and whole brains viewed identically\n"
+                                               "On L/M - left and right surfaces viewed with 'standard views'"));
     const int32_t numYokingGroups = static_cast<int>(yokingGroups.size());
     for (int32_t i = 0; i < numYokingGroups; i++) {
         this->windowYokeGroupComboBox->addItem(yokingGroups[i]->getNameForBrowserTab());
@@ -1687,31 +1690,14 @@ BrainBrowserWindowToolBar::createWindowWidget()
     QObject::connect(this->windowYokeGroupComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(windowYokeToGroupComboBoxIndexChanged(int)));
     
-    std::vector<YokingTypeEnum::Enum> allYokingEnums;
-    YokingTypeEnum::getAllEnums(allYokingEnums);
-    const int32_t numYokingEnums = static_cast<int32_t>(allYokingEnums.size());
-    
-    this->windowYokeTypeComboBox = new QComboBox();
-    for (int32_t i = 0; i < numYokingEnums; i++) {
-        this->windowYokeTypeComboBox->addItem(YokingTypeEnum::toGuiName(allYokingEnums[i]));
-        this->windowYokeTypeComboBox->setItemData(i, YokingTypeEnum::toIntegerCode(allYokingEnums[i]));
-    }
-    WuQtUtilities::setToolTipAndStatusTip(this->windowYokeTypeComboBox,
-                                          "Selects type of yoking");
-    QObject::connect(this->windowYokeTypeComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(windowYokeTypeComboBoxIndexChanged(int)));
-
-
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(this->windowYokeGroupComboBox);
-    layout->addWidget(this->windowYokeTypeComboBox);
     
     this->windowWidgetGroup = new WuQWidgetObjectGroup(this);
     this->windowWidgetGroup->add(this->windowYokeGroupComboBox);
-    this->windowWidgetGroup->add(this->windowYokeTypeComboBox);
     
     QWidget* w = this->createToolWidget("Window", 
                                         widget, 
@@ -1743,9 +1729,6 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     ModelDisplayControllerYokingGroup* yokeToGroup = browserTabYoking->getSelectedYokingGroup();
     
     this->windowYokeGroupComboBox->setCurrentIndex(yokeToGroup->getYokingGroupIndex());
-    
-    const int yokeTypeIndex = YokingTypeEnum::toIntegerCode(browserTabYoking->getSelectedYokingType());
-    this->windowYokeTypeComboBox->setCurrentIndex(yokeTypeIndex);
     
     this->windowWidgetGroup->blockSignals(false);
 
@@ -2253,9 +2236,10 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
         ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
             if (mdcyg != NULL) {
+                const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
                 const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
                 if (StructureEnum::isRight(structure)) {
-                    if (btc->getBrowserTabYoking()->getSelectedYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+                    if (yokingType == YokingTypeEnum::ON_LATERAL_MEDIAL) {
                         mdcyg->leftView(btc->getTabNumber());
                     }
                     else {
@@ -2292,9 +2276,10 @@ BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*ch
         ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
             if (mdcyg != NULL) {
+                const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
                 const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
                 if (StructureEnum::isRight(structure)) {
-                    if (btc->getBrowserTabYoking()->getSelectedYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+                    if (yokingType == YokingTypeEnum::ON_LATERAL_MEDIAL) {
                         mdcyg->rightView(btc->getTabNumber());
                     }
                     else {
@@ -3034,26 +3019,6 @@ BrainBrowserWindowToolBar::windowYokeToGroupComboBoxIndexChanged(int indx)
         void* pointer = this->windowYokeGroupComboBox->itemData(indx).value<void*>();
         ModelDisplayControllerYokingGroup* yokingGroup = (ModelDisplayControllerYokingGroup*)pointer;
         browserTabYoking->setSelectedYokingGroup(yokingGroup);
-    }
-    this->updateGraphicsWindow();
-}
-
-/**
- * Called when yoke mirrored checkbox is toggled.
- */
-void 
-BrainBrowserWindowToolBar::windowYokeTypeComboBoxIndexChanged(int indx)
-{
-    CaretLogEntering();
-    this->checkUpdateCounter();
-
-    if (indx >= 0) {
-        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-        BrowserTabYoking* browserTabYoking = btc->getBrowserTabYoking();
-        
-        int32_t integerCode = this->windowYokeTypeComboBox->itemData(indx).toInt();
-        YokingTypeEnum::Enum yokeType = YokingTypeEnum::fromIntegerCode(integerCode, NULL);
-        browserTabYoking->setSelectedYokingType(yokeType);
     }
     this->updateGraphicsWindow();
 }

@@ -41,16 +41,17 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex)
+ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+                                                                     const YokingTypeEnum::Enum yokingType)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          NULL)
 {
     this->initializeMembersModelDisplayControllerYokingGroup();
+    this->yokingType = yokingType;
     this->yokingGroupIndex = yokingGroupIndex;
-    this->yokingGroupName = ("Group "
-                             + AString::number(this->yokingGroupIndex + 1));
+    this->yokingGroupName = (YokingTypeEnum::toGuiName(this->yokingType));
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->dorsalView(i);
@@ -68,6 +69,15 @@ void
 ModelDisplayControllerYokingGroup::initializeMembersModelDisplayControllerYokingGroup()
 {
     this->yokingGroupIndex = -1;
+}
+
+/**
+ * @return Type of yoking this yoking controller performs.
+ */
+YokingTypeEnum::Enum 
+ModelDisplayControllerYokingGroup::getYokingType() const
+{
+    return this->yokingType;
 }
 
 /**

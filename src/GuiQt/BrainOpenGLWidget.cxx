@@ -52,6 +52,7 @@
 #include "IdentificationItemSurfaceNode.h"
 #include "Matrix4x4.h"
 #include "ModelDisplayController.h"
+#include "ModelDisplayControllerYokingGroup.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "UserInputModeView.h"
@@ -525,10 +526,13 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                     BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
                     ModelDisplayController* mdc = btc->getModelControllerForDisplay();
                     if (mdc != NULL) {
-                        BrowserTabYoking* tabYoking = btc->getBrowserTabYoking();
-                        if (tabYoking->getSelectedYokingType() != YokingTypeEnum::OFF) {
-                            needUpdate = true;
-                            break;
+                        ModelDisplayControllerYokingGroup* mdcyg = btc->getBrowserTabYoking()->getSelectedYokingGroup();
+                        if (mdcyg != NULL) {
+                            const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
+                            if (yokingType != YokingTypeEnum::OFF) {
+                                needUpdate = true;
+                                break;
+                            }
                         }
                     }
                 }

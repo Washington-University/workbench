@@ -55,10 +55,6 @@ namespace caret {
         
         void setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup);
         
-        YokingTypeEnum::Enum getSelectedYokingType() const;
-        
-        void setSelectedYokingType(YokingTypeEnum::Enum yokingType);
-        
     private:
         BrowserTabYoking(const BrowserTabYoking&);
 
@@ -71,9 +67,6 @@ namespace caret {
         BrowserTabContent* parentBrowserTabContent;
         
         ModelDisplayControllerYokingGroup* selectedYokingGroup;
-        
-        YokingTypeEnum::Enum selectedYokingType;
-        
     };
     
 #ifdef __BROWSER_TAB_YOKING_DECLARE__

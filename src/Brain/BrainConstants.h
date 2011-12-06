@@ -46,9 +46,6 @@ namespace caret {
             
             /// Minimum number of overlays
             MINIMUM_NUMBER_OF_OVERLAYS = 3, 
-            
-            /// Maximum number of yoking groups
-            MAXIMUM_NUMBER_OF_YOKING_GROUPS = 5
         };        
     private:
         BrainConstants();

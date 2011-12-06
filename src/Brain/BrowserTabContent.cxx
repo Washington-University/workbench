@@ -274,16 +274,9 @@ BrowserTabContent::getModelControllerForTransformation()
     }
     
     if (mdc->isYokeable()) {
-        switch (this->browserTabYoking->getSelectedYokingType()) {
-            case YokingTypeEnum::OFF:
-                break;
-            case YokingTypeEnum::ON:
-            case YokingTypeEnum::ON_LATERAL_MEDIAL:
-                /*
-                 * Use the yoking controller
-                 */
-                mdc = this->browserTabYoking->getSelectedYokingGroup();
-                break;
+        ModelDisplayControllerYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
+        if (mdcyg->getYokingType() != YokingTypeEnum::OFF) {
+            mdc = mdcyg;
         }
     }
     
@@ -302,17 +295,13 @@ BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
     if (surfaceController != NULL) {
         const Surface* surface = surfaceController->getSurface();
         if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-            switch (this->browserTabYoking->getSelectedYokingType()) {
-                case YokingTypeEnum::OFF:
-                    break;
-                case YokingTypeEnum::ON:
-                    break;
-                case YokingTypeEnum::ON_LATERAL_MEDIAL:
-                    itIs = true;
-                    break;
+            ModelDisplayControllerYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
+            if (mdcyg->getYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+                itIs = true;
             }
         }
     }
+    
     return itIs;
 }
 

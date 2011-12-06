@@ -60,8 +60,12 @@ SessionManager::SessionManager()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->browserTabs[i] = NULL;
     }
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
-        this->yokingGroups[i] = new ModelDisplayControllerYokingGroup(i);
+    std::vector<YokingTypeEnum::Enum> yokingTypes;
+    YokingTypeEnum::getAllEnums(yokingTypes);
+    const int32_t numYokingGroups = static_cast<int32_t>(yokingTypes.size());
+    for (int32_t i = 0; i < numYokingGroups; i++) {
+        this->yokingGroups.push_back(new ModelDisplayControllerYokingGroup(i,
+                                                                           yokingTypes[i]));
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
@@ -90,7 +94,8 @@ SessionManager::~SessionManager()
     
     EventManager::get()->removeAllEventsFromListener(this);
     
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
+    const int32_t numYokingGroups = static_cast<int32_t>(this->yokingGroups.size());
+    for (int32_t i = 0; i < numYokingGroups; i++) {
         delete this->yokingGroups[i];
         this->yokingGroups[i] = NULL;
     }
@@ -337,7 +342,8 @@ SessionManager::receiveEvent(Event* event)
         
         getYokingEvent->setEventProcessed();
         
-        for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS; i++) {
+        const int32_t numYokingGroups = static_cast<int32_t>(this->yokingGroups.size());
+        for (int32_t i = 0; i < numYokingGroups; i++) {
             getYokingEvent->addYokingGroup(this->yokingGroups[i]);
         }
     }

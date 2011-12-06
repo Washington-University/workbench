@@ -28,6 +28,7 @@
 
 #include "ModelDisplayController.h"
 
+#include "YokingTypeEnum.h"
 
 
 namespace caret {
@@ -38,9 +39,12 @@ namespace caret {
     class ModelDisplayControllerYokingGroup : public ModelDisplayController {
         
     public:
-        ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex);
+        ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+                                          const YokingTypeEnum::Enum yokingType);
         
         virtual ~ModelDisplayControllerYokingGroup();
+        
+        YokingTypeEnum::Enum getYokingType() const;
         
         int32_t getYokingGroupIndex() const;
         
@@ -55,6 +59,8 @@ namespace caret {
     private:
         void initializeMembersModelDisplayControllerYokingGroup();
         
+        YokingTypeEnum::Enum yokingType;
+         
         int32_t yokingGroupIndex;
         
         AString yokingGroupName;

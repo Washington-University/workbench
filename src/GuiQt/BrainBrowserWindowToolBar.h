@@ -279,11 +279,9 @@ namespace caret {
     private:
         
         QComboBox* windowYokeGroupComboBox;
-        QComboBox* windowYokeTypeComboBox;
     
     private slots:
         void windowYokeToGroupComboBoxIndexChanged(int indx);
-        void windowYokeTypeComboBoxIndexChanged(int indx);
         
     private:
         StructureSurfaceSelectionControl* surfaceSurfaceSelectionControl;

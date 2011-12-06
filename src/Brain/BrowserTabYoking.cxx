@@ -43,7 +43,6 @@ BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
 {
     this->parentBrowserTabContent = parentBrowserTabContent;
     this->selectedYokingGroup = selectedYokingGroup;
-    this->selectedYokingType = YokingTypeEnum::OFF;
 }
 
 /**
@@ -82,25 +81,5 @@ void
 BrowserTabYoking::setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup)
 {
     this->selectedYokingGroup = selectedYokingGroup;
-}
-
-/**
- * @return The type of yoking.
- */
-YokingTypeEnum::Enum 
-BrowserTabYoking::getSelectedYokingType() const
-{
-    return this->selectedYokingType;
-}
-
-/**
- * Set the type of yoking.
- * @param yokingType
- *    New value for yoking type.
- */
-void 
-BrowserTabYoking::setSelectedYokingType(YokingTypeEnum::Enum yokingType)
-{
-    this->selectedYokingType = yokingType;
 }
 

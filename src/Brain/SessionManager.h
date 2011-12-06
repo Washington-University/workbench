@@ -88,7 +88,7 @@ namespace caret {
         CaretPreferences* caretPreferences;
         
         /** Yoking Groups */
-        ModelDisplayControllerYokingGroup* yokingGroups[BrainConstants::MAXIMUM_NUMBER_OF_YOKING_GROUPS];
+        std::vector<ModelDisplayControllerYokingGroup*> yokingGroups;
     };
     
 #ifdef __SESSION_MANAGER_DECLARE__
