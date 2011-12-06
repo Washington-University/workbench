@@ -392,3 +392,38 @@ StructureEnum::getAllEnums(std::vector<StructureEnum::Enum>& allEnums)
     }
 }
 
+/**
+ * Is this 'right' structure?
+ * @param enumValue
+ *   The enumerated type.
+ * @return 
+ *   true if the enumerated value represents a 'right' structure, else false.
+ */
+bool 
+StructureEnum::isRight(const Enum enumValue)
+{
+    const AString name = toName(enumValue).toUpper();
+    if (name.contains("RIGHT")) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Is this 'left' structure?
+ * @param enumValue
+ *   The enumerated type.
+ * @return 
+ *   true if the enumerated value represents a 'left' structure, else false.
+ */
+bool 
+StructureEnum::isLeft(const Enum enumValue)
+{
+    const AString name = toName(enumValue).toUpper();
+    if (name.contains("LEFT")) {
+        return true;
+    }
+    return false;
+    
+}
+

@@ -111,6 +111,16 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     
     this->isContructorFinished = false;
 
+    this->viewOrientationLeftIcon = NULL;
+    this->viewOrientationRightIcon = NULL;
+    this->viewOrientationAnteriorIcon = NULL;
+    this->viewOrientationPosteriorIcon = NULL;
+    this->viewOrientationDorsalIcon = NULL;
+    this->viewOrientationVentralIcon = NULL;
+    this->viewOrientationLeftLateralIcon = NULL;
+    this->viewOrientationLeftMedialIcon = NULL;
+    this->viewOrientationRightLateralIcon = NULL;
+    this->viewOrientationRightMedialIcon = NULL;
 /*
     qApp->setStyleSheet("QTabBar::tab:selected {"
                         "    font: bold 14px"
@@ -223,6 +233,55 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
  */
 BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
+    if (this->viewOrientationLeftIcon != NULL) {
+        delete this->viewOrientationLeftIcon;
+        this->viewOrientationLeftIcon = NULL;
+    }
+    if (this->viewOrientationRightIcon != NULL) {
+        delete this->viewOrientationRightIcon;
+        this->viewOrientationRightIcon = NULL;
+    }
+
+    if (this->viewOrientationAnteriorIcon != NULL) {
+        delete this->viewOrientationAnteriorIcon;
+        this->viewOrientationAnteriorIcon = NULL;
+    }
+
+    if (this->viewOrientationPosteriorIcon != NULL) {
+        delete this->viewOrientationPosteriorIcon;
+        this->viewOrientationPosteriorIcon = NULL;
+    }
+
+    if (this->viewOrientationDorsalIcon != NULL) {
+        delete this->viewOrientationDorsalIcon;
+        this->viewOrientationDorsalIcon = NULL;
+    }
+
+    if (this->viewOrientationVentralIcon != NULL) {
+        delete this->viewOrientationVentralIcon;
+        this->viewOrientationVentralIcon = NULL;
+    }
+
+    if (this->viewOrientationLeftLateralIcon != NULL) {
+        delete this->viewOrientationLeftLateralIcon;
+        this->viewOrientationLeftLateralIcon = NULL;
+    }
+
+    if (this->viewOrientationLeftMedialIcon != NULL) {
+        delete this->viewOrientationLeftMedialIcon;
+        this->viewOrientationLeftMedialIcon = NULL;
+    }
+
+    if (this->viewOrientationRightLateralIcon != NULL) {
+        delete this->viewOrientationRightLateralIcon;
+        this->viewOrientationRightLateralIcon = NULL;
+    }
+
+    if (this->viewOrientationRightMedialIcon != NULL) {
+        delete this->viewOrientationRightMedialIcon;
+        this->viewOrientationRightMedialIcon = NULL;
+    }
+
     EventManager::get()->removeAllEventsFromListener(this);
     
     this->viewWidgetGroup->clear();
@@ -941,88 +1000,69 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
 QWidget* 
 BrainBrowserWindowToolBar::createOrientationWidget()
 {
-    QIcon leftIcon;
-    const bool leftIconValid =
-        WuQtUtilities::loadIcon(":/view-left.png", 
-                                leftIcon);
+    this->viewOrientationLeftIcon = WuQtUtilities::loadIcon(":/view-left.png");
+    this->viewOrientationRightIcon = WuQtUtilities::loadIcon(":/view-right.png");
+    this->viewOrientationAnteriorIcon = WuQtUtilities::loadIcon(":/view-anterior.png");
+    this->viewOrientationPosteriorIcon = WuQtUtilities::loadIcon(":/view-posterior.png");
+    this->viewOrientationDorsalIcon = WuQtUtilities::loadIcon(":/view-dorsal.png");
+    this->viewOrientationVentralIcon = WuQtUtilities::loadIcon(":/view-ventral.png");
+    this->viewOrientationLeftLateralIcon = WuQtUtilities::loadIcon(":/view-left-lateral.png");
+    this->viewOrientationLeftMedialIcon = WuQtUtilities::loadIcon(":/view-left-medial.png");
+    this->viewOrientationRightLateralIcon = WuQtUtilities::loadIcon(":/view-right-lateral.png");
+    this->viewOrientationRightMedialIcon = WuQtUtilities::loadIcon(":/view-right-medial.png");
     
-    QIcon rightIcon;
-    const bool rightIconValid =
-    WuQtUtilities::loadIcon(":/view-right.png", 
-                            rightIcon);
-    
-    QIcon anteriorIcon;
-    const bool anteriorIconValid =
-    WuQtUtilities::loadIcon(":/view-anterior.png", 
-                            anteriorIcon);
-    
-    QIcon posteriorIcon;
-    const bool posteriorIconValid =
-    WuQtUtilities::loadIcon(":/view-posterior.png", 
-                            posteriorIcon);
-    
-    QIcon dorsalIcon;
-    const bool dorsalIconValid =
-    WuQtUtilities::loadIcon(":/view-dorsal.png", 
-                            dorsalIcon);
-    
-    QIcon ventralIcon;
-    const bool ventralIconValid =
-    WuQtUtilities::loadIcon(":/view-ventral.png", 
-                            ventralIcon);
-    
-    this->orientationLeftToolButtonAction = WuQtUtilities::createAction("L", 
-                                                                        "View the brain from a LEFT perspective", 
+    this->orientationLeftOrLateralToolButtonAction = WuQtUtilities::createAction("L", 
+                                                                        "View from a LEFT perspective", 
                                                                         this, 
                                                                         this, 
-                                                                        SLOT(orientationLeftToolButtonTriggered(bool)));
-    if (leftIconValid) {
-        this->orientationLeftToolButtonAction->setIcon(leftIcon);
+                                                                        SLOT(orientationLeftOrLateralToolButtonTriggered(bool)));
+    if (this->viewOrientationLeftIcon != NULL) {
+        this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
     }
     
-    this->orientationRightToolButtonAction = WuQtUtilities::createAction("R", 
-                                                                         "View the brain from a RIGHT perspective", 
+    this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R", 
+                                                                         "View from a RIGHT perspective", 
                                                                          this, 
                                                                          this, 
-                                                                         SLOT(orientationRightToolButtonTriggered(bool)));
-    if (rightIconValid) {
-        this->orientationRightToolButtonAction->setIcon(rightIcon);
+                                                                         SLOT(orientationRightOrMedialToolButtonTriggered(bool)));
+    if (this->viewOrientationRightIcon != NULL) {
+        this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
     }
     
     this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A", 
-                                                                            "View the brain from an ANTERIOR perspective", 
+                                                                            "View from an ANTERIOR perspective", 
                                                                             this, 
                                                                             this, 
                                                                             SLOT(orientationAnteriorToolButtonTriggered(bool)));
-    if (anteriorIconValid) {
-        this->orientationAnteriorToolButtonAction->setIcon(anteriorIcon);
+    if (this->viewOrientationAnteriorIcon != NULL) {
+        this->orientationAnteriorToolButtonAction->setIcon(*this->viewOrientationAnteriorIcon);
     }
     
     this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P", 
-                                                                             "View the brain from a POSTERIOR perspective", 
+                                                                             "View from a POSTERIOR perspective", 
                                                                              this, 
                                                                              this, 
                                                                              SLOT(orientationPosteriorToolButtonTriggered(bool)));
-    if (posteriorIconValid) {
-        this->orientationPosteriorToolButtonAction->setIcon(posteriorIcon);
+    if (this->viewOrientationPosteriorIcon != NULL) {
+        this->orientationPosteriorToolButtonAction->setIcon(*this->viewOrientationPosteriorIcon);
     }
     
     this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D", 
-                                                                          "View the brain from a DORSAL perspective", 
+                                                                          "View from a DORSAL perspective", 
                                                                           this, 
                                                                           this, 
                                                                           SLOT(orientationDorsalToolButtonTriggered(bool)));
-    if (dorsalIconValid) {
-        this->orientationDorsalToolButtonAction->setIcon(dorsalIcon);
+    if (this->viewOrientationDorsalIcon != NULL) {
+        this->orientationDorsalToolButtonAction->setIcon(*this->viewOrientationDorsalIcon);
     }
     
     this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V", 
-                                                                           "View the brain from a VENTRAL perspective", 
+                                                                           "View from a VENTRAL perspective", 
                                                                            this, 
                                                                            this, 
                                                                            SLOT(orientationVentralToolButtonTriggered(bool)));
-    if (ventralIconValid) {
-        this->orientationVentralToolButtonAction->setIcon(ventralIcon);
+    if (this->viewOrientationVentralIcon != NULL) {
+        this->orientationVentralToolButtonAction->setIcon(*this->viewOrientationVentralIcon);
     }
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("Reset", 
@@ -1059,10 +1099,10 @@ BrainBrowserWindowToolBar::createOrientationWidget()
 
 
     QToolButton* orientationLeftToolButton = new QToolButton();
-    orientationLeftToolButton->setDefaultAction(this->orientationLeftToolButtonAction);
+    orientationLeftToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
     
     QToolButton* orientationRightToolButton = new QToolButton();
-    orientationRightToolButton->setDefaultAction(this->orientationRightToolButtonAction);
+    orientationRightToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
     
     QToolButton* orientationAnteriorToolButton = new QToolButton();
     orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
@@ -1113,8 +1153,8 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     layout->addWidget(orientationResetToolButton, 0, Qt::AlignHCenter);
     
     this->orientationWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->orientationWidgetGroup->add(this->orientationLeftToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationRightToolButtonAction);
+    this->orientationWidgetGroup->add(this->orientationLeftOrLateralToolButtonAction);
+    this->orientationWidgetGroup->add(this->orientationRightOrMedialToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationAnteriorToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationPosteriorToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationDorsalToolButtonAction);
@@ -1152,6 +1192,73 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
     
     this->orientationWidgetGroup->blockSignals(true);
     
+    const ModelDisplayController* mdc = this->getDisplayedModelController();
+    if (mdc != NULL) {
+        const ModelDisplayControllerSurface* mdcs = dynamic_cast<const ModelDisplayControllerSurface*>(mdc);
+        const ModelDisplayControllerVolume* mdcv = dynamic_cast<const ModelDisplayControllerVolume*>(mdc);
+        const ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<const ModelDisplayControllerWholeBrain*>(mdc);
+        
+        bool rightFlag = false;
+        bool leftFlag = false;
+        bool leftRightFlag = false;
+        if (mdcs != NULL) {
+            const Surface* surface = mdcs->getSurface();
+            const StructureEnum::Enum structure = surface->getStructure();
+            if (StructureEnum::isLeft(structure)) {
+                leftFlag = true;
+            }
+            else if (StructureEnum::isRight(structure)) {
+                rightFlag = true;
+            }
+            else {
+                leftRightFlag = true;
+            }
+        }
+        else if (mdcv != NULL) {
+            // nothing
+        }
+        else if (mdcwb != NULL) {
+            leftRightFlag = true;
+        }
+        else {
+            CaretAssertMessage(0, "Unknown model display controller type");
+        }
+        
+        if (rightFlag || leftFlag) {
+            if (rightFlag) {
+                if (this->viewOrientationRightLateralIcon != NULL) {
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationRightLateralIcon);
+                }
+                if (this->viewOrientationRightMedialIcon != NULL) {
+                    this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightMedialIcon);
+                }
+            }
+            else if (leftFlag) {
+                if (this->viewOrientationLeftLateralIcon != NULL) {
+                    this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftLateralIcon);
+                }
+                if (this->viewOrientationLeftMedialIcon != NULL) {
+                    this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationLeftMedialIcon);
+                }
+            }
+            WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction, 
+                                                  "View from a LATERAL perspective");
+            WuQtUtilities::setToolTipAndStatusTip(this->orientationRightOrMedialToolButtonAction, 
+                                                  "View from a MEDIAL perspective");
+        }
+        else if (leftRightFlag) {
+            if (this->viewOrientationLeftIcon != NULL) {
+                this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
+            }
+            if (this->viewOrientationRightIcon != NULL) {
+                this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
+            }
+            WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction, 
+                                                  "View from a LEFT perspective");
+            WuQtUtilities::setToolTipAndStatusTip(this->orientationRightOrMedialToolButtonAction, 
+                                                  "View from a RIGHT perspective");
+        }
+    }
     this->orientationWidgetGroup->blockSignals(false);
         
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -1872,7 +1979,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     this->volumePlaneViewObliqueToolButtonAction->setCheckable(true);
     
     this->volumePlaneViewMontageToolButtonAction = WuQtUtilities::createAction(VolumeSliceViewModeEnum::toGuiNameAbbreviation(VolumeSliceViewModeEnum::MONTAGE),
-                                                                           "View a montage of orthogonal slices",                                                                           
+                                                                           "View a montage of parallel slices",                                                                           
                                                                            this);
     this->volumePlaneViewMontageToolButtonAction->setCheckable(true);
     
@@ -2134,15 +2241,21 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
 }
 
 /**
- * Called when orientation left button is pressed.
+ * Called when orientation left or lateral button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool /*checked*/)
+BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
-        mdc->leftView(btc->getTabNumber());
+        ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
+        if (mdcs != NULL) {
+            mdcs->lateralView(btc->getTabNumber());
+        }
+        else {
+            mdc->leftView(btc->getTabNumber());
+        }
         this->updateGraphicsWindow();
     }
     
@@ -2150,15 +2263,21 @@ BrainBrowserWindowToolBar::orientationLeftToolButtonTriggered(bool /*checked*/)
 }
 
 /**
- * Called when orientation right button is pressed.
+ * Called when orientation right or medial button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationRightToolButtonTriggered(bool /*checked*/)
+BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
-        mdc->rightView(btc->getTabNumber());
+        ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
+        if (mdcs != NULL) {
+            mdcs->medialView(btc->getTabNumber());
+        }
+        else {
+            mdc->rightView(btc->getTabNumber());
+        }
         this->updateGraphicsWindow();
     }
     

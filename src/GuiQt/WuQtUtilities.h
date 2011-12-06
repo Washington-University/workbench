@@ -87,6 +87,8 @@ namespace caret {
         static bool loadIcon(const QString& filename,
                              QIcon& iconOut);
         
+        static QIcon* loadIcon(const QString& filename);
+        
         static bool loadPixmap(const QString& filename,
                                QPixmap& pixmapOut);
         

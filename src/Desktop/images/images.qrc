@@ -10,6 +10,11 @@
 <file>view-plane-axial.png</file>
 <file>view-plane-coronal.png</file>
 <file>view-plane-parasagittal.png</file>
+<file>view-left-lateral.png</file>
+<file>view-left-medial.png</file>
+<file>view-right-lateral.png</file>
+<file>view-right-medial.png</file>
+
 </qresource>
 </RCC>
 

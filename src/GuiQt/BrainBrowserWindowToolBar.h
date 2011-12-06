@@ -41,6 +41,7 @@ class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QHBoxLayout;
+class QIcon;
 class QLabel;
 class QMenu;
 class QRadioButton;
@@ -201,8 +202,8 @@ namespace caret {
         void viewModeRadioButtonClicked(QAbstractButton*);
         
     private:
-        QAction* orientationLeftToolButtonAction;
-        QAction* orientationRightToolButtonAction;
+        QAction* orientationLeftOrLateralToolButtonAction;
+        QAction* orientationRightOrMedialToolButtonAction;
         QAction* orientationAnteriorToolButtonAction;
         QAction* orientationPosteriorToolButtonAction;
         QAction* orientationDorsalToolButtonAction;
@@ -214,9 +215,19 @@ namespace caret {
         QMenu* orientationUserViewSelectToolButtonMenu;
         QToolButton* orientationUserViewSelectToolButton;
         
+        QIcon* viewOrientationLeftIcon;
+        QIcon* viewOrientationRightIcon;
+        QIcon* viewOrientationAnteriorIcon;
+        QIcon* viewOrientationPosteriorIcon;
+        QIcon* viewOrientationDorsalIcon;
+        QIcon* viewOrientationVentralIcon;
+        QIcon* viewOrientationLeftLateralIcon;
+        QIcon* viewOrientationLeftMedialIcon;
+        QIcon* viewOrientationRightLateralIcon;
+        QIcon* viewOrientationRightMedialIcon;
     private slots:
-        void orientationLeftToolButtonTriggered(bool checked);
-        void orientationRightToolButtonTriggered(bool checked);
+        void orientationLeftOrLateralToolButtonTriggered(bool checked);
+        void orientationRightOrMedialToolButtonTriggered(bool checked);
         void orientationAnteriorToolButtonTriggered(bool checked);
         void orientationPosteriorToolButtonTriggered(bool checked);
         void orientationDorsalToolButtonTriggered(bool checked);

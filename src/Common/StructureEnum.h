@@ -117,6 +117,10 @@ public:
 
     static void getAllEnums(std::vector<Enum>& allEnums);
 
+    static bool isRight(const Enum enumValue);
+    
+    static bool isLeft(const Enum enumValue);
+    
 private:
     StructureEnum(const Enum enumValue, 
                  const AString& name,
