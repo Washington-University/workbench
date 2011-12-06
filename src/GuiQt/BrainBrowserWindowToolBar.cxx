@@ -2249,9 +2249,26 @@ BrainBrowserWindowToolBar::orientationLeftOrLateralToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
+        ModelDisplayControllerYokingGroup* mdcyg = dynamic_cast<ModelDisplayControllerYokingGroup*>(mdc);
         ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
-            mdcs->lateralView(btc->getTabNumber());
+            if (mdcyg != NULL) {
+                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
+                if (StructureEnum::isRight(structure)) {
+                    if (btc->getBrowserTabYoking()->getSelectedYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+                        mdcyg->leftView(btc->getTabNumber());
+                    }
+                    else {
+                        mdcyg->rightView(btc->getTabNumber());
+                    }
+                }
+                else {
+                    mdcyg->leftView(btc->getTabNumber());
+                }
+            }
+            else {
+                mdcs->lateralView(btc->getTabNumber());
+            }
         }
         else {
             mdc->leftView(btc->getTabNumber());
@@ -2271,9 +2288,26 @@ BrainBrowserWindowToolBar::orientationRightOrMedialToolButtonTriggered(bool /*ch
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     if (mdc != NULL) {
+        ModelDisplayControllerYokingGroup* mdcyg = dynamic_cast<ModelDisplayControllerYokingGroup*>(mdc);
         ModelDisplayControllerSurface* mdcs = btc->getDisplayedSurfaceModel();
         if (mdcs != NULL) {
-            mdcs->medialView(btc->getTabNumber());
+            if (mdcyg != NULL) {
+                const StructureEnum::Enum structure = mdcs->getSurface()->getStructure();
+                if (StructureEnum::isRight(structure)) {
+                    if (btc->getBrowserTabYoking()->getSelectedYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
+                        mdcyg->rightView(btc->getTabNumber());
+                    }
+                    else {
+                        mdcyg->leftView(btc->getTabNumber());
+                    }
+                }
+                else {
+                    mdcyg->rightView(btc->getTabNumber());
+                }
+            }
+            else {
+                mdcs->medialView(btc->getTabNumber());
+            }
         }
         else {
             mdc->rightView(btc->getTabNumber());
