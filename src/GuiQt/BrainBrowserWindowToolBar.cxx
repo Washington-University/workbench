@@ -71,6 +71,7 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "ModelDisplayControllerYokingGroup.h"
+#include "OverlaySet.h"
 #include "SessionManager.h"
 #include "Surface.h"
 #include "StructureSurfaceSelectionControl.h"
@@ -458,6 +459,8 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
             btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
         }
         this->updateTabName(tabIndex);
+        
+        btc->getOverlaySet()->initializeOverlays(controller);
         
         tabIndex++;
     }

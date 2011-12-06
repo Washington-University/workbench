@@ -23,12 +23,19 @@
  * 
  */ 
 
+#include <deque>
+
 #define __OVERLAY_SET_DECLARE__
 #include "OverlaySet.h"
 #undef __OVERLAY_SET_DECLARE__
 
+#include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderManager.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
@@ -289,38 +296,103 @@ OverlaySet::initializeOverlays(ModelDisplayController* mdc)
         return;
     }
     
+    Brain* brain = mdc->getBrain();
+    if (brain == NULL) {
+        return;
+    }
+    
+    std::deque<CaretMappableDataFile*> mapFiles;
+    std::deque<int32_t> mapFileIndices;
     ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
     ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
     ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
     
-    const int32_t numOverlays = this->getNumberOfDisplayedOverlays();
+    VolumeFile* underlayVolume = NULL;
+    
     if (mdcs != NULL) {
         Surface* surface = mdcs->getSurface();
         BrainStructure* brainStructure = surface->getBrainStructure();
         
-        int32_t iOver = 0;
         if (brainStructure->getNumberOfLabelFiles() > 0) {
-            
+            mapFiles.push_back(brainStructure->getLabelFile(0));
+            mapFileIndices.push_back(0);
         }
-        if (iOver >= numOverlays) {
-            return;
-        }
-        
         int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
         for (int32_t i = 0; i < numMetricFiles; i++) {
-            if (iOver >= numOverlays) {
-                return;
-            }
+            mapFiles.push_back(brainStructure->getMetricFile(i));
+            mapFileIndices.push_back(0);
         }
+        
+        
     }
     else if (mdcv != NULL) {
-        
+        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+        for (int32_t i = 0; i < numVolumes; i++) {
+            if (i == 0) {
+                underlayVolume = brain->getVolumeFile(i);
+            }
+            mapFiles.push_back(brain->getVolumeFile(i));
+            mapFileIndices.push_back(0);
+        }
     }
     else if (mdcwb != NULL) {
+        BrainStructure* leftBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
+        if (leftBrainStructure != NULL) {
+            if (leftBrainStructure->getNumberOfMetricFiles() > 0) {
+                mapFiles.push_front(leftBrainStructure->getMetricFile(0));
+                mapFileIndices.push_front(0);
+            }
+            else if (leftBrainStructure->getNumberOfLabelFiles() > 0) {
+                mapFiles.push_front(leftBrainStructure->getLabelFile(0));
+                mapFileIndices.push_front(0);
+            }
+        }
+
+        BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
+        if (rightBrainStructure != NULL) {
+            if (rightBrainStructure->getNumberOfMetricFiles() > 0) {
+                mapFiles.push_front(rightBrainStructure->getMetricFile(0));
+                mapFileIndices.push_front(0);
+            }
+            else if (rightBrainStructure->getNumberOfLabelFiles() > 0) {
+                mapFiles.push_front(rightBrainStructure->getLabelFile(0));
+                mapFileIndices.push_front(0);
+            }
+        }
         
+        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+        if (numVolumes > 0) {
+            mapFiles.push_back(brain->getVolumeFile(0));
+            mapFileIndices.push_back(0);
+        }
     }
     else {
         CaretAssert(0);
+    }
+
+    const int32_t numAvailableOverlays = 3 - mapFiles.size();
+    if (numAvailableOverlays > 0) {
+        std::vector<ConnectivityLoaderFile*> connFiles;
+        if (brain != NULL) {
+            ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+            const int32_t numLoaders = clm->getNumberOfConnectivityLoaderFiles();
+            const int32_t numToPush = std::min(numAvailableOverlays,
+                                               numLoaders);
+            for (int32_t i = 0; i < numToPush; i++) {
+                ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+                if (clf->isEmpty() == false) {
+                    mapFiles.push_front(clf);
+                    mapFileIndices.push_front(0);
+                }
+            }
+        }
+    }
+    
+    const int32_t numMaps     = static_cast<int32_t>(mapFiles.size());
+    const int32_t numOverlays = this->getNumberOfDisplayedOverlays();
+    const int32_t minItems = std::min(numMaps, numOverlays);
+    for (int32_t i = 0; i < minItems; i++) {
+        this->getOverlay(i)->setSelectionData(mapFiles[i], mapFileIndices[i]);
     }
 }
 
