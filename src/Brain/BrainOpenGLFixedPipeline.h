@@ -128,6 +128,14 @@ namespace caret {
                                   ModelDisplayControllerVolume* volumeController,
                                   const int32_t viewport[4]);
         
+        void drawVolumeAxesCrosshairs(const Brain* brain,
+                                  const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                  const float voxelXYZ[3]);
+        
+        void drawVolumeAxesLabels(const Brain* brain,
+                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                      const int32_t viewport[4]);
+        
         void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
@@ -178,7 +186,8 @@ namespace caret {
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,
-                                  const BrainOpenGLTextRenderInterface::TextAlignment alignment);
+                                  const BrainOpenGLTextRenderInterface::TextAlignmentX alignmentX,
+                                  const BrainOpenGLTextRenderInterface::TextAlignmentY alignmentY);
         
         void drawTextModelCoords(const double modelX,
                                  const double modelY,

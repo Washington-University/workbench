@@ -28,6 +28,7 @@
 #include "BrainStructure.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesVolume.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
 #include "EventModelDisplayControllerAdd.h"
@@ -63,6 +64,9 @@ Brain::Brain()
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
     
+    this->displayPropertiesVolume = new DisplayPropertiesVolume(this);
+    this->displayProperties.push_back(this->displayPropertiesVolume);
+    
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_DATA_FILE_READ);
     EventManager::get()->addEventListener(this, 
@@ -78,6 +82,13 @@ Brain::~Brain()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 
+    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
+         iter != this->displayProperties.end();
+         iter++) {
+        delete *iter;
+    }
+    this->displayProperties.clear();
+    
     this->resetBrain();
     delete this->connectivityLoaderManager;
     delete this->paletteFile;
@@ -188,6 +199,12 @@ Brain::resetBrain()
     this->connectivityLoaderManager->reset();
     
     this->specFile->clear();
+    
+    for (std::vector<DisplayProperties*>::iterator iter = this->displayProperties.begin();
+         iter != this->displayProperties.end();
+         iter++) {
+        (*iter)->reset();
+    }
     
     this->updateVolumeSliceController();
     this->updateWholeBrainController();
@@ -1007,6 +1024,25 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     
     return false;
 }
+
+/**
+ * @return The volume display properties.
+ */
+DisplayPropertiesVolume* 
+Brain::getDisplayPropertiesVolume()
+{
+    return this->displayPropertiesVolume;
+}
+
+/**
+ * @return The volume display properties.
+ */
+const DisplayPropertiesVolume* 
+Brain::getDisplayPropertiesVolume() const
+{
+    return this->displayPropertiesVolume;
+}
+
 
 
 

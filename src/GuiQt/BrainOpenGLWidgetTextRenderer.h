@@ -39,10 +39,12 @@ namespace caret {
         
         virtual ~BrainOpenGLWidgetTextRenderer();
         
-        void drawTextAtWindowCoords(const int windowX,
+        void drawTextAtWindowCoords(const int viewport[4],
+                                    const int windowX,
                                     const int windowY,
                                     const QString& text,
-                                    const TextAlignment alignment = CENTER,
+                                    const TextAlignmentX alignmentX,
+                                    const TextAlignmentY alignmentY,
                                     const TextStyle textStyle = NORMAL,
                                     const int fontHeight = 14,
                                     const AString& fontName = "times");

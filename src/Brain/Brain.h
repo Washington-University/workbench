@@ -39,6 +39,8 @@ namespace caret {
     
     class BrainStructure;
     class CaretDataFile;
+    class DisplayProperties;
+    class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
     class ModelDisplayControllerVolume;
@@ -100,6 +102,10 @@ namespace caret {
         
         bool removeDataFile(CaretDataFile* caretDataFile);
         
+        DisplayPropertiesVolume* getDisplayPropertiesVolume();
+        
+        const DisplayPropertiesVolume* getDisplayPropertiesVolume() const;
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
@@ -153,6 +159,15 @@ namespace caret {
         ModelDisplayControllerWholeBrain* wholeBrainController;
         
         ConnectivityLoaderManager* connectivityLoaderManager;
+        
+        /** contains all display properties */
+        std::vector<DisplayProperties*> displayProperties;
+        
+        /**
+         * Display properties for volume - DO NOT delete since this
+         * is also in the displayProperties vector.
+         */
+        DisplayPropertiesVolume* displayPropertiesVolume;
     };
 
 } // namespace

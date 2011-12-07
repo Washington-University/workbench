@@ -62,6 +62,8 @@ BrainOpenGLWidgetTextRenderer::~BrainOpenGLWidgetTextRenderer()
 /**
  * Draw text at the given window coordinates.
  *
+ * @param viewport
+ *   The current viewport.
  * @param windowX
  *   X-coordinate in the window of first text character
  *   using the 'alignment'
@@ -79,10 +81,12 @@ BrainOpenGLWidgetTextRenderer::~BrainOpenGLWidgetTextRenderer()
  *   Name of the font.
  */
 void 
-BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int windowX,
+BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int viewport[4],
+                                                      const int windowX,
                                                       const int windowY,
                                                       const QString& text,
-                                                      const TextAlignment alignment,
+                                                      const TextAlignmentX alignmentX,
+                                                      const TextAlignmentY alignmentY,
                                                       const TextStyle textStyle,
                                                       const int fontHeight,
                                                       const AString& fontName)
@@ -105,22 +109,33 @@ BrainOpenGLWidgetTextRenderer::drawTextAtWindowCoords(const int windowX,
     }
     
     /*
-     * QGLWidget has origin at top left corner
-     */
-    const int y = glWidget->height() - windowY;
-    
-    /*
      * X-Coordinate of text
      */
-    int x = windowX;
-    switch (alignment) {
-        case LEFT:
+    int x = windowX + viewport[0];
+    switch (alignmentX) {
+        case X_LEFT:
             break;
-        case CENTER:
+        case X_CENTER:
             x -= fontMetrics.width(text) / 2;
             break;
-        case RIGHT:
+        case X_RIGHT:
             x -= fontMetrics.width(text);
+            break;
+    }
+    
+    /*
+     * Y-Coordinate of text
+     * Note that QGLWidget has origin at top left corner
+     */
+    int y = glWidget->height() - (windowY + viewport[1]);
+    switch (alignmentY) {
+        case Y_BOTTOM:
+            break;
+        case Y_CENTER:
+            y += fontMetrics.height() / 2;
+            break;
+        case Y_TOP:
+            y += fontMetrics.height();
             break;
     }
     

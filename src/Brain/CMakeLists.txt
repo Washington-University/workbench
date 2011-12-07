@@ -58,6 +58,8 @@ BrainStructureNodeAttributes.h
 BrowserTabContent.h
 BrowserTabYoking.h
 ConnectivityLoaderManager.h
+DisplayProperties.h
+DisplayPropertiesVolume.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
 EventBrowserTabGetAll.h
@@ -110,6 +112,8 @@ BrainStructureNodeAttributes.cxx
 BrowserTabContent.cxx
 BrowserTabYoking.cxx
 ConnectivityLoaderManager.cxx
+DisplayProperties.cxx
+DisplayPropertiesVolume.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
 EventBrowserTabGetAll.cxx

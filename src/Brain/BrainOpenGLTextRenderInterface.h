@@ -50,15 +50,27 @@ namespace caret {
         };
         
         /**
-         * Alignment of the text
+         * Alignment of the text in X
          */
-        enum TextAlignment {
+        enum TextAlignmentX {
             /** Text is centered at X-coordinate */
-            CENTER,
+            X_CENTER,
             /** First character starts at X-coordinate */
-            LEFT,
+            X_LEFT,
             /** Last character ends at X-coordinate */
-            RIGHT
+            X_RIGHT
+        };
+        
+        /**
+         * Alignment of the text in Y
+         */
+        enum TextAlignmentY {
+            /** Bottom of characters is at Y-coordinate */
+            Y_BOTTOM,
+            /** Text is centered at Y-coordinate */
+            Y_CENTER,
+            /** Top of characters is at Y-coordinate */
+            Y_TOP
         };
         
         /**
@@ -69,6 +81,8 @@ namespace caret {
         /**
          * Draw text at the given window coordinates.
          *
+         * @param viewport
+         *   The current viewport.
          * @param windowX
          *   X-coordinate in the window of first text character
          *   using the 'alignment'
@@ -76,8 +90,10 @@ namespace caret {
          *   Y-coordinate in the window at which bottom of text is placed.
          * @param text
          *   Text that is to be drawn.
-         * @param alignment
-         *   Alignment of text
+         * @param alignmentX
+         *   Alignment of text in X
+         * @param alignmentY
+         *   Alignment of text in Y
          * @param textStyle
          *   Style of the text.
          * @param fontHeight
@@ -85,10 +101,12 @@ namespace caret {
          * @param fontName
          *   Name of the font.
          */
-        virtual void drawTextAtWindowCoords(const int windowX,
+        virtual void drawTextAtWindowCoords(const int viewport[4],
+                                            const int windowX,
                                             const int windowY,
                                             const QString& text,
-                                            const TextAlignment alignment,
+                                            const TextAlignmentX alignmentX,
+                                            const TextAlignmentY alignmentY,
                                             const TextStyle textStyle = NORMAL,
                                             const int fontHeight = 14,
                                             const AString& fontName = "times") = 0;
