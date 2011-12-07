@@ -1016,8 +1016,6 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
     const int32_t tabNumber = browserTabContent->getTabNumber();
     volumeController->updateController(tabNumber);
     
-    Brain* brain = volumeController->getBrain();
-    
     /*
      * Determine volumes that are to be drawn
      */
@@ -1089,8 +1087,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                 this->drawVolumeOrthogonalSlice(slicePlane, 
                                                                 sliceIndex, 
                                                                 volumeDrawInfo);
-                                this->drawVolumeAxesCrosshairs(brain, 
-                                                               slicePlane, 
+                                this->drawVolumeAxesCrosshairs(slicePlane, 
                                                                selectedVoxelXYZ);
                             }
                             sliceIndex += sliceStep;
@@ -1102,8 +1099,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                            viewport[1],
                            viewport[2],
                            viewport[3]);
-                this->drawVolumeAxesLabels(brain, 
-                                           slicePlane, 
+                this->drawVolumeAxesLabels(slicePlane, 
                                            viewport);
             }
                 break;
@@ -1126,11 +1122,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       VolumeSliceViewPlaneEnum::AXIAL, 
+                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   VolumeSliceViewPlaneEnum::AXIAL, 
+                        this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::AXIAL, 
                                                    axialVP);
                         
                         const int coronalVP[4] = { viewport[0] + halfX, viewport[1] + halfY, halfX, halfY };
@@ -1141,11 +1135,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       VolumeSliceViewPlaneEnum::CORONAL, 
+                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   VolumeSliceViewPlaneEnum::CORONAL, 
+                        this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::CORONAL, 
                                                    coronalVP);
                         
                         const int parasagittalVP[4] = { viewport[0] + halfX, viewport[1], halfX, halfY };
@@ -1156,11 +1148,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                        this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                    parasagittalVP);
                         
                     }
@@ -1173,11 +1163,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       slicePlane, 
+                        this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   slicePlane, 
+                        this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
@@ -1188,11 +1176,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       slicePlane, 
+                        this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   slicePlane, 
+                        this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
@@ -1203,11 +1189,9 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(brain, 
-                                                       slicePlane, 
+                        this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
-                        this->drawVolumeAxesLabels(brain, 
-                                                   slicePlane, 
+                        this->drawVolumeAxesLabels(slicePlane, 
                                                    viewport);
                         break;
                 }
@@ -1228,12 +1212,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
  *   Stereotaxic coordinate of current slice indices.
  */
 void 
-BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(const Brain* brain,
+BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
                                                const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                const float voxelXYZ[3])
 {
-    const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-    if (dpv->isAxesCrosshairsDisplayed()) {
+    if (SessionManager::get()->getCaretPreferences()->isVolumeAxesCrosshairsDisplayed()) {
         unsigned char red[3]   = { 255, 0, 0 };
         unsigned char green[3] = { 0, 255, 0 };
         unsigned char blue[3]  = { 0, 0, 255 };
@@ -1298,12 +1281,11 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(const Brain* brain,
  *   Viewport of drawing region.
  */
 void 
-BrainOpenGLFixedPipeline::drawVolumeAxesLabels(const Brain* brain,
+BrainOpenGLFixedPipeline::drawVolumeAxesLabels(
                           const VolumeSliceViewPlaneEnum::Enum slicePlane,
                           const int32_t viewport[4])
 {
-    const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-    if (dpv->isAxesLabelsDisplayed()) {
+    if (SessionManager::get()->getCaretPreferences()->isVolumeAxesLabelsDisplayed()) {
         glMatrixMode(GL_PROJECTION);
         glPushMatrix();
         glOrtho(0, viewport[2], 0, viewport[3], -1.0, 1.0);

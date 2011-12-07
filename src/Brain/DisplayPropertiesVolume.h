@@ -41,23 +41,12 @@ namespace caret {
         
         void update();
         
-        bool isAxesCrosshairsDisplayed() const;
-        
-        void setAxesCrosshairsDisplayed(const bool displayed);
-        
-        bool isAxesLabelsDisplayed() const;
-        
-        void setAxesLabelsDisplayed(const bool displayed);
-        
     private:
         DisplayPropertiesVolume(const DisplayPropertiesVolume&);
 
         DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
         
     private:
-        bool displayAxesCrosshairs;
-        
-        bool displayAxesLabels;
     };
     
 #ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__

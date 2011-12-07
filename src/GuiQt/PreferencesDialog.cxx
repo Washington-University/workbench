@@ -27,10 +27,12 @@
 
 #include <QBoxLayout>
 #include <QColorDialog>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QTabWidget>
 
 #define __PREFERENCES_DIALOG__H__DECLARE__
 #include "PreferencesDialog.h"
@@ -43,6 +45,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -71,46 +74,18 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     /*
      * No apply button
      */
-    this->setApplyButtonText("");
+    this->setApplyButtonText("");    
     
-    QPushButton* foregroundPushButton = new QPushButton("Set Foreground...");
-    QObject::connect(foregroundPushButton, SIGNAL(clicked()),
-                     this, SLOT(foregroundColorPushButtonPressed()));
-    this->foregroundColorWidget = new QWidget();
-    //this->foregroundColorWidget->setFixedSize(40, 20);
+    /*
+     * Used to block signals in all widgets
+     */
+    this->allWidgets = new WuQWidgetObjectGroup(this);
     
-    QPushButton* backgroundPushButton = new QPushButton("Set Background...");
-    QObject::connect(backgroundPushButton, SIGNAL(clicked()),
-                     this, SLOT(backgroundColorPushButtonPressed()));
-    this->backgroundColorWidget = new QWidget();
-    //this->backgroundColorWidget->setFixedSize(40, 20);
-    
-    QLabel* loggingLevelLabel = new QLabel("Logging Level: ");
-    this->loggingLevelComboBox = new QComboBox();
-    
-    std::vector<LogLevelEnum::Enum> loggingLevels;
-    LogLevelEnum::getAllEnums(loggingLevels);
-    const int32_t numLogLevels = static_cast<int32_t>(loggingLevels.size());
-    for (int32_t i = 0; i < numLogLevels; i++) {
-        const LogLevelEnum::Enum logLevel = loggingLevels[i];
-        this->loggingLevelComboBox->addItem(LogLevelEnum::toGuiName(logLevel));
-        this->loggingLevelComboBox->setItemData(i, LogLevelEnum::toIntegerCode(logLevel));
-    }
-    QObject::connect(this->loggingLevelComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(loggingLevelComboBoxChanged(int)));
-    
-    QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->addWidget(foregroundPushButton, 0, 0);
-    gridLayout->addWidget(this->foregroundColorWidget, 0, 1);
-    gridLayout->addWidget(backgroundPushButton, 1, 0);
-    gridLayout->addWidget(this->backgroundColorWidget, 1, 1);
-    gridLayout->addWidget(loggingLevelLabel, 2, 0);
-    gridLayout->addWidget(this->loggingLevelComboBox, 2, 1);
-    
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addLayout(gridLayout);
-    this->setCentralWidget(w);
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(this->createColorsWidget(), "Colors");
+    tabWidget->addTab(this->createLoggingWidget(), "Logging");
+    tabWidget->addTab(this->createVolumeWidget(), "Volume");
+    this->setCentralWidget(tabWidget);
 }
 
 /**
@@ -127,6 +102,8 @@ PreferencesDialog::~PreferencesDialog()
 void 
 PreferencesDialog::updateDialog()
 {
+    this->allWidgets->blockSignals(true);
+    
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
     uint8_t backgroundColor[3];
@@ -146,12 +123,15 @@ PreferencesDialog::updateDialog()
                                                + ");");
     
     const LogLevelEnum::Enum loggingLevel = prefs->getLoggingLevel();
-    this->loggingLevelComboBox->blockSignals(true);
     int indx = this->loggingLevelComboBox->findData(LogLevelEnum::toIntegerCode(loggingLevel));
     if (indx >= 0) {
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
-    this->loggingLevelComboBox->blockSignals(false);
+    
+    this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
+    this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
+    
+    this->allWidgets->blockSignals(false);
 }
 
 /**
@@ -221,5 +201,117 @@ void PreferencesDialog::applyButtonPressed()
 {
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
+/**
+ * Creates colors widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createColorsWidget()
+{
+    QPushButton* foregroundPushButton = new QPushButton("Set Foreground...");
+    QObject::connect(foregroundPushButton, SIGNAL(clicked()),
+                     this, SLOT(foregroundColorPushButtonPressed()));
+    this->foregroundColorWidget = new QWidget();
+    
+    QPushButton* backgroundPushButton = new QPushButton("Set Background...");
+    QObject::connect(backgroundPushButton, SIGNAL(clicked()),
+                     this, SLOT(backgroundColorPushButtonPressed()));
+    this->backgroundColorWidget = new QWidget();
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(foregroundPushButton, 0, 0);
+    gridLayout->addWidget(this->foregroundColorWidget, 0, 1);
+    gridLayout->addWidget(backgroundPushButton, 1, 0);
+    gridLayout->addWidget(this->backgroundColorWidget, 1, 1);
+
+    return w;
+}
+
+/**
+ * Creates logging widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createLoggingWidget()
+{
+    QLabel* loggingLevelLabel = new QLabel("Logging Level: ");
+    this->loggingLevelComboBox = new QComboBox();
+    
+    std::vector<LogLevelEnum::Enum> loggingLevels;
+    LogLevelEnum::getAllEnums(loggingLevels);
+    const int32_t numLogLevels = static_cast<int32_t>(loggingLevels.size());
+    for (int32_t i = 0; i < numLogLevels; i++) {
+        const LogLevelEnum::Enum logLevel = loggingLevels[i];
+        this->loggingLevelComboBox->addItem(LogLevelEnum::toGuiName(logLevel));
+        this->loggingLevelComboBox->setItemData(i, LogLevelEnum::toIntegerCode(logLevel));
+    }
+    QObject::connect(this->loggingLevelComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(loggingLevelComboBoxChanged(int)));
+    
+    this->allWidgets->add(this->loggingLevelComboBox);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(loggingLevelLabel, 0, 0);
+    gridLayout->addWidget(this->loggingLevelComboBox, 0, 1);
+    return w;
+}
+
+/**
+ * Creates volume widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createVolumeWidget()
+{
+    this->volumeAxesCrosshairsCheckBox = new QCheckBox("Axes Crosshairs");
+    QObject::connect(this->volumeAxesCrosshairsCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(volumeAxesCrosshairsCheckBoxToggled(bool)));
+    this->volumeAxesLabelsCheckBox = new QCheckBox("Axes Labels");
+    QObject::connect(this->volumeAxesLabelsCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(volumeAxesLabelsCheckBoxToggled(bool)));
+    
+    
+    this->allWidgets->add(this->volumeAxesCrosshairsCheckBox);
+    this->allWidgets->add(this->volumeAxesLabelsCheckBox);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(this->volumeAxesCrosshairsCheckBox, 0, 0);
+    gridLayout->addWidget(this->volumeAxesLabelsCheckBox, 1, 0);
+    return w;
+}
+
+/**
+ * Called when volume crosshairs is toggled.
+ * @param value
+ *    New value.
+ */
+void 
+PreferencesDialog::volumeAxesCrosshairsCheckBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeAxesCrosshairsDisplayed(value);    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Called when volume labels is toggled.
+ * @param value
+ *    New value.
+ */
+void 
+PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeAxesLabelsDisplayed(value);    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 
 

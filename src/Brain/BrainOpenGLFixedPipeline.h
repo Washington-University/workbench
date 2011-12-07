@@ -128,11 +128,11 @@ namespace caret {
                                   ModelDisplayControllerVolume* volumeController,
                                   const int32_t viewport[4]);
         
-        void drawVolumeAxesCrosshairs(const Brain* brain,
+        void drawVolumeAxesCrosshairs(
                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                   const float voxelXYZ[3]);
         
-        void drawVolumeAxesLabels(const Brain* brain,
+        void drawVolumeAxesLabels(
                                       const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int32_t viewport[4]);
         

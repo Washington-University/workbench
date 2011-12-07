@@ -78,6 +78,14 @@ namespace caret {
         
         void removeUserView(const AString& viewName);
         
+        bool isVolumeAxesCrosshairsDisplayed() const;
+        
+        void setVolumeAxesCrosshairsDisplayed(const bool displayed);
+        
+        bool isVolumeAxesLabelsDisplayed() const;
+        
+        void setVolumeAxesLabelsDisplayed(const bool displayed);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -87,6 +95,12 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        bool getBoolean(const AString& name,
+                        const bool defaultValue = false);
+        
+        void setBoolean(const AString& name,
+                        const bool value);
+        
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
         
@@ -109,10 +123,30 @@ namespace caret {
         LogLevelEnum::Enum loggingLevel;
         
         std::vector<UserView*> userViews;
+
+        bool displayVolumeAxesCrosshairs;
+        
+        bool displayVolumeAxesLabels;
+        
+        static const AString NAME_AXES_CROSSHAIRS;
+        static const AString NAME_AXES_LABELS;
+        static const AString NAME_COLOR_BACKGROUND;
+        static const AString NAME_COLOR_FOREGROUND;
+        static const AString NAME_PREVIOUS_SPEC_FILES;
+        static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
+        static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_USER_VIEWS;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString CaretPreferences::NAME_AXES_CROSSHAIRS = "volume::axesCrosshairs";
+    const AString CaretPreferences::NAME_AXES_LABELS     = "volume::axesLabels";
+    const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
+    const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
+    const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
+    const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
+    const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
+    const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

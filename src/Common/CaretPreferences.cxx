@@ -70,6 +70,34 @@ CaretPreferences::~CaretPreferences()
 }
 
 /**
+ * Get the boolean value for the given preference name.
+ * @param name
+ *    Name of the preference.
+ * @return
+ *    Boolean value of preference or defaultValue if the
+ *    named preference is not found.
+ */
+bool CaretPreferences::getBoolean(const AString& name,
+                                  const bool defaultValue)
+{
+    bool b = this->qSettings->value(name, defaultValue).toBool();
+    return b;
+}
+
+/**
+ * Set the given preference name with the boolean value.
+ * @param
+ *    Name of the preference.
+ * @param
+ *    New value for preference.
+ */
+void CaretPreferences::setBoolean(const AString& name,
+                                  const bool value)
+{
+    this->qSettings->setValue(name, value);
+}
+
+/**
  * Remove all user views.
  */
 void 
@@ -170,7 +198,7 @@ CaretPreferences::removeUserView(const AString& viewName)
 void 
 CaretPreferences::writeUserViews()
 {
-    this->qSettings->beginWriteArray("userViews");
+    this->qSettings->beginWriteArray(NAME_USER_VIEWS);
     const int32_t numViews = static_cast<int32_t>(this->userViews.size());
     for (int32_t i = 0; i < numViews; i++) {
         this->qSettings->setArrayIndex(i);
@@ -229,7 +257,7 @@ CaretPreferences::setColorForeground(const uint8_t colorForeground[3])
     this->colorForeground[1] = colorForeground[1];
     this->colorForeground[2] = colorForeground[2];
     
-    this->qSettings->beginWriteArray("colorForeground");
+    this->qSettings->beginWriteArray(NAME_COLOR_FOREGROUND);
     for (int i = 0; i < 3; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
@@ -285,7 +313,7 @@ CaretPreferences::setColorBackground(const uint8_t colorBackground[3])
     this->colorBackground[0] = colorBackground[0];
     this->colorBackground[1] = colorBackground[1];
     this->colorBackground[2] = colorBackground[2];
-    this->qSettings->beginWriteArray("colorBackground");
+    this->qSettings->beginWriteArray(NAME_COLOR_BACKGROUND);
     for (int i = 0; i < 3; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
@@ -322,7 +350,7 @@ CaretPreferences::addToPreviousSpecFiles(const AString& specFileName)
     }
     
     const int32_t num = static_cast<int32_t>(this->previousSpecFiles.size());
-    this->qSettings->beginWriteArray("previousSpecFiles");
+    this->qSettings->beginWriteArray(NAME_PREVIOUS_SPEC_FILES);
     for (int i = 0; i < num; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
@@ -380,7 +408,7 @@ CaretPreferences::addToPreviousOpenFileDirectories(const AString& directoryName)
                         directoryName);
     
     const int32_t num = static_cast<int32_t>(this->previousOpenFileDirectories.size());    
-    this->qSettings->beginWriteArray("previousOpenFileDirectories");
+    this->qSettings->beginWriteArray(NAME_PREVIOUS_OPEN_FILE_DIRECTORIES);
     for (int i = 0; i < num; i++) {
         this->qSettings->setArrayIndex(i);
         this->qSettings->setValue(AString::number(i),
@@ -444,8 +472,52 @@ CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
     this->loggingLevel = loggingLevel;
     
     const AString name = LogLevelEnum::toName(this->loggingLevel);
-    this->qSettings->setValue("loggingLevel", name);
+    this->qSettings->setValue(NAME_LOGGING_LEVEL, name);
     this->qSettings->sync();
+}
+
+/**
+ * @return  Are axes crosshairs displayed?
+ */
+bool 
+CaretPreferences::isVolumeAxesCrosshairsDisplayed() const
+{
+    return this->displayVolumeAxesCrosshairs;
+}
+
+/**
+ * Set axes crosshairs displayed
+ * @param displayed
+ *   New status.
+ */
+void 
+CaretPreferences::setVolumeAxesCrosshairsDisplayed(const bool displayed)
+{
+    this->displayVolumeAxesCrosshairs = displayed;
+    this->setBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS, 
+                     this->displayVolumeAxesCrosshairs);
+}
+
+/**
+ * @return  Are axes labels displayed?
+ */
+bool 
+CaretPreferences::isVolumeAxesLabelsDisplayed() const
+{
+    return this->displayVolumeAxesLabels;
+}
+
+/**
+ * Set axes labels displayed
+ * @param displayed
+ *   New status.
+ */
+void 
+CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
+{
+    this->displayVolumeAxesLabels = displayed;
+    this->setBoolean(CaretPreferences::NAME_AXES_LABELS, 
+                     this->displayVolumeAxesLabels);
 }
 
 /**
@@ -457,7 +529,7 @@ CaretPreferences::readPreferences()
     this->colorForeground[0] = 255;
     this->colorForeground[1] = 255;
     this->colorForeground[2] = 255;
-    const int numFG = this->qSettings->beginReadArray("colorForeground");
+    const int numFG = this->qSettings->beginReadArray(NAME_COLOR_FOREGROUND);
     for (int i = 0; i < numFG; i++) {
         this->qSettings->setArrayIndex(i);
         colorForeground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
@@ -467,7 +539,7 @@ CaretPreferences::readPreferences()
     this->colorBackground[0] = 0;
     this->colorBackground[1] = 0;
     this->colorBackground[2] = 0;
-    const int numBG = this->qSettings->beginReadArray("colorBackground");
+    const int numBG = this->qSettings->beginReadArray(NAME_COLOR_BACKGROUND);
     for (int i = 0; i < numBG; i++) {
         this->qSettings->setArrayIndex(i);
         colorBackground[i] = static_cast<uint8_t>(this->qSettings->value(AString::number(i)).toInt());
@@ -475,7 +547,7 @@ CaretPreferences::readPreferences()
     this->qSettings->endArray();
     
     this->previousSpecFiles.clear();    
-    const int numPrevSpec = this->qSettings->beginReadArray("previousSpecFiles");
+    const int numPrevSpec = this->qSettings->beginReadArray(NAME_PREVIOUS_SPEC_FILES);
     for (int i = 0; i < numPrevSpec; i++) {
         this->qSettings->setArrayIndex(i);
         previousSpecFiles.push_back(this->qSettings->value(AString::number(i)).toString());
@@ -483,7 +555,7 @@ CaretPreferences::readPreferences()
     this->qSettings->endArray();
     
     this->previousOpenFileDirectories.clear();
-    const int numPrevDir = this->qSettings->beginReadArray("previousOpenFileDirectories");
+    const int numPrevDir = this->qSettings->beginReadArray(NAME_PREVIOUS_OPEN_FILE_DIRECTORIES);
     for (int i = 0; i < numPrevDir; i++) {
         this->qSettings->setArrayIndex(i);
         previousOpenFileDirectories.push_back(this->qSettings->value(AString::number(i)).toString());
@@ -491,7 +563,7 @@ CaretPreferences::readPreferences()
     this->qSettings->endArray();
     
     this->removeAllUserViews();
-    const int numUserViews = this->qSettings->beginReadArray("userViews");
+    const int numUserViews = this->qSettings->beginReadArray(NAME_USER_VIEWS);
     for (int i = 0; i < numUserViews; i++) {
         this->qSettings->setArrayIndex(i);
         const AString viewString = this->qSettings->value(AString::number(i)).toString();
@@ -503,13 +575,18 @@ CaretPreferences::readPreferences()
     this->qSettings->endArray();
     
     LogLevelEnum::Enum defaultValue = LogLevelEnum::INFO;
-    AString levelName = this->qSettings->value("loggingLevel", 
+    AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL, 
                                           LogLevelEnum::toName(defaultValue)).toString();
     bool valid = false;
     this->loggingLevel = LogLevelEnum::fromName(levelName, &valid);
     if (valid == false) {
         this->loggingLevel = LogLevelEnum::INFO;
     }
+    
+    this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_AXES_LABELS,
+                                                     true);
+    this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
+                                                         true);
 }
 
 /**

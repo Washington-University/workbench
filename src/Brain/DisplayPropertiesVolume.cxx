@@ -44,8 +44,6 @@ using namespace caret;
 DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
 : DisplayProperties(brain)
 {
-    this->displayAxesCrosshairs = true;
-    this->displayAxesLabels = true;
 }
 
 /**
@@ -72,46 +70,6 @@ void
 DisplayPropertiesVolume::update()
 {
     
-}
-
-/**
- * @return  Are axes crosshairs displayed?
- */
-bool 
-DisplayPropertiesVolume::isAxesCrosshairsDisplayed() const
-{
-    return this->displayAxesCrosshairs;
-}
-
-/**
- * Set axes crosshairs displayed
- * @param displayed
- *   New status.
- */
-void 
-DisplayPropertiesVolume::setAxesCrosshairsDisplayed(const bool displayed)
-{
-    this->displayAxesCrosshairs = displayed;
-}
-
-/**
- * @return  Are axes labels displayed?
- */
-bool 
-DisplayPropertiesVolume::isAxesLabelsDisplayed() const
-{
-    return this->displayAxesLabels;
-}
-
-/**
- * Set axes labels displayed
- * @param displayed
- *   New status.
- */
-void 
-DisplayPropertiesVolume::setAxesLabelsDisplayed(const bool displayed)
-{
-    this->displayAxesLabels = displayed;
 }
 
 

@@ -28,9 +28,12 @@
 
 #include "WuQDialogNonModal.h"
 
+class QCheckBox;
 class QComboBox;
 
 namespace caret {
+    
+    class WuQWidgetObjectGroup;
     
     class PreferencesDialog : public WuQDialogNonModal {
         Q_OBJECT
@@ -50,7 +53,14 @@ namespace caret {
         void foregroundColorPushButtonPressed();
         void loggingLevelComboBoxChanged(int);
         
+        void volumeAxesCrosshairsCheckBoxToggled(bool value);
+        void volumeAxesLabelsCheckBoxToggled(bool value);
+        
     private:
+        QWidget* createColorsWidget();
+        QWidget* createLoggingWidget();
+        QWidget* createVolumeWidget();
+        
         PreferencesDialog(const PreferencesDialog&);
 
         PreferencesDialog& operator=(const PreferencesDialog&);
@@ -59,6 +69,12 @@ namespace caret {
         QWidget* backgroundColorWidget;
 
         QComboBox* loggingLevelComboBox;
+        
+        QCheckBox* volumeAxesCrosshairsCheckBox;
+        QCheckBox* volumeAxesLabelsCheckBox;
+        
+        
+        WuQWidgetObjectGroup* allWidgets;
     };
     
 #ifdef __PREFERENCES_DIALOG__H__DECLARE__
