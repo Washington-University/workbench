@@ -3088,6 +3088,19 @@ BrainBrowserWindowToolBar::volumePlaneActionGroupTriggered(QAction* action)
     }
     
     volumeController->setSliceViewPlane(tabIndex, plane);
+    
+    /*
+     * If ALL and currently Montage, switch from Montage to Orthogonal
+     * since ALL and Montage are incompatible.
+     */
+    if (plane == VolumeSliceViewPlaneEnum::ALL) {
+        if (volumeController->getSliceViewMode(tabIndex) == VolumeSliceViewModeEnum::MONTAGE) {
+            volumeController->setSliceViewMode(tabIndex, 
+                                               VolumeSliceViewModeEnum::ORTHOGONAL);
+            this->updateVolumePlaneWidget(btc);
+        }
+    }
+    
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
@@ -3124,6 +3137,17 @@ BrainBrowserWindowToolBar::volumePlaneViewActionGroupTriggered(QAction* action)
         return;
     }
     volumeController->setSliceViewMode(tabIndex, mode);
+    /*
+     * If Montage and currently ALL, switch from ALL to Axial
+     * since ALL and Montage are incompatible.
+     */
+    if (mode == VolumeSliceViewModeEnum::MONTAGE) {
+        if (volumeController->getSliceViewPlane(tabIndex) == VolumeSliceViewPlaneEnum::ALL) {
+            volumeController->setSliceViewPlane(tabIndex, 
+                                               VolumeSliceViewPlaneEnum::AXIAL);
+            this->updateVolumePlaneWidget(btc);
+        }
+    }
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
