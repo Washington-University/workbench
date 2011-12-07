@@ -33,6 +33,7 @@ CaretAssert.h
 CaretAssertion.h
 CaretException.h
 CaretFunctionName.h
+CaretHeap.h
 CaretHttpManager.h
 CaretLogger.h
 CaretMutex.h

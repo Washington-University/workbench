@@ -296,6 +296,9 @@ public:
     static float toRadians(float angle);
     
     static float toDegrees(float radians);
+    
+    ///greatest common divisor
+    static uint32_t gcd(uint32_t num1, uint32_t num2);
 };
 
 } // namespace

@@ -35,6 +35,7 @@
 //tests
 #include "CiftiFileTest.h"
 #include "HttpTest.h"
+#include "HeapTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
 #include "ProgressTest.h"
@@ -60,6 +61,7 @@ int main(int argc, char** argv)
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
+        mytests.push_back(new HeapTest("heap"));
         mytests.push_back(new HttpTest("http"));
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));
