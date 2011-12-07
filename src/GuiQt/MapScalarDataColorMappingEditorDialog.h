@@ -1,5 +1,5 @@
-#ifndef __PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_
-#define __PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_
+#ifndef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_
+#define __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_
 
 /*LICENSE_START*/
 /* 
@@ -40,16 +40,16 @@ namespace caret {
     class PaletteColorMapping;
     class WuQWidgetObjectGroup;
     
-    class PaletteColorMappingEditorDialog : public WuQDialogNonModal {
+    class MapScalarDataColorMappingEditorDialog : public WuQDialogNonModal {
         Q_OBJECT
         
     public:
-        PaletteColorMappingEditorDialog(QWidget* parent);
+        MapScalarDataColorMappingEditorDialog(QWidget* parent);
         
-        void updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
+        void updateEditor(CaretMappableDataFile* caretMappableDataFile,
                                  const int32_t mapIndex);
                     
-        virtual ~PaletteColorMappingEditorDialog();
+        virtual ~MapScalarDataColorMappingEditorDialog();
 
         void updateDialog();
         
@@ -57,11 +57,15 @@ namespace caret {
         virtual void applyButtonPressed();
         
     private:
-        PaletteColorMappingEditorDialog(const PaletteColorMappingEditorDialog&);
+        MapScalarDataColorMappingEditorDialog(const MapScalarDataColorMappingEditorDialog&);
 
-        PaletteColorMappingEditorDialog& operator=(const PaletteColorMappingEditorDialog&);
+        MapScalarDataColorMappingEditorDialog& operator=(const MapScalarDataColorMappingEditorDialog&);
         
     private:
+        QWidget* createPaletteSection();
+        QWidget* createThresholdSection();
+        QWidget* createHistogramSection();
+        
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
@@ -89,9 +93,9 @@ namespace caret {
         WuQWidgetObjectGroup* widgetGroup;
     };
     
-#ifdef __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#ifdef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#endif // __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__PALETTE_COLOR_MAPPING_EDITOR_DIALOG__H_
+#endif  //__MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG__H_

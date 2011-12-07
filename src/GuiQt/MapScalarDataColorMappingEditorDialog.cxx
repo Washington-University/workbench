@@ -35,9 +35,9 @@
 #include <QLabel>
 #include <QRadioButton>
 
-#define __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
-#include "PaletteColorMappingEditorDialog.h"
-#undef __PALETTE_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#define __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
+#include "MapScalarDataColorMappingEditorDialog.h"
+#undef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
 
 #include "Brain.h"
 #include "CaretMappableDataFile.h"
@@ -57,10 +57,10 @@ using namespace caret;
 
     
 /**
- * \class PaletteEditorDialog 
- * \brief Dialog for editing palettes.
+ * \class MapSettingsScalarDataEditorDialog 
+ * \brief Dialog for editing scalar data map settings
  *
- * Presents controls for editing palettes used to color
+ * Presents controls for setting palettes, and thresholding used to color
  * scalar data.
  */
 
@@ -70,8 +70,8 @@ using namespace caret;
  * @param parent
  *    Parent widget on which this dialog is displayed.
  */
-PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent)
-: WuQDialogNonModal("Palette ColorMapping Editor",
+MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWidget* parent)
+: WuQDialogNonModal("Scalar Data Color Mapping Editor",
                     parent)
 {
     this->setDeleteWhenClosed(false);
@@ -83,6 +83,77 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
     
     this->paletteColorMapping = NULL;
     
+    QWidget* histogramWidget = this->createHistogramSection();
+    QWidget* paletteWidget = this->createPaletteSection();
+    QWidget* thresholdWidget = this->createThresholdSection();
+    
+    QWidget* w = new QWidget();
+    QGridLayout* layout = new QGridLayout(w);
+    layout->addWidget(thresholdWidget, 0, 0);
+    layout->addWidget(histogramWidget, 0, 1);
+    layout->addWidget(paletteWidget, 1, 0, 1, 2);
+    
+    this->setCentralWidget(w);
+}
+
+/**
+ * Destructor.
+ */
+MapScalarDataColorMappingEditorDialog::~MapScalarDataColorMappingEditorDialog()
+{
+    
+}
+
+/**
+ * May be called to update the dialog's content.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::updateDialog()
+{
+}
+
+/**
+ * Create the threshold section of the dialog.
+ * @return
+ *   The threshold section.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createThresholdSection()
+{
+    QWidget* w = new QWidget();
+    //QVBoxLayout* layout = new QVBoxLayout(w);
+    //layout->addWidget(paletteSelectionGroupBox);
+    //layout->addWidget(colorMappingGroupBox);
+    //layout->addWidget(displayModeGroupBox);
+    
+    return w;
+}
+
+/**
+ * Create the histogram section of the dialog.
+ * @return
+ *   The histogram section.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createHistogramSection()
+{
+    QWidget* w = new QWidget();
+    //QVBoxLayout* layout = new QVBoxLayout(w);
+    //layout->addWidget(paletteSelectionGroupBox);
+    //layout->addWidget(colorMappingGroupBox);
+    //layout->addWidget(displayModeGroupBox);
+    
+    return w;
+}
+
+/**
+ * Create the palette section of the dialog.
+ * @return
+ *   The palette section.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createPaletteSection()
+{
     /*
      * Palette Selection
      */
@@ -235,27 +306,12 @@ PaletteColorMappingEditorDialog::PaletteColorMappingEditorDialog(QWidget* parent
     layout->addWidget(paletteSelectionGroupBox);
     layout->addWidget(colorMappingGroupBox);
     layout->addWidget(displayModeGroupBox);
-    this->setCentralWidget(w);
-}
-
-/**
- * Destructor.
- */
-PaletteColorMappingEditorDialog::~PaletteColorMappingEditorDialog()
-{
     
+    return w;
 }
 
 /**
- * May be called to update the dialog's content.
- */
-void 
-PaletteColorMappingEditorDialog::updateDialog()
-{
-}
-
-/**
- * Update contents for editing a palette in a caret
+ * Update contents for editing a map settings for data in a caret
  * mappable data file.
  *
  * @param caretMappableDataFile
@@ -264,7 +320,7 @@ PaletteColorMappingEditorDialog::updateDialog()
  *    Index of map for palette that is edited.
  */
 void 
-PaletteColorMappingEditorDialog::updatePaletteEditor(CaretMappableDataFile* caretMappableDataFile,
+MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caretMappableDataFile,
                                          const int32_t mapIndex)
 {
     const AString title =
@@ -333,7 +389,7 @@ PaletteColorMappingEditorDialog::updatePaletteEditor(CaretMappableDataFile* care
 /**
  * Called when the apply button is pressed.
  */
-void PaletteColorMappingEditorDialog::applyButtonPressed()
+void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
 {
     const int itemIndex = this->paletteNameComboBox->currentIndex();
     if (itemIndex >= 0) {

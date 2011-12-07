@@ -118,6 +118,10 @@ EventTypeEnum::initialize()
                                      "EVENT_INFORMATION_TEXT_DISPLAY",
                                      "Display text in information windows"));
     
+    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
+                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR",
+                                     "Display map scalar data color mapping editor"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 
                                      "Add a model display controller"));
@@ -133,10 +137,6 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
                                      "Get all model display YOKING GROUP controllers"));
-    
-    enumData.push_back(EventTypeEnum(EVENT_PALETTE_COLOR_MAPPING_EDITOR, 
-                                     "EVENT_PALETTE_COLOR_MAPPING_EDITOR", 
-                                     "Display palette color mapping editor"));
     
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",

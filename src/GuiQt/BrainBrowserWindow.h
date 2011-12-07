@@ -45,7 +45,7 @@ namespace caret {
     class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
-    class PaletteColorMappingEditorDialog;
+    class MapScalarDataColorMappingEditorDialog;
 
     
     /**
@@ -203,8 +203,8 @@ namespace caret {
         
         WindowComponentStatus normalWindowComponentStatus;
                 
-        /* Editor for palette color mapping. */
-        PaletteColorMappingEditorDialog* paletteColorMappingEditor;
+        /* Editor for scalar color mapping. */
+        MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
         
         friend class GuiManager;
     };

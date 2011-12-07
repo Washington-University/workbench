@@ -38,7 +38,7 @@
 #include "CaretLogger.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
-#include "EventPaletteColorMappingEditor.h"
+#include "EventMapScalarDataColorMappingEditor.h"
 #include "CaretMappableDataFile.h"
 #include "GuiManager.h"
 #include "Overlay.h"
@@ -304,7 +304,7 @@ OverlaySelectionControlLayer::settingsToolButtonPressed()
     if (mapFile != NULL) {
         if (mapFile->isMappedWithPalette()) {
             if (mapFile != NULL) {
-                EventPaletteColorMappingEditor pcme(this->browserWindowIndex,
+                EventMapScalarDataColorMappingEditor pcme(this->browserWindowIndex,
                                                     mapFile,
                                                     mapIndex);
                 EventManager::get()->sendEvent(pcme.getPointer());

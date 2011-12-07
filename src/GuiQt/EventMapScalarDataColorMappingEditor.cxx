@@ -22,7 +22,7 @@
  * 
  */ 
 
-#include "EventPaletteColorMappingEditor.h"
+#include "EventMapScalarDataColorMappingEditor.h"
 
 using namespace caret;
 
@@ -35,10 +35,10 @@ using namespace caret;
  * @param mapIndex
  *    Map index in mapFile.
  */
-EventPaletteColorMappingEditor::EventPaletteColorMappingEditor(const int32_t browserWindowIndex,
+EventMapScalarDataColorMappingEditor::EventMapScalarDataColorMappingEditor(const int32_t browserWindowIndex,
                                                                CaretMappableDataFile* mapFile,
                                                                const int32_t mapIndex)
-: Event(EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR)
+: Event(EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->mapFile = mapFile;
@@ -48,7 +48,7 @@ EventPaletteColorMappingEditor::EventPaletteColorMappingEditor(const int32_t bro
 /*
  * Destructor.
  */
-EventPaletteColorMappingEditor::~EventPaletteColorMappingEditor()
+EventMapScalarDataColorMappingEditor::~EventMapScalarDataColorMappingEditor()
 {
     
 }

@@ -66,6 +66,8 @@ public:
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Display text in information windows */
         EVENT_INFORMATION_TEXT_DISPLAY,
+        /** map scalar color data mapping editor */
+        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */
@@ -74,8 +76,6 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
         /** model display yoking group controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
-        /** display palette color mapping editor */
-        EVENT_PALETTE_COLOR_MAPPING_EDITOR,
         /** Read the selected files in a spec file */
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */

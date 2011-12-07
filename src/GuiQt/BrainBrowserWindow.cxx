@@ -42,14 +42,14 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventPaletteColorMappingEditor.h"
+#include "EventMapScalarDataColorMappingEditor.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
-#include "PaletteColorMappingEditorDialog.h"
+#include "MapScalarDataColorMappingEditorDialog.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
@@ -79,7 +79,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 {
     this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     
-    this->paletteColorMappingEditor = NULL;
+    this->scalarDataColorMappingEditor = NULL;
     GuiManager* guiManager = GuiManager::get();
     
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -122,8 +122,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolbar->updateToolBar();
 
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
     
     QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
                      this->toolBox, SLOT(updateDisplayedPanel()));
@@ -1272,9 +1272,9 @@ BrainBrowserWindow::receiveEvent(Event* event)
         
         uiEvent->setEventProcessed();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_PALETTE_COLOR_MAPPING_EDITOR) {
-        EventPaletteColorMappingEditor* mapEditEvent =
-        dynamic_cast<EventPaletteColorMappingEditor*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR) {
+        EventMapScalarDataColorMappingEditor* mapEditEvent =
+        dynamic_cast<EventMapScalarDataColorMappingEditor*>(event);
         CaretAssert(mapEditEvent);
         
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
@@ -1282,21 +1282,22 @@ BrainBrowserWindow::receiveEvent(Event* event)
             CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
             const int mapIndex = mapEditEvent->getMapIndex();
             
-            if (this->paletteColorMappingEditor == NULL) {
-                this->paletteColorMappingEditor =
-                new PaletteColorMappingEditorDialog(this);
+            if (this->scalarDataColorMappingEditor == NULL) {
+                this->scalarDataColorMappingEditor =
+                new MapScalarDataColorMappingEditorDialog(this);
             }
-            this->paletteColorMappingEditor->updatePaletteEditor(mapFile, mapIndex);
-            this->paletteColorMappingEditor->show();
-            this->paletteColorMappingEditor->raise();
-            this->paletteColorMappingEditor->activateWindow();
+            this->scalarDataColorMappingEditor->updateEditor(mapFile,
+                                                             mapIndex);
+            this->scalarDataColorMappingEditor->show();
+            this->scalarDataColorMappingEditor->raise();
+            this->scalarDataColorMappingEditor->activateWindow();
             WuQtUtilities::moveWindowToSideOfParent(this,
-                                                    this->paletteColorMappingEditor);
+                                                    this->scalarDataColorMappingEditor);
             mapEditEvent->setEventProcessed();
         }
         else {
-            if (this->paletteColorMappingEditor != NULL) {
-                this->paletteColorMappingEditor->hide();
+            if (this->scalarDataColorMappingEditor != NULL) {
+                this->scalarDataColorMappingEditor->hide();
             }
         }
     }
