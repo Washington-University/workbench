@@ -23,6 +23,8 @@
  *
  */
 
+#include <algorithm>
+
 #include <QActionGroup>
 #include <QApplication>
 #include <QBoxLayout>
@@ -1505,6 +1507,23 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     QObject::connect(this->volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
     
+    this->volumeIndicesXcoordSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesXcoordSpinBox,
+                                          "Adjust coordinate to select PARASAGITTAL slice");
+    QObject::connect(this->volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
+    
+    this->volumeIndicesYcoordSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesYcoordSpinBox,
+                                          "Adjust coordinate to select CORONAL slice");
+    QObject::connect(this->volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
+    
+    this->volumeIndicesZcoordSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesZcoordSpinBox,
+                                          "Adjust coordinate to select AXIAL slice");
+    QObject::connect(this->volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(volumeIndicesZcoordSpinBoxValueChanged(double)));
     
     QGridLayout* gridLayout = new QGridLayout();
     gridLayout->setHorizontalSpacing(2);
@@ -1512,13 +1531,19 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     gridLayout->addWidget(this->volumeIndicesParasagittalCheckBox, 0, 0);
     gridLayout->addWidget(parasagittalLabel, 0, 1);
     gridLayout->addWidget(this->volumeIndicesParasagittalSpinBox, 0, 2);
+    gridLayout->addWidget(this->volumeIndicesXcoordSpinBox, 0, 3);
+    
     gridLayout->addWidget(this->volumeIndicesCoronalCheckBox, 1, 0);
     gridLayout->addWidget(coronalLabel, 1, 1);
     gridLayout->addWidget(this->volumeIndicesCoronalSpinBox, 1, 2);
+    gridLayout->addWidget(this->volumeIndicesYcoordSpinBox, 1, 3);
+    
     gridLayout->addWidget(this->volumeIndicesAxialCheckBox, 2, 0);
     gridLayout->addWidget(axialLabel, 2, 1);
     gridLayout->addWidget(this->volumeIndicesAxialSpinBox, 2, 2);
-    gridLayout->addWidget(volumeIndicesResetToolButton, 0, 3, 3, 1);
+    gridLayout->addWidget(this->volumeIndicesZcoordSpinBox, 2, 3);
+
+    gridLayout->addWidget(volumeIndicesResetToolButton, 0, 4, 3, 1);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1534,8 +1559,11 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesCoronalSpinBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialCheckBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesAxialSpinBox);
+    this->volumeIndicesWidgetGroup->add(this->volumeIndicesXcoordSpinBox);
+    this->volumeIndicesWidgetGroup->add(this->volumeIndicesYcoordSpinBox);
+    this->volumeIndicesWidgetGroup->add(this->volumeIndicesZcoordSpinBox);
     
-    QWidget* w = this->createToolWidget("Volume Indices", 
+    QWidget* w = this->createToolWidget("Slice Indices/Coords", 
                                         widget, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
@@ -1597,7 +1625,42 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
         this->volumeIndicesAxialSpinBox->setMaximum(maxAxialDim);
         this->volumeIndicesCoronalSpinBox->setMaximum(maxCoronalDim);
         this->volumeIndicesParasagittalSpinBox->setMaximum(maxParasagittalDim);
+        
+        int64_t slicesZero[3] = { 0, 0, 0 };
+        float sliceZeroCoords[3];
+        vf->indexToSpace(slicesZero,
+                         sliceZeroCoords);
+        int64_t slicesMax[3] = { maxParasagittalDim, maxCoronalDim, maxAxialDim };
+        float sliceMaxCoords[3];
+        vf->indexToSpace(slicesMax,
+                         sliceMaxCoords);
+        
+        this->volumeIndicesXcoordSpinBox->setMinimum(std::min(sliceZeroCoords[0],
+                                                              sliceMaxCoords[0]));
+        this->volumeIndicesYcoordSpinBox->setMinimum(std::min(sliceZeroCoords[1],
+                                                              sliceMaxCoords[1]));
+        this->volumeIndicesZcoordSpinBox->setMinimum(std::min(sliceZeroCoords[2],
+                                                              sliceMaxCoords[2]));
+        
+        this->volumeIndicesXcoordSpinBox->setMaximum(std::max(sliceZeroCoords[0],
+                                                              sliceMaxCoords[0]));
+        this->volumeIndicesYcoordSpinBox->setMaximum(std::max(sliceZeroCoords[1],
+                                                              sliceMaxCoords[1]));
+        this->volumeIndicesZcoordSpinBox->setMaximum(std::max(sliceZeroCoords[2],
+                                                              sliceMaxCoords[2])); 
+        
+        int64_t slicesOne[3] = { 1, 1, 1 };
+        float slicesOneCoords[3];
+        vf->indexToSpace(slicesOne,
+                         slicesOneCoords);
+        const float dx = std::fabs(slicesOne[0] - slicesZero[0]);
+        const float dy = std::fabs(slicesOne[1] - slicesZero[1]);
+        const float dz = std::fabs(slicesOne[2] - slicesZero[2]);
+        this->volumeIndicesXcoordSpinBox->setSingleStep(dx);
+        this->volumeIndicesXcoordSpinBox->setSingleStep(dy);
+        this->volumeIndicesXcoordSpinBox->setSingleStep(dz);
     }
+    
     if (sliceSelection != NULL) {
         this->volumeIndicesAxialCheckBox->setChecked(sliceSelection->isSliceAxialEnabled());
         this->volumeIndicesAxialSpinBox->setValue(sliceSelection->getSliceIndexAxial());
@@ -1605,6 +1668,18 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
         this->volumeIndicesCoronalSpinBox->setValue(sliceSelection->getSliceIndexCoronal());
         this->volumeIndicesParasagittalCheckBox->setChecked(sliceSelection->isSliceParasagittalEnabled());
         this->volumeIndicesParasagittalSpinBox->setValue(sliceSelection->getSliceIndexParasagittal());
+
+        int64_t slices[3] = {
+            sliceSelection->getSliceIndexParasagittal(),
+            sliceSelection->getSliceIndexCoronal(),
+            sliceSelection->getSliceIndexAxial()
+        };
+        float sliceCoords[3];
+        vf->indexToSpace(slices,
+                         sliceCoords);
+        this->volumeIndicesXcoordSpinBox->setValue(sliceCoords[0]);
+        this->volumeIndicesYcoordSpinBox->setValue(sliceCoords[1]);
+        this->volumeIndicesZcoordSpinBox->setValue(sliceCoords[2]);
     }
     
     this->volumeIndicesWidgetGroup->blockSignals(false);
@@ -2932,6 +3007,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*
         sliceSelection->setSliceIndexParasagittal(this->volumeIndicesParasagittalSpinBox->value());
     }
     
+    this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
 
@@ -2966,6 +3042,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
         sliceSelection->setSliceIndexCoronal(this->volumeIndicesCoronalSpinBox->value());
     }
     
+    this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
 
@@ -3000,6 +3077,91 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
         sliceSelection->setSliceIndexAxial(this->volumeIndicesAxialSpinBox->value());
     }
     
+    this->updateVolumeIndicesWidget(btc);
+    this->updateGraphicsWindow();
+}
+
+/**
+ * Called when X stereotaxic coordinate is changed.
+ * @param d
+ *    New value.
+ */
+void 
+BrainBrowserWindowToolBar::volumeIndicesXcoordSpinBoxValueChanged(double /*d*/)
+{
+    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
+}
+
+/**
+ * Called when Y stereotaxic coordinate is changed.
+ * @param d
+ *    New value.
+ */
+void 
+BrainBrowserWindowToolBar::volumeIndicesYcoordSpinBoxValueChanged(double /*d*/)
+{
+    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
+}
+
+/**
+ * Called when Z stereotaxic coordinate is changed.
+ * @param d
+ *    New value.
+ */
+void 
+BrainBrowserWindowToolBar::volumeIndicesZcoordSpinBoxValueChanged(double /*d*/)
+{
+    this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
+}
+
+/**
+ * Read the slice coordinates and convert to slices indices and then
+ * update the displayed slices.
+ */
+void 
+BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
+{    
+    CaretLogEntering();
+    this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    VolumeSliceIndicesSelection* sliceSelection = NULL;
+    
+    VolumeFile* underlayVolumeFile = NULL;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
+            underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+        }
+    }
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        if (this->getDisplayedModelController() == volumeController) {
+            sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
+            underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+        }
+    }
+    
+    if (sliceSelection != NULL) {  
+        if (underlayVolumeFile != NULL) {
+            float sliceCoords[3] = {
+                this->volumeIndicesXcoordSpinBox->value(),
+                this->volumeIndicesYcoordSpinBox->value(),
+                this->volumeIndicesZcoordSpinBox->value()
+            };
+            
+            float sliceIndicesFloat[3];
+            underlayVolumeFile->spaceToIndex(sliceCoords, sliceIndicesFloat);
+            sliceSelection->setSliceIndexParasagittal(static_cast<int64_t>(sliceIndicesFloat[0] + 0.5));
+            sliceSelection->setSliceIndexCoronal(static_cast<int64_t>(sliceIndicesFloat[1] + 0.5));
+            sliceSelection->setSliceIndexAxial(static_cast<int64_t>(sliceIndicesFloat[2] + 0.5));
+        }
+    }
+    
+    this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
 

@@ -266,6 +266,11 @@ namespace caret {
         QSpinBox*  volumeIndicesParasagittalSpinBox;
         QSpinBox*  volumeIndicesCoronalSpinBox;
         QSpinBox*  volumeIndicesAxialSpinBox;
+        QDoubleSpinBox* volumeIndicesXcoordSpinBox;
+        QDoubleSpinBox* volumeIndicesYcoordSpinBox;
+        QDoubleSpinBox* volumeIndicesZcoordSpinBox;
+        
+        void readVolumeSliceCoordinatesAndUpdateSliceIndices();
         
     private slots:
         void volumeIndicesResetActionTriggered();
@@ -275,6 +280,9 @@ namespace caret {
         void volumeIndicesParasagittalSpinBoxValueChanged(int i);
         void volumeIndicesCoronalSpinBoxValueChanged(int i);
         void volumeIndicesAxialSpinBoxValueChanged(int i);
+        void volumeIndicesXcoordSpinBoxValueChanged(double d);
+        void volumeIndicesYcoordSpinBoxValueChanged(double d);
+        void volumeIndicesZcoordSpinBoxValueChanged(double d);
         
     private:
         
