@@ -66,9 +66,9 @@ PaletteScaleModeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE, 1, "MODE_AUTO_SCALE", "Auto Scale"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE, 0, "MODE_AUTO_SCALE", "Auto Scale"));
     enumData.push_back(PaletteScaleModeEnum(MODE_AUTO_SCALE_PERCENTAGE, 1, "MODE_AUTO_SCALE_PERCENTAGE", "Auto Scale - Percentage"));
-    enumData.push_back(PaletteScaleModeEnum(MODE_USER_SCALE, 1, "MODE_USER_SCALE", "User Scale"));
+    enumData.push_back(PaletteScaleModeEnum(MODE_USER_SCALE, 2, "MODE_USER_SCALE", "User Scale"));
 }
 
 /**
@@ -298,8 +298,8 @@ PaletteThresholdTestEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_ABOVE, 1, "THRESHOLD_TEST_SHOW_ABOVE", "Show Data Above Threshold"));
-    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_BELOW, 1, "THRESHOLD_TEST_SHOW_BELOW", "Show Data Below Threshold"));
+    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_OUTSIDE, 1, "THRESHOLD_TEST_SHOW_OUTSIDE", "Show Data Outside Thresholds"));
+    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_INSIDE, 1, "THRESHOLD_TEST_SHOW_INSIDE", "Show Data Below Threshold"));
 }
 
 /**
@@ -344,7 +344,7 @@ PaletteThresholdTestEnum::toName(Enum e) {
 
 /**
  * Get an enumerated value corresponding to its name.
- * @param s 
+ * @param sin
  *     Name of enumerated value.
  * @param isValidOut 
  *     If not NULL, it is set indicating that a
@@ -353,12 +353,20 @@ PaletteThresholdTestEnum::toName(Enum e) {
  *     Enumerated value.
  */
 PaletteThresholdTestEnum::Enum 
-PaletteThresholdTestEnum::fromName(const AString& s, bool* isValidOut)
+PaletteThresholdTestEnum::fromName(const AString& sin, bool* isValidOut)
 {
     initialize();
     
     bool validFlag = false;
     Enum e;
+    
+    AString s = sin;
+    if (s == "THRESHOLD_TEST_SHOW_ABOVE") {
+        s = "THRESHOLD_TEST_SHOW_OUTSIDE";
+    }
+    else if (s == "THRESHOLD_TEST_SHOW_BELOW") {
+        s = "THRESHOLD_TEST_SHOW_INSIDE";
+    }
     
     for (std::vector<PaletteThresholdTestEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

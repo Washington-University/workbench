@@ -191,8 +191,8 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES) {
                std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
-                   this->paletteColorMapping->setThresholdMappedAverageAreaNegative(values[0]);
-                   this->paletteColorMapping->setThresholdMappedAverageAreaPositive(values[1]);
+                   this->paletteColorMapping->setThresholdMappedAverageAreaMinimum(values[0]);
+                   this->paletteColorMapping->setThresholdMappedAverageAreaMaximum(values[1]);
                }
                else {
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped average area does not contain two values.");
@@ -201,8 +201,8 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES) {
                std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
-                   this->paletteColorMapping->setThresholdMappedNegative(values[0]);
-                   this->paletteColorMapping->setThresholdMappedPositive(values[1]);
+                   this->paletteColorMapping->setThresholdMappedMinimum(values[0]);
+                   this->paletteColorMapping->setThresholdMappedMaximum(values[1]);
                }
                else {
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped does not contain two values.");
@@ -211,8 +211,8 @@ PaletteColorMappingSaxReader::endElement(const AString& /* namspaceURI */,
            else if (qName == PaletteColorMappingXmlElements::XML_TAG_THRESHOLD_NORMAL_VALUES) {
                std::vector<float> values = toFloatVector(this->elementText);
                if (values.size() >= 2) {
-                   this->paletteColorMapping->setThresholdNormalNegative(values[0]);
-                   this->paletteColorMapping->setThresholdNormalPositive(values[1]);
+                   this->paletteColorMapping->setThresholdNormalMinimum(values[0]);
+                   this->paletteColorMapping->setThresholdNormalMaximum(values[1]);
                }
                else {
                    throw XmlSaxParserException("PaletteColorMappingXmlElements::threshild mapped normal does not contain two values.");

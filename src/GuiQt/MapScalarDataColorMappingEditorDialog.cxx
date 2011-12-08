@@ -52,6 +52,7 @@
 #include "PaletteFile.h"
 #include "PaletteEnums.h"
 #include "WuQWidgetObjectGroup.h"
+#include "WuQDoubleSlider.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -78,7 +79,11 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
 {
     this->setDeleteWhenClosed(false);
 
-    this->isUpdateInProgress = false;
+    this->caretMappableDataFile = NULL;
+    this->mapFileIndex = -1;
+    
+    this->paletteWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->thresholdWidgetGroup = new WuQWidgetObjectGroup(this);
     
     /*
      * No apply button
@@ -105,7 +110,6 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
  */
 MapScalarDataColorMappingEditorDialog::~MapScalarDataColorMappingEditorDialog()
 {
-    
 }
 
 /**
@@ -114,6 +118,129 @@ MapScalarDataColorMappingEditorDialog::~MapScalarDataColorMappingEditorDialog()
 void 
 MapScalarDataColorMappingEditorDialog::updateDialog()
 {
+    this->updateEditor(this->caretMappableDataFile, 
+                       this->mapFileIndex);
+}
+
+/**
+ * Called when the threshold type is changed
+ * since the adjustment section needs to be 
+ * updated.
+ * @param button
+ *    Button that was clicked.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdTypeButtonClicked(QAbstractButton* button)
+{
+    if (button == this->thresholdTypeOffRadioButton) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+    }
+    else if (button == this->thresholdTypeOnRadioButton) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
+    }
+    else if (button == this->thresholdTypeMappedRadioButton) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED);
+    }
+    else if (button == this->thresholdTypeMappedAverageAreaRadioButton) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA);
+    }
+    
+    this->updateEditor(this->caretMappableDataFile, 
+                       this->mapFileIndex);
+    
+    this->apply();
+}
+
+/**
+ * Called when low value spin box changed.
+ * @param d
+ *    New value.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdLowSpinBoxValueChanged(double d)
+{
+    if (d > this->thresholdHighSpinBox->value()) {
+        this->thresholdHighSpinBox->blockSignals(true);
+        this->thresholdHighSpinBox->setValue(d);
+        this->thresholdHighSpinBox->blockSignals(false);
+        this->thresholdHighSlider->blockSignals(true);
+        this->thresholdHighSlider->setValue(d);
+        this->thresholdHighSlider->blockSignals(false);
+    }
+    this->thresholdLowSlider->blockSignals(true);
+    this->thresholdLowSlider->setValue(d);
+    this->thresholdLowSlider->blockSignals(false);
+    
+    this->apply();
+}
+
+/**
+ * Called when high value spin box changed.
+ * @param d
+ *    New value.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdHighSpinBoxValueChanged(double d)
+{
+    if (d < this->thresholdLowSpinBox->value()) {
+        this->thresholdLowSpinBox->blockSignals(true);
+        this->thresholdLowSpinBox->setValue(d);
+        this->thresholdLowSpinBox->blockSignals(false);
+        this->thresholdLowSlider->blockSignals(true);
+        this->thresholdLowSlider->setValue(d);
+        this->thresholdLowSlider->blockSignals(false);
+    }
+    this->thresholdHighSlider->blockSignals(true);
+    this->thresholdHighSlider->setValue(d);
+    this->thresholdHighSlider->blockSignals(false);
+    
+    this->apply();
+}
+
+/**
+ * Called when low value slider changed.
+ * @param d
+ *    New value.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdLowSliderValueChanged(double d)
+{
+    if (d > this->thresholdHighSlider->value()) {
+        this->thresholdHighSlider->blockSignals(true);
+        this->thresholdHighSlider->setValue(d);
+        this->thresholdHighSlider->blockSignals(false);
+        this->thresholdHighSpinBox->blockSignals(true);
+        this->thresholdHighSpinBox->setValue(d);
+        this->thresholdHighSpinBox->blockSignals(false);
+    }
+    this->thresholdLowSpinBox->blockSignals(true);
+    this->thresholdLowSpinBox->setValue(d);
+    this->thresholdLowSpinBox->blockSignals(false);
+    
+    this->apply();
+}
+
+/**
+ * Called when high value slider changed.
+ * @param d
+ *    New value.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
+{
+    if (d < this->thresholdLowSlider->value()) {
+        this->thresholdLowSlider->blockSignals(true);
+        this->thresholdLowSlider->setValue(d);
+        this->thresholdLowSlider->blockSignals(false);
+        this->thresholdLowSpinBox->blockSignals(true);
+        this->thresholdLowSpinBox->setValue(d);
+        this->thresholdLowSpinBox->blockSignals(false);
+    }
+    this->thresholdHighSpinBox->blockSignals(true);
+    this->thresholdHighSpinBox->setValue(d);
+    this->thresholdHighSpinBox->blockSignals(false);
+    
+    this->apply();
 }
 
 /**
@@ -124,14 +251,15 @@ MapScalarDataColorMappingEditorDialog::updateDialog()
 QWidget* 
 MapScalarDataColorMappingEditorDialog::createThresholdSection()
 {
-    this->thresholdTypeOffRadioButton = new QRadioButton("On");
-    this->thresholdTypeOnRadioButton = new QRadioButton("Off");
+    this->thresholdTypeOffRadioButton = new QRadioButton("Off");
+    this->thresholdTypeOnRadioButton = new QRadioButton("On");
     this->thresholdTypeMappedRadioButton = new QRadioButton("Mapped");
     this->thresholdTypeMappedAverageAreaRadioButton = new QRadioButton("Mapped Average Area");
     
     QButtonGroup* thresholdTypeButtonGroup = new QButtonGroup(this);
-    QObject::connect(thresholdTypeButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(apply()));
+    this->thresholdWidgetGroup->add(thresholdTypeButtonGroup);
+    QObject::connect(thresholdTypeButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
+                     this, SLOT(thresholdTypeButtonClicked(QAbstractButton*)));
     thresholdTypeButtonGroup->addButton(this->thresholdTypeOffRadioButton);
     thresholdTypeButtonGroup->addButton(this->thresholdTypeOnRadioButton);
     thresholdTypeButtonGroup->addButton(this->thresholdTypeMappedRadioButton);
@@ -147,29 +275,36 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
     
-    this->thresholdLowSlider = new QSlider(Qt::Horizontal);
-    QObject::connect(this->thresholdLowSlider, SIGNAL(valueChanged(int)),
-                     this, SLOT(apply()));
-    this->thresholdHighSlider = new QSlider(Qt::Horizontal);
-    QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(int)),
-                     this, SLOT(apply()));
+    this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
+                                                   this);
+    this->thresholdWidgetGroup->add(this->thresholdLowSlider);
+    QObject::connect(this->thresholdLowSlider, SIGNAL(valueChanged(double)),
+                     this, SLOT(thresholdLowSliderValueChanged(double)));
+    this->thresholdHighSlider = new WuQDoubleSlider(Qt::Horizontal,
+                                                    this);
+    this->thresholdWidgetGroup->add(this->thresholdHighSlider);
+    QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(double)),
+                     this, SLOT(thresholdHighSliderValueChanged(double)));
     
     const int spinBoxWidth = 100.0;
     this->thresholdLowSpinBox = new QDoubleSpinBox();
+    this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
     this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
-    this->thresholdLowSpinBox->setSingleStep(1.0);
+    this->thresholdLowSpinBox->setSingleStep(0.10);
     QObject::connect(this->thresholdLowSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(thresholdLowSpinBoxValueChanged(double)));
     this->thresholdHighSpinBox = new QDoubleSpinBox();
+    this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
     this->thresholdHighSpinBox->setFixedWidth(spinBoxWidth);
-    this->thresholdHighSpinBox->setSingleStep(1.0);
+    this->thresholdHighSpinBox->setSingleStep(0.10);
     QObject::connect(this->thresholdHighSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(apply()));
+                     this, SLOT(thresholdHighSpinBoxValueChanged(double)));
 
     this->thresholdShowInsideRadioButton = new QRadioButton("Show Data Inside Thresholds");
     this->thresholdShowOutsideRadioButton = new QRadioButton("Show Data Outside Thresholds");
     
     QButtonGroup* thresholdShowButtonGroup = new QButtonGroup(this);
+    this->thresholdWidgetGroup->add(thresholdShowButtonGroup);
     thresholdShowButtonGroup->addButton(this->thresholdShowInsideRadioButton);
     thresholdShowButtonGroup->addButton(this->thresholdShowOutsideRadioButton);
     QObject::connect(thresholdShowButtonGroup, SIGNAL(buttonClicked(int)),
@@ -180,12 +315,12 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     thresholdAdjustmentLayout->setColumnStretch(0, 0);
     thresholdAdjustmentLayout->setColumnStretch(1, 100);
     thresholdAdjustmentLayout->setColumnStretch(2, 0);
-    thresholdAdjustmentLayout->addWidget(thresholdLowLabel, 0, 0);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider, 0, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 0, 2);
-    thresholdAdjustmentLayout->addWidget(thresholdHighLabel, 1, 0);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider, 1, 1);
-    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 1, 2);
+    thresholdAdjustmentLayout->addWidget(thresholdHighLabel, 0, 0);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSlider->getWidget(), 0, 1);
+    thresholdAdjustmentLayout->addWidget(this->thresholdHighSpinBox, 0, 2);
+    thresholdAdjustmentLayout->addWidget(thresholdLowLabel, 1, 0);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSlider->getWidget(), 1, 1);
+    thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 2);
     thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 3, Qt::AlignLeft);
     thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 3, Qt::AlignLeft);
     
@@ -193,10 +328,6 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(thresholdTypeGroupBox);
     layout->addWidget(thresholdAdjustmentGroupBox);
-    //QVBoxLayout* layout = new QVBoxLayout(w);
-    //layout->addWidget(paletteSelectionGroupBox);
-    //layout->addWidget(colorMappingGroupBox);
-    //layout->addWidget(displayModeGroupBox);
     
     return w;
 }
@@ -230,6 +361,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Palette Selection
      */
     this->paletteNameComboBox = new QComboBox();
+    this->paletteWidgetGroup->add(this->paletteNameComboBox);
     QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(apply()));
     QGroupBox* paletteSelectionGroupBox = new QGroupBox("Palette Selection");
@@ -244,6 +376,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
     
     QButtonGroup* scaleButtonGroup = new QButtonGroup(this);
+    this->paletteWidgetGroup->add(scaleButtonGroup);
     scaleButtonGroup->addButton(this->scaleAutoRadioButton);
     scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleFixedRadioButton);
@@ -259,6 +392,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Percentage mapping 
      */
     this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -267,6 +401,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -275,6 +410,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -283,6 +419,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -293,6 +430,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
     this->scaleFixedNegativeMaximumSpinBox->setMaximum(0.0);
@@ -301,6 +439,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleFixedNegativeMinimumSpinBox);
     this->scaleFixedNegativeMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
     this->scaleFixedNegativeMinimumSpinBox->setMaximum(0.0);
@@ -309,6 +448,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleFixedPositiveMinimumSpinBox);
     this->scaleFixedPositiveMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
     this->scaleFixedPositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -317,6 +457,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
+    this->paletteWidgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
     this->scaleFixedPositiveMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
     this->scaleFixedPositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
@@ -346,12 +487,15 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Display Mode
      */
     this->displayModePositiveCheckBox = new QCheckBox("Positive");
+    this->paletteWidgetGroup->add(this->displayModePositiveCheckBox);
     QObject::connect(this->displayModePositiveCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(apply()));
     this->displayModeZeroCheckBox = new QCheckBox("Zero");
+    this->paletteWidgetGroup->add(this->displayModeZeroCheckBox);
     QObject::connect(this->displayModeZeroCheckBox, SIGNAL(toggled(bool)),
                      this, SLOT(apply()));
     this->displayModeNegativeCheckBox = new QCheckBox("Negative");
+    this->paletteWidgetGroup->add(this->displayModeNegativeCheckBox);
     QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
                      this, SLOT(apply()));
     QGroupBox* displayModeGroupBox = new QGroupBox("Display Mode");
@@ -364,6 +508,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Options
      */
     this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
+    this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
     QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
                      this, SLOT(apply()));
     QGroupBox* optionsGroupBox = new QGroupBox("Options");
@@ -397,19 +542,30 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
  */
 void 
 MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caretMappableDataFile,
-                                         const int32_t mapIndex)
+                                         const int32_t mapIndexIn)
 {
-    this->isUpdateInProgress = true;
+    this->caretMappableDataFile = caretMappableDataFile;
+    this->mapFileIndex = mapIndexIn;
+    
+    if (this->caretMappableDataFile == NULL) {
+        return;
+    }
+    else if (this->mapFileIndex < 0) {
+        return;
+    }
+    
+    this->paletteWidgetGroup->blockSignals(true);
+    this->thresholdWidgetGroup->blockSignals(true);
     
     const AString title =
-    caretMappableDataFile->getFileNameNoPath()
+    this->caretMappableDataFile->getFileNameNoPath()
     + ": "
-    + caretMappableDataFile->getMapName(mapIndex);
+    + this->caretMappableDataFile->getMapName(this->mapFileIndex);
     this->setWindowTitle(title);
     
     this->paletteNameComboBox->clear();
     
-    this->paletteColorMapping = caretMappableDataFile->getMapPaletteColorMapping(mapIndex); 
+    this->paletteColorMapping = this->caretMappableDataFile->getMapPaletteColorMapping(this->mapFileIndex); 
     
     if (this->paletteColorMapping != NULL) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
@@ -466,40 +622,38 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
                 break;
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
                 this->thresholdTypeOnRadioButton->setChecked(true);
-                lowValue = this->paletteColorMapping->getThresholdNormalNegative();
-                highValue = this->paletteColorMapping->getThresholdNormalPositive();
+                lowValue = this->paletteColorMapping->getThresholdNormalMinimum();
+                highValue = this->paletteColorMapping->getThresholdNormalMaximum();
                 break;
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
                 this->thresholdTypeMappedRadioButton->setChecked(true);
-                lowValue = this->paletteColorMapping->getThresholdMappedNegative();
-                highValue = this->paletteColorMapping->getThresholdMappedPositive();
+                lowValue = this->paletteColorMapping->getThresholdMappedMinimum();
+                highValue = this->paletteColorMapping->getThresholdMappedMaximum();
                 break;
             case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
                 this->thresholdTypeMappedAverageAreaRadioButton->setChecked(true);
-                lowValue = this->paletteColorMapping->getThresholdMappedAverageAreaNegative();
-                highValue = this->paletteColorMapping->getThresholdMappedAverageAreaPositive();
+                lowValue = this->paletteColorMapping->getThresholdMappedAverageAreaMinimum();
+                highValue = this->paletteColorMapping->getThresholdMappedAverageAreaMaximum();
                 break;
         }
         
         switch (this->paletteColorMapping->getThresholdTest()) {
-            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE:
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
                 this->thresholdShowOutsideRadioButton->setChecked(true);
                 break;
-            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_BELOW:
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 this->thresholdShowInsideRadioButton->setChecked(true);
                 break;
         }
         
-        const DescriptiveStatistics* statistics = caretMappableDataFile->getMapStatistics(mapIndex);
+        const DescriptiveStatistics* statistics = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
         const float minValue = statistics->getMostNegativeValue();
         const float maxValue = statistics->getMostPositiveValue();
         
-        this->thresholdLowSlider->setMinimum(minValue);
-        this->thresholdLowSlider->setMaximum(maxValue);
+        this->thresholdLowSlider->setRange(minValue, maxValue);
         this->thresholdLowSlider->setValue(lowValue);
         
-        this->thresholdHighSlider->setMinimum(minValue);
-        this->thresholdHighSlider->setMaximum(maxValue);
+        this->thresholdHighSlider->setRange(minValue, maxValue);
         this->thresholdHighSlider->setValue(highValue);
         
         this->thresholdLowSpinBox->setMinimum(minValue);
@@ -511,7 +665,8 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->thresholdHighSpinBox->setValue(highValue);
     }
     
-    this->isUpdateInProgress = false;
+    this->paletteWidgetGroup->blockSignals(false);
+    this->thresholdWidgetGroup->blockSignals(false);
 }
 
 /**
@@ -519,7 +674,10 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
  */
 void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
 {
-    if (this->isUpdateInProgress) {
+    if (this->caretMappableDataFile == NULL) {
+        return;
+    }
+    else if (this->mapFileIndex < 0) {
         return;
     }
     
@@ -565,25 +723,25 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
     }
     else if (this->thresholdTypeOnRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
-        this->paletteColorMapping->setThresholdNormalNegative(lowValue);
-        this->paletteColorMapping->setThresholdNormalPositive(highValue);
+        this->paletteColorMapping->setThresholdNormalMinimum(lowValue);
+        this->paletteColorMapping->setThresholdNormalMaximum(highValue);
     }
     else if (this->thresholdTypeMappedRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED);
-        this->paletteColorMapping->setThresholdMappedNegative(lowValue);
-        this->paletteColorMapping->setThresholdMappedPositive(highValue);
+        this->paletteColorMapping->setThresholdMappedMinimum(lowValue);
+        this->paletteColorMapping->setThresholdMappedMaximum(highValue);
     }
     else if (this->thresholdTypeMappedAverageAreaRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA);
-        this->paletteColorMapping->setThresholdMappedAverageAreaNegative(lowValue);
-        this->paletteColorMapping->setThresholdMappedAverageAreaPositive(highValue);
+        this->paletteColorMapping->setThresholdMappedAverageAreaMinimum(lowValue);
+        this->paletteColorMapping->setThresholdMappedAverageAreaMaximum(highValue);
     }
     
     if (this->thresholdShowInsideRadioButton->isChecked()) {
-        this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_BELOW);
+        this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE);
     }
     else if (this->thresholdShowOutsideRadioButton->isChecked()) {
-        this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE);
+        this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

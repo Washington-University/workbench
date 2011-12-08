@@ -94,10 +94,10 @@ class PaletteThresholdTestEnum {
 public:
     /** Palette Threshold Test. */
     enum Enum {
-        /** show data when value is greater than threshold value */
-        THRESHOLD_TEST_SHOW_ABOVE,
-        /** show data when value is less than threshold value */
-        THRESHOLD_TEST_SHOW_BELOW
+        /** show data when value is outside the threshold values */
+        THRESHOLD_TEST_SHOW_OUTSIDE,
+        /** show data when value is inside the threshold values */
+        THRESHOLD_TEST_SHOW_INSIDE
     };
 
 

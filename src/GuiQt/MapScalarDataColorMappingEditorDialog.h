@@ -28,17 +28,18 @@
 
 #include "WuQDialogNonModal.h"
 
+class QAbstractButton;
 class QCheckBox;
 class QDoubleSpinBox;
 class QComboBox;
 class QRadioButton;
-class QSlider;
 
 
 namespace caret {
     
     class CaretMappableDataFile;
     class PaletteColorMapping;
+    class WuQDoubleSlider;
     class WuQWidgetObjectGroup;
     
     class MapScalarDataColorMappingEditorDialog : public WuQDialogNonModal {
@@ -61,6 +62,13 @@ namespace caret {
         MapScalarDataColorMappingEditorDialog(const MapScalarDataColorMappingEditorDialog&);
 
         MapScalarDataColorMappingEditorDialog& operator=(const MapScalarDataColorMappingEditorDialog&);
+        
+    private slots:
+        void thresholdTypeButtonClicked(QAbstractButton*);
+        void thresholdLowSpinBoxValueChanged(double);
+        void thresholdHighSpinBoxValueChanged(double);
+        void thresholdLowSliderValueChanged(double);
+        void thresholdHighSliderValueChanged(double);
         
     private:
         QWidget* createPaletteSection();
@@ -96,8 +104,8 @@ namespace caret {
         QRadioButton* thresholdTypeMappedRadioButton;
         QRadioButton* thresholdTypeMappedAverageAreaRadioButton;
         
-        QSlider* thresholdLowSlider;
-        QSlider* thresholdHighSlider;
+        WuQDoubleSlider* thresholdLowSlider;
+        WuQDoubleSlider* thresholdHighSlider;
         
         QDoubleSpinBox* thresholdLowSpinBox;
         QDoubleSpinBox* thresholdHighSpinBox;
@@ -105,7 +113,12 @@ namespace caret {
         QRadioButton* thresholdShowInsideRadioButton;
         QRadioButton* thresholdShowOutsideRadioButton;
         
-        bool isUpdateInProgress;
+        CaretMappableDataFile* caretMappableDataFile;
+        
+        int32_t mapFileIndex;
+        
+        WuQWidgetObjectGroup* paletteWidgetGroup;
+        WuQWidgetObjectGroup* thresholdWidgetGroup;
     };
     
 #ifdef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__

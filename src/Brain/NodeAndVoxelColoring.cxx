@@ -151,63 +151,44 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     /*
      * Type of threshold testing
      */
-    bool showAboveFlag = false;
+    bool showOutsideFlag = false;
     const PaletteThresholdTestEnum::Enum thresholdTest = paletteColorMapping->getThresholdTest();
     switch (thresholdTest) {
-        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE:                
-            showAboveFlag = true;
+        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:                
+            showOutsideFlag = true;
             break;
-        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_BELOW:
-            showAboveFlag = false;
+        case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+            showOutsideFlag = false;
             break;
     }
     
     /*
      * Range of values allowed by thresholding
      */
-    float thresholdNegativeMaximum = -std::numeric_limits<float>::max();
-    float thresholdNegativeMinimum =  1.0f;
-    float thresholdPositiveMinimum = -1.0f;
-    float thresholdPositiveMaximum =  std::numeric_limits<float>::max();
+    float thresholdMinimum = -std::numeric_limits<float>::max();
+    float thresholdMaximum =  std::numeric_limits<float>::max();
     const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
     switch (thresholdType) {
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            showOutsideFlag = false;
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-            if (showAboveFlag) {
-                thresholdNegativeMinimum = paletteColorMapping->getThresholdNormalNegative();
-                thresholdPositiveMinimum = paletteColorMapping->getThresholdNormalPositive();
-            }
-            else {
-                thresholdNegativeMaximum = paletteColorMapping->getThresholdNormalNegative();
-                thresholdPositiveMaximum = paletteColorMapping->getThresholdNormalPositive();
-            }
+                thresholdMinimum = paletteColorMapping->getThresholdNormalMinimum();
+                thresholdMaximum = paletteColorMapping->getThresholdNormalMaximum();
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-            if (showAboveFlag) {
-                thresholdNegativeMinimum = paletteColorMapping->getThresholdMappedNegative();
-                thresholdPositiveMinimum = paletteColorMapping->getThresholdMappedPositive();
-            }
-            else {
-                thresholdNegativeMaximum = paletteColorMapping->getThresholdMappedNegative();
-                thresholdPositiveMaximum = paletteColorMapping->getThresholdMappedPositive();
-            }
+                thresholdMinimum = paletteColorMapping->getThresholdMappedMinimum();
+                thresholdMaximum = paletteColorMapping->getThresholdMappedMaximum();
             break;
         case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-            if (showAboveFlag) {
-                thresholdNegativeMinimum = paletteColorMapping->getThresholdMappedAverageAreaNegative();
-                thresholdPositiveMinimum = paletteColorMapping->getThresholdMappedAverageAreaPositive();
-            }
-            else {
-                thresholdNegativeMaximum = paletteColorMapping->getThresholdMappedAverageAreaNegative();
-                thresholdPositiveMaximum = paletteColorMapping->getThresholdMappedAverageAreaPositive();
-            }
+                thresholdMinimum = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
+                thresholdMaximum = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
             break;
     }
-    const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedPositive();
-    const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaPositive();
-    const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedNegative();
-    const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaNegative();
+    const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedMaximum();
+    const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
+    const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();
+    const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
     const bool showMappedThresholdFailuresInGreen = paletteColorMapping->isShowThresholdFailureInGreen();
     
     /*
@@ -261,13 +242,22 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
         /*
          * Threshold Test
          */
-        if ((threshold >= thresholdPositiveMinimum) && (threshold <= thresholdPositiveMaximum)) {
-            // okay, passed test
-        }
-        else if ((threshold >= thresholdNegativeMaximum) && (threshold <= thresholdNegativeMinimum)) {
-            // okay, passed test
+        bool thresholdPassedFlag = false;
+        if (showOutsideFlag) {
+            if (threshold > thresholdMaximum) {
+                thresholdPassedFlag = true;
+            }
+            else if (threshold < thresholdMinimum) {
+                thresholdPassedFlag = true;
+            }
         }
         else {
+            if ((threshold >= thresholdMinimum) &&
+                (threshold <= thresholdMaximum)) {
+                thresholdPassedFlag = true;
+            }
+        }
+        if (thresholdPassedFlag == false) {
             if (showMappedThresholdFailuresInGreen) {
                 if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
                     if (threshold > 0.0f) {

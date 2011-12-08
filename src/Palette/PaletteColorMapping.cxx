@@ -98,12 +98,12 @@ PaletteColorMapping::copyHelper(const PaletteColorMapping& pcm)
     this->userScalePositiveMinimum = pcm.userScalePositiveMinimum;
     this->thresholdType = pcm.thresholdType;
     this->thresholdTest = pcm.thresholdTest;
-    this->thresholdNormalNegative = pcm.thresholdNormalNegative;
-    this->thresholdNormalPositive = pcm.thresholdNormalPositive;
-    this->thresholdMappedNegative= pcm.thresholdMappedNegative;
-    this->thresholdMappedPositive = pcm.thresholdMappedPositive;
-    this->thresholdMappedAverageAreaNegative = pcm.thresholdMappedAverageAreaNegative;
-    this->thresholdMappedAverageAreaPositive = pcm.thresholdMappedAverageAreaPositive;
+    this->thresholdNormalMinimum = pcm.thresholdNormalMinimum;
+    this->thresholdNormalMaximum = pcm.thresholdNormalMaximum;
+    this->thresholdMappedMinimum= pcm.thresholdMappedMinimum;
+    this->thresholdMappedMaximum = pcm.thresholdMappedMaximum;
+    this->thresholdMappedAverageAreaMinimum = pcm.thresholdMappedAverageAreaMinimum;
+    this->thresholdMappedAverageAreaMaximum = pcm.thresholdMappedAverageAreaMaximum;
     this->thresholdDataName = pcm.thresholdDataName;
     this->thresholdShowFailureInGreen = pcm.thresholdShowFailureInGreen;
     
@@ -128,13 +128,13 @@ PaletteColorMapping::initializeMembersPaletteColorMapping()
     this->displayZeroDataFlag = false;
     this->displayNegativeDataFlag = true;
     this->thresholdType = PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF;
-    this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_ABOVE;
-    this->thresholdNormalNegative = -1.0f;
-    this->thresholdNormalPositive = 1.0f;
-    this->thresholdMappedNegative = -1.0f;
-    this->thresholdMappedPositive = 1.0f;
-    this->thresholdMappedAverageAreaNegative = -1.0f;
-    this->thresholdMappedAverageAreaPositive =  1.0f;
+    this->thresholdTest = PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE;
+    this->thresholdNormalMinimum = -1.0f;
+    this->thresholdNormalMaximum = 1.0f;
+    this->thresholdMappedMinimum = -1.0f;
+    this->thresholdMappedMaximum = 1.0f;
+    this->thresholdMappedAverageAreaMinimum = -1.0f;
+    this->thresholdMappedAverageAreaMaximum =  1.0f;
     this->thresholdDataName = "";
     this->thresholdShowFailureInGreen = false;
     this->modifiedFlag = false;
@@ -204,8 +204,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      PaletteXmlElements::XML_TAG_THRESHOLD_FAILURE_IN_GREEN,
                                      this->thresholdShowFailureInGreen);
     float mappedValues[2] = {
-        this->thresholdMappedNegative,
-        this->thresholdMappedPositive
+        this->thresholdMappedMinimum,
+        this->thresholdMappedMaximum
     };
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_MAPPED_VALUES,
@@ -213,8 +213,8 @@ PaletteColorMapping::writeAsXML(XmlWriter& xmlWriter)
                                      2);
     
     float mappedAvgAreaValues[2] = {
-        this->thresholdMappedAverageAreaNegative,
-        this->thresholdMappedAverageAreaPositive
+        this->thresholdMappedAverageAreaMinimum,
+        this->thresholdMappedAverageAreaMaximum
     };
     xmlWriter.writeElementCharacters(
                                      PaletteXmlElements::XML_TAG_THRESHOLD_MAPPED_AVG_AREA_VALUES,
@@ -674,163 +674,163 @@ PaletteColorMapping::setUserScalePositiveMinimum(const float userScalePositiveMi
 }
 
 /**
- * Get mapped average area negative threshold
+ * Get mapped average area minimum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdMappedAverageAreaNegative() const
+PaletteColorMapping::getThresholdMappedAverageAreaMinimum() const
 {
-    return thresholdMappedAverageAreaNegative;
+    return thresholdMappedAverageAreaMinimum;
 }
 
 /**
- * Set the mapped average area negative threshold.
+ * Set the mapped average area minimum threshold.
  *
  * @param thresholdMappedAverageAreaNegative - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdMappedAverageAreaNegative(const float thresholdMappedAverageAreaNegative)
+PaletteColorMapping::setThresholdMappedAverageAreaMinimum(const float thresholdMappedAverageAreaMinimum)
 {
-    if (this->thresholdMappedAverageAreaNegative != thresholdMappedAverageAreaNegative) {
-        this->thresholdMappedAverageAreaNegative = thresholdMappedAverageAreaNegative;
+    if (this->thresholdMappedAverageAreaMinimum != thresholdMappedAverageAreaMinimum) {
+        this->thresholdMappedAverageAreaMinimum = thresholdMappedAverageAreaMinimum;
         this->setModified();
     }
 }
 
 /**
- * Get mapped average area positive threshold
+ * Get mapped average area maximum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdMappedAverageAreaPositive() const
+PaletteColorMapping::getThresholdMappedAverageAreaMaximum() const
 {
-    return thresholdMappedAverageAreaPositive;
+    return thresholdMappedAverageAreaMaximum;
 }
 
 /**
- * Set the mapped average area positive threshold.
+ * Set the mapped average area maximum threshold.
  *
  * @param thresholdMappedAverageAreaPositive - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdMappedAverageAreaPositive(const float thresholdMappedAverageAreaPositive)
+PaletteColorMapping::setThresholdMappedAverageAreaMaximum(const float thresholdMappedAverageAreaMaximum)
 {
-    if (this->thresholdMappedAverageAreaPositive != thresholdMappedAverageAreaPositive) {
-        this->thresholdMappedAverageAreaPositive = thresholdMappedAverageAreaPositive;
+    if (this->thresholdMappedAverageAreaMaximum != thresholdMappedAverageAreaMaximum) {
+        this->thresholdMappedAverageAreaMaximum = thresholdMappedAverageAreaMaximum;
         this->setModified();
     }
 }
 
 /**
- * Get mapped negative threshold
+ * Get mapped minimum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdMappedNegative() const
+PaletteColorMapping::getThresholdMappedMinimum() const
 {
-    return thresholdMappedNegative;
+    return thresholdMappedMinimum;
 }
 
 /**
- * Set the mapped negative threshold.
+ * Set the mapped minimum threshold.
  *
  * @param thresholdMappedNegative - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdMappedNegative(const float thresholdMappedNegative)
+PaletteColorMapping::setThresholdMappedMinimum(const float thresholdMappedMinimum)
 {
-    if (this->thresholdMappedNegative != thresholdMappedNegative) {
-        this->thresholdMappedNegative = thresholdMappedNegative;
+    if (this->thresholdMappedMinimum != thresholdMappedMinimum) {
+        this->thresholdMappedMinimum = thresholdMappedMinimum;
         this->setModified();
     }
 }
 
 /**
- * Get mapped positive threshold
+ * Get mapped maximum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdMappedPositive() const
+PaletteColorMapping::getThresholdMappedMaximum() const
 {
-    return thresholdMappedPositive;
+    return thresholdMappedMaximum;
 }
 
 /**
- * Set the mapped positive threshold.
+ * Set the mapped maximum threshold.
  *
  * @param thresholdMappedPositive - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdMappedPositive(const float thresholdMappedPositive)
+PaletteColorMapping::setThresholdMappedMaximum(const float thresholdMappedMaximum)
 {
-    if (this->thresholdMappedPositive != thresholdMappedPositive) {
-        this->thresholdMappedPositive = thresholdMappedPositive;
+    if (this->thresholdMappedMaximum != thresholdMappedMaximum) {
+        this->thresholdMappedMaximum = thresholdMappedMaximum;
         this->setModified();
     }
 }
 
 /**
- * Get normal negative threshold
+ * Get normal minimum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdNormalNegative() const
+PaletteColorMapping::getThresholdNormalMinimum() const
 {
-    return thresholdNormalNegative;
+    return thresholdNormalMinimum;
 }
 
 /**
- * Set the normal negative threshold.
+ * Set the normal minimum threshold.
  *
  * @param thresholdNormalNegative - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdNormalNegative(const float thresholdNormalNegative)
+PaletteColorMapping::setThresholdNormalMinimum(const float thresholdNormalMinimum)
 {
-    if (this->thresholdNormalNegative != thresholdNormalNegative) {
-        this->thresholdNormalNegative = thresholdNormalNegative;
+    if (this->thresholdNormalMinimum != thresholdNormalMinimum) {
+        this->thresholdNormalMinimum = thresholdNormalMinimum;
         this->setModified();
     }
 }
 
 /**
- * Get normal positive threshold
+ * Get normal maximum threshold
  *
  * @return the threshold's value.
  *
  */
 float
-PaletteColorMapping::getThresholdNormalPositive() const
+PaletteColorMapping::getThresholdNormalMaximum() const
 {
-    return thresholdNormalPositive;
+    return thresholdNormalMaximum;
 }
 
 /**
- * Set the normal positive threshold.
+ * Set the normal maximum threshold.
  *
  * @param thresholdNormalPositive - new value.
  *
  */
 void
-PaletteColorMapping::setThresholdNormalPositive(const float thresholdNormalPositive)
+PaletteColorMapping::setThresholdNormalMaximum(const float thresholdNormalMaximum)
 {
-    if (this->thresholdNormalPositive != thresholdNormalPositive) {
-        this->thresholdNormalPositive = thresholdNormalPositive;
+    if (this->thresholdNormalMaximum != thresholdNormalMaximum) {
+        this->thresholdNormalMaximum = thresholdNormalMaximum;
         this->setModified();
     }
 }

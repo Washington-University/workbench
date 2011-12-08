@@ -130,29 +130,29 @@ public:
 
     void setUserScalePositiveMinimum(const float userScalePositiveMinimum);
 
-    float getThresholdMappedAverageAreaNegative() const;
+    float getThresholdMappedAverageAreaMinimum() const;
 
-    void setThresholdMappedAverageAreaNegative(const float thresholdMappedAverageAreaNegative);
+    void setThresholdMappedAverageAreaMinimum(const float thresholdMappedAverageAreaMinimum);
 
-    float getThresholdMappedAverageAreaPositive() const;
+    float getThresholdMappedAverageAreaMaximum() const;
 
-    void setThresholdMappedAverageAreaPositive(const float thresholdMappedAverageAreaPositive);
+    void setThresholdMappedAverageAreaMaximum(const float thresholdMappedAverageAreaPositive);
 
-    float getThresholdMappedNegative() const;
+    float getThresholdMappedMinimum() const;
 
-    void setThresholdMappedNegative(const float thresholdMappedNegative);
+    void setThresholdMappedMinimum(const float thresholdMappedMinimum);
 
-    float getThresholdMappedPositive() const;
+    float getThresholdMappedMaximum() const;
 
-    void setThresholdMappedPositive(const float thresholdMappedPositive);
+    void setThresholdMappedMaximum(const float thresholdMappedPositive);
 
-    float getThresholdNormalNegative() const;
+    float getThresholdNormalMinimum() const;
 
-    void setThresholdNormalNegative(const float thresholdNormalNegative);
+    void setThresholdNormalMinimum(const float thresholdNormalMinimum);
 
-    float getThresholdNormalPositive() const;
+    float getThresholdNormalMaximum() const;
 
-    void setThresholdNormalPositive(const float thresholdNormalPositive);
+    void setThresholdNormalMaximum(const float thresholdNormalPositive);
 
     PaletteThresholdTestEnum::Enum getThresholdTest() const;
 
@@ -209,17 +209,17 @@ private:
 
     PaletteThresholdTestEnum::Enum thresholdTest;
 
-    float thresholdNormalNegative;
+    float thresholdNormalMinimum;
 
-    float thresholdNormalPositive;
+    float thresholdNormalMaximum;
 
-    float thresholdMappedNegative;
+    float thresholdMappedMinimum;
 
-    float thresholdMappedPositive;
+    float thresholdMappedMaximum;
 
-    float thresholdMappedAverageAreaNegative;
+    float thresholdMappedAverageAreaMinimum;
 
-    float thresholdMappedAverageAreaPositive;
+    float thresholdMappedAverageAreaMaximum;
 
     AString thresholdDataName;
 
