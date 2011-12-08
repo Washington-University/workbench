@@ -60,6 +60,8 @@ ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -344,6 +346,15 @@ ConnectivityLoaderManager::receiveEvent(Event* event)
         
         dataFilesEvent->setEventProcessed();
     } 
+    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* colorEvent =
+        dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(colorEvent);
+        
+        this->colorConnectivityData();
+        
+        colorEvent->setEventProcessed();
+    }
 }
 
 /**
