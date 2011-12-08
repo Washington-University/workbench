@@ -32,6 +32,7 @@ class QCheckBox;
 class QDoubleSpinBox;
 class QComboBox;
 class QRadioButton;
+class QSlider;
 
 
 namespace caret {
@@ -90,7 +91,21 @@ namespace caret {
         
         QCheckBox* interpolateColorsCheckBox;
         
-        WuQWidgetObjectGroup* widgetGroup;
+        QRadioButton* thresholdTypeOffRadioButton;
+        QRadioButton* thresholdTypeOnRadioButton;
+        QRadioButton* thresholdTypeMappedRadioButton;
+        QRadioButton* thresholdTypeMappedAverageAreaRadioButton;
+        
+        QSlider* thresholdLowSlider;
+        QSlider* thresholdHighSlider;
+        
+        QDoubleSpinBox* thresholdLowSpinBox;
+        QDoubleSpinBox* thresholdHighSpinBox;
+        
+        QRadioButton* thresholdShowInsideRadioButton;
+        QRadioButton* thresholdShowOutsideRadioButton;
+        
+        bool isUpdateInProgress;
     };
     
 #ifdef __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
