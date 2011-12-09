@@ -32,8 +32,8 @@
 
 namespace caret {
 
-    class CaretHttpRequest;
-    class CaretHttpResponse;
+    struct CaretHttpRequest;
+    struct CaretHttpResponse;
 
     class CaretHttpManager : public QObject
     {
