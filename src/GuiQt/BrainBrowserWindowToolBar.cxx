@@ -1653,12 +1653,12 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
         float slicesOneCoords[3];
         vf->indexToSpace(slicesOne,
                          slicesOneCoords);
-        const float dx = std::fabs(slicesOne[0] - slicesZero[0]);
-        const float dy = std::fabs(slicesOne[1] - slicesZero[1]);
-        const float dz = std::fabs(slicesOne[2] - slicesZero[2]);
+        const float dx = std::fabs(slicesOneCoords[0] - sliceZeroCoords[0]);
+        const float dy = std::fabs(slicesOneCoords[1] - sliceZeroCoords[1]);
+        const float dz = std::fabs(slicesOneCoords[2] - sliceZeroCoords[2]);
         this->volumeIndicesXcoordSpinBox->setSingleStep(dx);
-        this->volumeIndicesXcoordSpinBox->setSingleStep(dy);
-        this->volumeIndicesXcoordSpinBox->setSingleStep(dz);
+        this->volumeIndicesYcoordSpinBox->setSingleStep(dy);
+        this->volumeIndicesZcoordSpinBox->setSingleStep(dz);
     }
     
     if (sliceSelection != NULL) {
