@@ -119,6 +119,15 @@ Vector3d Vector3d::operator-(const Vector3d& right) const
     return ret;
 }
 
+Vector3d Vector3d::operator-() const
+{
+    Vector3d ret;
+    ret.m_vec[0] = -m_vec[0];
+    ret.m_vec[1] = -m_vec[1];
+    ret.m_vec[2] = -m_vec[2];
+    return ret;
+}
+
 Vector3d& Vector3d::operator-=(const Vector3d& right)
 {
     m_vec[0] -= right.m_vec[0];

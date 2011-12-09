@@ -56,11 +56,6 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ret->createOptionalParameter(5, "-nearest", "use nearest neighbor volume interpolation");
     
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
-    //ribbonOpt->addMetricParameter(1, "thickness", "the metric file containing the ribbon thickness measure");
-    //ribbonOpt->addVolumeParameter(2, "ribbon", "the ribbon mask volume");
-    //ribbonOpt->addDoubleParameter(3, "ribbon-val", "the value to use from the ribbon mask");
-    //ribbonOpt->addDoubleParameter(4, "ribbon-dist-kernel", "the sigma for the gaussian kernel based on distance within connected ribbon voxels");
-    //ribbonOpt->createOptionalParameter(5, "-average-normals", "average each node's normals with its neighbors");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
     OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(4, "-volume-roi", "use an roi volume with positive values for all valid voxels");
@@ -140,11 +135,6 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
             break;
         case RIBBON_CONSTRAINED:
             {
-                //MetricFile* thickness = ribbonOpt->getMetric(1);
-                //VolumeFile* ribbonVol = ribbonOpt->getVolume(2);
-                //float ribbonValue = (float)(ribbonOpt->getDouble(3));
-                //float kernel = (float)(ribbonOpt->getDouble(4));
-                //AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol, thickness, ribbonVol, ribbonValue, kernel, averageNormals);
                 SurfaceFile* innerSurf = ribbonOpt->getSurface(1);
                 SurfaceFile* outerSurf = ribbonOpt->getSurface(2);
                 int32_t subdivisions = 3;

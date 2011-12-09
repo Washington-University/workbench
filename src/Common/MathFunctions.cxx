@@ -1464,3 +1464,28 @@ uint32_t MathFunctions::gcd(uint32_t num1, uint32_t num2)
     }
     return num1;
 }
+
+bool MathFunctions::isInf(const float number)
+{
+    return (std::fabs(number) > 1.0f && number * 2.0f == number);
+}
+
+bool MathFunctions::isNaN(const float number)
+{
+    return (number != number);
+}
+
+bool MathFunctions::isNegInf(const float number)
+{
+    return (number < -1.0f && number * 2.0f == number);
+}
+
+bool MathFunctions::isNumeric(const float number)
+{
+    return (!isNaN(number) && !isInf(number));
+}
+
+bool MathFunctions::isPosInf(const float number)
+{
+    return (number > 1.0f && number * 2.0f == number);
+}

@@ -52,6 +52,7 @@ namespace caret {
         Vector3d& operator/=(const float& right);
         Vector3d operator+(const Vector3d& right) const;
         Vector3d operator-(const Vector3d& right) const;
+        Vector3d operator-() const;
         Vector3d operator*(const float& right) const;
         Vector3d operator/(const float& right) const;//NOTE: doesn't really make sense to have the other division, unlike multiplication
     };

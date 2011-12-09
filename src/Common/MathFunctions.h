@@ -276,6 +276,18 @@ public:
     static bool isOddNumber(const int32_t number);
 
     static bool isEvenNumber(const int32_t number);
+    
+    static bool isNaN(const float number);
+    
+    static bool isPosInf(const float number);
+    
+    static bool isNegInf(const float number);
+    
+    ///true if either inf or -inf
+    static bool isInf(const float number);
+    
+    ///true only if not NaN, inf, or -inf
+    static bool isNumeric(const float number);
 
     static bool compareArrays(
                     const float a1[],

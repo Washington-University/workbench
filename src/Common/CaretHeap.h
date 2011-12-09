@@ -85,7 +85,7 @@ namespace caret
     public:
         static inline bool mycompare(const K& left, const K& right)
         {
-            return left < right;//as long as vector op[] optimizes out in release, this should be only two lookups
+            return left < right;
         }
     };
     
