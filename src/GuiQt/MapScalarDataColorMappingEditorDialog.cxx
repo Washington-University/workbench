@@ -55,6 +55,9 @@
 #include "WuQDoubleSlider.h"
 #include "WuQtUtilities.h"
 
+#include "qwt_plot.h"
+#include "qwt_plot_histogram.h"
+
 using namespace caret;
 
 
@@ -93,14 +96,31 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     this->paletteColorMapping = NULL;
     
     QWidget* histogramWidget = this->createHistogramSection();
+    QWidget* histogramControlWidget = this->createHistogramControlSection();
     QWidget* paletteWidget = this->createPaletteSection();
+    QWidget* statisticsWidget = this->createStatisticsSection();
     QWidget* thresholdWidget = this->createThresholdSection();
     
+    QHBoxLayout* topLayout = new QHBoxLayout();
+    topLayout->addWidget(thresholdWidget);
+    topLayout->addWidget(histogramWidget);
+    topLayout->setStretchFactor(thresholdWidget, 0);
+    topLayout->setStretchFactor(histogramWidget, 100);
+    
+    QVBoxLayout* bottomRightLayout = new QVBoxLayout();
+    bottomRightLayout->addWidget(histogramControlWidget);
+    bottomRightLayout->addWidget(statisticsWidget);
+    bottomRightLayout->addStretch();
+    
+    QHBoxLayout* bottomLayout = new QHBoxLayout();
+    bottomLayout->addWidget(paletteWidget);
+    bottomLayout->addLayout(bottomRightLayout);
+    bottomLayout->addStretch();
+    
     QWidget* w = new QWidget();
-    QGridLayout* layout = new QGridLayout(w);
-    layout->addWidget(thresholdWidget, 0, 0);
-    layout->addWidget(histogramWidget, 0, 1);
-    layout->addWidget(paletteWidget, 1, 0, 1, 2);
+    QVBoxLayout* layout = new QVBoxLayout(w);
+    layout->addLayout(topLayout);
+    layout->addLayout(bottomLayout);
     
     this->setCentralWidget(w);
 }
@@ -244,6 +264,34 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
 }
 
 /**
+ * Create the statistics section
+ * @return the statistics section widget.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createStatisticsSection()
+{
+    const AString blankText("                ");
+    this->statisticsMinimumValueLabel = new QLabel(blankText);
+    this->statisticsMaximumValueLabel = new QLabel(blankText);
+    this->statisticsMeanValueLabel = new QLabel(blankText);
+    this->statisticsStandardDeviationLabel = new QLabel(blankText);
+    
+    QGroupBox* groupBox = new QGroupBox("Statistics");
+    QGridLayout* gridLayout = new QGridLayout(groupBox);
+    gridLayout->addWidget(new QLabel("Mean"), 0, 0);
+    gridLayout->addWidget(this->statisticsMeanValueLabel, 0, 1);
+    gridLayout->addWidget(new QLabel("Std Dev"), 1, 0);
+    gridLayout->addWidget(this->statisticsStandardDeviationLabel, 1, 1);
+    gridLayout->addWidget(new QLabel("Maximum"), 2, 0);
+    gridLayout->addWidget(this->statisticsMaximumValueLabel, 2, 1);
+    gridLayout->addWidget(new QLabel("Minimum"), 3, 0);
+    gridLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
+    groupBox->setFixedSize(groupBox->sizeHint());
+    
+    return groupBox;
+}
+
+/**
  * Create the threshold section of the dialog.
  * @return
  *   The threshold section.
@@ -271,6 +319,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     thresholdTypeLayout->addWidget(this->thresholdTypeOnRadioButton, 1, 0);
     thresholdTypeLayout->addWidget(this->thresholdTypeMappedRadioButton, 0, 1);
     thresholdTypeLayout->addWidget(this->thresholdTypeMappedAverageAreaRadioButton, 1, 1);
+    thresholdTypeGroupBox->setFixedSize(thresholdTypeGroupBox->sizeHint());
         
     QLabel* thresholdLowLabel = new QLabel("Low");
     QLabel* thresholdHighLabel = new QLabel("High");
@@ -326,10 +375,46 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
+    WuQtUtilities::setLayoutMargins(layout,
+                                    0,
+                                    0,
+                                    0);
     layout->addWidget(thresholdTypeGroupBox);
     layout->addWidget(thresholdAdjustmentGroupBox);
     
     return w;
+}
+
+void 
+MapScalarDataColorMappingEditorDialog::histogramControlChanged()
+{
+    this->updateDialog();
+}
+
+/**
+ * Create the statistics section
+ * @return the statistics section widget.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
+{
+    this->histogramAllRadioButton = new QRadioButton("All");
+    this->histogramTwoNinetyEightRadioButton = new QRadioButton("2% to 98%");
+    
+    this->histogramAllRadioButton->setChecked(true);
+    
+    QButtonGroup* buttGroup = new QButtonGroup(this);
+    buttGroup->addButton(this->histogramAllRadioButton);
+    buttGroup->addButton(this->histogramTwoNinetyEightRadioButton);
+    QObject::connect(buttGroup, SIGNAL(buttonClicked(int)),
+                     this, SLOT(histogramControlChanged()));
+    
+    QGroupBox* groupBox = new QGroupBox("Histogram Control");
+    QGridLayout* layout = new QGridLayout(groupBox);
+    layout->addWidget(this->histogramAllRadioButton, 0, 0, 1, 2);
+    layout->addWidget(this->histogramTwoNinetyEightRadioButton, 1, 0, 1, 2);
+    
+    return groupBox;
 }
 
 /**
@@ -340,13 +425,18 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
 QWidget* 
 MapScalarDataColorMappingEditorDialog::createHistogramSection()
 {
-    QWidget* w = new QWidget();
-    //QVBoxLayout* layout = new QVBoxLayout(w);
-    //layout->addWidget(paletteSelectionGroupBox);
-    //layout->addWidget(colorMappingGroupBox);
-    //layout->addWidget(displayModeGroupBox);
+    const QColor color(255, 0, 0);
     
-    return w;
+    this->thresholdHistogram = new QwtPlotHistogram("Histogram");
+    this->thresholdHistogram->setStyle(QwtPlotHistogram::Columns);
+    this->thresholdHistogram->setBrush(QBrush(color));
+    this->thresholdHistogram->setPen(QPen(color));
+    
+    this->thresholdPlot = new QwtPlot();
+    this->thresholdPlot->setAutoReplot(true);
+    this->thresholdHistogram->attach(this->thresholdPlot);
+    
+    return this->thresholdPlot;
 }
 
 /**
@@ -482,6 +572,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleFixedPositiveMinimumSpinBox, 2, 2);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMinimumSpinBox, 3, 2);
     colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
+    colorMappingGroupBox->setFixedSize(colorMappingGroupBox->sizeHint());
     
     /*
      * Display Mode
@@ -503,7 +594,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     displayModeLayout->addWidget(this->displayModePositiveCheckBox);
     displayModeLayout->addWidget(this->displayModeZeroCheckBox);
     displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
-
+    displayModeGroupBox->setFixedSize(displayModeGroupBox->sizeHint());
+    
     /*
      * Options
      */
@@ -514,6 +606,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     QGroupBox* optionsGroupBox = new QGroupBox("Options");
     QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
     optionsLayout->addWidget(this->interpolateColorsCheckBox);
+    optionsGroupBox->setFixedSize(optionsGroupBox->sizeHint());
     
     //QWidget* colorMapHorizLine = WuQtUtilities::createHorizontalLineWidget();
     
@@ -647,9 +740,31 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         }
         
         const DescriptiveStatistics* statistics = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
-        const float minValue = statistics->getMostNegativeValue();
-        const float maxValue = statistics->getMostPositiveValue();
+        float meanValue = 0;
+        float stdDev = 0;
+        float minValue = 0;
+        float maxValue = 0;
+        int64_t numHistogramValues = 0;
+        int64_t* histogram = NULL;
         
+        if (this->histogramAllRadioButton->isChecked()) {
+            meanValue = statistics->getMean();
+            stdDev    = statistics->getStandardDeviationSample();
+            minValue  = statistics->getMinimumValue();
+            maxValue  = statistics->getMaximumValue();
+
+            numHistogramValues = statistics->getHistogramNumberOfElements();
+            histogram = const_cast<int64_t*>(statistics->getHistogram());
+        }
+        else {
+            meanValue = statistics->getMean96();
+            stdDev    = statistics->getStandardDeviationSample96();
+            minValue  = statistics->getMinimumValue96();
+            maxValue  = statistics->getMaximumValue96();
+            
+            numHistogramValues = statistics->getHistogramNumberOfElements();
+            histogram = const_cast<int64_t*>(statistics->getHistogram96());
+        }
         this->thresholdLowSlider->setRange(minValue, maxValue);
         this->thresholdLowSlider->setValue(lowValue);
         
@@ -663,6 +778,31 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->thresholdHighSpinBox->setMinimum(minValue);
         this->thresholdHighSpinBox->setMaximum(maxValue);
         this->thresholdHighSpinBox->setValue(highValue);
+        
+        float step = 1.0;
+        if (numHistogramValues > 1) {
+            step = ((maxValue - minValue)
+                    / numHistogramValues);
+        }
+        QVector<QwtIntervalSample> samples(numHistogramValues);
+        for (int64_t i = 0; i < numHistogramValues; i++) {
+            const float startValue = (minValue
+                                    + (i * step));
+            const float stopValue  = startValue + step;
+            
+            QwtInterval interval(startValue,
+                                 stopValue);
+            interval.setBorderFlags(QwtInterval::ExcludeMaximum);
+            samples[i] = QwtIntervalSample(histogram[i],
+                                           interval);
+        }
+        
+        this->thresholdHistogram->setData(new QwtIntervalSeriesData(samples));
+        
+        this->statisticsMeanValueLabel->setText(QString::number(meanValue, 'f', 4));
+        this->statisticsStandardDeviationLabel->setText(QString::number(stdDev, 'f', 4));
+        this->statisticsMaximumValueLabel->setText(QString::number(maxValue, 'f', 4));
+        this->statisticsMinimumValueLabel->setText(QString::number(minValue, 'f', 4));
     }
     
     this->paletteWidgetGroup->blockSignals(false);

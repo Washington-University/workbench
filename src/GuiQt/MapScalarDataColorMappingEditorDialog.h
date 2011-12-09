@@ -32,7 +32,10 @@ class QAbstractButton;
 class QCheckBox;
 class QDoubleSpinBox;
 class QComboBox;
+class QLabel;
 class QRadioButton;
+class QwtPlot;
+class QwtPlotHistogram;
 
 
 namespace caret {
@@ -69,11 +72,14 @@ namespace caret {
         void thresholdHighSpinBoxValueChanged(double);
         void thresholdLowSliderValueChanged(double);
         void thresholdHighSliderValueChanged(double);
+        void histogramControlChanged();
         
     private:
         QWidget* createPaletteSection();
         QWidget* createThresholdSection();
         QWidget* createHistogramSection();
+        QWidget* createHistogramControlSection();
+        QWidget* createStatisticsSection();
         
         PaletteColorMapping* paletteColorMapping;
         
@@ -112,6 +118,17 @@ namespace caret {
         
         QRadioButton* thresholdShowInsideRadioButton;
         QRadioButton* thresholdShowOutsideRadioButton;
+        
+        QwtPlot* thresholdPlot;
+        QwtPlotHistogram* thresholdHistogram;
+        
+        QLabel* statisticsMinimumValueLabel;
+        QLabel* statisticsMaximumValueLabel;
+        QLabel* statisticsMeanValueLabel;
+        QLabel* statisticsStandardDeviationLabel;
+        
+        QRadioButton* histogramAllRadioButton;
+        QRadioButton* histogramTwoNinetyEightRadioButton;
         
         CaretMappableDataFile* caretMappableDataFile;
         

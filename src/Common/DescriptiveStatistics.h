@@ -61,7 +61,7 @@ namespace caret {
         /**
          * @return The number of elements in the histogram.
          */
-        int64_t getHistogramNumberOfElements() { return this->m_histogramNumberOfElements; }
+        int64_t getHistogramNumberOfElements() const { return this->m_histogramNumberOfElements; }
         
         /**
          * @return Get the histogram for all values.  The number of elements
@@ -96,6 +96,16 @@ namespace caret {
         float getLeastNegativeValue() const { return this->m_negativePercentiles[0]; }
         
         /**
+         * @return The minimum value.
+         */
+        float getMinimumValue() const { return this->m_minimumValue; }
+        
+        /**
+         * @return The maximum value.
+         */
+        float getMaximumValue() const { return this->m_maximumValue; }
+        
+        /**
          * @return The mean (average) value.
          */
         float getMean() const { return this->m_mean; }
@@ -114,6 +124,16 @@ namespace caret {
          * @return The sample standard deviation (divide by N - 1).
          */
         float getStandardDeviationSample() const { return this->m_standardDeviationSample; }
+        
+        /**
+         * @return The minimum value of the middle 96% of elements.
+         */
+        float getMinimumValue96() const { return this->m_minimumValue96; }
+        
+        /**
+         * @return The maximum value of the middle 96% of elements.
+         */
+        float getMaximumValue96() const { return this->m_maximumValue96; }
         
         /**
          * @return The mean (average) of middle 96% of elements.
@@ -197,6 +217,12 @@ namespace caret {
         /** Indicates that positive data is present. */
         bool m_containsPositiveValues;
         
+        /** minimum value regardless of sign */
+        float m_minimumValue;
+
+        /** maximum value regardless of sign */
+        float m_maximumValue;
+        
         /** The mean (average) value. */
         float m_mean;
         
@@ -208,6 +234,12 @@ namespace caret {
         
         /** The median (middle) value. */
         float m_median;
+        
+        /** minimum value regardless of sign of the middle 96% of elements */
+        float m_minimumValue96;
+        
+        /** maximum value regardless of sign  of the middle 96% of elements */
+        float m_maximumValue96;
         
         /** The mean (average) value of the middle 96% of elements. */
         float m_mean96;

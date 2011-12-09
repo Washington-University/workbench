@@ -65,6 +65,7 @@ ENDIF (APPLE)
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 Algorithms
 GuiQt
+Qwt
 Brain
 Files
 Palette

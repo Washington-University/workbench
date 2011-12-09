@@ -62,6 +62,10 @@ DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElem
     m_infCount = 0;
     m_negInfCount = 0;
     m_nanCount = 0;
+    m_minimumValue = 0.0;
+    m_maximumValue = 0.0;
+    m_minimumValue96 = 0.0;
+    m_maximumValue96 = 0.0;
     CaretAssert(m_histogramNumberOfElements > 2);
     CaretAssert(m_percentileDivisions > 2);
     m_histogram = new int64_t[m_histogramNumberOfElements];
@@ -146,6 +150,10 @@ DescriptiveStatistics::update(const float* values,
         fill(m_negativePercentiles,
                   m_negativePercentiles + m_percentileDivisions,
                   v);
+        m_minimumValue = v;
+        m_maximumValue = v;
+        m_minimumValue96 = v;
+        m_maximumValue96 = v;
         return;
     }
     
@@ -179,6 +187,12 @@ DescriptiveStatistics::update(const float* values,
         ++m_validCount;
     }
     sort(sortedValues, sortedValues + m_validCount);
+    
+    /*
+     * Minimum and maximum values
+     */
+    this->m_minimumValue = sortedValues[0];
+    this->m_maximumValue = sortedValues[numberOfValues - 1];
     
     /*
      * Find most/least negative/positive indices in sorted data.
@@ -296,6 +310,12 @@ DescriptiveStatistics::update(const float* values,
     CaretAssertArrayIndex(sortedValues, m_validCount, ninetyEightPercentIndex);
     const float maxValue96 = sortedValues[ninetyEightPercentIndex];
     const float bucketSize96 = (maxValue96 - minValue96) / m_histogramNumberOfElements;
+    
+    /*
+     * Min/max of the middle 96% of values
+     */
+    m_minimumValue96 = sortedValues[twoPercentIndex];
+    m_maximumValue96 = sortedValues[ninetyEightPercentIndex];
     
     /*
      * Prepare for statistics
