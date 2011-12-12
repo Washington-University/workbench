@@ -33,6 +33,7 @@ class QCheckBox;
 class QDoubleSpinBox;
 class QComboBox;
 class QLabel;
+class QLayout;
 class QRadioButton;
 class QwtPlot;
 
@@ -84,6 +85,8 @@ namespace caret {
         
         void updateHistogramPlot();
         
+        void setLayoutMargins(QLayout* layout);
+        
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
@@ -131,6 +134,8 @@ namespace caret {
         
         QRadioButton* histogramAllRadioButton;
         QRadioButton* histogramTwoNinetyEightRadioButton;
+        
+        QCheckBox* histogramUsePaletteColors;
         
         bool isHistogramColored;
         
