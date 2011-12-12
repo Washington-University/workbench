@@ -28,7 +28,7 @@
 #include "AbstractAlgorithm.h"
 #include <vector>
 #include <algorithm>
-#include "Vector3d.h"
+#include "Vector3D.h"
 
 namespace caret {
     
@@ -48,7 +48,7 @@ namespace caret {
     
     struct TriInfo
     {
-        Vector3d m_xyz[3];
+        Vector3D m_xyz[3];
         float m_planeEq[3];//x coef, y coef, const : z = [0] * x + [1] * y + [2]
         bool vertRayHit(const float* xyz);//true if a +z ray from point hits this triangle
         void initialize(const float* xyz1, const float* xyz2, const float* xyz3);
@@ -75,7 +75,7 @@ namespace caret {
     {
         AlgorithmVolumeToSurfaceMapping();
         void precomputeWeights(std::vector<std::vector<VoxelWeight> >& myWeights, VolumeFile* myVol, SurfaceFile* innerSurf, SurfaceFile* outerSurf, VolumeFile* roiVol, int numDivisions);//surfaces MUST be in node correspondence, otherwise SEVERE strangeness, possible crashes
-        float computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3d& ivec, const Vector3d& jvec, const Vector3d& kvec);
+        float computeVoxelFraction(const VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();

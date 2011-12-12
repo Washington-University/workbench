@@ -122,6 +122,8 @@ namespace caret {
         
         /** surface normal vectors. */
         std::vector<float> normalVectors;
+        
+        bool m_normalsAveraged, m_normalsComputed;
 
         /** The node coloring. */
         std::vector<float> nodeColoring;

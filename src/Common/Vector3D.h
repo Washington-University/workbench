@@ -30,34 +30,34 @@
 
 namespace caret {
     
-    struct Vector3d
+    struct Vector3D
     {
         float m_vec[3];
         //vector functions
-        float dot(const Vector3d& right) const;
-        Vector3d cross(const Vector3d& right) const;
-        Vector3d normal() const;
+        float dot(const Vector3D& right) const;
+        Vector3D cross(const Vector3D& right) const;
+        Vector3D normal() const;
         float length() const;
         //constructors
-        Vector3d();
-        Vector3d(const float* right);
+        Vector3D();
+        Vector3D(const float* right);
         //compatibility operators
         float& operator[](const int& index);
         const float& operator[](const int& index) const;
-        Vector3d& operator=(const float* right);
+        Vector3D& operator=(const float* right);
         //numerical operators
-        Vector3d& operator+=(const Vector3d& right);
-        Vector3d& operator-=(const Vector3d& right);
-        Vector3d& operator*=(const float& right);
-        Vector3d& operator/=(const float& right);
-        Vector3d operator+(const Vector3d& right) const;
-        Vector3d operator-(const Vector3d& right) const;
-        Vector3d operator-() const;
-        Vector3d operator*(const float& right) const;
-        Vector3d operator/(const float& right) const;//NOTE: doesn't really make sense to have the other division, unlike multiplication
+        Vector3D& operator+=(const Vector3D& right);
+        Vector3D& operator-=(const Vector3D& right);
+        Vector3D& operator*=(const float& right);
+        Vector3D& operator/=(const float& right);
+        Vector3D operator+(const Vector3D& right) const;
+        Vector3D operator-(const Vector3D& right) const;
+        Vector3D operator-() const;
+        Vector3D operator*(const float& right) const;
+        Vector3D operator/(const float& right) const;//NOTE: doesn't really make sense to have the other division, unlike multiplication
     };
     
-    Vector3d operator*(const float& left, const Vector3d& right);
+    Vector3D operator*(const float& left, const Vector3D& right);
 
 }
 #endif //__VECTOR_3D_H__

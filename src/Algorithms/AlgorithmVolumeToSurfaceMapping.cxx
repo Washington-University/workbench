@@ -375,7 +375,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     int64_t numNodes = outerSurf->getNumberOfNodes();
     myWeights.resize(numNodes);
     const vector<vector<float> >& myVolSpace = myVolume->getVolumeSpace();
-    Vector3d origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
+    Vector3D origin, ivec, jvec, kvec;//these are the spatial projections of the ijk unit vectors (also, the offset that specifies the origin)
     ivec[0] = myVolSpace[0][0]; jvec[0] = myVolSpace[0][1]; kvec[0] = myVolSpace[0][2]; origin[0] = myVolSpace[0][3];
     ivec[1] = myVolSpace[1][0]; jvec[1] = myVolSpace[1][1]; kvec[1] = myVolSpace[1][2]; origin[1] = myVolSpace[1][3];
     ivec[2] = myVolSpace[2][0]; jvec[2] = myVolSpace[2][1]; kvec[2] = myVolSpace[2][2]; origin[2] = myVolSpace[2][3];
@@ -396,7 +396,7 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
             float tempf;
             int64_t node3 = node * 3;
             PolyInfo myPoly(innerSurf, outerSurf, node);//build the polygon
-            Vector3d minIndex, maxIndex, tempvec;
+            Vector3D minIndex, maxIndex, tempvec;
             myVolume->spaceToIndex(innerCoords + node3, minIndex.m_vec);//find the bounding box in VOLUME INDEX SPACE, starting with the center nodes
             maxIndex = minIndex;
             myVolume->spaceToIndex(outerCoords + node3, tempvec.m_vec);
@@ -470,24 +470,24 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     }
 }
 
-float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const caret::VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3d& ivec, const Vector3d& jvec, const Vector3d& kvec)
+float AlgorithmVolumeToSurfaceMapping::computeVoxelFraction(const caret::VolumeFile* myVolume, const int64_t* ijk, PolyInfo& myPoly, const int divisions, const Vector3D& ivec, const Vector3D& jvec, const Vector3D& kvec)
 {
-    Vector3d myLowCorner;
+    Vector3D myLowCorner;
     myVolume->indexToSpace(ijk[0] - 0.5f, ijk[1] - 0.5f, ijk[2] - 0.5f, myLowCorner.m_vec);
     int inside = 0;
-    Vector3d istep = ivec / divisions;
-    Vector3d jstep = jvec / divisions;
-    Vector3d kstep = kvec / divisions;
+    Vector3D istep = ivec / divisions;
+    Vector3D jstep = jvec / divisions;
+    Vector3D kstep = kvec / divisions;
     myLowCorner += istep * 0.5f + jstep * 0.5f + kstep * 0.5f;
     for (int i = 0; i < divisions; ++i)
     {
-        Vector3d tempVeci = myLowCorner + istep * i;
+        Vector3D tempVeci = myLowCorner + istep * i;
         for (int j = 0; j < divisions; ++j)
         {
-            Vector3d tempVecj = tempVeci + jstep * j;
+            Vector3D tempVecj = tempVeci + jstep * j;
             for (int k = 0; k < divisions; ++k)
             {
-                Vector3d thisPoint = tempVecj + kstep * k;
+                Vector3D thisPoint = tempVecj + kstep * k;
                 inside += myPoly.isInside(thisPoint.m_vec);
             }
         }

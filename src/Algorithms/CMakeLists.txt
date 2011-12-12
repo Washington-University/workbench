@@ -18,12 +18,14 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 
 AbstractAlgorithm.cxx
+AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx

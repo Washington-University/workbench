@@ -22,69 +22,69 @@
  *
  */
 
-#include "Vector3d.h"
+#include "Vector3D.h"
 
 using namespace std;
 using namespace caret;
 
-Vector3d Vector3d::cross(const Vector3d& right) const
+Vector3D Vector3D::cross(const Vector3D& right) const
 {
-    Vector3d ret;
+    Vector3D ret;
     MathFunctions::crossProduct(m_vec, right.m_vec, ret.m_vec);
     return ret;
 }
 
-float Vector3d::dot(const Vector3d& right) const
+float Vector3D::dot(const Vector3D& right) const
 {
     return MathFunctions::dotProduct(m_vec, right.m_vec);
 }
 
-float Vector3d::length() const
+float Vector3D::length() const
 {
     return MathFunctions::vectorLength(m_vec);
 }
 
-Vector3d Vector3d::normal() const
+Vector3D Vector3D::normal() const
 {
-    Vector3d ret = *this;
+    Vector3D ret = *this;
     MathFunctions::normalizeVector(ret.m_vec);
     return ret;
 }
 
-Vector3d::Vector3d()
+Vector3D::Vector3D()
 {
     m_vec[0] = 0.0f;
     m_vec[1] = 0.0f;
     m_vec[2] = 0.0f;
 }
 
-Vector3d::Vector3d(const float* right)
+Vector3D::Vector3D(const float* right)
 {
     m_vec[0] = right[0];
     m_vec[1] = right[1];
     m_vec[2] = right[2];
 }
 
-float& Vector3d::operator[](const int& index)
+float& Vector3D::operator[](const int& index)
 {
     CaretAssert(index > -1 && index < 3);
     return m_vec[index];
 }
 
-const float& Vector3d::operator[](const int& index) const
+const float& Vector3D::operator[](const int& index) const
 {
     CaretAssert(index > -1 && index < 3);
     return m_vec[index];
 }
 
-Vector3d Vector3d::operator*(const float& right) const
+Vector3D Vector3D::operator*(const float& right) const
 {
-    Vector3d ret = *this;
+    Vector3D ret = *this;
     ret *= right;
     return ret;
 }
 
-Vector3d& Vector3d::operator*=(const float& right)
+Vector3D& Vector3D::operator*=(const float& right)
 {
     m_vec[0] *= right;
     m_vec[1] *= right;
@@ -92,19 +92,19 @@ Vector3d& Vector3d::operator*=(const float& right)
     return *this;
 }
 
-Vector3d operator*(const float& left, const Vector3d& right)
+Vector3D caret::operator*(const float& left, const Vector3D& right)
 {
     return right * left;
 }
 
-Vector3d Vector3d::operator+(const Vector3d& right) const
+Vector3D Vector3D::operator+(const Vector3D& right) const
 {
-    Vector3d ret = *this;
+    Vector3D ret = *this;
     ret += right;
     return ret;
 }
 
-Vector3d& Vector3d::operator+=(const Vector3d& right)
+Vector3D& Vector3D::operator+=(const Vector3D& right)
 {
     m_vec[0] += right.m_vec[0];
     m_vec[1] += right.m_vec[1];
@@ -112,23 +112,23 @@ Vector3d& Vector3d::operator+=(const Vector3d& right)
     return *this;
 }
 
-Vector3d Vector3d::operator-(const Vector3d& right) const
+Vector3D Vector3D::operator-(const Vector3D& right) const
 {
-    Vector3d ret = *this;
+    Vector3D ret = *this;
     ret -= right;
     return ret;
 }
 
-Vector3d Vector3d::operator-() const
+Vector3D Vector3D::operator-() const
 {
-    Vector3d ret;
+    Vector3D ret;
     ret.m_vec[0] = -m_vec[0];
     ret.m_vec[1] = -m_vec[1];
     ret.m_vec[2] = -m_vec[2];
     return ret;
 }
 
-Vector3d& Vector3d::operator-=(const Vector3d& right)
+Vector3D& Vector3D::operator-=(const Vector3D& right)
 {
     m_vec[0] -= right.m_vec[0];
     m_vec[1] -= right.m_vec[1];
@@ -136,14 +136,14 @@ Vector3d& Vector3d::operator-=(const Vector3d& right)
     return *this;
 }
 
-Vector3d Vector3d::operator/(const float& right) const
+Vector3D Vector3D::operator/(const float& right) const
 {
-    Vector3d ret = *this;
+    Vector3D ret = *this;
     ret /= right;
     return ret;
 }
 
-Vector3d& Vector3d::operator/=(const float& right)
+Vector3D& Vector3D::operator/=(const float& right)
 {
     m_vec[0] /= right;
     m_vec[1] /= right;
@@ -151,7 +151,7 @@ Vector3d& Vector3d::operator/=(const float& right)
     return *this;
 }
 
-Vector3d& Vector3d::operator=(const float* right)
+Vector3D& Vector3D::operator=(const float* right)
 {
     m_vec[0] = right[0];
     m_vec[1] = right[1];

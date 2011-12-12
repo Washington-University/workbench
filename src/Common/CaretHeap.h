@@ -77,6 +77,12 @@ namespace caret
         
         ///retrieve the key value
         const K& getKey(const int64_t& dataIndex) const;
+        
+        ///check for empty
+        bool isEmpty() const;
+        
+        ///get number of elements
+        int64_t size() const;
     };
     
     template <typename T, typename K>
@@ -224,6 +230,18 @@ namespace caret
         CaretAssert(m_heap.size() > 0);
         if (key != NULL) *key = m_datastore[m_heap[0]].m_key;
         return m_datastore[m_heap[0]].m_data;
+    }
+    
+    template <typename T, typename K, typename C>
+    bool CaretHeapBase<T, K, C>::isEmpty() const
+    {
+        return m_heap.size() == 0;
+    }
+
+    template <typename T, typename K, typename C>
+    int64_t CaretHeapBase<T, K, C>::size() const
+    {
+        return (int64_t)m_heap.size();
     }
 
 }

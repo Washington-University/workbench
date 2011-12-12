@@ -76,7 +76,7 @@ StructureEnum.h
 SystemUtilities.h
 TracksModificationInterface.h
 UserView.h
-Vector3d.h
+Vector3D.h
 
 ${MOC_SOURCE_FILES}
 AString.cxx
@@ -122,7 +122,7 @@ StereotaxicSpaceEnum.cxx
 StructureEnum.cxx
 SystemUtilities.cxx
 UserView.cxx
-Vector3d.cxx
+Vector3D.cxx
 )
 
 #

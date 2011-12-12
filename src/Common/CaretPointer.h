@@ -79,6 +79,7 @@ namespace caret {
       ~CaretArray();
       CaretArray(const CaretArray<T>& right);
       CaretArray(T* right);
+      CaretArray(int64_t size);//for simpler construction
       CaretArray& operator=(const CaretArray<T>& right);
       bool operator==(const T* right) const;
       T& operator[](const uint64_t& index);
@@ -237,6 +238,18 @@ namespace caret {
    {
       grab(right.m_pointerRef);
    }
+   
+    template <typename T>
+    CaretArray<T>::CaretArray(int64_t size)
+    {
+        m_pointerRef = NULL;
+        CaretArrayRef* temp = new CaretArrayRef();
+        CaretAssert(temp != NULL);
+        temp->m_pointer = new T[size];
+        CaretAssert(temp->m_pointer != NULL);
+        temp->m_refCount = 0;
+        grab(temp);
+    }
    
    template <typename T>
    CaretArray<T>::CaretArray(T* right)

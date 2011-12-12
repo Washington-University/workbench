@@ -281,6 +281,7 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->triangleDataArray   = NULL;
     this->trianglePointer     = NULL;
     this->boundingBox         = NULL;
+    m_normalsComputed = false;
     invalidateGeoHelpers();
     invalidateTopoHelpers();
 }
@@ -325,6 +326,11 @@ const float* SurfaceFile::getNormalData() const
 void 
 SurfaceFile::computeNormals(const bool averageNormals)
 {
+    if (m_normalsComputed && (averageNormals == m_normalsAveraged))//don't recompute when not needed
+    {
+        return;
+    }
+    m_normalsAveraged = averageNormals;
     int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
         this->normalVectors.resize(numCoords * 3);
