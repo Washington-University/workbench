@@ -101,34 +101,41 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     
     QWidget* histogramWidget = this->createHistogramSection();
     QWidget* histogramControlWidget = this->createHistogramControlSection();
+    
     QWidget* paletteWidget = this->createPaletteSection();
+    QWidget* paletteColorMappingWidget = this->createPaletteColorMappingSection();
+    QWidget* paletteDisplayModeWidget = this->createPaletteDisplayModeSection();
+
     QWidget* statisticsWidget = this->createStatisticsSection();
     QWidget* thresholdWidget = this->createThresholdSection();
     
-    QHBoxLayout* topLayout = new QHBoxLayout();
-    this->setLayoutMargins(topLayout);
-    topLayout->addWidget(thresholdWidget);
-    topLayout->addWidget(histogramWidget);
-    topLayout->setStretchFactor(thresholdWidget, 0);
-    topLayout->setStretchFactor(histogramWidget, 100);
+    QWidget* leftWidget = new QWidget();
+    QVBoxLayout* leftLayout = new QVBoxLayout(leftWidget);
+    this->setLayoutMargins(leftLayout);
+    leftLayout->addWidget(thresholdWidget);
+    leftLayout->addWidget(paletteWidget);
+    leftLayout->addWidget(paletteColorMappingWidget);
+    leftLayout->addWidget(paletteDisplayModeWidget);
+    leftLayout->addStretch();
     
-    QVBoxLayout* bottomRightLayout = new QVBoxLayout();
-    this->setLayoutMargins(bottomRightLayout);
-    bottomRightLayout->addWidget(histogramControlWidget);
+    QWidget* bottomRightWidget = new QWidget();
+    QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
+    bottomRightLayout->addWidget(histogramControlWidget);    
     bottomRightLayout->addWidget(statisticsWidget);
-    bottomRightLayout->addStretch();
+    bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
-    QHBoxLayout* bottomLayout = new QHBoxLayout();
-    this->setLayoutMargins(bottomLayout);
-    bottomLayout->addWidget(paletteWidget);
-    bottomLayout->addLayout(bottomRightLayout);
-    bottomLayout->addStretch();
+    QWidget* rightWidget = new QWidget();
+    QVBoxLayout* rightLayout = new QVBoxLayout(rightWidget);
+    this->setLayoutMargins(rightLayout);
+    rightLayout->addWidget(histogramWidget, 100);
+    rightLayout->addWidget(bottomRightWidget, 0);
+    rightLayout->addStretch();
     
     QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
+    QHBoxLayout* layout = new QHBoxLayout(w);
     this->setLayoutMargins(layout);
-    layout->addLayout(topLayout);
-    layout->addLayout(bottomLayout);
+    layout->addWidget(leftWidget, 0);
+    layout->addWidget(rightWidget, 100);
     
     this->setCentralWidget(w);
 }
@@ -306,7 +313,7 @@ MapScalarDataColorMappingEditorDialog::createStatisticsSection()
     gridLayout->addWidget(this->statisticsMaximumValueLabel, 2, 1);
     gridLayout->addWidget(new QLabel("Minimum"), 3, 0);
     gridLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
-    groupBox->setFixedSize(groupBox->sizeHint());
+    groupBox->setFixedHeight(groupBox->sizeHint().height());
     
     return groupBox;
 }
@@ -394,7 +401,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     thresholdAdjustmentLayout->addWidget(this->thresholdLowSpinBox, 1, 2);
     thresholdAdjustmentLayout->addWidget(this->thresholdShowInsideRadioButton, 2, 0, 1, 3, Qt::AlignLeft);
     thresholdAdjustmentLayout->addWidget(this->thresholdShowOutsideRadioButton, 3, 0, 1, 3, Qt::AlignLeft);
-    thresholdAdjustmentGroupBox->setFixedSize(thresholdAdjustmentGroupBox->sizeHint());
+    thresholdAdjustmentGroupBox->setFixedHeight(thresholdAdjustmentGroupBox->sizeHint().height());
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
@@ -436,13 +443,14 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     QObject::connect(this->histogramUsePaletteColors, SIGNAL(toggled(bool)),
                      this, SLOT(histogramControlChanged()));
     
-    QGroupBox* groupBox = new QGroupBox("Histogram Control");
+    QGroupBox* groupBox = new QGroupBox("Histogram");
     QVBoxLayout* layout = new QVBoxLayout(groupBox);
     this->setLayoutMargins(layout);
     layout->addWidget(this->histogramAllRadioButton);
     layout->addWidget(this->histogramTwoNinetyEightRadioButton);
     layout->addWidget(horizLine);
     layout->addWidget(this->histogramUsePaletteColors);
+    groupBox->setFixedSize(groupBox->sizeHint());
     
     return groupBox;
 }
@@ -470,17 +478,38 @@ QWidget*
 MapScalarDataColorMappingEditorDialog::createPaletteSection()
 {
     /*
-     * Palette Selection
+     * Selection
      */
     this->paletteNameComboBox = new QComboBox();
     this->paletteWidgetGroup->add(this->paletteNameComboBox);
     QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(apply()));
+    /*
+     * Interpolate Colors
+     */
+    this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
+    this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
+    QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
+                     this, SLOT(apply()));
+    
     QGroupBox* paletteSelectionGroupBox = new QGroupBox("Palette Selection");
     QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionGroupBox);
     this->setLayoutMargins(paletteSelectionLayout);
     paletteSelectionLayout->addWidget(this->paletteNameComboBox);
+    paletteSelectionLayout->addWidget(this->interpolateColorsCheckBox);
+    paletteSelectionGroupBox->setFixedHeight(paletteSelectionGroupBox->sizeHint().height());
     
+    return paletteSelectionGroupBox;
+}
+
+/**
+ * Create the palette color mapping section of the dialog.
+ * @return
+ *   The palette color mapping section.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createPaletteColorMappingSection()
+{
     /*
      * Color Mapping
      */
@@ -598,6 +627,17 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     colorMappingLayout->addWidget(this->scaleFixedNegativeMaximumSpinBox, 4, 2);
     colorMappingGroupBox->setFixedSize(colorMappingGroupBox->sizeHint());
     
+    return colorMappingGroupBox;
+}
+
+/**
+ * Create the palette display mode section of the dialog.
+ * @return
+ *   The palette display mode section.
+ */
+QWidget* 
+MapScalarDataColorMappingEditorDialog::createPaletteDisplayModeSection()
+{
     /*
      * Display Mode
      */
@@ -614,42 +654,15 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
                      this, SLOT(apply()));
     QGroupBox* displayModeGroupBox = new QGroupBox("Display Mode");
-    QVBoxLayout* displayModeLayout = new QVBoxLayout(displayModeGroupBox);
-    this->setLayoutMargins(displayModeLayout);
-    displayModeLayout->addWidget(this->displayModePositiveCheckBox);
-    displayModeLayout->addWidget(this->displayModeZeroCheckBox);
+    QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeGroupBox);
+    WuQtUtilities::setLayoutMargins(displayModeLayout, 10, 3, 3);
     displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
+    displayModeLayout->addWidget(this->displayModeZeroCheckBox);
+    displayModeLayout->addWidget(this->displayModePositiveCheckBox);
     displayModeGroupBox->setFixedSize(displayModeGroupBox->sizeHint());
     
-    /*
-     * Options
-     */
-    this->interpolateColorsCheckBox = new QCheckBox("Interpolate\nColors");
-    this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
-    QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
-                     this, SLOT(apply()));
-    QGroupBox* optionsGroupBox = new QGroupBox("Options");
-    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
-    this->setLayoutMargins(optionsLayout);
-    optionsLayout->addWidget(this->interpolateColorsCheckBox);
-    optionsGroupBox->setFixedSize(optionsGroupBox->sizeHint());
-    
-    //QWidget* colorMapHorizLine = WuQtUtilities::createHorizontalLineWidget();
-    
-    QVBoxLayout* rightLayout = new QVBoxLayout();
-    this->setLayoutMargins(rightLayout);
-    rightLayout->addWidget(optionsGroupBox);
-    rightLayout->addWidget(displayModeGroupBox);
-    rightLayout->addStretch();
-    
-    QWidget* w = new QWidget();
-    QGridLayout* layout = new QGridLayout(w);
-    this->setLayoutMargins(layout);
-    layout->addWidget(paletteSelectionGroupBox, 0, 0, 1, 2);
-    layout->addWidget(colorMappingGroupBox, 1, 0);
-    layout->addLayout(rightLayout, 1, 1, Qt::AlignTop);
 
-    return w;
+    return displayModeGroupBox;
 }
 
 /**

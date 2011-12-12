@@ -78,6 +78,8 @@ namespace caret {
         
     private:
         QWidget* createPaletteSection();
+        QWidget* createPaletteColorMappingSection();
+        QWidget* createPaletteDisplayModeSection();
         QWidget* createThresholdSection();
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
