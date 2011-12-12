@@ -53,7 +53,7 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the input surface");
     
-    ret->addVolumeParameter(2, "refspace", "a volume in the desired output space (dims, spacing, origin)");
+    ret->addStringParameter(2, "refspace", "a volume in the desired output space (dims, spacing, origin)");
     
     ret->addVolumeOutputParameter(3, "outvol", "the output volume");
     
@@ -77,14 +77,16 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
 void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     SurfaceFile* mySurf = myParams->getSurface(1);
-    VolumeFile* myRefSpace = myParams->getVolume(2);
+    AString myRefName = myParams->getString(2);
     vector<vector<float> > volSpace;
     vector<int64_t> volDims;
-    volSpace = myRefSpace->getVolumeSpace();
-    myRefSpace->getDimensions(volDims);
+    {
+        VolumeFile myRefSpace;
+        myRefSpace.readFile(myRefName);
+        volSpace = myRefSpace.getVolumeSpace();
+        myRefSpace.getDimensions(volDims);
+    }
     volDims.resize(3);
-    //myParams->//TODO: need a way to mark parameters as no longer needed, but whether it gets deallocated is specific to command line/gui
-    //or, just use a string parameter and do stuff manually
     VolumeFile* myVolOut = myParams->getOutputVolume(3);
     myVolOut->reinitialize(volDims, volSpace);
     float exactLim = 3.0f;
@@ -115,7 +117,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         throw AlgorithmException("exact limit must be positive");
     }
     int32_t numNodes = mySurf->getNumberOfNodes();
-    float markweight = 0.1f, exactweight = 0.5f * exactLim, approxweight = 0.2f * (approxLim - exactLim);
+    float markweight = 0.1f, exactweight = 5.0f * exactLim, approxweight = 0.2f * (approxLim - exactLim);
     if (approxweight < 0.0f) approxweight = 0.0f;
     LevelProgress myProgress(myProgObj, markweight + exactweight + approxweight);
     vector<vector<float> > myVolSpace;
@@ -190,9 +192,6 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             }
         }
     }
-    myProgress.reportProgress(markweight);
-    myProgress.setTask("computing exact distances");
-    cout << "computing exact distances" << endl;
     vector<int64_t> exactVoxelList;
     {
         int64_t ijk[3];
@@ -211,7 +210,12 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 }
             }
         }
+        myProgress.reportProgress(markweight);
+        myProgress.setTask("generating indexing surface");
+        cout << "generating indexing surface" << endl;
         CaretPointer<SignedDistToSurfIndexedBase> myDistBase(new SignedDistToSurfIndexedBase(mySurf));
+        myProgress.setTask("computing exact distances");
+        cout << "computing exact distances" << endl;
 #pragma omp CARET_PAR
         {
             SignedDistToSurfIndexed myDist(myDistBase);
