@@ -113,8 +113,10 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     {
         throw AlgorithmException("exact limit must be positive");
     }
-    LevelProgress myProgress(myProgObj);
     int32_t numNodes = mySurf->getNumberOfNodes();
+    float markweight = 0.1f, exactweight = 0.5f * exactLim, approxweight = 0.2f * (approxLim - exactLim);
+    if (approxweight < 0.0f) approxweight = 0.0f;
+    LevelProgress myProgress(myProgObj, markweight + exactweight + approxweight);
     vector<vector<float> > myVolSpace;
     myVolSpace = myVolOut->getVolumeSpace();
     Vector3D ivec, jvec, kvec, tempvec;
@@ -140,6 +142,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         volMarked[i] = 0;
     }
     int64_t ijk[3];
+    myProgress.setTask("marking nodes to be calculated exactly");
 //#pragma omp CARET_PARFOR schedule(dynamic)
     for (int node = 0; node < numNodes; ++node)
     {
@@ -185,6 +188,8 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             }
         }
     }
+    myProgress.reportProgress(markweight);
+    myProgress.setTask("computing exact distances");
     vector<int64_t> exactVoxelList;
     {
         for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
@@ -217,6 +222,8 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             }
         }
     }
+    myProgress.reportProgress(markweight + exactweight);
+    myProgress.setTask("approximating distances in extended region");
     int faceNeigh[] = { 1, 0, 0, 
                         -1, 0, 0,
                         0, 1, 0,
@@ -338,12 +345,13 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 }
             }
         }//negatives
+        myProgress.reportProgress(markweight + exactweight + approxweight * 0.5f);
         CaretMaxHeap<VoxelIndex, float> negHeap;
         for (int i = 0; i < numExact; i += 3)
         {
             int64_t* thisVoxel = exactVoxelList.data() + i;
-            if (myVolOut->getValue(thisVoxel) > 0.0f)
-            {//start only from positive values
+            if (myVolOut->getValue(thisVoxel) < 0.0f)
+            {//now do negatives
                 //check face neighbors for being unmarked
                 for (int neigh = 0; neigh < 18; neigh += 3)
                 {
@@ -376,12 +384,12 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 tempijk[0] = curVoxel.m_ijk[0] + neighborhood[neigh].m_offset[0];
                 tempijk[1] = curVoxel.m_ijk[1] + neighborhood[neigh].m_offset[1];
                 tempijk[2] = curVoxel.m_ijk[2] + neighborhood[neigh].m_offset[2];
-                float tempf = myVolOut->getValue(curVoxel.m_ijk) + neighborhood[neigh].m_dist;
+                float tempf = myVolOut->getValue(curVoxel.m_ijk) - neighborhood[neigh].m_dist;
                 if (myVolOut->indexValid(tempijk))
                 {
                     int tempindex = myVolOut->getIndex(tempijk);
                     int tempmark = volMarked[tempindex];
-                    if (tempf <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) > tempf))
+                    if (tempf <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) < tempf))
                     {//within range, not frozen, and either no value or current value is worse
                         volMarked[tempindex] |= 2;//valid value
                         myVolOut->setValue(tempf, tempijk);
@@ -451,11 +459,8 @@ float SignedDistToSurfIndexed::dist(float coord[3])
                 if (m_triMarked[vecRef[j]] == 0)
                 {
                     tempf = distToTri(coord, vecRef[j]);
-                    if (m_triMarked[vecRef[j]] == 0)
-                    {
-                        m_triMarked[vecRef[j]] = 1;
-                        m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
-                    }
+                    m_triMarked[vecRef[j]] = 1;
+                    m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
                     if (first || abs(tempf) < abs(bestTriDist))
                     {
                         first = false;
