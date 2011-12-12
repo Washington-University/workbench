@@ -47,7 +47,7 @@ OperationParameters* OperationAddToSpecFile::getParameters()
     ret->addStringParameter(1, "specfile", "the specification file to add to");
     ret->addStringParameter(2, "structure", "the structure of the data file");
     ret->addStringParameter(3, "filename", "the path to the file");
-    AString myText = AString("!!!NOTE: currently broken, can't write a spec file!!!\n  The resulting spec file overwrites the existing spec file.  If the spec file doesn't exist, ") +
+    AString myText = AString("The resulting spec file overwrites the existing spec file.  If the spec file doesn't exist, ") +
         "it is created with default metadata.  The structure argument must be one of the following:\n\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
