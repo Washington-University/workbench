@@ -154,6 +154,16 @@ public:
 
     void setThresholdNormalMaximum(const float thresholdNormalPositive);
 
+    float getThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
+    
+    float getThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
+    
+    void setThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                             const float thresholdMinimum);
+    
+    void setThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                             const float thresholdMaximum);
+        
     PaletteThresholdTestEnum::Enum getThresholdTest() const;
 
     void setThresholdTest(const PaletteThresholdTestEnum::Enum thresholdTest);

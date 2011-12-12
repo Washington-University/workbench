@@ -740,9 +740,6 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
     
         this->interpolateColorsCheckBox->setChecked(this->paletteColorMapping->isInterpolatePaletteFlag());
         
-        float lowValue = 0.0;
-        float highValue = 0.0;
-        
         const int32_t numTypes = this->thresholdTypeComboBox->count();
         for (int32_t i = 0; i < numTypes; i++) {
             const int value = this->thresholdTypeComboBox->itemData(i).toInt();
@@ -752,25 +749,10 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
             }
         }
         
-        bool enableThresholdControls = true;
-        switch (this->paletteColorMapping->getThresholdType()) {
-            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-                enableThresholdControls = false;
-                break;
-            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-                lowValue = this->paletteColorMapping->getThresholdNormalMinimum();
-                highValue = this->paletteColorMapping->getThresholdNormalMaximum();
-                break;
-            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-                lowValue = this->paletteColorMapping->getThresholdMappedMinimum();
-                highValue = this->paletteColorMapping->getThresholdMappedMaximum();
-                break;
-            case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-                lowValue = this->paletteColorMapping->getThresholdMappedAverageAreaMinimum();
-                highValue = this->paletteColorMapping->getThresholdMappedAverageAreaMaximum();
-                break;
-        }
+        const bool enableThresholdControls = (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
         this->thresholdAdjustmentWidgetGroup->setEnabled(enableThresholdControls);
+        const float lowValue = this->paletteColorMapping->getThresholdMinimum(this->paletteColorMapping->getThresholdType());
+        const float highValue = this->paletteColorMapping->getThresholdMaximum(this->paletteColorMapping->getThresholdType());        
         
         switch (this->paletteColorMapping->getThresholdTest()) {
             case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
@@ -1055,22 +1037,8 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
     PaletteThresholdTypeEnum::Enum paletteThresholdType = static_cast<PaletteThresholdTypeEnum::Enum>(this->thresholdTypeComboBox->itemData(thresholdTypeIndex).toInt());
     this->paletteColorMapping->setThresholdType(paletteThresholdType);
     
-    switch (paletteThresholdType) {
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-            this->paletteColorMapping->setThresholdNormalMinimum(lowValue);
-            this->paletteColorMapping->setThresholdNormalMaximum(highValue);
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-            this->paletteColorMapping->setThresholdMappedMinimum(lowValue);
-            this->paletteColorMapping->setThresholdMappedMaximum(highValue);
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-            this->paletteColorMapping->setThresholdMappedAverageAreaMinimum(lowValue);
-            this->paletteColorMapping->setThresholdMappedAverageAreaMaximum(highValue);
-            break;            
-    }
+    this->paletteColorMapping->setThresholdMinimum(paletteThresholdType, lowValue);
+    this->paletteColorMapping->setThresholdMaximum(paletteThresholdType, highValue);
     
     if (this->thresholdShowInsideRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE);

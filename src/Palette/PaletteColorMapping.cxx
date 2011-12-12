@@ -674,6 +674,121 @@ PaletteColorMapping::setUserScalePositiveMinimum(const float userScalePositiveMi
 }
 
 /**
+ * Get the minimum threshold for the given threshold type.
+ *
+ * @param thresholdType
+ *   The threshold type.
+ * @return the threshold's value.
+ *
+ */
+float 
+PaletteColorMapping::getThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType) const
+{
+    float value = 0.0;
+    
+    switch (thresholdType) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            value = this->thresholdNormalMinimum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            value = this->thresholdMappedMinimum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            value = this->thresholdMappedAverageAreaMinimum;
+            break;            
+    }
+    
+    return value;
+}
+
+/**
+ * Get the minimum threshold for the given threshold type.
+ *
+ * @param thresholdType
+ *   The threshold type.
+ * @return the threshold's value.
+ *
+ */
+float 
+PaletteColorMapping::getThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType) const
+{
+    float value = 0.0;
+    
+    switch (thresholdType) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            value = this->thresholdNormalMaximum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            value = this->thresholdMappedMaximum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            value = this->thresholdMappedAverageAreaMaximum;
+            break;            
+    }
+    
+    return value;
+    
+}
+
+/**
+ * Set the minimum threshold for the given threshold type.
+ *
+ * @param thresholdType
+ *   The threshold type.
+ * param thresholdMinimum the threshold's new value.
+ *
+ */
+void 
+PaletteColorMapping::setThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                                         const float thresholdMinimum)
+{
+    switch (thresholdType) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            this->thresholdNormalMinimum = thresholdMinimum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            this->thresholdMappedMinimum = thresholdMinimum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            this->thresholdMappedAverageAreaMinimum = thresholdMinimum;
+            break;            
+    }
+}
+
+/**
+ * Set the maximum threshold for the given threshold type.
+ *
+ * @param thresholdType
+ *   The threshold type.
+ * param thresholdMaximum the threshold's new value.
+ *
+ */
+void 
+PaletteColorMapping::setThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                                         const float thresholdMaximum)
+{
+    switch (thresholdType) {
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
+            this->thresholdNormalMaximum = thresholdMaximum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
+            this->thresholdMappedMaximum = thresholdMaximum;
+            break;
+        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
+            this->thresholdMappedAverageAreaMaximum = thresholdMaximum;
+            break;            
+    }
+}
+
+/**
  * Get mapped average area minimum threshold
  *
  * @return the threshold's value.
