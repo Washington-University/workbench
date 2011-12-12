@@ -148,27 +148,27 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     {
         Vector3D nodeCoord = mySurf->getCoordinate(node);
         float tempf, tempf2, tempf3;
-        tempvec = nodeCoord + iOrthHat * exactLim;
+        tempvec = nodeCoord - iOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
         int64_t imin = (int64_t)ceil(tempf);
         if (imin < 0) imin = 0;
-        tempvec = nodeCoord - iOrthHat * exactLim;
+        tempvec = nodeCoord + iOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
         int64_t imax = (int64_t)floor(tempf) + 1;
         if (imax > myDims[0]) imax = myDims[0];
-        tempvec = nodeCoord + jOrthHat * exactLim;
+        tempvec = nodeCoord - jOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
         int64_t jmin = (int64_t)ceil(tempf2);
         if (jmin < 0) jmin = 0;
-        tempvec = nodeCoord - jOrthHat * exactLim;
+        tempvec = nodeCoord + jOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
         int64_t jmax = (int64_t)floor(tempf2) + 1;
         if (jmax > myDims[1]) jmax = myDims[1];
-        tempvec = nodeCoord + kOrthHat * exactLim;
+        tempvec = nodeCoord - kOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
         int64_t kmin = (int64_t)ceil(tempf3);
         if (kmin < 0) kmin = 0;
-        tempvec = nodeCoord - kOrthHat * exactLim;
+        tempvec = nodeCoord + kOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);
         int64_t kmax = (int64_t)floor(tempf3) + 1;
         if (kmax > myDims[2]) kmax = myDims[2];
@@ -610,7 +610,7 @@ SignedDistToSurfIndexedBase::SignedDistToSurfIndexedBase(SurfaceFile* mySurf)
     }
     m_avgEdge /= myEdgeInfo.size();
     int32_t numNodes = mySurf->getNumberOfNodes();
-    m_indexLength = m_avgEdge * pow(numNodes / 120.0f, 0.3333f);//formula worked out to (approximately) minimize the number of comparisons needed for finding the distance from one point (assumes has to check 30 indexing nodes)
+    m_indexLength = m_avgEdge * pow(numNodes / 6.0f, 0.16667f);//formula worked out to (approximately) minimize the number of comparisons needed for finding the distance from one point
     int numTris = mySurf->getNumberOfTriangles();
     CaretArray<int> triMarked(numTris);
     for (int i = 0; i < numTris; ++i)
