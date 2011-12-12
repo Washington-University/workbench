@@ -61,10 +61,10 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     exactDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 3)");
     
     OptionalParameter* approxDistOpt = ret->createOptionalParameter(5, "-approx-limit", "specify distance for approximate output");
-    approxDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 10)");
+    approxDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 20)");
     
     OptionalParameter* approxNeighborhoodOpt = ret->createOptionalParameter(6, "-approx-neighborhood", "voxel neighborhood for approximate calculation");
-    approxNeighborhoodOpt->addIntegerParameter(1, "num", "size of neighborhood cube (default 2 = 5x5x5)");
+    approxNeighborhoodOpt->addIntegerParameter(1, "num", "size of neighborhood cube measured from center to face, in voxels (default 3 = 7x7x7)");
     
     ret->setHelpText(
         AString("Computes the signed distance function of the surface.  Exact distance is calculated by finding the closest point on any surface triangle ") +
@@ -95,13 +95,13 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     {
         exactLim = (float)exactDistOpt->getDouble(1);
     }
-    float approxLim = 10.0f;
+    float approxLim = 20.0f;
     OptionalParameter* approxDistOpt = myParams->getOptionalParameter(5);
     if (approxDistOpt->m_present)
     {
         approxLim = (float)approxDistOpt->getDouble(1);//don't sanity check it, less than exact limit simply turns it off, specify extremely large to do entire volume
     }
-    int approxNeighborhood = 2;
+    int approxNeighborhood = 3;
     OptionalParameter* approxNeighborhoodOpt = myParams->getOptionalParameter(6);
     if (approxNeighborhoodOpt->m_present)
     {
@@ -424,7 +424,7 @@ float SignedDistToSurfIndexed::dist(float coord[3])
 {
     int numIndex = (int)m_base->m_indexing.size();
     Vector3D tempvec;
-    float tempf, bestTriDist;
+    float tempf, bestTriDist, absBestTriDist;
     int best = 0;
     bool first = true;//a little slower, but cleaner
     int triMarkChangeCount = 0;
@@ -448,10 +448,11 @@ float SignedDistToSurfIndexed::dist(float coord[3])
             tempf = distToTri(coord, vecRef[j]);
             m_triMarked[vecRef[j]] = 1;
             m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
-            if (first || abs(tempf) < abs(bestTriDist))
+            if (first || abs(tempf) < absBestTriDist)
             {
                 first = false;
                 bestTriDist = tempf;
+                absBestTriDist = abs(bestTriDist);//because we compare against this a LOT, so remove the abs call from them
             }
         }
     }
@@ -472,15 +473,16 @@ float SignedDistToSurfIndexed::dist(float coord[3])
                     tempf = distToTri(coord, vecRef[j]);
                     m_triMarked[vecRef[j]] = 1;
                     m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
-                    if (first || abs(tempf) < abs(bestTriDist))
+                    if (first || abs(tempf) < absBestTriDist)
                     {
                         changed = true;
                         first = false;
                         bestTriDist = tempf;
+                        absBestTriDist = abs(bestTriDist);
                     }
                 }
             }
-            if (changed)
+            if (changed)//only change this out here because it only affects whether or not we search an index node's triangles, not anything inside the loop over triangles
             {
                 nodeCutoff = sqrt(bestTriDist * bestTriDist + 13.0f * m_base->m_maxEdge * m_base->m_maxEdge / 36.0f);
                 indexCutoff = nodeCutoff + m_base->m_indexLength;
