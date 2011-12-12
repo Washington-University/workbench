@@ -33,6 +33,7 @@
 #include <algorithm>
 #include <cmath>
 #include <set>
+#include <iostream>
 
 using namespace caret;
 using namespace std;
@@ -119,7 +120,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     LevelProgress myProgress(myProgObj, markweight + exactweight + approxweight);
     vector<vector<float> > myVolSpace;
     myVolSpace = myVolOut->getVolumeSpace();
-    Vector3D ivec, jvec, kvec, tempvec;
+    Vector3D ivec, jvec, kvec;
     ivec[0] = myVolSpace[0][0]; ivec[1] = myVolSpace[1][0]; ivec[2] = myVolSpace[2][0];
     jvec[0] = myVolSpace[0][1]; jvec[1] = myVolSpace[1][1]; jvec[2] = myVolSpace[2][1];
     kvec[0] = myVolSpace[0][2]; kvec[1] = myVolSpace[1][2]; kvec[2] = myVolSpace[2][2];
@@ -141,12 +142,13 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     {
         volMarked[i] = 0;
     }
-    int64_t ijk[3];
-    myProgress.setTask("marking nodes to be calculated exactly");
-//#pragma omp CARET_PARFOR schedule(dynamic)
+    myProgress.setTask("marking voxel to be calculated exactly");
+    cout << "marking voxels to be calculated exactly" << endl;
+#pragma omp CARET_PARFOR
     for (int node = 0; node < numNodes; ++node)
     {
-        Vector3D nodeCoord = mySurf->getCoordinate(node);
+        int64_t ijk[3];
+        Vector3D nodeCoord = mySurf->getCoordinate(node), tempvec;
         float tempf, tempf2, tempf3;
         tempvec = nodeCoord - iOrthHat * exactLim;
         myVolOut->spaceToIndex(tempvec.m_vec, tempf, tempf2, tempf3);//compute bounding box once rather than doing a convoluted sphere loop construct
@@ -190,8 +192,10 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     }
     myProgress.reportProgress(markweight);
     myProgress.setTask("computing exact distances");
+    cout << "computing exact distances" << endl;
     vector<int64_t> exactVoxelList;
     {
+        int64_t ijk[3];
         for (ijk[0] = 0; ijk[0] < myDims[0]; ++ijk[0])
         {
             for (ijk[1] = 0; ijk[1] < myDims[1]; ++ijk[1])
@@ -208,14 +212,14 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             }
         }
         CaretPointer<SignedDistToSurfIndexedBase> myDistBase(new SignedDistToSurfIndexedBase(mySurf));
-//#pragma omp CARET_PAR
+#pragma omp CARET_PAR
         {
             SignedDistToSurfIndexed myDist(myDistBase);
             int numExact = (int)exactVoxelList.size();
-//#pragma omp CARET_FOR schedule(dynamic)
+            Vector3D thisCoord;
+#pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < numExact; i += 3)
             {
-                Vector3D thisCoord;
                 myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord.m_vec);
                 myVolOut->setValue(myDist.dist(thisCoord.m_vec), exactVoxelList.data() + i);
                 volMarked[myVolOut->getIndex(exactVoxelList.data() + i)] |= 6;//set marked to have valid value, and frozen
@@ -224,6 +228,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     }
     myProgress.reportProgress(markweight + exactweight);
     myProgress.setTask("approximating distances in extended region");
+    cout << "approximating distances in extended region" << endl;
     int faceNeigh[] = { 1, 0, 0, 
                         -1, 0, 0,
                         0, 1, 0,
@@ -232,6 +237,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                         0, 0, -1 };
     vector<DistVoxOffset> neighborhood;//this will contain ONLY the shortest voxel offsets with unique 3d slopes within the neighborhood
     DistVoxOffset tempIndex;
+    Vector3D tempvec;
     for (int i = -approxNeighborhood; i <= approxNeighborhood; ++i)
     {
         tempIndex.m_offset[0] = i;
@@ -454,6 +460,7 @@ float SignedDistToSurfIndexed::dist(float coord[3])
         {
             vector<int>& vecRef = m_base->m_indexing[i].m_triList;
             int numTris = (int)vecRef.size();
+            bool changed = false;
             for (int j = 0; j < numTris; ++j)
             {
                 if (m_triMarked[vecRef[j]] == 0)
@@ -463,13 +470,17 @@ float SignedDistToSurfIndexed::dist(float coord[3])
                     m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
                     if (first || abs(tempf) < abs(bestTriDist))
                     {
+                        changed = true;
                         first = false;
                         bestTriDist = tempf;
                     }
                 }
             }
-            nodeCutoff = sqrt(bestTriDist * bestTriDist + 13.0f * m_base->m_maxEdge * m_base->m_maxEdge / 36.0f);
-            indexCutoff = nodeCutoff + m_base->m_indexLength;
+            if (changed)
+            {
+                nodeCutoff = sqrt(bestTriDist * bestTriDist + 13.0f * m_base->m_maxEdge * m_base->m_maxEdge / 36.0f);
+                indexCutoff = nodeCutoff + m_base->m_indexLength;
+            }
         }
     }
     while (triMarkChangeCount)
