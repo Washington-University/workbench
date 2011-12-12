@@ -47,6 +47,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
@@ -56,6 +57,7 @@
 #include "WuQtUtilities.h"
 
 #include "qwt_plot.h"
+#include "qwt_plot_curve.h"
 #include "qwt_plot_histogram.h"
 
 using namespace caret;
@@ -82,6 +84,8 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
 {
     this->setDeleteWhenClosed(false);
 
+    this->isHistogramColored = true;
+    
     this->caretMappableDataFile = NULL;
     this->mapFileIndex = -1;
     
@@ -143,32 +147,43 @@ MapScalarDataColorMappingEditorDialog::updateDialog()
 }
 
 /**
- * Called when the threshold type is changed
+ * Called when the threshold type is changed.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::thresholdTypeChanged()
+{
+    if (this->thresholdTypeOffRadioButton->isChecked()) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
+    }
+    else if (this->thresholdTypeOnRadioButton->isChecked()) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
+    }
+    else if (this->thresholdTypeMappedRadioButton->isChecked()) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED);
+    }
+    else if (this->thresholdTypeMappedAverageAreaRadioButton->isChecked()) {
+        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA);
+    }
+    
+    this->updateEditor(this->caretMappableDataFile, 
+                       this->mapFileIndex);
+}
+
+/**
+ * Called when the threshold control is changed
  * since the adjustment section needs to be 
  * updated.
  * @param button
  *    Button that was clicked.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdTypeButtonClicked(QAbstractButton* button)
+MapScalarDataColorMappingEditorDialog::thresholdControlChanged()
 {
-    if (button == this->thresholdTypeOffRadioButton) {
-        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF);
-    }
-    else if (button == this->thresholdTypeOnRadioButton) {
-        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL);
-    }
-    else if (button == this->thresholdTypeMappedRadioButton) {
-        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED);
-    }
-    else if (button == this->thresholdTypeMappedAverageAreaRadioButton) {
-        this->paletteColorMapping->setThresholdType(PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA);
-    }
+    this->apply();
     
     this->updateEditor(this->caretMappableDataFile, 
                        this->mapFileIndex);
     
-    this->apply();
 }
 
 /**
@@ -191,7 +206,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSpinBoxValueChanged(double d)
     this->thresholdLowSlider->setValue(d);
     this->thresholdLowSlider->blockSignals(false);
     
-    this->apply();
+    this->thresholdControlChanged();
 }
 
 /**
@@ -214,7 +229,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSpinBoxValueChanged(double d
     this->thresholdHighSlider->setValue(d);
     this->thresholdHighSlider->blockSignals(false);
     
-    this->apply();
+    this->thresholdControlChanged();
 }
 
 /**
@@ -237,7 +252,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSliderValueChanged(double d)
     this->thresholdLowSpinBox->setValue(d);
     this->thresholdLowSpinBox->blockSignals(false);
     
-    this->apply();
+    this->thresholdControlChanged();
 }
 
 /**
@@ -260,7 +275,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
     this->thresholdHighSpinBox->setValue(d);
     this->thresholdHighSpinBox->blockSignals(false);
     
-    this->apply();
+    this->thresholdControlChanged();
 }
 
 /**
@@ -307,7 +322,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     QButtonGroup* thresholdTypeButtonGroup = new QButtonGroup(this);
     this->thresholdWidgetGroup->add(thresholdTypeButtonGroup);
     QObject::connect(thresholdTypeButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
-                     this, SLOT(thresholdTypeButtonClicked(QAbstractButton*)));
+                     this, SLOT(thresholdTypeChanged()));
     thresholdTypeButtonGroup->addButton(this->thresholdTypeOffRadioButton);
     thresholdTypeButtonGroup->addButton(this->thresholdTypeOnRadioButton);
     thresholdTypeButtonGroup->addButton(this->thresholdTypeMappedRadioButton);
@@ -357,7 +372,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     thresholdShowButtonGroup->addButton(this->thresholdShowInsideRadioButton);
     thresholdShowButtonGroup->addButton(this->thresholdShowOutsideRadioButton);
     QObject::connect(thresholdShowButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(apply()));
+                     this, SLOT(thresholdControlChanged()));
     
     QGroupBox* thresholdAdjustmentGroupBox = new QGroupBox("Threshold Adjustment");
     QGridLayout* thresholdAdjustmentLayout = new QGridLayout(thresholdAdjustmentGroupBox);
@@ -425,16 +440,8 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
 QWidget* 
 MapScalarDataColorMappingEditorDialog::createHistogramSection()
 {
-    const QColor color(255, 0, 0);
-    
-    this->thresholdHistogram = new QwtPlotHistogram("Histogram");
-    this->thresholdHistogram->setStyle(QwtPlotHistogram::Columns);
-    this->thresholdHistogram->setBrush(QBrush(color));
-    this->thresholdHistogram->setPen(QPen(color));
-    
     this->thresholdPlot = new QwtPlot();
-    this->thresholdPlot->setAutoReplot(true);
-    this->thresholdHistogram->attach(this->thresholdPlot);
+    //this->thresholdPlot->setAutoReplot(true);
     
     return this->thresholdPlot;
 }
@@ -657,6 +664,7 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
     this->setWindowTitle(title);
     
     this->paletteNameComboBox->clear();
+
     
     this->paletteColorMapping = this->caretMappableDataFile->getMapPaletteColorMapping(this->mapFileIndex); 
     
@@ -779,25 +787,6 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->thresholdHighSpinBox->setMaximum(maxValue);
         this->thresholdHighSpinBox->setValue(highValue);
         
-        float step = 1.0;
-        if (numHistogramValues > 1) {
-            step = ((maxValue - minValue)
-                    / numHistogramValues);
-        }
-        QVector<QwtIntervalSample> samples(numHistogramValues);
-        for (int64_t i = 0; i < numHistogramValues; i++) {
-            const float startValue = (minValue
-                                    + (i * step));
-            const float stopValue  = startValue + step;
-            
-            QwtInterval interval(startValue,
-                                 stopValue);
-            interval.setBorderFlags(QwtInterval::ExcludeMaximum);
-            samples[i] = QwtIntervalSample(histogram[i],
-                                           interval);
-        }
-        
-        this->thresholdHistogram->setData(new QwtIntervalSeriesData(samples));
         
         this->statisticsMeanValueLabel->setText(QString::number(meanValue, 'f', 4));
         this->statisticsStandardDeviationLabel->setText(QString::number(stdDev, 'f', 4));
@@ -805,8 +794,176 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->statisticsMinimumValueLabel->setText(QString::number(minValue, 'f', 4));
     }
     
+    this->updateHistogramPlot();
+    
     this->paletteWidgetGroup->blockSignals(false);
     this->thresholdWidgetGroup->blockSignals(false);
+}
+
+/**
+ * Update the histogram plot.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
+{
+    /*
+     * Remove all previously attached items from the histogram plot.
+     * The items are automatically deleted by the plot.
+     */
+    this->thresholdPlot->detachItems();
+    
+    if (this->paletteColorMapping != NULL) {
+        PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
+        const DescriptiveStatistics* statistics = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
+        
+        /*
+         * Get data for this histogram.
+         */
+        int64_t numHistogramValues = 0;
+        int64_t* histogram = NULL;
+        float minValue = 0.0;
+        float maxValue = 0.0;
+        if (this->histogramAllRadioButton->isChecked()) {
+            minValue  = statistics->getMinimumValue();
+            maxValue  = statistics->getMaximumValue();
+            
+            numHistogramValues = statistics->getHistogramNumberOfElements();
+            histogram = const_cast<int64_t*>(statistics->getHistogram());
+        }
+        else {
+            minValue  = statistics->getMinimumValue96();
+            maxValue  = statistics->getMaximumValue96();
+            
+            numHistogramValues = statistics->getHistogramNumberOfElements();
+            histogram = const_cast<int64_t*>(statistics->getHistogram96());
+        }
+        
+        /*
+         * Display using palette colors
+         */
+//        if (isHistogramColored) {
+            /*
+             * Width of each 'bar' in the histogram
+             */
+            float step = 1.0;
+            if (numHistogramValues > 1) {
+                step = ((maxValue - minValue)
+                        / numHistogramValues);
+            }
+            
+            float* dataValues = NULL;
+            float* dataRGBA = NULL;
+            if (numHistogramValues > 0) {
+                /*
+                 * Compute color for 'bar' in the histogram
+                 */
+                dataValues = new float[numHistogramValues];
+                dataRGBA   = new float[numHistogramValues * 4];
+                for (int64_t ix = 0; ix < numHistogramValues; ix++) {
+                    const float value = (minValue
+                                         + (ix * step));
+                    dataValues[ix] = value;
+                }
+
+                const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
+                if (isHistogramColored
+                    && (palette != NULL)) {
+                    NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+                                                                  paletteColorMapping, 
+                                                                  palette, 
+                                                                  dataValues, 
+                                                                  dataValues, 
+                                                                  numHistogramValues, 
+                                                                  dataRGBA);
+                }
+                else {
+                    for (int64_t i = 0; i < numHistogramValues; i++) {
+                        const int64_t i4 = i * 4;
+                        dataRGBA[i4]   = 1.0;
+                        dataRGBA[i4+1] = 0.0;
+                        dataRGBA[i4+2] = 0.0;
+                        dataRGBA[i4+3] = 1.0;
+                    }
+                }
+            }
+            
+            const int numBars = numHistogramValues - 1;
+            for (int64_t ix = 0; ix < numBars; ix++) {
+                QColor color;
+                const int64_t ix4 = ix * 4;
+                color.setRedF(dataRGBA[ix4]);
+                color.setGreenF(dataRGBA[ix4+1]);
+                color.setBlueF(dataRGBA[ix4+2]);
+                color.setAlphaF(1.0);
+                
+                const float startValue = dataValues[ix];
+                const float stopValue  = dataValues[ix + 1];
+                float dataFrequency = histogram[ix];
+                
+                /*
+                 * If color is not displayed ('none' or thresholded), 
+                 * set its frequncey value to zero so that the plot
+                 * retains its shape.
+                 */
+                if (dataRGBA[ix4+3] <= 0.0) {
+                    dataFrequency = 0.5;
+                }
+                
+                QVector<QPointF> samples;
+                samples.push_back(QPointF(startValue, 0));
+                samples.push_back(QPointF(stopValue, 0));
+                samples.push_back(QPointF(stopValue, dataFrequency));
+                samples.push_back(QPointF(startValue, dataFrequency));
+                
+                QwtPlotCurve* curve = new QwtPlotCurve();
+                curve->setRenderHint(QwtPlotItem::RenderAntialiased);
+                curve->setVisible(true);
+                curve->setStyle(QwtPlotCurve::Steps);
+                
+                curve->setBrush(QBrush(color));
+                curve->setPen(QPen(color));
+                curve->setSamples(samples);
+                
+                curve->attach(this->thresholdPlot);
+            }
+            
+            if (dataValues != NULL) {
+                delete dataValues;
+            }
+            if (dataRGBA != NULL) {
+                delete dataRGBA;
+            }
+//        }
+//        else {
+//            QVector<QwtIntervalSample> samples(numHistogramValues);
+//            for (int64_t i = 0; i < numHistogramValues; i++) {
+//                const float startValue = (minValue
+//                                          + (i * step));
+//                const float stopValue  = startValue + step;
+//                
+//                QwtInterval interval(startValue,
+//                                     stopValue);
+//                interval.setBorderFlags(QwtInterval::ExcludeMaximum);
+//                samples[i] = QwtIntervalSample(histogram[i],
+//                                               interval);
+//            }
+//            
+//            const QColor color(255, 0, 0);
+//            
+//            QwtPlotHistogram* thresholdHistogram = new QwtPlotHistogram("Histogram");
+//            thresholdHistogram->setStyle(QwtPlotHistogram::Columns);
+//            thresholdHistogram->setBrush(QBrush(color));
+//            thresholdHistogram->setPen(QPen(color));
+//            
+//            thresholdHistogram->setData(new QwtIntervalSeriesData(samples));
+//            thresholdHistogram->attach(this->thresholdPlot);
+//        }
+        
+        /*
+         * Causes updates of plots.
+         */
+        this->thresholdPlot->replot();
+    }
 }
 
 /**
@@ -883,6 +1040,8 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
     else if (this->thresholdShowOutsideRadioButton->isChecked()) {
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
+    
+    this->updateHistogramPlot();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());

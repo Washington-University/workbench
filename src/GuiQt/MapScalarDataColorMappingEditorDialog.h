@@ -35,7 +35,6 @@ class QComboBox;
 class QLabel;
 class QRadioButton;
 class QwtPlot;
-class QwtPlotHistogram;
 
 
 namespace caret {
@@ -67,11 +66,13 @@ namespace caret {
         MapScalarDataColorMappingEditorDialog& operator=(const MapScalarDataColorMappingEditorDialog&);
         
     private slots:
-        void thresholdTypeButtonClicked(QAbstractButton*);
         void thresholdLowSpinBoxValueChanged(double);
         void thresholdHighSpinBoxValueChanged(double);
         void thresholdLowSliderValueChanged(double);
         void thresholdHighSliderValueChanged(double);
+        void thresholdControlChanged();
+        void thresholdTypeChanged();
+        
         void histogramControlChanged();
         
     private:
@@ -80,6 +81,8 @@ namespace caret {
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
         QWidget* createStatisticsSection();
+        
+        void updateHistogramPlot();
         
         PaletteColorMapping* paletteColorMapping;
         
@@ -120,7 +123,6 @@ namespace caret {
         QRadioButton* thresholdShowOutsideRadioButton;
         
         QwtPlot* thresholdPlot;
-        QwtPlotHistogram* thresholdHistogram;
         
         QLabel* statisticsMinimumValueLabel;
         QLabel* statisticsMaximumValueLabel;
@@ -129,6 +131,8 @@ namespace caret {
         
         QRadioButton* histogramAllRadioButton;
         QRadioButton* histogramTwoNinetyEightRadioButton;
+        
+        bool isHistogramColored;
         
         CaretMappableDataFile* caretMappableDataFile;
         
