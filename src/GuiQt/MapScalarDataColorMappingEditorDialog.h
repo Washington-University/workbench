@@ -72,18 +72,15 @@ namespace caret {
         void thresholdLowSliderValueChanged(double);
         void thresholdHighSliderValueChanged(double);
         void thresholdControlChanged();
-        void thresholdTypeChanged();
+        void thresholdTypeChanged(int);
         
         void histogramControlChanged();
         
     private:
         QWidget* createPaletteSection();
-        QWidget* createPaletteColorMappingSection();
-        QWidget* createPaletteDisplayModeSection();
         QWidget* createThresholdSection();
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
-        QWidget* createStatisticsSection();
         
         void updateHistogramPlot();
         
@@ -113,13 +110,12 @@ namespace caret {
         
         QCheckBox* interpolateColorsCheckBox;
         
-        QRadioButton* thresholdTypeOffRadioButton;
-        QRadioButton* thresholdTypeOnRadioButton;
-        QRadioButton* thresholdTypeMappedRadioButton;
-        QRadioButton* thresholdTypeMappedAverageAreaRadioButton;
+        QComboBox* thresholdTypeComboBox;
         
         WuQDoubleSlider* thresholdLowSlider;
         WuQDoubleSlider* thresholdHighSlider;
+
+        WuQWidgetObjectGroup* thresholdAdjustmentWidgetGroup;
         
         QDoubleSpinBox* thresholdLowSpinBox;
         QDoubleSpinBox* thresholdHighSpinBox;

@@ -252,6 +252,11 @@ PaletteScaleModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     return e;
 }
 
+/**
+ * Get all enums for the data type.
+ * @param enumsOut
+ *   Loaded with all enums for this data type.
+ */
 void PaletteScaleModeEnum::getAllEnums(std::vector< PaletteScaleModeEnum::Enum >& enumsOut)
 {
     initialize();
@@ -714,3 +719,19 @@ PaletteThresholdTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     }
     return e;
 }
+/**
+ * Get all enums for the data type.
+ * @param enumsOut
+ *   Loaded with all enums for this data type.
+ */
+void PaletteThresholdTypeEnum::getAllEnums(std::vector<Enum>& enumsOut)
+{
+    initialize();
+    enumsOut.resize(enumData.size());
+    for (int i = 0; i < (int)enumData.size(); ++i)
+    {
+        enumsOut[i] = enumData[i].e;
+    }
+}
+
+

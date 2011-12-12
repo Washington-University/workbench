@@ -180,8 +180,8 @@ QWidget*
 WuQtUtilities::createHorizontalLineWidget()
 {
     QFrame* frame = new QFrame();
-    frame->setMidLineWidth(0);
-    frame->setLineWidth(2);
+    frame->setMidLineWidth(1);
+    frame->setLineWidth(1);
     frame->setFrameStyle(QFrame::HLine | QFrame::Sunken);
     return frame;
 }
