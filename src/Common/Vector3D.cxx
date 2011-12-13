@@ -44,10 +44,15 @@ float Vector3D::length() const
     return MathFunctions::vectorLength(m_vec);
 }
 
-Vector3D Vector3D::normal() const
+Vector3D Vector3D::normal(float* origLength) const
 {
     Vector3D ret = *this;
-    MathFunctions::normalizeVector(ret.m_vec);
+    if (origLength != NULL)
+    {
+        *origLength = MathFunctions::normalizeVector(ret.m_vec);
+    } else {
+        MathFunctions::normalizeVector(ret.m_vec);
+    }
     return ret;
 }
 

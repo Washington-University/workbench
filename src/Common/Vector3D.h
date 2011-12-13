@@ -36,7 +36,7 @@ namespace caret {
         //vector functions
         float dot(const Vector3D& right) const;
         Vector3D cross(const Vector3D& right) const;
-        Vector3D normal() const;
+        Vector3D normal(float* origLength = NULL) const;
         float length() const;
         //constructors
         Vector3D();

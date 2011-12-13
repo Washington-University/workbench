@@ -504,8 +504,8 @@ float SignedDistToSurfIndexed::distToTri(float coord[3], int triangle)
     Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
     Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
     Vector3D v21hat = vert2 - vert1;
-    float origLength = v21hat.length();
-    v21hat = v21hat.normal();
+    float origLength;
+    v21hat = v21hat.normal(&origLength);
     int type = 0;//tracks whether it is closest to a node, an edge, or the face
     int32_t node1, node2;//tracks which nodes are involved
     float tempf = v21hat.dot(point - vert1);
@@ -523,8 +523,7 @@ float SignedDistToSurfIndexed::distToTri(float coord[3], int triangle)
         ++type;
     }
     Vector3D v3that = vert3 - tempPoint;
-    origLength = v3that.length();
-    v3that = v3that.normal();
+    v3that = v3that.normal(&origLength);
     tempf = v3that.dot(point - tempPoint);
     if (tempf > origLength)
     {
