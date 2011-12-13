@@ -752,6 +752,7 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     BrowserTabContent* btc = (BrowserTabContent*)p;    
     this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
 
+    this->toolBoxToolButtonAction->setText(btc->getName());
     /*
     QIcon coronalIcon;
     const bool coronalIconValid =
