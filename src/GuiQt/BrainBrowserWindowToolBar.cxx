@@ -182,6 +182,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     if (toolBarIconValid) {
         this->toolBarToolButtonAction->setIcon(toolBarIcon);
     }
+    this->toolBarToolButtonAction->setIconVisibleInMenu(false);
     this->toolBarToolButtonAction->blockSignals(true);
     this->toolBarToolButtonAction->setCheckable(true);
     this->toolBarToolButtonAction->setChecked(true);
@@ -198,6 +199,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                             toolBoxIcon);
     if (toolBoxIconValid) {
         this->toolBoxToolButtonAction->setIcon(toolBoxIcon);
+        this->toolBoxToolButtonAction->setIconVisibleInMenu(false);
     }
     this->toolBoxToolButtonAction->setToolTip("Show or hide the toolbox");
     this->toolBoxToolButtonAction->setStatusTip("Show or hide the toolbox");

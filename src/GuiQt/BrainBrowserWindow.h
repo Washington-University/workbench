@@ -102,6 +102,8 @@ namespace caret {
         
         void shrinkToolbox();
         
+        void processViewMenuAboutToShow();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -172,6 +174,8 @@ namespace caret {
         QAction* viewScreenFullAction;
         QAction* viewScreenMontageTabsAction;
         QAction* viewScreenFullMontageTabsAction;        
+        
+        QAction* viewMenuShowToolBoxAction;
         
         QAction* nextTabAction;
         

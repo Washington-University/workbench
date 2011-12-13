@@ -75,7 +75,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
 //            break;
 //    }
     
-    this->toggleViewAction()->setText(title);
+    this->toggleViewAction()->setText("Toolbox");
     this->setWindowTitle(title);
     
     this->topBottomOverlayControl = this->createLayersWidget(Qt::Horizontal);

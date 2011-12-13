@@ -277,6 +277,17 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processExitProgram()));
     
+    /*
+     * Note the toolbox's toggleViewAction cannot be used directly since
+     * its text overrides the text in the menu.
+     */
+    this->viewMenuShowToolBoxAction = WuQtUtilities::createAction("Toolbox",
+                                                                  "Show or hide the toolbox",
+                                                                  this,
+                                                                  this->toolBox->toggleViewAction(),
+                                                                  SLOT(trigger()));
+    this->viewMenuShowToolBoxAction->setCheckable(true);
+    
     this->viewScreenNormalAction = WuQtUtilities::createAction("Normal", 
                                                                "Normal Viewing", 
                                                                Qt::Key_Escape, 
@@ -539,6 +550,21 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
 }
 
 /**
+ * Called when view menu is about to show.
+ */
+void 
+BrainBrowserWindow::processViewMenuAboutToShow()
+{
+    /*
+     * Update status of view toolbox action.
+     */
+    this->viewMenuShowToolBoxAction->setEnabled(this->toolBox->toggleViewAction()->isEnabled());
+    this->viewMenuShowToolBoxAction->blockSignals(true);
+    this->viewMenuShowToolBoxAction->setChecked(this->toolBox->toggleViewAction()->isChecked());
+    this->viewMenuShowToolBoxAction->blockSignals(false);
+}
+
+/**
  * Create the view menu.
  * @return the view menu.
  */
@@ -546,15 +572,11 @@ QMenu*
 BrainBrowserWindow::createMenuView()
 {
     QMenu* menu = new QMenu("View", this);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(processViewMenuAboutToShow()));
     
     menu->addAction(this->showToolBarAction);
-    QAction* showToolBoxAction = this->toolbar->getShowToolBoxAction();
-    if (showToolBoxAction != NULL) {
-        menu->addAction(showToolBoxAction);
-    }
-    else {
-        CaretLogSevere("Show toolbox action needs to be created (is NULL)");
-    }
+    menu->addAction(this->viewMenuShowToolBoxAction);
     menu->addMenu(this->createMenuViewMoveToolBox());
     menu->addSeparator();
     
