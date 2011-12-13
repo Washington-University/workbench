@@ -783,3 +783,8 @@ AbstractVolumeExtension::~AbstractVolumeExtension()
         delete m_bytes;
     }
 }
+
+AbstractHeader::~AbstractHeader()
+{//here simply because inlining virtual destructors is supposedly bad for some reason
+
+}

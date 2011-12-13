@@ -63,7 +63,7 @@ namespace caret {
             NIFTI2
         };
         virtual HeaderType getType() = 0;
-        virtual ~AbstractHeader() { }
+        virtual ~AbstractHeader();
     };
     
     class VolumeBase : public TracksModification
