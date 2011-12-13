@@ -8,6 +8,7 @@ PROJECT (GuiQt)
 # Use OpenGL from QT
 #
 SET(QT_USE_QTOPENGL TRUE)
+SET(QT_USE_QTWEBKIT TRUE)
 
 #
 # QT include files
@@ -30,6 +31,7 @@ BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetTextRenderer.h
 ConnectivityLoaderControl.h
+ConnectomeDBBrowserWindow.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
@@ -67,6 +69,7 @@ BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetTextRenderer.h
 ConnectivityLoaderControl.h
+ConnectomeDBBrowserWindow.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
 EventGraphicsUpdateAllWindows.h
@@ -109,6 +112,7 @@ BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetTextRenderer.cxx
 ConnectivityLoaderControl.cxx
+ConnectomeDBBrowserWindow.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
 EventGraphicsUpdateAllWindows.cxx

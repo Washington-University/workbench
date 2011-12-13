@@ -44,6 +44,8 @@
 #include <QSpinBox>
 #include <QTabBar>
 #include <QToolButton>
+#include <QtWebKit/QtWebKit>
+#include <QtWebKit/QWebView>
 
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
@@ -85,6 +87,7 @@
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
+
 
 using namespace caret;
 
@@ -172,6 +175,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
+    this->connectomeDBWidget = this->createConnectomeDBWidget();
     //this->spacerWidget = new QWidget;
     
     /*
@@ -200,6 +204,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->toolsWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->windowWidget, 0, Qt::AlignLeft);
+
+    this->toolbarWidgetLayout->addWidget(this->connectomeDBWidget, 0 , Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addStretch();
 
@@ -1714,7 +1720,6 @@ BrainBrowserWindowToolBar::createToolsWidget()
                                         0);
     return w;
 }
-
 /**
  * Update the tools widget.
  * 
@@ -1806,6 +1811,64 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     this->windowYokeGroupComboBox->setCurrentIndex(yokeToGroup->getYokingGroupIndex());
     
     this->windowWidgetGroup->blockSignals(false);
+
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+}
+
+
+/**
+ * Create the ConnectomeDB widget.
+ *
+ * @return The ConnectomeDB widget.
+ */
+QWidget*
+BrainBrowserWindowToolBar::createConnectomeDBWidget()
+{
+    QToolButton* connectomeDBButton = new QToolButton();
+
+
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    layout->addStretch();
+    layout->addWidget(connectomeDBButton);
+
+    this->connectomeDBButtonAction = WuQtUtilities::createAction("ConnectomeDB",
+                                                                         "Open ConnectomeDB Browser",
+                                                                         this,
+                                                                         this,
+                                                                         SLOT(connectomeDBToolButtonTriggered(bool)));
+    connectomeDBButton->setDefaultAction(this->connectomeDBButtonAction);
+    this->connectomeDBWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->connectomeDBWidgetGroup->add(this->connectomeDBButtonAction);
+
+    QWidget* w = this->createToolWidget("Links",
+                                        widget,
+                                        WIDGET_PLACEMENT_LEFT,
+                                        WIDGET_PLACEMENT_BOTTOM,
+                                        0);
+    return w;
+}
+
+
+/**
+ * Update the connectomeDB widget.
+ *
+ * @param modelDisplayController
+ *   The active model display controller (may be NULL).
+ */
+void
+BrainBrowserWindowToolBar::updateConnectomeDBWidget(BrowserTabContent* /*browserTabContent*/)
+{
+    if (this->connectomeDBWidget->isHidden()) {
+        return;
+    }
+
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
+
+    this->connectomeDBWidgetGroup->blockSignals(true);
+
+    this->connectomeDBWidgetGroup->blockSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -2458,6 +2521,7 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
     
     this->checkUpdateCounter();
 }
+
 
 /**
  * Called when orientation user view one button is pressed.
@@ -3333,6 +3397,25 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
     volumeController->resetView(tabIndex);
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
+}
+
+/**
+ * Called when orientation reset button is pressed.
+ */
+void
+BrainBrowserWindowToolBar::connectomeDBToolButtonTriggered(bool /*checked*/)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
+    //if (mdc != NULL) {
+        //mdc->launchConnectomeDBBrowser(btc->getTabNumber());
+        static QWebView *view = NULL;
+            if(view == NULL) view = new QWebView();
+             view->load(QUrl("http://intradb.humanconnectome.org/"));             
+             view->show();
+    //}
+
+    this->checkUpdateCounter();
 }
 
 /**
