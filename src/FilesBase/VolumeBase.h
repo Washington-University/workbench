@@ -32,6 +32,7 @@
 #include "TracksModificationInterface.h"
 #include "NiftiEnums.h"
 #include "StructureEnum.h"
+#include "CaretPointer.h"
 
 namespace caret {
 
@@ -52,6 +53,17 @@ namespace caret {
         AbstractVolumeExtension() { m_bytes = NULL; }
         virtual ExtensionType getType() = 0;
         virtual ~AbstractVolumeExtension();
+    };
+    
+    struct AbstractHeader
+    {
+        enum HeaderType
+        {
+            NIFTI1,
+            NIFTI2
+        };
+        virtual HeaderType getType() = 0;
+        virtual ~AbstractHeader() { }
     };
     
     class VolumeBase : public TracksModification
@@ -109,6 +121,9 @@ namespace caret {
 
         ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public - USE delete ON EXTENSIONS THAT YOU ERASE!
         std::vector<AbstractVolumeExtension*> m_extensions;
+        
+        ///ditto for header, but make it self-deleting
+        CaretPointer<AbstractHeader> m_header;
         
         ///recreates the volume file storage with new size and spacing
         void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
