@@ -114,6 +114,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                                   browserTabContent,
                                                   this->toolBox->toggleViewAction(),
                                                   this);
+    this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
     this->addToolBar(this->toolbar);
     
     this->createActions();
@@ -313,17 +314,6 @@ BrainBrowserWindow::createActions()
     this->viewScreenNormalAction->setChecked(true);
     this->viewScreenActionGroup->blockSignals(false);
         
-    this->showToolBarAction =
-    WuQtUtilities::createAction("Toolbar", 
-                                "Show or hide the toolbar",
-                                this,
-                                this->toolbar,
-                                SLOT(showHideToolBar(bool)));
-    this->showToolBarAction->blockSignals(true);
-    this->showToolBarAction->setCheckable(true);
-    this->showToolBarAction->setChecked(true);
-    this->showToolBarAction->blockSignals(false);
-    
     this->nextTabAction =
     WuQtUtilities::createAction("Next Tab",
                                 "Move to the next tab",

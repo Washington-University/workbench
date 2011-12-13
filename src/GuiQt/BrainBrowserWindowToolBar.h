@@ -339,6 +339,8 @@ namespace caret {
 
     private:
         QAction* connectomeDBButtonAction;
+        QAction* toolBarToolButtonAction;
+        QAction* toolBoxToolButtonAction;
     
     private:
         int32_t browserWindowIndex;

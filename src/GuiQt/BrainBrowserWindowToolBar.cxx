@@ -111,7 +111,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
 : QToolBar(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->toolsToolBoxToolButtonAction = toolBoxToolButtonAction;
+    this->toolBoxToolButtonAction = toolBoxToolButtonAction;
     this->updateCounter = 0;
     
     this->isContructorFinished = false;
@@ -162,6 +162,54 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(selectedTabChanged(int)));
     QObject::connect(this->tabBar, SIGNAL(tabCloseRequested(int)),
                      this, SLOT(tabClosed(int)));
+    
+    /*
+     * Toolbar action and tool button at right of the tab bar
+     */
+    QIcon toolBarIcon;
+    const bool toolBarIconValid =
+    WuQtUtilities::loadIcon(":/toolbar.png", 
+                            toolBarIcon);
+    
+    this->toolBarToolButtonAction =
+    WuQtUtilities::createAction("Toolbar", 
+                                "Show or hide the toolbar",
+                                this,
+                                this,
+                                SLOT(showHideToolBar(bool)));
+    if (toolBarIconValid) {
+        this->toolBarToolButtonAction->setIcon(toolBarIcon);
+    }
+    this->toolBarToolButtonAction->blockSignals(true);
+    this->toolBarToolButtonAction->setCheckable(true);
+    this->toolBarToolButtonAction->setChecked(true);
+    this->toolBarToolButtonAction->blockSignals(false);
+    QToolButton* toolBarToolButton = new QToolButton();
+    toolBarToolButton->setDefaultAction(this->toolBarToolButtonAction);
+    
+    /*
+     * Toolbox control at right of the tab bar
+     */
+    QIcon toolBoxIcon;
+    const bool toolBoxIconValid =
+    WuQtUtilities::loadIcon(":/toolbox.png", 
+                            toolBoxIcon);
+    if (toolBoxIconValid) {
+        this->toolBoxToolButtonAction->setIcon(toolBoxIcon);
+    }
+    
+    QToolButton* toolBoxToolButton = new QToolButton();
+    toolBoxToolButton->setDefaultAction(this->toolBoxToolButtonAction);
+    
+    /*
+     * controls at far right side of toolbar
+     */
+    QWidget* tabBarWidget = new QWidget();
+    QHBoxLayout* tabBarLayout = new QHBoxLayout(tabBarWidget);
+    tabBarLayout->addWidget(this->tabBar);
+    tabBarLayout->addStretch();
+    tabBarLayout->addWidget(toolBarToolButton);
+    tabBarLayout->addWidget(toolBoxToolButton);
     
     /*
      * Create the toolbar's widgets.
@@ -215,7 +263,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 1, 2, 0);
-    layout->addWidget(this->tabBar);
+    layout->addWidget(tabBarWidget);
     layout->addWidget(this->toolbarWidget);
     
     this->addWidget(w);
@@ -904,7 +952,7 @@ BrainBrowserWindowToolBar::updateToolBar()
 QAction* 
 BrainBrowserWindowToolBar::getShowToolBoxAction()
 {
-    return this->toolsToolBoxToolButtonAction;
+    return this->toolBoxToolButtonAction;
 }
 
 /**
@@ -1701,17 +1749,12 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
 QWidget* 
 BrainBrowserWindowToolBar::createToolsWidget()
 {
-    QToolButton* toolBoxToolButton = new QToolButton();
-    toolBoxToolButton->setDefaultAction(this->toolsToolBoxToolButtonAction);
-    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
     layout->addStretch();
-    layout->addWidget(toolBoxToolButton);
     
     this->toolsWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->toolsWidgetGroup->add(this->toolsToolBoxToolButtonAction);
     
     QWidget* w = this->createToolWidget("Tools", 
                                         widget, 

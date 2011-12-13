@@ -14,6 +14,8 @@
 <file>view-left-medial.png</file>
 <file>view-right-lateral.png</file>
 <file>view-right-medial.png</file>
+<file>toolbar.png</file>
+<file>toolbox.png</file>
 
 </qresource>
 </RCC>
