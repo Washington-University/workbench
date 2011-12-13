@@ -57,8 +57,8 @@ place the following lines into Commands/CommandOperationManager.cxx:
 #include "OperationName.h"
     //near the top
 
-this->commandOperations.push_back(new CommandParser(new AutoOperationName()));
-    //in CommandOperationManager()
+    this->commandOperations.push_back(new CommandParser(new AutoOperationName()));
+        //in CommandOperationManager()
 
 finally, remove this block comment
 */

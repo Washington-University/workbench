@@ -21,12 +21,14 @@ AbstractOperation.h
 OperationAddToSpecFile.h
 OperationException.h
 OperationMetricPalette.h
+OperationSetStructure.h
 OperationVolumePalette.h
 
 AbstractOperation.cxx
 OperationAddToSpecFile.cxx
 OperationException.cxx
 OperationMetricPalette.cxx
+OperationSetStructure.cxx
 OperationVolumePalette.cxx
 )
 
