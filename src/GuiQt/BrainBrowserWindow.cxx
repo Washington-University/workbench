@@ -112,7 +112,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
-                                                  this->toolBox->toggleViewAction(),
+                                                  this->toolBox,
                                                   this);
     this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
     this->addToolBar(this->toolbar);

@@ -51,6 +51,7 @@
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowToolBox.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "BrowserTabYoking.h"
@@ -106,12 +107,13 @@ using namespace caret;
  */
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                                      BrowserTabContent* initialBrowserTabContent,
-                                                     QAction* toolBoxToolButtonAction,
+                                                     BrainBrowserWindowToolBox* toolBox,
                                                      QWidget* parent)
 : QToolBar(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->toolBoxToolButtonAction = toolBoxToolButtonAction;
+    this->toolBox = toolBox;
+    this->toolBoxToolButtonAction = toolBox->toggleViewAction();
     this->updateCounter = 0;
     
     this->isContructorFinished = false;
@@ -197,6 +199,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     if (toolBoxIconValid) {
         this->toolBoxToolButtonAction->setIcon(toolBoxIcon);
     }
+    this->toolBoxToolButtonAction->setToolTip("Show or hide the toolbox");
+    this->toolBoxToolButtonAction->setStatusTip("Show or hide the toolbox");
     
     QToolButton* toolBoxToolButton = new QToolButton();
     toolBoxToolButton->setDefaultAction(this->toolBoxToolButtonAction);
@@ -752,7 +756,10 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     BrowserTabContent* btc = (BrowserTabContent*)p;    
     this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
 
-    this->toolBoxToolButtonAction->setText(btc->getName());
+    /*
+     * Set title of toolbox
+     */
+    this->toolBox->setWindowTitle(btc->getName());
     /*
     QIcon coronalIcon;
     const bool coronalIconValid =

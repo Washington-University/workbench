@@ -51,6 +51,7 @@ class QToolButton;
 
 namespace caret {
     
+    class BrainBrowserWindowToolBox;
     class BrowserTabContent;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
@@ -64,7 +65,7 @@ namespace caret {
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                   BrowserTabContent* initialBrowserTabContent,
-                                  QAction* toolsToolBoxToolButtonAction,
+                                  BrainBrowserWindowToolBox* toolBox,
                                   QWidget* parent = 0);
         
         ~BrainBrowserWindowToolBar();
@@ -339,6 +340,7 @@ namespace caret {
 
     private:
         QAction* connectomeDBButtonAction;
+        BrainBrowserWindowToolBox* toolBox;
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     
