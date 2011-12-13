@@ -163,6 +163,8 @@ MapScalarDataColorMappingEditorDialog::thresholdTypeChanged(int indx)
     
     this->updateEditor(this->caretMappableDataFile, 
                        this->mapFileIndex);
+    
+    this->apply();
 }
 
 /**
@@ -634,9 +636,11 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeWidget);
     WuQtUtilities::setLayoutMargins(displayModeLayout, 10, 3, 3);
     displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
+    displayModeLayout->addStretch();
     displayModeLayout->addWidget(this->displayModeZeroCheckBox);
+    displayModeLayout->addStretch();
     displayModeLayout->addWidget(this->displayModePositiveCheckBox);
-    displayModeWidget->setFixedSize(displayModeWidget->sizeHint());
+    //displayModeWidget->setFixedSize(displayModeWidget->sizeHint());
 
     
     /*
@@ -650,7 +654,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     paletteLayout->addWidget(colorMappingWidget);
     paletteLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     paletteLayout->addWidget(displayModeWidget);
-    paletteLayout->addStretch();
+    paletteGroupBox->setFixedHeight(paletteGroupBox->sizeHint().height());
     
     return paletteGroupBox;
 }
