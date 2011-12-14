@@ -485,6 +485,9 @@ DataFileTypeEnum::fromFileExtension(const AString& filename, bool* isValidOut)
                 break;
             }
         }
+        if (validFlag) {
+            break;
+        }
     }
     
     if (isValidOut != 0) {
