@@ -41,6 +41,7 @@ OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 PreferencesDialog.h
 SpecFileDialog.h
+StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 TimeSeriesManager.h
 WuQDataEntryDialog.h
@@ -87,6 +88,7 @@ OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
 PreferencesDialog.h
 SpecFileDialog.h
+StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 TimeSeriesManager.h
 UserInputModeView.h
@@ -130,6 +132,7 @@ OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
 PreferencesDialog.cxx
 SpecFileDialog.cxx
+StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx
 TimeSeriesManager.cxx
 UserInputModeView.cxx

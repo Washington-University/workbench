@@ -181,6 +181,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                                 SLOT(showHideToolBar(bool)));
     if (toolBarIconValid) {
         this->toolBarToolButtonAction->setIcon(toolBarIcon);
+        this->toolBarToolButtonAction->setIconVisibleInMenu(false);
     }
     this->toolBarToolButtonAction->setIconVisibleInMenu(false);
     this->toolBarToolButtonAction->blockSignals(true);
@@ -1738,9 +1739,11 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
             sliceSelection->getSliceIndexCoronal(),
             sliceSelection->getSliceIndexAxial()
         };
-        float sliceCoords[3];
-        vf->indexToSpace(slices,
-                         sliceCoords);
+        float sliceCoords[3] = { 0.0, 0.0, 0.0 };
+        if (vf != NULL) {
+            vf->indexToSpace(slices,
+                             sliceCoords);
+        }
         this->volumeIndicesXcoordSpinBox->setValue(sliceCoords[0]);
         this->volumeIndicesYcoordSpinBox->setValue(sliceCoords[1]);
         this->volumeIndicesZcoordSpinBox->setValue(sliceCoords[2]);

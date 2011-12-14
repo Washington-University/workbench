@@ -29,11 +29,18 @@
 #include "SpecFileDialog.h"
 #include "WuQDialogModal.h"
 
+class QAction;
 class QCheckBox;
+class QLabel;
+class QToolButton;
 
 namespace caret {
+    class GuiSpecDataFileInfo;
     class SpecFileDataFile;
+    class SpecFileDataFileTypeGroup;
     class SpecFile;
+    class StructureSelectionControl;
+    class WuQWidgetObjectGroup;
     
     class SpecFileDialog : public WuQDialogModal {
         Q_OBJECT
@@ -47,10 +54,20 @@ namespace caret {
     protected:
         virtual void okButtonPressed();
         
+    private slots:
+        void toolBarButtonTriggered(QAction*);
+    
     private:
+        class GuiSpecGroup {
+        public:
+            QWidget* widget;
+            std::vector<GuiSpecDataFileInfo*> dataFiles;
+        };
         SpecFileDialog(const SpecFileDialog&);
 
         SpecFileDialog& operator=(const SpecFileDialog&);
+        
+        GuiSpecGroup* createDataTypeGroup(SpecFileDataFileTypeGroup* group);
         
     public:
         virtual AString toString() const;
@@ -58,11 +75,40 @@ namespace caret {
     private:
         SpecFile* specFile;
         
-        std::vector<QCheckBox*> checkBoxes;
+        std::vector<GuiSpecGroup*> dataTypeGroups;
+    };
+ 
+    /// Info about data file
+    class GuiSpecDataFileInfo : public QObject {
+        Q_OBJECT
+    public:
+        GuiSpecDataFileInfo(QObject* parent,
+                         SpecFileDataFile* dataFileInfo,
+                         const bool isStructureFile);
+
+        ~GuiSpecDataFileInfo();
+    private slots:
+        void metadataActionTriggered();
+        void removeActionTriggered();
         
-        std::vector<SpecFileDataFile*> dataFiles;
+    private:
+        GuiSpecDataFileInfo(const GuiSpecDataFileInfo&);
+        GuiSpecDataFileInfo& operator=(const GuiSpecDataFileInfo&);
+        
+        SpecFileDataFile* dataFileInfo;
+        QCheckBox*        selectionCheckBox;
+        QAction*          metadataAction;
+        QToolButton*      metadataToolButton;
+        QAction*          removeAction;
+        QToolButton*      removeToolButton;
+        StructureSelectionControl* structureSelectionControl;
+        QLabel*           nameLabel;
+        WuQWidgetObjectGroup* widgetGroup;
+        
+        friend class SpecFileDialog;
     };
     
+
 #ifdef __SPEC_FILE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __SPEC_FILE_DIALOG_DECLARE__
