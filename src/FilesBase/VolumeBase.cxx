@@ -32,6 +32,7 @@
 #include "GiftiXmlElements.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
+#include "DataFileException.h"
 
 using namespace caret;
 using namespace std;
@@ -79,6 +80,10 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
         {
             m_dimensions[3] *= dimensionsIn[i];
         }
+    }
+    if (m_dimensions[0] == 1 && m_dimensions[1] == 1 && m_dimensions[2] == 1 && m_dimensions[3] > 10000)
+    {
+        throw DataFileException("this file doesn't appear to be a volume file");
     }
     m_dimensions[4] = numComponents;
     m_dataSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
