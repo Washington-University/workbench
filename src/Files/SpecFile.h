@@ -35,6 +35,7 @@
 namespace caret {
     
     class GiftiMetaData;
+    class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
     
     class SpecFile : public DataFile {
@@ -78,6 +79,8 @@ namespace caret {
         SpecFileDataFileTypeGroup* getDataFileTypeGroup(const int32_t dataFileTypeGroupIndex);
         
         SpecFileDataFileTypeGroup* getDataFileTypeGroup(const DataFileTypeEnum::Enum dataFileType);
+        
+        void getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFiles);
         
         void setAllFilesSelected(bool selectionStatus);
         

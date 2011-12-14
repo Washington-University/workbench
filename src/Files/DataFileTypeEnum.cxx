@@ -577,6 +577,23 @@ DataFileTypeEnum::getAllEnums(std::vector<DataFileTypeEnum::Enum>& allEnums,
 }
 
 /**
+ * Is the enumerated type a connectivity enumerated type?
+ * @param enumValue
+ *   The enumerated type value.
+ * @return
+ *   true if so, else false.
+ */
+bool 
+DataFileTypeEnum::isConnectivityDataType(const Enum enumValue)
+{
+    const AString name = DataFileTypeEnum::toName(enumValue);
+    if (name.startsWith("CONNECTIVITY")) {
+        return true;
+    }
+    return false;
+}
+
+/**
  * Get all connectivity enumerated type values.
  * @param connectivityEnumsOut
  *    Will be loaded with all connectivity enumerated types.
@@ -591,8 +608,7 @@ DataFileTypeEnum::getAllConnectivityEnums(std::vector<Enum>& connectivityEnumsOu
     for (std::vector<DataFileTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const AString name = DataFileTypeEnum::toName(iter->enumValue);
-        if (name.startsWith("CONNECTIVITY")) {
+        if (DataFileTypeEnum::isConnectivityDataType(iter->enumValue)) {
             connectivityEnumsOut.push_back(iter->enumValue);
         }
     }

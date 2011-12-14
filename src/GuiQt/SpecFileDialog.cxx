@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <iostream>
+
 #include <QAction>
 #include <QActionGroup>
 #include <QButtonGroup>
@@ -30,6 +32,7 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QScrollArea>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -66,14 +69,13 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
 : WuQDialogModal("Spec File Data File Selection",
                  parent)
 {
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
+    QWidget* fileGroupWidget = new QWidget();
+    QVBoxLayout* fileGroupLayout = new QVBoxLayout(fileGroupWidget);
     
     /*
      * Toolbar
      */
     QToolBar* groupToolBar = new QToolBar();
-    layout->addWidget(groupToolBar);
     
     /*
      * Action group for all buttons in tool bar
@@ -96,19 +98,62 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
     groupToolBar->addWidget(allToolButton);
     toolBarActionGroup->addAction(allToolButtonAction);
 
+    /*
+     * Get ALL of the connectivity file's in a single group
+     */
+    std::vector<SpecFileDataFile*> connectivityFiles;
+    specFile->getAllConnectivityFileTypes(connectivityFiles);
     
+    bool haveConnectivityFiles = false;
     /*
      * Display each type of data file
      */
     const int32_t numGroups = specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0 ; ig < numGroups; ig++) {
+        /*
+         * File type of group
+         */
         SpecFileDataFileTypeGroup* group = specFile->getDataFileTypeGroup(ig);
-        GuiSpecGroup* guiSpecGroup = this->createDataTypeGroup(group);
+        const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
+        
+        std::vector<SpecFileDataFile*> dataFileInfoVector;
+        
+        /*
+         * Is this a connectivity group?
+         */
+        AString groupName;
+        if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
+            if (haveConnectivityFiles == false) {
+                haveConnectivityFiles = true;
+                specFile->getAllConnectivityFileTypes(dataFileInfoVector);
+                groupName = "Connectivity";
+            }
+        }
+        else {
+            /*
+             * Create a widget for displaying the group's files
+             */
+            const int32_t numFiles = group->getNumberOfFiles();
+            for (int32_t j = 0; j < numFiles; j++) {
+                dataFileInfoVector.push_back(group->getFileInformation(j));
+            }
+            groupName = DataFileTypeEnum::toGuiName(dataFileType);
+        }
+                          
+        /*
+         * Group has files?
+         */
+        GuiSpecGroup* guiSpecGroup = this->createDataTypeGroup(dataFileType, 
+                                                               dataFileInfoVector,
+                                                               groupName);
         if (guiSpecGroup != NULL) {
             dataTypeGroups.push_back(guiSpecGroup);
-            layout->addWidget(guiSpecGroup->widget);
+            fileGroupLayout->addWidget(guiSpecGroup->widget);
             
-            QAction* groupToolButtonAction = WuQtUtilities::createAction(DataFileTypeEnum::toGuiName(group->getDataFileType()), 
+            /*
+             * Action and toolbutton for limiting display to groups files
+             */
+            QAction* groupToolButtonAction = WuQtUtilities::createAction(groupName, 
                                                                          "Show only files of this type", 
                                                                          this);
             groupToolButtonAction->setData(qVariantFromValue((void*)guiSpecGroup));
@@ -122,6 +167,40 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
         }
     }
     
+    fileGroupLayout->addStretch();
+    
+    /*
+     * Show everything
+     */
+    allToolButtonAction->trigger();
+    
+    /*
+     * Place all file groups in a scrollable widget.
+     */
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(fileGroupWidget);
+    scrollArea->setWidgetResizable(true);
+    
+    /*
+     * Attempt size scroll area
+     */
+    const QSize fgSize = fileGroupWidget->sizeHint();
+    const int sizeX = std::min(fgSize.width(), 650);
+    const int sizeY = std::min(fgSize.height(), 700);
+    std::cout << "Size X/Y: " << sizeX << ", " << sizeY << std::endl;
+    scrollArea->ensureVisible(0, 0, sizeX, sizeY);
+    
+    /*
+     * Widget for dialog
+     */
+    QWidget* w = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(w);
+    layout->addWidget(groupToolBar);
+    layout->addWidget(scrollArea);
+
+    /*
+     * Add contents to the dialog
+     */
     this->setCentralWidget(w);
 }
 
@@ -146,24 +225,43 @@ SpecFileDialog::toolBarButtonTriggered(QAction* action)
 {
     void* p = action->data().value<void*>();
     
+    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    
+    GuiSpecGroup* selectedGroup = NULL;
+    
     if (p != NULL) {
-        GuiSpecGroup* guiSpecGroup = (GuiSpecGroup*)p;
+        selectedGroup = (GuiSpecGroup*)p;
+    }
+    
+    for (int32_t i = 0; i < numGroups; i++) {
+        GuiSpecGroup* gsg = this->dataTypeGroups[i];
+        bool showIt = true;
+        if (selectedGroup != NULL) {
+            if (gsg != selectedGroup) {
+                showIt = false;
+            }
+        }
+        gsg->widget->setVisible(showIt);
     }
 }
 
 /**
  * List the files in the data file type group in a widget.
  * 
- * @param group
- *   Group of files of one type.
+ * @param dataFileType 
+ *   Type of files
+ * @param dataFileInfoVector
+ *   Vector containing info about each file.
  * @return 
  *   If there are files in the group, a widget listing the file
  *   or NULL if no files in the group.
  */
 SpecFileDialog::GuiSpecGroup* 
-SpecFileDialog::createDataTypeGroup(SpecFileDataFileTypeGroup* group)
+SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
+                                    std::vector<SpecFileDataFile*>& dataFileInfoVector,
+                                    const AString& groupName)
 {
-    const int32_t numFiles = group->getNumberOfFiles();
+    const int32_t numFiles = static_cast<int32_t>(dataFileInfoVector.size());
     if (numFiles <= 0) {
         return NULL;
     }
@@ -178,8 +276,7 @@ SpecFileDialog::createDataTypeGroup(SpecFileDataFileTypeGroup* group)
     const int COLUMN_NAME      = ctr++;
     const int NUMBER_OF_COLUMNS = ctr;
     
-    const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
-    QGroupBox* groupBox = new QGroupBox(DataFileTypeEnum::toGuiName(dataFileType));
+    QGroupBox* groupBox = new QGroupBox(groupName);
     QGridLayout* gridLayout = new QGridLayout(groupBox);
     for (int32_t i = 0; i < NUMBER_OF_COLUMNS; i++) {
         gridLayout->setColumnStretch(i, 0);
@@ -190,7 +287,7 @@ SpecFileDialog::createDataTypeGroup(SpecFileDataFileTypeGroup* group)
     const bool hasStructure = DataFileTypeEnum::isFileUsedWithOneStructure(dataFileType);
     
     for (int idf = 0; idf < numFiles; idf++) {
-        SpecFileDataFile* dataFileInfo = group->getFileInformation(idf);
+        SpecFileDataFile* dataFileInfo = dataFileInfoVector[idf];
         
         GuiSpecDataFileInfo* dfi = new GuiSpecDataFileInfo(this,
                                                  dataFileInfo,
@@ -303,6 +400,7 @@ GuiSpecDataFileInfo::~GuiSpecDataFileInfo()
 void 
 GuiSpecDataFileInfo::metadataActionTriggered()
 {
+    std::cout << "Metadata " << this->dataFileInfo->getFileName() << std::endl;
     
 }
 
@@ -311,5 +409,6 @@ GuiSpecDataFileInfo::metadataActionTriggered()
  */
 void GuiSpecDataFileInfo::removeActionTriggered()
 {
+    std::cout << "Remove " << this->dataFileInfo->getFileName() << std::endl;
     
 }

@@ -26,6 +26,7 @@
  */ 
 
 
+#include "DataFileTypeEnum.h"
 #include "SpecFileDialog.h"
 #include "WuQDialogModal.h"
 
@@ -67,7 +68,9 @@ namespace caret {
 
         SpecFileDialog& operator=(const SpecFileDialog&);
         
-        GuiSpecGroup* createDataTypeGroup(SpecFileDataFileTypeGroup* group);
+        GuiSpecGroup* createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
+                                          std::vector<SpecFileDataFile*>& dataFileInfoVector,
+                                          const AString& groupName);
         
     public:
         virtual AString toString() const;

@@ -66,6 +66,7 @@ SpecFile::~SpecFile()
         delete *iter;
     }
     this->dataFileTypeGroups.clear();
+    
     delete this->metadata;
     this->metadata = NULL;
 }
@@ -217,7 +218,7 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
             return;
         }
     }
-    
+                        
     DataFileException e("Data File Type: " 
                         + DataFileTypeEnum::toName(dataFileType)
                         + " not allowed "
@@ -227,6 +228,27 @@ SpecFile::addDataFile(const DataFileTypeEnum::Enum dataFileType,
     throw e;
 }
 
+/**
+ * @return ALL of the connectivity file types (NEVER delete contents of returned vector.
+ */
+void 
+SpecFile::getAllConnectivityFileTypes(std::vector<SpecFileDataFile*>& connectivityDataFilesOut)
+{
+    connectivityDataFilesOut.clear();
+    
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (DataFileTypeEnum::isConnectivityDataType(dataFileTypeGroup->getDataFileType())) {
+            const int32_t numFiles = dataFileTypeGroup->getNumberOfFiles();
+            for (int32_t i = 0; i < numFiles; i++) {
+                connectivityDataFilesOut.push_back(dataFileTypeGroup->getFileInformation(i));
+            }
+        }
+    }
+}
+                        
 /**
  * Add a data file to this spec file.
  * @param dataFileTypeName
