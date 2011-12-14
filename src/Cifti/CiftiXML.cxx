@@ -287,10 +287,13 @@ void CiftiXML::rootChanged()
                             int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
                             for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
                             {
-                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
+                                if (myMap.m_brainModels[k].m_nodeIndices.empty() == false) 
                                 {
-                                    thisContig = m;
-                                    break;
+                                    if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
+                                    {
+                                        thisContig = m;
+                                        break;
+                                    }
                                 }
                             }
                             if (myMap.m_brainModels[k].m_brainStructure.endsWith("_LEFT"))
