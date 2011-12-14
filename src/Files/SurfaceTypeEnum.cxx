@@ -125,7 +125,7 @@ SurfaceTypeEnum::findData(const Enum e)
         }
     }
 
-    return NULL;
+    return &enumData[1];
 }
 
 /**
