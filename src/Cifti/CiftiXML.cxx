@@ -285,15 +285,12 @@ void CiftiXML::rootChanged()
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
                             int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
+                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_nodeIndices.size(); ++m)//similarly, if the loop never encounters not equals, all are correct
                             {
-                                if (myMap.m_brainModels[k].m_nodeIndices.empty() == false) 
+                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
                                 {
-                                    if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
-                                    {
-                                        thisContig = m;
-                                        break;
-                                    }
+                                    thisContig = m;
+                                    break;
                                 }
                             }
                             if (myMap.m_brainModels[k].m_brainStructure.endsWith("_LEFT"))
@@ -339,7 +336,7 @@ void CiftiXML::rootChanged()
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
                             int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_indexCount; ++m)//similarly, if the loop never encounters not equals, all are correct
+                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_nodeIndices.size(); ++m)//similarly, if the loop never encounters not equals, all are correct
                             {
                                 if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
                                 {
