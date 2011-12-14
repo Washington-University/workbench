@@ -170,6 +170,19 @@ XmlWriter::writeElementCharacters(const AString& localName, const int* values, c
  * Write an element on one line.
  *
  * @param localName - local name of tag to write.
+ * @param value - bool to write.
+ * @throws XmlAttributes if an I/O error occurs.
+ */
+void
+XmlWriter::writeElementCharacters(const AString& localName, const bool value) {
+    const AString text = AString::fromBool(value);
+    this->writeElementCharacters(localName, text);
+}
+
+/**
+ * Write an element on one line.
+ *
+ * @param localName - local name of tag to write.
  * @param text - text to write.
  * @throws IOException if an I/O error occurs.
  */

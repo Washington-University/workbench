@@ -72,6 +72,8 @@ public:
 
     void writeElementCharacters(const AString& localName, const int32_t value);
 
+    void writeElementCharacters(const AString& localName, const bool value);
+    
 
     void writeElementCharacters(const AString& localName, const int* values, const int32_t num);
 

@@ -53,6 +53,10 @@ namespace caret {
         
         void setSelected(const bool selected);
         
+        bool isRemovedFromSpecFileWhenWritten() const;
+        
+        void setRemovedFromSpecFileWhenWritten(const bool removeIt);
+        
     public:
         virtual AString toString() const;
         
@@ -64,6 +68,8 @@ namespace caret {
         StructureEnum::Enum structure;
         
         bool selected;
+        
+        bool removeFromSpecFileWhenWritten;
     };
     
 #ifdef __SPEC_FILE_GROUP_FILE_DECLARE__

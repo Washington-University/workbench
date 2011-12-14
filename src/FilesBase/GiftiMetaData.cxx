@@ -172,7 +172,13 @@ GiftiMetaData::set(
                    const AString& name,
                    const AString& value)
 {
-    this->metadata.insert(std::make_pair(name, value));
+    MetaDataIterator namePos = this->metadata.find(name);
+    if (namePos != this->metadata.end()) {
+        namePos->second = value;
+    }
+    else {
+        this->metadata.insert(std::make_pair(name, value));
+    }
     this->setModified();
 }
 

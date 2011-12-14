@@ -114,7 +114,8 @@ toBool(const AString& s)
         || (s == "TRUE") 
         || (s == "True")
         || (s == "T")
-        || (s == "t")) {
+        || (s == "t")
+        || (s == "1")) {
         return true;
     }
     return false;
