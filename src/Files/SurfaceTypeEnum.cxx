@@ -67,6 +67,10 @@ SurfaceTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_UNKNOWN, 
+                                       "SURFACE_TYPE_UNKNOWN", 
+                                       "Unknown",
+                                       "Unknown"));
     enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_RECONSTRUCTION, 
                                        "SURFACE_TYPE_RECONSTRUCTION", 
                                        "Reconstruction",
@@ -125,7 +129,7 @@ SurfaceTypeEnum::findData(const Enum e)
         }
     }
 
-    return &enumData[1];
+    return NULL;
 }
 
 /**
