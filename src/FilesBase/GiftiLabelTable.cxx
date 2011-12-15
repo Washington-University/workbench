@@ -428,6 +428,18 @@ GiftiLabelTable::insertLabel(const GiftiLabel* labelIn)
     {//key 0 is reserved (sort of)
        CaretLogWarning("Label 0 DELETED!");
     }
+    
+    /*
+     * Note: A map DOES NOT replace an existing key, so it
+     * must be deleted and then added.
+     */
+    LABELS_MAP_ITERATOR keyPos = this->labelsMap.find(label->getKey());
+    if (keyPos != this->labelsMap.end()) {
+        GiftiLabel* gl = keyPos->second;
+        this->labelsMap.erase(keyPos);
+        delete gl;
+    }
+        
     this->labelsMap.insert(std::make_pair(label->getKey(), label));
     this->setModified();
 }
