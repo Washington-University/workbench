@@ -213,6 +213,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     QWidget* tabBarWidget = new QWidget();
     QHBoxLayout* tabBarLayout = new QHBoxLayout(tabBarWidget);
+    WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1, 1);
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
     tabBarLayout->addWidget(toolBarToolButton);
@@ -238,7 +239,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->toolbarWidget = new QWidget();
     this->toolbarWidgetLayout = new QHBoxLayout(this->toolbarWidget);
-    this->toolbarWidgetLayout->setSpacing(2);
+    WuQtUtilities::setLayoutMargins(this->toolbarWidgetLayout, 2, 1, 1);
+    //this->toolbarWidgetLayout->setSpacing(2);
     
     this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
     
@@ -1400,7 +1402,9 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     /*
      * Left/Right separation
      */
+    const int separationSpinngerWidth = 70;
     this->wholeBrainSurfaceSeparationLeftRightSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMinimum(-100000.0);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMaximum(100000.0);
     WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceSeparationLeftRightSpinBox,
@@ -1412,6 +1416,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
      * Cerebellum separation
      */
     this->wholeBrainSurfaceSeparationCerebellumSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMinimum(-100000.0);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMaximum(100000.0);
     WuQtUtilities::setToolTipAndStatusTip(this->wholeBrainSurfaceSeparationCerebellumSpinBox,
@@ -3461,8 +3466,8 @@ BrainBrowserWindowToolBar::volumePlaneResetToolButtonTriggered(bool /*checked*/)
 void
 BrainBrowserWindowToolBar::connectomeDBToolButtonTriggered(bool /*checked*/)
 {
-    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    ModelDisplayController* mdc = btc->getModelControllerForTransformation();
+    //BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    //ModelDisplayController* mdc = btc->getModelControllerForTransformation();
     //if (mdc != NULL) {
         //mdc->launchConnectomeDBBrowser(btc->getTabNumber());
         static QWebView *view = NULL;
