@@ -34,6 +34,7 @@
 class QAction;
 class QCheckBox;
 class QLabel;
+class QToolBar;
 class QToolButton;
 
 namespace caret {
@@ -60,7 +61,8 @@ namespace caret {
         
     private slots:
         void toolBarButtonTriggered(QAction*);
-    
+        void selectToolButtonTriggered(QAction*);
+        
     private:
         class GuiSpecGroup {
         public:
@@ -77,6 +79,8 @@ namespace caret {
         
         void writeUpdatedSpecFile(const bool confirmIt);
         
+        QToolBar* createSelectToolBar();
+        
     public:
         virtual AString toString() const;
         
@@ -84,6 +88,9 @@ namespace caret {
         SpecFile* specFile;
         
         std::vector<GuiSpecGroup*> dataTypeGroups;
+        
+        QAction* selectAllFilesToolButtonAction;
+        QAction* selectNoneFilesToolButtonAction;
     };
  
     /// Info about data file

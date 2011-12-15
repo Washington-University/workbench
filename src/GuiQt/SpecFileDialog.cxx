@@ -75,9 +75,11 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
     QVBoxLayout* fileGroupLayout = new QVBoxLayout(fileGroupWidget);
     
     /*
-     * Toolbar
+     * File Group Toolbar
      */
-    QToolBar* groupToolBar = new QToolBar();
+    QToolBar* fileGroupToolBar = new QToolBar();
+    QLabel* viewFilesLabel = new QLabel("View Files: ");
+    fileGroupToolBar->addWidget(viewFilesLabel);
     
     /*
      * Action group for all buttons in tool bar
@@ -97,7 +99,7 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
     allToolButtonAction->setCheckable(true);
     QToolButton* allToolButton = new QToolButton(this);
     allToolButton->setDefaultAction(allToolButtonAction);
-    groupToolBar->addWidget(allToolButton);
+    fileGroupToolBar->addWidget(allToolButton);
     toolBarActionGroup->addAction(allToolButtonAction);
 
     /*
@@ -163,7 +165,7 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
             
             QToolButton* groupToolButton = new QToolButton(this);
             groupToolButton->setDefaultAction(groupToolButtonAction);
-            groupToolBar->addWidget(groupToolButton);
+            fileGroupToolBar->addWidget(groupToolButton);
             
             toolBarActionGroup->addAction(groupToolButtonAction);
         }
@@ -193,17 +195,36 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
     scrollArea->ensureVisible(0, 0, sizeX, sizeY);
     
     /*
+     * Select toolbar
+     */
+    QToolBar* selectToolBar = this->createSelectToolBar();
+    
+    /*
+     * Toolbars in one widget with no spacing
+     */ 
+    QWidget* toolbarWidget = new QWidget();
+    QVBoxLayout* toolbarWidgetLayout = new QVBoxLayout(toolbarWidget);
+    WuQtUtilities::setLayoutMargins(toolbarWidgetLayout, 0, 0, 0);
+    toolbarWidgetLayout->addWidget(fileGroupToolBar);
+    toolbarWidgetLayout->addWidget(selectToolBar);
+    
+    /*
      * Widget for dialog
      */
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(groupToolBar);
+    layout->addWidget(toolbarWidget);
     layout->addWidget(scrollArea);
 
     /*
      * Add contents to the dialog
      */
     this->setCentralWidget(w);
+    
+    /*
+     * Change OK button to Load
+     */
+    this->setOkButtonText("Load");
 }
 
 /**
@@ -214,6 +235,49 @@ SpecFileDialog::~SpecFileDialog()
     const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
     for (int32_t ig = 0; ig < numGroups; ig++) {
         delete this->dataTypeGroups[ig];
+    }
+}
+
+/**
+ * Create the select tool bar.
+ */
+QToolBar* 
+SpecFileDialog::createSelectToolBar()
+{
+    this->selectAllFilesToolButtonAction = WuQtUtilities::createAction("All", "Select all files", this);
+    this->selectNoneFilesToolButtonAction = WuQtUtilities::createAction("None", "Deselect all files", this);
+    
+    QActionGroup* selectActionGroup = new QActionGroup(this);
+    selectActionGroup->addAction(this->selectAllFilesToolButtonAction);
+    selectActionGroup->addAction(this->selectNoneFilesToolButtonAction);
+    QObject::connect(selectActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(selectToolButtonTriggered(QAction*)));
+    
+    QLabel* selectLabel = new QLabel("Select Files: ");
+    
+    QToolBar* toolbar = new QToolBar();
+    toolbar->addWidget(selectLabel);
+    toolbar->addAction(this->selectAllFilesToolButtonAction);
+    toolbar->addAction(this->selectNoneFilesToolButtonAction);
+    
+    return toolbar;
+}
+
+void 
+SpecFileDialog::selectToolButtonTriggered(QAction* action)
+{
+    const bool status = (action == this->selectAllFilesToolButtonAction);
+    
+    const int32_t numGroups = static_cast<int32_t>(this->dataTypeGroups.size());
+    
+    for (int32_t i = 0; i < numGroups; i++) {
+        GuiSpecGroup* gsg = this->dataTypeGroups[i];
+        if (gsg->widget->isVisible()) {
+            const int32_t numFiles = static_cast<int32_t>(gsg->dataFiles.size());
+            for (int32_t i = 0; i < numFiles; i++) {
+                gsg->dataFiles[i]->selectionCheckBox->setChecked(status);
+            }
+        }
     }
 }
 
@@ -355,9 +419,11 @@ SpecFileDialog::writeUpdatedSpecFile(const bool confirmIt)
     
     bool writeIt = true;
     
-    if (WuQMessageBox::warningYesNo(this,
-                                    "You have changed the Spec File.  Save changes?")  == false) {
-        writeIt = false;
+    if (confirmIt) {
+        if (WuQMessageBox::warningYesNo(this,
+                                        "You have changed the Spec File.  Save changes?")  == false) {
+            writeIt = false;
+        }
     }
     
     if (writeIt) {
