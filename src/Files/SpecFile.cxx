@@ -295,6 +295,9 @@ SpecFile::clearData()
 {
     this->metadata->clear();
     
+    /*
+     * Do not clear the vector, just remove file information from all types
+     */
     for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
          iter != dataFileTypeGroups.end();
          iter++) {
@@ -456,6 +459,11 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
             metadata->writeAsXML(xmlWriter);
         }
     
+        /*
+         * Remove any files that are tagged for removal.
+         */
+        this->removeFilesTaggedForRemoval();
+        
         //
         // Write files
         //
@@ -466,16 +474,17 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
             for (int32_t j = 0; j < numFiles; j++) {
                 SpecFileDataFile* file = group->getFileInformation(j);
                 
-                
-                XmlAttributes atts;
-                atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
-                                  StructureEnum::toGuiName(file->getStructure()));
-                atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
-                                  DataFileTypeEnum::toName(group->getDataFileType()));
-                xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
-                                            atts);
-                xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
-                xmlWriter.writeEndElement();
+                if (file->isRemovedFromSpecFileWhenWritten() == false) {
+                    XmlAttributes atts;
+                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_STRUCTURE, 
+                                      StructureEnum::toGuiName(file->getStructure()));
+                    atts.addAttribute(SpecFile::XML_ATTRIBUTE_DATA_FILE_TYPE, 
+                                      DataFileTypeEnum::toName(group->getDataFileType()));
+                    xmlWriter.writeStartElement(SpecFile::XML_TAG_DATA_FILE, 
+                                                atts);
+                    xmlWriter.writeCharacters("      " + file->getFileName() + "\n");
+                    xmlWriter.writeEndElement();
+                }
             }
         }
         
@@ -491,6 +500,19 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
     }
     catch (XmlException e) {
         throw e;
+    }
+}
+
+/**
+ * If any files are marked for removal from SpecFile, remove them.
+ */
+void 
+SpecFile::removeFilesTaggedForRemoval()
+{
+    const int32_t numGroups = static_cast<int32_t>(this->dataFileTypeGroups.size());
+    for (int32_t ig = 0; ig < numGroups; ig++) {
+        SpecFileDataFileTypeGroup* group = this->dataFileTypeGroups[ig];
+        group->removeFilesTaggedForRemoval();
     }
 }
 
@@ -573,6 +595,23 @@ SpecFile::setAllFilesSelected(bool selectionStatus)
         SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
         dataFileTypeGroup->setAllFilesSelected(selectionStatus);
     }    
+}
+
+/**
+ * @return Have any files in this spec file been edited (typically through spec file dialog?
+ */
+bool 
+SpecFile::hasBeenEdited() const
+{
+    for (std::vector<SpecFileDataFileTypeGroup*>::const_iterator iter = dataFileTypeGroups.begin();
+         iter != dataFileTypeGroups.end();
+         iter++) {
+        SpecFileDataFileTypeGroup* dataFileTypeGroup = *iter;
+        if (dataFileTypeGroup->hasBeenEdited()) {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**

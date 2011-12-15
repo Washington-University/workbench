@@ -49,8 +49,10 @@ SpecFileDataFile::SpecFileDataFile(const AString& filename,
                                      const StructureEnum::Enum structure)
 : CaretObject()
 {
+    this->removeFromSpecFileWhenWritten = false;
     this->filename  = filename;
     this->structure = structure;
+    this->originalStructure = this->structure;
     this->selected  = true;
 }
 
@@ -90,8 +92,10 @@ SpecFileDataFile::operator=(const SpecFileDataFile& sfdf)
 void 
 SpecFileDataFile::copyHelper(const SpecFileDataFile& sfdf)
 {
+    this->removeFromSpecFileWhenWritten = false; // do not copy!
     this->filename  = sfdf.filename;
     this->structure = sfdf.structure;
+    this->originalStructure = this->structure;
     this->selected  = sfdf.selected;    
 }
 
@@ -120,6 +124,17 @@ StructureEnum::Enum
 SpecFileDataFile::getStructure() const
 {
     return this->structure;
+}
+
+/**
+ * Set the structure.
+ * @param structure
+ *   New value for structure.
+ */
+void 
+SpecFileDataFile::setStructure(const StructureEnum::Enum structure)
+{
+    this->structure = structure;
 }
 
 /**
@@ -155,4 +170,46 @@ SpecFileDataFile::toString() const
     //+ ", selected=" + AString::fromBool(this->selected);
     return info;
 }
+   
+/**
+ * @return Is this file to be removed when the SpecFile is
+ * written?
+ */
+bool 
+SpecFileDataFile::isRemovedFromSpecFileWhenWritten() const
+{
+    return this->removeFromSpecFileWhenWritten;
+}
+
+/**
+ * Set remove file from SpecFile when SpecFile is written.
+ * @param removeIt
+ *    New status.
+ */
+void 
+SpecFileDataFile::setRemovedFromSpecFileWhenWritten(const bool removeIt)
+{
+    this->removeFromSpecFileWhenWritten = removeIt;
+}
+
+/**
+ * @return Has this item been edited (typically thru spec file dialog)?
+ * True is returned if the structure has been changed
+ * or the file is tagged for removal from the SpecFile,
+ * otherwise false.
+ */
+bool 
+SpecFileDataFile::hasBeenEdited() const
+{
+    if (this->removeFromSpecFileWhenWritten) {
+        return true;
+    }
+    if (this->structure != this->originalStructure) {
+        return true;
+    }
     
+    return false;
+}
+
+
+

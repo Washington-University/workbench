@@ -57,6 +57,10 @@ namespace caret {
         
         void setAllFilesSelected(bool selectionStatus);
         
+        void removeFilesTaggedForRemoval();
+    
+        bool hasBeenEdited() const;
+        
     private:
         SpecFileDataFileTypeGroup(const SpecFileDataFileTypeGroup&);
 
@@ -69,6 +73,8 @@ namespace caret {
         std::vector<SpecFileDataFile*> files;
         
         DataFileTypeEnum::Enum dataFileType;
+        
+        
     };
     
 #ifdef __SPEC_FILE_GROUP_DECLARE__

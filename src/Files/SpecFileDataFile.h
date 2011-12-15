@@ -49,6 +49,8 @@ namespace caret {
         
         StructureEnum::Enum getStructure() const;
         
+        void setStructure(const StructureEnum::Enum structure);
+        
         bool isSelected() const;
         
         void setSelected(const bool selected);
@@ -56,6 +58,8 @@ namespace caret {
         bool isRemovedFromSpecFileWhenWritten() const;
         
         void setRemovedFromSpecFileWhenWritten(const bool removeIt);
+        
+        bool hasBeenEdited() const;
         
     public:
         virtual AString toString() const;
@@ -66,6 +70,8 @@ namespace caret {
         AString filename;
         
         StructureEnum::Enum structure;
+        
+        StructureEnum::Enum originalStructure;
         
         bool selected;
         

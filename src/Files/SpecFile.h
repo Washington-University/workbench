@@ -90,6 +90,8 @@ namespace caret {
         
         static AString getFileVersionAsString();
 
+        bool hasBeenEdited() const;
+        
         /** XML Tag for SpecFile element */
         static const AString XML_TAG_SPEC_FILE;
         
@@ -114,6 +116,8 @@ namespace caret {
         void initializeSpecFile();
         
         void clearData();
+        
+        void removeFilesTaggedForRemoval();
         
         std::vector<SpecFileDataFileTypeGroup*> dataFileTypeGroups;
         

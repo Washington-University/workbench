@@ -61,8 +61,7 @@ WuQMessageBox::~WuQMessageBox()
  * @param informativeText
  *    Displayed below 'text' if this is not empty.
  * @return
- *    true if the Ok button was pressed else false
- *    if the cancel button was pressed.
+ *    QMessageBox::Save, QMessageBox::Discard, or QMessageBox::Cancel.
  */
 QMessageBox::StandardButton 
 WuQMessageBox::saveDiscardCancel(QWidget* parent,
@@ -201,6 +200,57 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
 }
 
 /**
+ * Display a warning message box with Yes and No
+ * buttons.  Pressing the enter key is the equivalent
+ * of pressing the Yes button.
+ * 
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ * @param informativeText
+ *    Displayed below 'text' if this is not empty.
+ * @return
+ *    true if the Yes button was pressed else false
+ *    if the No button was pressed.
+ */
+bool
+WuQMessageBox::warningYesNo(QWidget* parent,
+                               const QString& text,
+                               const QString& informativeText)
+{
+    QMessageBox msgBox(parent);
+    msgBox.setIcon(QMessageBox::Warning);
+    msgBox.setWindowTitle("");
+    msgBox.setText(text);
+    if (informativeText.isEmpty() == false) {
+        msgBox.setInformativeText(informativeText);
+    }
+    msgBox.addButton(QMessageBox::Yes);
+    msgBox.addButton(QMessageBox::No);
+    msgBox.setDefaultButton(QMessageBox::Yes);
+    msgBox.setEscapeButton(QMessageBox::No);
+    
+    QMessageBox::StandardButton buttonPressed =
+    static_cast<QMessageBox::StandardButton>(msgBox.exec());
+    
+    bool yesPressed = false;
+    
+    switch (buttonPressed) {
+        case QMessageBox::Yes:
+            yesPressed = true;
+            break;
+        case QMessageBox::No:
+            break;
+        default:
+            CaretAssert(0);
+            break;
+    }
+    
+    return yesPressed;
+}
+
+/**
  * Display a warning message box with Ok and Cancel
  * buttons.  Pressing the enter key is the equivalent
  * of pressing the Ok button.
@@ -218,6 +268,26 @@ WuQMessageBox::warningOkCancel(QWidget* parent,
                                const QString& text)
 {
     return WuQMessageBox::warningOkCancel(parent, text, "");
+}
+
+/**
+ * Display a warning message box with Yes and No
+ * buttons.  Pressing the enter key is the equivalent
+ * of pressing the Yes button.
+ * 
+ * @param parent
+ *    Parent on which message box is displayed.
+ * @param text
+ *    Message that is displayed.
+ * @return
+ *    true if the Yes button was pressed else false
+ *    if the No button was pressed.
+ */
+bool
+WuQMessageBox::warningYesNo(QWidget* parent,
+                               const QString& text)
+{
+    return WuQMessageBox::warningYesNo(parent, text, "");
 }
 
 /**

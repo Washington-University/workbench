@@ -28,6 +28,7 @@
 
 #include "DataFileTypeEnum.h"
 #include "SpecFileDialog.h"
+#include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
 class QAction;
@@ -55,6 +56,8 @@ namespace caret {
     protected:
         virtual void okButtonPressed();
         
+        virtual void cancelButtonPressed();
+        
     private slots:
         void toolBarButtonTriggered(QAction*);
     
@@ -71,6 +74,8 @@ namespace caret {
         GuiSpecGroup* createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
                                           std::vector<SpecFileDataFile*>& dataFileInfoVector,
                                           const AString& groupName);
+        
+        void writeUpdatedSpecFile(const bool confirmIt);
         
     public:
         virtual AString toString() const;
@@ -90,9 +95,11 @@ namespace caret {
                          const bool isStructureFile);
 
         ~GuiSpecDataFileInfo();
+
     private slots:
+        void structureSelectionChanged(const StructureEnum::Enum);
         void metadataActionTriggered();
-        void removeActionTriggered();
+        void removeActionTriggered(bool);
         
     private:
         GuiSpecDataFileInfo(const GuiSpecDataFileInfo&);

@@ -46,6 +46,7 @@
 #include "SpecFileDataFileTypeGroup.h"
 #include "StructureEnum.h"
 #include "StructureSelectionControl.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
@@ -69,6 +70,7 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
 : WuQDialogModal("Spec File Data File Selection",
                  parent)
 {
+    this->specFile = specFile;
     QWidget* fileGroupWidget = new QWidget();
     QVBoxLayout* fileGroupLayout = new QVBoxLayout(fileGroupWidget);
     
@@ -102,18 +104,18 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
      * Get ALL of the connectivity file's in a single group
      */
     std::vector<SpecFileDataFile*> connectivityFiles;
-    specFile->getAllConnectivityFileTypes(connectivityFiles);
+    this->specFile->getAllConnectivityFileTypes(connectivityFiles);
     
     bool haveConnectivityFiles = false;
     /*
      * Display each type of data file
      */
-    const int32_t numGroups = specFile->getNumberOfDataFileTypeGroups();
+    const int32_t numGroups = this->specFile->getNumberOfDataFileTypeGroups();
     for (int32_t ig = 0 ; ig < numGroups; ig++) {
         /*
          * File type of group
          */
-        SpecFileDataFileTypeGroup* group = specFile->getDataFileTypeGroup(ig);
+        SpecFileDataFileTypeGroup* group = this->specFile->getDataFileTypeGroup(ig);
         const DataFileTypeEnum::Enum dataFileType = group->getDataFileType();
         
         std::vector<SpecFileDataFile*> dataFileInfoVector;
@@ -125,7 +127,7 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
         if (DataFileTypeEnum::isConnectivityDataType(dataFileType)) {
             if (haveConnectivityFiles == false) {
                 haveConnectivityFiles = true;
-                specFile->getAllConnectivityFileTypes(dataFileInfoVector);
+                this->specFile->getAllConnectivityFileTypes(dataFileInfoVector);
                 groupName = "Connectivity";
             }
         }
@@ -325,9 +327,49 @@ SpecFileDialog::okButtonPressed()
             fileInfo->dataFileInfo->setSelected(fileInfo->selectionCheckBox->isChecked());
         }        
     }
-    
+
+    this->writeUpdatedSpecFile(true);
+   
     WuQDialogModal::okButtonPressed();
 }
+
+/**
+ * Called when user presses the Cancel button.
+ */
+void 
+SpecFileDialog::cancelButtonPressed()
+{
+    this->writeUpdatedSpecFile(true);
+    WuQDialogModal::cancelButtonPressed();
+}
+
+/**
+ * Write the SpecFile if it has been updated.
+ */
+void 
+SpecFileDialog::writeUpdatedSpecFile(const bool confirmIt)
+{
+    if (this->specFile->hasBeenEdited() == false) {
+        return;
+    }
+    
+    bool writeIt = true;
+    
+    if (WuQMessageBox::warningYesNo(this,
+                                    "You have changed the Spec File.  Save changes?")  == false) {
+        writeIt = false;
+    }
+    
+    if (writeIt) {
+        try {
+            this->specFile->writeFile(specFile->getFileName());
+        }
+        catch (DataFileException e) {
+            WuQMessageBox::errorOk(this, e.whatString());
+        }
+    }
+}
+
 
 /**
  * Get a description of this object's content.
@@ -371,7 +413,9 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
                                                      "Remove file from the spec file (does NOT delete file)",
                                                      this,
                                                      this,
-                                                     SLOT(removeActionTriggered()));
+                                                     SLOT(removeActionTriggered(bool)));
+    this->removeAction->setCheckable(true);
+    this->removeAction->setChecked(false);
     this->removeToolButton = new QToolButton();
     this->removeToolButton->setDefaultAction(this->removeAction);
     
@@ -379,11 +423,19 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     if (isStructureFile) {
         this->structureSelectionControl = new StructureSelectionControl();
         this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
+        QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
+                         this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));
     }
     
     this->nameLabel = new QLabel(dataFileInfo->getFileName());
     
     this->widgetGroup = new WuQWidgetObjectGroup(this);
+    this->widgetGroup->add(this->selectionCheckBox);
+    this->widgetGroup->add(this->metadataToolButton);
+    if (this->structureSelectionControl != NULL) {
+        this->widgetGroup->add(this->structureSelectionControl->getWidget());
+    }
+    this->widgetGroup->add(this->nameLabel);
 }
 
 /**
@@ -395,20 +447,37 @@ GuiSpecDataFileInfo::~GuiSpecDataFileInfo()
 }
 
 /**
+ * Called when structure selection control is changed.
+ * @param structure
+ *    New structure.
+ */
+void 
+GuiSpecDataFileInfo::structureSelectionChanged(const StructureEnum::Enum structure)
+{
+    this->dataFileInfo->setStructure(structure);
+}
+
+/**
  * Called when metadata button is pressed.
  */
 void 
 GuiSpecDataFileInfo::metadataActionTriggered()
 {
-    std::cout << "Metadata " << this->dataFileInfo->getFileName() << std::endl;
-    
+    WuQMessageBox::informationOk(this->metadataToolButton, 
+                                 "Editing/Viewing of metadata has not been implemented.");
 }
 
 /**
  * Called when remove button is pressed.
+ * @param status
+ *   Status of action (selected or not)
  */
-void GuiSpecDataFileInfo::removeActionTriggered()
+void GuiSpecDataFileInfo::removeActionTriggered(bool status)
 {
-    std::cout << "Remove " << this->dataFileInfo->getFileName() << std::endl;
-    
+    const bool removeIt = status;
+    this->dataFileInfo->setRemovedFromSpecFileWhenWritten(removeIt);
+    if (removeIt) {
+        this->selectionCheckBox->setChecked(false);
+    }
+    this->widgetGroup->setDisabled(removeIt);
 }

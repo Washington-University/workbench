@@ -166,6 +166,24 @@ SpecFileDataFileTypeGroup::setAllFilesSelected(bool selectionStatus)
 }
 
 /**
+ * Remove any files that are marked for removal.
+ */
+void 
+SpecFileDataFileTypeGroup::removeFilesTaggedForRemoval()
+{
+    /*
+     * Need to start from end when removing since vector
+     * shrinks as items are removed.
+     */
+    const int32_t numFiles = static_cast<int32_t>(this->files.size());
+    for (int32_t i = (numFiles - 1); i >= 0; i--) {
+        if (this->files[i]->isRemovedFromSpecFileWhenWritten()) {
+            this->removeFileInformation(i);
+        }
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -183,3 +201,21 @@ SpecFileDataFileTypeGroup::toString() const
     
     return info;
 }    
+
+/**
+ * @return Have any files in this group been edited (typically through spec file dialog?
+ */
+bool 
+SpecFileDataFileTypeGroup::hasBeenEdited() const
+{
+    for (std::vector<SpecFileDataFile*>::const_iterator iter = this->files.begin();
+         iter != this->files.end();
+         iter++) {
+        if ((*iter)->hasBeenEdited()) {
+            return true;
+        }
+    }
+    return false;
+}
+
+
