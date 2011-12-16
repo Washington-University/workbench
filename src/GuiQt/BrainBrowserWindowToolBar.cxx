@@ -1954,7 +1954,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 6, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
     layout->addWidget(structureSurfaceLabel);
     layout->addWidget(this->surfaceSurfaceSelectionControl);
     layout->addStretch();

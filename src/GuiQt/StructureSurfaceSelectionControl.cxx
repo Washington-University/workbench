@@ -30,6 +30,7 @@
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "WuQtUtilities.h"
 
 #define __STRUCTURE_SURFACE_SELECTION_CONTROL_DECLARE__
 #include "StructureSurfaceSelectionControl.h"
@@ -59,6 +60,7 @@ StructureSurfaceSelectionControl::StructureSurfaceSelectionControl(const bool sh
                      this, SLOT(surfaceControllerSelected(int)));
 
     QGridLayout* layout = new QGridLayout(this);
+    WuQtUtilities::setLayoutMargins(layout, 3, 2, 2);
     if (showLabels) {
         QLabel* structureLabel = new QLabel("Structure");
         QLabel* surfaceLabel = new QLabel("Surface");
