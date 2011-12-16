@@ -131,7 +131,6 @@ namespace caret {
       m_pointerRef = NULL;
       if (right == NULL) return;
       CaretPointerRef* temp = new CaretPointerRef();
-      CaretAssert(temp != NULL);
       temp->m_pointer = right;
       temp->m_refCount = 0;
       grab(temp);//to keep the code path the same
@@ -242,11 +241,10 @@ namespace caret {
     template <typename T>
     CaretArray<T>::CaretArray(int64_t size)
     {
+        CaretAssert(size > 0);
         m_pointerRef = NULL;
         CaretArrayRef* temp = new CaretArrayRef();
-        CaretAssert(temp != NULL);
         temp->m_pointer = new T[size];
-        CaretAssert(temp->m_pointer != NULL);
         temp->m_refCount = 0;
         grab(temp);
     }
@@ -257,7 +255,6 @@ namespace caret {
       m_pointerRef = NULL;
       if (right == NULL) return;
       CaretArrayRef* temp = new CaretArrayRef();
-      CaretAssert(temp != NULL);
       temp->m_pointer = right;
       temp->m_refCount = 0;
       grab(temp);//to keep the code path the same
@@ -364,7 +361,6 @@ namespace caret {
         m_pointerRef = NULL;
         if (right == NULL) return;
         CaretRefCountRef* temp = new CaretRefCountRef();
-        CaretAssert(temp != NULL);
         temp->m_pointer = right;
         temp->m_refCount = 0;
         grab(temp);//to keep the code path the same

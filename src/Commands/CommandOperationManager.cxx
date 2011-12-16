@@ -32,6 +32,7 @@
 #include "AlgorithmVolumeToSurfaceMapping.h"
 
 #include "OperationAddToSpecFile.h"
+#include "OperationMetricMask.h"
 #include "OperationMetricPalette.h"
 #include "OperationSetStructure.h"
 #include "OperationVolumePalette.h"
@@ -90,6 +91,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
     
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));

@@ -20,6 +20,7 @@ ADD_LIBRARY(Operations
 AbstractOperation.h
 OperationAddToSpecFile.h
 OperationException.h
+OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
 OperationVolumePalette.h
@@ -27,6 +28,7 @@ OperationVolumePalette.h
 AbstractOperation.cxx
 OperationAddToSpecFile.cxx
 OperationException.cxx
+OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
 OperationVolumePalette.cxx
