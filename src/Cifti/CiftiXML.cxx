@@ -195,7 +195,7 @@ bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const S
     {
         return getSurfaceMapping(mappingOut, m_rowLeftSurfModel, m_rowLeftSurfContig);
     } else {
-        return getSurfaceMapping(mappingOut, m_rowRightSurfModel, m_colRightSurfContig);
+        return getSurfaceMapping(mappingOut, m_rowRightSurfModel, m_rowRightSurfContig);
     }
 }
 
