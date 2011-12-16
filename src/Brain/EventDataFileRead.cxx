@@ -43,6 +43,35 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
 : Event(EventTypeEnum::EVENT_DATA_FILE_READ)
 {
     this->loadIntoBrain = loadIntoBrain;
+    this->structure     = StructureEnum::INVALID;
+    this->dataFileType  = dataFileType;
+    this->dataFileName  = dataFileName;
+    
+    CaretAssert(this->loadIntoBrain);
+    CaretAssert(this->dataFileType != DataFileTypeEnum::UNKNOWN);
+    CaretAssert(this->dataFileName.isEmpty() == false);
+}
+
+/**
+ * Constructor for loading a file with specified structure.
+ * 
+ * @param loadIntoBrain
+ *    Brain into which file is loaded.
+ * @param structure
+ *    Structure for file.
+ * @param dataFileType
+ *    Type of file this for loading.
+ * @param dataFileName
+ *    Name of data file to load.
+ */
+EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
+                                     const StructureEnum::Enum structure,
+                                     const DataFileTypeEnum::Enum dataFileType,
+                                     const AString& dataFileName)
+: Event(EventTypeEnum::EVENT_DATA_FILE_READ)
+{
+    this->loadIntoBrain = loadIntoBrain;
+    this->structure     = structure;
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
     
@@ -91,5 +120,14 @@ EventDataFileRead::getLoadIntoBrain()
 {
     return this->loadIntoBrain;
 }
-                                     
+                           
+/**
+ * @return The structure associated with the data file.
+ */
+StructureEnum::Enum 
+EventDataFileRead::getStructure() const
+{
+    return this->structure;
+}
+
 

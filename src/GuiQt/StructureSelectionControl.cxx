@@ -94,6 +94,21 @@ StructureSelectionControl::setSelectedStructure(const StructureEnum::Enum struct
 }
 
 /**
+ * @return  The selected structure.
+ */
+StructureEnum::Enum 
+StructureSelectionControl::getSelectedStructure() const
+{
+    StructureEnum::Enum structure = StructureEnum::INVALID;
+    const int32_t indx = this->structureComboBox->currentIndex();
+    if (indx >= 0) {
+        const int32_t integerCode = this->structureComboBox->itemData(indx).toInt();
+        structure = StructureEnum::fromIntegerCode(integerCode, NULL);
+    }
+    return structure;
+}
+
+/**
  * @return The widget for this control.
  */
 QWidget* 

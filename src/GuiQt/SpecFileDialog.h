@@ -34,6 +34,7 @@
 class QAction;
 class QCheckBox;
 class QLabel;
+class QPushButton;
 class QToolBar;
 class QToolButton;
 
@@ -49,9 +50,21 @@ namespace caret {
         Q_OBJECT
         
     public:
-        SpecFileDialog(SpecFile* specFile,
-                       QWidget* parent);
+        static SpecFileDialog* createForLoadingSpecFile(SpecFile* specFile,
+                                                QWidget* parent);
         
+        static void displayFastOpenDataFile(SpecFile* specFile,
+                                                    QWidget* parent);
+    private:
+        enum Mode {
+            MODE_FAST_OPEN,
+            MODE_LOAD_SPEC
+        };
+        
+        SpecFileDialog(const Mode mode,
+                       SpecFile* specFile,
+                       QWidget* parent);
+    public:
         virtual ~SpecFileDialog();
 
     protected:
@@ -87,10 +100,14 @@ namespace caret {
     private:
         SpecFile* specFile;
         
+        Mode mode;
+        
         std::vector<GuiSpecGroup*> dataTypeGroups;
         
         QAction* selectAllFilesToolButtonAction;
         QAction* selectNoneFilesToolButtonAction;
+        
+        friend class GuiSpecDataFileInfo;
     };
  
     /// Info about data file
@@ -98,8 +115,8 @@ namespace caret {
         Q_OBJECT
     public:
         GuiSpecDataFileInfo(QObject* parent,
-                         SpecFileDataFile* dataFileInfo,
-                         const bool isStructureFile);
+                            SpecFileDataFile* dataFileInfo,
+                            const bool isStructureFile);
 
         ~GuiSpecDataFileInfo();
 
@@ -107,12 +124,14 @@ namespace caret {
         void structureSelectionChanged(const StructureEnum::Enum);
         void metadataActionTriggered();
         void removeActionTriggered(bool);
+        void openFilePushButtonClicked();
         
     private:
         GuiSpecDataFileInfo(const GuiSpecDataFileInfo&);
         GuiSpecDataFileInfo& operator=(const GuiSpecDataFileInfo&);
         
         SpecFileDataFile* dataFileInfo;
+        QPushButton*      openFilePushButton;
         QCheckBox*        selectionCheckBox;
         QAction*          metadataAction;
         QToolButton*      metadataToolButton;

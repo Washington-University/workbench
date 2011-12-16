@@ -681,10 +681,11 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 {
     const AString filename = readDataFileEvent->getDataFileName();
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
+    const StructureEnum::Enum structure = readDataFileEvent->getStructure();
     
     try {
         this->readDataFile(dataFileType,
-                           StructureEnum::INVALID,
+                           structure,
                            filename);
     }
     catch (DataFileException e) {

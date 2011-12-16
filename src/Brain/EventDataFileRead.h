@@ -27,6 +27,7 @@
 
 #include "DataFileTypeEnum.h"
 #include "Event.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -42,6 +43,11 @@ namespace caret {
                           const DataFileTypeEnum::Enum dataFileType,
                           const AString& dataFileName);
         
+        EventDataFileRead(Brain* loadIntoBrain,
+                          const StructureEnum::Enum structure,
+                          const DataFileTypeEnum::Enum dataFileType,
+                          const AString& dataFileName);
+        
         virtual ~EventDataFileRead();
         
         AString getDataFileName() const;
@@ -49,6 +55,8 @@ namespace caret {
         DataFileTypeEnum::Enum getDataFileType() const;
         
         Brain* getLoadIntoBrain();
+        
+        StructureEnum::Enum getStructure() const;
         
     private:
         EventDataFileRead(const EventDataFileRead&);
@@ -60,6 +68,9 @@ namespace caret {
         AString dataFileName;
         
         DataFileTypeEnum::Enum dataFileType;
+        
+        StructureEnum::Enum structure;
+        
     };
 
 } // namespace

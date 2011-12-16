@@ -221,7 +221,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processDataFileOpenFromSpecFile()));
-    this->openFileViaSpecFileAction->setEnabled(false);
     
     
     this->manageFilesAction =
@@ -519,9 +518,9 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
             errorMessages += e.whatString();
         }
         
-        SpecFileDialog sfd(&specFile,
-                           this);
-        if (sfd.exec() == QDialog::Accepted) {
+        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                       this);
+        if (sfd->exec() == QDialog::Accepted) {
             EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                          &specFile);
             
@@ -534,6 +533,9 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
                 errorMessages += readSpecFileEvent.getErrorMessage();
             }
         }
+        
+        delete sfd;
+        sfd = NULL;
         
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
         
@@ -797,9 +799,9 @@ BrainBrowserWindow::processDataFileOpen()
                         errorMessages += e.whatString();
                     }
                     
-                    SpecFileDialog sfd(&specFile,
-                                       this);
-                    if (sfd.exec() == QDialog::Accepted) {
+                    SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                                   this);
+                    if (sfd->exec() == QDialog::Accepted) {
                         EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                      &specFile);
                         
@@ -812,6 +814,8 @@ BrainBrowserWindow::processDataFileOpen()
                             errorMessages += readSpecFileEvent.getErrorMessage();
                         }
                     }
+                    
+                    delete sfd;
                     
                     this->toolbar->addDefaultTabsAfterLoadingSpecFile();
                 }
@@ -857,6 +861,9 @@ BrainBrowserWindow::processDataFileOpen()
 void 
 BrainBrowserWindow::processDataFileOpenFromSpecFile()
 {
+    SpecFile* sf = GuiManager::get()->getBrain()->getSpecFile();
+    SpecFileDialog::displayFastOpenDataFile(sf,
+                                            this);
 }
 
 /**

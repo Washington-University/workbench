@@ -32,6 +32,8 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
+#include <QMessageBox>
 #include <QScrollArea>
 #include <QToolBar>
 #include <QToolButton>
@@ -41,6 +43,13 @@
 #include "SpecFileDialog.h"
 #undef __SPEC_FILE_DIALOG_DECLARE__
 
+#include "EventDataFileRead.h"
+#include "EventManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
+#include "EventSurfaceColoringInvalidate.h"
+
+#include "GuiManager.h"
 #include "SpecFile.h"
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
@@ -62,14 +71,62 @@ using namespace caret;
  * files and their attributes for loading into the 
  * application.
  */
+
+/**
+ * Create a new instance of the SpecFile Dialog for
+ * loading a spec file.  Run the retured dialog
+ * with 'exec()'.
+ * @param specFile
+ *    The spec file that will be loaded.
+ * @param parent
+ *    Parent widget on which dialog is displayed.
+ * @return Pointer to dialog that is displayed with
+ * '->exec()'.  Caller MUST delete the dialog when
+ * finished with it.
+ */
+SpecFileDialog* 
+SpecFileDialog::createForLoadingSpecFile(SpecFile* specFile,
+                            QWidget* parent)
+{
+    SpecFileDialog* sfd = new SpecFileDialog(SpecFileDialog::MODE_LOAD_SPEC,
+                                             specFile,
+                                             parent);
+    return sfd;
+}
+
+/**
+ * Launch a Spec File Dialog for opening data files.
+ * @param specFile
+ *    The spec file for file selection.
+ * @param parent
+ *    Parent widget on which dialog is displayed.
+ * Dialog will be deleted automatically when it is closed.
+ */
+void 
+SpecFileDialog::displayFastOpenDataFile(SpecFile* specFile,
+                                            QWidget* parent)
+{
+    SpecFileDialog* sfd = new SpecFileDialog(SpecFileDialog::MODE_FAST_OPEN,
+                                             specFile,
+                                             parent);
+    sfd->setDeleteWhenClosed(true);
+    sfd->setVisible(true);
+    sfd->show();
+    sfd->activateWindow();
+}
+
+
 /**
  * Constructor.
  */
-SpecFileDialog::SpecFileDialog(SpecFile* specFile,
+SpecFileDialog::SpecFileDialog(const Mode mode,
+                               SpecFile* specFile,
                                QWidget* parent)
 : WuQDialogModal("Spec File Data File Selection",
                  parent)
 {
+    this->mode = mode;
+    
     this->specFile = specFile;
     QWidget* fileGroupWidget = new QWidget();
     QVBoxLayout* fileGroupLayout = new QVBoxLayout(fileGroupWidget);
@@ -191,7 +248,6 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
     const QSize fgSize = fileGroupWidget->sizeHint();
     const int sizeX = std::min(fgSize.width(), 650);
     const int sizeY = std::min(fgSize.height(), 700);
-    std::cout << "Size X/Y: " << sizeX << ", " << sizeY << std::endl;
     scrollArea->ensureVisible(0, 0, sizeX, sizeY);
     
     /*
@@ -221,10 +277,21 @@ SpecFileDialog::SpecFileDialog(SpecFile* specFile,
      */
     this->setCentralWidget(w);
     
-    /*
-     * Change OK button to Load
-     */
-    this->setOkButtonText("Load");
+    switch (this->mode) {
+        case MODE_FAST_OPEN:
+            /*
+             * Hide OK button.
+             */
+            this->setOkButtonText("");
+            this->setCancelButtonText("Close");
+            break;
+        case MODE_LOAD_SPEC:
+            /*
+             * Change OK button to Load
+             */
+            this->setOkButtonText("Load");
+            break;
+    }
 }
 
 /**
@@ -275,7 +342,9 @@ SpecFileDialog::selectToolButtonTriggered(QAction* action)
         if (gsg->widget->isVisible()) {
             const int32_t numFiles = static_cast<int32_t>(gsg->dataFiles.size());
             for (int32_t i = 0; i < numFiles; i++) {
-                gsg->dataFiles[i]->selectionCheckBox->setChecked(status);
+                if (gsg->dataFiles[i]->dataFileInfo->isRemovedFromSpecFileWhenWritten() == false) {
+                    gsg->dataFiles[i]->selectionCheckBox->setChecked(status);
+                }
             }
         }
     }
@@ -335,6 +404,7 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
     GuiSpecGroup* guiSpecGroup = new GuiSpecGroup();
     
     int ctr = 0;
+    const int COLUMN_OPEN_BUTTON = ctr++;
     const int COLUMN_CHECKBOX  = ctr++;
     const int COLUMN_METADATA  = ctr++;
     const int COLUMN_REMOVE    = ctr++;
@@ -356,17 +426,27 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
         SpecFileDataFile* dataFileInfo = dataFileInfoVector[idf];
         
         GuiSpecDataFileInfo* dfi = new GuiSpecDataFileInfo(this,
-                                                 dataFileInfo,
-                                                 hasStructure);
+                                                           dataFileInfo,
+                                                           hasStructure);
                                                  
         const int iRow = gridLayout->rowCount();
+        gridLayout->addWidget(dfi->openFilePushButton, iRow, COLUMN_OPEN_BUTTON);
         gridLayout->addWidget(dfi->selectionCheckBox, iRow, COLUMN_CHECKBOX);
         gridLayout->addWidget(dfi->metadataToolButton, iRow, COLUMN_METADATA);
         gridLayout->addWidget(dfi->removeToolButton, iRow, COLUMN_REMOVE);
-        if (dfi->structureSelectionControl != NULL) {
-            gridLayout->addWidget(dfi->structureSelectionControl->getWidget(), iRow, COLUMN_STRUCTURE);
-        }
+        gridLayout->addWidget(dfi->structureSelectionControl->getWidget(), iRow, COLUMN_STRUCTURE);
         gridLayout->addWidget(dfi->nameLabel, iRow, COLUMN_NAME);
+        
+        switch (this->mode) {
+            case MODE_FAST_OPEN:
+                dfi->selectionCheckBox->setVisible(false);
+                dfi->removeToolButton->setVisible(false);
+                dfi->structureSelectionControl->getWidget()->blockSignals(true); // do not allow spec to change
+                break;
+            case MODE_LOAD_SPEC:
+                dfi->openFilePushButton->setVisible(false);
+                break;
+        }
         
         guiSpecGroup->dataFiles.push_back(dfi);
     }
@@ -463,6 +543,13 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
 {
     this->dataFileInfo = dataFileInfo;
     
+    this->openFilePushButton = new QPushButton("Open");
+    this->openFilePushButton->setAutoDefault(false);
+    WuQtUtilities::setToolTipAndStatusTip(this->openFilePushButton,
+                                          "Pressing this button will open the data file.");
+    QObject::connect(this->openFilePushButton, SIGNAL(clicked()),
+                     this, SLOT(openFilePushButtonClicked()));
+    
     this->selectionCheckBox = new QCheckBox("");
     this->selectionCheckBox->setChecked(dataFileInfo->isSelected());
     
@@ -485,12 +572,13 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     this->removeToolButton = new QToolButton();
     this->removeToolButton->setDefaultAction(this->removeAction);
     
-    this->structureSelectionControl = NULL;
-    if (isStructureFile) {
-        this->structureSelectionControl = new StructureSelectionControl();
-        this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
-        QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
-                         this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));
+    this->structureSelectionControl = new StructureSelectionControl();
+    this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
+    QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
+                     this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));
+    if (isStructureFile == false) {
+        this->structureSelectionControl->getWidget()->setVisible(false);
+        this->structureSelectionControl->getWidget()->blockSignals(true);
     }
     
     this->nameLabel = new QLabel(dataFileInfo->getFileName());
@@ -498,7 +586,7 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     this->widgetGroup = new WuQWidgetObjectGroup(this);
     this->widgetGroup->add(this->selectionCheckBox);
     this->widgetGroup->add(this->metadataToolButton);
-    if (this->structureSelectionControl != NULL) {
+    if (isStructureFile) {
         this->widgetGroup->add(this->structureSelectionControl->getWidget());
     }
     this->widgetGroup->add(this->nameLabel);
@@ -510,6 +598,50 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
 GuiSpecDataFileInfo::~GuiSpecDataFileInfo()
 {
     
+}
+
+/**
+ * Called when Open file pushbutton clicked.
+ */
+void 
+GuiSpecDataFileInfo::openFilePushButtonClicked()
+{
+    AString errorMessages;
+    const AString name = this->dataFileInfo->getFileName();
+    bool isValidType = false;
+    DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+    StructureEnum::Enum structure = this->structureSelectionControl->getSelectedStructure();
+    if (isValidType) {
+        EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+                                        structure,
+                                        fileType,
+                                        name);
+        
+        EventManager::get()->sendEvent(loadFileEvent.getPointer());
+        
+        if (loadFileEvent.isError()) {
+            if (errorMessages.isEmpty() == false) {
+                errorMessages += "\n";
+            }
+            errorMessages += loadFileEvent.getErrorMessage();
+        }                    
+    }
+    else {
+        if (errorMessages.isEmpty() == false) {
+            errorMessages += "\n";
+        }
+        errorMessages += ("Extension for " + name + " does not match a Caret file type");
+    }
+    
+    if (errorMessages.isEmpty() == false) {
+        QMessageBox::critical(this->openFilePushButton, 
+                              "ERROR", 
+                              errorMessages);
+    }
+    
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
