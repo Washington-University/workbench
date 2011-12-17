@@ -32,6 +32,8 @@
 #include "NiftiMatrix.h"
 #include "VolumeBase.h"
 #include "zlib.h"
+#include "NiftiAbstractVolumeExtension.h"
+
 
 /** TODOS: there are a BUNCH...
 High priority:
@@ -111,10 +113,6 @@ public:
     void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
 
     /// volume file read/write Functions
-    /// get VolumeFrame
-    void getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component=0);
-    /// set VolumeFrame
-    void setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component=0);
 
     /// Read the entire nifti file into a volume file
     void readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException);
@@ -128,6 +126,42 @@ public:
 
     void getLayout(LayoutType &layout) throw(NiftiException) {
         return matrix.getMatrixLayoutOnDisk(layout);
+    }
+
+    void getAbstractVolumeExtension(NiftiAbstractVolumeExtension &volumeExtension)
+    {
+        if(headerIO.getNiftiVersion() == 1)
+        {
+            volumeExtension.type = volumeExtension.NIFTI1;
+            int64_t vOffset = headerIO.getVolumeOffset();
+            int64_t eOffset = headerIO.getExtensionsOffset();
+            int64_t eLength = vOffset-eOffset;
+            volumeExtension.m_bytes = new uint8_t[eLength];
+            volumeExtension.m_numBytes = eLength;
+            memcpy(volumeExtension.m_bytes,this->extension_bytes,volumeExtension.m_numBytes);
+        }
+        else if(headerIO.getNiftiVersion() == 2)
+        {
+            volumeExtension.type = volumeExtension.NIFTI2;
+            int64_t vOffset = headerIO.getVolumeOffset();
+            int64_t eOffset = headerIO.getExtensionsOffset();
+            int64_t eLength = vOffset-eOffset;
+            volumeExtension.m_numBytes = eLength;
+            volumeExtension.m_bytes = new uint8_t[eLength];
+            memcpy(volumeExtension.m_bytes,this->extension_bytes,volumeExtension.m_numBytes);
+        }
+    }
+    void setAbstractVolumeExtension(NiftiAbstractVolumeExtension &volumeExtension)
+    {
+        if(volumeExtension.type == volumeExtension.NIFTI1)
+        {
+            if(extension_bytes) 
+            memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+        }
+        else if(volumeExtension.type == volumeExtension.NIFTI2)
+        {
+            memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+        }
     }
 
     /// Destructor

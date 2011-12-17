@@ -64,15 +64,108 @@ bool NiftiHeaderIO::isCompressed(const AString &fileName) const
     else return false;
 }
 
+void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
+{
+    AString temp = inputFile;
+    if(this->isCompressed(inputFile))
+    {
+        
+        gzFile file = gzopen(temp.toStdString().c_str(),"r");
+        readFile(file);
+        gzclose(file);
+    }
+    else
+    {
+        QFile file(inputFile);
+        file.open(QIODevice::ReadOnly);
+        readFile(file);
+        file.close();
+    }
+}
 
+void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
+{
+    AString temp = inputFile;
+    if(this->isCompressed(inputFile))
+    {
+        gzFile file = gzopen(temp.toStdString().c_str(),"w");
+        writeFile(file);
+        gzclose(file);
+    }
+    else
+    {
+        QFile file(inputFile);
+        file.open(QIODevice::WriteOnly);
+        writeFile(file);
+        file.close();
+    }
+}
 
 /**
- * Constructor
+ * readFile
  *
- * Constructor that takes an input nifti_2_header struct *
+ * reads file from a qfile handle
  * @param header
  */
-void NiftiHeaderIO::readFile(const AString &inputFileIn) throw (NiftiException)
+void NiftiHeaderIO::readFile(QFile &file) throw (NiftiException)
+{    
+    int bytes_read = 0;
+    char bytes[548];
+    m_swapNeeded=false;
+    niftiVersion = 0;
+    nifti_1_header n1header;
+    nifti_2_header n2header;
+    
+    bytes_read = file.read((char *)bytes, NIFTI1_HEADER_SIZE);
+    memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
+    if(bytes_read < NIFTI1_HEADER_SIZE)
+    {
+        throw NiftiException("Error reading Nifti header, file is too short.");
+    }
+    else if((NIFTI2_VERSION(n1header))==1)
+    {
+        niftiVersion=1;
+
+    }
+    else if((NIFTI2_VERSION(n1header))==2)
+    {
+        niftiVersion=2;
+        //read the rest of the bytes
+        file.read((char *)&bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
+        memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
+    }
+    else throw NiftiException("Unrecognized Nifti Version.");    
+
+    if(niftiVersion==1)
+    {
+
+        if(NIFTI2_NEEDS_SWAP(n1header))
+        {
+            m_swapNeeded=true;
+            swapHeaderBytes(n1header);
+        }
+        nifti1Header.setHeaderStuct(n1header);
+        nifti1Header.setNeedsSwapping(m_swapNeeded);
+    }
+    else if(niftiVersion==2)
+    {
+        if(NIFTI2_NEEDS_SWAP(n2header))
+        {
+            m_swapNeeded = true;
+            swapHeaderBytes(n2header);
+        }
+        nifti2Header.setHeaderStuct(n2header);
+        nifti2Header.setNeedsSwapping(m_swapNeeded);
+    }
+}
+
+/**
+ * readFile
+ *
+ * reads file from a zFile handle
+ * @param header
+ */
+void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
 {    
     int bytes_read = 0;
     char bytes[548];
@@ -81,59 +174,24 @@ void NiftiHeaderIO::readFile(const AString &inputFileIn) throw (NiftiException)
     nifti_1_header n1header;
     nifti_2_header n2header;
 
-    if(this->isCompressed(inputFileIn))
+    bytes_read = gzread(file,(char *)bytes, NIFTI1_HEADER_SIZE);
+    memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
+    if(bytes_read < NIFTI1_HEADER_SIZE)
     {
-        AString temp = inputFileIn;
-        gzFile fh = gzopen(temp.toStdString().c_str(), "rb");
-        if(fh==NULL) throw NiftiException("There was an error openining file "+inputFileIn+" for reading\n");
-
-        bytes_read = gzread(fh,(char *)bytes, NIFTI1_HEADER_SIZE);
-        memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
-        if(bytes_read < NIFTI1_HEADER_SIZE)
-        {
-            throw NiftiException("Error reading Nifti header, file is too short.");
-        }
-        else if(NIFTI2_VERSION(n1header)==1)
-        {
-            niftiVersion=1;
-
-        }
-        else if(NIFTI2_VERSION(n1header)==2)
-        {
-            niftiVersion=2;
-            //read the rest of the bytes
-            gzread(fh,(char *)bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
-            memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
-        }
-        else throw NiftiException("Unrecognized Nifti Version.");
-        gzclose(fh);
+        throw NiftiException("Error reading Nifti header, file is too short.");
     }
-    else
+    else if(NIFTI2_VERSION(n1header)==1)
     {
-        QFile inputFile(inputFileIn);
-        inputFile.open(QIODevice::ReadOnly);
-
-        bytes_read = inputFile.read((char *)bytes, NIFTI1_HEADER_SIZE);
-        memcpy((char *)&n1header,bytes,NIFTI1_HEADER_SIZE);
-        if(bytes_read < NIFTI1_HEADER_SIZE)
-        {
-            throw NiftiException("Error reading Nifti header, file is too short.");
-        }
-        else if((NIFTI2_VERSION(n1header))==1)
-        {
-            niftiVersion=1;
-
-        }
-        else if((NIFTI2_VERSION(n1header))==2)
-        {
-            niftiVersion=2;
-            //read the rest of the bytes
-            inputFile.read((char *)&bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
-            memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
-        }
-        else throw NiftiException("Unrecognized Nifti Version.");
-        inputFile.close();
+        niftiVersion=1;
     }
+    else if(NIFTI2_VERSION(n1header)==2)
+    {
+        niftiVersion=2;
+        //read the rest of the bytes
+        gzread(file,(char *)bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
+        memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
+    }
+    else throw NiftiException("Unrecognized Nifti Version.");
 
     if(niftiVersion==1)
     {
@@ -231,10 +289,10 @@ void NiftiHeaderIO::swapHeaderBytes(nifti_2_header &header)
 /**
  * writeFile
  *
- * writes the nifti 1 header to the output file handle
- * @param outputFile
+ * writes the nifti header to the output file handle
+ * @param file
  */
-void NiftiHeaderIO::writeFile(const AString &outputFileIn, NIFTI_BYTE_ORDER byte_order) throw (NiftiException)
+void NiftiHeaderIO::writeFile(gzFile file, NIFTI_BYTE_ORDER byte_order) throw (NiftiException)
 {
     uint8_t bytes[548];
 
@@ -243,7 +301,7 @@ void NiftiHeaderIO::writeFile(const AString &outputFileIn, NIFTI_BYTE_ORDER byte
         //swap for write if needed
         nifti_1_header header;
         nifti1Header.getHeaderStruct(header);
-        if(byte_order == ORIGINAL_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
 
     }
@@ -252,39 +310,53 @@ void NiftiHeaderIO::writeFile(const AString &outputFileIn, NIFTI_BYTE_ORDER byte
         //swap for write if needed
         nifti_2_header header;
         nifti2Header.getHeaderStruct(header);
-        if(byte_order == ORIGINAL_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
         memcpy(bytes,(char *)&header,sizeof(header));
     }
     else throw NiftiException("NiftiHeaderIO only currently supports Nifti versions 1 and 2.");
 
-    if(this->isCompressed(outputFileIn))
+    if(this->niftiVersion==1) gzwrite(file,bytes,sizeof(nifti_1_header));
+    else if(this->niftiVersion==2) gzwrite(file,bytes,sizeof(nifti_2_header));
+}
+
+/**
+ * writeFile
+ *
+ * writes the nifti header to the output file handle
+ * @param outputFile
+ */
+void NiftiHeaderIO::writeFile(QFile &file, NIFTI_BYTE_ORDER byte_order) throw (NiftiException)
+{
+    uint8_t bytes[548];
+
+    if(this->niftiVersion == 1)
     {
-        gzFile fh = NULL;
-        AString temp = outputFileIn;
-        if(QFile::exists(temp)) fh = gzopen(temp.toStdString().c_str(),"rb");
-        else fh = gzopen(temp.toStdString().c_str(),"w");
+        //swap for write if needed
+        nifti_1_header header;
+        nifti1Header.getHeaderStruct(header);
+        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        memcpy(bytes,(char *)&header,sizeof(header));
 
-        if(fh==NULL) throw NiftiException("There was an error openining file "+outputFileIn+" for writing\n");
-
-        if(this->niftiVersion==1) gzwrite(fh,bytes,sizeof(nifti_1_header));
-        else if(this->niftiVersion==2) gzwrite(fh,bytes,sizeof(nifti_2_header));
-        gzclose(fh);
     }
-    else
+    else if(this->niftiVersion == 2)
     {
-        QFile outputFile(outputFileIn);
-        if(!outputFile.isOpen())
+        //swap for write if needed
+        nifti_2_header header;
+        nifti2Header.getHeaderStruct(header);
+        if(byte_order == SWAPPED_BYTE_ORDER && m_swapNeeded) swapHeaderBytes(header);
+        memcpy(bytes,(char *)&header,sizeof(header));
+    }
+    else throw NiftiException("NiftiHeaderIO only currently supports Nifti versions 1 and 2.");
+    
+    if(!file.isOpen())
+    {
+        if(!file.open(QIODevice::WriteOnly))
         {
-            if(!outputFile.open(QIODevice::ReadWrite))
-            {
-                throw NiftiException("There was an error opening the file for writing.");
-            }
+            throw NiftiException("There was an error opening the file for writing.");
         }
-        if(this->niftiVersion == 1) outputFile.write((char *)bytes,sizeof(nifti_1_header));
-        else if(this->niftiVersion == 2) outputFile.write((char *)bytes,sizeof(nifti_2_header));
-
-        outputFile.close();
     }
+    if(this->niftiVersion == 1) file.write((char *)bytes,sizeof(nifti_1_header));
+    else if(this->niftiVersion == 2) file.write((char *)bytes,sizeof(nifti_2_header));
 }
 
 /**
@@ -368,11 +440,7 @@ void NiftiHeaderIO::setVolumeOffset(const int64_t &offsetIn)
         this->nifti1Header.setVolumeOffset(offsetIn);
     else if(niftiVersion == 2)
         this->nifti2Header.setVolumeOffset(offsetIn);
-
-
 }
-
-
 
 int64_t NiftiHeaderIO::getExtensionsOffset()
 {

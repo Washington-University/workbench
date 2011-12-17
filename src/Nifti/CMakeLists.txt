@@ -19,8 +19,9 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Nifti
 Layout.h
-Matrix.h
 Matrix4x4.h
+NiftiAbstractHeader.h
+NiftiAbstractVolumeExtension.h
 NiftiFile.h
 NiftiHeaderIO.h
 Nifti1Header.h
@@ -28,7 +29,6 @@ Nifti2Header.h
 NiftiMatrix.h
 
 Layout.cxx
-Matrix.cxx
 Matrix4x4.cxx
 NiftiFile.cxx
 NiftiHeaderIO.cxx

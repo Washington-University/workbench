@@ -48,6 +48,7 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
+        ExtensionType type;
         uint8_t* m_bytes;
         int64_t m_numBytes;
         AbstractVolumeExtension() { m_bytes = NULL; }
@@ -62,6 +63,7 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
+        HeaderType type;
         virtual HeaderType getType() = 0;
         virtual ~AbstractHeader();
     };

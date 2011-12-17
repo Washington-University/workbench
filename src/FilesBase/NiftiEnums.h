@@ -44,7 +44,7 @@ namespace caret {
 //not the actual byte order.  This should also function portably.
 enum NIFTI_BYTE_ORDER {
     NATIVE_BYTE_ORDER,
-    ORIGINAL_BYTE_ORDER
+    SWAPPED_BYTE_ORDER
 };
 /**
     * NIFTI Data Types.  Note that only a small subset are used

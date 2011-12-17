@@ -41,21 +41,12 @@ namespace caret {
 class NiftiMatrix : public LayoutType //so we don't have to qualify layouts
 {
 public:
-    NiftiMatrix();
-    //NiftiMatrix(const AString &filename) throw (NiftiException);
-    //NiftiMatrix(const AString &filename, int64_t &offsetin) throw (NiftiException);
-    NiftiMatrix(const QFile &filein);
-    NiftiMatrix(const QFile &filein, const int64_t &offsetin);
-    ~NiftiMatrix() { flushCurrentFrame(); clearMatrix();}
-
-    /// Writes out any changes made to the current Frame to the disk, if it has been changed
-    void flushCurrentFrame();
-    void setMatrixFile(const QFile &filein);
-    bool isCompressed();
+    NiftiMatrix();    
+    ~NiftiMatrix() { clearMatrix();}
 
     // Below are low level functions for operating on generic matrix files, currently used by Nifti
 
-    // !!!SECTION 1: matrix reader set up!!!
+    // SECTION 1: matrix reader set up
     /*use functions below to setup layout first before reading a frame, so that the matrix reader "knows" how interpret/load/format the data into the internal matrix
       it's flexible, but the recommended usage is:
       1. setMatrixOffset(if non-zero)
@@ -80,67 +71,65 @@ public:
     /// set the layout on Disk by handing it required params
     void setMatrixLayoutOnDisk(const std::vector<int64_t> &dimensionsIn, const int &componentDimensionsIn,const bool &needsSwappingIn );
 
-    // !!!SECTION 2: frame reading set up, call AFTER using set up functions above!!!
     //after setting matrix layout, a frame may be read.
 
-    // use read frame where data preservation is important and you care about what is in that frame.
-    // use set frame to write to frame that hasn't previously been written, or to completely over-write a frame if
-    // you don't care about the data it contains.
-    /// Reads frame from disk into memory, flushes previous frame to disk if changes were made.
-    void readFrame(int64_t timeSlice=0L)  throw (NiftiException);//for loading a frame at a time
+    void readFile(QFile &fileIn) throw (NiftiException);
+    void readFile(gzFile fileIn) throw (NiftiException);
+    void writeFile(QFile &fileOut) throw (NiftiException);
+    void writeFile(gzFile fileOut) throw (NiftiException);
 
+    // For reading the entire Matrix
+    /// sets the entire volume file Matrix
+    void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException);
+    /// gets the entire volume file Matrix
+    void getMatrix(float *matrixOut, const int64_t &matrixLengthOut) throw (NiftiException);
+
+    // For reading a frame at a time from previously loaded matrix
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
     void setFrame(float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException);
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
-    void setFrame(const int64_t &timeSlice=0L) throw(NiftiException);
-    /// Gets the entire loaded frame as floats, for easier manipulation
-    void getFrame(float *frame, const int64_t &componentIndex=0L) throw (NiftiException);
-    /// Writes the current frame to disk.
-    void writeFrame() throw(NiftiException);
-    // TODO: another option is loading the entire nifti matrix, then readFrame simply copies the current adddress of the timeslice offset,not implemented yet
-    //void readMatrix() {}//for loading the entire matrix, not implemented
-    //void setMatrix...
-    //void writeMatrix...
-
-    // !!!SECTION 3: after frame has been loaded, use functions below to manipulate frame data
-    //once a frame has been loaded, use the functions below to manipulate it
-    void translateVoxel(const int64_t &i, const int64_t &j, const int64_t &k, int64_t &index) const;
-    float getComponent(const int64_t &index, const int64_t &componentIndex) const throw (NiftiException);
-    void setComponent(const int64_t &index, const int64_t &componentIndex, const float &value) throw (NiftiException);
+    void getFrame(float *frame, const int64_t &timeSlice = 0L,const int64_t &componentIndex=0L) throw (NiftiException);
+    
     /// Volume read/write Functions
-    /// get VolumeFrame
-    void getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component=0);
+    /// get Volume
+    void getVolume(VolumeBase &vol);
     /// Set VolumeFrame
-    void setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component=0);
-    /* void getVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    void setVolumeFrame(VolumeFile &volume, int64_t &timeslice) throw (NiftiException);
-    */
-    // !!!SECTION 4: convenient getter/setters
+    void setVolume(VolumeBase &vol);
+    
     /// Gets the Size in bytes of the current frame
     int64_t getFrameSize() { return frameSize;}
     /// Gets the number of individual elements (array size) of the current frame
     int64_t getFrameLength() { return frameLength; }
 
+   
+
+
 
 private:
+    /// Reads frame from disk into memory, flushes previous frame to disk if changes were made.
+    void readFile()  throw (NiftiException);//for loading a frame at a time
+    void readMatrixBytes(char *bytes, int64_t size);
+    /// Writes the current frame to disk.
+    void writeFile() throw (NiftiException);
+    void writeMatrixBytes(char *bytes, int64_t size);
+
+
+    bool isCompressed();
     void reAllocateMatrixIfNeeded();
     void clearMatrix();
     void init();
-    void resetMatrix();
+    
     //frames represent brain volumes on disk, the matrix is the internal storage for the matrix after it has been loaded from the file.
     int64_t calculateFrameLength(const std::vector<int64_t> &dimensionsIn) const;
-    int64_t calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn) const;
-    int64_t calculateMatrixLength(const int64_t &frameLengthIn, const int64_t &componentDimensionsIn) const;
-    int64_t calculateMatrixSizeInBytes(const int64_t &frameSizeIn, const int64_t &componentDimensionsIn) const;
-
-    QFile file;
+    int64_t calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn) const;    
+    
+    QFile *file;
+    gzFile zFile;
     int64_t matrixStartOffset;
 
     //layout
     int64_t frameLength;
-    int64_t frameSize;
-    bool frameLoaded;
-    bool frameNeedsWriting;
+    int64_t frameSize;    
 
     // matrix data
     int64_t currentTime;

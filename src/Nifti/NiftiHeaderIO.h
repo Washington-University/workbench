@@ -30,6 +30,10 @@
 #include "NiftiException.h"
 #include "Nifti1Header.h"
 #include "Nifti2Header.h"
+#include "NiftiAbstractHeader.h"
+#include "zlib.h"
+
+
 
 namespace caret {
 
@@ -42,6 +46,11 @@ public:
 
     void readFile(const AString &inputFile) throw (NiftiException);
     void writeFile(const AString &outputFile, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    void writeFile(QFile &file, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    void writeFile(gzFile file, NIFTI_BYTE_ORDER byteOrder = NATIVE_BYTE_ORDER) throw (NiftiException);
+    void readFile(QFile &file) throw (NiftiException);
+    void readFile(gzFile file) throw (NiftiException);    
+
     bool isCompressed(const AString &fileName) const;
 
     void getHeader(Nifti1Header &header) const throw (NiftiException);
@@ -56,6 +65,33 @@ public:
     void setVolumeOffset(const int64_t &offsetIn);
     int64_t getVolumeOffset();
     int64_t getExtensionsOffset();
+    void getAbstractHeader(NiftiAbstractHeader &header)
+    {
+        if(getNiftiVersion() == 1)
+        {
+            header.type = header.NIFTI1;
+            getHeader(header.n1header);
+        }
+        else if(getNiftiVersion() ==2)
+        {
+            header.type = header.NIFTI2;
+            getHeader(header.n2header);
+        }          
+    }
+
+    void setAbstractHeader(NiftiAbstractHeader &header)
+    {
+        if(header.type == header.NIFTI1)
+        {
+            this->niftiVersion = 1;
+            setHeader(header.n1header);
+        }
+        else if(header.type == header.NIFTI2)
+        {
+            this->niftiVersion = 2;
+            setHeader(header.n2header);
+        }
+    }
 
 private:
     int niftiVersion;

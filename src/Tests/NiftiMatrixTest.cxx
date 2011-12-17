@@ -40,27 +40,12 @@ NiftiMatrixTest::NiftiMatrixTest(const AString &identifier) : TestInterface(iden
 
 void NiftiMatrixTest::getFrame(NiftiMatrix &matrix, int64_t &timeSlice, float *frame)
 {
-    matrix.readFrame(timeSlice);
-
-    //for purposes of comparison I will be returning the entire frame
-    int64_t frameLength = matrix.getFrameLength();
-    for(int64_t i = 0;i<frameLength;i++) frame[i] = matrix.getComponent(i,0);
+    matrix.getFrame(frame,timeSlice,0);    
 }
 
 void NiftiMatrixTest::writeFrame(NiftiMatrix &matrix, int64_t &timeSlice, float *frame)
 {
-    //for the purposes of testing, we tell the api to take in a null formatted matrix, in
-    //the future, I will simply have it allocate a null buffer if it is the first param
-    //I could just as easily handed if the frame and been done with it...
-    //float *temp = new float[matrix.getFrameLength()];
-    //memset(temp,matrix.getFrameLength(),sizeof(float));
-    //matrix.setFrame(temp,matrix.getFrameLength(),timeSlice);
-    matrix.setFrame(timeSlice);
-
-    //set the frame using the low level api to make sure it works
-    int64_t frameLength = matrix.getFrameLength();
-    for(int64_t i = 0;i<frameLength;i++) matrix.setComponent(i,0,frame[i]);
-    //matrix.flushCurrentFrame();
+    matrix.setFrame(frame,matrix.getFrameLength(),timeSlice,0);
 }
 
 
@@ -230,6 +215,11 @@ void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std
             this->writeFrame(*(matricesOut[i]), t, (float *)(frames[i]));
         }
     }
+    for(uint i = 0;i < matrices.size();i++)
+    {
+        matricesOut[i]->writeFile();
+    }
+
 }
 
 bool NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
@@ -277,27 +267,7 @@ bool NiftiMatrixTest::compareMatrices(std::vector <NiftiMatrix *> &matrices)
     return true;
 }
 
-// below should only be used when troubleshooting test problems, as it generates a lot of output
-void NiftiMatrixTest::printFrame(NiftiMatrix &matrix, float * frame)
-{
-    LayoutType layout;
-    matrix.getMatrixLayoutOnDisk(layout);
-    int64_t index = 0;
 
-    for(int k = 0;k<layout.dimensions[3];k++)
-    {
-        std::cout << "k dimension: " << k << std::endl;
-        for(int j = 0;j<layout.dimensions[2];j++)
-        {
-            for(int i = 0;i<layout.dimensions[1];i++)
-            {
-                matrix.translateVoxel(i,j,k,index);
-                std::cout << index << ":" << frame[index] << ",";
-            }
-            std::cout << std::endl;
-        }
-    }
-}
 
 
 

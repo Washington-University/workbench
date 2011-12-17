@@ -74,15 +74,12 @@ void NiftiFileTest::testNifti1ReadWrite()
     reader.getLayout(layout);
     int64_t timeSlices = 1;
     if(layout.dimensions.size()>3) timeSlices=layout.dimensions[3];
-    reader.matrix.readFrame(0);//hack TODO, fix this....
     int64_t frameLength = reader.matrix.getFrameLength();
     float * frame = new float[frameLength];
     for(int64_t t = 0;t<timeSlices;t++)
     {
-        reader.matrix.readFrame(t);
-        reader.matrix.getFrame(frame);
-        writer.matrix.setFrame(frame,frameLength,t);
-        writer.matrix.flushCurrentFrame();
+        reader.matrix.getFrame(frame,t,0);
+        writer.matrix.setFrame(frame,frameLength,t,0);        
     }
 
     writer.writeFile(outFile);
@@ -92,10 +89,8 @@ void NiftiFileTest::testNifti1ReadWrite()
     float * frameTest = new float[frameLength];
     for(int64_t t = 0;t<timeSlices;t++)
     {
-        reader.matrix.readFrame(t);
-        reader.matrix.getFrame(frame);
-        test.matrix.readFrame(t);
-        test.matrix.getFrame(frameTest);
+        reader.matrix.getFrame(frame,t,0);
+       test.matrix.getFrame(frameTest,t,0);
         if(!memcmp((void *)frame,(void *)frameTest,reader.matrix.getFrameSize()))
         {
             this->setFailed("Input and output nifti file frames are not the same.");

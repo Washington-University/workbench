@@ -80,14 +80,30 @@ bool NiftiFile::isCompressed()
 void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
 {
     this->m_fileName = fileName;
+    
+
     if(!QFile::exists(fileName))//opening file for writing
-    {
-        matrix.setMatrixFile(m_fileName);
+    {        
         newFile=true;
         return;
     }
+    QFile file;
+    gzFile zFile;
+    if(isCompressed())
+    {
+        zFile = gzopen(m_fileName.c_str(), "r");
+    }
+    else
+    {
+        file.setFileName(fileName);
+        file.open(QIODevice::ReadOnly);
+    }
+
     //read header
-    headerIO.readFile(fileName);
+    if(isCompressed())
+        headerIO.readFile(zFile);
+    else
+        headerIO.readFile(file);
 
     //read Extension Bytes, eventually a class will handle this
     int64_t vOffset = headerIO.getVolumeOffset();
@@ -97,23 +113,21 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     extension_bytes = new int8_t[eLength];
     if(this->isCompressed())
     {
-        AString temp = fileName;
-        gzFile ext = gzopen(temp.toStdString().c_str(), "rb");
-        gzseek(ext,eOffset,0);
-        gzread(ext,extension_bytes,eLength);
-        gzclose(ext);
+        gzseek(zFile,eOffset,0);
+        gzread(zFile,extension_bytes,eLength);
     }
     else
     {
-        QFile ext(fileName);
-        ext.open(QIODevice::ReadWrite);
-        ext.seek(eOffset);
-        ext.read((char *)extension_bytes, eLength);
-        ext.close();
+        file.seek(eOffset);
+        file.read((char *)extension_bytes, eLength);
     }
 
-    //set up Matrix
-    matrix.setMatrixFile(fileName);
+    if(headerIO.getSwapNeeded())
+    {
+        swapExtensionsBytes(extension_bytes, eLength);
+    }
+
+    //set up Matrix    
     if(this->getNiftiVersion()==1) {
         Nifti1Header header;
         headerIO.getHeader(header);
@@ -127,6 +141,10 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         matrix.setMatrixLayoutOnDisk(header);
         matrix.setMatrixOffset((header.getVolumeOffset()));
     }
+    if(isCompressed())
+        matrix.readFile(zFile);
+    else
+        matrix.readFile(file);
 }
 
 void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength)
@@ -149,117 +167,71 @@ void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLengt
  * @param fileName specifies the name and path of the file to write to
  */
 void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
-{     
-    if(fileName == m_fileName && !newFile)
+{   
+    
+    //write extension code
+
+    int64_t vOffset = headerIO.getVolumeOffset();
+    int64_t eOffset = headerIO.getExtensionsOffset();
+    int64_t eLength = vOffset-eOffset;
+    if(eLength >4)
     {
-        //need to honor byte order
-        headerIO.writeFile(fileName,ORIGINAL_BYTE_ORDER);
+        //check for NATIVE_BYTE_ORDER and if it needs swapping
+        if(byteOrder != NATIVE_BYTE_ORDER)
+        {
+            swapExtensionsBytes(extension_bytes, eLength);
+        }
 
-        //write extension code
-        //since we never swapped to begin with, and we are
-        //sticking with the original byte order we can just
-        //write the bytes
-        int64_t vOffset = headerIO.getVolumeOffset();
-        int64_t eOffset = headerIO.getExtensionsOffset();
-        int64_t eLength = vOffset-eOffset;
-        if(eLength>4)
-        {
-            QFile ext(fileName);
-            ext.open(QIODevice::ReadWrite);
-            ext.seek(eOffset);
-            ext.write((char *)extension_bytes, eLength);
-            ext.close();
-        }
-        else //extension doesn't exist, just write four 0x00's
-        {
-            uint8_t bytes[4] = {0x00,0x00,0x00,0x00};
-            QFile ext(fileName);
-            ext.open(QIODevice::ReadWrite);
-            ext.seek(eOffset);
-            ext.write((char *)bytes, 4);
-            ext.close();
-        }
-        //write matrix
-        //need to flush last frame when writing in place, all other writes
-        //have occured
-        matrix.flushCurrentFrame();
     }
-    else //we are writing a new file
+    else if(!extension_bytes)//extension doesn't exist, just write four 0x00
     {
-        //TODO: When extension class is done, Nifti vox offset, and matrix offset will need to be updated to include size of extension, since it will have changed.
-        headerIO.writeFile(fileName,byteOrder);
+        extension_bytes = new int8_t [4];
+        memset(extension_bytes,0x00,4);
+    }    
 
-        //write extension code
-
-        int64_t vOffset = headerIO.getVolumeOffset();
-        int64_t eOffset = headerIO.getExtensionsOffset();
-        int64_t eLength = vOffset-eOffset;
-        if(eLength >4)
-        {
-            //confusing, but we never swapped these bytes when we read them in, so
-            //we need to swap them now if the byte order to write is native
-            //and swap is needed
-            //check for NATIVE_BYTE_ORDER and if it needs swapping
-            if(byteOrder == NATIVE_BYTE_ORDER && headerIO.getSwapNeeded())
-            {
-                swapExtensionsBytes(extension_bytes, eLength);
-            }
-            QFile ext(fileName);
-            ext.open(QIODevice::ReadWrite);
-            ext.seek(eOffset);
-            ext.write((char *)extension_bytes, eLength);
-            ext.close();
-        }
-        else //extension doesn't exist, just write four 0x00
-        {
-            uint8_t bytes[4] = {0x00,0x00,0x00,0x00};
-            QFile ext(fileName);
-            ext.open(QIODevice::ReadWrite);
-            ext.seek(eOffset);
-            ext.write((char *)bytes, 4);
-            ext.close();
-        }
-
-        //uggh, needs an output layout
-        //until then, will hack around this...
-        //oh, and this won't work for RGB...
-        LayoutType layoutOrig;
-        matrix.getMatrixLayoutOnDisk(layoutOrig);
-        NiftiMatrix outMatrix(fileName);
-        LayoutType newLayout = layoutOrig;
-        //yes, layouttype needs a method for defining the default
-        //layout....
-        if(byteOrder == ORIGINAL_BYTE_ORDER && headerIO.getSwapNeeded())
-        {
-            newLayout.needsSwapping = true;
-        }
-        else
-        {
-            newLayout.needsSwapping = false;
-        }
-        bool valid = true;
-        newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
-        if(!valid) throw NiftiException("Nifti Enum bites it again.");
-        outMatrix.setMatrixLayoutOnDisk(newLayout);
-        //need to check if we're dealing with a time series, otherwise
-        //dim4 may be zero
-
-        int64_t totalTimeSlices= 1;
-        if(newLayout.dimensions[3]!=0 && newLayout.dimensions[0]==4) {
-            totalTimeSlices = newLayout.dimensions[3];
-        }
-        //need better handling for different matrices, for later
-        float * frame = new float[matrix.getFrameLength()];
-
-        for(int64_t t=0;t<totalTimeSlices;t++)
-        {
-            matrix.readFrame(t);
-            matrix.getFrame(frame);
-            outMatrix.setFrame(frame,matrix.getFrameLength(),t);
-            outMatrix.flushCurrentFrame();
-        }
-        delete [] frame;
+    //uggh, needs an output layout
+    //until then, will hack around this...
+    
+    LayoutType layoutOrig;
+    matrix.getMatrixLayoutOnDisk(layoutOrig);
+    
+    LayoutType newLayout = layoutOrig;
+    //yes, layouttype needs a method for defining the default
+    //layout....
+    if(byteOrder != NATIVE_BYTE_ORDER)
+    {
+        newLayout.needsSwapping = true;
     }
+    else
+    {
+        newLayout.needsSwapping = false;
+    }
+    bool valid = true;
+    newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
+    if(!valid) throw NiftiException("Nifti Enum bites it again.");
+    matrix.setMatrixLayoutOnDisk(newLayout);
+   
+    //need better handling for different matrices, for later
+    
+    QFile file;
+    gzFile zFile;
+    if(isCompressed())
+    {
+        zFile = gzopen(m_fileName.c_str(), "w");
+        headerIO.writeFile(zFile,byteOrder);
+        gzwrite(zFile,extension_bytes,eLength);
+        matrix.writeFile(zFile);
+    }
+    else
+    {
+        file.setFileName(fileName);
+        file.open(QIODevice::WriteOnly);
+        headerIO.writeFile(file, byteOrder);
+        file.write((char *)extension_bytes,eLength);
+        matrix.writeFile(file);
+    }
+
+    matrix.setMatrixLayoutOnDisk(layoutOrig);
 }
 
 /**
@@ -338,45 +310,16 @@ int NiftiFile::getNiftiVersion()
 
 // Volume IO
 
-void NiftiFile::getVolumeFrame(VolumeBase &frameOut, const int64_t timeSlice, const int64_t component)
-{
-    //get dimensions, sform and component size
-    Nifti2Header header;
-    headerIO.getHeader(header);
-    std::vector< std::vector<float> >  sForm(4);
-    for(uint i=0;i<sForm.size();i++) sForm[i].resize(4);
-    header.getSForm(sForm);
-    std::vector<int64_t> dim;
-    header.getDimensions(dim);
-    int32_t components;
-    header.getComponentDimensions(components);
-    //set up frame out dimensions
-    frameOut.reinitialize(dim,sForm,components);
-
-    matrix.getVolumeFrame(frameOut,timeSlice,component);
-}
-
-void NiftiFile::setVolumeFrame(VolumeBase &frameIn, const int64_t & timeSlice, const int64_t component)
-{
-    //get dimensions, sform and component size
-    Nifti2Header header;
-    headerIO.getHeader(header);
-    std::vector< std::vector<float> > sForm(4);
-    for(uint i=0;i<sForm.size();i++) sForm[i].resize(4);
-    header.getSForm(sForm);
-    std::vector<int64_t> dim;
-    header.getDimensions(dim);
-    int32_t components;
-    header.getComponentDimensions(components);
-
-    frameIn.reinitialize(dim,sForm,components);
-
-    matrix.setVolumeFrame(frameIn,timeSlice,component);
-}
-
 void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
+    NiftiAbstractHeader *aHeader = new NiftiAbstractHeader();
+    NiftiAbstractVolumeExtension *aVolumeExtension = new NiftiAbstractVolumeExtension;
     this->openFile(filename);
+
+    headerIO.getAbstractHeader(*aHeader);
+    this->getAbstractVolumeExtension(*aVolumeExtension);
+    vol.m_header = aHeader;
+    vol.m_extensions.push_back(aVolumeExtension);
 
     //get dimensions, sform and component size
     Nifti2Header header;
@@ -390,61 +333,19 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     header.getComponentDimensions(components);
 
     vol.reinitialize(dim,sForm,components);
-    int64_t timeSlices = 1;
-    if(dim.size()==4) timeSlices = dim[3];
-    //TODO, for now components are always 0, rewrite for RGB
-    for(int64_t t=0;t<timeSlices;t++)
-    {
-        matrix.getVolumeFrame(vol,t,0);
-    }
-}
-
-void NiftiFile::getHeaderFromVolumeFile(VolumeBase &vol, Nifti1Header &header)
-{
-    /*need to get the following:
-     dimensions
-     spacing (store to pixdim)
-     sform_row_*
-     orientation
-    */
-    /* implied defaults:
-      DATA TYPE IS FLOAT32
-      INTENT CODE IS NIFTI_INTENT_NONE
-      vox_offset is 548 for now, since we don't support labels yet
-      qform code is NIFTI_XFORM_TALAIRACH
-      sform code is NIFTI_XFORM_TALAIRACH??
-      qform (how do get that from sform, or is it necessary?)
-      quatern_?, again how do we get that?
-      intent_name "NIFTI_INTENT_NONE"
-      scl_slope = 0
-      scl_inter = 0
-      slice_start = 0
-      slice_end = 0
-      slice_code =0
-      xyzt_units = ??
-      intent_p1,2,3 = 0
-      */
-}
-
-void NiftiFile::getHeaderFromVolumeFile(VolumeBase &vol, Nifti2Header &header)
-{
-
-
-
+    matrix.getVolume(vol);
 }
 
 void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
-    //get dimensions, sform and component size
-    std::vector <int64_t> dim;
+    headerIO.setAbstractHeader(*(NiftiAbstractHeader*)&(vol.m_header));
+    this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
 
-    int64_t timeSlices = 1;
-    if(dim.size()==4) timeSlices = dim[3];
-    //TODO, for now components are always 0, rewrite for RGB
-    for(int64_t t=0;t<timeSlices;t++)
-    {
-        matrix.setVolumeFrame(vol,t,0);
-    }
+    Nifti2Header header;
+    headerIO.getHeader(header);
+    matrix.setMatrixLayoutOnDisk(header);
+    matrix.setVolume(vol);
+    writeFile(filename);
 }
 
 
