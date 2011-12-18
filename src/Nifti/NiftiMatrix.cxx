@@ -457,8 +457,3 @@ int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, con
 {
     return frameLengthIn*valueByteSizeIn;
 }
-
-void NiftiMatrix::setMatrixFile(AString &fileName)
-{
-
-}

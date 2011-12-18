@@ -75,11 +75,25 @@ void NiftiMatrixTest::testWriter()
     std::cout << "Loading input matrices (matrix readers)." << std::endl;
     NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
     setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
+	AString path = m_default_path + "/nifti";
+	//define file paths
+    std::vector<AString> infiles;
+    infiles.push_back(path+"/testmatrix.float");
+    infiles.push_back(path+"/testmatrix.floatbe");
+    infiles.push_back(path+"/testmatrix.double");
+    infiles.push_back(path+"/testmatrix.doublebe");
+
     std::vector <NiftiMatrix *> matrices;
     matrices.push_back( &floatMatrix);
     matrices.push_back(&floatMatrixBE);
     matrices.push_back(&doubleMatrix);
     matrices.push_back(&doubleMatrixBE);
+	for(int i =0;i<matrices.size();i++)
+	{
+		QFile temp(infiles[i]);
+		temp.open(QIODevice::ReadOnly);
+		matrices[i]->readFile(temp);
+	}
     std::cout << "Doing a sanity check to make sure input matrices are valid before using them to test" <<std::endl;
     std::cout << "the nifti matrix writer." << std::endl;
     //do a sanity check to make sure that our input matrices are valid
@@ -101,6 +115,29 @@ void NiftiMatrixTest::testWriter()
     matricesOut.push_back(&doubleMatrixOutBE);
     setupWriterMatrices(floatMatrixOut,floatMatrixOutBE, doubleMatrixOut,doubleMatrixOutBE);
     copyMatrices(matricesOut,matrices);
+	std::vector <AString> outfiles;
+	
+    outfiles.push_back( path+"/testmatrixout.float");
+    outfiles.push_back( path+"/testmatrixout.floatbe");
+    outfiles.push_back(path+"/testmatrixout.double");
+    outfiles.push_back( path+"/testmatrixout.doublebe");
+
+	for(int i = 0;i<outfiles.size();i++)
+	{
+		QFile temp(outfiles[i]);
+		temp.open(QIODevice::WriteOnly);
+		matricesOut[i]->writeFile(temp);
+	}
+	for(int i =0;i<matrices.size();i++)
+	{
+		QFile temp(infiles[i]);
+		temp.open(QIODevice::ReadOnly);
+		matrices[i]->readFile(temp);
+		temp.setFileName(outfiles[i]);
+		temp.open(QIODevice::ReadOnly);
+		matricesOut[i]->readFile(temp);
+	}
+	
     std::vector <NiftiMatrix *> allMatrices;
     allMatrices.reserve(matrices.size()+matricesOut.size());
     allMatrices.insert(allMatrices.end(),matrices.begin(),matrices.end());
@@ -154,12 +191,6 @@ NiftiMatrix &floatMatrixBE,
 NiftiMatrix &doubleMatrix,
 NiftiMatrix &doubleMatrixBE)
 {
-    //define file paths
-    AString path = m_default_path + "/nifti";
-    floatMatrix.setMatrixFile( path+"/testmatrix.float");
-    floatMatrixBE.setMatrixFile( path+"/testmatrix.floatbe");
-    doubleMatrix.setMatrixFile( path+"/testmatrix.double");
-    doubleMatrixBE.setMatrixFile( path+"/testmatrix.doublebe");
     setupLayouts(floatMatrix,floatMatrixBE,doubleMatrix,doubleMatrixBE);
 }
 
@@ -170,12 +201,6 @@ NiftiMatrix &floatMatrixBE,
 NiftiMatrix &doubleMatrix,
 NiftiMatrix &doubleMatrixBE)
 {
-    //define file paths
-    AString path = m_default_path + "/nifti";
-    floatMatrix.setMatrixFile( path+"/testmatrixout.float");
-    floatMatrixBE.setMatrixFile( path+"/testmatrixout.floatbe");
-    doubleMatrix.setMatrixFile( path+"/testmatrixout.double");
-    doubleMatrixBE.setMatrixFile( path+"/testmatrixout.doublebe");
     setupLayouts(floatMatrix,floatMatrixBE,doubleMatrix,doubleMatrixBE);
 }
 
@@ -214,10 +239,6 @@ void NiftiMatrixTest::copyMatrices(std::vector< NiftiMatrix *> &matricesOut, std
             this->getFrame(*(matrices[i]),t,(float *)(frames[i]));
             this->writeFrame(*(matricesOut[i]), t, (float *)(frames[i]));
         }
-    }
-    for(uint i = 0;i < matrices.size();i++)
-    {
-        matricesOut[i]->writeFile();
     }
 
 }
