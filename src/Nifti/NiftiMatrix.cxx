@@ -424,7 +424,7 @@ void NiftiMatrix::writeFile() throw (NiftiException)
     }   
 }
 
-void NiftiMatrix::setFrame(float *matrixIn, const int64_t &frameLengthIn, const int64_t &timeSlice, const int64_t &componentIndex) throw(NiftiException)
+void NiftiMatrix::setFrame(const float *matrixIn, const int64_t &frameLengthIn, const int64_t &timeSlice, const int64_t &componentIndex) throw(NiftiException)
 {
     if(!this->layoutSet) throw NiftiException("Please set layout before setting frame.");
     if(componentIndex>(componentDimensions-1)) throw NiftiException("Component index exceeds the size of component dimensions.");
@@ -456,4 +456,33 @@ int64_t NiftiMatrix::calculateFrameLength(const std::vector<int64_t> &dimensions
 int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, const int32_t &valueByteSizeIn) const
 {
     return frameLengthIn*valueByteSizeIn;
+}
+
+void NiftiMatrix::getVolume(VolumeBase &vol)
+{
+	int64_t time = 1;
+	if(dimensions[3]>1) time = dimensions[3];
+	float *frame= new float [this->frameLength];
+	for(int t=0;t<time;t++)
+	{
+		for(int i=0;i<componentDimensions;i++)
+		{
+			this->getFrame(frame,t,i);
+			vol.setFrame(frame,t,i);
+		}
+	}	
+	delete [] frame;
+}
+
+void NiftiMatrix::setVolume(VolumeBase &vol)
+{
+	int64_t time = 1;
+	if(dimensions[3]>1) time = dimensions[3];	
+	for(int t=0;t<time;t++)
+	{
+		for(int i=0;i<componentDimensions;i++)
+		{
+			this->setFrame(vol.getFrame(t,i),t,i);
+		}
+	}
 }
