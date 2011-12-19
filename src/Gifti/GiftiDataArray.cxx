@@ -127,6 +127,12 @@ GiftiDataArray::~GiftiDataArray()
 GiftiDataArray::GiftiDataArray(const GiftiDataArray& nda)
                 : CaretObject(), TracksModificationInterface()
 {
+   dataTypeSize = 0;
+   dataPointerFloat = NULL;
+   dataPointerInt = NULL;
+   dataPointerUByte = NULL;
+   this->paletteColorMapping = NULL;
+   this->descriptiveStatistics = NULL;
    copyHelperGiftiDataArray(nda);
 }
 

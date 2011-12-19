@@ -148,9 +148,8 @@ GiftiTypeFile::readFile(const AString& filename) throw (DataFileException)
     et.start();
     this->giftiFile->readFile(filename);
     this->validateDataArraysAfterReading();
-    this->clearModified();
-    
     this->setFileName(filename);
+    this->clearModified();
     
     AString msg = ("Time to read " 
                    + filename 
