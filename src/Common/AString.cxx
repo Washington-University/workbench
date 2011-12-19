@@ -428,7 +428,9 @@ AString::indexOfAnyChar(const AString& str,
  * 
  * @return
  *    Char array of ASCII characters with a string
- *    terminator '\0' at the end.
+ *    terminator '\0' at the end.  Caller MUST
+ *    free memory by running delete[] on the 
+ *    returned array.
  */
 char* 
 AString::toCharArray() const 
