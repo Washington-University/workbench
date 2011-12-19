@@ -23,6 +23,7 @@
 /*LICENSE_END*/
 
 #include "AString.h"
+#include "CaretLogger.h"
 #include <iostream>
 
 using namespace caret;
@@ -415,3 +416,58 @@ AString::indexOfAnyChar(const AString& str,
     }
     return -1;
 }
+
+/**
+ * Return a 'C' char array containing the value 
+ * of the string.  This method is necessary since
+ * on an instance of Ubuntu Linux, an invalid ASCII
+ * character is found on the end of data returned 
+ * by toLocal8Bit().constData();.  This method
+ * will replace any non-ascii characters with "_".
+ * All trailing non ASCII characters will be removed.
+ * 
+ * @return
+ *    Char array of ASCII characters with a string
+ *    terminator '\0' at the end.
+ */
+char* 
+AString::toCharArray() const 
+{ 
+    bool haveNonAsciiCharacters = false;
+    
+    /*
+     * Convert to a byte array
+     */
+    QByteArray byteArray = this->toLocal8Bit();
+    const int32_t numBytes = byteArray.length();
+    if (numBytes > 0) {
+        char* charOut = new char[numBytes + 1];
+        
+        int32_t lastAsciiChar = -1;
+        for (int32_t i = 0; i < numBytes; i++) {
+            char c = byteArray.at(i);
+            if ((c >= 32) && (c <= 126)) {
+                charOut[i] = c;
+                lastAsciiChar = i;
+            }
+            else {
+                charOut[i] = '_';
+                haveNonAsciiCharacters = true;
+            }
+        }
+        charOut[lastAsciiChar + 1] = '\0';
+        
+        if (haveNonAsciiCharacters) {
+            CaretLogWarning("Non-ASCII characters were removed, result is \""
+                            + AString(charOut)
+                            + "\"");
+        }
+        
+        return charOut;
+    }
+    
+    char* s = new char[1];
+    s[0] = 0;
+    return s;
+}
+
