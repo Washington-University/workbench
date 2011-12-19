@@ -102,6 +102,7 @@ namespace caret {
         
         void shrinkToolbox();
         
+        void processFileMenuAboutToShow();
         void processViewMenuAboutToShow();
         
     private:

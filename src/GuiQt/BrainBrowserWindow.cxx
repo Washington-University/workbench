@@ -422,6 +422,8 @@ QMenu*
 BrainBrowserWindow::createMenuFile()
 {
     QMenu* menu = new QMenu("File", this);
+    QObject::connect(menu, SIGNAL(aboutToShow()),
+                     this, SLOT(processFileMenuAboutToShow()));
 
     menu->addAction(this->preferencesAction);
 #ifndef CARET_OS_MACOSX
@@ -451,6 +453,16 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->exitProgramAction);
     
     return menu;
+}
+
+/**
+ * Called when File Menu is about to show.
+ */
+void 
+BrainBrowserWindow::processFileMenuAboutToShow()
+{
+    const int32_t numFiles = GuiManager::get()->getBrain()->getSpecFile()->getNumberOfFiles();
+    this->openFileViaSpecFileAction->setEnabled(numFiles > 0);
 }
 
 /**
