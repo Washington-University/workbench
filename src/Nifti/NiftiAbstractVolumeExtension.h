@@ -1,6 +1,6 @@
 #ifndef NIFTI_ABSTRACT_VOLUME_EXTENSION
 #define NIFTI_ABSTRACT_VOLUME_EXTENSION
-#include "volumeBase.h"
+#include "VolumeBase.h"
 
 namespace caret {
 class NiftiAbstractVolumeExtension :

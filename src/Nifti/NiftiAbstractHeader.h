@@ -1,7 +1,7 @@
 #ifndef NIFTI_ABSTRACT_HEADER
 #define NIFTI_ABSTRACT_HEADER
 
-#include "volumeBase.h"
+#include "VolumeBase.h"
 #include "Nifti1Header.h"
 #include "Nifti2Header.h"
 namespace caret {
