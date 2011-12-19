@@ -33,6 +33,7 @@
 #include <QStringList>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "UserView.h"
 
 using namespace caret;
@@ -463,6 +464,7 @@ CaretPreferences::getLoggingLevel() const
 
 /**
  * Set the logging level.
+ * Will also update the level in the Caret Logger.
  * @param loggingLevel
  *    New value for logging level.
  */
@@ -474,6 +476,7 @@ CaretPreferences::setLoggingLevel(const LogLevelEnum::Enum loggingLevel)
     const AString name = LogLevelEnum::toName(this->loggingLevel);
     this->qSettings->setValue(NAME_LOGGING_LEVEL, name);
     this->qSettings->sync();
+    CaretLogger::getLogger()->setLevel(loggingLevel);
 }
 
 /**
@@ -574,14 +577,14 @@ CaretPreferences::readPreferences()
     }
     this->qSettings->endArray();
     
-    LogLevelEnum::Enum defaultValue = LogLevelEnum::INFO;
     AString levelName = this->qSettings->value(NAME_LOGGING_LEVEL, 
-                                          LogLevelEnum::toName(defaultValue)).toString();
+                                          LogLevelEnum::toName(LogLevelEnum::INFO)).toString();
     bool valid = false;
-    this->loggingLevel = LogLevelEnum::fromName(levelName, &valid);
+    LogLevelEnum::Enum logLevel = LogLevelEnum::fromName(levelName, &valid);
     if (valid == false) {
-        this->loggingLevel = LogLevelEnum::INFO;
+        logLevel = LogLevelEnum::INFO;
     }
+    this->setLoggingLevel(logLevel);
     
     this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_AXES_LABELS,
                                                      true);

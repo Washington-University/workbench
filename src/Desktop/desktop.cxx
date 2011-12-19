@@ -35,6 +35,7 @@
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "ProgramParameters.h"
 #include "SessionManager.h"
 #include "SystemUtilities.h"
 #include "WuQtUtilities.h"
@@ -99,10 +100,25 @@ main(int argc, char* argv[])
     glfmt.setDirectRendering(true);
     QGLFormat::setDefaultFormat(glfmt);
     
+    
     /*
      * Create the session manager.
      */
     SessionManager::createSessionManager();
+
+    /*
+     * Parameters for the program.
+     */
+    ProgramParameters* parameters = new ProgramParameters(argc, argv);
+
+    /*
+     * Log the command parameters.
+     */
+    CaretLogFine("Running: "
+                 + AString(argv[0])
+                 + " "
+                 + parameters->getAllParametersInString());
+    
     
     /*
      * Create the GUI Manager.
@@ -158,6 +174,8 @@ main(int argc, char* argv[])
     SessionManager::deleteSessionManager();
     
     CaretHttpManager::deleteHttpManager();
+    
+    delete parameters;
     
     /*
      * See if any objects were not deleted.

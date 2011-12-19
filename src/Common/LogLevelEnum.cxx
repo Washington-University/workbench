@@ -102,12 +102,12 @@ LogLevelEnum::initialize()
     enumData.push_back(LogLevelEnum(FINER, 
                                     300, 
                                     "FINER", 
-                                    "Fine (Detailed Tracing)"));
+                                    "Finer (Detailed Tracing)"));
     
     enumData.push_back(LogLevelEnum(FINEST, 
                                     200, 
                                     "FINEST", 
-                                    "Fine (Very Detailed Tracing)"));
+                                    "Finest (Very Detailed Tracing)"));
     
     enumData.push_back(LogLevelEnum(ALL, 
                                     100, 

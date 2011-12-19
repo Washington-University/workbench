@@ -27,6 +27,7 @@
 
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
+#include "CaretLogger.h"
 #include "CommandOperationManager.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
@@ -38,6 +39,14 @@ using namespace caret;
 static void runCommand(int argc, char* argv[]) {
     
     ProgramParameters parameters(argc, argv);
+    
+    /*
+     * Log the command parameters.
+     */
+    CaretLogFine("Running: "
+                 + AString(argv[0])
+                 + " "
+                 + parameters.getAllParametersInString());
     
     CommandOperationManager* commandManager = NULL;
     try {
