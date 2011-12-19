@@ -23,11 +23,12 @@
  */ 
 
 #include "CaretAssert.h"
-
+#include "CaretLogger.h"
 #include "DataFileTypeEnum.h"
 #include "GiftiFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
+#include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
 
 using namespace caret;
@@ -105,9 +106,24 @@ MetricFile::validateDataArraysAfterReading() throw (DataFileException)
         
     this->verifyDataArraysHaveSameNumberOfRows(0, 0);
 
+    bool isLabelData = false;
+    
     const int32_t numberOfDataArrays = this->giftiFile->getNumberOfDataArrays();
     for (int32_t i = 0; i < numberOfDataArrays; i++) {
-        this->columnDataPointers.push_back(this->giftiFile->getDataArray(i)->getDataPointerFloat());
+        GiftiDataArray* gda = this->giftiFile->getDataArray(i);
+        if (gda->getDataType() != NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32) {
+            if (gda->getIntent() == NiftiIntentEnum::NIFTI_INTENT_LABEL) {
+                isLabelData = true;
+            }
+            gda->convertToDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+        }
+        this->columnDataPointers.push_back(gda->getDataPointerFloat());
+    }
+    
+    if (isLabelData) {
+        CaretLogWarning("Metric File: "
+                        + this->getFileName()
+                        + " contains data array with NIFTI_INTENT_LABEL !!!");
     }
 }
 
