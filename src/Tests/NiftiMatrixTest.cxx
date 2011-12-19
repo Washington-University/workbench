@@ -59,6 +59,20 @@ void NiftiMatrixTest::testReader()
     matrices.push_back(&floatMatrixBE);
     matrices.push_back(&doubleMatrix);
     matrices.push_back(&doubleMatrixBE);
+    AString path = m_default_path + "/nifti";
+    //define file paths
+    std::vector<AString> infiles;
+    infiles.push_back(path+"/testmatrix.float");
+    infiles.push_back(path+"/testmatrix.floatbe");
+    infiles.push_back(path+"/testmatrix.double");
+    infiles.push_back(path+"/testmatrix.doublebe");
+    for(int i =0;i<matrices.size();i++)
+    {
+        QFile temp(infiles[i]);
+        temp.open(QIODevice::ReadOnly);
+        matrices[i]->readFile(temp);
+    }
+
     compareMatrices(matrices);
     if(!(compareMatrices(matrices))) {
         setFailed("While testing writers, the input read data sets failed basic sanity checks.");
@@ -75,8 +89,8 @@ void NiftiMatrixTest::testWriter()
     std::cout << "Loading input matrices (matrix readers)." << std::endl;
     NiftiMatrix floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE;
     setupReaderMatrices(floatMatrix, floatMatrixBE, doubleMatrix, doubleMatrixBE);
-	AString path = m_default_path + "/nifti";
-	//define file paths
+    AString path = m_default_path + "/nifti";
+    //define file paths
     std::vector<AString> infiles;
     infiles.push_back(path+"/testmatrix.float");
     infiles.push_back(path+"/testmatrix.floatbe");
@@ -88,12 +102,12 @@ void NiftiMatrixTest::testWriter()
     matrices.push_back(&floatMatrixBE);
     matrices.push_back(&doubleMatrix);
     matrices.push_back(&doubleMatrixBE);
-	for(int i =0;i<matrices.size();i++)
-	{
-		QFile temp(infiles[i]);
-		temp.open(QIODevice::ReadOnly);
-		matrices[i]->readFile(temp);
-	}
+    for(int i =0;i<matrices.size();i++)
+    {
+        QFile temp(infiles[i]);
+        temp.open(QIODevice::ReadOnly);
+        matrices[i]->readFile(temp);
+    }
     std::cout << "Doing a sanity check to make sure input matrices are valid before using them to test" <<std::endl;
     std::cout << "the nifti matrix writer." << std::endl;
     //do a sanity check to make sure that our input matrices are valid
@@ -115,29 +129,29 @@ void NiftiMatrixTest::testWriter()
     matricesOut.push_back(&doubleMatrixOutBE);
     setupWriterMatrices(floatMatrixOut,floatMatrixOutBE, doubleMatrixOut,doubleMatrixOutBE);
     copyMatrices(matricesOut,matrices);
-	std::vector <AString> outfiles;
-	
+    std::vector <AString> outfiles;
+    
     outfiles.push_back( path+"/testmatrixout.float");
     outfiles.push_back( path+"/testmatrixout.floatbe");
     outfiles.push_back(path+"/testmatrixout.double");
     outfiles.push_back( path+"/testmatrixout.doublebe");
 
-	for(int i = 0;i<outfiles.size();i++)
-	{
-		QFile temp(outfiles[i]);
-		temp.open(QIODevice::WriteOnly);
-		matricesOut[i]->writeFile(temp);
-	}
-	for(int i =0;i<matrices.size();i++)
-	{
-		QFile temp(infiles[i]);
-		temp.open(QIODevice::ReadOnly);
-		matrices[i]->readFile(temp);
-		temp.setFileName(outfiles[i]);
-		temp.open(QIODevice::ReadOnly);
-		matricesOut[i]->readFile(temp);
-	}
-	
+    for(int i = 0;i<outfiles.size();i++)
+    {
+        QFile temp(outfiles[i]);
+        temp.open(QIODevice::WriteOnly);
+        matricesOut[i]->writeFile(temp);
+    }
+    for(int i =0;i<matrices.size();i++)
+    {
+        QFile temp(infiles[i]);
+        temp.open(QIODevice::ReadOnly);
+        matrices[i]->readFile(temp);
+        temp.setFileName(outfiles[i]);
+        temp.open(QIODevice::ReadOnly);
+        matricesOut[i]->readFile(temp);
+    }
+    
     std::vector <NiftiMatrix *> allMatrices;
     allMatrices.reserve(matrices.size()+matricesOut.size());
     allMatrices.insert(allMatrices.end(),matrices.begin(),matrices.end());
@@ -147,7 +161,7 @@ void NiftiMatrixTest::testWriter()
     compareMatrices(allMatrices);
     std::cout << "Test of matrix writing successful for all supported formats." << std::endl << std::endl;
 }
-
+  
 void NiftiMatrixTest::execute()
 {
     testReader();

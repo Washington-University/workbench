@@ -68,7 +68,7 @@ void NiftiFileTest::testNifti1ReadWrite()
     //files if necessary
     AString outFile = this->m_default_path + "/nifti/Nifti1TestOut.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
-    NiftiFile writer(outFile);
+    NiftiFile writer;
     writer.setHeader(header);
     LayoutType layout;
     reader.getLayout(layout);
@@ -90,11 +90,15 @@ void NiftiFileTest::testNifti1ReadWrite()
     for(int64_t t = 0;t<timeSlices;t++)
     {
         reader.matrix.getFrame(frame,t,0);
-       test.matrix.getFrame(frameTest,t,0);
-        if(!memcmp((void *)frame,(void *)frameTest,reader.matrix.getFrameSize()))
+        test.matrix.getFrame(frameTest,t,0);
+        //if(!memcmp((void *)frame,(void *)frameTest,reader.matrix.getFrameSize()))
+        for(int i=0;i<frameLength;i++)
         {
-            this->setFailed("Input and output nifti file frames are not the same.");
-            return;
+            if(frame[i]>frameTest[i]+0.0001 || frame[i]<frameTest[i]-0.0001)
+            {
+                this->setFailed("Input and output nifti file frames are not the same.");
+                return;
+            }
         }
     }
     std::cout << "Reading and writing of Nifti was successful for all frames." << std::endl;

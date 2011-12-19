@@ -136,6 +136,8 @@ private:
     float *matrix;
     int64_t matrixLength;//length of array
     bool matrixLoaded;
+
+	int64_t timeLength;
 };
 
 }

@@ -44,6 +44,7 @@ void NiftiMatrix::init()
     currentTime = 0;
     file = NULL;
     zFile = NULL;
+    timeLength = 0;
 }
 
 bool NiftiMatrix::isCompressed()
@@ -59,7 +60,9 @@ void NiftiMatrix::getMatrixLayoutOnDisk(LayoutType &layout)
     layout = (*this);
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    timeLength = dimensions.size()>3?dimensions[3]:1;
     layoutSet = true;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
@@ -67,7 +70,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(LayoutType &layout)
     *(static_cast <LayoutType *> (this)) = layout;
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    timeLength = dimensions.size()>3?dimensions[3]:1;
     layoutSet = true;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int &componentDimensionsOut, int &valueByteSizeOut, bool &needsSwappingOut, int64_t &frameLengthOut, int64_t &frameSizeOut )
@@ -78,6 +83,8 @@ void NiftiMatrix::getMatrixLayoutOnDisk(std::vector<int64_t> &dimensionsOut, int
     needsSwappingOut = needsSwapping;
     frameLengthOut = calculateFrameLength(dimensions);
     frameSizeOut = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    timeLength = dimensions.size()>3?dimensions[3]:1;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsIn, const int &componentDimensionsIn, const bool &needsSwappingIn )
@@ -87,7 +94,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const std::vector <int64_t> &dimensionsI
     needsSwapping = needsSwappingIn;
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
+    timeLength = dimensions.size()>3?dimensions[3]:1;
     layoutSet = true;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
@@ -100,7 +109,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti1Header &headerIn)
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     headerIn.getScaling(sclSlope, sclIntercept);
+    timeLength = dimensions.size()>3?dimensions[3]:1;
     layoutSet = true;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
@@ -113,7 +124,9 @@ void NiftiMatrix::setMatrixLayoutOnDisk(const Nifti2Header &headerIn)
     frameLength = calculateFrameLength(dimensions);
     frameSize = calculateFrameSizeInBytes(frameLength, valueByteSize());
     headerIn.getScaling(sclSlope, sclIntercept);
+    timeLength = dimensions.size()>3?dimensions[3]:1;
     layoutSet = true;
+    reAllocateMatrixIfNeeded();
 }
 
 void NiftiMatrix::clearMatrix()
@@ -124,10 +137,10 @@ void NiftiMatrix::clearMatrix()
 
 void NiftiMatrix::reAllocateMatrixIfNeeded()
 {
-
-    if(matrixLength != frameLength*componentDimensions*dimensions[3]) {
+    
+    if(matrixLength != frameLength*componentDimensions*timeLength) {
         if(matrix) delete []matrix;
-        matrixLength = frameLength*componentDimensions*dimensions[3];
+        matrixLength = frameLength*componentDimensions*timeLength;
         matrix = new float[matrixLength];
     }    
 }
@@ -170,8 +183,8 @@ void NiftiMatrix::writeFile(gzFile fileOut) throw (NiftiException)
 
 void NiftiMatrix::readFile() throw (NiftiException)
 {
-    //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array       
-    uint64_t matrixSize = frameSize*componentDimensions*dimensions[3];
+    //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
+    uint64_t matrixSize = frameSize*timeLength*componentDimensions;
     int8_t *bytes = NULL;
     bytes = new int8_t[matrixSize];
     if(!bytes) {
@@ -295,7 +308,7 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size)
 //for in place editing of files, we need to respect the original layout
 void NiftiMatrix::writeFile() throw (NiftiException)
 {
-    uint64_t matrixSize = frameSize*componentDimensions*dimensions[3];
+    uint64_t matrixSize = frameSize*componentDimensions*timeLength;
     //remove scaling, TODO, make a copy of frame to avoid round off errors when we
     //reapply scaling at the end of this function
     if(sclSlope != 0.0)
@@ -315,7 +328,7 @@ void NiftiMatrix::writeFile() throw (NiftiException)
         break;
     case NIFTI_TYPE_FLOAT64:
     {
-        double *outMatrix = new double[frameLength];
+        double *outMatrix = new double[matrixLength];
         for(int i = 0;i<matrixLength;i++) outMatrix[i]=matrix[i];
         if(needsSwapping) ByteSwapping::swapBytes(outMatrix, matrixLength);
 
@@ -460,29 +473,25 @@ int64_t NiftiMatrix::calculateFrameSizeInBytes(const int64_t &frameLengthIn, con
 
 void NiftiMatrix::getVolume(VolumeBase &vol)
 {
-	int64_t time = 1;
-	if(dimensions[3]>1) time = dimensions[3];
-	float *frame= new float [this->frameLength];
-	for(int t=0;t<time;t++)
-	{
-		for(int i=0;i<componentDimensions;i++)
-		{
-			this->getFrame(frame,t,i);
-			vol.setFrame(frame,t,i);
-		}
-	}	
-	delete [] frame;
+    float *frame= new float [this->frameLength];
+    for(int t=0;t<timeLength;t++)
+    {
+        for(int i=0;i<componentDimensions;i++)
+        {
+            this->getFrame(frame,t,i);
+            vol.setFrame(frame,t,i);
+        }
+    }	
+    delete [] frame;
 }
 
 void NiftiMatrix::setVolume(VolumeBase &vol)
 {
-	int64_t time = 1;
-	if(dimensions[3]>1) time = dimensions[3];	
-	for(int t=0;t<time;t++)
-	{
-		for(int i=0;i<componentDimensions;i++)
-		{
-			this->setFrame(vol.getFrame(t,i),t,i);
-		}
-	}
+    for(int t=0;t<timeLength;t++)
+    {
+        for(int i=0;i<componentDimensions;i++)
+        {
+            this->setFrame(vol.getFrame(t,i),t,i);
+        }
+    }
 }

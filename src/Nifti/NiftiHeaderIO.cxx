@@ -66,17 +66,18 @@ bool NiftiHeaderIO::isCompressed(const AString &fileName) const
 
 void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
 {
-    AString temp = inputFile;
+	AString temp = inputFile;
+	QDir fpath(temp);
+	temp = fpath.toNativeSeparators(temp);
     if(this->isCompressed(inputFile))
-    {
-        
+    { 	
         gzFile file = gzopen(temp.toStdString().c_str(),"r");
         readFile(file);
         gzclose(file);
     }
     else
     {
-        QFile file(inputFile);
+        QFile file(temp);
         file.open(QIODevice::ReadOnly);
         readFile(file);
         file.close();
@@ -85,16 +86,19 @@ void NiftiHeaderIO::readFile(const AString &inputFile) throw (NiftiException)
 
 void NiftiHeaderIO::writeFile(const AString &inputFile, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
 {
-    AString temp = inputFile;
+    AString temp;
+	temp = inputFile;
+	QDir fpath(temp);
+	temp = fpath.toNativeSeparators(temp);
     if(this->isCompressed(inputFile))
-    {
+    {		
         gzFile file = gzopen(temp.toStdString().c_str(),"w");
         writeFile(file);
         gzclose(file);
     }
     else
     {
-        QFile file(inputFile);
+        QFile file(temp);
         file.open(QIODevice::WriteOnly);
         writeFile(file);
         file.close();

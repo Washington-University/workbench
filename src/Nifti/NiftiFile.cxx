@@ -80,9 +80,11 @@ bool NiftiFile::isCompressed()
 void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
 {
     this->m_fileName = fileName;
-    
+    QDir fpath(this->m_fileName);
+	m_fileName = fpath.toNativeSeparators(this->m_fileName);
 
-    if(!QFile::exists(fileName))//opening file for writing
+
+    if(!QFile::exists(m_fileName))//opening file for writing
     {        
         newFile=true;
         return;
@@ -91,11 +93,11 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     gzFile zFile;
     if(isCompressed())
     {
-        zFile = gzopen(m_fileName.c_str(), "r");
+		zFile = gzopen(m_fileName.toAscii().data(), "rb");
     }
     else
     {
-        file.setFileName(fileName);
+        file.setFileName(m_fileName);
         file.open(QIODevice::ReadOnly);
     }
 
@@ -167,7 +169,10 @@ void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLengt
  * @param fileName specifies the name and path of the file to write to
  */
 void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
-{   
+{  
+	this->m_fileName = fileName;
+    QDir fpath(this->m_fileName);
+	m_fileName = fpath.toNativeSeparators(this->m_fileName);
     
     //write extension code
 
@@ -210,25 +215,27 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
     if(!valid) throw NiftiException("Nifti Enum bites it again.");
     matrix.setMatrixLayoutOnDisk(newLayout);
-   
+    matrix.setMatrixOffset(headerIO.getVolumeOffset());
     //need better handling for different matrices, for later
     
     QFile file;
     gzFile zFile;
     if(isCompressed())
     {
-        zFile = gzopen(m_fileName.c_str(), "w");
+        zFile = gzopen(m_fileName.toAscii().data(), "wb");
         headerIO.writeFile(zFile,byteOrder);
         gzwrite(zFile,extension_bytes,eLength);
         matrix.writeFile(zFile);
+        gzclose(zFile);
     }
     else
     {
-        file.setFileName(fileName);
+        file.setFileName(m_fileName);
         file.open(QIODevice::WriteOnly);
         headerIO.writeFile(file, byteOrder);
         file.write((char *)extension_bytes,eLength);
         matrix.writeFile(file);
+        file.close();
     }
 
     matrix.setMatrixLayoutOnDisk(layoutOrig);
@@ -314,7 +321,11 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
 {
     NiftiAbstractHeader *aHeader = new NiftiAbstractHeader();
     NiftiAbstractVolumeExtension *aVolumeExtension = new NiftiAbstractVolumeExtension;
-    this->openFile(filename);
+
+	this->m_fileName = filename;
+    QDir fpath(this->m_fileName);
+	m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    this->openFile(m_fileName);
 
     headerIO.getAbstractHeader(*aHeader);
     this->getAbstractVolumeExtension(*aVolumeExtension);
@@ -345,6 +356,9 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
     headerIO.getHeader(header);
     matrix.setMatrixLayoutOnDisk(header);
     matrix.setVolume(vol);
+	this->m_fileName = filename;
+    QDir fpath(this->m_fileName);
+	m_fileName = fpath.toNativeSeparators(this->m_fileName);
     writeFile(filename);
 }
 
