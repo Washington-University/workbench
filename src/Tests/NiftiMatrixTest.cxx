@@ -66,7 +66,7 @@ void NiftiMatrixTest::testReader()
     infiles.push_back(path+"/testmatrix.floatbe");
     infiles.push_back(path+"/testmatrix.double");
     infiles.push_back(path+"/testmatrix.doublebe");
-    for(int i =0;i<matrices.size();i++)
+    for(int i =0;i<(int)matrices.size();i++)
     {
         QFile temp(infiles[i]);
         temp.open(QIODevice::ReadOnly);
@@ -102,7 +102,7 @@ void NiftiMatrixTest::testWriter()
     matrices.push_back(&floatMatrixBE);
     matrices.push_back(&doubleMatrix);
     matrices.push_back(&doubleMatrixBE);
-    for(int i =0;i<matrices.size();i++)
+    for(int i =0;i<(int)matrices.size();i++)
     {
         QFile temp(infiles[i]);
         temp.open(QIODevice::ReadOnly);
@@ -136,13 +136,13 @@ void NiftiMatrixTest::testWriter()
     outfiles.push_back(path+"/testmatrixout.double");
     outfiles.push_back( path+"/testmatrixout.doublebe");
 
-    for(int i = 0;i<outfiles.size();i++)
+    for(int i = 0;i<(int)outfiles.size();i++)
     {
         QFile temp(outfiles[i]);
         temp.open(QIODevice::WriteOnly);
         matricesOut[i]->writeFile(temp);
     }
-    for(int i =0;i<matrices.size();i++)
+    for(int i =0;i<(int)matrices.size();i++)
     {
         QFile temp(infiles[i]);
         temp.open(QIODevice::ReadOnly);

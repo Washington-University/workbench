@@ -156,11 +156,12 @@ public:
         if(volumeExtension.type == volumeExtension.NIFTI1)
         {
             if(extension_bytes) 
-            memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
         }
         else if(volumeExtension.type == volumeExtension.NIFTI2)
         {
-            memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+            if(extension_bytes) 
+                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
         }
     }
 

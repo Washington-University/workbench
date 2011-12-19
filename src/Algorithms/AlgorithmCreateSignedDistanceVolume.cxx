@@ -233,62 +233,62 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     myProgress.reportProgress(markweight + exactweight);
     myProgress.setTask("approximating distances in extended region");
     cout << "approximating distances in extended region" << endl;
-    int faceNeigh[] = { 1, 0, 0, 
-                        -1, 0, 0,
-                        0, 1, 0,
-                        0, -1, 0,
-                        0, 0, 1,
-                        0, 0, -1 };
-    vector<DistVoxOffset> neighborhood;//this will contain ONLY the shortest voxel offsets with unique 3d slopes within the neighborhood
-    DistVoxOffset tempIndex;
-    Vector3D tempvec;
-    for (int i = -approxNeighborhood; i <= approxNeighborhood; ++i)
+    if (approxLim > exactLim)
     {
-        tempIndex.m_offset[0] = i;
-        for (int j = -approxNeighborhood; j <= approxNeighborhood; ++j)
+        int faceNeigh[] = { 1, 0, 0, 
+                            -1, 0, 0,
+                            0, 1, 0,
+                            0, -1, 0,
+                            0, 0, 1,
+                            0, 0, -1 };
+        vector<DistVoxOffset> neighborhood;//this will contain ONLY the shortest voxel offsets with unique 3d slopes within the neighborhood
+        DistVoxOffset tempIndex;
+        Vector3D tempvec;
+        for (int i = -approxNeighborhood; i <= approxNeighborhood; ++i)
         {
-            tempIndex.m_offset[1] = j;
-            for (int k = -approxNeighborhood; k <= approxNeighborhood; ++k)
+            tempIndex.m_offset[0] = i;
+            for (int j = -approxNeighborhood; j <= approxNeighborhood; ++j)
             {
-                tempIndex.m_offset[2] = k;
-                tempvec = ivec * i + jvec * j + kvec * k;
-                tempIndex.m_dist = tempvec.length();
-                int low, med, high;
-                low = min(min(abs(i), abs(j)), abs(k));//stupid sort
-                high = max(max(abs(i), abs(j)), abs(k));
-                if (abs(i) != low && abs(i) != high)
+                tempIndex.m_offset[1] = j;
+                for (int k = -approxNeighborhood; k <= approxNeighborhood; ++k)
                 {
-                    med = abs(i);
-                } else if (abs(j) != low && abs(j) != high) {
-                    med = abs(j);
-                } else {
-                    med = abs(k);
-                }
-                if (low == 0)
-                {
-                    if (med == 0)
+                    tempIndex.m_offset[2] = k;
+                    tempvec = ivec * i + jvec * j + kvec * k;
+                    tempIndex.m_dist = tempvec.length();
+                    int low, med, high;
+                    low = min(min(abs(i), abs(j)), abs(k));//stupid sort
+                    high = max(max(abs(i), abs(j)), abs(k));
+                    if (abs(i) != low && abs(i) != high)
                     {
-                        if (high == 1)
+                        med = abs(i);
+                    } else if (abs(j) != low && abs(j) != high) {
+                        med = abs(j);
+                    } else {
+                        med = abs(k);
+                    }
+                    if (low == 0)
+                    {
+                        if (med == 0)
                         {
-                            neighborhood.push_back(tempIndex);//face neighbors
+                            if (high == 1)
+                            {
+                                neighborhood.push_back(tempIndex);//face neighbors
+                            }
+                        } else {
+                            if (MathFunctions::gcd(med, high) == 1)
+                            {
+                                neighborhood.push_back(tempIndex);//unique in-plane
+                            }
                         }
                     } else {
-                        if (MathFunctions::gcd(med, high) == 1)
+                        if (MathFunctions::gcd(MathFunctions::gcd(low, med), high) == 1)
                         {
-                            neighborhood.push_back(tempIndex);//unique in-plane
+                            neighborhood.push_back(tempIndex);//unique out of plane
                         }
-                    }
-                } else {
-                    if (MathFunctions::gcd(MathFunctions::gcd(low, med), high) == 1)
-                    {
-                        neighborhood.push_back(tempIndex);//unique out of plane
                     }
                 }
             }
-        }
-    }
-    if (approxLim > exactLim)
-    {//positives
+        }//positives
         float maxFaceDist = max(max(ivec.length(), jvec.length()), kvec.length()) * 1.01f;//add a fudge factor to make sure rounding error doesn't remove a cardinal direction
         int neighSize = neighborhood.size();//this is provably correct for volumes where there is no diagonal shorter than the longest index vector, so we test this explicitly just in case
         CaretMinHeap<VoxelIndex, float> posHeap;
@@ -297,7 +297,8 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         for (int i = 0; i < numExact; i += 3)
         {
             int64_t* thisVoxel = exactVoxelList.data() + i;
-            if (myVolOut->getValue(thisVoxel) > 0.0f)
+            float tempf = myVolOut->getValue(thisVoxel);
+            if (tempf > 0.0f)
             {//start only from positive values
                 //check face neighbors for being unmarked
                 for (int neigh = 0; neigh < 18; neigh += 3)
@@ -309,8 +310,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     if (myVolOut->indexValid(tempijk))
                     {
                         int64_t tempIndex = myVolOut->getIndex(tempijk);
-                        float tempf = myVolOut->getValue(thisVoxel);
-                        if (tempf >= approxLim && (volMarked[tempIndex] & 1) == 0)
+                        if ((volMarked[tempIndex] & 1) == 0)
                         {//only add this to the heap if it has unmarked face neighbors
                             posHeap.push(tempf, VoxelIndex(thisVoxel));//don't need to store the index to change the key, value is frozen
                             break;
@@ -337,7 +337,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 {
                     int tempindex = myVolOut->getIndex(tempijk);
                     int tempmark = volMarked[tempindex];
-                    if (tempf <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) > tempf))
+                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) > tempf))
                     {//within range, not frozen, and either no value or current value is worse
                         volMarked[tempindex] |= 2;//valid value
                         myVolOut->setValue(tempf, tempijk);
@@ -399,7 +399,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 {
                     int tempindex = myVolOut->getIndex(tempijk);
                     int tempmark = volMarked[tempindex];
-                    if (tempf <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) < tempf))
+                    if (abs(tempf) <= approxLim && (tempmark & 4) == 0 && ((tempmark & 2) == 0 || myVolOut->getValue(tempijk) < tempf))
                     {//within range, not frozen, and either no value or current value is worse
                         volMarked[tempindex] |= 2;//valid value
                         myVolOut->setValue(tempf, tempijk);

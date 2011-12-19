@@ -179,7 +179,14 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     int64_t vOffset = headerIO.getVolumeOffset();
     int64_t eOffset = headerIO.getExtensionsOffset();
     int64_t eLength = vOffset-eOffset;
-    if(eLength >4)
+    if(!extension_bytes || eLength < 4)//extension doesn't exist, just write four 0x00
+    {
+        extension_bytes = new int8_t [4];
+        memset(extension_bytes,0x00,4);
+        eLength = 4;//FIXME: wtf do we do to let the header know the length has changed
+        headerIO.setVolumeOffset(eOffset + 4);//this?
+    }
+    else
     {
         //check for NATIVE_BYTE_ORDER and if it needs swapping
         if(byteOrder != NATIVE_BYTE_ORDER)
@@ -188,11 +195,6 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         }
 
     }
-    else if(!extension_bytes)//extension doesn't exist, just write four 0x00
-    {
-        extension_bytes = new int8_t [4];
-        memset(extension_bytes,0x00,4);
-    }    
 
     //uggh, needs an output layout
     //until then, will hack around this...
@@ -349,12 +351,43 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
 
 void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
-    headerIO.setAbstractHeader(*(NiftiAbstractHeader*)&(vol.m_header));
-    this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
+    if (vol.m_header != NULL)
+    {
+        headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header.getPointer());
+    }
+    int numExtensions = (int)vol.m_extensions.size();
+    if (numExtensions > 0)//FIXME: do all extensions
+    {
+        this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
+    }
 
-    Nifti2Header header;
-    headerIO.getHeader(header);
-    matrix.setMatrixLayoutOnDisk(header);
+    if (vol.m_header == NULL)
+    {//default to nifti1 for now
+        Nifti1Header header;
+        header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+        header.setSForm(vol.getVolumeSpace());
+        std::vector<int64_t> myDims;
+        vol.getDimensions(myDims);
+        header.setDimensions(myDims);
+        headerIO.setHeader(header);
+        matrix.setMatrixLayoutOnDisk(header);
+    } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
+        Nifti1Header header;
+        headerIO.getHeader(header);
+        header.setSForm(vol.getVolumeSpace());
+        std::vector<int64_t> myDims;
+        vol.getDimensions(myDims);
+        header.setDimensions(myDims);
+        matrix.setMatrixLayoutOnDisk(header);
+    } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
+        Nifti2Header header;
+        headerIO.getHeader(header);
+        header.setSForm(vol.getVolumeSpace());
+        std::vector<int64_t> myDims;
+        vol.getDimensions(myDims);
+        header.setDimensions(myDims);
+        matrix.setMatrixLayoutOnDisk(header);
+    }
     matrix.setVolume(vol);
 	this->m_fileName = filename;
     QDir fpath(this->m_fileName);

@@ -395,7 +395,8 @@ void NiftiHeaderIO::getHeader(Nifti1Header &header) const throw (NiftiException)
   **/
 void NiftiHeaderIO::getHeader(Nifti2Header &header) const throw (NiftiException)
 {
-    if(this->niftiVersion !=2 && this->niftiVersion != 1) throw NiftiException("Nifti1Header requested, this version is not loaded.");
+    //if(this->niftiVersion !=2 && this->niftiVersion != 1) throw NiftiException("Nifti1Header requested, this version is not loaded.");
+    //FIXME: TSC: if this volume was created, rather than loaded, it won't have a nifti header to begin with
     if(niftiVersion == 2) {
         header = this->nifti2Header;
     }

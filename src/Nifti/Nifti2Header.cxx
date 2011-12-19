@@ -344,7 +344,7 @@ void Nifti2Header::getSForm(std::vector < std::vector <float> > &sForm)
     sForm[3][3] = 1.0f;
 }
 
-void Nifti2Header::setSForm(std::vector < std::vector <float> > &sForm)
+void Nifti2Header::setSForm(const std::vector < std::vector <float> > &sForm)
 {
     if(sForm.size()<3) return;//TODO should throw an exception
     for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;

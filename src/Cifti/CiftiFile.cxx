@@ -94,7 +94,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
             unsigned int ecode;
             inputFile.read((char *)&ecode,4);
             if(m_swapNeeded)ByteSwapping::swapBytes(&ecode,1);
-            if(ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
+            if((int32_t)ecode != NIFTI_ECODE_CIFTI) throw CiftiFileException("Error reading extensions.  Extension Code is not Cifti.");
             QByteArray bytes = inputFile.read(length-8);//we substract 8 since the length includes the ecode and length
             inputFile.close();
             m_xml.readXML(bytes);

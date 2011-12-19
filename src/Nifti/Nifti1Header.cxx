@@ -219,7 +219,7 @@ void Nifti1Header::getDimensions(std::vector< int64_t > &dimensionsOut) const
 {
     dimensionsOut.clear();
     dimensionsOut.resize(m_header.dim[0]);
-    for(int i = 0;i<dimensionsOut.size();i++)
+    for(int i = 0;i<(int)dimensionsOut.size();i++)
     {
         dimensionsOut[i]=m_header.dim[i+1];
     }
@@ -229,7 +229,7 @@ void Nifti1Header::setDimensions(const std::vector<int64_t> &dimensionsIn) throw
 {
     if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
-    for(int i =0;i<dimensionsIn.size();i++)
+    for(int i =0;i<(int)dimensionsIn.size();i++)
     {
         m_header.dim[i+1]=dimensionsIn[i];
     }
@@ -267,3 +267,30 @@ void Nifti1Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(Nifti
         throw NiftiException("Unsupported Data Type.");
     }
 }
+
+void Nifti1Header::getSForm(std::vector < std::vector <float> > &sForm)
+{
+    sForm.resize(4);
+    for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);
+    for(int i = 0;i<4;i++)
+    {
+        sForm[0][i] = m_header.srow_x[i];
+        sForm[1][i] = m_header.srow_y[i];
+        sForm[2][i] = m_header.srow_z[i];
+        sForm[3][i] = 0.0f;
+    }
+    sForm[3][3] = 1.0f;
+}
+
+void Nifti1Header::setSForm(const std::vector < std::vector <float> > &sForm)
+{
+    if(sForm.size()<3) return;//TODO should throw an exception
+    for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
+    for(int i = 0;i<4;i++)
+    {
+        m_header.srow_x[i] = sForm[0][i];
+        m_header.srow_y[i] = sForm[1][i];
+        m_header.srow_z[i] = sForm[2][i];
+    }
+}
+

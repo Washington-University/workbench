@@ -491,7 +491,7 @@ void NiftiMatrix::setVolume(VolumeBase &vol)
     {
         for(int i=0;i<componentDimensions;i++)
         {
-            this->setFrame(vol.getFrame(t,i),t,i);
+            this->setFrame(vol.getFrame(t,i),frameLength,t,i);
         }
     }
 }
