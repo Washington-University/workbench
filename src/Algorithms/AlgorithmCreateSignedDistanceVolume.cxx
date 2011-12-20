@@ -139,7 +139,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     myVolOut->getDimensions(myDims);
     //list all voxels to be exactly computed
     int64_t frameSize = myDims[0] * myDims[1] * myDims[2];
-    CaretArray<int> volMarked(new int[frameSize]);
+    CaretArray<int> volMarked(frameSize);
     for (int64_t i = 0; i < frameSize; ++i)
     {
         volMarked[i] = 0;
@@ -292,7 +292,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
         float maxFaceDist = max(max(ivec.length(), jvec.length()), kvec.length()) * 1.01f;//add a fudge factor to make sure rounding error doesn't remove a cardinal direction
         int neighSize = neighborhood.size();//this is provably correct for volumes where there is no diagonal shorter than the longest index vector, so we test this explicitly just in case
         CaretMinHeap<VoxelIndex, float> posHeap;
-        CaretArray<int64_t> heapIndexes(new int64_t[frameSize]);
+        CaretArray<int64_t> heapIndexes(frameSize);
         int numExact = (int)exactVoxelList.size();
         for (int i = 0; i < numExact; i += 3)
         {
@@ -595,8 +595,8 @@ SignedDistToSurfIndexed::SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIn
     m_base = myBase;
     m_topoHelp = myBase->m_surface->getTopologyHelper();
     int32_t numTris = m_base->m_surface->getNumberOfTriangles();
-    m_triMarked = CaretArray<int>(new int[numTris]);
-    m_triMarkChanged = CaretArray<int>(new int[numTris]);
+    m_triMarked = CaretArray<int>(numTris);
+    m_triMarkChanged = CaretArray<int>(numTris);
     for (int32_t i = 0; i < numTris; ++i)
     {
         m_triMarked[i] = 0;

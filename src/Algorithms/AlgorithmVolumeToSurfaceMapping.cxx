@@ -184,7 +184,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     {
         case TRILINEAR:
             {
-                CaretArray<float> myCaretArray(new float[numNodes]);
+                CaretArray<float> myCaretArray(numNodes);
                 float* myArray = myCaretArray.getArray();
                 if (mySubVol == -1)
                 {
@@ -231,7 +231,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
             break;
         case NEAREST_NEIGHBOR:
             {
-                CaretArray<float> myCaretArray(new float[numNodes]);
+                CaretArray<float> myCaretArray(numNodes);
                 float* myArray = myCaretArray.getArray();
                 if (mySubVol == -1)
                 {
@@ -292,7 +292,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 }
                 vector<vector<VoxelWeight> > myWeights;
                 precomputeWeights(myWeights, myVolume, innerSurf, outerSurf, roiVol, subdivisions);
-                CaretArray<float> myScratchArray(new float[numNodes]);
+                CaretArray<float> myScratchArray(numNodes);
                 float* myScratch = myScratchArray.getArray();
                 if (mySubVol == -1)
                 {
