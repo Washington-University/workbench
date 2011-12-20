@@ -59,7 +59,7 @@ namespace caret {
       T& operator*();
       T* operator->();
       T* getPointer();
-      uint64_t getReferenceCount();
+      uint64_t getReferenceCount() const;
    };
 
    //separate these because delete and delete[] are slightly different, and only allow [] on one, and * on the other
@@ -69,6 +69,7 @@ namespace caret {
       struct CaretArrayRef
       {
          T* m_pointer;
+         int64_t m_size;
          uint64_t m_refCount;
          CaretMutex m_mutex;//protects m_refCount
       };
@@ -79,14 +80,15 @@ namespace caret {
       CaretArray();
       ~CaretArray();
       CaretArray(const CaretArray<T>& right);
-      CaretArray(T* right);
+      CaretArray(T* right, int64_t size);
       CaretArray(int64_t size);//for simpler construction
       CaretArray& operator=(const CaretArray<T>& right);
       bool operator==(const T* right) const;
       bool operator!=(const T* right) const;
       T& operator[](const uint64_t& index);
       T* getArray();
-      uint64_t getReferenceCount();
+      int64_t size() const;
+      uint64_t getReferenceCount() const;
    };
 
    template <typename T>
@@ -112,7 +114,7 @@ namespace caret {
        T& operator*();
        T* operator->();
        T* getPointer();
-       uint64_t getReferenceCount();
+       uint64_t getReferenceCount() const;
    };
    
    //NOTE:begin pointer functions
@@ -225,7 +227,7 @@ namespace caret {
     }
     
     template <typename T>
-    uint64_t CaretPointer<T>::getReferenceCount()
+    uint64_t CaretPointer<T>::getReferenceCount() const
     {
         if (m_pointerRef == NULL)
         {
@@ -255,17 +257,19 @@ namespace caret {
         CaretArrayRef* temp = new CaretArrayRef();
         temp->m_pointer = new T[size];
         temp->m_refCount = 0;
+        temp->m_size = size;
         grab(temp);
     }
    
    template <typename T>
-   CaretArray<T>::CaretArray(T* right)
+   CaretArray<T>::CaretArray(T* right, int64_t size)
    {
       m_pointerRef = NULL;
       if (right == NULL) return;
       CaretArrayRef* temp = new CaretArrayRef();
       temp->m_pointer = right;
       temp->m_refCount = 0;
+      temp->m_size = size;
       grab(temp);//to keep the code path the same
    }
 
@@ -275,6 +279,13 @@ namespace caret {
    {
       if (m_pointerRef == NULL) return NULL;
       return m_pointerRef->m_pointer;
+   }
+
+   template <typename T>
+   int64_t CaretArray<T>::size() const
+   {
+      if (m_pointerRef == NULL) return 0;
+      return m_pointerRef->m_size;
    }
 
    template <typename T>
@@ -348,7 +359,7 @@ namespace caret {
     }
 
     template <typename T>
-    uint64_t CaretArray<T>::getReferenceCount()
+    uint64_t CaretArray<T>::getReferenceCount() const
     {
         if (m_pointerRef == NULL)
         {
@@ -466,7 +477,7 @@ namespace caret {
     }
 
     template <typename T>
-    uint64_t CaretReferenceCount<T>::getReferenceCount()
+    uint64_t CaretReferenceCount<T>::getReferenceCount() const
     {
         if (m_pointerRef == NULL)
         {
