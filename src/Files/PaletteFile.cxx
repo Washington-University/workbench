@@ -1012,6 +1012,23 @@ PaletteFile::addDefaultPalettes()
         pal3.addScalarAndColor(0.0f, "none");
         addPalette(pal3);
     }
+    //----------------------------------------------------------------------
+    // Positive/Negative palette
+    //
+    if (this->getPaletteByName("POS_NEG") == NULL) {
+        this->addColor("pos_neg_blue",  0x00, 0x00, 0xff );
+        this->addColor("pos_neg_red",  0xff, 0x00, 0x00 );
+        
+        Palette posNeg;
+        posNeg.setName("POS_NEG");
+        
+        posNeg.addScalarAndColor(1.00f, "pos_neg_red");
+        posNeg.addScalarAndColor(0.0001f, "none");
+        posNeg.addScalarAndColor(-0.0001f, "pos_neg_blue");
+        
+        addPalette(posNeg);
+    }
+    
     if (modifiedStatus == false) {
         this->clearModified();
     }
