@@ -265,12 +265,37 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     toolbarWidgetLayout->addWidget(selectToolBar);
     
     /*
+     * Options
+     */
+    QWidget* optionsWidget = NULL;
+    if (this->mode == MODE_FAST_OPEN) {
+        this->autoCloseFastOpenCheckBox = new QCheckBox("Auto Close");
+        this->autoCloseFastOpenCheckBox->setChecked(true);
+        WuQtUtilities::setToolTipAndStatusTip(this->autoCloseFastOpenCheckBox, 
+                                              "If checked, the dialog will be closed\n"
+                                              "immediately after loading a file.");
+        optionsWidget = new QWidget();
+        QHBoxLayout* optionsLayout = new QHBoxLayout(optionsWidget);
+        WuQtUtilities::setLayoutMargins(optionsLayout, 0, 0, 0);
+#ifdef CARET_OS_MACOSX
+        optionsLayout->addStretch();
+#endif
+        optionsLayout->addWidget(this->autoCloseFastOpenCheckBox);
+#ifndef CARET_OS_MACOSX
+        optionsLayout->addStretch();
+#endif
+    }
+    
+    /*
      * Widget for dialog
      */
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(toolbarWidget);
     layout->addWidget(scrollArea);
+    if (optionsWidget != NULL) {
+        layout->addWidget(optionsWidget);
+    }
 
     /*
      * Add contents to the dialog
@@ -442,6 +467,8 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
                 dfi->selectionCheckBox->setVisible(false);
                 dfi->removeToolButton->setVisible(false);
                 dfi->structureSelectionControl->getWidget()->blockSignals(true); // do not allow spec to change
+                QObject::connect(dfi, SIGNAL(signalFileWasLoaded()),
+                                 this, SLOT(fastOpenDataFileWasLoaded()));
                 break;
             case MODE_LOAD_SPEC:
                 dfi->openFilePushButton->setVisible(false);
@@ -525,6 +552,18 @@ AString
 SpecFileDialog::toString() const
 {
     return "SpecFileDialog";
+}
+
+/**
+ * Called when a data file is loaded in
+ * fast open mode.
+ */
+void 
+SpecFileDialog::fastOpenDataFileWasLoaded()
+{
+    if (this->autoCloseFastOpenCheckBox->isChecked()) {
+        this->close(); 
+    }
 }
 
 
@@ -642,6 +681,10 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    if (errorMessages.isEmpty()) {
+        emit signalFileWasLoaded();
+    }
 }
 
 /**

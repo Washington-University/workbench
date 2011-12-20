@@ -75,6 +75,7 @@ namespace caret {
     private slots:
         void toolBarButtonTriggered(QAction*);
         void selectToolButtonTriggered(QAction*);
+        void fastOpenDataFileWasLoaded();
         
     private:
         class GuiSpecGroup {
@@ -100,6 +101,8 @@ namespace caret {
     private:
         SpecFile* specFile;
         
+        QCheckBox* autoCloseFastOpenCheckBox;
+        
         Mode mode;
         
         std::vector<GuiSpecGroup*> dataTypeGroups;
@@ -120,6 +123,9 @@ namespace caret {
 
         ~GuiSpecDataFileInfo();
 
+    signals:
+        void signalFileWasLoaded();
+        
     private slots:
         void structureSelectionChanged(const StructureEnum::Enum);
         void metadataActionTriggered();
