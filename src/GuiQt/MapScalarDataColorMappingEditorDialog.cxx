@@ -562,6 +562,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
     this->scaleFixedNegativeMaximumSpinBox->setMaximum(0.0);
     this->scaleFixedNegativeMaximumSpinBox->setSingleStep(1.0);
+    this->scaleFixedNegativeMaximumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
     
@@ -571,6 +572,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
     this->scaleFixedNegativeMinimumSpinBox->setMaximum(0.0);
     this->scaleFixedNegativeMinimumSpinBox->setSingleStep(1.0);
+    this->scaleFixedNegativeMinimumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
     
@@ -580,6 +582,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
     this->scaleFixedPositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
     this->scaleFixedPositiveMinimumSpinBox->setSingleStep(1.0);
+    this->scaleFixedPositiveMinimumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedPositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
     
@@ -589,6 +592,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
     this->scaleFixedPositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
     this->scaleFixedPositiveMaximumSpinBox->setSingleStep(1.0);
+    this->scaleFixedPositiveMaximumSpinBox->setDecimals(3);
     QObject::connect(this->scaleFixedPositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
     
@@ -821,6 +825,19 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->statisticsStandardDeviationLabel->setText(QString::number(stdDev, 'f', 4));
         this->statisticsMaximumValueLabel->setText(QString::number(maxValue, 'f', 4));
         this->statisticsMinimumValueLabel->setText(QString::number(minValue, 'f', 4));
+        
+        /*
+         * Set fixed spin boxes so that they increment by 1% of data.
+         */
+        float stepValue = 1.0;
+        const float diff = maxValue - minValue;
+        if (diff > 0.0) {
+            stepValue = diff / 100.0;
+        }
+        this->scaleFixedNegativeMaximumSpinBox->setSingleStep(stepValue);
+        this->scaleFixedNegativeMinimumSpinBox->setSingleStep(stepValue);
+        this->scaleFixedPositiveMinimumSpinBox->setSingleStep(stepValue);
+        this->scaleFixedPositiveMaximumSpinBox->setSingleStep(stepValue);
     }
     
     this->updateHistogramPlot();
