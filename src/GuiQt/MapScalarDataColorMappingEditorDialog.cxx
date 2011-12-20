@@ -168,14 +168,11 @@ MapScalarDataColorMappingEditorDialog::thresholdTypeChanged(int indx)
 }
 
 /**
- * Called when the threshold control is changed
- * since the adjustment section needs to be 
- * updated.
- * @param button
- *    Button that was clicked.
+ * Should be called when a control is changed and 
+ * the change requires and update to other controls.
  */
 void 
-MapScalarDataColorMappingEditorDialog::thresholdControlChanged()
+MapScalarDataColorMappingEditorDialog::applyAndUpdate()
 {
     this->apply();
     
@@ -204,7 +201,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSpinBoxValueChanged(double d)
     this->thresholdLowSlider->setValue(d);
     this->thresholdLowSlider->blockSignals(false);
     
-    this->thresholdControlChanged();
+    this->applyAndUpdate();
 }
 
 /**
@@ -227,7 +224,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSpinBoxValueChanged(double d
     this->thresholdHighSlider->setValue(d);
     this->thresholdHighSlider->blockSignals(false);
     
-    this->thresholdControlChanged();
+    this->applyAndUpdate();
 }
 
 /**
@@ -250,7 +247,7 @@ MapScalarDataColorMappingEditorDialog::thresholdLowSliderValueChanged(double d)
     this->thresholdLowSpinBox->setValue(d);
     this->thresholdLowSpinBox->blockSignals(false);
     
-    this->thresholdControlChanged();
+    this->applyAndUpdate();
 }
 
 /**
@@ -273,7 +270,7 @@ MapScalarDataColorMappingEditorDialog::thresholdHighSliderValueChanged(double d)
     this->thresholdHighSpinBox->setValue(d);
     this->thresholdHighSpinBox->blockSignals(false);
     
-    this->thresholdControlChanged();
+    this->applyAndUpdate();
 }
 
 /**
@@ -511,7 +508,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     scaleButtonGroup->addButton(this->scaleAutoPercentageRadioButton);
     scaleButtonGroup->addButton(this->scaleFixedRadioButton);
     QObject::connect(scaleButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(apply()));
+                     this, SLOT(applyAndUpdate()));
     
     /*
      * Spin box width
@@ -716,15 +713,19 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
             this->paletteNameComboBox->setCurrentIndex(defaultIndex);
         }
         
+        bool isPercentageSpinBoxesEnabled = false;
+        bool isFixedSpinBoxesEnabled = false;
         switch (this->paletteColorMapping->getScaleMode()) {
             case PaletteScaleModeEnum::MODE_AUTO_SCALE:
                 this->scaleAutoRadioButton->setChecked(true);
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
                 this->scaleAutoPercentageRadioButton->setChecked(true);
+                isPercentageSpinBoxesEnabled = true;
                 break;
             case PaletteScaleModeEnum::MODE_USER_SCALE:
                 this->scaleFixedRadioButton->setChecked(true);
+                isFixedSpinBoxesEnabled = true;
                 break;
         }
         
@@ -732,11 +733,19 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         this->scaleAutoPercentageNegativeMinimumSpinBox->setValue(this->paletteColorMapping->getAutoScalePercentageNegativeMinimum());
         this->scaleAutoPercentagePositiveMinimumSpinBox->setValue(this->paletteColorMapping->getAutoScalePercentagePositiveMinimum());
         this->scaleAutoPercentagePositiveMaximumSpinBox->setValue(this->paletteColorMapping->getAutoScalePercentagePositiveMaximum());
+        this->scaleAutoPercentageNegativeMaximumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
+        this->scaleAutoPercentageNegativeMinimumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
+        this->scaleAutoPercentagePositiveMinimumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
+        this->scaleAutoPercentagePositiveMaximumSpinBox->setEnabled(isPercentageSpinBoxesEnabled);
 
         this->scaleFixedNegativeMaximumSpinBox->setValue(this->paletteColorMapping->getUserScaleNegativeMaximum());
         this->scaleFixedNegativeMinimumSpinBox->setValue(this->paletteColorMapping->getUserScaleNegativeMinimum());
         this->scaleFixedPositiveMinimumSpinBox->setValue(this->paletteColorMapping->getUserScalePositiveMinimum());
         this->scaleFixedPositiveMaximumSpinBox->setValue(this->paletteColorMapping->getUserScalePositiveMaximum());
+        this->scaleFixedNegativeMaximumSpinBox->setEnabled(isFixedSpinBoxesEnabled);
+        this->scaleFixedNegativeMinimumSpinBox->setEnabled(isFixedSpinBoxesEnabled);
+        this->scaleFixedPositiveMinimumSpinBox->setEnabled(isFixedSpinBoxesEnabled);
+        this->scaleFixedPositiveMaximumSpinBox->setEnabled(isFixedSpinBoxesEnabled);
         
         this->displayModePositiveCheckBox->setChecked(this->paletteColorMapping->isDisplayPositiveDataFlag());
         this->displayModeZeroCheckBox->setChecked(this->paletteColorMapping->isDisplayZeroDataFlag());

@@ -66,8 +66,10 @@ WuQDialogNonModal::WuQDialogNonModal(const AString& dialogTitle,
     QObject::connect(this->getDialogButtonBox(), SIGNAL(clicked(QAbstractButton*)),
                      this, SLOT(clicked(QAbstractButton*)));
     
-    this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setDefault(true);
-    this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setAutoDefault(true);
+    this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setDefault(false);
+    this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setAutoDefault(false);
+    this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setDefault(false);
+    this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setAutoDefault(false);
 }
 
 /**
@@ -141,15 +143,6 @@ void
 WuQDialogNonModal::setApplyButtonText(const AString& text)
 {
     this->setStandardButtonText(QDialogButtonBox::Apply, text);
-    
-    if (text.isEmpty()) {
-        this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setDefault(true);
-        this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setAutoDefault(true);
-    }
-    else {
-        this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setDefault(true);
-        this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setAutoDefault(true);
-    }
 }
 
 /**

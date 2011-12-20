@@ -71,10 +71,11 @@ namespace caret {
         void thresholdHighSpinBoxValueChanged(double);
         void thresholdLowSliderValueChanged(double);
         void thresholdHighSliderValueChanged(double);
-        void thresholdControlChanged();
         void thresholdTypeChanged(int);
         
         void histogramControlChanged();
+        
+        void applyAndUpdate();
         
     private:
         QWidget* createPaletteSection();
