@@ -87,7 +87,7 @@ namespace caret {
         operator unsigned long long () { return this->toULongLong(); }
         
         /// convert to a const char* (the operator() does not work in C++ library I/O functions)
-        const char* c_str() const { return qPrintable(*this); }
+        //const char* c_str() const { return qPrintable(*this); }
         
         char* toCharArray() const;
         

@@ -173,7 +173,9 @@ void BinaryFileReader::BinaryFile::openRead(const AString& filename) throw (Data
 {
    closeFile();
    statFile(filename);
-   m_theFile.open(filename.c_str(), ios_base::in | ios_base::binary);
+   char* name = filename.toCharArray();
+   m_theFile.open(name, ios_base::in | ios_base::binary);
+   delete[] name;
    if (m_theFile.fail())
    {//don't bother finding the exact error for now, if further investigation is done, put it in a member function
       throw DataFileException("Error opening file for reading");
@@ -185,7 +187,9 @@ void BinaryFileReader::BinaryFile::openRead(const AString& filename) throw (Data
 void BinaryFileReader::BinaryFile::openWrite(const AString& filename) throw (DataFileException)
 {
    closeFile();
-   m_theFile.open(filename.c_str(), ios_base::out | ios_base::binary | ios_base::trunc);
+   char* name = filename.toCharArray();
+   m_theFile.open(name, ios_base::out | ios_base::binary | ios_base::trunc);
+   delete[] name;
    if (m_theFile.fail())
    {//don't bother finding the exact error for now, if further investigation is done, put it in a member function
       throw DataFileException("Error opening file for writing");
@@ -198,7 +202,9 @@ void BinaryFileReader::BinaryFile::openReadWrite(const AString& filename) throw 
 {
    closeFile();
    statFile(filename);
-   m_theFile.open(filename.c_str(), ios_base::in | ios_base::out | ios_base::binary);
+   char* name = filename.toCharArray();
+   m_theFile.open(name, ios_base::in | ios_base::out | ios_base::binary);
+   delete[] name;
    if (m_theFile.fail())
    {//don't bother finding the exact error for now, if further investigation is done, put it in a member function
       throw DataFileException("Error opening file for read and write");

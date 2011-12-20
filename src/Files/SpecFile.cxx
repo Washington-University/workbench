@@ -423,7 +423,9 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Open the file
         //
-        std::ofstream xmlFileOutputStream(this->getFileName().c_str());
+        char* name = this->getFileName().toCharArray();
+        std::ofstream xmlFileOutputStream(name);
+        delete[] name;
         if (! xmlFileOutputStream) {
             AString msg = "Unable to open " + this->getFileName() + " for writing.";
             throw GiftiException(msg);

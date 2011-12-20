@@ -105,16 +105,14 @@ GiftiFileWriter::start(const int numberOfDataArrays,
         //
         // Open the file
         //
-        //this->xmlFileOutputStream = new std::ofstream(this->filename.c_str());
         char* name = this->filename.toCharArray();
         this->xmlFileOutputStream = new std::ofstream(name);
+        delete[] name;
         if (! (*this->xmlFileOutputStream)) {
             delete this->xmlFileOutputStream;
             AString msg = "Unable to open " + this->filename + " for writing.";
-            delete[] name;
             throw GiftiException(msg);
         }
-        delete[] name;
                 
         //
         // Remove any existing external files.
@@ -206,7 +204,9 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         //
         if (this->encoding == GiftiEncodingEnum::EXTERNAL_FILE_BINARY) {
             if (this->externalFileOutputStream == NULL) {
-                this->externalFileOutputStream = new std::ofstream(this->getExternalFileNameForWriting().c_str());
+                char* name = this->getExternalFileNameForWriting().toCharArray();
+                this->externalFileOutputStream = new std::ofstream(name);
+                delete[] name;
                 if (! *this->externalFileOutputStream) {
                     this->closeFiles();
                     const AString msg = ("Unable to open " + this->getExternalFileNameForWriting() + " for writing.");

@@ -82,8 +82,10 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
     CaretLogSevere("WARNING: TextFile::readFile() has not been tested");
     this->clearModified();
     
-    std::ifstream inputStream(filename.c_str(), std::ifstream::in);
-
+    char* name = filename.toCharArray();
+    std::ifstream inputStream(name, std::ifstream::in);
+    delete[] name;
+    
     const int BUFFER_LENGTH = 4096;
     char buffer[BUFFER_LENGTH];
     
@@ -117,7 +119,9 @@ TextFile::readFile(const AString& filename) throw (DataFileException)
 void 
 TextFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    std::ofstream outputStream(filename.c_str());
+    char* name = filename.toCharArray();
+    std::ofstream outputStream(name);
+    delete[] name;
     if (!outputStream) {
         throw DataFileException("Unable to open " + filename + " for writing.");
     }
