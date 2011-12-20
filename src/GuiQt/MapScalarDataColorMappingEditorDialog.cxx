@@ -23,6 +23,7 @@
  * 
  */ 
 
+#include <algorithm>
 #include <limits>
 
 #include <QBoxLayout>
@@ -59,6 +60,8 @@
 #include "qwt_plot.h"
 #include "qwt_plot_curve.h"
 #include "qwt_plot_histogram.h"
+#include "qwt_plot_intervalcurve.h"
+#include "qwt_plot_layout.h"
 
 using namespace caret;
 
@@ -330,7 +333,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     thresholdShowButtonGroup->addButton(this->thresholdShowInsideRadioButton);
     thresholdShowButtonGroup->addButton(this->thresholdShowOutsideRadioButton);
     QObject::connect(thresholdShowButtonGroup, SIGNAL(buttonClicked(int)),
-                     this, SLOT(thresholdControlChanged()));
+                     this, SLOT(applyAndUpdate()));
     
     QWidget* thresholdAdjustmentWidget = new QWidget();
     QGridLayout* thresholdAdjustmentLayout = new QGridLayout(thresholdAdjustmentWidget);
@@ -459,6 +462,7 @@ QWidget*
 MapScalarDataColorMappingEditorDialog::createHistogramSection()
 {
     this->thresholdPlot = new QwtPlot();
+    this->thresholdPlot->plotLayout()->setAlignCanvasToScales(true);
     //this->thresholdPlot->setAutoReplot(true);
     
     return this->thresholdPlot;
@@ -865,147 +869,259 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         /*
          * Get data for this histogram.
          */
-        int64_t numHistogramValues = 0;
-        int64_t* histogram = NULL;
-        float minValue = 0.0;
-        float maxValue = 0.0;
-        if (this->histogramAllRadioButton->isChecked()) {
-            minValue  = statistics->getMinimumValue();
-            maxValue  = statistics->getMaximumValue();
-            
-            numHistogramValues = statistics->getHistogramNumberOfElements();
-            histogram = const_cast<int64_t*>(statistics->getHistogram());
-        }
-        else {
-            minValue  = statistics->getMinimumValue96();
-            maxValue  = statistics->getMaximumValue96();
-            
-            numHistogramValues = statistics->getHistogramNumberOfElements();
-            histogram = const_cast<int64_t*>(statistics->getHistogram96());
+        const int64_t numHistogramValues = statistics->getHistogramNumberOfElements();
+        const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
+        const float minValue = statistics->getMinimumValue();
+        const float maxValue = statistics->getMaximumValue();
+        float displayedMinValue = minValue;
+        float displayedMaxValue = maxValue;
+        if (this->histogramTwoNinetyEightRadioButton->isChecked()) {
+            displayedMinValue  = statistics->getMinimumValue96();
+            displayedMaxValue  = statistics->getMaximumValue96();
         }
         
         /*
-         * Display using palette colors
+         * Width of each 'bar' in the histogram
          */
-//        if (isHistogramColored) {
+        float step = 1.0;
+        if (numHistogramValues > 1) {
+            step = ((maxValue - minValue)
+                    / numHistogramValues);
+        }
+        
+        float* dataValues = NULL;
+        float* dataRGBA = NULL;
+        if (numHistogramValues > 0) {
             /*
-             * Width of each 'bar' in the histogram
+             * Compute color for 'bar' in the histogram
              */
-            float step = 1.0;
-            if (numHistogramValues > 1) {
-                step = ((maxValue - minValue)
-                        / numHistogramValues);
+            dataValues = new float[numHistogramValues];
+            dataRGBA   = new float[numHistogramValues * 4];
+            for (int64_t ix = 0; ix < numHistogramValues; ix++) {
+                const float value = (minValue
+                                     + (ix * step));
+                dataValues[ix] = value;
             }
             
-            float* dataValues = NULL;
-            float* dataRGBA = NULL;
-            if (numHistogramValues > 0) {
-                /*
-                 * Compute color for 'bar' in the histogram
-                 */
-                dataValues = new float[numHistogramValues];
-                dataRGBA   = new float[numHistogramValues * 4];
-                for (int64_t ix = 0; ix < numHistogramValues; ix++) {
-                    const float value = (minValue
-                                         + (ix * step));
-                    dataValues[ix] = value;
+            const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
+            if (this->histogramUsePaletteColors->isChecked()
+                && (palette != NULL)) {
+                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+                                                              paletteColorMapping, 
+                                                              palette, 
+                                                              dataValues, 
+                                                              dataValues, 
+                                                              numHistogramValues, 
+                                                              dataRGBA,
+                                                              true); // ignore thresholding
+            }
+            else {
+                for (int64_t i = 0; i < numHistogramValues; i++) {
+                    const int64_t i4 = i * 4;
+                    dataRGBA[i4]   = 1.0;
+                    dataRGBA[i4+1] = 0.0;
+                    dataRGBA[i4+2] = 0.0;
+                    dataRGBA[i4+3] = 1.0;
                 }
-
-                const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
-                if (this->histogramUsePaletteColors->isChecked()
-                    && (palette != NULL)) {
-                    NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
-                                                                  paletteColorMapping, 
-                                                                  palette, 
-                                                                  dataValues, 
-                                                                  dataValues, 
-                                                                  numHistogramValues, 
-                                                                  dataRGBA);
-                }
-                else {
-                    for (int64_t i = 0; i < numHistogramValues; i++) {
-                        const int64_t i4 = i * 4;
-                        dataRGBA[i4]   = 1.0;
-                        dataRGBA[i4+1] = 0.0;
-                        dataRGBA[i4+2] = 0.0;
-                        dataRGBA[i4+3] = 1.0;
-                    }
-                }
+            }
+        }
+        
+        float z = 0.0;
+        float maxDataFrequency = 0.0;
+        
+        const int numBars = numHistogramValues - 1;
+        for (int64_t ix = 0; ix < numBars; ix++) {
+            QColor color;
+            const int64_t ix4 = ix * 4;
+            color.setRedF(dataRGBA[ix4]);
+            color.setGreenF(dataRGBA[ix4+1]);
+            color.setBlueF(dataRGBA[ix4+2]);
+            color.setAlphaF(1.0);
+            
+            const float startValue = dataValues[ix];
+            const float stopValue  = dataValues[ix + 1];
+            float dataFrequency = histogram[ix];
+            if (dataFrequency > maxDataFrequency) {
+                maxDataFrequency = dataFrequency;
+            }
+            bool displayIt = true;
+            if (startValue > displayedMaxValue) {
+                dataFrequency = 0.0;
+                displayIt = false;
+            }
+            else if (stopValue < displayedMinValue) {
+                dataFrequency = 0.0;
+                displayIt = false;
             }
             
-            const int numBars = numHistogramValues - 1;
-            for (int64_t ix = 0; ix < numBars; ix++) {
-                QColor color;
-                const int64_t ix4 = ix * 4;
-                color.setRedF(dataRGBA[ix4]);
-                color.setGreenF(dataRGBA[ix4+1]);
-                color.setBlueF(dataRGBA[ix4+2]);
-                color.setAlphaF(1.0);
-                
-                const float startValue = dataValues[ix];
-                const float stopValue  = dataValues[ix + 1];
-                float dataFrequency = histogram[ix];
-                
-                /*
-                 * If color is not displayed ('none' or thresholded), 
-                 * set its frequncey value to a small value so that the plot
-                 * retains its shape and color is still slightly visible
-                 */
-                Qt::BrushStyle brushStyle = Qt::SolidPattern;
-                if (dataRGBA[ix4+3] <= 0.0) {
-                    brushStyle = Qt::Dense6Pattern;
-                    //dataFrequency = 0.5;
-                }
-                
-                QVector<QPointF> samples;
-                samples.push_back(QPointF(startValue, 0));
-                samples.push_back(QPointF(stopValue, 0));
-                samples.push_back(QPointF(stopValue, dataFrequency));
-                samples.push_back(QPointF(startValue, dataFrequency));
-                
-                QwtPlotCurve* curve = new QwtPlotCurve();
-                curve->setRenderHint(QwtPlotItem::RenderAntialiased);
-                curve->setVisible(true);
-                curve->setStyle(QwtPlotCurve::Steps);
-                
-                curve->setBrush(QBrush(color, brushStyle));
-                curve->setPen(QPen(color));
-                curve->setSamples(samples);
-                
-                curve->attach(this->thresholdPlot);
+            /*
+             * If color is not displayed ('none' or thresholded), 
+             * set its frequncey value to a small value so that the plot
+             * retains its shape and color is still slightly visible
+             */
+            //Qt::BrushStyle brushStyle = Qt::SolidPattern;
+            //if (dataRGBA[ix4+3] <= 0.0) {
+            //    displayIt = false;
+            //}
+            
+            if (displayIt == false) {
+                color.setAlpha(0);
             }
             
-            if (dataValues != NULL) {
-                delete dataValues;
+            QVector<QPointF> samples;
+            samples.push_back(QPointF(startValue, dataFrequency));
+            samples.push_back(QPointF(stopValue, dataFrequency));
+            //samples.push_back(QPointF(startValue, 0));
+            //samples.push_back(QPointF(stopValue, 0));
+            //samples.push_back(QPointF(stopValue, dataFrequency));
+            //samples.push_back(QPointF(startValue, dataFrequency));
+            
+            QwtPlotCurve* curve = new QwtPlotCurve();
+            curve->setRenderHint(QwtPlotItem::RenderAntialiased);
+            curve->setVisible(true);
+            curve->setStyle(QwtPlotCurve::Steps);
+            
+            curve->setBrush(QBrush(color)); //, brushStyle));
+            curve->setPen(QPen(color));
+            curve->setSamples(samples);
+            
+            curve->attach(this->thresholdPlot);
+            
+            if (ix == 0) {
+                z = curve->z();
             }
-            if (dataRGBA != NULL) {
-                delete dataRGBA;
+        }
+        
+        z = z - 1;
+        
+        if ((numHistogramValues > 2) 
+            && (this->paletteColorMapping->getThresholdType() != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF)) {
+            float threshMinValue = this->paletteColorMapping->getThresholdNormalMinimum();
+            float threshMaxValue = this->paletteColorMapping->getThresholdNormalMaximum();
+            
+            maxDataFrequency *= 1.05;
+            
+            switch (this->paletteColorMapping->getThresholdTest()) {
+                case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                {
+                    /* 
+                     * Draw shaded region to left of minimum threshold
+                     */
+                    QVector<QPointF> minSamples;
+                    minSamples.push_back(QPointF(dataValues[0], maxDataFrequency));
+                    //minSamples.push_back(QPointF(threshMinValue, 0));
+                    minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
+                    //minSamples.push_back(QPointF(dataValues[0], maxFrequency));
+                    
+                    QwtPlotCurve* minBox = new QwtPlotCurve();
+                    minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
+                    minBox->setVisible(true);
+                    minBox->setStyle(QwtPlotCurve::Dots);
+                    
+                    QColor minColor(100, 100, 255, 160);
+                    minBox->setBrush(QBrush(minColor, Qt::Dense4Pattern));
+                    minBox->setPen(QPen(minColor));
+                    minBox->setSamples(minSamples);
+                    
+                    minBox->setZ(z);
+                    minBox->attach(this->thresholdPlot);
+                    
+                    /* 
+                     * Draw shaded region to left of minimum threshold
+                     */
+                    QVector<QPointF> maxSamples;
+                    //maxSamples.push_back(QPointF(dataValues[0], 0));
+                    //maxSamples.push_back(QPointF(threshMinValue, 0));
+                    maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
+                    maxSamples.push_back(QPointF(dataValues[numHistogramValues - 1], maxDataFrequency));
+                    
+                    QwtPlotCurve* maxBox = new QwtPlotCurve();
+                    maxBox->setRenderHint(QwtPlotItem::RenderAntialiased);
+                    maxBox->setVisible(true);
+                    maxBox->setStyle(QwtPlotCurve::Dots);
+                    
+                    QColor maxColor(100, 100, 255, 160);
+                    maxBox->setBrush(QBrush(maxColor, Qt::Dense4Pattern));
+                    maxBox->setPen(QPen(maxColor));
+                    maxBox->setSamples(maxSamples);
+                    
+                    maxBox->setZ(z);
+                    maxBox->attach(this->thresholdPlot);
+                }
+                    break;
+                case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                {
+                    /* 
+                     * Draw shaded region to left of minimum threshold
+                     */
+                    QVector<QPointF> minSamples;
+                    minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
+                    minSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
+                    
+                    QwtPlotCurve* minBox = new QwtPlotCurve();
+                    minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
+                    minBox->setVisible(true);
+                    //minBox->setStyle(QwtPlotCurve::Dots);
+                    
+                    QColor minColor(100, 100, 255, 160);
+                    minBox->setBrush(QBrush(minColor)); //, Qt::Dense4Pattern));
+                    minBox->setPen(QPen(minColor));
+                    minBox->setSamples(minSamples);
+                    
+                    minBox->setZ(z);
+                    
+                    minBox->attach(this->thresholdPlot);
+                }
+                    break;
             }
-//        }
-//        else {
-//            QVector<QwtIntervalSample> samples(numHistogramValues);
-//            for (int64_t i = 0; i < numHistogramValues; i++) {
-//                const float startValue = (minValue
-//                                          + (i * step));
-//                const float stopValue  = startValue + step;
-//                
-//                QwtInterval interval(startValue,
-//                                     stopValue);
-//                interval.setBorderFlags(QwtInterval::ExcludeMaximum);
-//                samples[i] = QwtIntervalSample(histogram[i],
-//                                               interval);
-//            }
-//            
-//            const QColor color(255, 0, 0);
-//            
-//            QwtPlotHistogram* thresholdHistogram = new QwtPlotHistogram("Histogram");
-//            thresholdHistogram->setStyle(QwtPlotHistogram::Columns);
-//            thresholdHistogram->setBrush(QBrush(color));
-//            thresholdHistogram->setPen(QPen(color));
-//            
-//            thresholdHistogram->setData(new QwtIntervalSeriesData(samples));
-//            thresholdHistogram->attach(this->thresholdPlot);
-//        }
+            
+            z = z - 1;
+            
+            /*
+             * Line for high threshold
+             */
+            QVector<QPointF> minSamples;
+            minSamples.push_back(QPointF(threshMinValue, 0));
+            minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
+            
+            QwtPlotCurve* minLine = new QwtPlotCurve();
+            minLine->setRenderHint(QwtPlotItem::RenderAntialiased);
+            minLine->setVisible(true);
+            minLine->setStyle(QwtPlotCurve::Lines);
+            
+            QColor minColor(0.0, 0.0, 1.0);
+            minLine->setPen(QPen(minColor));
+            minLine->setSamples(minSamples);
+            
+            minLine->setZ(1.0);
+            //minLine->attach(this->thresholdPlot);
+            
+            /*
+             * Line for high threshold
+             */
+            QVector<QPointF> maxSamples;
+            maxSamples.push_back(QPointF(threshMaxValue, 0));
+            maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
+            
+            QwtPlotCurve* maxLine = new QwtPlotCurve();
+            maxLine->setRenderHint(QwtPlotItem::RenderAntialiased);
+            maxLine->setVisible(true);
+            maxLine->setStyle(QwtPlotCurve::Lines);
+            
+            QColor maxColor(1.0, 0.0, 0.0);
+            maxLine->setPen(QPen(maxColor));
+            maxLine->setSamples(maxSamples);
+            
+            maxLine->setZ(1.0);
+            //maxLine->attach(this->thresholdPlot);
+        }
+        
+        if (dataValues != NULL) {
+            delete dataValues;
+        }
+        if (dataRGBA != NULL) {
+            delete dataRGBA;
+        }
         
         /*
          * Causes updates of plots.

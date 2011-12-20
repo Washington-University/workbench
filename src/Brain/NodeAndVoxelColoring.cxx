@@ -91,7 +91,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
                                               const float* scalarValues,
                                               const float* thresholdValues,
                                               const int32_t numberOfScalars,
-                                              float* rgbaOut)
+                                              float* rgbaOut,
+                                              const bool ignoreThresholding)
 {
     if (numberOfScalars <= 0) {
         return;
@@ -238,51 +239,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
                 continue;
             }
         }
-        
-        /*
-         * Threshold Test
-         */
-        bool thresholdPassedFlag = false;
-        if (showOutsideFlag) {
-            if (threshold > thresholdMaximum) {
-                thresholdPassedFlag = true;
-            }
-            else if (threshold < thresholdMinimum) {
-                thresholdPassedFlag = true;
-            }
-        }
-        else {
-            if ((threshold >= thresholdMinimum) &&
-                (threshold <= thresholdMaximum)) {
-                thresholdPassedFlag = true;
-            }
-        }
-        if (thresholdPassedFlag == false) {
-            if (showMappedThresholdFailuresInGreen) {
-                if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
-                    if (threshold > 0.0f) {
-                        if ((threshold < thresholdMappedPositive) &&
-                            (threshold > thresholdMappedPositiveAverageArea)) {
-                            rgbaOut[i4]   = positiveThresholdGreenColor[0];
-                            rgbaOut[i4+1] = positiveThresholdGreenColor[1];
-                            rgbaOut[i4+2] = positiveThresholdGreenColor[2];
-                            rgbaOut[i4+3] = positiveThresholdGreenColor[3];
-                        }
-                    }
-                    else if (threshold < 0.0f) {
-                        if ((threshold > thresholdMappedNegative) &&
-                            (threshold < thresholdMappedNegativeAverageArea)) {
-                            rgbaOut[i4]   = negativeThresholdGreenColor[0];
-                            rgbaOut[i4+1] = negativeThresholdGreenColor[1];
-                            rgbaOut[i4+2] = negativeThresholdGreenColor[2];
-                            rgbaOut[i4+3] = negativeThresholdGreenColor[3];
-                        }
-                    }
-                }
-            }
-            continue;
-        }
-        
+                
         /*
          * Color scalar using palette
          */
@@ -322,6 +279,55 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
             rgbaOut[i4+1] = rgba[1];
             rgbaOut[i4+2] = rgba[2];
             rgbaOut[i4+3] = rgba[3];
+        }
+        
+        /*
+         * Threshold Test
+         * Threshold is done last so colors are still set
+         * but if threshold test fails, alpha is set invalid.
+         */
+        bool thresholdPassedFlag = false;
+        if (ignoreThresholding) {
+            thresholdPassedFlag = true;
+        }
+        else if (showOutsideFlag) {
+            if (threshold > thresholdMaximum) {
+                thresholdPassedFlag = true;
+            }
+            else if (threshold < thresholdMinimum) {
+                thresholdPassedFlag = true;
+            }
+        }
+        else {
+            if ((threshold >= thresholdMinimum) &&
+                (threshold <= thresholdMaximum)) {
+                thresholdPassedFlag = true;
+            }
+        }
+        if (thresholdPassedFlag == false) {
+            rgbaOut[i4+3] = -1.0;
+            if (showMappedThresholdFailuresInGreen) {
+                if (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED) {
+                    if (threshold > 0.0f) {
+                        if ((threshold < thresholdMappedPositive) &&
+                            (threshold > thresholdMappedPositiveAverageArea)) {
+                            rgbaOut[i4]   = positiveThresholdGreenColor[0];
+                            rgbaOut[i4+1] = positiveThresholdGreenColor[1];
+                            rgbaOut[i4+2] = positiveThresholdGreenColor[2];
+                            rgbaOut[i4+3] = positiveThresholdGreenColor[3];
+                        }
+                    }
+                    else if (threshold < 0.0f) {
+                        if ((threshold > thresholdMappedNegative) &&
+                            (threshold < thresholdMappedNegativeAverageArea)) {
+                            rgbaOut[i4]   = negativeThresholdGreenColor[0];
+                            rgbaOut[i4+1] = negativeThresholdGreenColor[1];
+                            rgbaOut[i4+2] = negativeThresholdGreenColor[2];
+                            rgbaOut[i4+3] = negativeThresholdGreenColor[3];
+                        }
+                    }
+                }
+            }
         }
     }
 }

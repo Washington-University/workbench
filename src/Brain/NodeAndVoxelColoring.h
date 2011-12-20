@@ -41,7 +41,8 @@ namespace caret {
                                             const float* scalars,
                                             const float* scalarThresholds,
                                             const int32_t numberOfScalars,
-                                            float* rgbaOut);
+                                            float* rgbaOut,
+                                            const bool ignoreThresholding = false);
         
     private:
         NodeAndVoxelColoring();
