@@ -694,7 +694,13 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     WuQtUtilities::setToolTipAndStatusTip(this->displayModePositiveCheckBox, 
                                           "Enable/Disable the display of positive data");
     WuQtUtilities::setToolTipAndStatusTip(this->displayModeZeroCheckBox, 
-                                          "Enable/Disable the display of \"near zero\" data");
+                                          "Enable/Disable the display of zero data.\n"
+                                          "A value in the range ["
+                                          + AString::number(NodeAndVoxelColoring::SMALL_NEGATIVE, 'f', 6)
+                                          + ", "
+                                          + AString::number(NodeAndVoxelColoring::SMALL_POSITIVE, 'f', 6)
+                                          + "]\n"
+                                          "is considered to be zero.");
     WuQtUtilities::setToolTipAndStatusTip(this->displayModeNegativeCheckBox, 
                                           "Enable/Disable the display of negative data");
     

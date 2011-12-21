@@ -201,9 +201,6 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     
     const bool interpolateFlag = paletteColorMapping->isInterpolatePaletteFlag();
     
-    const float SMALL_POSITIVE =  0.00001;
-    const float SMALL_NEGATIVE = -0.00001;
-    
     /*
      * Color all scalars.
      */
@@ -220,12 +217,12 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
         /*
          * Positive/Zero/Negative Test
          */
-        if (scalar > SMALL_POSITIVE) {
+        if (scalar > NodeAndVoxelColoring::SMALL_POSITIVE) {
             if (hidePositiveValues) {
                 continue;
             }
         }
-        else if (scalar < SMALL_NEGATIVE) {
+        else if (scalar < NodeAndVoxelColoring::SMALL_NEGATIVE) {
             if (hideNegativeValues) {
                 continue;
             }

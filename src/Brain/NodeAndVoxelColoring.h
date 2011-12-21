@@ -44,6 +44,9 @@ namespace caret {
                                             float* rgbaOut,
                                             const bool ignoreThresholding = false);
         
+        static const float SMALL_POSITIVE;
+        static const float SMALL_NEGATIVE;
+        
     private:
         NodeAndVoxelColoring();
         
@@ -57,7 +60,8 @@ namespace caret {
     };
     
 #ifdef __NODE_AND_VOXEL_COLORING_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const float NodeAndVoxelColoring::SMALL_POSITIVE =  0.00001;
+    const float NodeAndVoxelColoring::SMALL_NEGATIVE = -0.00001;
 #endif // __NODE_AND_VOXEL_COLORING_DECLARE__
 
 } // namespace
