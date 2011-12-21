@@ -141,7 +141,7 @@ YokingTypeEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = OFF;
     
     for (std::vector<YokingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -191,7 +191,7 @@ YokingTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = OFF;
     
     for (std::vector<YokingTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

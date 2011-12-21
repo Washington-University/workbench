@@ -51,6 +51,7 @@
 
 #include <cmath>
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
@@ -1192,8 +1193,9 @@ Matrix4x4::Determinant3(const double matrixIn[3][3]) const
  * @throws XmlException if an error occurs while writing.
  */
 void
-Matrix4x4::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+Matrix4x4::writeAsXML(XmlWriter& /*xmlWriter*/) throw (XmlException)
 {
+    CaretAssertMessage(0, "Not implemented");
 }
 
 /**
@@ -1216,7 +1218,7 @@ Matrix4x4::toString() const
  *
  */
 AString
-Matrix4x4::toFormattedString(const AString& indentation)
+Matrix4x4::toFormattedString(const AString& /*indentation*/)
 {
     return "Matrix4x4";
 }

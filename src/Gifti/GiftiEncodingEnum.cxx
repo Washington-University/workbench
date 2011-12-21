@@ -126,7 +126,7 @@ GiftiEncodingEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ASCII;
     
     for (std::vector<GiftiEncodingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -179,7 +179,7 @@ GiftiEncodingEnum::fromGiftiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ASCII;
     
     for (std::vector<GiftiEncodingEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

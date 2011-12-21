@@ -142,7 +142,7 @@ ViewModeEnum::fromName(const QString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = VIEW_MODE_INVALID;
     
     for (std::vector<ViewModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -192,7 +192,7 @@ ViewModeEnum::fromGuiName(const QString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = VIEW_MODE_INVALID;
     
     for (std::vector<ViewModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

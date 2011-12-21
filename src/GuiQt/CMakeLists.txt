@@ -29,7 +29,6 @@ BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
-BrainOpenGLWidgetTextRenderer.h
 ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 GuiManager.h

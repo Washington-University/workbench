@@ -124,7 +124,7 @@ GiftiEndianEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ENDIAN_LITTLE;
     
     for (std::vector<GiftiEndianEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -177,7 +177,7 @@ GiftiEndianEnum::fromGiftiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ENDIAN_LITTLE;
     
     for (std::vector<GiftiEndianEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

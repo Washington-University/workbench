@@ -122,7 +122,7 @@ GiftiArrayIndexingOrderEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ROW_MAJOR_ORDER;
     
     for (std::vector<GiftiArrayIndexingOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -175,7 +175,7 @@ GiftiArrayIndexingOrderEnum::fromGiftiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = ROW_MAJOR_ORDER;
     
     for (std::vector<GiftiArrayIndexingOrderEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

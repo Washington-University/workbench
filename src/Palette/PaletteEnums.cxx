@@ -125,7 +125,7 @@ PaletteScaleModeEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = MODE_AUTO_SCALE;
     
     for (std::vector<PaletteScaleModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -178,7 +178,7 @@ PaletteScaleModeEnum::fromGuiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = MODE_AUTO_SCALE;
     
     for (std::vector<PaletteScaleModeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -230,7 +230,7 @@ PaletteScaleModeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOu
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = MODE_AUTO_SCALE;
     
     for (std::vector<PaletteScaleModeEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
@@ -303,7 +303,7 @@ PaletteThresholdTestEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_OUTSIDE, 1, "THRESHOLD_TEST_SHOW_OUTSIDE", "Show Data Outside Thresholds"));
+    enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_OUTSIDE, 0, "THRESHOLD_TEST_SHOW_OUTSIDE", "Show Data Outside Thresholds"));
     enumData.push_back(PaletteThresholdTestEnum(THRESHOLD_TEST_SHOW_INSIDE, 1, "THRESHOLD_TEST_SHOW_INSIDE", "Show Data Below Threshold"));
 }
 
@@ -363,7 +363,7 @@ PaletteThresholdTestEnum::fromName(const AString& sin, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TEST_SHOW_OUTSIDE;
     
     AString s = sin;
     if (s == "THRESHOLD_TEST_SHOW_ABOVE") {
@@ -424,7 +424,7 @@ PaletteThresholdTestEnum::fromGuiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TEST_SHOW_OUTSIDE;
     
     for (std::vector<PaletteThresholdTestEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -476,7 +476,7 @@ PaletteThresholdTestEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TEST_SHOW_OUTSIDE;
     
     for (std::vector<PaletteThresholdTestEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
@@ -593,7 +593,7 @@ PaletteThresholdTypeEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TYPE_OFF;
     
     for (std::vector<PaletteThresholdTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -646,7 +646,7 @@ PaletteThresholdTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TYPE_OFF;
     
     for (std::vector<PaletteThresholdTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -698,7 +698,7 @@ PaletteThresholdTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
     initialize();
     
     bool validFlag = false;
-    Enum e;
+    Enum e = THRESHOLD_TYPE_OFF;
     
     for (std::vector<PaletteThresholdTypeEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();

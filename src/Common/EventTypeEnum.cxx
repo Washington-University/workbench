@@ -66,6 +66,10 @@ EventTypeEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(EventTypeEnum(EVENT_INVALID, 
+                                     "EVENT_INVALID", 
+                                     "Invalid Event"));
+    
     enumData.push_back(EventTypeEnum(EVENT_BROWSER_TAB_DELETE, 
                                      "EVENT_BROWSER_TAB_DELETE", 
                                      "Delete a browser tab"));
@@ -217,7 +221,7 @@ EventTypeEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = EVENT_INVALID;
     
     for (std::vector<EventTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -270,7 +274,7 @@ EventTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = EVENT_INVALID;
     
     for (std::vector<EventTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

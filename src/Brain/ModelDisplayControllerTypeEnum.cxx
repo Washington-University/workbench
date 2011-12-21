@@ -155,7 +155,7 @@ ModelDisplayControllerTypeEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = MODEL_TYPE_INVALID;
     
     for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -208,7 +208,7 @@ ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isVali
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue;
+    Enum enumValue = MODEL_TYPE_INVALID;
     
     for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

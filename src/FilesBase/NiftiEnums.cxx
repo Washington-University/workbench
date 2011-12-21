@@ -363,7 +363,7 @@ NiftiIntentEnum::fromName(const AString& s, bool* isValidOut)
     initializeIntents();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_INTENT_NONE;
 
     for (std::vector<NiftiIntentEnum>::const_iterator iter = intents.begin();
          iter != intents.end();
@@ -483,7 +483,7 @@ NiftiIntentEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     initializeIntents();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_INTENT_NONE;
 
     for (std::vector<NiftiIntentEnum>::const_iterator iter = intents.begin();
          iter != intents.end();
@@ -571,7 +571,7 @@ NiftiSpacingUnitsEnum::fromName(const AString& s, bool* isValidOut)
     initializeSpacingUnits();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_UNITS_UNKNOWN;
 
     for (std::vector<NiftiSpacingUnitsEnum>::iterator iter = spacingUnits.begin();
          iter != spacingUnits.end();
@@ -648,7 +648,7 @@ NiftiSpacingUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidO
     initializeSpacingUnits();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_UNITS_UNKNOWN;
 
     for (std::vector<NiftiSpacingUnitsEnum>::const_iterator iter = spacingUnits.begin();
          iter != spacingUnits.end();
@@ -767,7 +767,7 @@ NiftiTimeUnitsEnum::fromName(const AString& s, bool* isValidOut)
     initializeTimeUnits();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_UNITS_UNKNOWN;
 
     for (std::vector<NiftiTimeUnitsEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -815,7 +815,7 @@ NiftiTimeUnitsEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     initializeTimeUnits();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_UNITS_UNKNOWN;
 
     for (std::vector<NiftiTimeUnitsEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
@@ -930,7 +930,7 @@ NiftiTransformEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_XFORM_UNKNOWN;
 
     for (std::vector<NiftiTransformEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -979,7 +979,7 @@ NiftiTransformEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     initialize();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_XFORM_UNKNOWN;
 
     for (std::vector<NiftiTransformEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();
@@ -1090,7 +1090,7 @@ NiftiVersionEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_VERSION_1;
 
     for (std::vector<NiftiVersionEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -1139,7 +1139,7 @@ NiftiVersionEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     initialize();
 
     bool validFlag = false;
-    Enum e;
+    Enum e = NIFTI_VERSION_1;
 
     for (std::vector<NiftiVersionEnum>::const_iterator iter = enumData.begin();
          iter != enumData.end();

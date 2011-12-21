@@ -40,6 +40,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Invalid event */
+        EVENT_INVALID,
         /** Delete a browser tab. */
         EVENT_BROWSER_TAB_DELETE,
         /** Get a browser tab by tab number */
