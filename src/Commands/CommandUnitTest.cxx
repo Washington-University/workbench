@@ -28,6 +28,7 @@
 
 #include "CaretAssertion.h"
 #include "CommandUnitTest.h"
+#include "Plane.h"
 #include "SystemUtilities.h"
 
 using namespace caret;
@@ -67,5 +68,9 @@ CommandUnitTest::executeOperation(ProgramParameters& /*parameters*/) throw (Comm
     std::ostream* stream = &std::cout;
     
     CaretAssertion::unitTest(*stream, true);
+    *stream << std::endl;
+    Plane::unitTest(*stream, true);
+    *stream << std::endl;
     SystemUtilities::unitTest(*stream, true);
+    *stream << std::endl;
 }

@@ -67,6 +67,7 @@ LogRecord.h
 MathFunctions.h
 MatrixFunctions.h
 NetworkException.h
+Plane.h
 ProgramParameters.h
 ProgramParametersException.h
 ProgressObject.h
@@ -114,6 +115,7 @@ LogManager.cxx
 LogRecord.cxx
 MathFunctions.cxx
 NetworkException.cxx
+Plane.cxx
 ProgramParameters.cxx
 ProgramParametersException.cxx
 ProgressObject.cxx
