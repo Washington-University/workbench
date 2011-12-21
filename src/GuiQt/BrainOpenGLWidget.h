@@ -77,6 +77,8 @@ namespace caret {
         
         void mouseReleaseEvent(QMouseEvent* e);
         
+        void wheelEvent(QWheelEvent* e);
+        
     private:
         void processMouseEvent(MouseEvent* mouseEvent);
         

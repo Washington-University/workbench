@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include <QMouseEvent>
+#include <QWheelEvent>
 
 #define __BRAIN_OPENGL_WIDGET_DEFINE__
 #include "BrainOpenGLWidget.h"
@@ -50,6 +51,7 @@
 #include "IdentificationManager.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemSurfaceNode.h"
+#include "MathFunctions.h"
 #include "Matrix4x4.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerYokingGroup.h"
@@ -231,6 +233,32 @@ BrainOpenGLWidget::paintGL()
 }
 
 /**
+ * Receive Mouse Wheel events from Qt.
+ * @param we
+ *   The wheel event.
+ */
+void 
+BrainOpenGLWidget::wheelEvent(QWheelEvent* we)
+{
+    const Qt::KeyboardModifiers keyModifiers = we->modifiers();
+    
+    const int wheelX = we->x();
+    const int wheelY = this->windowHeight[this->windowIndex] - we->y();
+    int delta = we->delta();
+    delta = MathFunctions::limitRange(delta, -2, 2);
+    
+    MouseEvent mouseEvent(MouseEventTypeEnum::WHEEL_MOVED,
+                          keyModifiers,
+                          wheelX,
+                          wheelY,
+                          0,
+                          delta);
+    this->processMouseEvent(&mouseEvent);
+    
+    we->accept();
+}
+
+/**
  * Receive mouse press events from Qt.
  * @param me
  *    The mouse event.
@@ -268,6 +296,8 @@ BrainOpenGLWidget::mousePressEvent(QMouseEvent* me)
         this->mousePressX = -10000;
         this->mousePressY = -10000;
     }
+    
+    me->accept();
 }
 
 /**
@@ -318,6 +348,8 @@ BrainOpenGLWidget::mouseReleaseEvent(QMouseEvent* me)
     
     this->mousePressX = -10000;
     this->mousePressY = -10000;
+    
+    me->accept();
 }
 
 /**
@@ -430,6 +462,7 @@ BrainOpenGLWidget::mouseMoveEvent(QMouseEvent* me)
         }
     }
     
+    me->accept();
 }
 
 /**
@@ -451,9 +484,17 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
          * out of its viewport without releasing the mouse
          * button.
          */
-        BrainOpenGLViewportContent* viewportContent =
-            this->getViewportContentAtXY(this->mousePressX, 
-                                     this->mousePressY);
+        BrainOpenGLViewportContent* viewportContent = NULL;
+        
+        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED) {
+            viewportContent = this->getViewportContentAtXY(mouseEvent->getX(), 
+                                                           mouseEvent->getY());
+        }
+        else {
+            viewportContent = this->getViewportContentAtXY(this->mousePressX, 
+                                                           this->mousePressY);
+        }
+        
         if (viewportContent != NULL) {
             BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
             if (browserTabContent != NULL) {

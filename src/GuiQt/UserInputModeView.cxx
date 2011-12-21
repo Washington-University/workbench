@@ -112,6 +112,9 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
         case MouseEventTypeEnum::LEFT_RELEASED:
             break;
         case MouseEventTypeEnum::WHEEL_MOVED:
+            this->processModelViewTransformation(mouseEvent, 
+                                                 browserTabContent, 
+                                                 openGLWidget);
             break;
     }
 }
@@ -210,10 +213,16 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         const float dx = mouseEvent->getDx();
         const float dy = mouseEvent->getDy();
         
+        /*
+         * Is this a mouse wheel event?
+         */
+        const bool isWheelEvent = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
+            
         //
         // Mouse moved with just left button down
         //
-        if (mouseEvent->isAnyKeyDown() == false) {
+        if ((isWheelEvent == false) 
+            && (mouseEvent->isAnyKeyDown() == false)) {
             //if (modelController->isRotationAllowed()) {
             /*
              * Special case when the surface is a right surface that is
@@ -250,8 +259,10 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         }
         //
         // Mouse moved with control key and left mouse button down
+        // OR is this a wheel event
         //
-        else if (mouseEvent->isControlKeyDown()) {
+        else if (isWheelEvent
+                 || mouseEvent->isControlKeyDown()) {
             float scale = modelController->getScaling(tabIndex);
             if (dy != 0) {
                 scale += (dy * 0.05);
