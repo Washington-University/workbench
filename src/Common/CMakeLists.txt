@@ -67,6 +67,7 @@ LogRecord.h
 MathFunctions.h
 MatrixFunctions.h
 NetworkException.h
+OctTree.h
 Plane.h
 ProgramParameters.h
 ProgramParametersException.h

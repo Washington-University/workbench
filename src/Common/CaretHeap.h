@@ -32,7 +32,7 @@
 
 namespace caret
 {
-    
+    ///heap base used to be able to modify existing data's keys, and to automatically indirect the heap data through indexing, so that all heap reordering involves only integer assignments
     template <typename T, typename K, typename C>
     class CaretHeapBase
     {
@@ -52,7 +52,7 @@ namespace caret
         ///primitive used to make the code a bit nicer, modifies the heap and the field in the data to point to it
         ///DOES NOT GUARANTEE CONSISTENT HEAP STATE
         void put(const int64_t& dataIndex, const int64_t& heapLoc);
-        //uses curiously recurring template pattern to use child class's comparison without virtual - can't pass parameters to a typedef, so this is the most convenient way for usage
+        //uses curiously recurring template pattern to use child class's comparison without virtual - can't make a typedef missing template parameters, so this is the most convenient way for usage
         inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
         void heapify_up(const int64_t& start);
         void heapify_down(const int64_t& start);
@@ -84,7 +84,46 @@ namespace caret
         ///get number of elements
         int64_t size() const;
     };
+
+    ///simpler heap base for more basic (and not indirected) use, give it pointers if your data struct is nontrivial
+    template <typename T, typename K, typename C>
+    class CaretSimpleHeapBase
+    {
+    public:
+        struct DataStruct
+        {
+            K m_key;
+            T m_data;
+            DataStruct(const K& key, const T& data) : m_key(key), m_data(data) { }
+        };
+    protected:
+        CaretSimpleHeapBase() { }//this is not a usable class by itself - use CaretMinHeap or CaretMaxHeap
+        std::vector<DataStruct> m_heap;
+        //uses curiously recurring template pattern to use child class's comparison without virtual
+        inline bool compare(const K& left, const K& right) { return C::mycompare(left, right); }
+        void heapify_up(const int64_t& start);
+        void heapify_down(const int64_t& start);
+    public:
+        
+        void push(const K& key, const T& data);
+        
+        ///look at the data of the top element
+        T& top(K* key = NULL);
+        
+        ///remove and return the top element
+        T pop(K* key = NULL);
+        
+        ///preallocate for efficiency, if you know about how big it will be
+        void reserve(int64_t expectedSize);
+        
+        ///check for empty
+        bool isEmpty() const;
+        
+        ///get number of elements
+        int64_t size() const;
+    };
     
+    ///minheap with advanced features
     template <typename T, typename K>
     class CaretMinHeap : public CaretHeapBase<T, K, CaretMinHeap<T, K> >
     {
@@ -95,8 +134,31 @@ namespace caret
         }
     };
     
+    ///maxheap with advanced features
     template <typename T, typename K>
     class CaretMaxHeap : public CaretHeapBase<T, K, CaretMinHeap<T, K> >
+    {
+    public:
+        static inline bool mycompare(const K& left, const K& right)
+        {
+            return right < left;
+        }
+    };
+    
+    ///basic minheap
+    template <typename T, typename K>
+    class CaretSimpleMinHeap : public CaretSimpleHeapBase<T, K, CaretSimpleMinHeap<T, K> >
+    {
+    public:
+        static inline bool mycompare(const K& left, const K& right)
+        {
+            return left < right;
+        }
+    };
+    
+    ///basic maxheap
+    template <typename T, typename K>
+    class CaretSimpleMaxHeap : public CaretSimpleHeapBase<T, K, CaretSimpleMinHeap<T, K> >
     {
     public:
         static inline bool mycompare(const K& left, const K& right)
@@ -188,7 +250,6 @@ namespace caret
     template <typename T, typename K, typename C>
     int64_t CaretHeapBase<T, K, C>::push(const K& key, const T& data)
     {
-        //std::cout << "pushing " << key << std::endl;
         int64_t dataLoc;
         if (m_unusedStore.size() > 0)
         {
@@ -240,6 +301,98 @@ namespace caret
 
     template <typename T, typename K, typename C>
     int64_t CaretHeapBase<T, K, C>::size() const
+    {
+        return (int64_t)m_heap.size();
+    }
+
+    template <typename T, typename K, typename C>
+    void CaretSimpleHeapBase<T, K, C>::heapify_down(const int64_t& start)
+    {
+        if (m_heap.size() == 0) return;
+        CaretAssertVectorIndex(m_heap, start);
+        int64_t cur = start, nextInd = (start << 1) + 1, mySize = (int64_t)m_heap.size();
+        DataStruct temp = m_heap[start];//save current data, don't swap it around until we stop
+        while (nextInd < mySize)
+        {
+            if (nextInd + 1 < mySize && compare(m_heap[nextInd + 1].m_key, m_heap[nextInd].m_key))
+            {
+                ++nextInd;
+            }
+            if (compare(m_heap[nextInd].m_key, temp.m_key))
+            {
+                m_heap[cur] = m_heap[nextInd];//move the best child up
+                cur = nextInd;//advance current
+                nextInd = (cur << 1) + 1;
+            } else {
+                break;
+            }
+        }
+        if (cur != start) m_heap[cur] = temp;//stopped, now we put it and finish, but only if we moved something
+    }
+    
+    template <typename T, typename K, typename C>
+    void CaretSimpleHeapBase<T, K, C>::heapify_up(const int64_t& start)
+    {
+        if (m_heap.size() == 0) return;
+        CaretAssertVectorIndex(m_heap, start);
+        int64_t cur = start, nextInd = (start - 1) >> 1;
+        DataStruct temp = m_heap[start];
+        while (cur > 0)
+        {
+            if (compare(temp.m_key, m_heap[nextInd].m_key))
+            {
+                m_heap[cur] = m_heap[nextInd];
+                cur = nextInd;
+                nextInd = (cur - 1) >> 1;
+            } else {
+                break;
+            }
+        }
+        if (cur != start) m_heap[cur] = temp;
+    }
+    
+    template <typename T, typename K, typename C>
+    T CaretSimpleHeapBase<T, K, C>::pop(K* key)
+    {
+        CaretAssert(m_heap.size() > 0);
+        T ret = m_heap[0].m_data;
+        if (key != NULL) *key = m_heap[0].m_key;
+        m_heap[0] = m_heap[m_heap.size() - 1];
+        m_heap.pop_back();
+        heapify_down(0);
+        return ret;
+    }
+
+    template <typename T, typename K, typename C>
+    void CaretSimpleHeapBase<T, K, C>::push(const K& key, const T& data)
+    {
+        m_heap.push_back(DataStruct(key, data));
+        heapify_up(m_heap.size() - 1);
+    }
+
+    template <typename T, typename K, typename C>
+    void CaretSimpleHeapBase<T, K, C>::reserve(int64_t expectedSize)
+    {
+        CaretAssert(expectedSize > 0);
+        m_heap.reserve(expectedSize);
+    }
+    
+    template <typename T, typename K, typename C>
+    T& CaretSimpleHeapBase<T, K, C>::top(K* key)
+    {
+        CaretAssert(m_heap.size() > 0);
+        if (key != NULL) *key = m_heap[0].m_key;
+        return m_heap[0].m_data;
+    }
+    
+    template <typename T, typename K, typename C>
+    bool CaretSimpleHeapBase<T, K, C>::isEmpty() const
+    {
+        return m_heap.size() == 0;
+    }
+
+    template <typename T, typename K, typename C>
+    int64_t CaretSimpleHeapBase<T, K, C>::size() const
     {
         return (int64_t)m_heap.size();
     }

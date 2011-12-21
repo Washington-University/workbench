@@ -53,15 +53,21 @@ void HeapTest::execute()
         testarray[i][1] = rand() % 1000;//new key
         myHeap.changekey(indexes[i], testarray[i][1]);
     }
-    int prevkey = 0, thiskey, thisdata;
+    int prevkey = 0, thiskey = 0, thisdata = 0;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
+        prevkey = thiskey;
         thisdata = myHeap.pop(&thiskey);
         if (i != 0 && thiskey < prevkey)
         {
             setFailed("key ordering failed at " + AString::number(i));
         }
-        if (thisdata < 5 || thisdata > NUM_ELEMS + 4 || testarray[thisdata - 5][1] != thiskey)
+        if (thisdata < 5 || thisdata > NUM_ELEMS + 4)
+        {
+            setFailed("data DESTROYED at " + AString::number(i));
+            continue;//don't let it segfault trying to mark it
+        }
+        if (testarray[thisdata - 5][1] != thiskey)
         {
             setFailed("data scrambled at " + AString::number(i));
         }
@@ -69,7 +75,38 @@ void HeapTest::execute()
         {
             setFailed("element duplicated at " + AString::number(i));
         }
+        markarray[thisdata - 5] = true;
+    }
+    CaretSimpleMinHeap<int, int> mySimpleHeap;
+    for (int i = 0; i < NUM_ELEMS; ++i)
+    {
+        testarray[i][0] = i + 5;//data
+        testarray[i][1] = rand() % 1000;//key
+        markarray[i] = false;
+        mySimpleHeap.push(testarray[i][1], testarray[i][0]);
+    }
+    thiskey = 0;
+    for (int i = 0; i < NUM_ELEMS; ++i)
+    {
         prevkey = thiskey;
+        thisdata = mySimpleHeap.pop(&thiskey);
+        if (i != 0 && thiskey < prevkey)
+        {
+            setFailed("key ordering failed at " + AString::number(i));
+        }
+        if (thisdata < 5 || thisdata > NUM_ELEMS + 4)
+        {
+            setFailed("data DESTROYED at " + AString::number(i));
+            continue;//don't let it segfault trying to mark it
+        }
+        if (testarray[thisdata - 5][1] != thiskey)
+        {
+            setFailed("data scrambled at " + AString::number(i));
+        }
+        if (markarray[thisdata - 5])
+        {
+            setFailed("element duplicated at " + AString::number(i));
+        }
         markarray[thisdata - 5] = true;
     }
 }
