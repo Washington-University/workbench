@@ -424,7 +424,7 @@ float SignedDistToSurfIndexed::dist(float coord[3])
 {
     int numIndex = (int)m_base->m_indexing.size();
     Vector3D tempvec;
-    float tempf, bestTriDist, absBestTriDist;
+    float tempf = -1.0f, bestTriDist = -1.0f, absBestTriDist = -1.0f;
     int best = 0;
     bool first = true;//a little slower, but cleaner
     int triMarkChangeCount = 0;
@@ -507,7 +507,7 @@ float SignedDistToSurfIndexed::distToTri(float coord[3], int triangle)
     float origLength;
     v21hat = v21hat.normal(&origLength);
     int type = 0;//tracks whether it is closest to a node, an edge, or the face
-    int32_t node1, node2;//tracks which nodes are involved
+    int32_t node1 = -1, node2 = -1;//tracks which nodes are involved
     float tempf = v21hat.dot(point - vert1);
     if (tempf < 0.0f)
     {

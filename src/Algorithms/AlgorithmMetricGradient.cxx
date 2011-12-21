@@ -176,7 +176,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
 #pragma omp CARET_PAR
             {
                 float somevec[3], xhat[3], yhat[3];
-                float sanity;
+                float sanity = 0.0f;
                 CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//this stores and reuses helpers, so it isn't really a problem to call inside the loop
 #pragma omp CARET_FOR schedule(dynamic)
                 for (int32_t i = 0; i < numNodes; ++i)
@@ -341,7 +341,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
 #pragma omp CARET_PAR
         {
             float somevec[3], xhat[3], yhat[3];
-            float sanity;
+            float sanity = 0.0f;
             const float* myMetricColumn = toProcess->getValuePointerForColumn(myColumn);
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
 #pragma omp CARET_FOR schedule(dynamic)

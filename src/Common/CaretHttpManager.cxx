@@ -83,7 +83,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
     {
         CaretLogInfo("NO AUTH FOUND for URL " + request.m_url);
     }
-    QNetworkReply* myReply;
+    QNetworkReply* myReply = NULL;
     QUrl myUrl = QUrl::fromUserInput(request.m_url);
     for (int32_t i = 0; i < (int32_t)request.m_queries.size(); ++i)
     {
