@@ -376,7 +376,7 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     this->setLayoutMargins(layout);
     layout->addWidget(typeWidget, 0, Qt::AlignLeft);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addWidget(thresholdAdjustmentWidget, 0, Qt::AlignLeft);
+    layout->addWidget(thresholdAdjustmentWidget);
     thresholdGroupBox->setFixedHeight(thresholdGroupBox->sizeHint().height());
     
     this->thresholdAdjustmentWidgetGroup = new WuQWidgetObjectGroup(this);
