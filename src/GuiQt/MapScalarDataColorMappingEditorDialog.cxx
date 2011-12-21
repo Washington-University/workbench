@@ -1026,9 +1026,9 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
              * retains its shape and color is still slightly visible
              */
             //Qt::BrushStyle brushStyle = Qt::SolidPattern;
-            //if (dataRGBA[ix4+3] <= 0.0) {
-            //    displayIt = false;
-            //}
+            if (dataRGBA[ix4+3] <= 0.0) {
+                displayIt = false;
+            }
             
             if (displayIt == false) {
                 color.setAlpha(0);
