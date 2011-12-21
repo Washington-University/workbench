@@ -392,6 +392,9 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     return thresholdGroupBox;
 }
 
+/**
+ * Called when a histogram control is changed.
+ */
 void 
 MapScalarDataColorMappingEditorDialog::histogramControlChanged()
 {
@@ -411,6 +414,9 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     this->histogramAllRadioButton = new QRadioButton("All");
     WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton, 
                                           "Displays all map data in the histogram");
+    this->histogramAllNoTwoNinetyEightRadioButton = new QRadioButton("All (no 2%/98%)");
+    WuQtUtilities::setToolTipAndStatusTip(this->histogramAllNoTwoNinetyEightRadioButton, 
+                                          "Excludes bottom 2% and top 2% but scales as if all data is displayed");
     this->histogramTwoNinetyEightRadioButton = new QRadioButton("2% to 98%");
     WuQtUtilities::setToolTipAndStatusTip(this->histogramTwoNinetyEightRadioButton, 
                                           "Excludes bottom 2% and top 2% of map data from the histogram");
@@ -419,6 +425,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     
     QButtonGroup* buttGroup = new QButtonGroup(this);
     buttGroup->addButton(this->histogramAllRadioButton);
+    buttGroup->addButton(this->histogramAllNoTwoNinetyEightRadioButton);
     buttGroup->addButton(this->histogramTwoNinetyEightRadioButton);
     QObject::connect(buttGroup, SIGNAL(buttonClicked(int)),
                      this, SLOT(histogramControlChanged()));
@@ -434,6 +441,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     QGridLayout* controlLayout = new QGridLayout(controlWidget);
     this->setLayoutMargins(controlLayout);
     controlLayout->addWidget(this->histogramAllRadioButton);
+    controlLayout->addWidget(this->histogramAllNoTwoNinetyEightRadioButton);
     controlLayout->addWidget(this->histogramTwoNinetyEightRadioButton);
     controlLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     controlLayout->addWidget(this->histogramUsePaletteColors);
@@ -842,26 +850,24 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         float stdDev = 0;
         float minValue = 0;
         float maxValue = 0;
-        int64_t numHistogramValues = 0;
-        int64_t* histogram = NULL;
         
         if (this->histogramAllRadioButton->isChecked()) {
             meanValue = statistics->getMean();
             stdDev    = statistics->getStandardDeviationSample();
             minValue  = statistics->getMinimumValue();
             maxValue  = statistics->getMaximumValue();
-
-            numHistogramValues = statistics->getHistogramNumberOfElements();
-            histogram = const_cast<int64_t*>(statistics->getHistogram());
+        }
+        else if (this->histogramAllNoTwoNinetyEightRadioButton->isChecked()) {
+            meanValue = statistics->getMean();
+            stdDev    = statistics->getStandardDeviationSample();
+            minValue  = statistics->getMinimumValue();
+            maxValue  = statistics->getMaximumValue();
         }
         else {
             meanValue = statistics->getMean96();
             stdDev    = statistics->getStandardDeviationSample96();
             minValue  = statistics->getMinimumValue96();
             maxValue  = statistics->getMaximumValue96();
-            
-            numHistogramValues = statistics->getHistogramNumberOfElements();
-            histogram = const_cast<int64_t*>(statistics->getHistogram96());
         }
         this->thresholdLowSlider->setRange(minValue, maxValue);
         this->thresholdLowSlider->setValue(lowValue);
@@ -923,14 +929,21 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
          * Get data for this histogram.
          */
         const int64_t numHistogramValues = statistics->getHistogramNumberOfElements();
-        const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
-        const float minValue = statistics->getMinimumValue();
-        const float maxValue = statistics->getMaximumValue();
+        int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
+        float minValue = statistics->getMinimumValue();
+        float maxValue = statistics->getMaximumValue();
         float displayedMinValue = minValue;
         float displayedMaxValue = maxValue;
-        if (this->histogramTwoNinetyEightRadioButton->isChecked()) {
+        if (this->histogramAllNoTwoNinetyEightRadioButton->isChecked()) {
             displayedMinValue  = statistics->getMinimumValue96();
             displayedMaxValue  = statistics->getMaximumValue96();
+        }
+        else if (this->histogramTwoNinetyEightRadioButton->isChecked()) {
+            histogram = const_cast<int64_t*>(statistics->getHistogram96());
+            minValue = statistics->getMinimumValue96();
+            maxValue = statistics->getMaximumValue96();
+            displayedMinValue = minValue;
+            displayedMaxValue = maxValue;
         }
         
         /*

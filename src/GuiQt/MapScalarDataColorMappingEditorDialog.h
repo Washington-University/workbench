@@ -132,6 +132,7 @@ namespace caret {
         QLabel* statisticsStandardDeviationLabel;
         
         QRadioButton* histogramAllRadioButton;
+        QRadioButton* histogramAllNoTwoNinetyEightRadioButton;
         QRadioButton* histogramTwoNinetyEightRadioButton;
         
         QCheckBox* histogramUsePaletteColors;
