@@ -290,6 +290,8 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     const int32_t numThresholdTypes = static_cast<int32_t>(thresholdTypes.size());
     
     this->thresholdTypeComboBox = new QComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdTypeComboBox, 
+                                          "Select thresholding off/on");
     for (int32_t i = 0; i < numThresholdTypes; i++) {
         this->thresholdTypeComboBox->addItem(PaletteThresholdTypeEnum::toGuiName(thresholdTypes[i]));
         this->thresholdTypeComboBox->setItemData(i, static_cast<int>(thresholdTypes[i]));
@@ -302,23 +304,31 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
     
     this->thresholdLowSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                    this);
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSlider->getWidget(), 
+                                          "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSlider);
     QObject::connect(this->thresholdLowSlider, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdLowSliderValueChanged(double)));
     this->thresholdHighSlider = new WuQDoubleSlider(Qt::Horizontal,
                                                     this);
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSlider->getWidget(), 
+                                          "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSlider);
     QObject::connect(this->thresholdHighSlider, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdHighSliderValueChanged(double)));
     
     const int spinBoxWidth = 80.0;
     this->thresholdLowSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdLowSpinBox, 
+                                          "Adjust the low threshold value");
     this->thresholdWidgetGroup->add(this->thresholdLowSpinBox);
     this->thresholdLowSpinBox->setFixedWidth(spinBoxWidth);
     this->thresholdLowSpinBox->setSingleStep(0.10);
     QObject::connect(this->thresholdLowSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(thresholdLowSpinBoxValueChanged(double)));
     this->thresholdHighSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdHighSpinBox, 
+                                          "Adjust the high threshold value");
     this->thresholdWidgetGroup->add(this->thresholdHighSpinBox);
     this->thresholdHighSpinBox->setFixedWidth(spinBoxWidth);
     this->thresholdHighSpinBox->setSingleStep(0.10);
@@ -326,7 +336,11 @@ MapScalarDataColorMappingEditorDialog::createThresholdSection()
                      this, SLOT(thresholdHighSpinBoxValueChanged(double)));
 
     this->thresholdShowInsideRadioButton = new QRadioButton("Show Data Inside Thresholds");
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdShowInsideRadioButton, 
+                                          "Displays only data greater than low threshold AND less than high threshold");
     this->thresholdShowOutsideRadioButton = new QRadioButton("Show Data Outside Thresholds");
+    WuQtUtilities::setToolTipAndStatusTip(this->thresholdShowOutsideRadioButton, 
+                                          "Displays data less than low threshold OR greater than high threshold");
     
     QButtonGroup* thresholdShowButtonGroup = new QButtonGroup(this);
     this->thresholdWidgetGroup->add(thresholdShowButtonGroup);
@@ -395,7 +409,11 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
      * Control section
      */
     this->histogramAllRadioButton = new QRadioButton("All");
+    WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton, 
+                                          "Displays all map data in the histogram");
     this->histogramTwoNinetyEightRadioButton = new QRadioButton("2% to 98%");
+    WuQtUtilities::setToolTipAndStatusTip(this->histogramTwoNinetyEightRadioButton, 
+                                          "Excludes bottom 2% and top 2% of map data from the histogram");
     
     this->histogramAllRadioButton->setChecked(true);
     
@@ -406,6 +424,8 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
                      this, SLOT(histogramControlChanged()));
     
     this->histogramUsePaletteColors = new QCheckBox("Colorize");
+    WuQtUtilities::setToolTipAndStatusTip(this->histogramUsePaletteColors, 
+                                          "If checked, histogram colors match colors mapped to data");
     this->histogramUsePaletteColors->setChecked(true);
     QObject::connect(this->histogramUsePaletteColors, SIGNAL(toggled(bool)),
                      this, SLOT(histogramControlChanged()));
@@ -480,6 +500,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Selection
      */
     this->paletteNameComboBox = new QComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->paletteNameComboBox, 
+                                          "Select palette for coloring map data");
     this->paletteWidgetGroup->add(this->paletteNameComboBox);
     QObject::connect(this->paletteNameComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(apply()));
@@ -487,6 +509,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Interpolate Colors
      */
     this->interpolateColorsCheckBox = new QCheckBox("Interpolate Colors");
+    WuQtUtilities::setToolTipAndStatusTip(this->interpolateColorsCheckBox, 
+                                          "Smooth colors for data between palette colors");
     this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
     QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
                      this, SLOT(apply()));
@@ -506,6 +530,12 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->scaleAutoPercentageRadioButton = new QRadioButton("Percent"); //"Auto Scale Percentage");
     this->scaleFixedRadioButton = new QRadioButton("Fixed"); //"Fixed Scale");
     
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoRadioButton, 
+                                          "Map (most negative, zero, most positive) data values to (-1, 0, 1) in palette");
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageRadioButton, 
+                                          "Map percentiles (NOT percentages) of (most neg, least neg, least pos, most pos) data values to (-1, 0, 0, 1) in palette");
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedRadioButton, 
+                                          "Map specified values (most neg, least neg, least pos, most pos) to (-1, 0, 0, 1) in palette");
     QButtonGroup* scaleButtonGroup = new QButtonGroup(this);
     this->paletteWidgetGroup->add(scaleButtonGroup);
     scaleButtonGroup->addButton(this->scaleAutoRadioButton);
@@ -523,6 +553,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Percentage mapping 
      */
     this->scaleAutoPercentageNegativeMaximumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMaximumSpinBox, 
+                                          "Map percentile (NOT percentage) most negative value to -1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
@@ -532,6 +564,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentageNegativeMinimumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentageNegativeMinimumSpinBox, 
+                                          "Map percentile (NOT percentage) least negative value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
@@ -541,6 +575,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentagePositiveMinimumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMinimumSpinBox, 
+                                          "Map percentile (NOT percentage) least positive value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
@@ -550,6 +586,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleAutoPercentagePositiveMaximumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleAutoPercentagePositiveMaximumSpinBox, 
+                                          "Map percentile (NOT percentage) most positive value to 1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
@@ -561,6 +599,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
      * Fixed mapping
      */
     this->scaleFixedNegativeMaximumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMaximumSpinBox, 
+                                          "Map this value to -1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedNegativeMaximumSpinBox);
     this->scaleFixedNegativeMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedNegativeMaximumSpinBox->setMinimum(-std::numeric_limits<float>::max());
@@ -571,6 +611,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedNegativeMinimumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedNegativeMinimumSpinBox, 
+                                          "Map this value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedNegativeMinimumSpinBox);
     this->scaleFixedNegativeMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedNegativeMinimumSpinBox->setMinimum(-std::numeric_limits<float>::max());
@@ -581,6 +623,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedPositiveMinimumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMinimumSpinBox, 
+                                          "Map this value to 0.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMinimumSpinBox);
     this->scaleFixedPositiveMinimumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedPositiveMinimumSpinBox->setMinimum(0.0);
@@ -591,6 +635,8 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
                      this, SLOT(apply()));
     
     this->scaleFixedPositiveMaximumSpinBox = new QDoubleSpinBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->scaleFixedPositiveMaximumSpinBox, 
+                                          "Map this value to 1.0 in palette");
     this->paletteWidgetGroup->add(this->scaleFixedPositiveMaximumSpinBox);
     this->scaleFixedPositiveMaximumSpinBox->setFixedWidth(fixedSpinBoxWidth);
     this->scaleFixedPositiveMaximumSpinBox->setMinimum(0.0);
@@ -636,6 +682,13 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->displayModeNegativeCheckBox);
     QObject::connect(this->displayModeNegativeCheckBox , SIGNAL(toggled(bool)),
                      this, SLOT(apply()));
+    
+    WuQtUtilities::setToolTipAndStatusTip(this->displayModePositiveCheckBox, 
+                                          "Enable/Disable the display of positive data");
+    WuQtUtilities::setToolTipAndStatusTip(this->displayModeZeroCheckBox, 
+                                          "Enable/Disable the display of \"near zero\" data");
+    WuQtUtilities::setToolTipAndStatusTip(this->displayModeNegativeCheckBox, 
+                                          "Enable/Disable the display of negative data");
     
     QWidget* displayModeWidget = new QWidget();
     QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeWidget);
