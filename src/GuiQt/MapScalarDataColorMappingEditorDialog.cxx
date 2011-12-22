@@ -522,7 +522,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->interpolateColorsCheckBox);
     QObject::connect(this->interpolateColorsCheckBox, SIGNAL(toggled(bool)), 
                      this, SLOT(apply()));
-    
+        
     QWidget* paletteSelectionWidget = new QWidget();
     QVBoxLayout* paletteSelectionLayout = new QVBoxLayout(paletteSelectionWidget);
     this->setLayoutMargins(paletteSelectionLayout);
@@ -755,8 +755,8 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
         return;
     }
     
-    this->paletteWidgetGroup->blockSignals(true);
-    this->thresholdWidgetGroup->blockSignals(true);
+    this->paletteWidgetGroup->blockAllSignals(true);
+    this->thresholdWidgetGroup->blockAllSignals(true);
     
     const AString title =
     this->caretMappableDataFile->getFileNameNoPath()
@@ -911,8 +911,8 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
     
     this->updateHistogramPlot();
     
-    this->paletteWidgetGroup->blockSignals(false);
-    this->thresholdWidgetGroup->blockSignals(false);
+    this->paletteWidgetGroup->blockAllSignals(false);
+    this->thresholdWidgetGroup->blockAllSignals(false);
 }
 
 /**

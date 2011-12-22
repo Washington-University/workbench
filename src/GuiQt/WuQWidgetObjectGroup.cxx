@@ -33,11 +33,12 @@ using namespace caret;
 
 /**
  * constructor.
- */
+ *
 WuQWidgetObjectGroup::WuQWidgetObjectGroup(QWidget* parent)
    : QObject(parent)
 {
 }
+*/
 
 /**
  * constructor.
@@ -126,10 +127,10 @@ WuQWidgetObjectGroup::setHidden(bool hidden)
 }
 
 /**
- * block signals.
+ * block signals.  
  */
 void 
-WuQWidgetObjectGroup::blockSignals(bool blockTheSignals)
+WuQWidgetObjectGroup::blockAllSignals(bool blockTheSignals)
 {
    for (int i = 0; i < this->objects.size(); i++) {
       this->objects.at(i)->blockSignals(blockTheSignals);

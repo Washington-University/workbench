@@ -1026,7 +1026,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->viewWidgetGroup->blockSignals(true);
+    this->viewWidgetGroup->blockAllSignals(true);
     
     /*
      * Enable buttons for valid types
@@ -1054,7 +1054,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
             break;
     }
     
-    this->viewWidgetGroup->blockSignals(false);
+    this->viewWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
@@ -1259,7 +1259,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->orientationWidgetGroup->blockSignals(true);
+    this->orientationWidgetGroup->blockAllSignals(true);
     
     const ModelDisplayController* mdc = this->getDisplayedModelController();
     if (mdc != NULL) {
@@ -1328,7 +1328,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
                                                   "View from a RIGHT perspective");
         }
     }
-    this->orientationWidgetGroup->blockSignals(false);
+    this->orientationWidgetGroup->blockAllSignals(false);
         
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1484,7 +1484,7 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     ModelDisplayControllerWholeBrain* wholeBrainController = browserTabContent->getSelectedWholeBrainModel();
     const int32_t tabNumber = browserTabContent->getTabNumber();
     
-    this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(true);
+    this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(true);
     
     std::vector<SurfaceTypeEnum::Enum> availableSurfaceTypes;
     wholeBrainController->getAvailableSurfaceTypes(availableSurfaceTypes);
@@ -1515,7 +1515,7 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setValue(wholeBrainController->getLeftRightSeparation(tabNumber));
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setValue(wholeBrainController->getCerebellumSeparation(tabNumber));
     
-    this->wholeBrainSurfaceOptionsWidgetGroup->blockSignals(false);
+    this->wholeBrainSurfaceOptionsWidgetGroup->blockAllSignals(false);
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1657,7 +1657,7 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->volumeIndicesWidgetGroup->blockSignals(true);
+    this->volumeIndicesWidgetGroup->blockAllSignals(true);
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
@@ -1754,7 +1754,7 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
         this->volumeIndicesZcoordSpinBox->setValue(sliceCoords[2]);
     }
     
-    this->volumeIndicesWidgetGroup->blockSignals(false);
+    this->volumeIndicesWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1796,9 +1796,9 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->toolsWidgetGroup->blockSignals(true);
+    this->toolsWidgetGroup->blockAllSignals(true);
     
-    this->toolsWidgetGroup->blockSignals(false);
+    this->toolsWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1863,7 +1863,7 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->windowWidgetGroup->blockSignals(true);
+    this->windowWidgetGroup->blockAllSignals(true);
     
     BrowserTabYoking* browserTabYoking = browserTabContent->getBrowserTabYoking();
     std::vector<BrowserTabContent*> yokableBrowserTabContent;
@@ -1871,7 +1871,7 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     
     this->windowYokeGroupComboBox->setCurrentIndex(yokeToGroup->getYokingGroupIndex());
     
-    this->windowWidgetGroup->blockSignals(false);
+    this->windowWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1927,9 +1927,9 @@ BrainBrowserWindowToolBar::updateConnectomeDBWidget(BrowserTabContent* /*browser
 
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
 
-    this->connectomeDBWidgetGroup->blockSignals(true);
+    this->connectomeDBWidgetGroup->blockAllSignals(true);
 
-    this->connectomeDBWidgetGroup->blockSignals(false);
+    this->connectomeDBWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -1986,11 +1986,11 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->singleSurfaceSelectionWidgetGroup->blockSignals(true);
+    this->singleSurfaceSelectionWidgetGroup->blockAllSignals(true);
     
     this->surfaceSurfaceSelectionControl->updateControl(browserTabContent->getSurfaceModelSelector());
     
-    this->singleSurfaceSelectionWidgetGroup->blockSignals(false);
+    this->singleSurfaceSelectionWidgetGroup->blockAllSignals(false);
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -2068,7 +2068,7 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
 
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->volumeMontageWidgetGroup->blockSignals(true);
+    this->volumeMontageWidgetGroup->blockAllSignals(true);
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
@@ -2081,7 +2081,7 @@ BrainBrowserWindowToolBar::updateVolumeMontageWidget(BrowserTabContent* /*browse
     }
     
     
-    this->volumeMontageWidgetGroup->blockSignals(false);
+    this->volumeMontageWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
@@ -2259,7 +2259,7 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
-    this->volumePlaneWidgetGroup->blockSignals(true);
+    this->volumePlaneWidgetGroup->blockAllSignals(true);
     
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
@@ -2295,7 +2295,7 @@ BrainBrowserWindowToolBar::updateVolumePlaneWidget(BrowserTabContent* /*browserT
     }
 
     
-    this->volumePlaneWidgetGroup->blockSignals(false);
+    this->volumePlaneWidgetGroup->blockAllSignals(false);
 
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }

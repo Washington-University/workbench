@@ -408,7 +408,7 @@ void
 OverlaySelectionControlLayer::updateControl(BrowserTabContent* browserTabContent)
 {
     int numberOfDisplayedLayers = 3;
-    this->widgetGroup->blockSignals(true);
+    this->widgetGroup->blockAllSignals(true);
     this->updateOverlayControl(browserTabContent);
     numberOfDisplayedLayers = browserTabContent->getOverlaySet()->getNumberOfDisplayedOverlays();
  
@@ -435,7 +435,7 @@ OverlaySelectionControlLayer::updateControl(BrowserTabContent* browserTabContent
     this->moveUpAction->setEnabled(isMoveUpEnabled);
     this->removeAction->setEnabled(isRemoveEnabled);
     
-    this->widgetGroup->blockSignals(false);
+    this->widgetGroup->blockAllSignals(false);
 }
 
 /**

@@ -41,7 +41,7 @@ namespace caret {
         Q_OBJECT
         
     public:
-        WuQWidgetObjectGroup(QWidget* parent);
+        //WuQWidgetObjectGroup(QWidget* parent);
         
         WuQWidgetObjectGroup(QObject* parent);
         
@@ -51,8 +51,10 @@ namespace caret {
         
         void clear();
         
+        QObject* getObject() { return dynamic_cast<QObject*>(this); }
+        
     public slots:
-        void blockSignals(bool blockTheSignals);
+        void blockAllSignals(bool blockTheSignals);
         
         void setEnabled(bool enable);
         
@@ -68,6 +70,10 @@ namespace caret {
         
     protected:
         QVector<QObject*> objects;
+        
+    private:
+        // prevent access to QObject's blockSignals() method
+        bool blockSignals(bool);
     };
 } // namespace
 

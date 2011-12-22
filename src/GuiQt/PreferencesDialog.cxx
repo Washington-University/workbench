@@ -102,7 +102,7 @@ PreferencesDialog::~PreferencesDialog()
 void 
 PreferencesDialog::updateDialog()
 {
-    this->allWidgets->blockSignals(true);
+    this->allWidgets->blockAllSignals(true);
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     
@@ -131,7 +131,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
     
-    this->allWidgets->blockSignals(false);
+    this->allWidgets->blockAllSignals(false);
 }
 
 /**

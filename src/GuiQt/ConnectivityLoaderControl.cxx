@@ -318,7 +318,7 @@ ConnectivityLoaderControl::updateControl()
      */
     numLoaderWidgets = static_cast<int32_t>(this->selectorEnabledCheckBoxes.size());
     for (int32_t i = 0; i < numLoaderWidgets; i++) {
-        this->rowWidgetGroups[i]->blockSignals(true);
+        this->rowWidgetGroups[i]->blockAllSignals(true);
         
         ConnectivityLoaderFile* clf = NULL;
         if (i < numberOfConnectivityLoaders) {
@@ -360,7 +360,7 @@ ConnectivityLoaderControl::updateControl()
             this->rowWidgetGroups[i]->setVisible(false);
         }
         
-        this->rowWidgetGroups[i]->blockSignals(false);
+        this->rowWidgetGroups[i]->blockAllSignals(false);
     }
     
     //this->adjustSize();
