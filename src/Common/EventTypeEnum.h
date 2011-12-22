@@ -82,6 +82,8 @@ public:
         EVENT_SPEC_FILE_READ_DATA_FILES,
         /** Invalidate surface coloring */
         EVENT_SURFACE_COLORING_INVALIDATE,
+        /** Get surfaces */
+        EVENT_SURFACES_GET,
         /** Update the User-Interface */
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */

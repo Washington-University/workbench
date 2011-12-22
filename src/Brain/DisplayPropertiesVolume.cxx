@@ -38,12 +38,33 @@ using namespace caret;
  * Display properties for volume slices.
  */
 
+#include "CaretAssert.h"
+#include "VolumeSurfaceOutlineSelection.h"
+
 /**
  * Constructor.
  */
 DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
 : DisplayProperties(brain)
 {
+    int32_t colorCounter = 0;
+    for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
+        VolumeSurfaceOutlineSelection* vsos = new VolumeSurfaceOutlineSelection();
+        bool validColor = false;
+        CaretColorEnum::Enum color = CaretColorEnum::fromIntegerCode(colorCounter,
+                                                                     &validColor);
+        if (validColor == false) {
+            colorCounter = 0;
+            color = CaretColorEnum::fromIntegerCode(colorCounter,
+                                                    &validColor);
+        }
+        vsos->setColor(color);
+        if (i == 0) {
+            vsos->setDisplayed(true);
+        }
+        this->volumeSurfaceOutlineSelections.push_back(vsos);
+        colorCounter++;
+    }
 }
 
 /**
@@ -51,7 +72,9 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
  */
 DisplayPropertiesVolume::~DisplayPropertiesVolume()
 {
-    
+    for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
+        delete this->volumeSurfaceOutlineSelections[i];
+    }
 }
 
 /**
@@ -70,6 +93,34 @@ void
 DisplayPropertiesVolume::update()
 {
     
+}
+
+/**
+ * Get the volume surface outline at the given index.
+ * @param indx
+ *   Index of volume surface outline.
+ * @return
+ *   Volume surface outline.
+ */
+VolumeSurfaceOutlineSelection* 
+DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx)
+{
+    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
+    return this->volumeSurfaceOutlineSelections[indx];
+}
+
+/**
+ * Get the volume surface outline at the given index.
+ * @param indx
+ *   Index of volume surface outline.
+ * @return
+ *   Volume surface outline.
+ */
+const VolumeSurfaceOutlineSelection* 
+DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx) const
+{
+    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
+    return this->volumeSurfaceOutlineSelections[indx];
 }
 
 

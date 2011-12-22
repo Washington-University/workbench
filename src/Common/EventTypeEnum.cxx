@@ -150,6 +150,10 @@ EventTypeEnum::initialize()
                                      "EVENT_SURFACE_COLORING_INVALIDATE", 
                                      "Invalidate surface coloring"));
     
+    enumData.push_back(EventTypeEnum(EVENT_SURFACES_GET, 
+                                     "EVENT_SURFACES_GET", 
+                                     "Get Surfaces"));
+    
     enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE, 
                                      "EVENT_USER_INTERFACE_UPDATE", 
                                      "Update the user-interface"));

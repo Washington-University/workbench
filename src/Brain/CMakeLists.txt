@@ -74,6 +74,7 @@ EventModelDisplayControllerGetAll.h
 EventModelDisplayControllerYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfaceColoringInvalidate.h
+EventSurfacesGet.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemSurfaceNode.h
@@ -96,10 +97,12 @@ OverlaySet.h
 SessionManager.h
 SphereOpenGL.h
 Surface.h
+SurfaceSelection.h
 SurfaceNodeColoring.h
 VolumeSliceIndicesSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
+VolumeSurfaceOutlineSelection.h
 YokingTypeEnum.h
 
 Brain.cxx
@@ -128,6 +131,7 @@ EventModelDisplayControllerGetAll.cxx
 EventModelDisplayControllerYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfaceColoringInvalidate.cxx
+EventSurfacesGet.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemSurfaceNode.cxx
@@ -150,10 +154,12 @@ OverlaySet.cxx
 SessionManager.cxx
 SphereOpenGL.cxx
 Surface.cxx
+SurfaceSelection.cxx
 SurfaceNodeColoring.cxx
 VolumeSliceIndicesSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx
+VolumeSurfaceOutlineSelection.cxx
 YokingTypeEnum.cxx
 )
 

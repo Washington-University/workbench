@@ -37,6 +37,7 @@
 #include "EventNodeDataFilesGet.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
+#include "EventSurfacesGet.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
@@ -64,6 +65,8 @@ BrainStructure::BrainStructure(Brain* brain,
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_SURFACES_GET);
 }
 
 /**
@@ -664,6 +667,17 @@ BrainStructure::receiveEvent(Event* event)
             this->nodeAttributes[i]->setIdentified(false);
         }
         idRemovalEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACES_GET) {
+        EventSurfacesGet* getSurfacesEvent =
+            dynamic_cast<EventSurfacesGet*>(event);
+        CaretAssert(getSurfacesEvent);
+        
+        const int32_t numSurfaces = this->getNumberOfSurfaces();
+        for (int32_t i = 0; i < numSurfaces; i++) {
+            getSurfacesEvent->addSurface(this->getSurface(i));
+        }
+        getSurfacesEvent->setEventProcessed();
     }
 }
 

@@ -31,6 +31,7 @@ ByteOrderEnum.h
 ByteSwapping.h
 CaretAssert.h
 CaretAssertion.h
+CaretColorEnum.h
 CaretException.h
 CaretFunctionName.h
 CaretHeap.h
@@ -87,6 +88,7 @@ BoundingBox.cxx
 ByteOrderEnum.cxx
 ByteSwapping.cxx
 CaretAssertion.cxx
+CaretColorEnum.cxx
 CaretException.cxx
 CaretHttpManager.cxx
 CaretLogger.cxx

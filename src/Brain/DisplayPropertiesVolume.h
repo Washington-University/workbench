@@ -30,6 +30,8 @@
 
 namespace caret {
 
+    class VolumeSurfaceOutlineSelection;
+    
     class DisplayPropertiesVolume : public DisplayProperties {
         
     public:
@@ -41,16 +43,23 @@ namespace caret {
         
         void update();
         
+        static const int32_t MAXIMUM_NUMBER_OF_SURFACE_OUTLINES;
+        
+        VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx);
+        
+        const VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx) const;
+        
     private:
         DisplayPropertiesVolume(const DisplayPropertiesVolume&);
 
         DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
         
     private:
+        std::vector<VolumeSurfaceOutlineSelection*> volumeSurfaceOutlineSelections;
     };
     
 #ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const int32_t DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES = 10;
 #endif // __DISPLAY_PROPERTIES_VOLUME_DECLARE__
 
 } // namespace

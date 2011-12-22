@@ -71,6 +71,7 @@
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
 #include "PaletteScalarAndColor.h"
+#include "Plane.h"
 #include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
@@ -78,6 +79,7 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "VolumeFile.h"
+#include "VolumeSurfaceOutlineSelection.h"
 
 using namespace caret;
 
@@ -1087,6 +1089,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                 this->drawVolumeOrthogonalSlice(slicePlane, 
                                                                 sliceIndex, 
                                                                 volumeDrawInfo);
+                                this->drawVolumeSurfaceOutlines(volumeController, 
+                                                                slicePlane, 
+                                                                sliceIndex, 
+                                                                underlayVolumeFile);
                                 this->drawVolumeAxesCrosshairs(slicePlane, 
                                                                selectedVoxelXYZ);
                             }
@@ -1122,6 +1128,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(),
                                                         volumeDrawInfo);
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        VolumeSliceViewPlaneEnum::AXIAL, 
+                                                        selectedSlices->getSliceIndexAxial(), 
+                                                        underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::AXIAL, 
@@ -1135,7 +1145,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(),
                                                         volumeDrawInfo);
-                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL, 
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        VolumeSliceViewPlaneEnum::CORONAL, 
+                                                        selectedSlices->getSliceIndexCoronal(), 
+                                                        underlayVolumeFile);
+                       this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::CORONAL, 
                                                    coronalVP);
@@ -1148,6 +1162,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(),
                                                         volumeDrawInfo);
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        VolumeSliceViewPlaneEnum::PARASAGITTAL, 
+                                                        selectedSlices->getSliceIndexParasagittal(), 
+                                                        underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
@@ -1163,6 +1181,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(),
                                                         volumeDrawInfo);
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        slicePlane, 
+                                                        selectedSlices->getSliceIndexAxial(), 
+                                                        underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -1176,6 +1198,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(),
                                                         volumeDrawInfo);
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        slicePlane, 
+                                                        selectedSlices->getSliceIndexCoronal(), 
+                                                        underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -1189,6 +1215,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         this->drawVolumeOrthogonalSlice(slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(),
                                                         volumeDrawInfo);
+                        this->drawVolumeSurfaceOutlines(volumeController, 
+                                                        slicePlane, 
+                                                        selectedSlices->getSliceIndexParasagittal(), 
+                                                        underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
                         this->drawVolumeAxesLabels(slicePlane, 
@@ -1783,6 +1813,143 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
     
     glEnable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
+}
+
+/**
+ * Draw surface outlines on volume slices.
+ */
+void 
+BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume* volumeController,
+                                                    const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                                    const int64_t sliceIndex,
+                                                    VolumeFile* underlayVolume)
+{
+    CaretAssert(volumeController);
+    CaretAssert(underlayVolume);
+    
+    const Brain* brain = volumeController->getBrain();
+    const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
+    
+    std::vector<int64_t> dim;
+    underlayVolume->getDimensions(dim);
+    
+    //
+    // Transform the surface as needed
+    //
+    float p1[3];
+    float p2[3];
+    float p3[3];
+    switch(slicePlane) {
+        case VolumeSliceViewPlaneEnum::ALL:
+            return;
+            break;
+        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+        {
+            underlayVolume->indexToSpace(sliceIndex, 0, 0, p1);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, 0, p2);
+            underlayVolume->indexToSpace(sliceIndex, dim[1] - 1, dim[2] - 1, p3);
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::CORONAL:
+        {
+            underlayVolume->indexToSpace(0, sliceIndex, 0, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, 0, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, sliceIndex, dim[2] - 1, p3);
+        }
+            break;
+        case VolumeSliceViewPlaneEnum::AXIAL:
+        {
+            underlayVolume->indexToSpace(0, 0, sliceIndex, p1);
+            underlayVolume->indexToSpace(dim[0] - 1, 0, sliceIndex, p2);
+            underlayVolume->indexToSpace(dim[0] - 1, dim[1] - 1, sliceIndex, p3);
+        }
+            break;
+    }
+    
+    Plane plane(p1, p2, p3);
+    if (plane.isValidPlane() == false) {
+        return;
+    }
+    
+    /*
+     * Extends the length the lines that are drawn
+     * and help prevents small gaps in the surface
+     * outline.
+     */
+    bool stretchLinesFlag = true;
+    float stretchDiff = 0.4f;
+    float stretchFactor = 1.0f + stretchDiff;
+    float stretchFactor2 = 1.0f + stretchDiff * 2.0f;
+    
+    float intersectionPoint1[3];
+    float intersectionPoint2[3];
+    for (int io = 0; 
+         io < DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; 
+         io++) {
+        const VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
+        if (outline->isDisplayed()) {
+            const Surface* surface = outline->getSurface();
+            if (surface != NULL) {
+                const float thickness = outline->getThickness();
+                
+                int numTriangles = surface->getNumberOfTriangles();
+                
+                const CaretColorEnum::Enum outlineColor = outline->getColor();
+                const bool surfaceColorFlag = (outlineColor == CaretColorEnum::SURFACE);
+                const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+                
+                glColor3fv(CaretColorEnum::toRGB(outlineColor));
+                glLineWidth(thickness);
+                glBegin(GL_LINES);
+                for (int it = 0; it < numTriangles; it++) {
+                    const int32_t* triangleNodes = surface->getTriangle(it);
+                    const float* c1 = surface->getCoordinate(triangleNodes[0]);
+                    const float* c2 = surface->getCoordinate(triangleNodes[1]);
+                    const float* c3 = surface->getCoordinate(triangleNodes[2]);
+                    
+                    if (plane.triangleIntersectPlane(c1, c2, c3,
+                                                     intersectionPoint1,
+                                                     intersectionPoint2)) {
+                        if (surfaceColorFlag) {
+                            glColor3fv(&rgbaColoring[triangleNodes[0] * 3]);
+                        }
+                        if (stretchLinesFlag) {
+                            float dx = intersectionPoint2[0] - intersectionPoint1[0];
+                            float dy = intersectionPoint2[1] - intersectionPoint1[1];
+                            float dz = intersectionPoint2[2] - intersectionPoint1[2];
+                            float d = (float)std::sqrt(dx*dx + dy*dy + dz*dz);
+                            if (d > 0.0f) {
+                                intersectionPoint2[0] = intersectionPoint1[0] + dx * stretchFactor;
+                                intersectionPoint2[1] = intersectionPoint1[1] + dy * stretchFactor;
+                                intersectionPoint2[2] = intersectionPoint1[2] + dz * stretchFactor;
+                                intersectionPoint1[0] = intersectionPoint2[0] - dx * stretchFactor2;
+                                intersectionPoint1[1] = intersectionPoint2[1] - dy * stretchFactor2;
+                                intersectionPoint1[2] = intersectionPoint2[2] - dz * stretchFactor2;
+                            }
+                        }
+                        switch(slicePlane) {
+                            case VolumeSliceViewPlaneEnum::ALL:
+                                return;
+                                break;
+                            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                                glVertex3f(intersectionPoint1[1], intersectionPoint1[2], 1.0f);
+                                glVertex3f(intersectionPoint2[1], intersectionPoint2[2], 1.0f);
+                                break;
+                            case VolumeSliceViewPlaneEnum::CORONAL:
+                                glVertex3f(intersectionPoint1[0], intersectionPoint1[2], 1.0f);
+                                glVertex3f(intersectionPoint2[0], intersectionPoint2[2], 1.0f);
+                                break;
+                            case VolumeSliceViewPlaneEnum::AXIAL:
+                                glVertex3f(intersectionPoint1[0], intersectionPoint1[1], 0.01f);
+                                glVertex3f(intersectionPoint2[0], intersectionPoint2[1], 0.01f);
+                                break;
+                        }
+                    }
+                }
+                glEnd();
+            }
+        }
+    }
 }
 
 /**
