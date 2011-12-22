@@ -1171,6 +1171,9 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
                 break;
     }
 
+    if (this->toolBox->isVisible() == false) {
+        this->viewMenuShowToolBoxAction->trigger();
+    }
     if (this->toolBox->isFloating() == false) {
         this->shrinkToolbox();
     }
