@@ -59,9 +59,6 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
                                                     &validColor);
         }
         vsos->setColor(color);
-        if (i == 0) {
-            vsos->setDisplayed(true);
-        }
         this->volumeSurfaceOutlineSelections.push_back(vsos);
         colorCounter++;
     }
