@@ -136,7 +136,7 @@ namespace caret
     
     ///maxheap with advanced features
     template <typename T, typename K>
-    class CaretMaxHeap : public CaretHeapBase<T, K, CaretMinHeap<T, K> >
+    class CaretMaxHeap : public CaretHeapBase<T, K, CaretMaxHeap<T, K> >
     {
     public:
         static inline bool mycompare(const K& left, const K& right)
@@ -158,7 +158,7 @@ namespace caret
     
     ///basic maxheap
     template <typename T, typename K>
-    class CaretSimpleMaxHeap : public CaretSimpleHeapBase<T, K, CaretSimpleMinHeap<T, K> >
+    class CaretSimpleMaxHeap : public CaretSimpleHeapBase<T, K, CaretSimpleMaxHeap<T, K> >
     {
     public:
         static inline bool mycompare(const K& left, const K& right)

@@ -7,7 +7,7 @@ namespace caret
 {
     ///low level Oct structure with a bunch of helper members, use it to build your own tree of Octs, possibly by extension
     template<typename T>
-    struct Oct<T>
+    struct Oct
     {
         //data
         T m_data;
@@ -16,6 +16,7 @@ namespace caret
         Oct<T>* m_parent;
         bool m_leaf;
         float m_bounds[3][3];
+        
         Oct();
         Oct(const float minCoords[3], const float maxCoords[3]);
         ~Oct();
@@ -70,7 +71,7 @@ namespace caret
     }
     
     template<typename T>
-    void makeChildren()
+    void Oct<T>::makeChildren()
     {
         m_leaf = false;
         int ijk[3];
@@ -132,10 +133,10 @@ namespace caret
     }
     
     template<typename T>
-    float Oct<T>::distToPoint(const float point[3]);
+    float Oct<T>::distToPoint(const float point[3])
     {
         float temp[3];
-        for (i = 0; i < 3; ++i)
+        for (int i = 0; i < 3; ++i)
         {
             if (point[i] < m_bounds[i][0])
             {
@@ -269,7 +270,7 @@ namespace caret
     }
     
     template<typename T>
-    Oct* Oct<T>::containingChild(const float point[3], int* whichOct)
+    Oct<T>* Oct<T>::containingChild(const float point[3], int* whichOct)
     {
         int myOct[3];
         for (int i = 0; i < 3; ++i)

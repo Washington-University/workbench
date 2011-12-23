@@ -28,6 +28,7 @@
 #include "AbstractAlgorithm.h"
 #include "Vector3D.h"
 #include "CaretMutex.h"
+#include "OctTree.h"
 #include <vector>
 
 namespace caret {
@@ -65,7 +66,7 @@ namespace caret {
     
     class SignedDistToSurfIndexedBase
     {
-        struct triIndexPoint
+        /*struct triIndexPoint
         {
             Vector3D m_loc;
             std::vector<int> m_triList;
@@ -74,10 +75,28 @@ namespace caret {
                 m_loc = location;
             }
         };
-        std::vector<triIndexPoint> m_indexing;
+        std::vector<triIndexPoint> m_indexing;//*/
+        struct TriVector
+        {//specifically so we can cleanly deallocate the vector from non-leaf nodes when they split
+            std::vector<int32_t>* m_triList;
+            TriVector() { m_triList = new std::vector<int>(); }
+            ~TriVector() { if (m_triList != NULL) delete m_triList; }
+            void freeData()
+            {
+                if (m_triList != NULL)
+                {
+                    delete m_triList;
+                    m_triList = NULL;
+                }
+            }
+        };
+        static const int NUM_TRIS_TO_TEST = 50;//test for whether to split leaf at this number
+        static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
+        Oct<TriVector>* m_indexRoot;
         SurfaceFile* m_surface;
-        float m_avgEdge, m_maxEdge, m_indexLength;
+        float m_maxEdge;//, m_avgEdge, m_indexLength;
         SignedDistToSurfIndexedBase();
+        void addTriangle(Oct<TriVector>* thisOct, int32_t triangle, float minCoord[3], float maxCoord[3]);
     public:
         SignedDistToSurfIndexedBase(SurfaceFile* mySurf);
         friend class SignedDistToSurfIndexed;
@@ -93,7 +112,15 @@ namespace caret {
         CaretArray<int> m_triMarked;
         CaretArray<int> m_triMarkChanged;
         SignedDistToSurfIndexed();
-        float distToTri(float coord[3], int triangle);
+        struct ClosestPointInfo
+        {
+            int type;
+            int32_t node1, node2, triangle;
+            Vector3D tempPoint;
+        };
+        float unsignedDistToTri(float coord[3], int32_t triangle, ClosestPointInfo& myInfo);
+        int computeSign(float coord[3], ClosestPointInfo myInfo);
+        bool pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis);
     public:
         SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIndexedBase> myBase);
         float dist(float coord[3]);
