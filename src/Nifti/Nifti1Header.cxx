@@ -270,7 +270,7 @@ void Nifti1Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(Nifti
 
 void Nifti1Header::getSForm(std::vector < std::vector <float> > &sForm)
 {
-    sForm.resize(4);
+    sForm.resize(4);//TODO: make sure we have a valid sform code
     for(uint i = 0;i<sForm.size();i++) sForm[i].resize(4);
     for(int i = 0;i<4;i++)
     {
@@ -285,12 +285,13 @@ void Nifti1Header::getSForm(std::vector < std::vector <float> > &sForm)
 void Nifti1Header::setSForm(const std::vector < std::vector <float> > &sForm)
 {
     if(sForm.size()<3) return;//TODO should throw an exception
-    for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
+    for(uint i = 0;i<sForm.size();i++) if(sForm[i].size() <4 ) return;
     for(int i = 0;i<4;i++)
     {
         m_header.srow_x[i] = sForm[0][i];
         m_header.srow_y[i] = sForm[1][i];
         m_header.srow_z[i] = sForm[2][i];
     }
+    m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;//use the literal for "1", because currently we haven't the faintest idea - the coordinate type doesn't really belong in the file anyway
 }
 

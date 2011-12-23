@@ -936,7 +936,7 @@ void SignedDistToSurfIndexedBase::addTriangle(Oct<TriVector>* thisOct, int32_t t
                 totalSize += splitSize;
                 if (splitSize != 8) ++numSplit;
             }
-            if (numSplit > 0 && totalSize < 1.5f * numTris)//don't split if all triangles end up in all child octs, and try to balance speedup with memory usage
+            if (numSplit > 0 && totalSize < 3.0f * numTris)//don't split if all triangles end up in all child octs, and try to balance speedup with memory usage
             {
                 thisOct->makeChildren();//do the split
                 for (int i = 0; i < numTris; ++i)//gather data on how it would end up splitting

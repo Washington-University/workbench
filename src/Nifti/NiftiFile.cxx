@@ -367,7 +367,10 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
         header.setSForm(vol.getVolumeSpace());
         std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);
+        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
+        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
+        myDims.resize(4);
         header.setDimensions(myDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
@@ -376,16 +379,24 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         headerIO.getHeader(header);
         header.setSForm(vol.getVolumeSpace());
         std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);
+        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
+        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
+        myDims.resize(4);
         header.setDimensions(myDims);
+        headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
         Nifti2Header header;
         headerIO.getHeader(header);
         header.setSForm(vol.getVolumeSpace());
         std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);
+        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
+        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
+        myDims.resize(4);
         header.setDimensions(myDims);
+        headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     }
     matrix.setVolume(vol);
