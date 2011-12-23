@@ -89,6 +89,9 @@ namespace caret {
         bool operator==(const T* right) const;
         bool operator!=(const T* right) const;
         T& operator[](const int64_t& index);
+        T& operator[](const int32_t& index);
+        T& operator[](const uint64_t& index);
+        T& operator[](const uint32_t& index);
         T* getArray();
         operator T*();
         int64_t size() const;
@@ -336,6 +339,30 @@ namespace caret {
     {
         CaretAssert(m_pointerRef != NULL);
         CaretAssert(index >= 0 && index < m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const int32_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index >= 0 && index < m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const uint64_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index < m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const uint32_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index < m_pointerRef->m_size);
         return m_pointerRef->m_pointer[index];
     }
 
