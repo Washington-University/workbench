@@ -1932,12 +1932,12 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
                                 return;
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                glVertex3f(intersectionPoint1[1], intersectionPoint1[2], 1.0f);
-                                glVertex3f(intersectionPoint2[1], intersectionPoint2[2], 1.0f);
+                                glVertex3f(1.0, intersectionPoint1[1], intersectionPoint1[2]);
+                                glVertex3f(1.0, intersectionPoint2[1], intersectionPoint2[2]);
                                 break;
                             case VolumeSliceViewPlaneEnum::CORONAL:
-                                glVertex3f(intersectionPoint1[0], intersectionPoint1[2], 1.0f);
-                                glVertex3f(intersectionPoint2[0], intersectionPoint2[2], 1.0f);
+                                glVertex3f(intersectionPoint1[0], 1.0, intersectionPoint1[2]);
+                                glVertex3f(intersectionPoint2[0], 1.0, intersectionPoint2[2]);
                                 break;
                             case VolumeSliceViewPlaneEnum::AXIAL:
                                 glVertex3f(intersectionPoint1[0], intersectionPoint1[1], 0.01f);
