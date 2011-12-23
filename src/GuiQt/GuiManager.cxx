@@ -34,6 +34,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "DisplayControlDialog.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
@@ -61,6 +62,7 @@ GuiManager::GuiManager(QObject* parent)
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
+    this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->preferencesDialog = NULL;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
@@ -408,15 +410,6 @@ GuiManager::processBringAllWindowsToFront()
 }
 
 /**
- * Called when show data display window is selected.
- */
-void 
-GuiManager::processShowDataDisplayWindow()
-{
-    
-}
-
-/**
  * Called when show help online is selected.
  */ 
 void 
@@ -574,6 +567,22 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
     this->preferencesDialog->setVisible(true);
     this->preferencesDialog->show();
     this->preferencesDialog->activateWindow();
+}
+
+/**
+ * Show the preferences window.
+ */
+void 
+GuiManager::processShowDisplayControlDialog(BrainBrowserWindow* browserWindow)
+{
+    if (this->displayControlDialog == NULL) {
+        this->displayControlDialog = new DisplayControlDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->displayControlDialog);
+    }
+    this->displayControlDialog->updateDialog();
+    this->displayControlDialog->setVisible(true);
+    this->displayControlDialog->show();
+    this->displayControlDialog->activateWindow();
 }
 
 /**

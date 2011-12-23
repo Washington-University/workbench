@@ -43,6 +43,7 @@ namespace caret {
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class DisplayControlDialog;
     class ImageFile;
     class ImageCaptureDialog;
     class PreferencesDialog;
@@ -88,6 +89,7 @@ namespace caret {
         
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
+        void processShowDisplayControlDialog(BrainBrowserWindow* browserWindow);
         
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
@@ -95,7 +97,6 @@ namespace caret {
                                                      ImageFile& imageFileOut);
     public slots:
         void processBringAllWindowsToFront();
-        void processShowDataDisplayWindow();
         void processShowHelpOnlineWindow();
         void processShowSearchHelpOnlineWindow();
         
@@ -131,6 +132,8 @@ namespace caret {
         
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
+        
+        DisplayControlDialog* displayControlDialog;
         
         ImageCaptureDialog* imageCaptureDialog;
         

@@ -78,6 +78,7 @@ namespace caret {
         void closeEvent(QCloseEvent* event);
         
     private slots:        
+        void processDisplayControl();
         void processNewWindow();
         void processDataFileOpen();
         void processDataFileOpenFromSpecFile();
@@ -170,6 +171,8 @@ namespace caret {
         
         QAction* showToolBarAction;
         
+        QAction* displayControlAction;
+        
         QActionGroup* viewScreenActionGroup;
         QAction* viewScreenNormalAction;
         QAction* viewScreenFullAction;
@@ -189,8 +192,6 @@ namespace caret {
         QAction* moveTabsFromAllWindowsToOneWindowAction;
         
         QAction* bringAllToFrontAction;
-        
-        QAction* dataDisplayAction;
         
         QAction* helpOnlineAction;
         

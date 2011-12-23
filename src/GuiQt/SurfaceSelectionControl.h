@@ -1,5 +1,5 @@
-#ifndef __SURFACE_SELECTION__H_
-#define __SURFACE_SELECTION__H_
+#ifndef __SURFACE_SELECTION_CONTROL__H_
+#define __SURFACE_SELECTION_CONTROL__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,47 +26,52 @@
  */ 
 
 
-#include "CaretObject.h"
+#include <QObject>
 
-#include "StructureEnum.h"
+class QComboBox;
 
 namespace caret {
-
     class Surface;
-    
-    class SurfaceSelection : public CaretObject {
+    class SurfaceSelection;
+
+    class SurfaceSelectionControl : public QObject {
         
+        Q_OBJECT
+
     public:
-        SurfaceSelection();
+        SurfaceSelectionControl(SurfaceSelection* surfaceSelection);
         
-        SurfaceSelection(const StructureEnum::Enum structure);
+        virtual ~SurfaceSelectionControl();
         
-        virtual ~SurfaceSelection();
+        QWidget* getWidget();
         
         Surface* getSurface();
         
-        const Surface* getSurface() const;
+        void updateControl();
         
-        void setSurface(Surface* surface);
+    signals:
+        void surfaceSelected(Surface*);
         
-        std::vector<Surface*> getAvailableSurfaces() const;
+    public slots:
+        void setSurface(Surface*);
+        
+    private slots:
+        void comboBoxCurrentIndexChanged(int);
         
     private:
-        SurfaceSelection(const SurfaceSelection&);
+        SurfaceSelectionControl(const SurfaceSelectionControl&);
 
-        SurfaceSelection& operator=(const SurfaceSelection&);
+        SurfaceSelectionControl& operator=(const SurfaceSelectionControl&);
         
-        void updateSelection() const;
+    private:
+        SurfaceSelection* surfaceSelection;
         
-        mutable Surface* selectedSurface;
-        
-        /** If empty, allow any structure, otherwise restrict to these structures */
-        std::vector<StructureEnum::Enum> allowableStructures;
+        QComboBox* surfaceComboBox;
     };
     
-#ifdef __SURFACE_SELECTION_DECLARE__
+#ifdef __SURFACE_SELECTION_CONTROL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SURFACE_SELECTION_DECLARE__
+#endif // __SURFACE_SELECTION_CONTROL_DECLARE__
 
 } // namespace
-#endif  //__SURFACE_SELECTION__H_
+#endif  //__SURFACE_SELECTION_CONTROL__H_

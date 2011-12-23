@@ -193,8 +193,8 @@ CaretColorEnum::initialize()
                                       "TEAL", 
                                       "Teal",
                                       0,
-                                      1,
-                                      1));
+                                      0.5,
+                                      0.5));
     
     enumData.push_back(CaretColorEnum(WHITE, 
                                       "WHITE", 

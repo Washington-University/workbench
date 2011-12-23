@@ -1,5 +1,5 @@
-#ifndef __SURFACE_SELECTION__H_
-#define __SURFACE_SELECTION__H_
+#ifndef __DISPLAY_CONTROL_DIALOG__H_
+#define __DISPLAY_CONTROL_DIALOG__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,47 +26,31 @@
  */ 
 
 
-#include "CaretObject.h"
-
-#include "StructureEnum.h"
+#include "MultiPageDialog.h"
 
 namespace caret {
 
-    class Surface;
-    
-    class SurfaceSelection : public CaretObject {
+    class DisplayControlDialog : public MultiPageDialog {
+        Q_OBJECT
         
     public:
-        SurfaceSelection();
+        DisplayControlDialog(QWidget* parent = 0,
+                             Qt::WindowFlags f = 0);
         
-        SurfaceSelection(const StructureEnum::Enum structure);
-        
-        virtual ~SurfaceSelection();
-        
-        Surface* getSurface();
-        
-        const Surface* getSurface() const;
-        
-        void setSurface(Surface* surface);
-        
-        std::vector<Surface*> getAvailableSurfaces() const;
+        virtual ~DisplayControlDialog();
         
     private:
-        SurfaceSelection(const SurfaceSelection&);
+        DisplayControlDialog(const DisplayControlDialog&);
 
-        SurfaceSelection& operator=(const SurfaceSelection&);
+        DisplayControlDialog& operator=(const DisplayControlDialog&);
         
-        void updateSelection() const;
-        
-        mutable Surface* selectedSurface;
-        
-        /** If empty, allow any structure, otherwise restrict to these structures */
-        std::vector<StructureEnum::Enum> allowableStructures;
+    public:
+    private:
     };
     
-#ifdef __SURFACE_SELECTION_DECLARE__
+#ifdef __DISPLAY_CONTROL_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SURFACE_SELECTION_DECLARE__
+#endif // __DISPLAY_CONTROL_DIALOG_DECLARE__
 
 } // namespace
-#endif  //__SURFACE_SELECTION__H_
+#endif  //__DISPLAY_CONTROL_DIALOG__H_

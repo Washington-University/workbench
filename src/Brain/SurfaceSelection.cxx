@@ -94,6 +94,17 @@ SurfaceSelection::getSurface() const
 }
 
 /**
+ * Set the selected surface.
+ * @param surface
+ *   New seleted surface.
+ */
+void 
+SurfaceSelection::setSurface(Surface* surface)
+{
+    this->selectedSurface = surface;
+}
+
+/**
  * @return A vector containing surfaces available
  * for selection.
  */

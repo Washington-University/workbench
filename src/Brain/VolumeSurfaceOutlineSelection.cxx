@@ -128,6 +128,15 @@ VolumeSurfaceOutlineSelection::getSurface() const
 }
 
 /**
+ * @return  Get the selected surface.
+ */
+Surface* 
+VolumeSurfaceOutlineSelection::getSurface()
+{
+    return this->surfaceSelection->getSurface();
+}
+
+/**
  * @return  Get the selected color.
  */
 CaretColorEnum::Enum 

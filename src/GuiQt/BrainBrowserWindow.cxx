@@ -268,6 +268,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 SLOT(processEditPreferences()));
     
+    this->displayControlAction = 
+    WuQtUtilities::createAction("Display Control...",
+                                "Show the Display Control",
+                                this,
+                                this,
+                                SLOT(processDisplayControl()));
+    
     this->exitProgramAction =
     WuQtUtilities::createAction("Exit", 
                                 "Exit (quit) the program",
@@ -367,15 +374,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
-    
-    this->dataDisplayAction =
-    WuQtUtilities::createAction("Data Display...",
-                                "Show the Data Display Window",
-                                Qt::CTRL + Qt::Key_D,
-                                this,
-                                guiManager,
-                                SLOT(processShowDataDisplayWindow()));
-    this->dataDisplayAction->setEnabled(false);
     
     this->helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
@@ -683,7 +681,7 @@ BrainBrowserWindow::createMenuWindow()
     menu->addAction(this->moveTabsFromAllWindowsToOneWindowAction);
     menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
-    menu->addAction(this->dataDisplayAction);
+    menu->addAction(this->displayControlAction);
     menu->addSeparator();
     menu->addAction(this->bringAllToFrontAction);
     
@@ -721,6 +719,15 @@ void
 BrainBrowserWindow::processEditPreferences()
 {
     GuiManager::get()->processShowPreferencesDialog(this);
+}
+
+/**
+ * Called when display control is selected.
+ */
+void 
+BrainBrowserWindow::processDisplayControl()
+{
+    GuiManager::get()->processShowDisplayControlDialog(this);
 }
 
 /**

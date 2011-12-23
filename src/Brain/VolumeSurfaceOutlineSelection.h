@@ -52,6 +52,8 @@ namespace caret {
         
         const Surface* getSurface() const;
         
+        Surface* getSurface();
+        
         CaretColorEnum::Enum getColor() const;
         
         void setColor(CaretColorEnum::Enum color);

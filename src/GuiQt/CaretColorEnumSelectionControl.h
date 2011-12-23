@@ -1,5 +1,5 @@
-#ifndef __SURFACE_SELECTION__H_
-#define __SURFACE_SELECTION__H_
+#ifndef __CARET_COLOR_ENUM_SELECTION_CONTROL__H_
+#define __CARET_COLOR_ENUM_SELECTION_CONTROL__H_
 
 /*LICENSE_START*/
 /* 
@@ -26,47 +26,47 @@
  */ 
 
 
-#include "CaretObject.h"
+#include <QObject>
 
-#include "StructureEnum.h"
+#include "CaretColorEnum.h"
+
+class QComboBox;
 
 namespace caret {
 
-    class Surface;
-    
-    class SurfaceSelection : public CaretObject {
+    class CaretColorEnumSelectionControl : public QObject {
         
+        Q_OBJECT
+
     public:
-        SurfaceSelection();
+        CaretColorEnumSelectionControl(const bool includeSurfaceColor = false);
         
-        SurfaceSelection(const StructureEnum::Enum structure);
+        virtual ~CaretColorEnumSelectionControl();
         
-        virtual ~SurfaceSelection();
+        CaretColorEnum::Enum getSelectedColor();
         
-        Surface* getSurface();
+        void setSelectedColor(const CaretColorEnum::Enum color);
         
-        const Surface* getSurface() const;
+        QWidget* getWidget();
         
-        void setSurface(Surface* surface);
+    signals:
+        void colorSelected(const CaretColorEnum::Enum);
         
-        std::vector<Surface*> getAvailableSurfaces() const;
+    private slots:
+        void colorComboBoxIndexChanged(int);
         
     private:
-        SurfaceSelection(const SurfaceSelection&);
+        CaretColorEnumSelectionControl(const CaretColorEnumSelectionControl&);
 
-        SurfaceSelection& operator=(const SurfaceSelection&);
+        CaretColorEnumSelectionControl& operator=(const CaretColorEnumSelectionControl&);
         
-        void updateSelection() const;
-        
-        mutable Surface* selectedSurface;
-        
-        /** If empty, allow any structure, otherwise restrict to these structures */
-        std::vector<StructureEnum::Enum> allowableStructures;
+    private:
+        QComboBox* colorComboBox;
     };
     
-#ifdef __SURFACE_SELECTION_DECLARE__
+#ifdef __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SURFACE_SELECTION_DECLARE__
+#endif // __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
 
 } // namespace
-#endif  //__SURFACE_SELECTION__H_
+#endif  //__CARET_COLOR_ENUM_SELECTION_CONTROL__H_
