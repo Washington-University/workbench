@@ -49,7 +49,7 @@ bool caret::FloatMatrix::checkDimensions() const
 FloatMatrix::FloatMatrix(const vector<vector<float> >& matrixIn)
 {
    m_matrix = matrixIn;
-   CaretAssertion(checkDimensions());
+   CaretAssert(checkDimensions());
 }
 
 bool FloatMatrix::operator!=(const FloatMatrix& right) const
@@ -66,55 +66,48 @@ FloatMatrix FloatMatrix::operator*(const FloatMatrix& right) const
 
 FloatMatrix& FloatMatrix::operator*=(const FloatMatrix& right)
 {
-   MatrixFunctions mymf;
-   mymf.multiply(m_matrix, right.m_matrix, m_matrix);//would need a copy anyway, so let it make the copy internally
+   MatrixFunctions::multiply(m_matrix, right.m_matrix, m_matrix);//would need a copy anyway, so let it make the copy internally
    return *this;
 }
 
 FloatMatrix FloatMatrix::concatHoriz(const FloatMatrix& right) const
 {
-   MatrixFunctions mymf;
    FloatMatrix ret;
-   mymf.horizCat(m_matrix, right.m_matrix, ret.m_matrix);
+   MatrixFunctions::horizCat(m_matrix, right.m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix FloatMatrix::concatVert(const FloatMatrix& bottom) const
 {
-   MatrixFunctions mymf;
    FloatMatrix ret;
-   mymf.vertCat(m_matrix, bottom.m_matrix, ret.m_matrix);
+   MatrixFunctions::vertCat(m_matrix, bottom.m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix FloatMatrix::getRange(const int64_t firstRow, const int64_t afterLastRow, const int64_t firstCol, const int64_t afterLastCol) const
 {
-   MatrixFunctions mymf;
    FloatMatrix ret;
-   mymf.getChunk(firstRow, afterLastRow, firstCol, afterLastCol, m_matrix, ret.m_matrix);
+   MatrixFunctions::getChunk(firstRow, afterLastRow, firstCol, afterLastCol, m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix FloatMatrix::identity(const int64_t rows)
 {
-   MatrixFunctions mymf;
    FloatMatrix ret;
-   mymf.identity(rows, ret.m_matrix);
+   MatrixFunctions::identity(rows, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix FloatMatrix::inverse() const
 {
-   MatrixFunctions mymf;
    FloatMatrix ret;
-   mymf.inverse(m_matrix, ret.m_matrix);
+   MatrixFunctions::inverse(m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix& FloatMatrix::operator*=(const float& right)
 {
-   MatrixFunctions mymf;
-   mymf.multiply(m_matrix, right, m_matrix);//internally makes a copy
+   MatrixFunctions::multiply(m_matrix, right, m_matrix);//internally makes a copy
    return *this;
 }
 
@@ -127,15 +120,13 @@ FloatMatrix FloatMatrix::operator+(const FloatMatrix& right) const
 
 FloatMatrix& FloatMatrix::operator+=(const FloatMatrix& right)
 {
-   MatrixFunctions mymf;
-   mymf.add(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
    return *this;
 }
 
 FloatMatrix& FloatMatrix::operator+=(const float& right)
 {
-   MatrixFunctions mymf;
-   mymf.add(m_matrix, right, m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, right, m_matrix);//internally makes a copy
    return *this;
 }
 
@@ -148,15 +139,13 @@ FloatMatrix FloatMatrix::operator-(const FloatMatrix& right) const
 
 FloatMatrix& FloatMatrix::operator-=(const FloatMatrix& right)
 {
-   MatrixFunctions mymf;
-   mymf.subtract(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
+   MatrixFunctions::subtract(m_matrix, right.m_matrix, m_matrix);//internally makes a copy
    return *this;
 }
 
 FloatMatrix& FloatMatrix::operator-=(const float& right)
 {
-   MatrixFunctions mymf;
-   mymf.add(m_matrix, (-right), m_matrix);//internally makes a copy
+   MatrixFunctions::add(m_matrix, (-right), m_matrix);//internally makes a copy
    return *this;
 }
 
@@ -218,30 +207,26 @@ FloatMatrixRowRef FloatMatrix::operator[](const int64_t& index)
 FloatMatrix FloatMatrix::reducedRowEchelon() const
 {
    FloatMatrix ret(*this);
-   MatrixFunctions mymf;
-   mymf.rref(ret.m_matrix);
+   MatrixFunctions::rref(ret.m_matrix);
    return ret;
 }
 
 void FloatMatrix::resize(const int64_t rows, const int64_t cols, const bool destructive)
 {
-   MatrixFunctions mymf;
-   mymf.resize(rows, cols, m_matrix, destructive);
+   MatrixFunctions::resize(rows, cols, m_matrix, destructive);
 }
 
 FloatMatrix FloatMatrix::transpose() const
 {
    FloatMatrix ret;
-   MatrixFunctions mymf;
-   mymf.transpose(m_matrix, ret.m_matrix);
+   MatrixFunctions::transpose(m_matrix, ret.m_matrix);
    return ret;
 }
 
 FloatMatrix FloatMatrix::zeros(const int64_t rows, const int64_t cols)
 {
    FloatMatrix ret;
-   MatrixFunctions mymf;
-   mymf.zeros(rows, cols, ret.m_matrix);
+   MatrixFunctions::zeros(rows, cols, ret.m_matrix);
    return ret;
 }
 

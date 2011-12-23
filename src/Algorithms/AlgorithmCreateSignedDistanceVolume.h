@@ -121,4 +121,3 @@ namespace caret {
 }
 
 #endif //__ALGORITHM_CREATE_SIGNED_DISTANCE_VOLUME_H__
-
