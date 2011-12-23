@@ -527,7 +527,7 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                 vector<int> myTiles;
                 m_topoHelp->getNodeTiles(myInfo.node1, myTiles);
                 bool first = true;
-                float bestNorm;
+                float bestNorm = 0;
                 int bestTile = -1;
                 Vector3D tempvec, bestCent;
                 for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
