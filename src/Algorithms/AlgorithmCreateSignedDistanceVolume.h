@@ -57,25 +57,17 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 3.0f, float approxLim = 20.0f, int approxNeighborhood = 3);
+        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 5.0f, float approxLim = 20.0f, int approxNeighborhood = 2);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
     
+    class TopologyHelper;
+    
     class SignedDistToSurfIndexedBase
     {
-        /*struct triIndexPoint
-        {
-            Vector3D m_loc;
-            std::vector<int> m_triList;
-            triIndexPoint(const Vector3D& location)
-            {
-                m_loc = location;
-            }
-        };
-        std::vector<triIndexPoint> m_indexing;//*/
         struct TriVector
         {//specifically so we can cleanly deallocate the vector from non-leaf nodes when they split
             std::vector<int32_t>* m_triList;
@@ -94,15 +86,13 @@ namespace caret {
         static const int NUM_TRIS_TEST_INCR = 50;//and again at further multiples of this
         Oct<TriVector>* m_indexRoot;
         SurfaceFile* m_surface;
-        float m_maxEdge;//, m_avgEdge, m_indexLength;
+        CaretPointer<TopologyHelper> m_topoHelp;
         SignedDistToSurfIndexedBase();
         void addTriangle(Oct<TriVector>* thisOct, int32_t triangle, float minCoord[3], float maxCoord[3]);
     public:
         SignedDistToSurfIndexedBase(SurfaceFile* mySurf);
         friend class SignedDistToSurfIndexed;
     };
-    
-    class TopologyHelper;
     
     class SignedDistToSurfIndexed
     {

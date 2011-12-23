@@ -292,6 +292,6 @@ void Nifti1Header::setSForm(const std::vector < std::vector <float> > &sForm)
         m_header.srow_y[i] = sForm[1][i];
         m_header.srow_z[i] = sForm[2][i];
     }
-    m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;//use the literal for "1", because currently we haven't the faintest idea - the coordinate type doesn't really belong in the file anyway
+    m_header.sform_code = NIFTI_XFORM_SCANNER_ANAT;//use the constant for "1", because currently we haven't the faintest idea - the coordinate type doesn't really belong in the file anyway
 }
 

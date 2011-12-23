@@ -59,7 +59,7 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     ret->addVolumeOutputParameter(3, "outvol", "the output volume");
     
     OptionalParameter* exactDistOpt = ret->createOptionalParameter(4, "-exact-limit", "specify distance for exact output");
-    exactDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 3)");
+    exactDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 5)");
     
     OptionalParameter* approxDistOpt = ret->createOptionalParameter(5, "-approx-limit", "specify distance for approximate output");
     approxDistOpt->addDoubleParameter(1, "dist", "distance in mm (default 20)");
@@ -90,7 +90,7 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     volDims.resize(3);
     VolumeFile* myVolOut = myParams->getOutputVolume(3);
     myVolOut->reinitialize(volDims, volSpace);
-    float exactLim = 3.0f;
+    float exactLim = 5.0f;
     OptionalParameter* exactDistOpt = myParams->getOptionalParameter(4);
     if (exactDistOpt->m_present)
     {
@@ -116,6 +116,10 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     if (exactLim <= 0.0f)
     {
         throw AlgorithmException("exact limit must be positive");
+    }
+    if (approxNeighborhood < 1)
+    {
+        throw AlgorithmException("approximate neighborhood must be at least 1");
     }
     int32_t numNodes = mySurf->getNumberOfNodes();
     float markweight = 0.1f, exactweight = 5.0f * exactLim, approxweight = 0.2f * (approxLim - exactLim);
@@ -720,82 +724,6 @@ bool SignedDistToSurfIndexed::pointInTri(Vector3D verts[3], Vector3D inPlane, in
     return inside;
 }
 
-/*float SignedDistToSurfIndexed::dist(float coord[3])
-{
-    int numIndex = (int)m_base->m_indexing.size();
-    Vector3D tempvec;
-    float tempf = -1.0f, bestTriDist = -1.0f, absBestTriDist = -1.0f;
-    int best = 0;
-    bool first = true;//a little slower, but cleaner
-    int triMarkChangeCount = 0;
-    CaretMutexLocker locked(&m_mutex);
-    for (int i = 0; i < numIndex; ++i)
-    {
-        tempvec = m_base->m_indexing[i].m_loc - Vector3D(coord);
-        if (first || tempvec.length() < tempf)
-        {
-            tempf = tempvec.length();
-            best = i;
-            first = false;
-        }
-    }
-    {
-        first = true;
-        vector<int32_t>& vecRef = m_base->m_indexing[best].m_triList;
-        int numTris = (int)vecRef.size();
-        for (int j = 0; j < numTris; ++j)
-        {
-            tempf = unsignedDistToTri(coord, vecRef[j]);
-            m_triMarked[vecRef[j]] = 1;
-            m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
-            if (first || abs(tempf) < absBestTriDist)
-            {
-                first = false;
-                bestTriDist = tempf;
-                absBestTriDist = abs(bestTriDist);//because we compare against this a LOT, so remove the abs call from them
-            }
-        }
-    }
-    float nodeCutoff = sqrt(bestTriDist * bestTriDist + 13.0f * m_base->m_maxEdge * m_base->m_maxEdge / 36.0f);
-    float indexCutoff = nodeCutoff + m_base->m_indexLength;
-    for (int i = 0; i < numIndex; ++i)
-    {
-        tempvec = m_base->m_indexing[i].m_loc - Vector3D(coord);
-        if (i != best && (first || tempvec.length() <= indexCutoff))
-        {
-            vector<int32_t>& vecRef = m_base->m_indexing[i].m_triList;
-            int numTris = (int)vecRef.size();
-            bool changed = false;
-            for (int j = 0; j < numTris; ++j)
-            {
-                if (m_triMarked[vecRef[j]] == 0)
-                {
-                    tempf = unsignedDistToTri(coord, vecRef[j]);
-                    m_triMarked[vecRef[j]] = 1;
-                    m_triMarkChanged[triMarkChangeCount++] = vecRef[j];
-                    if (first || abs(tempf) < absBestTriDist)
-                    {
-                        changed = true;
-                        first = false;
-                        bestTriDist = tempf;
-                        absBestTriDist = abs(bestTriDist);
-                    }
-                }
-            }
-            if (changed)//only change this out here because it only affects whether or not we search an index node's triangles, not anything inside the loop over triangles
-            {
-                nodeCutoff = sqrt(bestTriDist * bestTriDist + 13.0f * m_base->m_maxEdge * m_base->m_maxEdge / 36.0f);
-                indexCutoff = nodeCutoff + m_base->m_indexLength;
-            }
-        }
-    }
-    while (triMarkChangeCount)
-    {
-        m_triMarked[m_triMarkChanged[--triMarkChangeCount]] = 0;//zero our marked array
-    }
-    return bestTriDist;
-}//*/
-
 float SignedDistToSurfIndexed::unsignedDistToTri(float coord[3], int32_t triangle, ClosestPointInfo& myInfo)
 {
     const int32_t* triNodes = m_base->m_surface->getTriangle(triangle);
@@ -846,7 +774,7 @@ float SignedDistToSurfIndexed::unsignedDistToTri(float coord[3], int32_t triangl
 SignedDistToSurfIndexed::SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIndexedBase> myBase)
 {
     m_base = myBase;
-    m_topoHelp = myBase->m_surface->getTopologyHelper();
+    m_topoHelp = myBase->m_topoHelp;//because we don't need neighborsToDepth, just share the same one
     int32_t numTris = m_base->m_surface->getNumberOfTriangles();
     m_triMarked = CaretArray<int>(numTris);
     m_triMarkChanged = CaretArray<int>(numTris);
@@ -858,22 +786,8 @@ SignedDistToSurfIndexed::SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIn
 
 SignedDistToSurfIndexedBase::SignedDistToSurfIndexedBase(SurfaceFile* mySurf)
 {
-    m_maxEdge = 0.0f;
     m_surface = mySurf;
-    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-    const set<TopologyEdgeInfo> myEdgeInfo = myTopoHelp->getEdgeInfo();
-    set<TopologyEdgeInfo>::const_iterator myiter, myend = myEdgeInfo.end();
-    for (myiter = myEdgeInfo.begin(); myiter != myend; ++myiter)
-    {
-        int node1, node2;
-        myiter->getNodes(node1, node2);
-        Vector3D diff = Vector3D(mySurf->getCoordinate(node1)) - Vector3D(mySurf->getCoordinate(node2));
-        float tempf = diff.length();
-        if (tempf > m_maxEdge)
-        {
-            m_maxEdge = tempf;
-        }
-    }
+    m_topoHelp = mySurf->getTopologyHelper();
     const float* myBB = mySurf->getBoundingBox()->getBounds();
     Vector3D minCoord, maxCoord;
     minCoord[0] = myBB[0]; maxCoord[0] = myBB[1];
@@ -986,76 +900,6 @@ void SignedDistToSurfIndexedBase::addTriangle(Oct<TriVector>* thisOct, int32_t t
         }
     }
 }
-
-/*SignedDistToSurfIndexedBase::SignedDistToSurfIndexedBase(SurfaceFile* mySurf)
-{
-    m_avgEdge = 0.0f;
-    m_maxEdge = 0.0f;
-    m_surface = mySurf;
-    m_surface->computeNormals(false);//need unsmoothed normals to get guarantees of getting the right sign
-    CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
-    const set<TopologyEdgeInfo> myEdgeInfo = myTopoHelp->getEdgeInfo();
-    set<TopologyEdgeInfo>::const_iterator myiter, myend = myEdgeInfo.end();
-    for (myiter = myEdgeInfo.begin(); myiter != myend; ++myiter)
-    {
-        int node1, node2;
-        myiter->getNodes(node1, node2);
-        Vector3D diff = Vector3D(mySurf->getCoordinate(node1)) - Vector3D(mySurf->getCoordinate(node2));
-        float tempf = diff.length();
-        m_avgEdge += tempf;
-        if (tempf > m_maxEdge)
-        {
-            m_maxEdge = tempf;
-        }
-    }
-    m_avgEdge /= myEdgeInfo.size();
-    int32_t numNodes = mySurf->getNumberOfNodes();
-    m_indexLength = m_avgEdge * pow(numNodes / 6.0f, 0.16667f);//formula worked out to (approximately) minimize the number of comparisons needed for finding the distance from one point
-    int numTris = mySurf->getNumberOfTriangles();
-    CaretArray<int> triMarked(numTris);
-    for (int i = 0; i < numTris; ++i)
-    {
-        triMarked[i] = -1;//because we use the node number to mark, so we never have to clear it
-    }
-    for (int i = 0; i < numNodes; ++i)
-    {
-        Vector3D thisCoord = mySurf->getCoordinate(i);
-        bool inRange = false;
-        int numIndexes = (int)m_indexing.size();
-        for (int j = 0; j < numIndexes; ++j)
-        {
-            Vector3D diff = thisCoord - m_indexing[j].m_loc;
-            if (diff.length() < m_indexLength)
-            {
-                inRange = true;
-                break;
-            }
-        }
-        if (!inRange)
-        {
-            m_indexing.push_back(triIndexPoint(thisCoord));
-            int thisIndex = (int)m_indexing.size() - 1;
-            for (int k = 0; k < numNodes; ++k)
-            {//yes, this will take a while, but it doesn't compare to having to test every triangle on the surface for every voxel within the signed distance ribbon
-                Vector3D diff = Vector3D(mySurf->getCoordinate(k)) - thisCoord;
-                if (diff.length() < m_indexLength)
-                {
-                    vector<int> myTiles;
-                    myTopoHelp->getNodeTiles(k, myTiles);
-                    int numTiles = (int)myTiles.size();
-                    for (int m = 0; m < numTiles; ++m)
-                    {
-                        if (triMarked[myTiles[m]] != i)
-                        {
-                            m_indexing[thisIndex].m_triList.push_back(myTiles[m]);
-                            triMarked[myTiles[m]] = i;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}//*/
 
 float AlgorithmCreateSignedDistanceVolume::getAlgorithmInternalWeight()
 {
