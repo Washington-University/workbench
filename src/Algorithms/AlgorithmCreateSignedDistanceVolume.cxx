@@ -529,7 +529,7 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                 bool first = true;
                 float bestNorm = 0;
                 int bestTile = -1;
-                Vector3D tempvec, bestCent;
+                Vector3D tempvec, tempvec2, bestCent;
                 for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
                 {//should be least likely to have an intervening triangle
                     const int32_t* myTileNodes = m_base->m_surface->getTriangle(myTiles[i]);
@@ -537,20 +537,23 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                     Vector3D vert2 = m_base->m_surface->getCoordinate(myTileNodes[1]);
                     Vector3D vert3 = m_base->m_surface->getCoordinate(myTileNodes[2]);
                     Vector3D centroid = (vert1 + vert2 + vert3) / 3.0f;
-                    MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec);
-                    tempf = tempvec.dot(point - centroid);
-                    if (first || abs(tempf) > abs(bestNorm))
+                    if (MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec))//make sure the triangle has a valid normal
                     {
-                        if (tempf > 0.0f)
+                        tempvec2 = point - centroid;
+                        tempf = tempvec.dot(tempvec2.normal());
+                        if (first || abs(tempf) > abs(bestNorm))
                         {
-                            curSign = 1;
-                        } else {
-                            curSign = -1;
+                            if (tempf > 0.0f)
+                            {
+                                curSign = 1;
+                            } else {
+                                curSign = -1;
+                            }
+                            bestTile = i;
+                            first = false;
+                            bestNorm = tempf;
+                            bestCent = centroid;
                         }
-                        bestTile = i;
-                        first = false;
-                        bestNorm = tempf;
-                        bestCent = centroid;
                     }
                 }
                 tempvec = point - bestCent;

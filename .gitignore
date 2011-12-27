@@ -6,3 +6,4 @@ build
 release
 debug
 qt*
+*.kate-swp

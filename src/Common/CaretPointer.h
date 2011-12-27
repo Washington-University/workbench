@@ -90,8 +90,12 @@ namespace caret {
         bool operator!=(const T* right) const;
         T& operator[](const int64_t& index);
         T& operator[](const int32_t& index);
+        T& operator[](const int16_t& index);
+        T& operator[](const int8_t& index);
         T& operator[](const uint64_t& index);
         T& operator[](const uint32_t& index);
+        T& operator[](const uint16_t& index);
+        T& operator[](const uint8_t& index);
         T* getArray();
         operator T*();
         int64_t size() const;
@@ -215,7 +219,6 @@ namespace caret {
         }
     }
 
-
     template <typename T>
     CaretPointer<T>::~CaretPointer()
     {
@@ -276,18 +279,18 @@ namespace caret {
         grab(right.m_pointerRef);
     }
 
-        template <typename T>
-        CaretArray<T>::CaretArray(int64_t size)
-        {
-            CaretAssert(size > 0);
-            m_pointerRef = NULL;
-            CaretArrayRef* temp = new CaretArrayRef();
-            temp->m_pointer = new T[size];
-            temp->m_refCount = 0;
-            temp->m_size = size;
-            temp->m_doNotDelete = false;
-            grab(temp);
-        }
+    template <typename T>
+    CaretArray<T>::CaretArray(int64_t size)
+    {
+        CaretAssert(size > 0);
+        m_pointerRef = NULL;
+        CaretArrayRef* temp = new CaretArrayRef();
+        temp->m_pointer = new T[size];
+        temp->m_refCount = 0;
+        temp->m_size = size;
+        temp->m_doNotDelete = false;
+        grab(temp);
+    }
 
     template <typename T>
     CaretArray<T>::CaretArray(T* right, int64_t size)
@@ -351,10 +354,26 @@ namespace caret {
     }
 
     template <typename T>
+    T& CaretArray<T>::operator[](const int16_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index >= 0 && index < m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const int8_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index >= 0 && index < m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
     T& CaretArray<T>::operator[](const uint64_t& index)
     {
         CaretAssert(m_pointerRef != NULL);
-        CaretAssert(index < m_pointerRef->m_size);
+        CaretAssert(index < (uint64_t)m_pointerRef->m_size);
         return m_pointerRef->m_pointer[index];
     }
 
@@ -362,7 +381,23 @@ namespace caret {
     T& CaretArray<T>::operator[](const uint32_t& index)
     {
         CaretAssert(m_pointerRef != NULL);
-        CaretAssert(index < m_pointerRef->m_size);
+        CaretAssert(index < (uint64_t)m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const uint16_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index < (uint64_t)m_pointerRef->m_size);
+        return m_pointerRef->m_pointer[index];
+    }
+
+    template <typename T>
+    T& CaretArray<T>::operator[](const uint8_t& index)
+    {
+        CaretAssert(m_pointerRef != NULL);
+        CaretAssert(index < (uint64_t)m_pointerRef->m_size);
         return m_pointerRef->m_pointer[index];
     }
 
