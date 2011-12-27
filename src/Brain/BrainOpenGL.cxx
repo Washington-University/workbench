@@ -66,3 +66,31 @@ BrainOpenGL::getIdentificationManager()
     return this->identificationManager;
 }
 
+/**
+ * Get the minimum and maximum values for the size of a point.
+ * @param minPointSizeOut
+ *    Gets minimum size of point.
+ * @param maxPointSizeOut
+ *    Gets maximum size of point.
+ */
+void 
+BrainOpenGL::getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut)
+{
+    minPointSizeOut = BrainOpenGL::minPointSize;
+    maxPointSizeOut = BrainOpenGL::maxPointSize;
+}
+
+/**
+ * Get the minimum and maximum values for the width of a line.
+ * @param minLineWidthOut
+ *    Gets minimum line width.
+ * @param maxLineWidthOut
+ *    Gets maximum line width.
+ */
+void 
+BrainOpenGL::getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut)
+{
+    minLineWidthOut = BrainOpenGL::minLineWidth;
+    maxLineWidthOut = BrainOpenGL::maxLineWidth;
+}
+

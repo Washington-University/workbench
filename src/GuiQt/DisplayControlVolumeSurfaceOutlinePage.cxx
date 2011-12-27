@@ -28,13 +28,14 @@
 #undef __DISPLAY_CONTROL_VOLUME_SURFACE_OUTLINE_PAGE_DECLARE__
 
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
-#include <QSpinBox>
 #include <QVBoxLayout>
 #include <QWidget>
 
 #include "Brain.h"
+#include "BrainOpenGL.h"
 #include "CaretColorEnumSelectionControl.h"
 #include "DisplayPropertiesVolume.h"
 #include "GuiManager.h"
@@ -175,9 +176,13 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->colorSelectionControl, 
                           true);
     
-    this->thicknessSpinBox = new QSpinBox();
-    this->thicknessSpinBox->setRange(0, 10);
-    this->thicknessSpinBox->setSingleStep(1);
+    float minLineWidth, maxLineWidth;
+    BrainOpenGL::getMinMaxLineWidth(minLineWidth, 
+                                    maxLineWidth);
+    this->thicknessSpinBox = new QDoubleSpinBox();
+    this->thicknessSpinBox->setRange(minLineWidth, 
+                                     maxLineWidth);
+    this->thicknessSpinBox->setSingleStep(1.0);
     parentPage->addWidget(this->thicknessSpinBox, 
                           true);
     

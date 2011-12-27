@@ -97,6 +97,10 @@ namespace caret {
          */
         IdentificationManager* getIdentificationManager();
 
+        static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
+        
+        static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
+        
     private:
         BrainOpenGL(const BrainOpenGL&);
         BrainOpenGL& operator=(const BrainOpenGL&);
@@ -109,6 +113,18 @@ namespace caret {
         /** version number of OpenGL */
         static float versionOfOpenGL;
 
+        /** minimum point size */
+        static float minPointSize;
+        
+        /** maximum point size */
+        static float maxPointSize;
+        
+        /** minimum line width */
+        static float minLineWidth;
+        
+        /** maximum line width */
+        static float maxLineWidth;
+        
     private:
         /** Identification manager */
         IdentificationManager* identificationManager;
@@ -116,6 +132,10 @@ namespace caret {
 
 #ifdef __BRAIN_OPENGL_DEFINE_H
     float BrainOpenGL::versionOfOpenGL = 0.0f;
+    float BrainOpenGL::minPointSize = 1.0f;
+    float BrainOpenGL::maxPointSize = 10.0f;    
+    float BrainOpenGL::minLineWidth = 1.0f;
+    float BrainOpenGL::maxLineWidth = 10.0f;    
 #endif //__BRAIN_OPENGL_DEFINE_H
 
 } // namespace

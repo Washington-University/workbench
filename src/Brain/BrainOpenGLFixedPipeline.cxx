@@ -461,6 +461,13 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     /*
      * Remaining items need to executed only once.
      */
+    float sizes[2];
+    glGetFloatv(GL_POINT_SIZE_RANGE, sizes);
+    BrainOpenGL::minPointSize = sizes[0];
+    BrainOpenGL::maxPointSize = sizes[1];
+    glGetFloatv(GL_LINE_WIDTH_RANGE, sizes);
+    BrainOpenGL::minLineWidth = sizes[0];
+    BrainOpenGL::maxLineWidth = sizes[1];
 }
 
 /**
@@ -2043,6 +2050,11 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
         }
     }
         
+    /*
+     * Need depth testing for drawing slices
+     */
+    glEnable(GL_DEPTH_TEST);
+
     /*
      * Determine volumes that are to be drawn  
      */

@@ -32,7 +32,7 @@
 #include "MultiPageDialogPage.h"
 
 class QCheckBox;
-class QSpinBox;
+class QDoubleSpinBox;
 
 namespace caret {
     class CaretColorEnumSelectionControl;
@@ -84,7 +84,7 @@ namespace caret {
         
         CaretColorEnumSelectionControl* colorSelectionControl;
         
-        QSpinBox* thicknessSpinBox;
+        QDoubleSpinBox* thicknessSpinBox;
         
         SurfaceSelectionControl* surfaceSelectionControl;
         
