@@ -70,13 +70,25 @@ Vector3D::Vector3D(const float* right)
     m_vec[2] = right[2];
 }
 
-float& Vector3D::operator[](const int& index)
+float& Vector3D::operator[](const int64_t& index)
 {
     CaretAssert(index > -1 && index < 3);
     return m_vec[index];
 }
 
-const float& Vector3D::operator[](const int& index) const
+const float& Vector3D::operator[](const int64_t& index) const
+{
+    CaretAssert(index > -1 && index < 3);
+    return m_vec[index];
+}
+
+float& Vector3D::operator[](const int32_t& index)
+{
+    CaretAssert(index > -1 && index < 3);
+    return m_vec[index];
+}
+
+const float& Vector3D::operator[](const int32_t& index) const
 {
     CaretAssert(index > -1 && index < 3);
     return m_vec[index];

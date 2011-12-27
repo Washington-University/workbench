@@ -42,8 +42,10 @@ namespace caret {
         Vector3D();
         Vector3D(const float* right);
         //compatibility operators
-        float& operator[](const int& index);
-        const float& operator[](const int& index) const;
+        float& operator[](const int64_t& index);
+        const float& operator[](const int64_t& index) const;
+        float& operator[](const int32_t& index);
+        const float& operator[](const int32_t& index) const;
         Vector3D& operator=(const float* right);
         //numerical operators
         Vector3D& operator+=(const Vector3D& right);

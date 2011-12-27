@@ -71,8 +71,8 @@ namespace caret {
         struct TriVector
         {//specifically so we can cleanly deallocate the vector from non-leaf nodes when they split
             std::vector<int32_t>* m_triList;
-            TriVector() { m_triList = new std::vector<int>(); }
-            ~TriVector() { if (m_triList != NULL) delete m_triList; }
+            TriVector() { m_triList = new std::vector<int32_t>(); }
+            ~TriVector() { freeData(); }
             void freeData()
             {
                 if (m_triList != NULL)
