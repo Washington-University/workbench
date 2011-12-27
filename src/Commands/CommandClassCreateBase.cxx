@@ -98,7 +98,7 @@ CommandClassCreateBase::getCopyright()
     text.append("\n");    
     text.append("/*LICENSE_START*/\n");
     text.append("/*\n");
-    text.append(" * Copyright " + year + "Washington University,\n");
+    text.append(" * Copyright " + year + " Washington University,\n");
     text.append(" * All rights reserved.\n");
     text.append(" *\n");
     text.append(" * Connectome DB and Connectome Workbench are part of the integrated Connectome \n");
