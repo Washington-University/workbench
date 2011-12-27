@@ -1833,9 +1833,10 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
     std::vector<int64_t> dim;
     underlayVolume->getDimensions(dim);
     
-    //
-    // Transform the surface as needed
-    //
+    /*
+     * Find three points on the slice so that the equation for a Plane
+     * can be formed.
+     */
     float p1[3];
     float p2[3];
     float p3[3];
@@ -1883,6 +1884,10 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
     
     float intersectionPoint1[3];
     float intersectionPoint2[3];
+    
+    /*
+     * Process each surface outline
+     */
     for (int io = 0; 
          io < DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; 
          io++) {
@@ -1900,6 +1905,11 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 glLineWidth(thickness);
+                
+                /*
+                 * Examine each triangle to see if it intersects the Plane
+                 * in which the slice exists.
+                 */
                 glBegin(GL_LINES);
                 for (int it = 0; it < numTriangles; it++) {
                     const int32_t* triangleNodes = surface->getTriangle(it);
@@ -1911,6 +1921,9 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
                                                      intersectionPoint1,
                                                      intersectionPoint2)) {
                         if (surfaceColorFlag) {
+                            /*
+                             * Use coloring assigned to the first node in the triangle.
+                             */
                             glColor3fv(&rgbaColoring[triangleNodes[0] * 3]);
                         }
                         if (stretchLinesFlag) {
@@ -1927,21 +1940,25 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(ModelDisplayControllerVolume
                                 intersectionPoint1[2] = intersectionPoint2[2] - dz * stretchFactor2;
                             }
                         }
+                        
+                        /*
+                         * Draw the line where the triangle intersections the slice
+                         */
                         switch(slicePlane) {
                             case VolumeSliceViewPlaneEnum::ALL:
                                 return;
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                                glVertex3f(1.0, intersectionPoint1[1], intersectionPoint1[2]);
-                                glVertex3f(1.0, intersectionPoint2[1], intersectionPoint2[2]);
+                                glVertex3f(p1[0], intersectionPoint1[1], intersectionPoint1[2]);
+                                glVertex3f(p1[0], intersectionPoint2[1], intersectionPoint2[2]);
                                 break;
                             case VolumeSliceViewPlaneEnum::CORONAL:
-                                glVertex3f(intersectionPoint1[0], 1.0, intersectionPoint1[2]);
-                                glVertex3f(intersectionPoint2[0], 1.0, intersectionPoint2[2]);
+                                glVertex3f(intersectionPoint1[0], p1[1], intersectionPoint1[2]);
+                                glVertex3f(intersectionPoint2[0], p1[1], intersectionPoint2[2]);
                                 break;
                             case VolumeSliceViewPlaneEnum::AXIAL:
-                                glVertex3f(intersectionPoint1[0], intersectionPoint1[1], 0.01f);
-                                glVertex3f(intersectionPoint2[0], intersectionPoint2[1], 0.01f);
+                                glVertex3f(intersectionPoint1[0], intersectionPoint1[1], p1[2]);
+                                glVertex3f(intersectionPoint2[0], intersectionPoint2[1], p1[2]);
                                 break;
                         }
                     }
