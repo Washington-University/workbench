@@ -181,6 +181,17 @@ SystemUtilities::getUserName()
 }
 
 /**
+ * @return The four digit year.
+ */
+AString 
+SystemUtilities::getYear()
+{
+    QDateTime dateTime = QDateTime::currentDateTime();
+    AString s = dateTime.toString("yyyy");
+    return s;
+}
+
+/**
  * Get the date as ISO format  yyyy-mm-dd  (2009-12-09)
  *
  * @return  A string containing the date.

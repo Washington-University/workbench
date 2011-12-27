@@ -67,6 +67,8 @@ public:
 
     static AString getUserName();
 
+    static AString getYear();
+    
     static AString getDate();
 
     static AString getTime();
