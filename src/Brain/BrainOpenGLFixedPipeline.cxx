@@ -345,7 +345,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisp
             break;
         case VolumeSliceViewPlaneEnum::CORONAL:
             rotationMatrix.rotateX(-90.0);
-            rotationMatrix.rotateY(180.0);
+            //rotationMatrix.rotateY(180.0);
             break;
         case VolumeSliceViewPlaneEnum::PARASAGITTAL:
             rotationMatrix.rotateY(90.0);
