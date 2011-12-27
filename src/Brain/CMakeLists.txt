@@ -66,6 +66,7 @@ EventBrowserTabGetAll.h
 EventBrowserTabNew.h
 EventCaretMappableDataFilesGet.h
 EventDataFileRead.h
+EventIdentificationHighlightLocation.h
 EventIdentificationSymbolRemoval.h
 EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
@@ -123,6 +124,7 @@ EventBrowserTabGetAll.cxx
 EventBrowserTabNew.cxx
 EventDataFileRead.cxx
 EventCaretMappableDataFilesGet.cxx
+EventIdentificationHighlightLocation.cxx
 EventIdentificationSymbolRemoval.cxx
 EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx

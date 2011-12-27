@@ -32,6 +32,7 @@
 #undef __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructureNodeAttributes.h"
 #include "EventCaretMappableDataFilesGet.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
@@ -63,6 +64,8 @@ BrainStructure::BrainStructure(Brain* brain,
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_GET_NODE_DATA_FILES);
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL);
     EventManager::get()->addEventListener(this, 
@@ -657,6 +660,25 @@ BrainStructure::receiveEvent(Event* event)
         }
         
         dataFilesEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idLocationEvent =
+        dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idLocationEvent);
+
+        switch (idLocationEvent->getIdentificationType()) {
+            case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
+                if ((idLocationEvent->getSurfaceStructure() == this->getStructure()) 
+                    && (idLocationEvent->getSurfaceNumberOfNodes() == this->getNumberOfNodes())) { 
+                    const int32_t nodeIndex = idLocationEvent->getSurfaceNodeNumber();
+                    BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(nodeIndex);
+                    nodeAtts->setIdentified(true);
+                }
+                break;
+            case EventIdentificationHighlightLocation::IDENTIFICATION_VOLUME:
+                break;
+        }
+        idLocationEvent->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
         EventIdentificationSymbolRemoval* idRemovalEvent =

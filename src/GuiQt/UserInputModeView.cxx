@@ -36,6 +36,7 @@
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
@@ -148,14 +149,18 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     if ((surface != NULL) &&
         (nodeIndex >= 0)) {
         try {
-            updateGraphicsFlag = connMan->loadDataForSurfaceNode(surface, nodeIndex);
+            connMan->loadDataForSurfaceNode(surface, nodeIndex);
             updateGraphicsFlag = true;
             
             BrainStructure* brainStructure = surface->getBrainStructure();
             CaretAssert(brainStructure);
             
-            BrainStructureNodeAttributes* nodeAtts = brainStructure->getNodeAttributes(nodeIndex);
-            nodeAtts->setIdentified(true);
+            EventIdentificationHighlightLocation idLocation(brainStructure,
+                                                            brainStructure->getStructure(),
+                                                            nodeIndex,
+                                                            brainStructure->getNumberOfNodes(),
+                                                            surface->getCoordinate(nodeIndex));
+            EventManager::get()->sendEvent(idLocation.getPointer());
 
         }
         catch (DataFileException e) {
@@ -171,8 +176,15 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         if (volumeFile != NULL) {
             float xyz[3];
             volumeFile->indexToSpace(voxelIJK, xyz);
+            
+            EventIdentificationHighlightLocation idLocation(volumeFile,
+                                                            voxelIJK,
+                                                            xyz);
+            EventManager::get()->sendEvent(idLocation.getPointer());
+            updateGraphicsFlag = true;
+            
             try {
-                updateGraphicsFlag = connMan->loadDataForVoxelAtCoordinate(xyz);
+                connMan->loadDataForVoxelAtCoordinate(xyz);
             }
             catch (DataFileException e) {
                 QMessageBox::critical(openGLWidget, "", e.whatString());

@@ -114,6 +114,10 @@ EventTypeEnum::initialize()
                                      "EVENT_GRAPHICS_UPDATE_ONE_WINDOW", 
                                      "Update graphics in one window"));
     
+    enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION, 
+                                     "EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION", 
+                                     "Highlight the location when identification takes place"));
+    
     enumData.push_back(EventTypeEnum(EVENT_IDENTIFICATION_SYMBOL_REMOVAL, 
                                      "EVENT_IDENTIFICATION_SYMBOL_REMOVAL", 
                                      "Remove all identification symbols"));

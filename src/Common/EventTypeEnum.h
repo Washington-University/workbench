@@ -64,6 +64,8 @@ public:
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */
         EVENT_GRAPHICS_UPDATE_ONE_WINDOW,
+        /** Highlight location when an identification occurs */
+        EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION,
         /** Remove all identification symbols */
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Display text in information windows */
