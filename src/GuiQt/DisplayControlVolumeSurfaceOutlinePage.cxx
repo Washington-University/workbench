@@ -65,7 +65,11 @@ DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage()
  */
 DisplayControlVolumeSurfaceOutlinePage::~DisplayControlVolumeSurfaceOutlinePage()
 {
-    
+    const int32_t numOutlines = static_cast<int32_t>(this->outlineWidgets.size());
+    for (int32_t i = 0; i < numOutlines; i++) {
+        delete this->outlineWidgets[i];
+        this->outlineWidgets[i] = NULL;
+    }
 }
 
 /**
