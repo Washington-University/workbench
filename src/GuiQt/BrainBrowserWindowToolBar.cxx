@@ -108,8 +108,8 @@ using namespace caret;
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                                      BrowserTabContent* initialBrowserTabContent,
                                                      BrainBrowserWindowToolBox* toolBox,
-                                                     QWidget* parent)
-: QToolBar(parent)
+                                                     BrainBrowserWindow* parentBrainBrowserWindow)
+: QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->toolBox = toolBox;
@@ -166,6 +166,12 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(tabClosed(int)));
     
     /*
+     * Display control action at right side of toolbar
+     */
+    QToolButton* displayControlToolButton = new QToolButton();
+    displayControlToolButton->setDefaultAction(parentBrainBrowserWindow->displayControlAction);
+    
+    /*
      * Toolbar action and tool button at right of the tab bar
      */
     QIcon toolBarIcon;
@@ -216,6 +222,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1, 1);
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
+    tabBarLayout->addWidget(displayControlToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(toolBoxToolButton);
     

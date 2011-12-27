@@ -122,6 +122,7 @@ namespace caret {
         BrainBrowserWindow& operator=(const BrainBrowserWindow&);
         
         void createActions();
+        void createActionsUsedByToolBar();
         void createMenus();
         
         QMenu* createMenuFile();
@@ -212,6 +213,7 @@ namespace caret {
         /* Editor for scalar color mapping. */
         MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
         
+        friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
     };
 }

@@ -109,6 +109,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                         Qt::Horizontal);
     QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
                      this, SLOT(shrinkToolbox()));
+
+    this->createActionsUsedByToolBar();
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
@@ -182,6 +184,24 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 
 /**
  * Create actions for this window.
+ * NOTE: This is called BEFORE the toolbar is created.
+ */
+void 
+BrainBrowserWindow::createActionsUsedByToolBar()
+{
+    this->displayControlAction = 
+    WuQtUtilities::createAction("Display Control...",
+                                "Show the Display Control",
+                                Qt::CTRL + Qt::Key_D,
+                                this,
+                                this,
+                                SLOT(processDisplayControl()));   
+    this->displayControlAction->setIconText("DC");
+}
+
+/**
+ * Create actions for this window.
+ * NOTE: This is called AFTER the toolbar is created.
  */
 void 
 BrainBrowserWindow::createActions()
@@ -267,13 +287,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processEditPreferences()));
-    
-    this->displayControlAction = 
-    WuQtUtilities::createAction("Display Control...",
-                                "Show the Display Control",
-                                this,
-                                this,
-                                SLOT(processDisplayControl()));
     
     this->exitProgramAction =
     WuQtUtilities::createAction("Exit", 
