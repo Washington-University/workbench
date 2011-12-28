@@ -1209,7 +1209,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                      this, SLOT(orientationUserViewSelectToolButtonMenuTriggered(QAction*)));
     
     this->orientationUserViewSelectToolButtonAction = new QAction(this);
-    this->orientationUserViewSelectToolButtonAction->setText("User Views");
+    this->orientationUserViewSelectToolButtonAction->setText("User"); //"User Views");
     this->orientationUserViewSelectToolButtonAction->setMenu(this->orientationUserViewSelectToolButtonMenu);
     this->orientationUserViewSelectToolButtonAction->setToolTip("Select, add, and delete user-defined views");
     this->orientationUserViewSelectToolButtonAction->setStatusTip("Select, add, and delete user-defined views");
@@ -1236,15 +1236,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     QToolButton* orientationResetToolButton = new QToolButton();
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
 
-    QHBoxLayout* buttonLayout = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(buttonLayout, 0, 2, 0);
-    buttonLayout->addWidget(orientationLeftToolButton);
-    buttonLayout->addWidget(orientationRightToolButton);
-    buttonLayout->addWidget(orientationAnteriorToolButton);
-    buttonLayout->addWidget(orientationPosteriorToolButton);
-    buttonLayout->addWidget(orientationDorsalToolButton);
-    buttonLayout->addWidget(orientationVentralToolButton);
-    
     QToolButton* userViewOneToolButton = new QToolButton();
     userViewOneToolButton->setDefaultAction(this->orientationUserViewOneToolButtonAction);
     
@@ -1253,6 +1244,22 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     
     this->orientationUserViewSelectToolButton = new QToolButton();
     this->orientationUserViewSelectToolButton->setDefaultAction(this->orientationUserViewSelectToolButtonAction);
+    
+    QVBoxLayout* userViewAndResetLayout = new QVBoxLayout();
+    userViewAndResetLayout->addStretch();
+    userViewAndResetLayout->addWidget(this->orientationUserViewSelectToolButton, 0, Qt::AlignLeft);
+    userViewAndResetLayout->addWidget(orientationResetToolButton, 0, Qt::AlignLeft);
+    userViewAndResetLayout->addStretch();
+    
+    QGridLayout* buttonGridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutMargins(buttonGridLayout, 0, 2, 0);
+    buttonGridLayout->addWidget(orientationLeftToolButton,      0, 0);
+    buttonGridLayout->addWidget(orientationRightToolButton,     0, 1);
+    buttonGridLayout->addWidget(orientationDorsalToolButton,    1, 0);
+    buttonGridLayout->addWidget(orientationVentralToolButton,   1, 1);
+    buttonGridLayout->addWidget(orientationAnteriorToolButton,  2, 0);
+    buttonGridLayout->addWidget(orientationPosteriorToolButton, 2, 1);
+    buttonGridLayout->addLayout(userViewAndResetLayout, 0, 2, 3, 1);
     
 //    QHBoxLayout* userOrientLayout = new QHBoxLayout();
 //    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 2, 0);
@@ -1264,10 +1271,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
-    layout->addLayout(buttonLayout);
-//    layout->addLayout(userOrientLayout, Qt::AlignHCenter);
-    layout->addWidget(this->orientationUserViewSelectToolButton, 0, Qt::AlignHCenter);
-    layout->addWidget(orientationResetToolButton, 0, Qt::AlignHCenter);
+    layout->addLayout(buttonGridLayout);
     
     this->orientationWidgetGroup = new WuQWidgetObjectGroup(this);
     this->orientationWidgetGroup->add(this->orientationLeftOrLateralToolButtonAction);
