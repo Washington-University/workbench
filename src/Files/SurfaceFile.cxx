@@ -620,7 +620,7 @@ int32_t SurfaceFile::closestNode(float target[3]) const
 {
     if (m_locator == NULL)
     {
-        CaretMutexLocker(m_helperMutex);
+        CaretMutexLocker myLock(&m_helperMutex);
         m_locator = CaretPointer<CaretPointLocator>(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
     }
     return m_locator->closestPoint(target);
