@@ -158,6 +158,7 @@ int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSet
         }
         myHeap.top(&curDist);//get the key for the next item
     }
+    if (first) return -1;//no points in the set
     if (whichSetOut != NULL)
     {
         *whichSetOut = bestSet;

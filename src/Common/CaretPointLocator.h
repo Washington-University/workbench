@@ -53,10 +53,13 @@ namespace caret {
         static const int NUM_POINTS_SPLIT = 100;
         void removeSetHelper(Oct<LeafVector<Point> >* thisOct, const int32_t thisSet);
     public:
+        ///make an empty point locator with given bounding box (bounding box can expand later, but may be less efficient
         CaretPointLocator(const float minBounds[3], const float maxBounds[3]);
+        ///make a point locator with the bounding box of this point set, and use this point set as set #0
         CaretPointLocator(const float* coordsIn, const int32_t numCoords);
         ///add a point set, SAVE THE RETURN VALUE because it is how you identify which point set found points belong to
         int32_t addPointSet(const float* coordsIn, const int32_t numCoords);
+        ///remove a point set by its set number
         void removePointSet(const int32_t whichSet);
         ///returns the index of the closest point, and optionally which point set and the coords
         int32_t closestPoint(const float target[3], int32_t* whichSetOut = NULL, float* coordsOut = NULL) const;
