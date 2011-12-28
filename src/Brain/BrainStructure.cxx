@@ -740,10 +740,7 @@ BrainStructure::receiveEvent(Event* event)
                     
                     ElapsedTimer plTimer;
                     plTimer.start();
-                    CaretPointLocator pointLocator(s->getCoordinate(0),
-                                                   s->getNumberOfNodes());
-                    int32_t whichSet;
-                    const int32_t plNode = pointLocator.closestPoint(xyz, &whichSet);
+                    const int32_t plNode = s->closestNode(xyz);
                     const double plTime = plTimer.getElapsedTimeSeconds();
                     
                     const AString timeMessage = ("Node seq/locator: "

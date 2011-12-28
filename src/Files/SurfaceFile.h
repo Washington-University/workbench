@@ -94,7 +94,7 @@ namespace caret {
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
-        int32_t closestNode(float target[3]) const;
+        int32_t closestNode(const float target[3]) const;
         
         virtual void setModified();
         

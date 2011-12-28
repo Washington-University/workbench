@@ -616,7 +616,7 @@ SurfaceFile::setModified()
     GiftiTypeFile::setModified();
 }
 
-int32_t SurfaceFile::closestNode(float target[3]) const
+int32_t SurfaceFile::closestNode(const float target[3]) const
 {
     if (m_locator == NULL)
     {
