@@ -41,6 +41,7 @@ CaretMutex.h
 CaretObject.h
 CaretOMP.h
 CaretPointer.h
+CaretPointLocator.h
 CaretPreferences.h
 CubicSpline.h
 DataCompressZLib.h
@@ -94,6 +95,7 @@ CaretHttpManager.cxx
 CaretLogger.cxx
 CaretMutex.cxx
 CaretObject.cxx
+CaretPointLocator.cxx
 CaretPreferences.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx

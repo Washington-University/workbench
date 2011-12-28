@@ -2,6 +2,7 @@
 #define __OCT_TREE_H__
 
 #include "MathFunctions.h"
+#include <vector>
 
 namespace caret
 {
@@ -21,9 +22,11 @@ namespace caret
         Oct(const float minCoords[3], const float maxCoords[3]);
         ~Oct();
         void makeChildren();
+        void makeChildrenExcept(const int octant[3]);
         void deleteChildren();
         ///makes an Oct with this node as the child specified by octant
         Oct* makeParent(const int octant[3]);
+        Oct* makeContains(const float pointToContain[3]);
         float distToPoint(const float point[3]);
         bool lineIntersects(const float p1[3], const float p2[3]);
         bool rayIntersects(const float start[3], const float p2[3]);
@@ -32,6 +35,31 @@ namespace caret
         bool boundsOverlaps(const float minCoords[3], const float maxCoords[3]);
         ///returns which child Oct the point would be contained in if the point were inside this Oct
         Oct* containingChild(const float point[3], int* whichOct = NULL);
+    };
+    
+    ///simple templated vector pointer that can be deleted, since you shouldn't rely on any method for actually deleting a vector's memory, for convenience
+    template <typename T>
+    struct LeafVector
+    {
+        std::vector<T>* m_vector;
+        LeafVector() { m_vector = new std::vector<T>(); }
+        ~LeafVector() { freeData(); }
+        void freeData()
+        {
+            if (m_vector != NULL)
+            {
+                delete m_vector;
+                m_vector = NULL;
+            }
+        }
+        T& operator[](const int64_t index)
+        {
+            return (*m_vector)[index];
+        }
+        const T& operator[](const int64_t index) const
+        {
+            return (*m_vector)[index];
+        }
     };
     
     template<typename T>
@@ -96,6 +124,34 @@ namespace caret
     }
     
     template<typename T>
+    void Oct<T>::makeChildrenExcept(const int octant[3])
+    {
+        m_leaf = false;
+        int ijk[3];
+        for (ijk[0] = 0; ijk[0] < 2; ++ijk[0])
+        {
+            for (ijk[1] = 0; ijk[1] < 2; ++ijk[1])
+            {
+                for (ijk[2] = 0; ijk[2] < 2; ++ijk[2])
+                {
+                    if (ijk[0] != octant[0] && ijk[1] != octant[1] && ijk[2] != octant[2])
+                    {//avoiding one new/delete pair should be worth 8 times this conditional
+                        Oct<T>* temp = new Oct<T>();
+                        m_children[ijk[0]][ijk[1]][ijk[2]] = temp;
+                        temp->m_parent = this;
+                        for (int m = 0; m < 3; ++m)
+                        {
+                            temp->m_bounds[m][0] = m_bounds[m][ijk[m]];
+                            temp->m_bounds[m][2] = m_bounds[m][ijk[m] + 1];
+                            temp->m_bounds[m][1] = (temp->m_bounds[m][0] + temp->m_bounds[m][2]) * 0.5f;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    template<typename T>
     void Oct<T>::deleteChildren()
     {
         m_leaf = true;
@@ -122,13 +178,27 @@ namespace caret
         for (int i = 0; i < 3; ++i)
         {
             ret->m_bounds[i][octant[i]] = m_bounds[i][0];
-            ret->m_bounds[i][octant[i] + 1] = m_bounds[i][1];
-            ret->m_bounds[i][(octant[i] + 2) % 3] = (octant[i] ? (2.0f * m_bounds[i][0] - m_bounds[i][1]) : (2.0f * m_bounds[i][1] - m_bounds[i][0]));
+            ret->m_bounds[i][octant[i] + 1] = m_bounds[i][2];
+            ret->m_bounds[i][(octant[i] + 2) % 3] = (octant[i] ? (2.0f * m_bounds[i][0] - m_bounds[i][2]) : (2.0f * m_bounds[i][2] - m_bounds[i][0]));
         }
-        ret->makeChildren();//do this the lazy way (code wise), with an extra new and delete - we shouldn't be doing this very often, so not important
-        delete ret->m_children[octant[0]][octant[1]][octant[2]];
+        ret->makeChildrenExcept(octant);
         ret->m_children[octant[0]][octant[1]][octant[2]] = this;
         m_parent = ret;
+        return ret;
+    }
+    
+    template<typename T>
+    Oct<T>* Oct<T>::makeContains(const float pointToContain[3])
+    {
+        Oct<T>* ret = this;
+        while (!ret->pointInside(pointToContain))
+        {
+            int octant[3];
+            octant[0] = (pointToContain[0] < m_bounds[0][1] ? 1 : 0);//use midpoint to intelligently pick best division when more than one division would contain it
+            octant[1] = (pointToContain[1] < m_bounds[1][1] ? 1 : 0);
+            octant[2] = (pointToContain[2] < m_bounds[2][1] ? 1 : 0);
+            ret = ret->makeParent(octant);
+        }
         return ret;
     }
     
