@@ -1472,8 +1472,9 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     /*
      * Left/Right separation
      */
-    const int separationSpinngerWidth = 70;
+    const int separationSpinngerWidth = 60;
     this->wholeBrainSurfaceSeparationLeftRightSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationLeftRightSpinBox->setDecimals(0);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMinimum(-100000.0);
     this->wholeBrainSurfaceSeparationLeftRightSpinBox->setMaximum(100000.0);
@@ -1486,6 +1487,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
      * Cerebellum separation
      */
     this->wholeBrainSurfaceSeparationCerebellumSpinBox = new QDoubleSpinBox();
+    this->wholeBrainSurfaceSeparationCerebellumSpinBox->setDecimals(0);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setFixedWidth(separationSpinngerWidth);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMinimum(-100000.0);
     this->wholeBrainSurfaceSeparationCerebellumSpinBox->setMaximum(100000.0);
@@ -1497,19 +1499,42 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     
     QLabel* separationLabel = new QLabel("Separation");
     
+
     QGridLayout* gridLayout = new QGridLayout();
-    gridLayout->setVerticalSpacing(4);
-    gridLayout->setHorizontalSpacing(4);
-    gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 4);
-    gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
-    gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
-    gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 2);
-    gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 3);
-    gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
-    gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1, 1, 3);
-    gridLayout->addWidget(separationLabel, 0, 4);
-    gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 4);
-    gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 4);
+
+    const bool compactLayoutFlag = true;
+    if (compactLayoutFlag) {
+        QLabel* columnTwoSpaceLabel = new QLabel(" ");
+        wholeBrainLeftSurfaceToolButton->setText("L");
+        wholeBrainRightSurfaceToolButton->setText("R");
+        wholeBrainCerebellumSurfaceToolButton->setText("C");
+        gridLayout->setVerticalSpacing(2);
+        gridLayout->setHorizontalSpacing(2);
+        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 6);
+        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+        gridLayout->addWidget(columnTwoSpaceLabel, 1, 2);
+        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 3);
+        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 4);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 5);
+        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
+        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 5);
+    }
+    else {
+        gridLayout->setVerticalSpacing(4);
+        gridLayout->setHorizontalSpacing(4);
+        gridLayout->addWidget(this->wholeBrainSurfaceTypeComboBox, 0, 0, 1, 4);
+        gridLayout->addWidget(this->wholeBrainSurfaceLeftCheckBox, 1, 0);
+        gridLayout->addWidget(wholeBrainLeftSurfaceToolButton, 1, 1);
+        gridLayout->addWidget(this->wholeBrainSurfaceRightCheckBox, 1, 2);
+        gridLayout->addWidget(wholeBrainRightSurfaceToolButton, 1, 3);
+        gridLayout->addWidget(this->wholeBrainSurfaceCerebellumCheckBox, 2, 0);
+        gridLayout->addWidget(wholeBrainCerebellumSurfaceToolButton, 2, 1, 1, 3);
+        gridLayout->addWidget(separationLabel, 0, 4);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationLeftRightSpinBox, 1, 4);
+        gridLayout->addWidget(this->wholeBrainSurfaceSeparationCerebellumSpinBox, 2, 4);
+    }
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1527,7 +1552,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationLeftRightSpinBox);
     this->wholeBrainSurfaceOptionsWidgetGroup->add(this->wholeBrainSurfaceSeparationCerebellumSpinBox);
     
-    QWidget* w = this->createToolWidget("Surface Options", 
+    QWidget* w = this->createToolWidget("Surface Viewing", 
                                         widget, 
                                         WIDGET_PLACEMENT_LEFT, 
                                         WIDGET_PLACEMENT_TOP,
