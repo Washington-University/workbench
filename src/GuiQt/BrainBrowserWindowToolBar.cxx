@@ -1118,6 +1118,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     if (this->viewOrientationLeftIcon != NULL) {
         this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
     }
+    else {
+        this->orientationLeftOrLateralToolButtonAction->setIconText("L");
+    }
     
     this->orientationRightOrMedialToolButtonAction = WuQtUtilities::createAction("R", 
                                                                          "View from a RIGHT perspective", 
@@ -1126,6 +1129,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                          SLOT(orientationRightOrMedialToolButtonTriggered(bool)));
     if (this->viewOrientationRightIcon != NULL) {
         this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
+    }
+    else {
+        this->orientationRightOrMedialToolButtonAction->setIconText("R");
     }
     
     this->orientationAnteriorToolButtonAction = WuQtUtilities::createAction("A", 
@@ -1136,6 +1142,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     if (this->viewOrientationAnteriorIcon != NULL) {
         this->orientationAnteriorToolButtonAction->setIcon(*this->viewOrientationAnteriorIcon);
     }
+    else {
+        this->orientationAnteriorToolButtonAction->setIconText("A");
+    }
     
     this->orientationPosteriorToolButtonAction = WuQtUtilities::createAction("P", 
                                                                              "View from a POSTERIOR perspective", 
@@ -1144,6 +1153,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                              SLOT(orientationPosteriorToolButtonTriggered(bool)));
     if (this->viewOrientationPosteriorIcon != NULL) {
         this->orientationPosteriorToolButtonAction->setIcon(*this->viewOrientationPosteriorIcon);
+    }
+    else {
+        this->orientationPosteriorToolButtonAction->setIconText("P");
     }
     
     this->orientationDorsalToolButtonAction = WuQtUtilities::createAction("D", 
@@ -1154,6 +1166,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     if (this->viewOrientationDorsalIcon != NULL) {
         this->orientationDorsalToolButtonAction->setIcon(*this->viewOrientationDorsalIcon);
     }
+    else {
+        this->orientationDorsalToolButtonAction->setIconText("D");
+    }
     
     this->orientationVentralToolButtonAction = WuQtUtilities::createAction("V", 
                                                                            "View from a VENTRAL perspective", 
@@ -1162,6 +1177,9 @@ BrainBrowserWindowToolBar::createOrientationWidget()
                                                                            SLOT(orientationVentralToolButtonTriggered(bool)));
     if (this->viewOrientationVentralIcon != NULL) {
         this->orientationVentralToolButtonAction->setIcon(*this->viewOrientationVentralIcon);
+    }
+    else {
+        this->orientationVentralToolButtonAction->setIconText("V");
     }
     
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("Reset", 
@@ -1328,16 +1346,28 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
                 if (this->viewOrientationRightLateralIcon != NULL) {
                     this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationRightLateralIcon);
                 }
+                else {
+                    this->orientationLeftOrLateralToolButtonAction->setIconText("L");
+                }
                 if (this->viewOrientationRightMedialIcon != NULL) {
                     this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightMedialIcon);
+                }
+                else {
+                    this->orientationRightOrMedialToolButtonAction->setIconText("M");
                 }
             }
             else if (leftFlag) {
                 if (this->viewOrientationLeftLateralIcon != NULL) {
                     this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftLateralIcon);
                 }
+                else {
+                    this->orientationLeftOrLateralToolButtonAction->setIconText("L");
+                }
                 if (this->viewOrientationLeftMedialIcon != NULL) {
                     this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationLeftMedialIcon);
+                }
+                else {
+                    this->orientationRightOrMedialToolButtonAction->setIconText("M");
                 }
             }
             WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction, 
@@ -1349,8 +1379,14 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
             if (this->viewOrientationLeftIcon != NULL) {
                 this->orientationLeftOrLateralToolButtonAction->setIcon(*this->viewOrientationLeftIcon);
             }
+            else {
+                this->orientationLeftOrLateralToolButtonAction->setIconText("L");
+            }
             if (this->viewOrientationRightIcon != NULL) {
                 this->orientationRightOrMedialToolButtonAction->setIcon(*this->viewOrientationRightIcon);
+            }
+            else {
+                this->orientationRightOrMedialToolButtonAction->setIconText("R");
             }
             WuQtUtilities::setToolTipAndStatusTip(this->orientationLeftOrLateralToolButtonAction, 
                                                   "View from a LEFT perspective");
