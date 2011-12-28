@@ -119,12 +119,12 @@ CaretPointLocator::CaretPointLocator(const float minBounds[3], const float maxBo
 int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSetOut, float* coordsOut) const
 {
     CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
-    myHeap.push(m_tree->distToPoint(target), m_tree);
     bool first = true;
-    float bestDist2 = -1.0f, bestDist = -1.0f, tempf;
+    float bestDist2 = -1.0f, bestDist = -1.0f, tempf, curDist = m_tree->distToPoint(target);
     Vector3D bestPoint;
     int32_t bestSet, bestIndex;
-    while (!myHeap.isEmpty() && (first || myHeap.top()->distToPoint(target) < bestDist))
+    myHeap.push(curDist, m_tree);
+    while (!myHeap.isEmpty() && (first || curDist < bestDist))
     {
         Oct<LeafVector<Point> >* thisOct = myHeap.pop();
         if (thisOct->m_leaf)
@@ -156,6 +156,7 @@ int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSet
                 }
             }
         }
+        myHeap.top(&curDist);//get the key for the next item
     }
     if (whichSetOut != NULL)
     {
