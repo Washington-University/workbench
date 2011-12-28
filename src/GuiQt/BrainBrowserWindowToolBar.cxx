@@ -1589,37 +1589,49 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     QObject::connect(this->volumeIndicesAxialCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(volumeIndicesAxialCheckBoxStateChanged(int)));
     
+    const int sliceIndexSpinBoxWidth = 55;
+    const int sliceCoordinateSpinBoxWidth = 75;
+    
     this->volumeIndicesParasagittalSpinBox = new QSpinBox();
+    this->volumeIndicesParasagittalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesParasagittalSpinBox,
                                           "Change the selected PARASAGITTAL slice");
     QObject::connect(this->volumeIndicesParasagittalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesParasagittalSpinBoxValueChanged(int)));
     
     this->volumeIndicesCoronalSpinBox = new QSpinBox();
+    this->volumeIndicesCoronalSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesCoronalSpinBox,
                                           "Change the selected CORONAL slice");
     QObject::connect(this->volumeIndicesCoronalSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesCoronalSpinBoxValueChanged(int)));
     
     this->volumeIndicesAxialSpinBox = new QSpinBox();
+    this->volumeIndicesAxialSpinBox->setFixedWidth(sliceIndexSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesAxialSpinBox,
                                           "Change the selected AXIAL slice");
     QObject::connect(this->volumeIndicesAxialSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(volumeIndicesAxialSpinBoxValueChanged(int)));
     
     this->volumeIndicesXcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesXcoordSpinBox->setDecimals(1);
+    this->volumeIndicesXcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesXcoordSpinBox,
                                           "Adjust coordinate to select PARASAGITTAL slice");
     QObject::connect(this->volumeIndicesXcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesXcoordSpinBoxValueChanged(double)));
     
     this->volumeIndicesYcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesYcoordSpinBox->setDecimals(1);
+    this->volumeIndicesYcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesYcoordSpinBox,
                                           "Adjust coordinate to select CORONAL slice");
     QObject::connect(this->volumeIndicesYcoordSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(volumeIndicesYcoordSpinBoxValueChanged(double)));
     
     this->volumeIndicesZcoordSpinBox = new QDoubleSpinBox();
+    this->volumeIndicesZcoordSpinBox->setDecimals(1);
+    this->volumeIndicesZcoordSpinBox->setFixedWidth(sliceCoordinateSpinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->volumeIndicesZcoordSpinBox,
                                           "Adjust coordinate to select AXIAL slice");
     QObject::connect(this->volumeIndicesZcoordSpinBox, SIGNAL(valueChanged(double)),
@@ -2034,11 +2046,14 @@ QWidget*
 BrainBrowserWindowToolBar::createVolumeMontageWidget()
 {
     QLabel* rowsLabel = new QLabel("Rows:");
-    QLabel* columnsLabel = new QLabel("Columns:");
-    QLabel* spacingLabel = new QLabel("Spacing:");
+    QLabel* columnsLabel = new QLabel("Cols:");
+    QLabel* spacingLabel = new QLabel("Step:");
+    
+    const int spinBoxWidth = 48;
     
     this->montageRowsSpinBox = new QSpinBox();
     this->montageRowsSpinBox->setRange(1, 20);
+    this->montageRowsSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageRowsSpinBox,
                                           "Select the number of rows in montage of volume slices");
     QObject::connect(this->montageRowsSpinBox, SIGNAL(valueChanged(int)),
@@ -2046,6 +2061,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     
     this->montageColumnsSpinBox = new QSpinBox();
     this->montageColumnsSpinBox->setRange(1, 20);
+    this->montageColumnsSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageColumnsSpinBox,
                                           "Select the number of columns in montage of volume slices");
     QObject::connect(this->montageColumnsSpinBox, SIGNAL(valueChanged(int)),
@@ -2053,8 +2069,9 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
 
     this->montageSpacingSpinBox = new QSpinBox();
     this->montageSpacingSpinBox->setRange(1, 2500);
+    this->montageSpacingSpinBox->setMaximumWidth(spinBoxWidth);
     WuQtUtilities::setToolTipAndStatusTip(this->montageSpacingSpinBox,
-                                          "Select the number of slices skipped between displayed montage slices");
+                                          "Select the number of slices stepped (incremented) between displayed montage slices");
     QObject::connect(this->montageSpacingSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageSpacingSpinBoxValueChanged(int)));
     
