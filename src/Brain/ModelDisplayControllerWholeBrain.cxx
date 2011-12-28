@@ -29,6 +29,7 @@
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerWholeBrain.h"
@@ -49,6 +50,8 @@ ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
                          brain)
 {
     this->initializeMembersModelDisplayControllerWholeBrain();
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
 
 /**
@@ -56,6 +59,7 @@ ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
  */
 ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
 {
+    EventManager::get()->removeAllEventsFromListener(this);    
 }
 
 /**
@@ -480,7 +484,8 @@ ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum s
  * @param surface
  *    Newly selected surface.
  */
-void ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
+void 
+ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
                                                           const int32_t windowTabNumber,
                                                           Surface* surface)
 {
@@ -490,5 +495,35 @@ void ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::E
                    surfaceType);
     
     this->selectedSurface[windowTabNumber][key] = surface;
+}
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+ModelDisplayControllerWholeBrain::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idLocationEvent =
+        dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idLocationEvent);
+        
+        const float* highlighXYZ = idLocationEvent->getXYZ();
+        
+        for (int32_t windowTabNumber = 0; 
+             windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
+             windowTabNumber++) {
+            VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+            if (vf != NULL) {
+                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(vf,
+                                                                                     highlighXYZ);
+            }
+        }
+        
+        idLocationEvent->setEventProcessed();
+    }
 }
 

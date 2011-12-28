@@ -26,6 +26,7 @@
  */ 
 
 #include "BrainConstants.h"
+#include "EventListenerInterface.h"
 #include "ModelDisplayController.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSliceIndicesSelection.h"
@@ -37,7 +38,7 @@ namespace caret {
     class VolumeFile;
     
     /// Controls the display of a whole brain.
-    class ModelDisplayControllerWholeBrain : public ModelDisplayController {
+    class ModelDisplayControllerWholeBrain : public ModelDisplayController, public EventListenerInterface {
         
     public:
         ModelDisplayControllerWholeBrain(Brain* brain);
@@ -90,6 +91,8 @@ namespace caret {
         void setSelectedSurface(const StructureEnum::Enum structure,
                                     const int32_t windowTabNumber,
                                     Surface* surface);
+        
+        void receiveEvent(Event* event);
         
                                     
     private:

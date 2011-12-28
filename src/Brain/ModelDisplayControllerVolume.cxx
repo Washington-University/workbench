@@ -55,8 +55,7 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
  */
 ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
-    
+    EventManager::get()->removeAllEventsFromListener(this);    
 }
 
 void

@@ -697,18 +697,20 @@ BrainStructure::receiveEvent(Event* event)
                 const Surface* s = this->getVolumeInteractionSurface();
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
-                    float dist = std::numeric_limits<float>::max();
+                    float distSQ = std::numeric_limits<float>::max();
                     int32_t nearestNodeIndex = -1;
                     const int32_t numNodes = s->getNumberOfNodes();
                     for (int32_t i = 0; i < numNodes; i++) {
                         const float dsq = MathFunctions::distanceSquared3D(xyz, s->getCoordinate(i));
-                        if (dsq < dist) {
-                            dist = dsq;
+                        if (dsq < distSQ) {
+                            distSQ = dsq;
                             nearestNodeIndex = i;
                         }
                     }
                     
-                    highlighNodeIndex = nearestNodeIndex;
+                    if (distSQ <= 9.0) { // distSQ is SQUARED distance so 9 => 3.
+                        highlighNodeIndex = nearestNodeIndex;
+                    }
                 }
             }
                 break;
