@@ -67,6 +67,9 @@ namespace caret {
         
         void selectSlicesAtOrigin(const VolumeFile* volumeFile);
         
+        void selectSlicesAtCoordinate(const VolumeFile* volumeFile,
+                                      const float xyz[3]);
+        
         void reset();
         
     private:

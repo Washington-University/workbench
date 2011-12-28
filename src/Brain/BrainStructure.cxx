@@ -23,6 +23,7 @@
  */ 
 
 #include <algorithm>
+#include <limits>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -40,6 +41,7 @@
 #include "EventModelDisplayControllerDelete.h"
 #include "EventSurfacesGet.h"
 #include "LabelFile.h"
+#include "MathFunctions.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
 #include "RgbaFile.h"
@@ -382,6 +384,22 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
 }
 
 /**
+ * @return The surface used for volume interaction.
+ * Returns NULL if no anatomical surfaces.
+ */
+const Surface* 
+BrainStructure::getVolumeInteractionSurface() const
+{
+    std::vector<Surface*> allAnatomicalSurfaces;
+    this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
+                            allAnatomicalSurfaces);
+    if (allAnatomicalSurfaces.empty() == false) {
+        return allAnatomicalSurfaces[0];
+    }
+    return NULL;
+}
+
+/**
  * Is the surface in this brain structure?
  * @param surface
  *   Surface that is tested for being in this brain structure.
@@ -666,19 +684,41 @@ BrainStructure::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
+        int32_t highlighNodeIndex = -1;
         switch (idLocationEvent->getIdentificationType()) {
             case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
                 if ((idLocationEvent->getSurfaceStructure() == this->getStructure()) 
                     && (idLocationEvent->getSurfaceNumberOfNodes() == this->getNumberOfNodes())) { 
-                    const int32_t nodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                    BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(nodeIndex);
-                    nodeAtts->setIdentified(true);
+                    highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
                 }
                 break;
             case EventIdentificationHighlightLocation::IDENTIFICATION_VOLUME:
+            {
+                const Surface* s = this->getVolumeInteractionSurface();
+                if (s != NULL) {
+                    const float* xyz = idLocationEvent->getXYZ();
+                    float dist = std::numeric_limits<float>::max();
+                    int32_t nearestNodeIndex = -1;
+                    const int32_t numNodes = s->getNumberOfNodes();
+                    for (int32_t i = 0; i < numNodes; i++) {
+                        const float dsq = MathFunctions::distanceSquared3D(xyz, s->getCoordinate(i));
+                        if (dsq < dist) {
+                            dist = dsq;
+                            nearestNodeIndex = i;
+                        }
+                    }
+                    
+                    highlighNodeIndex = nearestNodeIndex;
+                }
+            }
                 break;
         }
-        idLocationEvent->setEventProcessed();
+        
+        if (highlighNodeIndex >= 0) {
+            BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(highlighNodeIndex);
+            nodeAtts->setIdentified(true);
+            idLocationEvent->setEventProcessed();
+        }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {
         EventIdentificationSymbolRemoval* idRemovalEvent =

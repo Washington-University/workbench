@@ -86,6 +86,8 @@ namespace caret {
         
         bool containsSurface(const Surface* surface);
         
+        const Surface* getVolumeInteractionSurface() const;
+        
         Brain* getBrain();
         
         const Brain* getBrain() const;

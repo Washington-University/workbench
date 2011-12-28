@@ -26,6 +26,7 @@
  */ 
 
 
+#include "EventListenerInterface.h"
 #include "ModelDisplayController.h"
 
 #include "VolumeSliceIndicesSelection.h"
@@ -38,7 +39,7 @@ namespace caret {
     class VolumeFile;
     
     /// Controls the display of a volumes.
-    class ModelDisplayControllerVolume : public ModelDisplayController {
+    class ModelDisplayControllerVolume : public ModelDisplayController, public EventListenerInterface {
         
     public:        
         ModelDisplayControllerVolume(Brain* brain);
@@ -79,6 +80,8 @@ namespace caret {
         const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
         virtual void setSlicesToOrigin(const int32_t windowTabNumber);
+        
+        void receiveEvent(Event* event);
         
     private:
         ModelDisplayControllerVolume(const ModelDisplayControllerVolume&);

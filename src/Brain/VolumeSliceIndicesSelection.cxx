@@ -143,6 +143,30 @@ VolumeSliceIndicesSelection::selectSlicesAtOrigin(const VolumeFile* volumeFile)
 }
 
 /**
+ * Set the selected slices to the given coordinate.  If the coordinate
+ * is not inside the volume, the selected slices do not change.
+ *
+ * @param volumeFile
+ *    Volume used for dimensions.
+ * @param xyz
+ *    Coordinate for selected slices.
+ */
+void 
+VolumeSliceIndicesSelection::selectSlicesAtCoordinate(const VolumeFile* volumeFile,
+                                                      const float xyz[3])
+{
+    CaretAssert(volumeFile);
+    
+    int64_t slices[3];
+    volumeFile->closestVoxel(xyz, slices);
+    if (volumeFile->indexValid(slices[0], slices[1], slices[2])) {
+        this->sliceIndexParasagittal = slices[0];
+        this->sliceIndexCoronal      = slices[1];
+        this->sliceIndexAxial        = slices[2];
+    }
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

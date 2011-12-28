@@ -39,6 +39,7 @@
 #include "EventIdentificationHighlightLocation.h"
 #include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
@@ -201,6 +202,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     if (updateGraphicsFlag) {
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 

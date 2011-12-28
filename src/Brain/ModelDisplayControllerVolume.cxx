@@ -25,6 +25,7 @@
 #include "Brain.h"
 #include "BrowserTabContent.h"
 #include "EventBrowserTabGet.h"
+#include "EventIdentificationHighlightLocation.h"
 #include "EventManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -45,6 +46,8 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
                          brain)
 {
     this->initializeMembersModelDisplayControllerVolume();
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
 }
 
 /**
@@ -52,6 +55,8 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
  */
 ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
 }
 
 void
@@ -314,4 +319,35 @@ ModelDisplayControllerVolume::setSlicesToOrigin(const int32_t windowTabNumber)
         this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
     }
 }
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   The event.
+ */
+void 
+ModelDisplayControllerVolume::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
+        EventIdentificationHighlightLocation* idLocationEvent =
+        dynamic_cast<EventIdentificationHighlightLocation*>(event);
+        CaretAssert(idLocationEvent);
+
+        const float* highlighXYZ = idLocationEvent->getXYZ();
+        
+        for (int32_t windowTabNumber = 0; 
+             windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
+             windowTabNumber++) {
+            VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
+            if (vf != NULL) {
+                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(vf,
+                                                                                     highlighXYZ);
+            }
+        }
+        
+        idLocationEvent->setEventProcessed();
+    }
+}
+
 
