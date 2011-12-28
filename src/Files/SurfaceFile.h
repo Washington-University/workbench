@@ -35,6 +35,7 @@
 #include "CaretMutex.h"
 #include "TopologyHelper.h"
 #include "GeodesicHelper.h"
+#include "CaretPointLocator.h"
 
 namespace caret {
 
@@ -93,6 +94,8 @@ namespace caret {
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
+        int32_t closestNode(float target[3]) const;
+        
         virtual void setModified();
         
     protected:
@@ -143,9 +146,11 @@ namespace caret {
         ///used to search through geodesic helpers without starting from 0 every time, wraps around
         mutable int32_t m_geoHelperIndex;
         
+        ///used to search for the closest point in the surface
+        mutable CaretPointer<CaretPointLocator> m_locator;
+        
         ///used to track when the surface file gets changed
-        void invalidateGeoHelpers();
-        void invalidateTopoHelpers();
+        void invalidateHelpers();
         
         mutable BoundingBox* boundingBox;
         

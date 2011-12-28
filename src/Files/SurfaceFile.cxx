@@ -93,8 +93,7 @@ void
 SurfaceFile::clear()
 {
     GiftiTypeFile::clear();
-    invalidateGeoHelpers();
-    invalidateTopoHelpers();
+    invalidateHelpers();
 }
 
 /**
@@ -282,8 +281,7 @@ SurfaceFile::initializeMembersSurfaceFile()
     this->trianglePointer     = NULL;
     this->boundingBox         = NULL;
     m_normalsComputed = false;
-    invalidateGeoHelpers();
-    invalidateTopoHelpers();
+    invalidateHelpers();
 }
 
 /**
@@ -557,19 +555,14 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted) con
     return ret;
 }
 
-void SurfaceFile::invalidateGeoHelpers()
-{
-    CaretMutexLocker myLock(&m_helperMutex);//make this function threadsafe
-    m_geoHelperIndex = 0;
-    m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
-    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
-}
-
-void caret::SurfaceFile::invalidateTopoHelpers()
+void caret::SurfaceFile::invalidateHelpers()
 {
     CaretMutexLocker myLock(&m_helperMutex);//make this function threadsafe
     m_topoHelperIndex = 0;
     m_topoHelpers.clear();
+    m_geoHelperIndex = 0;
+    m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
+    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
 }
 
 /**
@@ -623,4 +616,12 @@ SurfaceFile::setModified()
     GiftiTypeFile::setModified();
 }
 
-
+int32_t SurfaceFile::closestNode(float target[3]) const
+{
+    if (m_locator == NULL)
+    {
+        CaretMutexLocker(m_helperMutex);
+        m_locator = CaretPointer<CaretPointLocator>(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
+    }
+    return m_locator->closestPoint(target);
+}
