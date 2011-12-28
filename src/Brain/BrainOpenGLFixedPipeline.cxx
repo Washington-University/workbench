@@ -900,13 +900,21 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     
     const float* coordinates = surface->getCoordinate(0);
 
-    //glDisable(GL_COLOR_MATERIAL);
-    
-    glColor3f(0.0, 1.0, 0.0);
-    //glPointSize(5.0);
-    //glBegin(GL_POINTS);
     for (int32_t i = 0; i < numNodes; i++) {
-        if (brainStructure->getNodeAttributes(i)->isIdentified()) {
+        bool drawIt = false;
+        switch (brainStructure->getNodeAttributes(i)->getIdentificationType()) {
+            case NodeIdentificationTypeEnum::NONE:
+                break;
+            case NodeIdentificationTypeEnum::NORMAL:
+                drawIt = true;
+                glColor3f(0.0, 1.0, 0.0);
+                break;
+            case NodeIdentificationTypeEnum::INTER_HEMISPHERIC:
+                drawIt = true;
+                glColor3f(0.0, 0.0, 1.0);
+                break;
+        }
+        if (drawIt) {
             const int32_t i3 = i * 3;
             glPushMatrix();
             glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
@@ -914,7 +922,6 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             glPopMatrix();
         }
     }
-    //glEnd();
 }
 
 /**

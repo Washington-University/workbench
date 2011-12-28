@@ -62,7 +62,7 @@ BrainStructureNodeAttributes::~BrainStructureNodeAttributes()
 AString 
 BrainStructureNodeAttributes::toString() const
 {
-    return ("identified=" + AString::fromBool(this->identifiedStatus));
+    return ("identified=" + NodeIdentificationTypeEnum::toName(this->identificationType));
 }
 
 /**
@@ -71,16 +71,16 @@ BrainStructureNodeAttributes::toString() const
 void 
 BrainStructureNodeAttributes::reset()
 {
-    this->identifiedStatus = false;
+    this->identificationType = NodeIdentificationTypeEnum::NONE;
 }
 
 /**
  * @return The identified status of the node.
  */
-bool 
-BrainStructureNodeAttributes::isIdentified() const
+NodeIdentificationTypeEnum::Enum 
+BrainStructureNodeAttributes::getIdentificationType() const
 {
-    return this->identifiedStatus;
+    return this->identificationType;
 }
 
 /**
@@ -89,8 +89,8 @@ BrainStructureNodeAttributes::isIdentified() const
  *    New identified status.
  */
 void 
-BrainStructureNodeAttributes::setIdentified(const bool identifiedStatus)
+BrainStructureNodeAttributes::setIdentificationType(const NodeIdentificationTypeEnum::Enum identificationType)
 {
-    this->identifiedStatus = identifiedStatus;
+    this->identificationType = identificationType;
 }
 

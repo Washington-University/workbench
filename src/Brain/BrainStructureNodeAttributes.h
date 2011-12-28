@@ -27,6 +27,7 @@
 
 
 #include "CaretObject.h"
+#include "NodeIdentificationTypeEnum.h"
 
 namespace caret {
 
@@ -37,9 +38,9 @@ namespace caret {
         
         virtual ~BrainStructureNodeAttributes();
         
-        bool isIdentified() const;
+        NodeIdentificationTypeEnum::Enum getIdentificationType() const;
         
-        void setIdentified(const bool identifiedStatus);
+        void setIdentificationType(const NodeIdentificationTypeEnum::Enum identificationType);
         
         void reset();
         
@@ -52,7 +53,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        bool identifiedStatus;
+        NodeIdentificationTypeEnum::Enum identificationType;
     };
     
 #ifdef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__

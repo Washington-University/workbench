@@ -45,6 +45,7 @@
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
+#include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -83,6 +84,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(this->createColorsWidget(), "Colors");
+    tabWidget->addTab(this->createIdentificationWidget(), "ID");
     tabWidget->addTab(this->createLoggingWidget(), "Logging");
     tabWidget->addTab(this->createVolumeWidget(), "Volume");
     this->setCentralWidget(tabWidget);
@@ -130,6 +132,8 @@ PreferencesDialog::updateDialog()
     
     this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
+    
+    this->identificationInterhemisphericCheckBox->setChecked(prefs->isInterHemisphericIdentificationEnabled());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -313,5 +317,39 @@ PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Creates identification widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createIdentificationWidget()
+{
+    this->identificationInterhemisphericCheckBox = new QCheckBox("Interhemispheric");
+    WuQtUtilities::setToolTipAndStatusTip(this->identificationInterhemisphericCheckBox, 
+                                          "Enables inter-hemispheric (right<==>left) identification");
+    QObject::connect(this->identificationInterhemisphericCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(identificationInterhemisphericCheckBoxToggled(bool)));
+    
+    
+    this->allWidgets->add(this->identificationInterhemisphericCheckBox);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(this->identificationInterhemisphericCheckBox, 0, 0);
+    return w;
+}
+
+/**
+ * Called when interhemispheric checkbox is toggled.
+ * @param value
+ *    New value.
+ */
+void 
+PreferencesDialog::identificationInterhemisphericCheckBoxToggled(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setInterHemisphericIdentificationEnabled(value);    
+}
 
 

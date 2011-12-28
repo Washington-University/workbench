@@ -32,6 +32,7 @@
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructureNodeAttributes.h"
+#include "CaretPreferences.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -45,6 +46,7 @@
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
 #include "RgbaFile.h"
+#include "SessionManager.h"
 #include "Surface.h"
 
 #include <algorithm>
@@ -684,12 +686,28 @@ BrainStructure::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
+        NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
         int32_t highlighNodeIndex = -1;
         switch (idLocationEvent->getIdentificationType()) {
             case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
                 if ((idLocationEvent->getSurfaceStructure() == this->getStructure()) 
                     && (idLocationEvent->getSurfaceNumberOfNodes() == this->getNumberOfNodes())) { 
                     highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
+                    identificationType = NodeIdentificationTypeEnum::NORMAL;
+                }
+                else if (SessionManager::get()->getCaretPreferences()->isInterHemisphericIdentificationEnabled()) {
+                    if (this->getNumberOfNodes() == idLocationEvent->getSurfaceNumberOfNodes()) {
+                        if ((this->getStructure() == StructureEnum::CORTEX_LEFT)
+                            && (idLocationEvent->getSurfaceStructure() == StructureEnum::CORTEX_RIGHT)) {
+                            highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
+                            identificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
+                        }
+                        else if ((this->getStructure() == StructureEnum::CORTEX_RIGHT)
+                                 && (idLocationEvent->getSurfaceStructure() == StructureEnum::CORTEX_LEFT)) {
+                            highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
+                            identificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
+                        }
+                    }
                 }
                 break;
             case EventIdentificationHighlightLocation::IDENTIFICATION_VOLUME:
@@ -710,6 +728,7 @@ BrainStructure::receiveEvent(Event* event)
                     
                     if (distSQ <= 9.0) { // distSQ is SQUARED distance so 9 => 3.
                         highlighNodeIndex = nearestNodeIndex;
+                        identificationType = NodeIdentificationTypeEnum::NORMAL;
                     }
                 }
             }
@@ -718,7 +737,7 @@ BrainStructure::receiveEvent(Event* event)
         
         if (highlighNodeIndex >= 0) {
             BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(highlighNodeIndex);
-            nodeAtts->setIdentified(true);
+            nodeAtts->setIdentificationType(identificationType);
             idLocationEvent->setEventProcessed();
         }
     }
@@ -728,7 +747,7 @@ BrainStructure::receiveEvent(Event* event)
         CaretAssert(idRemovalEvent);
         
         for (uint32_t i = 0; i < this->nodeAttributes.size(); i++) {
-            this->nodeAttributes[i]->setIdentified(false);
+            this->nodeAttributes[i]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
         }
         idRemovalEvent->setEventProcessed();
     }

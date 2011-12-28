@@ -93,6 +93,7 @@ ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
 ModelDisplayControllerYokingGroup.h
 NodeAndVoxelColoring.h
+NodeIdentificationTypeEnum.h
 Overlay.h
 OverlaySet.h
 SessionManager.h
@@ -151,6 +152,7 @@ ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
 ModelDisplayControllerYokingGroup.cxx
 NodeAndVoxelColoring.cxx
+NodeIdentificationTypeEnum.cxx
 Overlay.cxx
 OverlaySet.cxx
 SessionManager.cxx
