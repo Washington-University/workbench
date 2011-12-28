@@ -950,6 +950,10 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
         CaretAssert(0);
     }
     
+    if (this->screenMode == previousScreenMode) {
+        return;
+    }
+    
     if (showInFullScreen) {
         if (this->isFullScreen() == false) {
             this->showFullScreen();

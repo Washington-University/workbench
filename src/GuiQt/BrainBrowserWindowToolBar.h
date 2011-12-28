@@ -155,9 +155,11 @@ namespace caret {
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
         WuQWidgetObjectGroup* connectomeDBWidgetGroup;
         
+        QWidget* fullToolBarWidget;
         QWidget* toolbarWidget;
         QHBoxLayout* toolbarWidgetLayout;
         
+        QWidget* tabBarWidget;
         QTabBar* tabBar;
 
         /**

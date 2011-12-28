@@ -215,10 +215,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     toolBoxToolButton->setDefaultAction(this->toolBoxToolButtonAction);
     
     /*
-     * controls at far right side of toolbar
+     * Tab bar and controls at far right side of toolbar
      */
-    QWidget* tabBarWidget = new QWidget();
-    QHBoxLayout* tabBarLayout = new QHBoxLayout(tabBarWidget);
+    this->tabBarWidget = new QWidget();
+    QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
     WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1, 1);
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
@@ -279,7 +279,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     WuQtUtilities::setLayoutMargins(layout, 1, 2, 0);
-    layout->addWidget(tabBarWidget);
+    layout->addWidget(this->tabBarWidget);
     layout->addWidget(this->toolbarWidget);
     
     this->addWidget(w);
@@ -940,28 +940,51 @@ BrainBrowserWindowToolBar::updateToolBar()
     if (browserWindow != NULL) {
         BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
         
+        bool showToolBar = false;
+        bool showToolBarWidget = false;
         switch (screenMode) {
             case BrainBrowserWindowScreenModeEnum::NORMAL:
-                this->tabBar->setVisible(true);
-                this->toolbarWidget->setVisible(true);
+                showToolBar = true;
+                //this->tabBarWidget->setVisible(true);
+                //this->toolbarWidget->setVisible(true);
+                showToolBarWidget = true;
                 break;
             case BrainBrowserWindowScreenModeEnum::FULL_SCREEN:
+                /*
+                 * Display all of tab bar (tabs and tool buttons) only if more than one tab
+                 */
                 if (this->tabBar->count() > 1) {
-                    this->tabBar->setVisible(true);
+                    showToolBar = true;
+                    showToolBarWidget = false;
+                    //this->tabBarWidget->setVisible(true);
+                    //this->toolbarWidget->setVisible(false);
                 }
                 else {
-                    this->tabBar->setVisible(false);
+                    //this->tabBarWidget->setVisible(false);
                 }
-                this->toolbarWidget->setVisible(false);
+                //this->toolbarWidget->setVisible(false);
                 break;
             case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE:
-                this->tabBar->setVisible(false);
-                this->toolbarWidget->setVisible(false);
+                //this->tabBarWidget->setVisible(false);
+                //this->toolbarWidget->setVisible(false);
                 break;
             case BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN:
-                this->tabBar->setVisible(false);
-                this->toolbarWidget->setVisible(false);
+                //this->tabBarWidget->setVisible(false);
+                //this->toolbarWidget->setVisible(false);
                 break;
+        }
+
+        this->setVisible(showToolBar);
+        if (showToolBar) {
+            /*
+             * Gets disabled by main window when switching view modes
+             */
+            const bool enabledStatus = this->toolBarToolButtonAction->isEnabled();
+            this->toolBarToolButtonAction->setEnabled(true);
+            if (this->toolBarToolButtonAction->isChecked() != showToolBarWidget) {
+                this->toolBarToolButtonAction->trigger();
+            }
+            this->toolBarToolButtonAction->setEnabled(enabledStatus);
         }
     }
 }
