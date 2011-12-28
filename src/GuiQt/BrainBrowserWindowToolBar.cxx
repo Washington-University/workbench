@@ -2261,6 +2261,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     
     QHBoxLayout* planeLayout1 = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(planeLayout1, 0, 2, 0);
+    planeLayout1->addStretch();
     planeLayout1->addWidget(volumePlaneParasagittalToolButton);
     planeLayout1->addWidget(volumePlaneCoronalToolButton);
     planeLayout1->addWidget(volumePlaneAxialToolButton);
@@ -2269,10 +2270,10 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
 
     QHBoxLayout* planeLayout2 = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(planeLayout2, 0, 2, 0);
+    planeLayout2->addStretch();
     planeLayout2->addWidget(volumePlaneViewOrthogonalToolButton);
     planeLayout2->addWidget(volumePlaneViewMontageToolButton);
     planeLayout2->addWidget(volumePlaneViewObliqueToolButton);
-    planeLayout2->addWidget(volumePlaneResetToolButton);
     planeLayout2->addStretch();
     
     QWidget* widget = new QWidget();
@@ -2280,6 +2281,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
     layout->addLayout(planeLayout1);
     layout->addLayout(planeLayout2);
+    layout->addWidget(volumePlaneResetToolButton, 0, Qt::AlignHCenter);
     
     this->volumePlaneWidgetGroup = new WuQWidgetObjectGroup(this);
     this->volumePlaneWidgetGroup->add(this->volumePlaneActionGroup);
