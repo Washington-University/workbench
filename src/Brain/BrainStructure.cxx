@@ -34,7 +34,6 @@
 #include "BrainStructureNodeAttributes.h"
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
-#include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -718,41 +717,15 @@ BrainStructure::receiveEvent(Event* event)
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
                     
-                    ElapsedTimer seqTimer;
-                    seqTimer.start();
-                    
-                    float distSQ = std::numeric_limits<float>::max();
-                    int32_t nearestNodeIndex = -1;
-                    const int32_t numNodes = s->getNumberOfNodes();
-                    for (int32_t i = 0; i < numNodes; i++) {
-                        const float dsq = MathFunctions::distanceSquared3D(xyz, s->getCoordinate(i));
-                        if (dsq < distSQ) {
-                            distSQ = dsq;
-                            nearestNodeIndex = i;
+                    int32_t nearestNodeIndex = s->closestNode(xyz);
+                    if (nearestNodeIndex >= 0) {
+                        const float dsq = MathFunctions::distanceSquared3D(xyz, 
+                                                                           s->getCoordinate(nearestNodeIndex));
+                        if (dsq < 9.0) {
+                            highlighNodeIndex = nearestNodeIndex;
+                            identificationType = NodeIdentificationTypeEnum::NORMAL;
                         }
                     }
-                    
-                    if (distSQ <= 9.0) { // distSQ is SQUARED distance so 9 => 3.
-                        highlighNodeIndex = nearestNodeIndex;
-                        identificationType = NodeIdentificationTypeEnum::NORMAL;
-                    }
-                    const double seqTime = seqTimer.getElapsedTimeSeconds();
-                    
-                    ElapsedTimer plTimer;
-                    plTimer.start();
-                    const int32_t plNode = s->closestNode(xyz);
-                    const double plTime = plTimer.getElapsedTimeSeconds();
-                    
-                    const AString timeMessage = ("Node seq/locator: "
-                                                 + AString::number(nearestNodeIndex)
-                                                 + "/"
-                                                 + AString::number(plNode)
-                                                 + ",  time seq/locator: "
-                                                 + AString::number(seqTime, 'f', 10)
-                                                 + "/"
-                                                 + AString::number(plTime, 'f', 10));
-                    CaretLogWarning(timeMessage);
-                    CaretAssert(nearestNodeIndex == plNode);
                 }
             }
                 break;
