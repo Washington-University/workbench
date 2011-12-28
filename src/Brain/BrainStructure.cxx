@@ -32,7 +32,9 @@
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructureNodeAttributes.h"
+#include "CaretPointLocator.h"
 #include "CaretPreferences.h"
+#include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -715,6 +717,10 @@ BrainStructure::receiveEvent(Event* event)
                 const Surface* s = this->getVolumeInteractionSurface();
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
+                    
+                    ElapsedTimer seqTimer;
+                    seqTimer.start();
+                    
                     float distSQ = std::numeric_limits<float>::max();
                     int32_t nearestNodeIndex = -1;
                     const int32_t numNodes = s->getNumberOfNodes();
@@ -730,6 +736,26 @@ BrainStructure::receiveEvent(Event* event)
                         highlighNodeIndex = nearestNodeIndex;
                         identificationType = NodeIdentificationTypeEnum::NORMAL;
                     }
+                    const double seqTime = seqTimer.getElapsedTimeSeconds();
+                    
+                    ElapsedTimer plTimer;
+                    plTimer.start();
+                    CaretPointLocator pointLocator(s->getCoordinate(0),
+                                                   s->getNumberOfNodes());
+                    int32_t whichSet;
+                    const int32_t plNode = pointLocator.closestPoint(xyz, &whichSet);
+                    const double plTime = plTimer.getElapsedTimeSeconds();
+                    
+                    const AString timeMessage = ("Node seq/locator: "
+                                                 + AString::number(nearestNodeIndex)
+                                                 + "/"
+                                                 + AString::number(plNode)
+                                                 + ",  time seq/locator: "
+                                                 + AString::number(seqTime, 'f', 10)
+                                                 + "/"
+                                                 + AString::number(plTime, 'f', 10));
+                    CaretLogWarning(timeMessage);
+                    CaretAssert(nearestNodeIndex == plNode);
                 }
             }
                 break;
