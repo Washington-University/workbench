@@ -116,15 +116,15 @@ CaretPointLocator::CaretPointLocator(const float minBounds[3], const float maxBo
     m_tree = new Oct<LeafVector<Point> >(minBounds, maxBounds);
 }
 
-int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSetOut, float* coordsOut) const
+int32_t CaretPointLocator::closestPoint(const float target[3], LocatorInfo* infoOut) const
 {
     CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
     bool first = true;
     float bestDist2 = -1.0f, bestDist = -1.0f, tempf, curDist = m_tree->distToPoint(target);
     Vector3D bestPoint;
-    int32_t bestSet, bestIndex;
+    int32_t bestSet = -1, bestIndex = -1;
     myHeap.push(curDist, m_tree);
-    while (!myHeap.isEmpty() && (first || curDist < bestDist))
+    while (curDist < bestDist || first)
     {
         Oct<LeafVector<Point> >* thisOct = myHeap.pop();
         if (thisOct->m_leaf)
@@ -134,7 +134,7 @@ int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSet
             for (int i = 0; i < curSize; ++i)
             {
                 tempf = MathFunctions::distanceSquared3D(myVecRef[i].m_point, target);
-                if (first || tempf < bestDist2)
+                if (tempf < bestDist2 || first)
                 {
                     first = false;
                     bestDist2 = tempf;
@@ -151,23 +151,95 @@ int32_t CaretPointLocator::closestPoint(const float target[3], int32_t* whichSet
                 {
                     for (int ik = 0; ik < 2; ++ik)
                     {
-                        myHeap.push(thisOct->m_children[ii][ij][ik]->distToPoint(target), thisOct->m_children[ii][ij][ik]);
+                        tempf = thisOct->m_children[ii][ij][ik]->distToPoint(target);
+                        if (tempf < bestDist || first)
+                        {
+                            myHeap.push(tempf, thisOct->m_children[ii][ij][ik]);
+                        }
                     }
                 }
             }
         }
+        if (myHeap.isEmpty())
+        {
+            break;//allows us to use top() without violating an assertion
+        }
         myHeap.top(&curDist);//get the key for the next item
     }
-    if (first) return -1;//no points in the set
-    if (whichSetOut != NULL)
+    if (infoOut != NULL)
     {
-        *whichSetOut = bestSet;
+        infoOut->whichSet = bestSet;
+        infoOut->coords = bestPoint;
+        infoOut->node = bestIndex;
     }
-    if (coordsOut != NULL)
+    return bestIndex;
+}
+
+int32_t CaretPointLocator::closestPointLimited(const float target[3], float maxDist, LocatorInfo* infoOut) const
+{
+    float curDist = m_tree->distToPoint(target);
+    if (curDist > maxDist)
     {
-        coordsOut[0] = bestPoint[0];
-        coordsOut[1] = bestPoint[1];
-        coordsOut[2] = bestPoint[2];
+        if (infoOut != NULL)
+        {
+            infoOut->whichSet = -1;
+            infoOut->node = -1;
+        }
+        return -1;
+    }
+    CaretSimpleMinHeap<Oct<LeafVector<Point> >*, float> myHeap;
+    bool first = true;
+    float bestDist2 = -1.0f, bestDist = -1.0f, tempf, maxDist2 = maxDist * maxDist;
+    Vector3D bestPoint;
+    int32_t bestSet = -1, bestIndex = -1;
+    myHeap.push(curDist, m_tree);
+    while (curDist < bestDist || first)
+    {
+        Oct<LeafVector<Point> >* thisOct = myHeap.pop();
+        if (thisOct->m_leaf)
+        {
+            vector<Point>& myVecRef = *(thisOct->m_data.m_vector);
+            int curSize = (int)myVecRef.size();
+            for (int i = 0; i < curSize; ++i)
+            {
+                tempf = MathFunctions::distanceSquared3D(myVecRef[i].m_point, target);
+                if (tempf < bestDist2 || (first && tempf <= maxDist2))
+                {
+                    first = false;
+                    bestDist2 = tempf;
+                    bestPoint = myVecRef[i].m_point;
+                    bestSet = myVecRef[i].m_mySet;
+                    bestIndex = myVecRef[i].m_index;
+                }
+            }
+            bestDist = sqrt(bestDist2);
+        } else {
+            for (int ii = 0; ii < 2; ++ii)
+            {
+                for (int ij = 0; ij < 2; ++ij)
+                {
+                    for (int ik = 0; ik < 2; ++ik)
+                    {
+                        tempf = thisOct->m_children[ii][ij][ik]->distToPoint(target);
+                        if (tempf < bestDist || (first && tempf <= maxDist))
+                        {
+                            myHeap.push(tempf, thisOct->m_children[ii][ij][ik]);
+                        }
+                    }
+                }
+            }
+        }
+        if (myHeap.isEmpty())
+        {
+            break;//allows us to use top() without violating an assertion
+        }
+        myHeap.top(&curDist);//get the key for the next item
+    }
+    if (infoOut != NULL)
+    {
+        infoOut->whichSet = bestSet;
+        infoOut->coords = bestPoint;
+        infoOut->node = bestIndex;
     }
     return bestIndex;
 }

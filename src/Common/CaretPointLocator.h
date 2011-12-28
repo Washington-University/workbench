@@ -32,6 +32,12 @@
 
 namespace caret {
     
+    struct LocatorInfo
+    {
+        int32_t node, whichSet;
+        Vector3D coords;
+    };
+    
     class CaretPointLocator
     {
         struct Point
@@ -62,7 +68,8 @@ namespace caret {
         ///remove a point set by its set number
         void removePointSet(const int32_t whichSet);
         ///returns the index of the closest point, and optionally which point set and the coords
-        int32_t closestPoint(const float target[3], int32_t* whichSetOut = NULL, float* coordsOut = NULL) const;
+        int32_t closestPoint(const float target[3], LocatorInfo* infoOut = NULL) const;
+        int32_t closestPointLimited(const float target[3], float maxDist, LocatorInfo* infoOut = NULL) const;
     };
 }
 

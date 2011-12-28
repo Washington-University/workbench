@@ -94,7 +94,8 @@ namespace caret {
         
         void computeNodeAreas(std::vector<float>& areasOut) const;
         
-        int32_t closestNode(const float target[3]) const;
+        ///find the closest node on the surface, within maxDist if maxDist is positive
+        int32_t closestNode(const float target[3], const float maxDist = -1.0f) const;
         
         virtual void setModified();
         

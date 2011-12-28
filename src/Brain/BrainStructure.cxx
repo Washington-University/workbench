@@ -717,14 +717,10 @@ BrainStructure::receiveEvent(Event* event)
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
                     
-                    int32_t nearestNodeIndex = s->closestNode(xyz);
+                    int32_t nearestNodeIndex = s->closestNode(xyz, 3.0f);
                     if (nearestNodeIndex >= 0) {
-                        const float dsq = MathFunctions::distanceSquared3D(xyz, 
-                                                                           s->getCoordinate(nearestNodeIndex));
-                        if (dsq < 9.0) {
-                            highlighNodeIndex = nearestNodeIndex;
-                            identificationType = NodeIdentificationTypeEnum::NORMAL;
-                        }
+                        highlighNodeIndex = nearestNodeIndex;
+                        identificationType = NodeIdentificationTypeEnum::NORMAL;
                     }
                 }
             }
