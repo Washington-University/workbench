@@ -2038,18 +2038,21 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
     QLabel* spacingLabel = new QLabel("Spacing:");
     
     this->montageRowsSpinBox = new QSpinBox();
+    this->montageRowsSpinBox->setRange(1, 20);
     WuQtUtilities::setToolTipAndStatusTip(this->montageRowsSpinBox,
                                           "Select the number of rows in montage of volume slices");
     QObject::connect(this->montageRowsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageRowsSpinBoxValueChanged(int)));
     
     this->montageColumnsSpinBox = new QSpinBox();
+    this->montageColumnsSpinBox->setRange(1, 20);
     WuQtUtilities::setToolTipAndStatusTip(this->montageColumnsSpinBox,
                                           "Select the number of columns in montage of volume slices");
     QObject::connect(this->montageColumnsSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(montageColumnsSpinBoxValueChanged(int)));
 
     this->montageSpacingSpinBox = new QSpinBox();
+    this->montageSpacingSpinBox->setRange(1, 2500);
     WuQtUtilities::setToolTipAndStatusTip(this->montageSpacingSpinBox,
                                           "Select the number of slices skipped between displayed montage slices");
     QObject::connect(this->montageSpacingSpinBox, SIGNAL(valueChanged(int)),
@@ -3140,6 +3143,9 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*
     CaretLogEntering();
     this->checkUpdateCounter();
     
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+    
+    /*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     
@@ -3164,6 +3170,7 @@ BrainBrowserWindowToolBar::volumeIndicesParasagittalSpinBoxValueChanged(int /*i*
     
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
+*/
 }
 
 /**
@@ -3175,6 +3182,9 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
     CaretLogEntering();
     this->checkUpdateCounter();
     
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+        
+/*
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     VolumeSliceIndicesSelection* sliceSelection = NULL;
@@ -3199,6 +3209,7 @@ BrainBrowserWindowToolBar::volumeIndicesCoronalSpinBoxValueChanged(int /*i*/)
     
     this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
+*/
 }
 
 /**
@@ -3210,6 +3221,9 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
     CaretLogEntering();
     this->checkUpdateCounter();
     
+    this->readVolumeSliceIndicesAndUpdateSliceCoordinates();
+    
+/*    
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     const int32_t tabIndex = btc->getTabNumber();
     VolumeSliceIndicesSelection* sliceSelection = NULL;
@@ -3232,8 +3246,9 @@ BrainBrowserWindowToolBar::volumeIndicesAxialSpinBoxValueChanged(int /*i*/)
         sliceSelection->setSliceIndexAxial(this->volumeIndicesAxialSpinBox->value());
     }
     
-    this->updateVolumeIndicesWidget(btc);
+    //this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
+*/
 }
 
 /**
@@ -3267,6 +3282,72 @@ void
 BrainBrowserWindowToolBar::volumeIndicesZcoordSpinBoxValueChanged(double /*d*/)
 {
     this->readVolumeSliceCoordinatesAndUpdateSliceIndices();
+}
+
+/**
+ * Read the slice indices and update the slice coordinates.
+ */
+void 
+BrainBrowserWindowToolBar::readVolumeSliceIndicesAndUpdateSliceCoordinates()
+{
+    CaretLogEntering();
+    this->checkUpdateCounter();
+    
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    VolumeSliceIndicesSelection* sliceSelection = NULL;
+    
+    VolumeFile* underlayVolumeFile = NULL;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getSelectedWholeBrainModel();
+    if (wholeBrainController != NULL) {
+        if (this->getDisplayedModelController() == wholeBrainController) {
+            sliceSelection = wholeBrainController->getSelectedVolumeSlices(tabIndex);
+            underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabIndex);
+        }
+    }
+    
+    ModelDisplayControllerVolume* volumeController = btc->getSelectedVolumeModel();
+    if (volumeController != NULL) {
+        if (this->getDisplayedModelController() == volumeController) {
+            sliceSelection = volumeController->getSelectedVolumeSlices(tabIndex);
+            underlayVolumeFile = volumeController->getUnderlayVolumeFile(tabIndex);
+        }
+    }
+    
+    if (sliceSelection != NULL) {  
+        if (underlayVolumeFile != NULL) {
+            const int64_t parasagittalSlice = this->volumeIndicesParasagittalSpinBox->value();
+            const int64_t coronalSlice      = this->volumeIndicesCoronalSpinBox->value();
+            const int64_t axialSlice        = this->volumeIndicesAxialSpinBox->value();
+            
+            sliceSelection->setSliceIndexParasagittal(parasagittalSlice);
+            sliceSelection->setSliceIndexCoronal(coronalSlice);
+            sliceSelection->setSliceIndexAxial(axialSlice);
+            
+            float x, y, z;
+            underlayVolumeFile->indexToSpace(parasagittalSlice, 
+                                             coronalSlice, 
+                                             axialSlice, 
+                                             x, 
+                                             y, 
+                                             z);
+            
+            this->volumeIndicesXcoordSpinBox->blockSignals(true);
+            this->volumeIndicesXcoordSpinBox->setValue(x);
+            this->volumeIndicesXcoordSpinBox->blockSignals(false);
+            
+            this->volumeIndicesYcoordSpinBox->blockSignals(true);
+            this->volumeIndicesYcoordSpinBox->setValue(y);
+            this->volumeIndicesYcoordSpinBox->blockSignals(false);
+            
+            this->volumeIndicesZcoordSpinBox->blockSignals(true);
+            this->volumeIndicesZcoordSpinBox->setValue(z);
+            this->volumeIndicesZcoordSpinBox->blockSignals(false);
+            
+        }
+    }
+    
+    this->updateGraphicsWindow();    
 }
 
 /**
@@ -3308,15 +3389,23 @@ BrainBrowserWindowToolBar::readVolumeSliceCoordinatesAndUpdateSliceIndices()
                 this->volumeIndicesZcoordSpinBox->value()
             };
             
-            float sliceIndicesFloat[3];
-            underlayVolumeFile->spaceToIndex(sliceCoords, sliceIndicesFloat);
-            sliceSelection->setSliceIndexParasagittal(static_cast<int64_t>(sliceIndicesFloat[0] + 0.5));
-            sliceSelection->setSliceIndexCoronal(static_cast<int64_t>(sliceIndicesFloat[1] + 0.5));
-            sliceSelection->setSliceIndexAxial(static_cast<int64_t>(sliceIndicesFloat[2] + 0.5));
+            sliceSelection->selectSlicesAtCoordinate(underlayVolumeFile,
+                                                     sliceCoords);
+            
+            this->volumeIndicesParasagittalSpinBox->blockSignals(true);
+            this->volumeIndicesParasagittalSpinBox->setValue(sliceSelection->getSliceIndexParasagittal());
+            this->volumeIndicesParasagittalSpinBox->blockSignals(false);
+            
+            this->volumeIndicesCoronalSpinBox->blockSignals(true);
+            this->volumeIndicesCoronalSpinBox->setValue(sliceSelection->getSliceIndexCoronal());
+            this->volumeIndicesCoronalSpinBox->blockSignals(false);
+            
+            this->volumeIndicesAxialSpinBox->blockSignals(true);
+            this->volumeIndicesAxialSpinBox->setValue(sliceSelection->getSliceIndexAxial());
+            this->volumeIndicesAxialSpinBox->blockSignals(false);
         }
     }
     
-    this->updateVolumeIndicesWidget(btc);
     this->updateGraphicsWindow();
 }
 

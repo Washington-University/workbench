@@ -279,6 +279,7 @@ namespace caret {
         QDoubleSpinBox* volumeIndicesZcoordSpinBox;
         
         void readVolumeSliceCoordinatesAndUpdateSliceIndices();
+        void readVolumeSliceIndicesAndUpdateSliceCoordinates();
         
     private slots:
         void volumeIndicesResetActionTriggered();
