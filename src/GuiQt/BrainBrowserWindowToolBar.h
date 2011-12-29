@@ -113,7 +113,6 @@ namespace caret {
         QWidget* createSingleSurfaceOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
-        QWidget* createConnectomeDBWidget();
         
         ModelDisplayControllerTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
@@ -124,7 +123,6 @@ namespace caret {
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
-        void updateConnectomeDBWidget(BrowserTabContent* browserTabConect);
         
         QWidget* createToolWidget(const QString& name,
                                   QWidget* childWidget,
@@ -141,7 +139,6 @@ namespace caret {
         QWidget* singleSurfaceSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
-        QWidget* connectomeDBWidget;
         //QWidget* spacerWidget;
         
         WuQWidgetObjectGroup* viewWidgetGroup;
@@ -153,7 +150,6 @@ namespace caret {
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
-        WuQWidgetObjectGroup* connectomeDBWidgetGroup;
         
         QWidget* fullToolBarWidget;
         QWidget* toolbarWidget;
@@ -347,11 +343,7 @@ namespace caret {
         QAction* toolsConnectToAllenDatabaseAction;
         QAction* toolsConnectToConnectomeDatabaseAction;
         
-    private slots:
-        void connectomeDBToolButtonTriggered(bool checked);
-
     private:
-        QAction* connectomeDBButtonAction;
         BrainBrowserWindowToolBox* toolBox;
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
