@@ -78,31 +78,29 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     {
         CiftiFile* myInFile = toGiftiExt->getCifti(1);
         AString myGiftiName = toGiftiExt->getString(2);
-        GiftiFile myOutFile;
-        GiftiDataArray* myArray = new GiftiDataArray();
         CiftiHeader myHeader;
-        myArray->setDataType(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
-        myArray->setIntent(myHeader.getIntent());
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
-        myArray->setDimensions(myDims);
+        GiftiDataArray* myArray = new GiftiDataArray(myHeader.getIntent(), NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)
         {
             myInFile->getRow(myOutData + i * myInFile->getNumberOfColumns(), i);
         }
-        CiftXML myXML;
+        CiftiXML myXML;
         myInFile->getCiftiXML(myXML);
         AString myCiftiXML;
         myXML.writeXML(myCiftiXML);
         myArray->getMetaData()->set("CiftiXML", myCiftiXML);
+        GiftiFile myOutFile;
         myOutFile.setEncodingForWriting(GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         myOutFile.addDataArray(myArray);
         myOutFile.writeFile(myGiftiName);
     }
     if (fromGiftiExt->m_present)
     {
+        throw OperationException("cifti writing not yet supported");
         AString myGiftiName = fromGiftiExt->getString(1);
         GiftiFile myInFile;
         myInFile.readFile(myGiftiName);
@@ -115,7 +113,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             throw OperationException("input gifti has the wrong data type");
         }
-        CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
+        //CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
         CiftiHeader myHeader;
         switch (dataArrayRef->getIntent())
         {

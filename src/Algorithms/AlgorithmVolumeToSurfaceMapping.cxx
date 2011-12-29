@@ -340,7 +340,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         }
                         metricLabel += " ribbon constrained";
                         int64_t thisCol = j;
-                        myMetricOut->setColumnName(thisCol, metricLabel);
+                        //myMetricOut->setColumnName(thisCol, metricLabel);//FIXME: this segfaults inside QString::operator< with a large number of input volumes
 #pragma omp CARET_PARFOR schedule(dynamic)
                         for (int64_t node = 0; node < numNodes; ++node)
                         {
