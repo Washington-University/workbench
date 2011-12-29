@@ -266,7 +266,6 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGauss(SurfaceFile* mySurf,
                         m_weightLists[i].m_weights.push_back(weight);
                         m_weightLists[i].m_nodes.push_back(nodes[j]);
                         m_weightLists[i].m_weightSum += weight;
-                        
                     }
                 }
             }
@@ -373,11 +372,12 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(SurfaceFile* myS
                     if (myRoiColumn[nodes[j]] > 0.0f)
                     {//BUT, don't add it to the list if it is outside the ROI
                         tempList[i].m_nodes.push_back(nodes[j]);
-                        tempList[i].m_weights[j] = weight;
+                        tempList[i].m_weights.push_back(weight);
                     }
                 }
                 float myFactor = nodeAreas[i] / tempList[i].m_weightSum;//make each scattering kernel sum to the area of the node it scatters from
-                for (int32_t j = 0; j < numNeigh; ++j)
+                int32_t numUsed = (int32_t)tempList[i].m_nodes.size();
+                for (int32_t j = 0; j < numUsed; ++j)
                 {
                     tempList[i].m_weights[j] *= myFactor;
                 }
