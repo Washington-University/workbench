@@ -173,9 +173,9 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
     int64_t numColumns;
     if (mySubVol == -1)
     {
-        numColumns = myVolDims[4];
-    } else {
         numColumns = myVolDims[3] * myVolDims[4];
+    } else {
+        numColumns = myVolDims[4];
     }
     int64_t numNodes = mySurface->getNumberOfNodes();
     myMetricOut->setNumberOfNodesAndColumns(numNodes, numColumns);
@@ -301,13 +301,13 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                         for (int64_t j = 0; j < myVolDims[4]; ++j)
                         {
                             int64_t thisCol = i * myVolDims[4] + j;
-                            /*AString metricLabel = myVolume->getMapName(i);
+                            AString metricLabel = myVolume->getMapName(i);
                             if (myVolDims[4] != 1)
                             {
                                 metricLabel += " component " + AString::number(j);
                             }
-                            metricLabel += " ribbon constrained";//*/
-                            //myMetricOut->setColumnName(thisCol, metricLabel);//FIXME: this segfaults inside QString::operator< with a large number of input volumes
+                            metricLabel += " ribbon constrained";
+                            myMetricOut->setColumnName(thisCol, metricLabel);
 #pragma omp CARET_PARFOR schedule(dynamic)
                             for (int64_t node = 0; node < numNodes; ++node)
                             {

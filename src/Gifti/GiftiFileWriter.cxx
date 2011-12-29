@@ -108,8 +108,9 @@ GiftiFileWriter::start(const int numberOfDataArrays,
         char* name = this->filename.toCharArray();
         this->xmlFileOutputStream = new std::ofstream(name);
         delete[] name;
-        if (! (*this->xmlFileOutputStream)) {
+        if (! this->xmlFileOutputStream->good()) {
             delete this->xmlFileOutputStream;
+            this->xmlFileOutputStream = NULL;
             AString msg = "Unable to open " + this->filename + " for writing.";
             throw GiftiException(msg);
         }
@@ -298,13 +299,19 @@ void
 GiftiFileWriter::closeFiles()
 {
     if (this->xmlFileOutputStream != NULL) {
-        this->xmlFileOutputStream->close();
+        if (this->xmlFileOutputStream->is_open())
+        {
+            this->xmlFileOutputStream->close();
+        }
         delete this->xmlFileOutputStream;
         this->xmlFileOutputStream = NULL;
     }
     
     if (this->externalFileOutputStream != NULL) {
-        this->externalFileOutputStream->close();
+        if (this->externalFileOutputStream->is_open())
+        {
+            this->externalFileOutputStream->close();
+        }
         delete this->externalFileOutputStream;
         this->externalFileOutputStream = NULL;
     }
