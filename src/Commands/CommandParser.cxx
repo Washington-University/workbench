@@ -118,7 +118,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             case OperationParametersEnum::CIFTI:
             {
                 CiftiFile* myFile = new CiftiFile();
-                myFile->openFile(nextArg);
+                myFile->openFile(nextArg, ON_DISK);
                 ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
                 {

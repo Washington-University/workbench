@@ -55,9 +55,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     ret->setHelpText(
-        AString("This is where you set the help text.  DO NOT add the info about what the command line format is, ") +
-        "and do not give the command switch, short description, or the short descriptions of parameters.  Do not indent, " +
-        "add newlines, or format the text in any way other than to separate paragraphs within the help text prose."
+        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
+        "NOTE: -from-gifti-ext does not currently work!"
     );
     return ret;
 }
