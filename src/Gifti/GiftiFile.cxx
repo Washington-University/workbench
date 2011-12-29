@@ -882,8 +882,8 @@ GiftiFile::writeFile(const AString& filename) throw (DataFileException)
         //
         giftiFileWriter.finish();
     }
-    catch (GiftiException e) {
-        throw new DataFileException(e);
+    catch (GiftiException& e) {
+        throw DataFileException(e);
     }
     
     this->clearModified();
