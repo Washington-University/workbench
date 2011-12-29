@@ -268,20 +268,26 @@ void CaretPointLocator::removeSetHelper(Oct<LeafVector<CaretPointLocator::Point>
     {
         vector<Point>& myVecRef = *(thisOct->m_data.m_vector);
         int curSize = (int)myVecRef.size();
-        vector<Point> tempvec;
-        tempvec.reserve(curSize);
-        bool removed = false;
-        for (int i = 0; i < curSize; ++i)
+        bool match = false;
+        for (int i = 0; i < curSize; ++i)//make sure something gets removed, so we don't have to do an allocation if it isn't needed
         {
             if (myVecRef[i].m_mySet == thisSet)
             {
-                removed = true;
-            } else {
-                tempvec.push_back(myVecRef[i]);
+                match = true;
+                break;
             }
         }
-        if (removed)//don't copy back if nothing was removed, small speedup - scan until first match, then go back and gather may be slower in some cases
+        if (match)
         {
+            vector<Point> tempvec;
+            tempvec.reserve(curSize - 1);//because at least one is getting removed
+            for (int i = 0; i < curSize; ++i)
+            {
+                if (myVecRef[i].m_mySet != thisSet)
+                {
+                    tempvec.push_back(myVecRef[i]);
+                }
+            }
             myVecRef = tempvec;
         }
     } else {

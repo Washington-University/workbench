@@ -41,7 +41,7 @@ namespace caret {
 
       virtual ~EventProgressUpdate();
 
-      bool m_textUpdate, m_amountUpdate, m_finished;
+      bool m_textUpdate, m_amountUpdate, m_finished, m_starting;
 
       ProgressObject* m_whichObject;//idea is for progress elements to check whether their object emitted this event or not, if not, ignore
 

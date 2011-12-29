@@ -31,6 +31,7 @@ EventProgressUpdate::EventProgressUpdate(ProgressObject* myObject): Event(EventT
    m_amountUpdate = false;
    m_finished = false;
    m_textUpdate = false;
+   m_starting = false;
    m_whichObject = myObject;
 }
 

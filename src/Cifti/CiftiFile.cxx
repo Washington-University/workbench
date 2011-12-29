@@ -225,9 +225,9 @@ int64_t CiftiFile::getNumberOfColumns() const
 {
     vector<int64_t> myDims;
     m_matrix.getMatrixDimensions(myDims);
-    if (myDims.size() < 1)
+    if (myDims.size() < 2)
     {
-        throw CiftiFileException("Matrix has no dimensions");
+        throw CiftiFileException("Matrix has less than 2 dimensions");
     }
     return myDims[1];
 }
@@ -236,9 +236,9 @@ int64_t CiftiFile::getNumberOfRows() const
 {
     vector<int64_t> myDims;
     m_matrix.getMatrixDimensions(myDims);
-    if (myDims.size() < 2)
+    if (myDims.size() < 1)
     {
-        throw CiftiFileException("Matrix has less than 2 dimensions");
+        throw CiftiFileException("Matrix has no dimensions");
     }
     return myDims[0];
 }

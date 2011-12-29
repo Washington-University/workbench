@@ -67,6 +67,15 @@ public:
 
     void setVolumeOffset(const int64_t &offsetIn) { m_header.vox_offset = offsetIn; }
     int64_t getVolumeOffset() { return m_header.vox_offset; }
+    
+    NiftiIntentEnum::Enum getIntent()
+    {
+        NiftiIntentEnum::Enum ret;
+        bool ok = false;
+        ret = NiftiIntentEnum::fromIntegerCode(m_header.intent_code, &ok);
+        if (ok) return ret;
+        return NiftiIntentEnum::NIFTI_INTENT_NONE;
+    }
 protected:
     nifti_2_header m_header;
     //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user
