@@ -169,7 +169,7 @@ GiftiFileWriter::start(const int numberOfDataArrays,
             labelTable->writeAsXML(*this->xmlWriter);
         }
     }
-    catch (GiftiException e) {
+    catch (GiftiException& e) {
         this->closeFiles();
         throw e;
     }
@@ -188,7 +188,7 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
     
     if (this->dataArraysWrittenCounter >= this->numberOfDataArrays) {
         this->closeFiles();
-        throw new GiftiException("PROGRAMMER ERROR: the number of data arrays "
+        throw GiftiException("PROGRAMMER ERROR: the number of data arrays "
                                  "written exceeds the number of data arrays in the file "
                                  "passed to start.");
     }
@@ -211,7 +211,7 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
                 if (! *this->externalFileOutputStream) {
                     this->closeFiles();
                     const AString msg = ("Unable to open " + this->getExternalFileNameForWriting() + " for writing.");
-                    throw new GiftiException(msg);
+                    throw GiftiException(msg);
                 }
             }
             const int64_t fileOffset = this->externalFileOutputStream->tellp();
@@ -231,11 +231,11 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         //
         this->dataArraysWrittenCounter++;
     }
-    catch (GiftiException e) {
+    catch (GiftiException& e) {
         this->closeFiles();
         throw e;
     }    
-    catch (XmlException e) {
+    catch (XmlException& e) {
         this->closeFiles();
         throw GiftiException(e);
     }    
@@ -258,9 +258,9 @@ GiftiFileWriter::finish() throw (GiftiException)
         this->xmlWriter->writeEndElement();
         this->xmlWriter->writeEndDocument();
     }
-    catch (XmlException e) {
+    catch (XmlException& e) {
         this->closeFiles();
-        throw new GiftiException(e);
+        throw GiftiException(e);
     }
     
     //
@@ -352,7 +352,7 @@ GiftiFileWriter::removeExternalFiles() throw (GiftiException)
         FileInformation fileInfo(name);
         if (fileInfo.exists()) {
             if (fileInfo.remove() == false) {
-                throw new GiftiException("Unable to delete an existing external "
+                throw GiftiException("Unable to delete an existing external "
                                          " file named \""
                                          + name
                                          + "\".");
