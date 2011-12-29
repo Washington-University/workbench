@@ -88,6 +88,7 @@ IdentificationManager::IdentificationManager()
  */
 IdentificationManager::~IdentificationManager()
 {
+    this->reset();
     delete this->surfaceNodeIdentification;
     this->surfaceNodeIdentification = NULL;
     delete this->surfaceTriangleIdentification;

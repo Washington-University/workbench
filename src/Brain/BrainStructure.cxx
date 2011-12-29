@@ -31,6 +31,7 @@
 #define __BRAIN_STRUCTURE_DEFINE__
 #include "BrainStructure.h"
 #undef __BRAIN_STRUCTURE_DEFINE__
+#include "Brain.h"
 #include "BrainStructureNodeAttributes.h"
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
@@ -704,8 +705,16 @@ BrainStructure::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
+        const bool interhemIdEnabled = SessionManager::get()->getCaretPreferences()->isInterHemisphericIdentificationEnabled();
+        
         NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
         int32_t highlighNodeIndex = -1;
+        
+        BrainStructure* interhemBrainStructure = NULL;
+        int32_t interhemHighlightNodeIndex = -1;
+        Surface* interhemSurface = NULL;
+        NodeIdentificationTypeEnum::Enum interhemIdentificationType = NodeIdentificationTypeEnum::NONE;
+        
         switch (idLocationEvent->getIdentificationType()) {
             case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
                 if ((idLocationEvent->getSurfaceStructure() == this->getStructure()) 
@@ -713,7 +722,7 @@ BrainStructure::receiveEvent(Event* event)
                     highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
                     identificationType = NodeIdentificationTypeEnum::NORMAL;
                 }
-                else if (SessionManager::get()->getCaretPreferences()->isInterHemisphericIdentificationEnabled()) {
+                else if (interhemIdEnabled) {
                     if (this->getNumberOfNodes() == idLocationEvent->getSurfaceNumberOfNodes()) {
                         if ((this->getStructure() == StructureEnum::CORTEX_LEFT)
                             && (idLocationEvent->getSurfaceStructure() == StructureEnum::CORTEX_RIGHT)) {
@@ -733,25 +742,56 @@ BrainStructure::receiveEvent(Event* event)
                 const Surface* s = this->getVolumeInteractionSurface();
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
-                    
-                    int32_t nearestNodeIndex = s->closestNode(xyz, 3.0f);
+                    const float toleranceDistance = 3.0;
+                    int32_t nearestNodeIndex = s->closestNode(xyz, toleranceDistance);
                     if (nearestNodeIndex >= 0) {
                         highlighNodeIndex = nearestNodeIndex;
                         identificationType = NodeIdentificationTypeEnum::NORMAL;
+                    }
+                    if (interhemIdEnabled 
+                        && (highlighNodeIndex >= 0)) {
+                        StructureEnum::Enum interhemStructure = StructureEnum::INVALID;
+                        if (this->getStructure() == StructureEnum::CORTEX_LEFT) {
+                            interhemStructure = StructureEnum::CORTEX_RIGHT;
+                        }
+                        else if (this->getStructure() == StructureEnum::CORTEX_RIGHT) {
+                            interhemStructure = StructureEnum::CORTEX_LEFT;
+                        }
+                        
+                        if (interhemStructure != StructureEnum::INVALID) {
+                            interhemBrainStructure = brain->getBrainStructure(interhemStructure,
+                                                                                        false);
+                            if (interhemBrainStructure != NULL) {
+                                interhemSurface = interhemBrainStructure->getVolumeInteractionSurface();
+                                if (interhemSurface != NULL) {
+                                    if (this->getNumberOfNodes() == interhemSurface->getNumberOfNodes()) {
+                                        interhemHighlightNodeIndex = highlighNodeIndex;
+                                        interhemIdentificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
                 break;
         }
         
+        IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
         if (highlighNodeIndex >= 0) {
             BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(highlighNodeIndex);
             nodeAtts->setIdentificationType(identificationType);
-            IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
             idManager->addAdditionalSurfaceNodeIdentification(this->getVolumeInteractionSurface(), 
                                                               highlighNodeIndex,
                                                               (identificationType == NodeIdentificationTypeEnum::INTER_HEMISPHERIC));
             idLocationEvent->setEventProcessed();
+        }
+        if (interhemHighlightNodeIndex >= 0) {
+            BrainStructureNodeAttributes* nodeAtts = interhemBrainStructure->getNodeAttributes(interhemHighlightNodeIndex);
+            nodeAtts->setIdentificationType(interhemIdentificationType);
+            idManager->addAdditionalSurfaceNodeIdentification(interhemSurface, 
+                                                              interhemHighlightNodeIndex,
+                                                              true);
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_SYMBOL_REMOVAL) {

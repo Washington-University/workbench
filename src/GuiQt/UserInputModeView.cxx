@@ -184,6 +184,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                             voxelIJK,
                                                             xyz);
             EventManager::get()->sendEvent(idLocation.getPointer());
+            
             updateGraphicsFlag = true;
             
             try {
