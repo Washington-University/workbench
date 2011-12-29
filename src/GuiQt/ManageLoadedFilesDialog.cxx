@@ -34,7 +34,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
-#include "WuQFileDialog.h"
+#include "CaretFileDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -344,7 +344,7 @@ ManageFileRow::removeMapToolButtonPressed()
 void 
 ManageFileRow::fileNameToolButtonPressed()
 {
-    AString filename = WuQFileDialog::getSaveFileName(this->parentWidget,
+    AString filename = CaretFileDialog::getSaveFileNameDialog(this->parentWidget,
                                                       "Choose File",
                                                       this->brain->getCurrentDirectory(),
                                                       DataFileTypeEnum::toQFileDialogFilter(this->caretDataFile->getDataFileType()));

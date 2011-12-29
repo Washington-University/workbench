@@ -57,7 +57,7 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQDialogModal.h"
-#include "WuQFileDialog.h"
+#include "CaretFileDialog.h"
 #include "WuQSpinBoxGroup.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -438,11 +438,11 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
     /*
      * Setup file selection dialog.
      */
-    WuQFileDialog fd(this);
-    fd.setAcceptMode(WuQFileDialog::AcceptOpen);
+    CaretFileDialog fd(this);
+    fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(WuQFileDialog::ExistingFile);
-    fd.setViewMode(WuQFileDialog::List);
+    fd.setFileMode(CaretFileDialog::ExistingFile);
+    fd.setViewMode(CaretFileDialog::List);
     if (this->previousCiftiFileTypeFilter.isEmpty() == false) {
         fd.selectFilter(this->previousCiftiFileTypeFilter);
     }

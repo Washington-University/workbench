@@ -138,7 +138,7 @@ namespace caret {
                       const QString& filter = QString());
         
         // destructor
-        ~WuQFileDialog();
+        virtual ~WuQFileDialog();
         
         /// get the accept mode
         AcceptMode acceptMode() const { return theAcceptMode; }

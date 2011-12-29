@@ -53,7 +53,7 @@
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
-#include "WuQFileDialog.h"
+#include "CaretFileDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -794,11 +794,11 @@ BrainBrowserWindow::processDataFileOpen()
     /*
      * Setup file selection dialog.
      */
-    WuQFileDialog fd(this);
-    fd.setAcceptMode(WuQFileDialog::AcceptOpen);
+    CaretFileDialog fd(this);
+    fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
-    fd.setFileMode(WuQFileDialog::ExistingFiles);
-    fd.setViewMode(WuQFileDialog::List);
+    fd.setFileMode(CaretFileDialog::ExistingFiles);
+    fd.setViewMode(CaretFileDialog::List);
     fd.selectFilter(this->previousOpenFileNameFilter);
     
     AString errorMessages;

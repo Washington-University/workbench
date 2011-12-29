@@ -50,7 +50,7 @@
 #include "GuiManager.h"
 #include "ImageFile.h"
 #include "SessionManager.h"
-#include "WuQFileDialog.h"
+#include "CaretFileDialog.h"
 #include "WuQMessageBox.h"
 
 using namespace caret;
@@ -214,7 +214,7 @@ ImageCaptureDialog::selectImagePushButtonPressed()
         filterText.append(("*." + QString(format)));
     }
     filterText += ")";
-    AString name = WuQFileDialog::getSaveFileName(this,
+    AString name = CaretFileDialog::getSaveFileNameDialog(this,
                                                   "Choose File Name",
                                                   GuiManager::get()->getBrain()->getCurrentDirectory(),
                                                   filterText,
