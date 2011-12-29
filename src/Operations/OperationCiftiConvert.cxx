@@ -130,12 +130,14 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         };
         vector<int64_t> myDims = dataArrayRef->getDimensions();
         vector<int64_t> myCiftiDims;
-        myCiftiDims.push_back(0);
-        myCiftiDims.push_back(0);
-        myCiftiDims.push_back(0);
-        myCiftiDims.push_back(0);
+        myCiftiDims.push_back(1);
+        myCiftiDims.push_back(1);
+        myCiftiDims.push_back(1);
+        myCiftiDims.push_back(1);
         myCiftiDims.push_back(myDims[1]);
         myCiftiDims.push_back(myDims[0]);
         myHeader.setDimensions(myDims);
+        CiftiMatrix myMatrix;
+        myMatrix.setup(myDims);
     }
 }
