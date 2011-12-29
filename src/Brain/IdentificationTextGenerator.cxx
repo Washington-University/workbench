@@ -85,71 +85,16 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     IdentificationStringBuilder idText;
     
     const IdentificationItemSurfaceNode* surfaceID = idManager->getSurfaceNodeIdentification();
-    const Surface* surface = surfaceID->getSurface();
-    const int32_t nodeNumber = surfaceID->getNodeNumber();
     
-    if ((surface != NULL) 
-        && (nodeNumber >= 0)) {
-        AString surfaceID = ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
-        idText.addLine(false, surfaceID, nodeNumber, false);
-        
-        const float* xyz = surface->getCoordinate(nodeNumber);
-        
-        idText.addLine(true, SurfaceTypeEnum::toGuiName(surface->getSurfaceType()).toUpper()
-                       + " XYZ: "
-                       + AString::number(xyz[0])
-                       + ", "
-                       + AString::number(xyz[1])
-                       + ", "
-                       + AString::number(xyz[2]));
-        
-        const BrainStructure* brainStructure = surface->getBrainStructure();
-        CaretAssert(brainStructure);
-        
-        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-            if (clf->isEmpty() == false) {
-                float value = 0.0;
-                if (clf->getSurfaceNodeValue(surface->getStructure(),
-                                             nodeNumber,
-                                             surface->getNumberOfNodes(),
-                                             value)) {
-                    AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
-                    AString text = AString::number(value);
-                    idText.addLine(true, boldText, text);
-                }
-            }
-        }
-        
-        const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
-        for (int32_t i = 0; i < numLabelFiles; i++) {
-            const LabelFile* lf = brainStructure->getLabelFile(i);
-            AString boldText = "LABEL " + lf->getFileNameNoPath() + ":";
-            AString text;
-            const int numMaps = lf->getNumberOfMaps();
-            for (int32_t j = 0; j < numMaps; j++) {
-                AString labelName = lf->getLabelName(nodeNumber, j);
-                if (labelName.isEmpty()) {
-                    labelName = ("Map-" + AString::number(j + 1));
-                }
-                text += (" " + labelName);
-            }
-            idText.addLine(true, boldText, text);
-        }
-
-        const int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
-        for (int32_t i = 0; i < numMetricFiles; i++) {
-            const MetricFile* mf = brainStructure->getMetricFile(i);
-            AString boldText = "METRIC " + mf->getFileNameNoPath() + ":";
-            AString text;
-            const int numMaps = mf->getNumberOfMaps();
-            for (int32_t j = 0; j < numMaps; j++) {
-                text += (" " + AString::number(mf->getValue(nodeNumber, j)));
-            }
-            idText.addLine(true, boldText, text);
-        }
+    this->generateSurfaceIdentificationText(idText,
+                                            brain,
+                                            surfaceID);
+    
+    const int32_t numAdditionalSurfaceIdentifications = idManager->getNumberOfAdditionalSurfaceNodeIdentifications();
+    for (int32_t i = 0; i < numAdditionalSurfaceIdentifications; i++) {
+        this->generateSurfaceIdentificationText(idText, 
+                                                brain, 
+                                                idManager->getAdditionalSurfaceNodeIdentification(i));
     }
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
@@ -240,6 +185,90 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     }
     
     return idText.toString();
+}
+
+/**
+ * Generate identification text for a surface node identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idSurfaceNode
+ *     Information for surface node ID.
+ */
+void 
+IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
+                                                               const Brain* brain,
+                                                               const IdentificationItemSurfaceNode* idSurfaceNode) const
+{
+    const Surface* surface = idSurfaceNode->getSurface();
+    const int32_t nodeNumber = idSurfaceNode->getNodeNumber();
+    
+    if ((surface != NULL) 
+        && (nodeNumber >= 0)) {
+        AString surfaceID = ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
+        if (idSurfaceNode->isInterhemispheric()) {
+            surfaceID += " INTERHEMISPHERIC";
+        }
+        idText.addLine(false, surfaceID, nodeNumber, false);
+        
+        const float* xyz = surface->getCoordinate(nodeNumber);
+        
+        idText.addLine(true, SurfaceTypeEnum::toGuiName(surface->getSurfaceType()).toUpper()
+                       + " XYZ: "
+                       + AString::number(xyz[0])
+                       + ", "
+                       + AString::number(xyz[1])
+                       + ", "
+                       + AString::number(xyz[2]));
+        
+        const BrainStructure* brainStructure = surface->getBrainStructure();
+        CaretAssert(brainStructure);
+        
+        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
+        for (int32_t i = 0; i < numConnFiles; i++) {
+            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+            if (clf->isEmpty() == false) {
+                float value = 0.0;
+                if (clf->getSurfaceNodeValue(surface->getStructure(),
+                                             nodeNumber,
+                                             surface->getNumberOfNodes(),
+                                             value)) {
+                    AString boldText = clf->getCiftiTypeName().toUpper() + " "  + clf->getFileNameNoPath() + ":";
+                    AString text = AString::number(value);
+                    idText.addLine(true, boldText, text);
+                }
+            }
+        }
+        
+        const int32_t numLabelFiles = brainStructure->getNumberOfLabelFiles();
+        for (int32_t i = 0; i < numLabelFiles; i++) {
+            const LabelFile* lf = brainStructure->getLabelFile(i);
+            AString boldText = "LABEL " + lf->getFileNameNoPath() + ":";
+            AString text;
+            const int numMaps = lf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                AString labelName = lf->getLabelName(nodeNumber, j);
+                if (labelName.isEmpty()) {
+                    labelName = ("Map-" + AString::number(j + 1));
+                }
+                text += (" " + labelName);
+            }
+            idText.addLine(true, boldText, text);
+        }
+        
+        const int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
+        for (int32_t i = 0; i < numMetricFiles; i++) {
+            const MetricFile* mf = brainStructure->getMetricFile(i);
+            AString boldText = "METRIC " + mf->getFileNameNoPath() + ":";
+            AString text;
+            const int numMaps = mf->getNumberOfMaps();
+            for (int32_t j = 0; j < numMaps; j++) {
+                text += (" " + AString::number(mf->getValue(nodeNumber, j)));
+            }
+            idText.addLine(true, boldText, text);
+        }
+    }
+    
 }
 
 /**

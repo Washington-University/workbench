@@ -156,7 +156,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
             BrainStructure* brainStructure = surface->getBrainStructure();
             CaretAssert(brainStructure);
             
-            EventIdentificationHighlightLocation idLocation(brainStructure,
+            EventIdentificationHighlightLocation idLocation(idManager,
+                                                            brainStructure,
                                                             brainStructure->getStructure(),
                                                             nodeIndex,
                                                             brainStructure->getNumberOfNodes(),
@@ -178,7 +179,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
             float xyz[3];
             volumeFile->indexToSpace(voxelIJK, xyz);
             
-            EventIdentificationHighlightLocation idLocation(volumeFile,
+            EventIdentificationHighlightLocation idLocation(idManager,
+                                                            volumeFile,
                                                             voxelIJK,
                                                             xyz);
             EventManager::get()->sendEvent(idLocation.getPointer());

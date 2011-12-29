@@ -51,6 +51,10 @@ namespace caret {
         
         void setNodeNumber(const int32_t nodeNumber);
         
+        bool isInterhemispheric() const;
+        
+        void setIsInterhemispheric(const bool status);
+        
         virtual void reset();
         
         virtual AString toString() const;
@@ -64,6 +68,8 @@ namespace caret {
         Surface* surface;
         
         int32_t nodeNumber;
+        
+        bool interhemisphericFlag;
     };
     
 #ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__

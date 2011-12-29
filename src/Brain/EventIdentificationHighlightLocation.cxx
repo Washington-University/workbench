@@ -39,13 +39,15 @@ using namespace caret;
  * @param xyz
  *    Stereotaxic location of identified item.
  */
-EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(BrainStructure* brainStructure,
+EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+                                                                           BrainStructure* brainStructure,
                                                                            const StructureEnum::Enum surfaceStructure,
                                                                            const int32_t surfaceNodeNumber,
                                                                            const int32_t surfaceNumberOfNodes,
                                                                            const float xyz[3])
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION)
 {
+    this->identificationManager = identificationManager;
     this->identificationType = IDENTIFICATION_SURFACE;
     this->brainStructure = brainStructure;
     this->surfaceStructure = surfaceStructure;
@@ -63,12 +65,14 @@ EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(Brain
  * @param xyz
  *    Stereotaxic location of identified item.
  */
-EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(const VolumeFile* volumeFile,
+EventIdentificationHighlightLocation::EventIdentificationHighlightLocation(IdentificationManager* identificationManager,
+                                                                           const VolumeFile* volumeFile,
                                                                            const int64_t volumeSliceIndices[3],
                                                                            const float xyz[3])
 : Event(EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION),
   volumeFile(volumeFile)
 {
+    this->identificationManager = identificationManager;
     this->identificationType = IDENTIFICATION_VOLUME;
     this->volumeSliceIndices[0] = volumeSliceIndices[0];
     this->volumeSliceIndices[1] = volumeSliceIndices[1];
@@ -103,6 +107,15 @@ EventIdentificationHighlightLocation::initializeMembers()
     this->volumeSliceIndices[0] = -1;
     this->volumeSliceIndices[1] = -1;
     this->volumeSliceIndices[2] = -1;
+}
+
+/**
+ * @return Identification manager for additional node identifications.
+ */
+IdentificationManager* 
+EventIdentificationHighlightLocation::getIdentificationManager()
+{
+    return this->identificationManager;
 }
 
 /**

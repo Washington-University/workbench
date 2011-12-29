@@ -42,6 +42,7 @@
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
 #include "EventSurfacesGet.h"
+#include "IdentificationManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
@@ -403,6 +404,22 @@ BrainStructure::getVolumeInteractionSurface() const
 }
 
 /**
+ * @return The surface used for volume interaction.
+ * Returns NULL if no anatomical surfaces.
+ */
+Surface* 
+BrainStructure::getVolumeInteractionSurface()
+{
+    std::vector<Surface*> allAnatomicalSurfaces;
+    this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
+                            allAnatomicalSurfaces);
+    if (allAnatomicalSurfaces.empty() == false) {
+        return allAnatomicalSurfaces[0];
+    }
+    return NULL;
+}
+
+/**
  * Is the surface in this brain structure?
  * @param surface
  *   Surface that is tested for being in this brain structure.
@@ -730,6 +747,10 @@ BrainStructure::receiveEvent(Event* event)
         if (highlighNodeIndex >= 0) {
             BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(highlighNodeIndex);
             nodeAtts->setIdentificationType(identificationType);
+            IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
+            idManager->addAdditionalSurfaceNodeIdentification(this->getVolumeInteractionSurface(), 
+                                                              highlighNodeIndex,
+                                                              (identificationType == NodeIdentificationTypeEnum::INTER_HEMISPHERIC));
             idLocationEvent->setEventProcessed();
         }
     }

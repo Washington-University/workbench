@@ -35,6 +35,7 @@ namespace caret {
     class IdentificationItemSurfaceTriangle;
     class IdentificationItemVoxel;
     class IdentificationTextGenerator;
+    class Surface;
     
     class IdentificationManager : public CaretObject {
         
@@ -63,6 +64,17 @@ namespace caret {
         void filterSelections();
         
         void clearDistantSelections();
+        
+        void addAdditionalSurfaceNodeIdentification(Surface* surface,
+                                                    const int32_t nodeIndex,
+                                                    bool isInterhemisphericIdentification);
+        
+        int32_t getNumberOfAdditionalSurfaceNodeIdentifications() const;
+        
+        IdentificationItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx);
+        
+        const IdentificationItemSurfaceNode* getAdditionalSurfaceNodeIdentification(const int32_t indx) const;
+        
         
     private:
         IdentificationManager(const IdentificationManager&);
@@ -94,6 +106,8 @@ namespace caret {
         IdentificationTextGenerator* idTextGenerator;
         
         IdentificationItemVoxel* voxelIdentification;
+        
+        std::vector<IdentificationItemSurfaceNode*> additionalSurfaceNodeIdentifications;
     };
     
 #ifdef __IDENTIFICATION_MANAGER_DECLARE__

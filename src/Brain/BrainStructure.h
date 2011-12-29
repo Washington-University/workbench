@@ -88,6 +88,8 @@ namespace caret {
         
         const Surface* getVolumeInteractionSurface() const;
         
+        Surface* getVolumeInteractionSurface();
+        
         Brain* getBrain();
         
         const Brain* getBrain() const;

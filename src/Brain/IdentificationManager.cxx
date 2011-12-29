@@ -294,6 +294,13 @@ IdentificationManager::reset()
         IdentificationItem* item = *iter;
         item->reset();
     }
+    
+    for (std::vector<IdentificationItemSurfaceNode*>::iterator iter = this->additionalSurfaceNodeIdentifications.begin();
+         iter != this->additionalSurfaceNodeIdentifications.end();
+         iter++) {
+        delete *iter;
+    }
+    this->additionalSurfaceNodeIdentifications.clear();
 }
 
 /**
@@ -348,6 +355,66 @@ IdentificationItemVoxel*
 IdentificationManager::getVoxelIdentification()
 {
     return this->voxelIdentification;
+}
+
+/**
+ * Add an additional surface node identifications
+ * typically made as a result of identification in a volume or
+ * an interhemispheric identification.
+ * @param surface
+ *   Surface on which identification took place.
+ * @param nodeIndex
+ *   Index of surface node.
+ * @param isInterhemisphericIdentification
+ *   True if interhemispheric identification.
+ */
+void 
+IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
+                                                              const int32_t nodeIndex,
+                                                              bool isInterhemisphericIdentification)
+{
+    if (surface != this->surfaceNodeIdentification->getSurface()) {
+        IdentificationItemSurfaceNode* nodeID = new IdentificationItemSurfaceNode();
+        nodeID->setSurface(surface);
+        nodeID->setNodeNumber(nodeIndex);
+        nodeID->setIsInterhemispheric(isInterhemisphericIdentification);
+        this->additionalSurfaceNodeIdentifications.push_back(nodeID);
+    }
+}
+
+/**
+ * @return the number of additional surface node identifications
+ * typically made as a result of identification in a volume or
+ * an interhemispheric identification.
+ */
+int32_t 
+IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const
+{
+    return this->additionalSurfaceNodeIdentifications.size();
+}
+
+/**
+ * Get an additional identified surface node.
+ * @param indx
+ *   Index of the identification information.
+ */
+IdentificationItemSurfaceNode* 
+IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx)
+{
+    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
+    return this->additionalSurfaceNodeIdentifications[indx];
+}
+
+/**
+ * Get an additional identified surface node.
+ * @param indx
+ *   Index of the identification information.
+ */
+const IdentificationItemSurfaceNode* 
+IdentificationManager::getAdditionalSurfaceNodeIdentification(const int32_t indx) const
+{
+    CaretAssertVectorIndex(this->additionalSurfaceNodeIdentifications, indx);
+    return this->additionalSurfaceNodeIdentifications[indx];
 }
 
 /**
