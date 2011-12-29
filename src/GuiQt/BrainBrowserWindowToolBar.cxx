@@ -1874,9 +1874,37 @@ BrainBrowserWindowToolBar::updateVolumeIndicesWidget(BrowserTabContent* /*browse
 QWidget* 
 BrainBrowserWindowToolBar::createToolsWidget()
 {
+    /*
+     * Create the connect menu
+     */
+    this->toolsConnectToAllenDatabaseAction = WuQtUtilities::createAction("Allen...",
+                                                                               "Connect to Allen Brain Institute Database",
+                                                                               this);
+    this->toolsConnectToAllenDatabaseAction->setEnabled(false);
+    
+    this->toolsConnectToConnectomeDatabaseAction = WuQtUtilities::createAction("Connectome DB...",
+                                                                               "Connect to Connectome DB Database",
+                                                                               this);
+    
+    this->toolsConnectMenu = new QMenu("DB");
+    this->toolsConnectMenu->addAction(this->toolsConnectToAllenDatabaseAction);
+    this->toolsConnectMenu->addAction(this->toolsConnectToConnectomeDatabaseAction);
+    
+    /*
+     * Create the toolbutton that pops up the Connect Menu
+     */
+    QAction* connectToolButtonAction = WuQtUtilities::createAction("DB", 
+                                                                   "Connect to a database", 
+                                                                   this, 
+                                                                   this, 
+                                                                   SLOT(toolsConnectToDatabaseActionTriggered(bool)));
+    QToolButton* connectToDatabaseToolButton = new QToolButton();
+    connectToDatabaseToolButton->setDefaultAction(connectToolButtonAction);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    layout->addWidget(connectToDatabaseToolButton, 0, Qt::AlignHCenter);
     layout->addStretch();
     
     this->toolsWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -1888,6 +1916,31 @@ BrainBrowserWindowToolBar::createToolsWidget()
                                         0);
     return w;
 }
+
+/**
+ * Called when Connect to DB Tool button pressed.
+ */
+void 
+BrainBrowserWindowToolBar::toolsConnectToDatabaseActionTriggered(bool)
+{
+    /*
+     * Popup the menu
+     */
+    QAction* result = this->toolsConnectMenu->exec(QCursor::pos());
+    if (result == this->toolsConnectToAllenDatabaseAction) {
+        WuQMessageBox::informationOk(this, "Allen Database connection not yet implemented");
+    }
+    else if (result == this->toolsConnectToConnectomeDatabaseAction) {
+        static QWebView *view = NULL;
+        if(view == NULL) view = new QWebView();
+        view->load(QUrl("http://intradb.humanconnectome.org/"));             
+        view->show();
+    }
+    else if (result != NULL) {
+        CaretAssertMessage(0, "New menu added to Connect to DB menu???");
+    }
+}
+
 /**
  * Update the tools widget.
  * 

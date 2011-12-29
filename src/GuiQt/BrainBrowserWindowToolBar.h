@@ -340,6 +340,14 @@ namespace caret {
         QAction* toolsToolBoxToolButtonAction;
 
     private slots:
+        void toolsConnectToDatabaseActionTriggered(bool);
+        
+    private:
+        QMenu* toolsConnectMenu;
+        QAction* toolsConnectToAllenDatabaseAction;
+        QAction* toolsConnectToConnectomeDatabaseAction;
+        
+    private slots:
         void connectomeDBToolButtonTriggered(bool checked);
 
     private:
