@@ -121,6 +121,11 @@ public:
     
     static bool isLeft(const Enum enumValue);
     
+    static bool isCortexContralateral(const Enum enumValueA,
+                                      const Enum enumValueB);
+    
+    static Enum getContralateralStructure(const Enum enumValue);
+    
 private:
     StructureEnum(const Enum enumValue, 
                  const AString& name,

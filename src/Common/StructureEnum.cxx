@@ -427,3 +427,133 @@ StructureEnum::isLeft(const Enum enumValue)
     
 }
 
+/**
+ * Are the two structure's cortices and contralateral (is one CortexLeft
+ * and one CortexRight)?
+ *
+ * @param enumValueA
+ *    First structure enumerated type.
+ * @param enumValueB
+ *    Second structure enumerated type.
+ * @return
+ *    True if one is CORTEX_LEFT and one is CORTEX_LEFT.
+ */
+bool 
+StructureEnum::isCortexContralateral(const Enum enumValueA,
+                               const Enum enumValueB)
+{
+    if ((enumValueA == CORTEX_LEFT)
+        && (enumValueB == CORTEX_RIGHT)) {
+        return true;
+    }
+    if ((enumValueA == CORTEX_RIGHT)
+        && (enumValueB == CORTEX_LEFT)) {
+        return true;
+    }
+    
+    return false;
+}
+
+/**
+ * For the given structure return its contralateral structure.
+ * Thats is, if this is a left/right structure return its
+ * corresponding structure from the other side.
+ * 
+ * @param enumValue
+ *    Structure for which contralateral structure is desired.
+ * @return The contralateral structure or NULL if it does
+ *    not have a contralateral structure.
+ */
+StructureEnum::Enum 
+StructureEnum::getContralateralStructure(const Enum enumValue)
+{
+    StructureEnum::Enum contralateralStructure = INVALID;
+
+    switch (enumValue) {
+        case ACCUMBENS_LEFT:
+            contralateralStructure = ACCUMBENS_RIGHT;
+            break;
+        case ACCUMBENS_RIGHT:
+            contralateralStructure = ACCUMBENS_LEFT;
+            break;
+        case ALL:
+            contralateralStructure = INVALID;
+            break;
+        case AMYGDALA_LEFT:
+            contralateralStructure = AMYGDALA_RIGHT;
+            break;
+        case AMYGDALA_RIGHT:
+            contralateralStructure = AMYGDALA_LEFT;
+            break;
+        case BRAIN_STEM:
+            contralateralStructure = INVALID;
+            break;
+        case CAUDATE_LEFT:
+            contralateralStructure = CAUDATE_RIGHT;
+            break;
+        case CAUDATE_RIGHT:
+            contralateralStructure = CAUDATE_LEFT;
+            break;
+        case CEREBELLUM:
+            contralateralStructure = INVALID;
+            break;
+        case CEREBELLUM_LEFT:
+            contralateralStructure = CEREBELLUM_RIGHT;
+            break;
+        case CEREBELLUM_RIGHT:
+            contralateralStructure = CEREBELLUM_LEFT;
+            break;
+        case CORTEX_LEFT:
+            contralateralStructure = CORTEX_RIGHT;
+            break;
+        case CORTEX_RIGHT:
+            contralateralStructure = CORTEX_LEFT;
+            break;
+        case DIENCEPHALON_VENTRAL_LEFT:
+            contralateralStructure = DIENCEPHALON_VENTRAL_RIGHT;
+            break;
+        case DIENCEPHALON_VENTRAL_RIGHT:
+            contralateralStructure = DIENCEPHALON_VENTRAL_LEFT;
+            break;
+        case HIPPOCAMPUS_LEFT:
+            contralateralStructure = HIPPOCAMPUS_RIGHT;
+            break;
+        case HIPPOCAMPUS_RIGHT:
+            contralateralStructure = HIPPOCAMPUS_LEFT;
+            break;
+        case INVALID:
+            contralateralStructure = INVALID;
+            break;
+        case PALLIDUM_LEFT:
+            contralateralStructure = PALLIDUM_RIGHT;
+            break;
+        case PALLIDUM_RIGHT:
+            contralateralStructure = PALLIDUM_LEFT;
+            break;
+        case OTHER:
+            contralateralStructure = INVALID;
+            break;
+        case PUTAMEN_LEFT:
+            contralateralStructure = PUTAMEN_RIGHT;
+            break;
+        case PUTAMEN_RIGHT:
+            contralateralStructure = PUTAMEN_LEFT;
+            break;
+        case SUBCORTICAL_WHITE_MATTER_LEFT:
+            contralateralStructure = SUBCORTICAL_WHITE_MATTER_RIGHT;
+            break;
+        case SUBCORTICAL_WHITE_MATTER_RIGHT:
+            contralateralStructure = SUBCORTICAL_WHITE_MATTER_LEFT;
+            break;
+        case THALAMUS_LEFT:
+            contralateralStructure = THALAMUS_RIGHT;
+            break;
+        case THALAMUS_RIGHT:
+            contralateralStructure = THALAMUS_LEFT;
+            break;
+    }
+    
+    return contralateralStructure;
+}
+
+

@@ -909,7 +909,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 drawIt = true;
                 glColor3f(0.0, 1.0, 0.0);
                 break;
-            case NodeIdentificationTypeEnum::INTER_HEMISPHERIC:
+            case NodeIdentificationTypeEnum::CONTRALATERAL:
                 drawIt = true;
                 glColor3f(0.0, 0.0, 1.0);
                 break;

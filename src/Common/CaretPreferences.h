@@ -86,9 +86,9 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
-        bool isInterHemisphericIdentificationEnabled() const;
+        bool isContralateralIdentificationEnabled() const;
         
-        void setInterHemisphericIdentificationEnabled(const bool enabled);
+        void setContralateralIdentificationEnabled(const bool enabled);
         
     private:
         CaretPreferences(const CaretPreferences&);
@@ -132,13 +132,13 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
-        bool interhemisphericIdentificationEnabled;
+        bool contralateralIdentificationEnabled;
         
         static const AString NAME_AXES_CROSSHAIRS;
         static const AString NAME_AXES_LABELS;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
-        static const AString NAME_IDENTIFICATION_INTERHEMISPHERIC;
+        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_LOGGING_LEVEL;
@@ -150,7 +150,7 @@ namespace caret {
     const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
-    const AString CaretPreferences::NAME_IDENTIFICATION_INTERHEMISPHERIC     = "identificationInterhemispheric";
+    const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";

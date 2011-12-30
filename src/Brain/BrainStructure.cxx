@@ -705,15 +705,15 @@ BrainStructure::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
-        const bool interhemIdEnabled = SessionManager::get()->getCaretPreferences()->isInterHemisphericIdentificationEnabled();
+        const bool contralateralIdEnabled = SessionManager::get()->getCaretPreferences()->isContralateralIdentificationEnabled();
         
         NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
         int32_t highlighNodeIndex = -1;
         
-        BrainStructure* interhemBrainStructure = NULL;
-        int32_t interhemHighlightNodeIndex = -1;
-        Surface* interhemSurface = NULL;
-        NodeIdentificationTypeEnum::Enum interhemIdentificationType = NodeIdentificationTypeEnum::NONE;
+        BrainStructure* contralateralBrainStructure = NULL;
+        int32_t contralateralHighlightNodeIndex = -1;
+        Surface* contralateralSurface = NULL;
+        NodeIdentificationTypeEnum::Enum contralateralIdentificationType = NodeIdentificationTypeEnum::NONE;
         
         switch (idLocationEvent->getIdentificationType()) {
             case EventIdentificationHighlightLocation::IDENTIFICATION_SURFACE:
@@ -722,17 +722,12 @@ BrainStructure::receiveEvent(Event* event)
                     highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
                     identificationType = NodeIdentificationTypeEnum::NORMAL;
                 }
-                else if (interhemIdEnabled) {
+                else if (contralateralIdEnabled) {
                     if (this->getNumberOfNodes() == idLocationEvent->getSurfaceNumberOfNodes()) {
-                        if ((this->getStructure() == StructureEnum::CORTEX_LEFT)
-                            && (idLocationEvent->getSurfaceStructure() == StructureEnum::CORTEX_RIGHT)) {
+                        if (StructureEnum::isCortexContralateral(this->getStructure(), 
+                                                                 idLocationEvent->getSurfaceStructure())) {
                             highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                            identificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
-                        }
-                        else if ((this->getStructure() == StructureEnum::CORTEX_RIGHT)
-                                 && (idLocationEvent->getSurfaceStructure() == StructureEnum::CORTEX_LEFT)) {
-                            highlighNodeIndex = idLocationEvent->getSurfaceNodeNumber();
-                            identificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
+                            identificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
                         }
                     }
                 }
@@ -748,25 +743,18 @@ BrainStructure::receiveEvent(Event* event)
                         highlighNodeIndex = nearestNodeIndex;
                         identificationType = NodeIdentificationTypeEnum::NORMAL;
                     }
-                    if (interhemIdEnabled 
+                    if (contralateralIdEnabled 
                         && (highlighNodeIndex >= 0)) {
-                        StructureEnum::Enum interhemStructure = StructureEnum::INVALID;
-                        if (this->getStructure() == StructureEnum::CORTEX_LEFT) {
-                            interhemStructure = StructureEnum::CORTEX_RIGHT;
-                        }
-                        else if (this->getStructure() == StructureEnum::CORTEX_RIGHT) {
-                            interhemStructure = StructureEnum::CORTEX_LEFT;
-                        }
-                        
-                        if (interhemStructure != StructureEnum::INVALID) {
-                            interhemBrainStructure = brain->getBrainStructure(interhemStructure,
+                        const StructureEnum::Enum contralateralStructure = StructureEnum::getContralateralStructure(this->getStructure());
+                        if (contralateralStructure != StructureEnum::INVALID) {
+                            contralateralBrainStructure = brain->getBrainStructure(contralateralStructure,
                                                                                         false);
-                            if (interhemBrainStructure != NULL) {
-                                interhemSurface = interhemBrainStructure->getVolumeInteractionSurface();
-                                if (interhemSurface != NULL) {
-                                    if (this->getNumberOfNodes() == interhemSurface->getNumberOfNodes()) {
-                                        interhemHighlightNodeIndex = highlighNodeIndex;
-                                        interhemIdentificationType = NodeIdentificationTypeEnum::INTER_HEMISPHERIC;
+                            if (contralateralBrainStructure != NULL) {
+                                contralateralSurface = contralateralBrainStructure->getVolumeInteractionSurface();
+                                if (contralateralSurface != NULL) {
+                                    if (this->getNumberOfNodes() == contralateralSurface->getNumberOfNodes()) {
+                                        contralateralHighlightNodeIndex = highlighNodeIndex;
+                                        contralateralIdentificationType = NodeIdentificationTypeEnum::CONTRALATERAL;
                                     }
                                 }
                             }
@@ -783,14 +771,14 @@ BrainStructure::receiveEvent(Event* event)
             nodeAtts->setIdentificationType(identificationType);
             idManager->addAdditionalSurfaceNodeIdentification(this->getVolumeInteractionSurface(), 
                                                               highlighNodeIndex,
-                                                              (identificationType == NodeIdentificationTypeEnum::INTER_HEMISPHERIC));
+                                                              (identificationType == NodeIdentificationTypeEnum::CONTRALATERAL));
             idLocationEvent->setEventProcessed();
         }
-        if (interhemHighlightNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = interhemBrainStructure->getNodeAttributes(interhemHighlightNodeIndex);
-            nodeAtts->setIdentificationType(interhemIdentificationType);
-            idManager->addAdditionalSurfaceNodeIdentification(interhemSurface, 
-                                                              interhemHighlightNodeIndex,
+        if (contralateralHighlightNodeIndex >= 0) {
+            BrainStructureNodeAttributes* nodeAtts = contralateralBrainStructure->getNodeAttributes(contralateralHighlightNodeIndex);
+            nodeAtts->setIdentificationType(contralateralIdentificationType);
+            idManager->addAdditionalSurfaceNodeIdentification(contralateralSurface, 
+                                                              contralateralHighlightNodeIndex,
                                                               true);
         }
     }

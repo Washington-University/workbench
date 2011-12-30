@@ -56,7 +56,7 @@ namespace caret {
         void volumeAxesCrosshairsCheckBoxToggled(bool value);
         void volumeAxesLabelsCheckBoxToggled(bool value);
         
-        void identificationInterhemisphericCheckBoxToggled(bool value);
+        void identificationContralateralCheckBoxToggled(bool value);
         
     private:
         QWidget* createColorsWidget();
@@ -76,7 +76,7 @@ namespace caret {
         QCheckBox* volumeAxesCrosshairsCheckBox;
         QCheckBox* volumeAxesLabelsCheckBox;
         
-        QCheckBox* identificationInterhemisphericCheckBox;
+        QCheckBox* identificationContralateralCheckBox;
         
         WuQWidgetObjectGroup* allWidgets;
     };

@@ -524,25 +524,25 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 }
 
 /**
- * @return Is interhemispheric identification enabled?
+ * @return Is contralateral identification enabled?
  */
 bool 
-CaretPreferences::isInterHemisphericIdentificationEnabled() const
+CaretPreferences::isContralateralIdentificationEnabled() const
 {
-    return this->interhemisphericIdentificationEnabled;
+    return this->contralateralIdentificationEnabled;
 }
 
 /**
- * Set interhemispheric identification enabled.
+ * Set contralateral identification enabled.
  * @param enabled
  *    New status.
  */
 void 
-CaretPreferences::setInterHemisphericIdentificationEnabled(const bool enabled)
+CaretPreferences::setContralateralIdentificationEnabled(const bool enabled)
 {
-    this->interhemisphericIdentificationEnabled = enabled;
-    this->setBoolean(CaretPreferences::NAME_IDENTIFICATION_INTERHEMISPHERIC, 
-                     this->interhemisphericIdentificationEnabled);
+    this->contralateralIdentificationEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL, 
+                     this->contralateralIdentificationEnabled);
 }
 
 /**
@@ -613,7 +613,7 @@ CaretPreferences::readPreferences()
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
                                                          true);
     
-    this->interhemisphericIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_INTERHEMISPHERIC,
+    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
                                                                    false);
 }
 

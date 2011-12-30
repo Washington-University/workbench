@@ -133,7 +133,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
     
-    this->identificationInterhemisphericCheckBox->setChecked(prefs->isInterHemisphericIdentificationEnabled());
+    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -325,18 +325,18 @@ PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
 QWidget* 
 PreferencesDialog::createIdentificationWidget()
 {
-    this->identificationInterhemisphericCheckBox = new QCheckBox("Interhemispheric");
-    WuQtUtilities::setToolTipAndStatusTip(this->identificationInterhemisphericCheckBox, 
-                                          "Enables inter-hemispheric (right<==>left) identification");
-    QObject::connect(this->identificationInterhemisphericCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(identificationInterhemisphericCheckBoxToggled(bool)));
+    this->identificationContralateralCheckBox = new QCheckBox("Contralateral");
+    WuQtUtilities::setToolTipAndStatusTip(this->identificationContralateralCheckBox, 
+                                          "Enables contralateral (right<==>left) identification");
+    QObject::connect(this->identificationContralateralCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(identificationContralateralCheckBoxToggled(bool)));
     
     
-    this->allWidgets->add(this->identificationInterhemisphericCheckBox);
+    this->allWidgets->add(this->identificationContralateralCheckBox);
     
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(this->identificationInterhemisphericCheckBox, 0, 0);
+    gridLayout->addWidget(this->identificationContralateralCheckBox, 0, 0);
     return w;
 }
 
@@ -346,10 +346,10 @@ PreferencesDialog::createIdentificationWidget()
  *    New value.
  */
 void 
-PreferencesDialog::identificationInterhemisphericCheckBoxToggled(bool value)
+PreferencesDialog::identificationContralateralCheckBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setInterHemisphericIdentificationEnabled(value);    
+    prefs->setContralateralIdentificationEnabled(value);    
 }
 
 

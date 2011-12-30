@@ -95,9 +95,9 @@ NodeIdentificationTypeEnum::initialize()
                                     "NORMAL", 
                                     "Normal identification from same structure"));
     
-    enumData.push_back(NodeIdentificationTypeEnum(INTER_HEMISPHERIC, 
-                                    "INTER_HEMISPHERIC", 
-                                    "Interhemispheric (right from left, left from right)"));
+    enumData.push_back(NodeIdentificationTypeEnum(CONTRALATERAL, 
+                                    "CONTRALATERAL", 
+                                    "Contralateral (right from left, left from right)"));
     
 }
 

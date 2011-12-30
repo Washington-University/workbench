@@ -52,8 +52,8 @@ public:
         NONE,
         /** normal identification from same structure */
         NORMAL,
-        /** identification on left/right from other hemisphere */
-        INTER_HEMISPHERIC
+        /** identification on left/right from other side */
+        CONTRALATERAL
     };
 
 
