@@ -74,6 +74,10 @@ void CiftiFile::init()
  */
 void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
+    if(!QFile::exists(fileName)) {
+        this->m_fileName = fileName;
+        return;
+    }
     try {
         m_caching = caching;
         //Read CiftiHeader
@@ -108,7 +112,8 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
         std::vector <int64_t> vec;
         
         header.getDimensions(vec);
-        m_matrix.setup(vec,header.getVolumeOffset(),m_caching,m_swapNeeded);
+        int64_t offset = header.getVolumeOffset();
+        m_matrix.setup(vec,offset,m_caching,m_swapNeeded);
     }
     catch (NiftiException e) {
         throw CiftiFileException(e.whatString());

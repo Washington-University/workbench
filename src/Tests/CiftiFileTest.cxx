@@ -33,8 +33,9 @@ void CiftiFileTest::execute()
 {
     testObjectCreateDestroy();
     if(this->failed()) return;
-    testCiftiRead();
-    if(this->failed()) return;
+    //testCiftiRead();
+    //if(this->failed()) return;
+    testCiftiReadWrite();
 }
 
 void CiftiFileTest::testObjectCreateDestroy()
