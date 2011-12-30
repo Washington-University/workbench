@@ -34,212 +34,218 @@
 
 namespace caret {
 
-class XmlWriter;
+    class DescriptiveStatistics;
+    class XmlWriter;
     
-/**
- * Controls color mapping using a palette.
- */
-class PaletteColorMapping : public CaretObject {
-
-public:
-    PaletteColorMapping();
-
-    PaletteColorMapping(const PaletteColorMapping& o);
-
-    PaletteColorMapping& operator=(const PaletteColorMapping& o);
-
-    virtual ~PaletteColorMapping();
-
-private:
-    void copyHelper(const PaletteColorMapping& o);
-
-    void initializeMembersPaletteColorMapping();
-
-public:
-    void writeAsXML(XmlWriter& xmlWriter)
-            throw (XmlException);
-
-    AString encodeInXML()
-            throw (XmlException);
-
-
-    void decodeFromStringXML(const AString& xml)
-            throw (XmlException);
-
-    float getAutoScalePercentageNegativeMaximum() const;
-
-    void setAutoScalePercentageNegativeMaximum(const float autoScalePercentageNegativeMaximum);
-
-    float getAutoScalePercentageNegativeMinimum() const;
-
-    void setAutoScalePercentageNegativeMinimum(const float autoScalePercentageNegativeMinimum);
-
-    float getAutoScalePercentagePositiveMaximum() const;
-
-    void setAutoScalePercentagePositiveMaximum(const float autoScalePercentagePositiveMaximum);
-
-    float getAutoScalePercentagePositiveMinimum() const;
-
-    void setAutoScalePercentagePositiveMinimum(const float autoScalePercentagePositiveMinimum);
-
-    bool isDisplayNegativeDataFlag() const;
-
-    void setDisplayNegativeDataFlag(const bool displayNegativeDataFlag);
-
-    bool isDisplayPositiveDataFlag() const;
-
-    void setDisplayPositiveDataFlag(const bool displayPositiveDataFlag);
-
-    bool isDisplayZeroDataFlag() const;
-
-    void setDisplayZeroDataFlag(const bool displayZeroDataFlag);
-
-    bool isInterpolatePaletteFlag() const;
-
-    void setInterpolatePaletteFlag(const bool interpolatePaletteFlag);
-
-    PaletteScaleModeEnum::Enum getScaleMode() const;
-
-    void setScaleMode(const PaletteScaleModeEnum::Enum scaleMode);
-
-    AString getSelectedPaletteName() const;
-
-    void setSelectedPaletteName(const AString& selectedPaletteName);
-
-    void setSelectedPaletteToPsych();
-
-    void setSelectedPaletteToPsychNoNone();
-
-    void setSelectedPaletteToOrangeYellow();
-
-    void setSelectedPaletteToGrayInterpolated();
-
-    float getUserScaleNegativeMaximum() const;
-
-    void setUserScaleNegativeMaximum(const float userScaleNegativeMaximum);
-
-    float getUserScaleNegativeMinimum() const;
-
-    void setUserScaleNegativeMinimum(const float userScaleNegativeMinimum);
-
-    float getUserScalePositiveMaximum() const;
-
-    void setUserScalePositiveMaximum(const float userScalePositiveMaximum);
-
-    float getUserScalePositiveMinimum() const;
-
-    void setUserScalePositiveMinimum(const float userScalePositiveMinimum);
-
-    float getThresholdMappedAverageAreaMinimum() const;
-
-    void setThresholdMappedAverageAreaMinimum(const float thresholdMappedAverageAreaMinimum);
-
-    float getThresholdMappedAverageAreaMaximum() const;
-
-    void setThresholdMappedAverageAreaMaximum(const float thresholdMappedAverageAreaPositive);
-
-    float getThresholdMappedMinimum() const;
-
-    void setThresholdMappedMinimum(const float thresholdMappedMinimum);
-
-    float getThresholdMappedMaximum() const;
-
-    void setThresholdMappedMaximum(const float thresholdMappedPositive);
-
-    float getThresholdNormalMinimum() const;
-
-    void setThresholdNormalMinimum(const float thresholdNormalMinimum);
-
-    float getThresholdNormalMaximum() const;
-
-    void setThresholdNormalMaximum(const float thresholdNormalPositive);
-
-    float getThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
-    
-    float getThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
-    
-    void setThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType,
-                             const float thresholdMinimum);
-    
-    void setThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType,
-                             const float thresholdMaximum);
+    /**
+     * Controls color mapping using a palette.
+     */
+    class PaletteColorMapping : public CaretObject {
         
-    PaletteThresholdTestEnum::Enum getThresholdTest() const;
-
-    void setThresholdTest(const PaletteThresholdTestEnum::Enum thresholdTest);
-
-    PaletteThresholdTypeEnum::Enum getThresholdType() const;
-
-    void setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType);
-
-    AString getThresholdDataName() const;
-
-    void setThresholdDataName(const AString& thresholdDataName);
-
-    bool isShowThresholdFailureInGreen() const;
-
-    void setShowThresholdFailureInGreen(const bool showInGreenFlag);
-
-    void setModified();
-
-    void clearModified();
-
-    bool isModified() const;
-
-private:
-    PaletteScaleModeEnum::Enum scaleMode;
-
-    float autoScalePercentageNegativeMaximum;
-
-    float autoScalePercentageNegativeMinimum;
-
-    float autoScalePercentagePositiveMinimum;
-
-    float autoScalePercentagePositiveMaximum;
-
-    float userScaleNegativeMaximum;
-
-    float userScaleNegativeMinimum;
-
-    float userScalePositiveMinimum;
-
-    float userScalePositiveMaximum;
-
-    AString selectedPaletteName;
-
-    bool interpolatePaletteFlag;
-
-    bool displayPositiveDataFlag;
-
-    bool displayZeroDataFlag;
-
-    bool displayNegativeDataFlag;
-
-    PaletteThresholdTypeEnum::Enum thresholdType;
-
-    PaletteThresholdTestEnum::Enum thresholdTest;
-
-    float thresholdNormalMinimum;
-
-    float thresholdNormalMaximum;
-
-    float thresholdMappedMinimum;
-
-    float thresholdMappedMaximum;
-
-    float thresholdMappedAverageAreaMinimum;
-
-    float thresholdMappedAverageAreaMaximum;
-
-    AString thresholdDataName;
-
-    bool thresholdShowFailureInGreen;
-
-    /**Tracks modification, DO NOT copy */
-    bool modifiedFlag;
-
-};
-
+    public:
+        PaletteColorMapping();
+        
+        PaletteColorMapping(const PaletteColorMapping& o);
+        
+        PaletteColorMapping& operator=(const PaletteColorMapping& o);
+        
+        virtual ~PaletteColorMapping();
+        
+    private:
+        void copyHelper(const PaletteColorMapping& o);
+        
+        void initializeMembersPaletteColorMapping();
+        
+    public:
+        void writeAsXML(XmlWriter& xmlWriter)
+        throw (XmlException);
+        
+        AString encodeInXML()
+        throw (XmlException);
+        
+        
+        void decodeFromStringXML(const AString& xml)
+        throw (XmlException);
+        
+        float getAutoScalePercentageNegativeMaximum() const;
+        
+        void setAutoScalePercentageNegativeMaximum(const float autoScalePercentageNegativeMaximum);
+        
+        float getAutoScalePercentageNegativeMinimum() const;
+        
+        void setAutoScalePercentageNegativeMinimum(const float autoScalePercentageNegativeMinimum);
+        
+        float getAutoScalePercentagePositiveMaximum() const;
+        
+        void setAutoScalePercentagePositiveMaximum(const float autoScalePercentagePositiveMaximum);
+        
+        float getAutoScalePercentagePositiveMinimum() const;
+        
+        void setAutoScalePercentagePositiveMinimum(const float autoScalePercentagePositiveMinimum);
+        
+        bool isDisplayNegativeDataFlag() const;
+        
+        void setDisplayNegativeDataFlag(const bool displayNegativeDataFlag);
+        
+        bool isDisplayPositiveDataFlag() const;
+        
+        void setDisplayPositiveDataFlag(const bool displayPositiveDataFlag);
+        
+        bool isDisplayZeroDataFlag() const;
+        
+        void setDisplayZeroDataFlag(const bool displayZeroDataFlag);
+        
+        bool isInterpolatePaletteFlag() const;
+        
+        void setInterpolatePaletteFlag(const bool interpolatePaletteFlag);
+        
+        PaletteScaleModeEnum::Enum getScaleMode() const;
+        
+        void setScaleMode(const PaletteScaleModeEnum::Enum scaleMode);
+        
+        AString getSelectedPaletteName() const;
+        
+        void setSelectedPaletteName(const AString& selectedPaletteName);
+        
+        void setSelectedPaletteToPsych();
+        
+        void setSelectedPaletteToPsychNoNone();
+        
+        void setSelectedPaletteToOrangeYellow();
+        
+        void setSelectedPaletteToGrayInterpolated();
+        
+        float getUserScaleNegativeMaximum() const;
+        
+        void setUserScaleNegativeMaximum(const float userScaleNegativeMaximum);
+        
+        float getUserScaleNegativeMinimum() const;
+        
+        void setUserScaleNegativeMinimum(const float userScaleNegativeMinimum);
+        
+        float getUserScalePositiveMaximum() const;
+        
+        void setUserScalePositiveMaximum(const float userScalePositiveMaximum);
+        
+        float getUserScalePositiveMinimum() const;
+        
+        void setUserScalePositiveMinimum(const float userScalePositiveMinimum);
+        
+        float getThresholdMappedAverageAreaMinimum() const;
+        
+        void setThresholdMappedAverageAreaMinimum(const float thresholdMappedAverageAreaMinimum);
+        
+        float getThresholdMappedAverageAreaMaximum() const;
+        
+        void setThresholdMappedAverageAreaMaximum(const float thresholdMappedAverageAreaPositive);
+        
+        float getThresholdMappedMinimum() const;
+        
+        void setThresholdMappedMinimum(const float thresholdMappedMinimum);
+        
+        float getThresholdMappedMaximum() const;
+        
+        void setThresholdMappedMaximum(const float thresholdMappedPositive);
+        
+        float getThresholdNormalMinimum() const;
+        
+        void setThresholdNormalMinimum(const float thresholdNormalMinimum);
+        
+        float getThresholdNormalMaximum() const;
+        
+        void setThresholdNormalMaximum(const float thresholdNormalPositive);
+        
+        float getThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
+        
+        float getThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType) const;
+        
+        void setThresholdMinimum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                                 const float thresholdMinimum);
+        
+        void setThresholdMaximum(const PaletteThresholdTypeEnum::Enum thresholdType,
+                                 const float thresholdMaximum);
+        
+        PaletteThresholdTestEnum::Enum getThresholdTest() const;
+        
+        void setThresholdTest(const PaletteThresholdTestEnum::Enum thresholdTest);
+        
+        PaletteThresholdTypeEnum::Enum getThresholdType() const;
+        
+        void setThresholdType(const PaletteThresholdTypeEnum::Enum thresholdType);
+        
+        AString getThresholdDataName() const;
+        
+        void setThresholdDataName(const AString& thresholdDataName);
+        
+        bool isShowThresholdFailureInGreen() const;
+        
+        void setShowThresholdFailureInGreen(const bool showInGreenFlag);
+        
+        void setModified();
+        
+        void clearModified();
+        
+        bool isModified() const;
+        
+        void mapDataToPaletteNormalizedValues(const DescriptiveStatistics* statistics,
+                                              const float* dataValues,
+                                              float* normalizedValuesOut,
+                                              const int64_t numberOfData) const;
+        
+    private:
+        PaletteScaleModeEnum::Enum scaleMode;
+        
+        float autoScalePercentageNegativeMaximum;
+        
+        float autoScalePercentageNegativeMinimum;
+        
+        float autoScalePercentagePositiveMinimum;
+        
+        float autoScalePercentagePositiveMaximum;
+        
+        float userScaleNegativeMaximum;
+        
+        float userScaleNegativeMinimum;
+        
+        float userScalePositiveMinimum;
+        
+        float userScalePositiveMaximum;
+        
+        AString selectedPaletteName;
+        
+        bool interpolatePaletteFlag;
+        
+        bool displayPositiveDataFlag;
+        
+        bool displayZeroDataFlag;
+        
+        bool displayNegativeDataFlag;
+        
+        PaletteThresholdTypeEnum::Enum thresholdType;
+        
+        PaletteThresholdTestEnum::Enum thresholdTest;
+        
+        float thresholdNormalMinimum;
+        
+        float thresholdNormalMaximum;
+        
+        float thresholdMappedMinimum;
+        
+        float thresholdMappedMaximum;
+        
+        float thresholdMappedAverageAreaMinimum;
+        
+        float thresholdMappedAverageAreaMaximum;
+        
+        AString thresholdDataName;
+        
+        bool thresholdShowFailureInGreen;
+        
+        /**Tracks modification, DO NOT copy */
+        bool modifiedFlag;
+        
+    };
+    
 } // namespace
 
 #endif // __PALETTECOLORMAPPING_H__

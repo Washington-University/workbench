@@ -2666,6 +2666,35 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     }
     
     /*
+     * Draw over thresholded regions with background color
+     */
+    const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
+    if (thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+        const float minMaxThresholds[2] = {
+            paletteColorMapping->getThresholdMinimum(thresholdType),
+            paletteColorMapping->getThresholdMaximum(thresholdType)
+        };
+        float normalizedThresholds[2];
+        
+        paletteColorMapping->mapDataToPaletteNormalizedValues(statistics,
+                                                              minMaxThresholds,
+                                                              normalizedThresholds,
+                                                              2);
+        
+        switch (paletteColorMapping->getThresholdTest()) {
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(-orthoWidth, -orthoHeight, normalizedThresholds[0], orthoHeight);
+                glRectf(normalizedThresholds[1], -orthoHeight, orthoWidth, orthoHeight);
+                break;
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(normalizedThresholds[0], -orthoHeight, normalizedThresholds[1], orthoHeight);
+                break;
+        }
+    }
+    
+    /*
      * If zeros are not displayed, draw a line in the 
      * background color at zero in the palette.
      */
