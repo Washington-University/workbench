@@ -104,51 +104,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     CaretAssert(scalarValues);
     CaretAssert(thresholdValues);
     CaretAssert(rgbaOut);
-    
-    //const AString paletteName = paletteColorMapping->getSelectedPaletteName();
-    
-    /*
-     * Minimum and maximum values used when mapping scalar into color palette.
-     */
-    float mappingMostNegative  = 0.0;
-    float mappingLeastNegative = 0.0;
-    float mappingLeastPositive  = 0.0;
-    float mappingMostPositive  = 0.0;
-    switch (paletteColorMapping->getScaleMode()) {
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-            mappingMostNegative  = statistics->getMostNegativeValue();
-            mappingLeastNegative = statistics->getLeastNegativeValue();
-            mappingLeastPositive = statistics->getLeastPositiveValue();
-            mappingMostPositive  = statistics->getMostPositiveValue();
-            break;
-        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
-        {
-            const float mostNegativePercentage  = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
-            const float leastNegativePercentage = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
-            const float leastPositivePercentage = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
-            const float mostPositivePercentage  = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
-            mappingMostNegative  = statistics->getNegativePercentile(mostNegativePercentage);
-            mappingLeastNegative = statistics->getNegativePercentile(leastNegativePercentage);
-            mappingLeastPositive = statistics->getPositivePercentile(leastPositivePercentage);
-            mappingMostPositive  = statistics->getPositivePercentile(mostPositivePercentage);
-        }
-            break;
-        case PaletteScaleModeEnum::MODE_USER_SCALE:
-            mappingMostNegative  = paletteColorMapping->getUserScaleNegativeMaximum();
-            mappingLeastNegative = paletteColorMapping->getUserScaleNegativeMinimum();
-            mappingLeastPositive = paletteColorMapping->getUserScalePositiveMinimum();
-            mappingMostPositive  = paletteColorMapping->getUserScalePositiveMaximum();
-            break;
-    }
-    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive);
-    if (mappingPositiveDenominator == 0.0) {
-        mappingPositiveDenominator = 1.0;
-    }
-    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative);
-    if (mappingNegativeDenominator == 0.0) {
-        mappingNegativeDenominator = 1.0;
-    }
-    
+        
     /*
      * Type of threshold testing
      */
@@ -202,6 +158,15 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     const bool interpolateFlag = paletteColorMapping->isInterpolatePaletteFlag();
     
     /*
+     * Convert data values to normalized palette values.
+     */
+    std::vector<float> normalizedValues(numberOfScalars);
+    paletteColorMapping->mapDataToPaletteNormalizedValues(statistics, 
+                                                          scalarValues, 
+                                                          &normalizedValues[0], 
+                                                          numberOfScalars);
+    
+    /*
      * Color all scalars.
      */
     for (int32_t i = 0; i < numberOfScalars; i++) {
@@ -240,35 +205,8 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
         /*
          * Color scalar using palette
          */
-        float normalized = 0.0f;
-        if (scalar > 0.0) {
-            if (scalar >= mappingLeastPositive) {
-                float numerator = scalar - mappingLeastPositive;
-                normalized = numerator / mappingPositiveDenominator;
-            }
-            else {
-                normalized = 0.00001;
-            }
-        }
-        else if (scalar < 0.0) {
-            if (scalar <= mappingLeastNegative) {
-                float numerator = scalar - mappingLeastNegative;
-                float denominator = mappingNegativeDenominator;
-                if (denominator == 0.0f) {
-                    denominator = 1.0f;
-                }
-                else if (denominator < 0.0f) {
-                    denominator = -denominator;
-                }
-                normalized = numerator / denominator;
-            }
-            else {
-                normalized = -0.00001;
-            }
-        }
-        
         float rgba[4];
-        palette->getPaletteColor(normalized,
+        palette->getPaletteColor(normalizedValues[i],
                                  interpolateFlag,
                                  rgba);
         if (rgba[3] > 0.0f) {
