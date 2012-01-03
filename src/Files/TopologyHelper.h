@@ -134,6 +134,10 @@ namespace caret {
          /// Get the neighbors of a node
          void getNodeNeighbors(const int nodeNum, std::vector<int>& neighborsOut) const;
 
+         /// Get the neighboring nodes for a node.  Returns a pointer to an array
+         /// containing the neighbors.
+         const int* getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const;
+         
          /// Get the node neighbors, restricted by roi
          void getNodeNeighborsInROI(const int nodeNum, std::vector<int>& neighborsOut, const float *roiValues) const;
          
@@ -159,10 +163,6 @@ namespace caret {
          //could be templated over bool, which stores bitwise, but we already have three times that many floats and six times the ints in memory
       public:
          
-         /// Get the neighboring nodes for a node.  Returns a pointer to an array
-         /// containing the neighbors.
-         const int* getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const;
-         
          /// Get the number of boundary edges used by node
          void getNumberOfBoundaryEdgesForAllNodes(std::vector<int>& numBoundaryEdges) const;
          
@@ -171,6 +171,10 @@ namespace caret {
          
          /// Get the tiles used by a node
          void getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) const;
+         
+         /// Get the tiles for a node.  Returns a pointer to an array
+         /// containing the tiles.
+         const int* getNodeTiles(const int nodeNum, int& numTilesOut);
          
          /// get node sorted info validity
          bool getNodeSortedInfoValid() const { return nodeSortedInfoBuilt; }

@@ -387,7 +387,6 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
     {
         int maxVoxelCount = 10;//guess for preallocating vectors
         CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
-        vector<int> myNeighList, myTileList;
 #pragma omp CARET_FOR schedule(dynamic)
         for (int64_t node = 0; node < numNodes; ++node)
         {
@@ -405,8 +404,8 @@ void AlgorithmVolumeToSurfaceMapping::precomputeWeights(vector<vector<VoxelWeigh
                 if (tempvec[i] < minIndex[i]) minIndex[i] = tempvec[i];
                 if (tempvec[i] > maxIndex[i]) maxIndex[i] = tempvec[i];
             }
-            myTopoHelp->getNodeNeighbors(node, myNeighList);//and now the neighbors
-            int numNeigh = (int)myNeighList.size();
+            int numNeigh;
+            const int* myNeighList = myTopoHelp->getNodeNeighbors(node, numNeigh);//and now the neighbors
             for (int j = 0; j < numNeigh; ++j)
             {
                 int neigh3 = myNeighList[j] * 3;
@@ -529,9 +528,8 @@ int PolyInfo::isInside(const float* xyz)
 PolyInfo::PolyInfo(const caret::SurfaceFile* innerSurf, const caret::SurfaceFile* outerSurf, const int32_t node)
 {
     CaretPointer<TopologyHelper> myTopoHelp = innerSurf->getTopologyHelper();
-    vector<int> myTiles;
-    myTopoHelp->getNodeTiles(node, myTiles);
-    int numTiles = (int)myTiles.size();
+    int numTiles;
+    const int* myTiles = myTopoHelp->getNodeTiles(node, numTiles);
     for (int i = 0; i < numTiles; ++i)
     {
         const int32_t* myTri = innerSurf->getTriangle(myTiles[i]);

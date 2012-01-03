@@ -27,6 +27,7 @@
 
 #include "SurfaceFile.h"
 #include "TopologyHelper.h"
+#include "CaretAssert.h"
 #include <cmath>
 
 using namespace caret;
@@ -258,10 +259,8 @@ TopologyHelper::NodeInfo::sortNeighbors()
 bool
 TopologyHelper::getNodeHasNeighbors(const int nodeNum) const
 {
-   if ((nodeNum >= 0) && (nodeNum < static_cast<int>(nodes.size()))) {
-      return (nodes[nodeNum].neighbors.empty() == false);
-   }
-   return false;
+    CaretAssertVectorIndex(nodes, nodeNum);
+    return (nodes[nodeNum].neighbors.empty() == false);
 }
 
 /**
@@ -270,10 +269,8 @@ TopologyHelper::getNodeHasNeighbors(const int nodeNum) const
 int 
 TopologyHelper::getNodeNumberOfNeighbors(const int nodeNum) const
 {
-   if ((nodeNum >= 0) && (nodeNum < static_cast<int>(nodes.size()))) {
-      return nodes[nodeNum].neighbors.size();
-   }
-   return 0;
+    CaretAssertVectorIndex(nodes, nodeNum);
+    return nodes[nodeNum].neighbors.size();
 }
 
 /**
@@ -341,12 +338,8 @@ void
 TopologyHelper::getNodeNeighbors(const int nodeNum,
                                  std::vector<int>& neighborsOut) const
 {
-   if ((nodeNum >= 0) && (nodeNum < static_cast<int>(nodes.size()))) {
-      neighborsOut = nodes[nodeNum].neighbors;
-   }
-   else {
-      neighborsOut.clear();
-   }
+    CaretAssertVectorIndex(nodes, nodeNum);
+    neighborsOut = nodes[nodeNum].neighbors;
 }
 
 /**
@@ -743,15 +736,9 @@ TopologyHelper::getNodeNeighborsToDepthOld(const int rootNode,
 const int*
 TopologyHelper::getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const
 {
-   if ((nodeNum >= 0) && (nodeNum < static_cast<int>(nodes.size()))) {
-      numNeighborsOut = static_cast<int>(nodes[nodeNum].neighbors.size());
-      if (numNeighborsOut <= 0) {
-         return NULL;
-      }
-      return nodes[nodeNum].neighbors.data();
-   }
-   numNeighborsOut = 0;
-   return NULL;
+    CaretAssertVectorIndex(nodes, nodeNum);
+    numNeighborsOut = (int)nodes[nodeNum].neighbors.size();
+    return nodes[nodeNum].neighbors.data();
 }
 
 /**
@@ -760,11 +747,13 @@ TopologyHelper::getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const
 void
 TopologyHelper::getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) const
 {
-   if ((nodeNum >= 0) && (nodeNum < static_cast<int>(nodes.size()))) {
-      tilesOut = nodes[nodeNum].tiles;
-   }
-   else {
-      tilesOut.clear();
-   }
+    CaretAssertVectorIndex(nodes, nodeNum);
+    tilesOut = nodes[nodeNum].tiles;
 }
 
+const int* TopologyHelper::getNodeTiles(const int nodeNum, int& numTilesOut)
+{
+    CaretAssertVectorIndex(nodes, nodeNum);
+    numTilesOut = (int)nodes[nodeNum].tiles.size();
+    return nodes[nodeNum].tiles.data();
+}
