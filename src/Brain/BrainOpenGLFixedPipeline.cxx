@@ -568,6 +568,7 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
     const float bigNumber = 1000000.0;
     glPushMatrix();
     glColor3f(1.0, 0.0, 0.0);
+    glDisable(GL_LINE_SMOOTH);
     glBegin(GL_LINES);
     glVertex3f(-bigNumber, 0.0, 0.0);
     glVertex3f( bigNumber, 0.0, 0.0);
@@ -1301,6 +1302,7 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
             const float bigNumber = 10000;
             glLineWidth(1.0);
             glColor3ubv(green);
+            glDisable(GL_LINE_SMOOTH);
             glBegin(GL_LINES);
             glVertex3f(voxelXYZ[0], -bigNumber, voxelXYZ[2]);
             glVertex3f(voxelXYZ[0],  bigNumber, voxelXYZ[2]);
@@ -1886,16 +1888,6 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
         return;
     }
     
-    /*
-     * Extends the length the lines that are drawn
-     * and help prevents small gaps in the surface
-     * outline.
-     */
-    bool stretchLinesFlag = true;
-    float stretchDiff = 0.4f;
-    float stretchFactor = 1.0f + stretchDiff;
-    float stretchFactor2 = 1.0f + stretchDiff * 2.0f;
-    
     float intersectionPoint1[3];
     float intersectionPoint2[3];
     
@@ -1919,6 +1911,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 glLineWidth(thickness);
+                glEnable(GL_LINE_SMOOTH);
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -1939,20 +1932,6 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                              * Use coloring assigned to the first node in the triangle.
                              */
                             glColor3fv(&rgbaColoring[triangleNodes[0] * 3]);
-                        }
-                        if (stretchLinesFlag) {
-                            float dx = intersectionPoint2[0] - intersectionPoint1[0];
-                            float dy = intersectionPoint2[1] - intersectionPoint1[1];
-                            float dz = intersectionPoint2[2] - intersectionPoint1[2];
-                            float d = (float)std::sqrt(dx*dx + dy*dy + dz*dz);
-                            if (d > 0.0f) {
-                                intersectionPoint2[0] = intersectionPoint1[0] + dx * stretchFactor;
-                                intersectionPoint2[1] = intersectionPoint1[1] + dy * stretchFactor;
-                                intersectionPoint2[2] = intersectionPoint1[2] + dz * stretchFactor;
-                                intersectionPoint1[0] = intersectionPoint2[0] - dx * stretchFactor2;
-                                intersectionPoint1[1] = intersectionPoint2[1] - dy * stretchFactor2;
-                                intersectionPoint1[2] = intersectionPoint2[2] - dz * stretchFactor2;
-                            }
                         }
                         
                         /*
@@ -2701,6 +2680,7 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     if (isZeroDisplayed == false) {
         glLineWidth(1.0);
         glColor3ubv(backgroundRGB);
+        glDisable(GL_LINE_SMOOTH);
         glBegin(GL_LINES);
         glVertex2f(0.0, -halfHeight);
         glVertex2f(0.0, 0.0);
