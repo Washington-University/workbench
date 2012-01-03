@@ -204,10 +204,11 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
-        AString surfaceID = ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
+        AString surfaceID;
         if (idSurfaceNode->isInterhemispheric()) {
-            surfaceID += " INTERHEMISPHERIC";
+            surfaceID += "CONTRALATERAL ";
         }
+        surfaceID += ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
         idText.addLine(false, surfaceID, nodeNumber, false);
         
         const float* xyz = surface->getCoordinate(nodeNumber);
