@@ -60,12 +60,33 @@ SessionManager::SessionManager()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->browserTabs[i] = NULL;
     }
+    
     std::vector<YokingTypeEnum::Enum> yokingTypes;
     YokingTypeEnum::getAllEnums(yokingTypes);
-    const int32_t numYokingGroups = static_cast<int32_t>(yokingTypes.size());
-    for (int32_t i = 0; i < numYokingGroups; i++) {
-        this->yokingGroups.push_back(new ModelDisplayControllerYokingGroup(i,
-                                                                           yokingTypes[i]));
+    
+    const int32_t numberOfYokingGroupPerYokingType = 4;
+    const int32_t numberOfYokingTypes = static_cast<int32_t>(yokingTypes.size());
+    int32_t yokingGroupIndex = 0;
+    int32_t yokingNameIndex = 0;
+    for (int32_t i = 0; i < numberOfYokingTypes; i++) {
+        for (int32_t j = 0; j < numberOfYokingGroupPerYokingType; j++) {
+            AString yokingGroupName;
+            if (yokingTypes[i] != YokingTypeEnum::OFF) {
+                char letter = ('A' + (char)yokingNameIndex);
+                yokingGroupName += letter;
+                yokingGroupName += "-";
+                yokingNameIndex++;
+            }
+            yokingGroupName += YokingTypeEnum::toGuiName(yokingTypes[i]);
+            
+            this->yokingGroups.push_back(new ModelDisplayControllerYokingGroup(yokingGroupIndex,
+                                                                               yokingGroupName,
+                                                                               yokingTypes[i]));
+            yokingGroupIndex++;
+            if (yokingTypes[i] == YokingTypeEnum::OFF) {
+                break;
+            }
+        }
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_TAB_DELETE);

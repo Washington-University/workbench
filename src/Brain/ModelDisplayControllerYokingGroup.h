@@ -40,6 +40,7 @@ namespace caret {
         
     public:
         ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+                                          const AString& yokingGroupName,
                                           const YokingTypeEnum::Enum yokingType);
         
         virtual ~ModelDisplayControllerYokingGroup();

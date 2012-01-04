@@ -42,6 +42,7 @@ using namespace caret;
  *
  */
 ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+                                                                     const AString& yokingGroupName,
                                                                      const YokingTypeEnum::Enum yokingType)
 : ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING,
                          YOKING_ALLOWED_YES,
@@ -51,7 +52,7 @@ ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32
     this->initializeMembersModelDisplayControllerYokingGroup();
     this->yokingType = yokingType;
     this->yokingGroupIndex = yokingGroupIndex;
-    this->yokingGroupName = (YokingTypeEnum::toGuiName(this->yokingType));
+    this->yokingGroupName  = yokingGroupName;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->dorsalView(i);
