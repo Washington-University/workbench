@@ -39,6 +39,7 @@
 
 #ifdef USE_QT_FILE_DIALOG
 #include <QFileDialog>
+#include <QSortFilterProxyModel>
 #else
 #include "WuQFileDialog.h"
 #endif
@@ -46,6 +47,8 @@
 namespace caret {
 
 #ifdef USE_QT_FILE_DIALOG
+    class HideFilesProxyModel;
+    
     class CaretFileDialog : public QFileDialog {
 #else
     class CaretFileDialog : public WuQFileDialog {
@@ -98,10 +101,26 @@ namespace caret {
 
         CaretFileDialog& operator=(const CaretFileDialog&);
         
-    public:
-    private:
+        void initializeCaretFileDialog();
+        
     };
     
+#ifdef USE_QT_FILE_DIALOG
+        /**
+         * May be fully implemented to hide files.
+         */
+        class HideFilesProxyModel : public QSortFilterProxyModel {
+            
+        public:
+            HideFilesProxyModel() { }
+            
+            virtual ~HideFilesProxyModel() { }
+            
+        protected:
+            bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const;
+        };
+#endif // USE_QT_FILE_DIALOG
+        
 #ifdef __CARET_FILE_DIALOG_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __CARET_FILE_DIALOG_DECLARE__

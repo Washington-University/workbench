@@ -32,8 +32,9 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #include <QFileSystemModel>
-#include <QSortFilterProxyModel>
 
 #define __CARET_FILE_DIALOG_DECLARE__
 #include "CaretFileDialog.h"
@@ -44,25 +45,38 @@
 
 using namespace caret;
 
+#ifdef USE_QT_FILE_DIALOG
+
 /**
- * May be fully implemented to hide files.
+ * On Macs, Qt shows files that do not match the filter as disabled.  This
+ * method looks for disabled files and prevents them from being displayed.
+ *
+ * @return True to display file, else false.
  */
-class HideFilesProxyModel : public QSortFilterProxyModel {
-public:
-    HideFilesProxyModel() { }
+bool 
+HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const {
     
-    virtual ~HideFilesProxyModel() { }
-    
-protected:
-    bool filterAcceptsRow ( int sourceRow, const QModelIndex & sourceParent ) const {
+    /*
+     * See if the 'super' allows file to be displayed.
+     */
+    bool showIt = QSortFilterProxyModel::filterAcceptsRow(sourceRow, sourceParent);
+    if (showIt) {
+        /*
+         * See if item is disabled, and if so, do not show it.
+         */
         QModelIndex modelIndex = sourceModel()->index(sourceRow, 0, sourceParent);
         QFileSystemModel* fileModel = qobject_cast<QFileSystemModel*>(sourceModel());
-        if (fileModel->fileName(modelIndex).indexOf("surf.gii") < 0) {
-            return true;
+        Qt::ItemFlags flags = fileModel->flags(modelIndex);
+        if((flags & Qt::ItemIsEnabled) == 0) {
+            showIt = false;
         }
-        return false;
     }
-};
+    
+    return showIt;
+}
+
+#endif // USE_QT_FILE_DIALOG
+
 
 /**
  * \class CaretFileDialog 
@@ -82,6 +96,8 @@ CaretFileDialog::CaretFileDialog(QWidget* parent,
                 f)
 #endif
 {
+    this->initializeCaretFileDialog();
+        
     this->setDirectory(GuiManager::get()->getBrain()->getCurrentDirectory());
 }
 /**
@@ -103,12 +119,11 @@ CaretFileDialog::CaretFileDialog(QWidget* parent,
                 filter)
 #endif
 {
+    this->initializeCaretFileDialog();
+    
     if (directory.isEmpty()) {
         this->setDirectory(GuiManager::get()->getBrain()->getCurrentDirectory());
     }
-#ifdef USE_QT_FILE_DIALOG
-    //this->setProxyModel(new HideFilesProxyModel());
-#endif
 }
 
 /**
@@ -116,7 +131,35 @@ CaretFileDialog::CaretFileDialog(QWidget* parent,
  */
 CaretFileDialog::~CaretFileDialog()
 {
+}
+
+/**
+ * Initialize the file dialog.
+ */
+void 
+CaretFileDialog::initializeCaretFileDialog()
+{
+#ifdef USE_QT_FILE_DIALOG
+    /*
+     * Create a proxy model that hides files that do not match the file filter.
+     * On Macs, Qt shows files that do not match the file filter as disabled
+     * but we don't want them displayed.  The dialog will take ownership of 
+     * the proxy model so it does not need to be deleted by this instance.
+     */
+    HideFilesProxyModel* fileFilterProxyModel = new HideFilesProxyModel();
+    this->setProxyModel(fileFilterProxyModel);
     
+    /*
+     * This appears that it should work but it still shows files disabled on Mac.
+     *
+     QFileSystemModel* model = new QFileSystemModel(this);
+     model->setNameFilterDisables(false);
+     QSortFilterProxyModel* proxyModel = new QSortFilterProxyModel(this);
+     proxyModel->setSourceModel(model);
+     model->setNameFilterDisables(false);
+     this->setProxyModel(proxyModel);
+     */
+#endif
 }
 
 /**

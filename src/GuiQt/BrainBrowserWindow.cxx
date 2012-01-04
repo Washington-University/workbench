@@ -802,6 +802,7 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
     fd.selectFilter(this->previousOpenFileNameFilter);
+    fd.selectNameFilter(this->previousOpenFileNameFilter);
     
     AString errorMessages;
     
