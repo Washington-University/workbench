@@ -1973,8 +1973,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
     }
     
     /*
-     * Set colors for each drawn voxel
-     * Use a vector so no worries about memory being freed
+     * Set colors for each drawn voxel.
+     * Use a vector for colors so no worries about memory being freed.
      */
     const int64_t numVoxels = numVoxelsX * numVoxelsY * numVoxelsZ;
     std::vector<float> sliceRgbaVector(numVoxels * 4);
@@ -2043,6 +2043,20 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
             } 
         }
     }
+
+    /*
+     * The voxel coordinates are at the center of the voxel.  
+     * Shift the minimum voxel coordinates by one-half the 
+     * size of a voxel so that the rectangles depicting the 
+     * voxels are drawn with the center of the voxel at the
+     * center of the rectangle.
+     */
+    const float halfVoxelStepX = voxelStepX * 0.5;
+    const float halfVoxelStepY = voxelStepY * 0.5;
+    const float halfVoxelStepZ = voxelStepZ * 0.5;
+    minVoxelX -= halfVoxelStepX;
+    minVoxelY -= halfVoxelStepY;
+    minVoxelZ -= halfVoxelStepZ;
     
     bool useQuadStrips = true;
     if (isSelect) {
@@ -2182,9 +2196,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
-                                idVoxelCoordinates.push_back(x1 + (voxelStepX * 0.5));
-                                idVoxelCoordinates.push_back(y1 + (voxelStepY * 0.5));
-                                idVoxelCoordinates.push_back(z1);
+                                idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
+                                idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
+                                idVoxelCoordinates.push_back(z1); // coord of slice is not offset by half voxel
                                 idVoxelCounter++;
                             }
                             else {
@@ -2215,9 +2229,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
-                                idVoxelCoordinates.push_back(x1 + (voxelStepX * 0.5));
-                                idVoxelCoordinates.push_back(y1);
-                                idVoxelCoordinates.push_back(z1 + (voxelStepZ * 0.5));
+                                idVoxelCoordinates.push_back(x1 + halfVoxelStepX);
+                                idVoxelCoordinates.push_back(y1); // coord of slice is not offset by half voxel
+                                idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
                                 idVoxelCounter++;
                             }
                             else {
@@ -2248,9 +2262,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                                                                    idVoxelCounter);
                                 glColor3ubv(rgb);
                                 
-                                idVoxelCoordinates.push_back(x1);
-                                idVoxelCoordinates.push_back(y1 + (voxelStepY * 0.5));
-                                idVoxelCoordinates.push_back(z1 + (voxelStepZ * 0.5));
+                                idVoxelCoordinates.push_back(x1); // coord of slice is not offset by half voxel
+                                idVoxelCoordinates.push_back(y1 + halfVoxelStepY);
+                                idVoxelCoordinates.push_back(z1 + halfVoxelStepZ);
                                 idVoxelCounter++;
                             }
                             else {
@@ -2269,6 +2283,9 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
         }
         glEnd();
         
+        /*
+         * If selection enabled, find voxel that was selected.
+         */
         if (isSelect) {
             int32_t idIndex;
             float depth = -1.0;
