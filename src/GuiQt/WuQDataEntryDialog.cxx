@@ -40,6 +40,7 @@
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QTextEdit>
+#include "StructureSelectionControl.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -411,4 +412,21 @@ WuQDataEntryDialog::addTextEdit(const QString& labelText,
    return te;
 }
 
-      
+/**
+ * Add a structure selection control.
+ */
+StructureSelectionControl* 
+WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
+                                                 const StructureEnum::Enum defaultStructure)
+{
+    StructureSelectionControl* structureSelectionControl = 
+    new StructureSelectionControl();
+    structureSelectionControl->setSelectedStructure(defaultStructure);
+    
+    this->addWidget(labelText,
+                    structureSelectionControl->getWidget());
+    
+    return structureSelectionControl;
+}
+
+

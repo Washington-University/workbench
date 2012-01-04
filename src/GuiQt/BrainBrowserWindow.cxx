@@ -35,6 +35,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "CaretFileDialog.h"
 #include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
@@ -53,7 +54,8 @@
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
-#include "CaretFileDialog.h"
+#include "StructureSelectionControl.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -859,10 +861,39 @@ BrainBrowserWindow::processDataFileOpen()
                     EventManager::get()->sendEvent(loadFileEvent.getPointer());
                     
                     if (loadFileEvent.isError()) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
+                        AString loadErrorMessage = "";
+                        
+                        if (loadFileEvent.isErrorInvalidStructure()) {
+                            WuQDataEntryDialog ded("Structure",
+                                                   this);
+                            StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
+                            ded.setTextAtTop(("File \""
+                                              + FileInformation(name).getFileName()
+                                              + "\"\nhas missing or invalid structure, select it's structure."
+                                              "\nAfter loading, save file with File Menu->Save Manage Files"
+                                              "\nto prevent this error."),
+                                             false);
+                            if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                                EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+                                                                         ssc->getSelectedStructure(),
+                                                                         fileType,
+                                                                         name);
+                                
+                                EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
+                                if (loadFileEventStructure.isError()) {
+                                    loadErrorMessage = loadFileEventStructure.getErrorMessage();
+                                }
+                            }
                         }
-                        errorMessages += loadFileEvent.getErrorMessage();
+                        else {
+                            loadErrorMessage = loadFileEvent.getErrorMessage();
+                        }
+                        if (loadErrorMessage.isEmpty() == false) {
+                            if (errorMessages.isEmpty() == false) {
+                                errorMessages += "\n";
+                            }
+                            errorMessages += loadErrorMessage;
+                        }
                     }                    
                 }
             }

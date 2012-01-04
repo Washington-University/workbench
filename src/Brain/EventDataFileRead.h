@@ -58,6 +58,10 @@ namespace caret {
         
         StructureEnum::Enum getStructure() const;
         
+        bool isErrorInvalidStructure() const;
+        
+        void setErrorInvalidStructure(const bool status);
+        
     private:
         EventDataFileRead(const EventDataFileRead&);
         
@@ -70,6 +74,8 @@ namespace caret {
         DataFileTypeEnum::Enum dataFileType;
         
         StructureEnum::Enum structure;
+        
+        bool errorInvalidStructure;
         
     };
 

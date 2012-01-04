@@ -51,9 +51,15 @@ public:
     
     virtual ~DataFileException() throw();
     
+    bool isErrorInvalidStructure() const;
+    
+    void setErrorInvalidStructure(const bool status);
+    
 private:
         
     void initializeMembersDataFileException();
+    
+    bool errorInvalidStructure;    
 };
 
 } // namespace

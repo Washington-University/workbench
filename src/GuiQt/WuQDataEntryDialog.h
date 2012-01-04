@@ -30,6 +30,7 @@
 #include <QStringList>
 #include <QVariant>
 
+#include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
@@ -46,6 +47,8 @@ class QSpinBox;
 class QTextEdit;
 
 namespace caret {
+    class StructureSelectionControl;
+    
     /// class for a modal data entry dialog
     class WuQDataEntryDialog : public WuQDialogModal {
         Q_OBJECT
@@ -111,6 +114,11 @@ namespace caret {
         QTextEdit* addTextEdit(const QString& labelText,
                                const QString& defaultText,
                                const bool readOnlyFlag);
+        
+        // add a structure selection control
+        StructureSelectionControl* addStructureSelectionControl(const QString& labelText,
+                                                                const StructureEnum::Enum defaultStructure = StructureEnum::INVALID);
+        
         
         // set text at top of dialog 
         void setTextAtTop(const QString& s,

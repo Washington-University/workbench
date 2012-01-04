@@ -33,10 +33,9 @@ using namespace caret;
     
 /**
  * \class StructureSelectionControl 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
- *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
+ * \brief Control for selection of a structure.
  */
+
 /**
  * Constructor.
  */

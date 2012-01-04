@@ -73,6 +73,7 @@ DataFileException::DataFileException(const AString& s)
 DataFileException::DataFileException(const DataFileException& e)
 : CaretException(e)
 {
+    this->errorInvalidStructure = e.errorInvalidStructure;
 }
 
 /**
@@ -87,6 +88,7 @@ DataFileException::operator=(const DataFileException& e)
 {
     if (this != &e) {
         CaretException::operator=(e);
+        this->errorInvalidStructure = e.errorInvalidStructure;
     }
     
     return *this;
@@ -102,5 +104,28 @@ DataFileException::~DataFileException() throw()
 void
 DataFileException::initializeMembersDataFileException()
 {
+    this->errorInvalidStructure = false;
 }
 
+/**
+ * @return  True if the file could not be read due 
+ * to an invalid structure.
+ */
+bool 
+DataFileException::isErrorInvalidStructure() const
+{
+    return this->errorInvalidStructure;
+}
+
+/**
+ * Set the invalid structure status when the file 
+ * cannot be read due to the structure being invalid.
+ *
+ * @param status
+ *    New invalid structure status (true if invalid).
+ */
+void 
+DataFileException::setErrorInvalidStructure(const bool status)
+{
+    this->errorInvalidStructure = status;
+}

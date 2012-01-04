@@ -428,7 +428,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         delete[] name;
         if (! xmlFileOutputStream) {
             AString msg = "Unable to open " + this->getFileName() + " for writing.";
-            throw GiftiException(msg);
+            throw DataFileException(msg);
         }
         //
         // Create the xml writer
@@ -498,10 +498,10 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         this->clearModified();
     }
     catch (GiftiException e) {
-        throw e;
+        throw DataFileException(e);
     }
     catch (XmlException e) {
-        throw e;
+        throw DataFileException(e);
     }
 }
 

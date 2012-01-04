@@ -237,6 +237,7 @@ Brain::readSurfaceFile(const AString& filename,
         + filename
         + " is not valid.";
         DataFileException e(message);
+        e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
     }
@@ -286,6 +287,7 @@ Brain::readLabelFile(const AString& filename,
         + filename
         + " is not valid.";
         DataFileException e(message);
+        e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
     }
@@ -341,6 +343,7 @@ Brain::readMetricFile(const AString& filename,
         + filename
         + " is not valid.";
         DataFileException e(message);
+        e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
     }
@@ -396,6 +399,7 @@ Brain::readRgbaFile(const AString& filename,
                         + filename
                         + " is not valid.";
         DataFileException e(message);
+        e.setErrorInvalidStructure(true);
         CaretLogThrowing(e);
         throw e;
     }
@@ -690,6 +694,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     }
     catch (DataFileException e) {
         readDataFileEvent->setErrorMessage(e.whatString());
+        readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
     }    
 }
 

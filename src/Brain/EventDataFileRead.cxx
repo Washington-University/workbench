@@ -74,6 +74,7 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->structure     = structure;
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
+    this->errorInvalidStructure = false;
     
     CaretAssert(this->loadIntoBrain);
     CaretAssert(this->dataFileType != DataFileTypeEnum::UNKNOWN);
@@ -128,6 +129,27 @@ StructureEnum::Enum
 EventDataFileRead::getStructure() const
 {
     return this->structure;
+}
+
+/**
+ * @return  True if the file could not be read due 
+ * to an invalid structure.
+ */
+bool 
+EventDataFileRead::isErrorInvalidStructure() const
+{
+    return this->errorInvalidStructure;
+}
+
+/**
+ * Set the invalid structure status.
+ * @param status
+ *    New invalid structure status (true if invalid).
+ */
+void 
+EventDataFileRead::setErrorInvalidStructure(const bool status)
+{
+    this->errorInvalidStructure = status;
 }
 
 
