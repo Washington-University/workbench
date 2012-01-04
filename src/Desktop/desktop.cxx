@@ -40,6 +40,7 @@
 #include "SystemUtilities.h"
 #include "WuQtUtilities.h"
 
+static bool caretLoggerIsValid = false;
 
 using namespace caret;
 
@@ -54,6 +55,72 @@ public:
     }
 };
 
+/**
+ * Handles message produced by Qt.
+ */
+static void
+messageHandlerForQt(QtMsgType type, const char* msg)
+{
+    const AString backtrace = SystemUtilities::getBackTrace();
+    
+    const AString message = (AString(msg) + "\n" + backtrace);
+    
+    if (caretLoggerIsValid) {
+        switch (type) {
+            case QtDebugMsg:
+                if (CaretLogger::getLogger()->isInfo()) {
+                    CaretLogInfo(message);
+                }
+                else {
+                    std::cerr << "Qt Debug: " << message.toCharArray() << std::endl;
+                }
+                break;
+            case QtWarningMsg:
+                if (CaretLogger::getLogger()->isWarning()) {
+                    CaretLogWarning(message);
+                }
+                else {
+                    std::cerr << "Qt Warning: " << message.toCharArray() << std::endl;
+                }
+                break;
+            case QtCriticalMsg:
+                if (CaretLogger::getLogger()->isSevere()) {
+                    CaretLogSevere(message);
+                }
+                else {
+                    std::cerr << "Qt Critical: " << message.toCharArray() << std::endl;
+                }
+                break;
+            case QtFatalMsg:
+                if (CaretLogger::getLogger()->isSevere()) {
+                    CaretLogSevere(message);
+                }
+                else {
+                    std::cerr << "Qt Fatal: " << message.toCharArray() << std::endl;
+                }
+                std::abort();
+                break;
+        }
+    }
+    else {
+        switch (type) {
+            case QtDebugMsg:
+                std::cerr << "Qt Debug: " << message.toCharArray() << std::endl;
+                break;
+            case QtWarningMsg:
+                std::cerr << "Qt Warning: " << message.toCharArray() << std::endl;
+                break;
+            case QtCriticalMsg:
+                std::cerr << "Qt Critical: " << message.toCharArray() << std::endl;
+                break;
+            case QtFatalMsg:
+                std::cerr << "Qt Fatal: " << message.toCharArray() << std::endl;
+                std::abort();
+                break;
+        }
+    }
+}
+
 int 
 main(int argc, char* argv[])
 {
@@ -62,6 +129,7 @@ main(int argc, char* argv[])
      */
     SystemUtilities::setHandlersForUnexpected();
     
+    qInstallMsgHandler(messageHandlerForQt);
     QApplication app(argc, argv);
     QApplication::setApplicationName("Connectome Workbench");
     QApplication::setApplicationVersion("0");
@@ -105,6 +173,7 @@ main(int argc, char* argv[])
      * Create the session manager.
      */
     SessionManager::createSessionManager();
+    caretLoggerIsValid = true;
 
     /*
      * Parameters for the program.
