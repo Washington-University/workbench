@@ -1107,8 +1107,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuAboutToBeDisplayed()
     std::vector<BrainBrowserWindow*> browserWindows = GuiManager::get()->getAllOpenBrainBrowserWindows();
     for (int32_t i = 0; i < static_cast<int32_t>(browserWindows.size()); i++) {
         if (browserWindows[i] != this) {
-            QString name = "Window " + QString::number(browserWindows[i]->getBrowserWindowIndex() + 1);
-            QAction* action = new QAction(name,
+            QAction* action = new QAction(browserWindows[i]->windowTitle(),
                                           this->moveSelectedTabToWindowMenu);
             action->setData(qVariantFromValue((void*)browserWindows[i]));
             this->moveSelectedTabToWindowMenu->addAction(action);
