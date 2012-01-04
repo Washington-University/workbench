@@ -127,7 +127,9 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolbar->updateToolBar();
 
-    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    if (browserTabContent == NULL) {
+        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
     
