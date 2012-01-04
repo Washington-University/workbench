@@ -114,6 +114,18 @@ namespace caret
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
         { return m_xml.getVolumeAttributesForPlumb(orientOut, dimensionsOut, originOut, spacingOut); }
         
+        bool hasRowVolumeData() const
+        { return m_xml.hasRowVolumeData(); }
+        
+        bool hasColumnVolumeData() const
+        { return m_xml.hasColumnVolumeData(); }
+        
+        bool hasRowSurfaceData(const StructureEnum::Enum structure) const
+        { return m_xml.hasRowSurfaceData(structure); }
+        
+        bool hasColumnSurfaceData(const StructureEnum::Enum structure) const
+        { return m_xml.hasColumnSurfaceData(structure); }
+        
     };
 }
 

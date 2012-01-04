@@ -133,7 +133,7 @@ int64_t CiftiXML::getRowIndexForVoxel(const int64_t* ijk) const
     return getVolumeIndex(ijk, m_rowMap);
 }
 
-bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, CiftiBrainModelElement* myModel, const int64_t numContig) const
+bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel, const int64_t numContig) const
 {
     if (myModel == NULL)
     {
@@ -199,7 +199,7 @@ bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const S
     }
 }
 
-bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixIndicesMapElement* myMap, int64_t myCount) const
+bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, int64_t myCount) const
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -212,7 +212,7 @@ bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, CiftiMatrixI
     {
         if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
         {
-            vector<voxelIndexType>& myVoxels = myMap->m_brainModels[i].m_voxelIndicesIJK;
+            const vector<voxelIndexType>& myVoxels = myMap->m_brainModels[i].m_voxelIndicesIJK;
             int64_t voxelArraySize = (int64_t)myVoxels.size();
             int64_t modelOffset = myMap->m_brainModels[i].m_indexOffset;
             int64_t j1 = 0;
@@ -235,7 +235,7 @@ bool CiftiXML::getVolumeMapForColumns(vector<CiftiVolumeMap>& mappingOut) const
     return getVolumeMapping(mappingOut, m_colMap, m_colVoxels);
 }
 
-bool CiftiXML::getVolumeMapForRows(vector< CiftiVolumeMap >& mappingOut) const
+bool CiftiXML::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
 {
     return getVolumeMapping(mappingOut, m_rowMap, m_rowVoxels);
 }
@@ -422,16 +422,16 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
 {
     if (m_root.m_matrices.size() == 0)
     {
-        throw CiftiFileException("No matrices defined in cifti extension");
+        return -1;
     }
     if (m_root.m_matrices[0].m_volume.size() == 0)
     {
-        throw CiftiFileException("No volume element defined in cifti extension");
+        return -1;
     }
     const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
     if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
     {
-        throw CiftiFileException("No volume transformation defined in cifti extension");
+        return -1;
     }
     const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
     FloatMatrix myMatrix = FloatMatrix::zeros(4, 4);
@@ -453,7 +453,7 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
             myMatrix *= 0.001f;
             break;
         default:
-            throw CiftiFileException("Unknown units in volume transformation");
+            return -1;
     };
     myMatrix[3][3] = 1.0f;//i COULD do this by making a fake volume file, but that seems kinda hacky
     FloatMatrix toIndexSpace = myMatrix.inverse();//invert to convert the other direction
@@ -528,7 +528,7 @@ bool CiftiXML::getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* m
             seconds = myMap->m_timeStep * 0.000001f;
             break;
         default:
-            throw CiftiFileException("Unknown units in cifti timestep");
+            return false;
     };
     return true;
 }
@@ -634,3 +634,81 @@ bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3],
     return true;
 }
 
+bool CiftiXML::hasRowVolumeData() const
+{
+    return hasVolumeData(m_rowMap);
+}
+
+bool CiftiXML::hasColumnVolumeData() const
+{
+    return hasVolumeData(m_colMap);
+}
+
+bool CiftiXML::hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const
+{
+    if (m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    if (m_root.m_matrices[0].m_volume.size() == 0)
+    {
+        return false;
+    }
+    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
+    if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
+    {
+        return false;
+    }
+    return true;
+}
+
+bool CiftiXML::hasColumnSurfaceData(const caret::StructureEnum::Enum structure) const
+{
+    bool left = false;
+    switch (structure)
+    {
+    case StructureEnum::CORTEX_LEFT:
+        left = true;
+        break;
+    case StructureEnum::CORTEX_RIGHT:
+        break;
+    default:
+        return false;
+    };
+    if (left)
+    {
+        return hasSurfaceData(m_colLeftSurfModel);
+    } else {
+        return hasSurfaceData(m_colRightSurfModel);
+    }
+}
+
+bool CiftiXML::hasRowSurfaceData(const caret::StructureEnum::Enum structure) const
+{
+    bool left = false;
+    switch (structure)
+    {
+    case StructureEnum::CORTEX_LEFT:
+        left = true;
+        break;
+    case StructureEnum::CORTEX_RIGHT:
+        break;
+    default:
+        return false;
+    };
+    if (left)
+    {
+        return hasSurfaceData(m_rowLeftSurfModel);
+    } else {
+        return hasSurfaceData(m_rowRightSurfModel);
+    }
+}
+
+bool CiftiXML::hasSurfaceData(const caret::CiftiBrainModelElement* myModel) const
+{
+    if (myModel == NULL)
+    {
+        return false;
+    }
+    return true;
+}

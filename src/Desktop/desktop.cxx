@@ -30,6 +30,8 @@
 #include <QSplashScreen>
 #include <QThread>
 
+#include <cstdlib>
+
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
 #include "EventBrowserWindowNew.h"

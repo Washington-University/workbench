@@ -188,6 +188,12 @@ namespace caret {
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
         
+        ///check what types of data it has
+        bool hasRowVolumeData() const;
+        bool hasColumnVolumeData() const;
+        bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
+        bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
+        
     protected:
         CiftiRootElement m_root;
         CiftiMatrixIndicesMapElement* m_rowMap, *m_colMap;//assumes only one matrix
@@ -207,8 +213,12 @@ namespace caret {
         bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         
         ///some boilerplate to build mappings
-        bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, CiftiBrainModelElement* myModel, const int64_t numContig) const;
-        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, CiftiMatrixIndicesMapElement* myMap, const int64_t myCount) const;
+        bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel, const int64_t numContig) const;
+        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t myCount) const;
+        
+        ///boilerplate for has data
+        bool hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const;
+        bool hasSurfaceData(const CiftiBrainModelElement* myModel) const;
     };
 
 }
