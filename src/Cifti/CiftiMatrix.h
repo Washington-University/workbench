@@ -79,7 +79,7 @@ protected:
     //1,1,1,1,M,N nifti matrix and convert it if needed.
     int64_t m_matrixOffset;//the beginning of the matrix in the file
     AString m_fileName;
-    mutable QFile file;
+    mutable QFile *file;
     bool m_needsSwapping;
     bool m_beenInitialized;
 };

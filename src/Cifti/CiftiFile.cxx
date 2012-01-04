@@ -75,7 +75,7 @@ void CiftiFile::init()
 void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
     if(!QFile::exists(fileName)) {
-        this->m_fileName = fileName;
+        throw CiftiFileException("Cifti File: " + fileName + " does not exist.");
         return;
     }
     try {
@@ -120,6 +120,59 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
     }
 }
 
+/**
+ *
+ * Setup the Cifti Matrix
+ *
+ * @param header the cifti header used for setting up the matrix
+ * @param xml the cifti xml extensions used to calculate vox offset
+ *
+ */
+
+void CiftiFile::setupMatrix()
+{
+
+    //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
+    QByteArray xmlBytes;
+    CiftiXML xml = m_xml;
+    xml.writeXML(xmlBytes);
+    int length = 8 + xmlBytes.length();
+
+
+    // update header struct dimensions and vox_offset
+    CiftiHeader ciftiHeader;
+    this->m_headerIO.getHeader(ciftiHeader);
+
+    int64_t vox_offset = 544 + length;
+    int remainder = vox_offset % 8;
+    int padding = 0;
+    if (remainder) padding = 8 - remainder;//for 8 byte alignment
+    vox_offset += padding;
+    length += padding;
+
+
+    std::vector <int64_t> dim;
+    ciftiHeader.getDimensions(dim);
+    ciftiHeader.setVolumeOffset(vox_offset);
+    m_headerIO.setHeader(ciftiHeader);
+    
+    //setup the matrix
+    m_matrix.setup(dim, vox_offset, this->m_caching, this->m_swapNeeded);
+}
+
+/**
+ *
+ * setup the Cifti Matrix
+ * @param dimensions the dimensions of the cifti matrix
+ * @param offsetIn the offset, in bytes, of the start of the matrix within the cifti file
+ * @param e the caching type of the matrix (ON_DISK or IN_MEMORY)
+ * @param needsSwapping the byte order of the matrix (native or swapped)
+ */
+void CiftiFile::setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn, const CacheEnum &e, const bool &needsSwapping) throw (CiftiFileException)
+{
+    m_matrix.setup(dimensions, offsetIn, e, needsSwapping);
+}
+
 /** 
  *
  *
@@ -131,7 +184,7 @@ void CiftiFile::writeFile(const AString &fileName) throw (CiftiFileException)
 {
     if(QFile::exists(fileName))
     {
-        throw CiftiFileException("in place writes aren't supported, for in space.");
+        throw CiftiFileException("in place writes aren't supported.");
         return;
     }
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
@@ -171,8 +224,18 @@ void CiftiFile::writeFile(const AString &fileName) throw (CiftiFileException)
     file.open(QIODevice::ReadWrite);
     file.seek(540);
     char eflags[4] = {1,0x00,0x00,0x00};
+    int32_t ecode = NIFTI_ECODE_CIFTI;
+    
+    if(this->m_swapNeeded) {
+        ByteSwapping::swapBytes(&length,1);
+        ByteSwapping::swapBytes(&ecode,1);
+    }
     file.write(eflags,4);
+    file.write((char *)&length,4);
+    file.write((char *)&ecode, 4);
     file.write(xmlBytes);
+    char nulls[8] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    file.write(nulls,padding);//pad out null values to 8 byte boundary
     file.close();
 
     //write the matrix
@@ -198,6 +261,7 @@ CiftiFile::~CiftiFile()
 void CiftiFile::setHeader(const CiftiHeader &header) throw (CiftiFileException)
 {   
     m_headerIO.setHeader(header);
+    setupMatrix();
 }
 
 /**
@@ -223,7 +287,7 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
 void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
 {
     this->m_xml = xml;
-
+    setupMatrix();
 }
 
 int64_t CiftiFile::getNumberOfColumns() const

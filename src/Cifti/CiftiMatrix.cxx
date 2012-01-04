@@ -26,6 +26,7 @@
 #include "zlib.h"
 #include "QFile"
 #include "ByteSwapping.h"
+#include "qtemporaryfile.h"
 using namespace caret;
 using namespace std;
 CiftiMatrix::CiftiMatrix()
@@ -46,6 +47,7 @@ void CiftiMatrix::init()
     m_caching = IN_MEMORY;
     m_matrix = NULL;
     m_matrixOffset = 0;
+    file = NULL;
 }
 
 void CiftiMatrix::deleteCache()
@@ -71,30 +73,41 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
 
     m_matrixOffset = offsetIn;
     m_caching = e;
+    m_beenInitialized = true;    
     if(m_caching == IN_MEMORY)
     {
         int64_t matrixSize = m_dimensions[0]*m_dimensions[1];
         deleteCache();
         m_matrix = new float[matrixSize];
-        file.setFileName(m_fileName);
-        file.open(QIODevice::ReadWrite);
-        file.seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+        if(!QFile::exists(m_fileName)) return;
+        if(file) delete file;
+        file = new QFile();
+        file->setFileName(m_fileName);
+        file->open(QIODevice::ReadWrite);
+        file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
-        file.read((char *)m_matrix,matrixSize*sizeof(float));
-        file.close();
+        file->read((char *)m_matrix,matrixSize*sizeof(float));
+        file->close();
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
     }
     else
     {
-        file.setFileName(m_fileName);
-        file.open(QIODevice::ReadWrite);//keep file open for speed
-    }
-    m_beenInitialized = true;
+        if(!QFile::exists(m_fileName))
+        {
+            QTemporaryFile *tf = new QTemporaryFile();
+            tf->setAutoRemove(true);
+            file = tf;
+        }
+        
+        file->setFileName(m_fileName);
+        file->open(QIODevice::ReadWrite);//keep file open for speed
+    }    
 }
 
 void CiftiMatrix::setMatrixFile(const AString &fileNameIn)
 {
     deleteCache();
+    if(file) delete file;
     init();
     m_fileName = fileNameIn;
 }
@@ -137,8 +150,8 @@ void CiftiMatrix::getRow(float *rowOut, const int64_t &rowIndex) const throw (Ci
     }
     else if(m_caching == ON_DISK)
     {
-        file.seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
-        file.read((char *)rowOut,m_dimensions[1]*sizeof(float));
+        file->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
+        file->read((char *)rowOut,m_dimensions[1]*sizeof(float));
         if(m_needsSwapping) ByteSwapping::swapBytes(rowOut,m_dimensions[1]);
     }
 }
@@ -153,8 +166,8 @@ void CiftiMatrix::setRow(float *rowIn, const int64_t &rowIndex) throw (CiftiFile
     else if(m_caching == ON_DISK)
     {
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
-        file.seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
-        file.write((char *)rowIn,m_dimensions[1]*sizeof(float));
+        file->seek(m_matrixOffset+rowIndex*m_dimensions[1]*sizeof(float));
+        file->write((char *)rowIn,m_dimensions[1]*sizeof(float));
         if(m_needsSwapping) ByteSwapping::swapBytes(rowIn,m_dimensions[1]);
     }
 }
@@ -173,8 +186,8 @@ void CiftiMatrix::getColumn(float *columnOut, const int64_t &columnIndex) const 
         //let's hope that people aren't stupid enough to think this is fast...
         for(int64_t i=0;i<columnSize;i++)
         {
-            file.seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
-            file.read((char *)&columnOut[i],sizeof(float));
+            file->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
+            file->read((char *)&columnOut[i],sizeof(float));
         }
         if(m_needsSwapping) ByteSwapping::swapBytes(columnOut,columnSize);
     }
@@ -194,8 +207,8 @@ void CiftiMatrix::setColumn(float *columnIn, const int64_t &columnIndex) throw (
         if(m_needsSwapping) ByteSwapping::swapBytes(columnIn,columnSize);
         for(int64_t i=0;i<columnSize;i++)
         {
-            file.seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
-            file.write((char *)&columnIn[i],sizeof(float));
+            file->seek(m_matrixOffset+(columnIndex + i*rowSize)*sizeof(float));
+            file->write((char *)&columnIn[i],sizeof(float));
         }
         if(m_needsSwapping) ByteSwapping::swapBytes(columnIn,columnSize);
     }
@@ -211,9 +224,9 @@ void CiftiMatrix::getMatrix(float *matrixOut) throw (CiftiFileException)
     }
     else if(m_caching == ON_DISK)
     {
-        file.seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+        file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
-        file.read((char *)matrixOut,matrixLength*sizeof(float));
+        file->read((char *)matrixOut,matrixLength*sizeof(float));
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixOut,matrixLength);
     }
 }
@@ -229,9 +242,9 @@ void CiftiMatrix::setMatrix(float *matrixIn) throw (CiftiFileException)
     else if(m_caching == ON_DISK)
     {
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);
-        file.seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+        file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
-        file.write((char *)matrixIn,matrixLength*sizeof(float));
+        file->write((char *)matrixIn,matrixLength*sizeof(float));
         if(m_needsSwapping) ByteSwapping::swapBytes(matrixIn,matrixLength);
     }
 }
@@ -239,6 +252,7 @@ void CiftiMatrix::setMatrix(float *matrixIn) throw (CiftiFileException)
 CiftiMatrix::~CiftiMatrix()
 {
     deleteCache();
+    if(file) delete file;
 }
 
 void CiftiMatrix::flushCache() throw (CiftiFileException)
@@ -247,14 +261,14 @@ void CiftiMatrix::flushCache() throw (CiftiFileException)
     if(m_caching == IN_MEMORY)
     {
         int64_t matrixSize = m_dimensions[0]*m_dimensions[1];
-        file.setFileName(m_fileName);
-        file.open(QIODevice::ReadWrite);
-        file.seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
+        file->setFileName(m_fileName);
+        file->open(QIODevice::ReadWrite);
+        file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
         int64_t matrixLength = m_dimensions[0]*m_dimensions[1];
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
-        file.write((char *)m_matrix,matrixSize*sizeof(float));
-        file.close();
+        file->write((char *)m_matrix,matrixSize*sizeof(float));
+        file->close();
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
     }
 }
@@ -277,13 +291,14 @@ void CiftiMatrix::writeToNewFile(const AString &fileNameIn, const int64_t  &offs
     }
     else if(m_caching == ON_DISK)
     {
+        if(!file) throw CiftiFileException("Cifti matrix is setup to cache on disk, but no cache file exists.");
         int64_t rowSize = m_dimensions[1];
         int64_t columnSize = m_dimensions[0];
         float * row = new float[rowSize];
-        file.seek(m_matrixOffset);
+        file->seek(m_matrixOffset);
         for(int64_t i =0;i<columnSize;i++)
-        {
-            file.read((char *)row,rowSize*sizeof(float));
+        {            
+            file->read((char *)row,rowSize*sizeof(float));
             if(m_needsSwapping != needsSwappingIn) ByteSwapping::swapBytes(row,rowSize);
             outFile.write((char *)row, rowSize*sizeof(float));
         }

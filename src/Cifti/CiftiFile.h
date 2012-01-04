@@ -78,6 +78,10 @@ public:
     /// set Matrix
     void setMatrix(float *matrixIn) throw (CiftiFileException)
     { m_matrix.setMatrix(matrixIn); }
+    /// setup Matrix
+    void setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn = 0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
+    /// setup Matrix
+    void setupMatrix() throw(CiftiFileException);
     
     ///get row size
     int64_t getNumberOfColumns() const;

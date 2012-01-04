@@ -126,6 +126,7 @@ public:
 /// Cifti Root XML Element
 class CiftiRootElement {
 public:
+    CiftiRootElement() { m_numberOfMatrices = 0; }
     QString m_version;/*!<  Version String*/
     unsigned long m_numberOfMatrices;/*!< Number of Matrices*/
     std::vector<CiftiMatrixElement> m_matrices; /*!< Matrices, currently there is only matrix, but future versions may allow for more */

@@ -81,10 +81,10 @@ void CiftiFileTest::testCiftiRead()
         reader.getRow(row,i);
         reader.getColumn(column,i);
         //if(memcmp((char *)row,(char *)column,rowSize*sizeof(float))), apparently roundoff errors keep this from working...
-        for(int64_t i;i<rowSize;i++)
+        for(int64_t j=0;j<columnSize;j++)
         {
-            if((row[i]>(column[i]+0.0001))||
-                    (row[i]<(column[i]-0.0001)))
+            if((row[j]>(column[j]+0.0001))||
+                    (row[j]<(column[j]-0.0001)))
             {
                 setFailed("Row and Column " + AString::number(i) + " are not the same.");
                 std::cout << "Row " + AString::number(i) + ":" + AString::fromNumbers(row,rowSize,",") << std::endl;
@@ -117,14 +117,18 @@ void CiftiFileTest::testCiftiReadWrite()
     //files if necessary
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
-    CiftiFile writer(outFile);
+    CiftiFile writer;
     writer.setHeader(header);
     writer.setCiftiXML(root);
 
     std::vector <int64_t> dim;
     header.getDimensions(dim);
-    float *row = new float [dim[0]];
-    for(int64_t i = 0;i<dim[0];i++)
+    int64_t rowSize = dim[dim.size()-1];
+    int64_t columnSize = dim[dim.size()-2];
+    float *row = new float [rowSize];
+
+    
+    for(int64_t i = 0;i<columnSize;i++)
     {
         reader.getRow(row,i);
         writer.setRow(row,i);
@@ -135,12 +139,12 @@ void CiftiFileTest::testCiftiReadWrite()
     //reopen output file, and check that frames agree
     CiftiFile test(outFile);
 
-    float *testRow = new float [dim[0]];
-    for(int64_t i = 0;i<dim[0];i++)
+    float *testRow = new float [rowSize];
+    for(int64_t i = 0;i<columnSize;i++)
     {
         reader.getRow(row,i);
         test.getRow(testRow,i);
-        if(!memcmp((void *)row,(void *)testRow,dim[0]*sizeof(float)))
+        if(memcmp((void *)row,(void *)testRow,rowSize*sizeof(float)))
         {
             this->setFailed("Input and output Cifti file rows are not the same.");
             return;
