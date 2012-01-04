@@ -127,7 +127,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolbar->updateToolBar();
 
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
+    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
     
     QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
