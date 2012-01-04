@@ -786,14 +786,16 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->getRowFromNode(this->data,
-                                                         nodeIndex,
-                                                         structure)) {
-                    CaretLogFine("Read row for node " + AString::number(nodeIndex));
-                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-                }
-                else {
-                    CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                    if (this->ciftiInterface->getRowFromNode(this->data,
+                                                             nodeIndex,
+                                                             structure)) {
+                        CaretLogFine("Read row for node " + AString::number(nodeIndex));
+                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                    }
                 }
             }
                 break;
@@ -842,12 +844,14 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
                 
-                if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
-                    CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
-                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-                }
-                else {
-                    CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+                if (this->ciftiInterface->hasRowVolumeData()) {
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
+                        CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+                        this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for voxel " + AString::fromNumbers(xyz, 3, ","));
+                    }
                 }
             }
                 break;
@@ -945,10 +949,12 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
             }
             
             std::vector<CiftiVolumeMap> volumeMap;
-            if (useColumnsFlag) {
+            if (useColumnsFlag
+                && this->ciftiInterface->hasColumnVolumeData()) {
                 this->ciftiInterface->getVolumeMapForColumns(volumeMap);
             }
-            if (useRowsFlag) {
+            if (useRowsFlag
+                && this->ciftiInterface->hasRowVolumeData()) {
                 this->ciftiInterface->getVolumeMapForRows(volumeMap);
             }
             
@@ -1025,14 +1031,16 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
     }
     
     std::vector<CiftiSurfaceMap> nodeMap;
-    if (useColumnsFlag) {
+    if (useColumnsFlag  
+        && this->ciftiInterface->hasColumnSurfaceData(structure)) {
         const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
         if (numberOfNodes != numCiftiNodes) {
             return false;
         }
         this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
     }
-    if (useRowsFlag) {
+    if (useRowsFlag 
+        && this->ciftiInterface->hasRowSurfaceData(structure)) {
         const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
         if (numberOfNodes != numCiftiNodes) {
             return false;
@@ -1105,7 +1113,8 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
     }
     
     std::vector<CiftiSurfaceMap> nodeMap;
-    if (useColumnsFlag) {
+    if (useColumnsFlag  
+        && this->ciftiInterface->hasColumnSurfaceData(structure)) {
         const int numCiftiNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
         if (numberOfNodes != numCiftiNodes) {
             CaretLogWarning("CIFTI file "
@@ -1120,7 +1129,8 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         }
         this->ciftiInterface->getSurfaceMapForColumns(nodeMap, structure);
     }
-    if (useRowsFlag) {
+    if (useRowsFlag  
+        && this->ciftiInterface->hasRowSurfaceData(structure)) {
         const int numCiftiNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
         if (numberOfNodes != numCiftiNodes) {
             CaretLogWarning("CIFTI file "
@@ -1290,10 +1300,12 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
     }
     
     std::vector<CiftiVolumeMap> volumeMaps;
-    if (useColumnsFlag) {
+    if (useColumnsFlag
+        && this->ciftiInterface->hasColumnVolumeData()) {
         this->ciftiInterface->getVolumeMapForColumns(volumeMaps);
     }
-    if (useRowsFlag) {
+    if (useRowsFlag
+        && this->ciftiInterface->hasRowVolumeData()) {
         this->ciftiInterface->getVolumeMapForRows(volumeMaps);
     }
     
