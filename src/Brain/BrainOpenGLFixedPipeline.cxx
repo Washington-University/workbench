@@ -2423,9 +2423,16 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                                                      intersectionPoint2)) {
                         if (surfaceColorFlag) {
                             /*
-                             * Use coloring assigned to the first node in the triangle.
+                             * Use coloring assigned to the first node in the triangle
+                             * but only if Alpha is valid (greater than zero).
                              */
-                            glColor3fv(&rgbaColoring[triangleNodes[0] * 3]);
+                            const int64_t colorIndex = triangleNodes[0] * 4;
+                            if (rgbaColoring[colorIndex + 3] > 0.0) {
+                                glColor3fv(&rgbaColoring[triangleNodes[0] * 4]);
+                            }
+                            else {
+                                continue;
+                            }
                         }
                         
                         /*
