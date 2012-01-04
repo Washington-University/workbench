@@ -35,6 +35,7 @@ SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
 SpecFileSaxReader.h
 SurfaceFile.h
+SurfaceProjectionTypeEnum.h
 SurfaceTypeEnum.h
 TextFile.h
 TopologyHelper.h
@@ -57,6 +58,7 @@ SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
 SpecFileSaxReader.cxx
 SurfaceFile.cxx
+SurfaceProjectionTypeEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
 TopologyHelper.cxx
