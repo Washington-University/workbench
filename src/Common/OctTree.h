@@ -242,7 +242,7 @@ namespace caret
                     curlow = templow;
                     curhigh = temphigh;
                 } else {
-                    if (templow > curlow) curlow = templow;//intersect the ranged
+                    if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
                     if (curhigh < curlow) return false;//if intersection is null, false
                 }
@@ -274,7 +274,7 @@ namespace caret
                     curlow = templow;
                     curhigh = temphigh;
                 } else {
-                    if (templow > curlow) curlow = templow;//intersect the ranged
+                    if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
                     if (curhigh < curlow || curhigh < 0.0f) return false;//if intersection is null or has no positive range, false
                 }
@@ -306,7 +306,7 @@ namespace caret
                     curlow = templow;
                     curhigh = temphigh;
                 } else {
-                    if (templow > curlow) curlow = templow;//intersect the ranged
+                    if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
                     if (curhigh < curlow || curhigh < 0.0f || curlow > 1.0f) return false;//if intersection is null or has no positive range, or has no range less than 1, false
                 }

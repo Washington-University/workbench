@@ -43,6 +43,8 @@
 #include "BrainOpenGLFixedPipeline.h"
 #undef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H
 
+#include <limits>
+
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"

@@ -547,16 +547,16 @@ bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3],
 {
     if (m_root.m_matrices.size() == 0)
     {
-        throw CiftiFileException("No matrices defined in cifti extension");
+        return false;
     }
     if (m_root.m_matrices[0].m_volume.size() == 0)
     {
-        throw CiftiFileException("No volume element defined in cifti extension");
+        return false;
     }
     const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
     if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
     {
-        throw CiftiFileException("No volume transformation defined in cifti extension");
+        return false;
     }
     const TransformationMatrixVoxelIndicesIJKtoXYZElement& myTrans = myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ[0];//oh the humanity
     FloatMatrix myMatrix = FloatMatrix::zeros(3, 4);//no fourth row
@@ -578,7 +578,7 @@ bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3],
             myMatrix *= 0.001f;
             break;
         default:
-            throw CiftiFileException("Unknown units in volume transformation");
+            return false;
     };
     dimensionsOut[0] = myVol.m_volumeDimensions[0];
     dimensionsOut[1] = myVol.m_volumeDimensions[1];
