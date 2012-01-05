@@ -97,6 +97,8 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
             QTemporaryFile *tf = new QTemporaryFile();
             tf->setAutoRemove(true);
             file = tf;
+            file->open(QIODevice::ReadWrite);
+            return;
         }
         
         file->setFileName(m_fileName);

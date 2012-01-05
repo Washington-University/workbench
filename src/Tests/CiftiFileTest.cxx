@@ -35,7 +35,10 @@ void CiftiFileTest::execute()
     if(this->failed()) return;
     //testCiftiRead();
     //if(this->failed()) return;
-    testCiftiReadWrite();
+    //testCiftiReadWrite();
+    //if(this->failed()) return;
+    testCiftiReadWriteOnDisk();
+    if(this->failed()) return;
 }
 
 void CiftiFileTest::testObjectCreateDestroy()
@@ -154,3 +157,60 @@ void CiftiFileTest::testCiftiReadWrite()
     delete [] row;
     delete [] testRow;
 }
+
+void CiftiFileTest::testCiftiReadWriteOnDisk()
+{
+    std::cout << "Testing Cifti reader/writer." << std::endl;
+
+    // read header
+    CiftiFile reader(this->m_default_path + "/cifti/DenseTimeSeries.dtseries.nii", ON_DISK);
+    CiftiHeader header;
+    reader.getHeader(header);
+
+
+    // read XML
+    CiftiXML root;
+    reader.getCiftiXML(root);
+
+    //hack TODO, this gives it a name to write to, change to write and cleanup temp
+    //files if necessary
+    AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
+    if(QFile::exists(outFile)) QFile::remove(outFile);
+    CiftiFile writer;
+    writer.setHeader(header);
+    writer.setCiftiXML(root);
+
+    std::vector <int64_t> dim;
+    header.getDimensions(dim);
+    int64_t rowSize = dim[dim.size()-1];
+    int64_t columnSize = dim[dim.size()-2];
+    float *row = new float [rowSize];
+
+    
+    for(int64_t i = 0;i<columnSize;i++)
+    {
+        reader.getRow(row,i);
+        writer.setRow(row,i);
+    }
+
+    writer.writeFile(outFile);
+
+    //reopen output file, and check that frames agree
+    CiftiFile test(outFile);
+
+    float *testRow = new float [rowSize];
+    for(int64_t i = 0;i<columnSize;i++)
+    {
+        reader.getRow(row,i);
+        test.getRow(testRow,i);
+        if(memcmp((void *)row,(void *)testRow,rowSize*sizeof(float)))
+        {
+            this->setFailed("Input and output Cifti file rows are not the same.");
+            return;
+        }
+    }
+    std::cout << "Reading and writing of Cifti was successful for all frames." << std::endl;
+    delete [] row;
+    delete [] testRow;
+}
+

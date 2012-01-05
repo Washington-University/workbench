@@ -35,6 +35,7 @@ public:
     void testObjectCreateDestroy();
     void testCiftiReadWrite();
     void testCiftiRead();
+    void testCiftiReadWriteOnDisk();
 };
 
 } // namespace caret

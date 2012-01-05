@@ -40,7 +40,7 @@ namespace caret {
 class CiftiFile : public CiftiInterface {
 public:
     /// Constructor
-    CiftiFile() throw (CiftiFileException);
+    CiftiFile(const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
     /// Constructor
     CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
     /// Open the Cifti File

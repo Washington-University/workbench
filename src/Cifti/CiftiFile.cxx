@@ -39,9 +39,10 @@ using namespace caret;
  * Default Constructor
  *
  */
-CiftiFile::CiftiFile() throw (CiftiFileException)
+CiftiFile::CiftiFile(const CacheEnum &caching) throw (CiftiFileException)
 {
     init();
+    this->m_caching = caching;
 }
 
 /**
@@ -55,7 +56,7 @@ CiftiFile::CiftiFile() throw (CiftiFileException)
 CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
 {
     init();
-    this->m_caching = IN_MEMORY;
+    this->m_caching = caching;
     this->openFile(fileName,caching);
 }
 
