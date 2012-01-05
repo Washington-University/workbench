@@ -35,6 +35,7 @@ SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
 SpecFileSaxReader.h
 SurfaceFile.h
+SurfaceProjectionBarycentric.h
 SurfaceProjectionTypeEnum.h
 SurfaceTypeEnum.h
 TextFile.h
@@ -58,6 +59,7 @@ SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
 SpecFileSaxReader.cxx
 SurfaceFile.cxx
+SurfaceProjectionBarycentric.cxx
 SurfaceProjectionTypeEnum.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx

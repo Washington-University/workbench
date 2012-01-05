@@ -39,6 +39,7 @@ CaretHttpManager.h
 CaretLogger.h
 CaretMutex.h
 CaretObject.h
+CaretObjectTracksModification.h
 CaretOMP.h
 CaretPointer.h
 CaretPointLocator.h
@@ -95,6 +96,7 @@ CaretHttpManager.cxx
 CaretLogger.cxx
 CaretMutex.cxx
 CaretObject.cxx
+CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferences.cxx
 CubicSpline.cxx
