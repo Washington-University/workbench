@@ -33,8 +33,8 @@ public:
     CiftiFileTest(const AString &identifier);
     void execute();
     void testObjectCreateDestroy();
-    void testCiftiReadWrite();
     void testCiftiRead();
+    void testCiftiReadWriteInMemory();
     void testCiftiReadWriteOnDisk();
 };
 

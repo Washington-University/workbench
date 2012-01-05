@@ -33,10 +33,10 @@ void CiftiFileTest::execute()
 {
     testObjectCreateDestroy();
     if(this->failed()) return;
-    //testCiftiRead();
-    //if(this->failed()) return;
-    //testCiftiReadWrite();
-    //if(this->failed()) return;
+    testCiftiRead();
+    if(this->failed()) return;
+    testCiftiReadWriteInMemory();
+    if(this->failed()) return;
     testCiftiReadWriteOnDisk();
     if(this->failed()) return;
 }
@@ -90,8 +90,8 @@ void CiftiFileTest::testCiftiRead()
                     (row[j]<(column[j]-0.0001)))
             {
                 setFailed("Row and Column " + AString::number(i) + " are not the same.");
-                std::cout << "Row " + AString::number(i) + ":" + AString::fromNumbers(row,rowSize,",") << std::endl;
-                std::cout << "Column " + AString::number(i) + ":" + AString::fromNumbers(column,columnSize,",") << std::endl;
+                //std::cout << "Row " + AString::number(i) + ":" + AString::fromNumbers(row,rowSize,",") << std::endl;
+                //std::cout << "Column " + AString::number(i) + ":" + AString::fromNumbers(column,columnSize,",") << std::endl;
                 goto cleanup;
             }
         }
@@ -102,7 +102,7 @@ void CiftiFileTest::testCiftiRead()
     delete [] column;
 }
 
-void CiftiFileTest::testCiftiReadWrite()
+void CiftiFileTest::testCiftiReadWriteInMemory()
 {
     std::cout << "Testing Cifti reader/writer." << std::endl;
 
@@ -172,8 +172,6 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
     CiftiXML root;
     reader.getCiftiXML(root);
 
-    //hack TODO, this gives it a name to write to, change to write and cleanup temp
-    //files if necessary
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
     CiftiFile writer;

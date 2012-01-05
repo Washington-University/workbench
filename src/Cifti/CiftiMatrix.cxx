@@ -27,6 +27,11 @@
 #include "QFile"
 #include "ByteSwapping.h"
 #include "qtemporaryfile.h"
+#ifdef CARET_OS_WINDOWS
+#include <io.h>
+#else //not CARET_OS_WINDOWS
+#include <unistd.h>
+#endif //ifdef CARET_OS_WINDOWS
 using namespace caret;
 using namespace std;
 CiftiMatrix::CiftiMatrix()
@@ -84,14 +89,26 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
         file = new QFile();
         file->setFileName(m_fileName);
         file->open(QIODevice::ReadWrite);
+#if 0        
         file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
         file->read((char *)m_matrix,matrixSize*sizeof(float));
+#endif
+        //QT sucks and is unable to handle reading from files over 2GB's in size
+        int fh = file->handle();
+        lseek(fh,m_matrixOffset,0);
+        int64_t rowSize = this->m_dimensions[m_dimensions.size()-1];
+        int64_t columnSize = this->m_dimensions[m_dimensions.size()-2];
+        for(int64_t i=0;i<columnSize;i++)//apparently read also is unable to handle reading in more than 2GB's at a time, reading a row at a time to get around this
+        {
+            read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float));
+        }
         file->close();
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
     }
     else
     {
+        if(file) delete file;        
         if(!QFile::exists(m_fileName))
         {
             QTemporaryFile *tf = new QTemporaryFile();
@@ -100,7 +117,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
             file->open(QIODevice::ReadWrite);
             return;
         }
-        
+        file = new QFile;
         file->setFileName(m_fileName);
         file->open(QIODevice::ReadWrite);//keep file open for speed
     }    
