@@ -130,7 +130,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
  *
  */
 
-void CiftiFile::setupMatrix()
+void CiftiFile::setupMatrix() throw (CiftiFileException)
 {
 
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
