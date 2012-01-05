@@ -174,7 +174,7 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
 
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
-    CiftiFile writer;
+    CiftiFile writer(ON_DISK);
     writer.setHeader(header);
     writer.setCiftiXML(root);
 
@@ -194,7 +194,7 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
     writer.writeFile(outFile);
 
     //reopen output file, and check that frames agree
-    CiftiFile test(outFile);
+    CiftiFile test(outFile, ON_DISK);
 
     float *testRow = new float [rowSize];
     for(int64_t i = 0;i<columnSize;i++)
