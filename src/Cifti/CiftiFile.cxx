@@ -39,6 +39,11 @@ using namespace caret;
  * Default Constructor
  *
  */
+CiftiFile::CiftiFile() throw (CiftiFileException)
+{
+    init();    
+}
+
 CiftiFile::CiftiFile(const CacheEnum &caching) throw (CiftiFileException)
 {
     init();
