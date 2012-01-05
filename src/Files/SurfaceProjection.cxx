@@ -32,32 +32,32 @@
  */
 /*LICENSE_END*/
 
-#define __CARET_OBJECT_TRACKS_MODIFICATION_DECLARE__
-#include "CaretObjectTracksModification.h"
-#undef __CARET_OBJECT_TRACKS_MODIFICATION_DECLARE__
+#define __SURFACE_PROJECTION_DECLARE__
+#include "SurfaceProjection.h"
+#undef __SURFACE_PROJECTION_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class CaretObjectTracksModification 
- * \brief CaretObject base class with implementation of tracks modification interface.
+ * \class SurfaceProjection 
+ * \brief Abstract class for Surface Projections.
  */
+
 /**
  * Constructor.
  */
-CaretObjectTracksModification::CaretObjectTracksModification()
-: CaretObject(),
-  TracksModificationInterface()
+SurfaceProjection::SurfaceProjection()
+: CaretObjectTracksModification()
 {
-    this->modifiedFlag = false;
+    
 }
 
 /**
  * Destructor.
  */
-CaretObjectTracksModification::~CaretObjectTracksModification()
+SurfaceProjection::~SurfaceProjection()
 {
     
 }
@@ -67,11 +67,10 @@ CaretObjectTracksModification::~CaretObjectTracksModification()
  * @param obj
  *    Object that is copied.
  */
-CaretObjectTracksModification::CaretObjectTracksModification(const CaretObjectTracksModification& obj)
-: CaretObject(obj),
-  TracksModificationInterface()
+SurfaceProjection::SurfaceProjection(const SurfaceProjection& obj)
+: CaretObjectTracksModification(obj)
 {
-    this->copyHelperCaretObjectTracksModification(obj);
+    this->copyHelperSurfaceProjection(obj);
 }
 
 /**
@@ -81,12 +80,12 @@ CaretObjectTracksModification::CaretObjectTracksModification(const CaretObjectTr
  * @return 
  *    Reference to this object.
  */
-CaretObjectTracksModification&
-CaretObjectTracksModification::operator=(const CaretObjectTracksModification& obj)
+SurfaceProjection&
+SurfaceProjection::operator=(const SurfaceProjection& obj)
 {
     if (this != &obj) {
-        CaretObject::operator=(obj);
-        this->copyHelperCaretObjectTracksModification(obj);
+        CaretObjectTracksModification::operator=(obj);
+        this->copyHelperSurfaceProjection(obj);
     }
     return *this;    
 }
@@ -97,48 +96,8 @@ CaretObjectTracksModification::operator=(const CaretObjectTracksModification& ob
  *    Object that is copied.
  */
 void 
-CaretObjectTracksModification::copyHelperCaretObjectTracksModification(const CaretObjectTracksModification& /*obj*/)
+SurfaceProjection::copyHelperSurfaceProjection(const SurfaceProjection& /*obj*/)
 {
-    this->modifiedFlag = false; // do not copy modification status
-}
-
-/**
- * Set the status to modified.
- */
-void 
-CaretObjectTracksModification::setModified()
-{
-    this->modifiedFlag = true;
-}
-
-/**
- * Set the status to unmodified.
- */
-void 
-CaretObjectTracksModification::clearModified()
-{
-    this->modifiedFlag = false;
-}
-
-/**
- * Is the object modified?
- * @return true if modified, else false.
- */
-bool 
-CaretObjectTracksModification::isModified() const
-{
-    return this->modifiedFlag;
-}
-
-/**
- * Get a description of this object's content.
- * @return String describing this object's content.
- */
-AString 
-CaretObjectTracksModification::toString() const
-{
-    const AString text = (CaretObject::toString()
-                          + "\nCaretObjectTracksModification::modifiedFlag=" + AString::fromBool(this->modifiedFlag));
     
-    return text;
 }
+
