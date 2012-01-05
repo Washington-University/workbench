@@ -67,10 +67,16 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     OptionalParameter* approxNeighborhoodOpt = ret->createOptionalParameter(6, "-approx-neighborhood", "voxel neighborhood for approximate calculation");
     approxNeighborhoodOpt->addIntegerParameter(1, "num", "size of neighborhood cube measured from center to face, in voxels (default 2 = 5x5x5)");
     
+    OptionalParameter* windingMethodOpt = ret->createOptionalParameter(7, "-winding", "winding method for point inside surface test");
+    windingMethodOpt->addStringParameter(1, "method", "name of the method");
+    
     ret->setHelpText(
         AString("Computes the signed distance function of the surface.  Exact distance is calculated by finding the closest point on any surface triangle ") +
         "to the center of the voxel.  Approximate distance is calculated starting with these distances, using dijkstra's method with a neighborhood of voxels.  " +
-        "Specifying too small of an exact distance may produce unexpected results."
+        "Specifying too small of an exact distance may produce unexpected results.  Valid specifiers for winding methods are as follows:\n\n" +
+        "EVEN_ODD (default)\nNEGATIVE\nNONZERO\nNORMALS\n\nThe NORMALS method uses the normals of triangles and edges, or the closest triangle hit by a ray from the point.  " +
+        "This method may be slightly faster, but is only reliable for a closed surface that does not cross through itself.  All other methods count entry (positive) and " +
+        "exit (negative) crossings of a vertical ray from the point, then counts as inside if the total is odd, negative, or nonzero, respectively."
     );
     return ret;
 }
@@ -108,10 +114,28 @@ void AlgorithmCreateSignedDistanceVolume::useParameters(OperationParameters* myP
     {
         approxNeighborhood = (int)approxNeighborhoodOpt->getInteger(1);
     }
-    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, exactLim, approxLim, approxNeighborhood);//executes the algorithm
+    WindingLogic myWinding = EVEN_ODD;
+    OptionalParameter* windingMethodOpt = myParams->getOptionalParameter(7);
+    if (windingMethodOpt->m_present)
+    {
+        AString methodName = windingMethodOpt->getString(1);
+        if (methodName == "EVEN_ODD")
+        {
+            myWinding = EVEN_ODD;
+        } else if (methodName == "NEGATIVE") {
+            myWinding = NEGATIVE;
+        } else if (methodName == "NONZERO") {
+            myWinding = NONZERO;
+        } else if (methodName == "NORMALS") {
+            myWinding = NORMALS;
+        } else {
+            throw AlgorithmException("unrecognized winding method");
+        }
+    }
+    AlgorithmCreateSignedDistanceVolume(myProgObj, mySurf, myVolOut, exactLim, approxLim, approxNeighborhood, myWinding);//executes the algorithm
 }
 
-AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim, float approxLim, int approxNeighborhood) : AbstractAlgorithm(myProgObj)
+AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim, float approxLim, int approxNeighborhood, WindingLogic myWinding) : AbstractAlgorithm(myProgObj)
 {
     if (exactLim <= 0.0f)
     {
@@ -231,7 +255,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
             for (int i = 0; i < numExact; i += 3)
             {
                 myVolOut->indexToSpace(exactVoxelList.data() + i, thisCoord.m_vec);
-                myVolOut->setValue(myDist.dist(thisCoord.m_vec), exactVoxelList.data() + i);
+                myVolOut->setValue(myDist.dist(thisCoord.m_vec, myWinding), exactVoxelList.data() + i);
                 volMarked[myVolOut->getIndex(exactVoxelList.data() + i)] |= 22;//set marked to have valid value (positive and negative), and frozen
             }
         }
@@ -355,7 +379,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 tempijk[0] = curVoxel.m_ijk[0] + neighborhood[neigh].m_offset[0];
                 tempijk[1] = curVoxel.m_ijk[1] + neighborhood[neigh].m_offset[1];
                 tempijk[2] = curVoxel.m_ijk[2] + neighborhood[neigh].m_offset[2];
-                float tempf = myVolOut->getValue(curVoxel.m_ijk) + neighborhood[neigh].m_dist;
+                float tempf = curDist + neighborhood[neigh].m_dist;
                 if (myVolOut->indexValid(tempijk))
                 {
                     int tempindex = myVolOut->getIndex(tempijk);
@@ -434,7 +458,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                 tempijk[0] = curVoxel.m_ijk[0] + neighborhood[neigh].m_offset[0];
                 tempijk[1] = curVoxel.m_ijk[1] + neighborhood[neigh].m_offset[1];
                 tempijk[2] = curVoxel.m_ijk[2] + neighborhood[neigh].m_offset[2];
-                float tempf = myVolOut->getValue(curVoxel.m_ijk) - neighborhood[neigh].m_dist;
+                float tempf = curDist - neighborhood[neigh].m_dist;
                 if (myVolOut->indexValid(tempijk))
                 {
                     int tempindex = myVolOut->getIndex(tempijk);
@@ -459,7 +483,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
     }//done!
 }
 
-float SignedDistToSurfIndexed::dist(float coord[3])
+float SignedDistToSurfIndexed::dist(float coord[3], AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding)
 {
     CaretSimpleMinHeap<Oct<SignedDistToSurfIndexedBase::TriVector>*, float> myHeap;
     myHeap.push(m_base->m_indexRoot->distToPoint(coord), m_base->m_indexRoot);
@@ -510,25 +534,24 @@ float SignedDistToSurfIndexed::dist(float coord[3])
     {
         m_triMarked[m_triMarkChanged[--numChanged]] = 0;//need to do this before computeSign
     }
-    return bestTriDist * computeSign(coord, bestInfo);
+    return bestTriDist * computeSign(coord, bestInfo, myWinding);
 }
 
-int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed::ClosestPointInfo myInfo)
+int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed::ClosestPointInfo myInfo, AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding)
 {
     Vector3D point = coord;
     Vector3D result = point - myInfo.tempPoint;
     float tempf;
-    switch (myInfo.type)
+    switch (myWinding)
     {
-        case 0://node
+        case AlgorithmCreateSignedDistanceVolume::EVEN_ODD:
+        case AlgorithmCreateSignedDistanceVolume::NEGATIVE:
+        case AlgorithmCreateSignedDistanceVolume::NONZERO:
             {
-                int curSign = 0;
                 int numChanged = 0;
-                vector<int> myTiles;
-                m_topoHelp->getNodeTiles(myInfo.node1, myTiles);
+                /*const vector<int>& myTiles = m_topoHelp->getNodeTiles(myInfo.node1);
                 bool first = true;
                 float bestNorm = 0;
-                int bestTile = -1;
                 Vector3D tempvec, tempvec2, bestCent;
                 for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
                 {//should be least likely to have an intervening triangle
@@ -543,33 +566,16 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                         tempf = tempvec.dot(tempvec2.normal());
                         if (first || abs(tempf) > abs(bestNorm))
                         {
-                            if (tempf > 0.0f)
-                            {
-                                curSign = 1;
-                            } else {
-                                curSign = -1;
-                            }
-                            bestTile = i;
                             first = false;
                             bestNorm = tempf;
                             bestCent = centroid;
                         }
                     }
                 }
-                tempvec = point - bestCent;
-                float bestDist = tempvec.length();
-                Vector3D segNormal = tempvec.normal();//from the surface to the point, to match the convention of triangles with normals oriented outwards
-                int majAxis = 0, midAxis = 1;//find the axes to use for projecting the triangles, discard the one most aligned with the line segment
-                if (abs(tempvec[1]) < abs(tempvec[0]))
-                {
-                    majAxis = 1;
-                    midAxis = 0;
-                }
-                if (abs(tempvec[2]) < abs(tempvec[majAxis]))
-                {
-                    midAxis = majAxis;
-                    majAxis = 2;
-                }
+                Vector3D mySeg = point - bestCent;//*/
+                float positiveZ[3] = {0, 0, 1};
+                Vector3D point2 = point + positiveZ;
+                int crossCount = 0;
                 vector<Oct<SignedDistToSurfIndexedBase::TriVector>*> myStack;
                 myStack.push_back(m_base->m_indexRoot);
                 while (!myStack.empty())
@@ -593,24 +599,16 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                                 verts[2] = m_base->m_surface->getCoordinate(myTileNodes[2]);
                                 Vector3D triNormal;
                                 MathFunctions::normalVector(verts[0], verts[1], verts[2], triNormal);
-                                float factor = triNormal.dot(segNormal);
-                                if (factor == 0.0f)
+                                float factor = triNormal.dot(positiveZ);
+                                if (factor != 0.0f)
                                 {
-                                    continue;//skip triangles parallel to the line segment
-                                }
-                                float intersectDist = triNormal.dot(point - verts[0]) / factor;
-                                if (intersectDist > 0.0f && intersectDist < bestDist)
-                                {
-                                    Vector3D inPlane = point - intersectDist * segNormal;
-                                    if (pointInTri(verts, inPlane, majAxis, midAxis))
+                                    if (triNormal.dot(verts[0] - point) / factor > 0.0f && pointInTri(verts, point, 0, 1))
                                     {
-                                        bestDist = intersectDist;
-                                        Vector3D newSeg = point - inPlane;
-                                        if (triNormal.dot(newSeg) > 0.0f)
+                                        if (triNormal.dot(positiveZ) < 0.0f)
                                         {
-                                            curSign = 1;
+                                            ++crossCount;
                                         } else {
-                                            curSign = -1;
+                                            --crossCount;
                                         }
                                     }
                                 }
@@ -623,7 +621,7 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                             {
                                 for (int ck = 0; ck < 2; ++ck)
                                 {
-                                    if (curOct->m_children[ci][cj][ck]->lineSegmentIntersects(coord, bestCent))
+                                    if (curOct->m_children[ci][cj][ck]->rayIntersects(coord, point2))
                                     {
                                         myStack.push_back(curOct->m_children[ci][cj][ck]);
                                     }
@@ -636,50 +634,187 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                 {
                     m_triMarked[m_triMarkChanged[--numChanged]] = 0;
                 }
-                return curSign;
-            }
-            break;
-        case 1://edge
-            {
-                set<TopologyEdgeInfo>::const_iterator myEdge = m_topoHelp->getEdgeInfo().find(TopologyEdgeInfo(-1, myInfo.node1, myInfo.node2));
-                CaretAssert(myEdge != m_topoHelp->getEdgeInfo().end());
-                int tile1, tile2;
-                myEdge->getTiles(tile1, tile2);
-                Vector3D normalaccum, tempvec;//default constructor initializes it to the zero vector
-                if (tile1 > -1)
+                switch (myWinding)
                 {
-                    const int32_t* tile1nodes = m_base->m_surface->getTriangle(tile1);
-                    MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile1nodes[0]),
-                                                m_base->m_surface->getCoordinate(tile1nodes[1]),
-                                                m_base->m_surface->getCoordinate(tile1nodes[2]), tempvec.m_vec);
-                    normalaccum += tempvec;
-                }
-                if (tile2 > -1)
-                {
-                    const int32_t *tile2nodes = m_base->m_surface->getTriangle(tile2);
-                    MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile2nodes[0]),
-                                                m_base->m_surface->getCoordinate(tile2nodes[1]),
-                                                m_base->m_surface->getCoordinate(tile2nodes[2]), tempvec.m_vec);
-                    normalaccum += tempvec;
-                }
-                if (normalaccum.dot(result) < 0.0f)
-                {
-                    return -1;
+                    case AlgorithmCreateSignedDistanceVolume::EVEN_ODD:
+                        if ((abs(crossCount) & 1) == 1) return -1;//& 1 instead of % 2
+                        return 1;
+                        break;
+                    case AlgorithmCreateSignedDistanceVolume::NEGATIVE:
+                        if (crossCount < 0) return -1;
+                        return 1;
+                        break;
+                    case AlgorithmCreateSignedDistanceVolume::NONZERO:
+                        if (crossCount != 0) return -1;
+                        return 1;
+                        break;
+                    default:
+                        return 1;//because compiler can't handle when a switch doesn't accound for an enum value...
                 }
             }
             break;
-        case 2://face
+        case AlgorithmCreateSignedDistanceVolume::NORMALS:
+            switch (myInfo.type)
             {
-                Vector3D triNormal;
-                const int32_t* triNodes = m_base->m_surface->getTriangle(myInfo.triangle);
-                Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
-                Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
-                Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
-                MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, triNormal.m_vec);
-                if (triNormal.dot(result) < 0.0f)
-                {
-                    return -1;
-                }
+                case 0://node
+                    {
+                        int curSign = 0;
+                        int numChanged = 0;
+                        const vector<int>& myTiles = m_topoHelp->getNodeTiles(myInfo.node1);
+                        bool first = true;
+                        float bestNorm = 0;
+                        int bestTile = -1;
+                        Vector3D tempvec, tempvec2, bestCent;
+                        for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
+                        {//should be least likely to have an intervening triangle
+                            const int32_t* myTileNodes = m_base->m_surface->getTriangle(myTiles[i]);
+                            Vector3D vert1 = m_base->m_surface->getCoordinate(myTileNodes[0]);
+                            Vector3D vert2 = m_base->m_surface->getCoordinate(myTileNodes[1]);
+                            Vector3D vert3 = m_base->m_surface->getCoordinate(myTileNodes[2]);
+                            Vector3D centroid = (vert1 + vert2 + vert3) / 3.0f;
+                            if (MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, tempvec.m_vec))//make sure the triangle has a valid normal
+                            {
+                                tempvec2 = point - centroid;
+                                tempf = tempvec.dot(tempvec2.normal());
+                                if (first || abs(tempf) > abs(bestNorm))
+                                {
+                                    if (tempf > 0.0f)
+                                    {
+                                        curSign = 1;
+                                    } else {
+                                        curSign = -1;
+                                    }
+                                    bestTile = i;
+                                    first = false;
+                                    bestNorm = tempf;
+                                    bestCent = centroid;
+                                }
+                            }
+                        }
+                        Vector3D mySeg = point - bestCent;
+                        float bestDist = mySeg.length();
+                        Vector3D segNormal = mySeg.normal();//from the surface to the point, to match the convention of triangles with normals oriented outwards
+                        int majAxis = 0, midAxis = 1;//find the axes to use for projecting the triangles, discard the one most aligned with the line segment
+                        if (abs(mySeg[1]) < abs(mySeg[0]))
+                        {
+                            majAxis = 1;
+                            midAxis = 0;
+                        }
+                        if (abs(mySeg[2]) < abs(mySeg[midAxis]))
+                        {
+                            midAxis = 2;
+                        }
+                        vector<Oct<SignedDistToSurfIndexedBase::TriVector>*> myStack;
+                        myStack.push_back(m_base->m_indexRoot);
+                        while (!myStack.empty())
+                        {
+                            Oct<SignedDistToSurfIndexedBase::TriVector>* curOct = myStack[myStack.size() - 1];
+                            myStack.pop_back();
+                            if (curOct->m_leaf)
+                            {
+                                vector<int32_t>& myVecRef = *(curOct->m_data.m_triList);
+                                int numTris = (int)myVecRef.size();
+                                for (int i = 0; i < numTris; ++i)
+                                {
+                                    if (m_triMarked[myVecRef[i]] != 1)
+                                    {
+                                        m_triMarked[myVecRef[i]] = 1;
+                                        m_triMarkChanged[numChanged++] = myVecRef[i];
+                                        const int32_t* myTileNodes = m_base->m_surface->getTriangle(myVecRef[i]);
+                                        Vector3D verts[3];
+                                        verts[0] = m_base->m_surface->getCoordinate(myTileNodes[0]);
+                                        verts[1] = m_base->m_surface->getCoordinate(myTileNodes[1]);
+                                        verts[2] = m_base->m_surface->getCoordinate(myTileNodes[2]);
+                                        Vector3D triNormal;
+                                        MathFunctions::normalVector(verts[0], verts[1], verts[2], triNormal);
+                                        float factor = triNormal.dot(segNormal);
+                                        if (factor == 0.0f)
+                                        {
+                                            continue;//skip triangles parallel to the line segment
+                                        }
+                                        float intersectDist = triNormal.dot(point - verts[0]) / factor;
+                                        if (intersectDist > 0.0f && intersectDist < bestDist)
+                                        {
+                                            Vector3D inPlane = point - intersectDist * segNormal;
+                                            if (pointInTri(verts, inPlane, majAxis, midAxis))
+                                            {
+                                                bestDist = intersectDist;
+                                                if (triNormal.dot(mySeg) > 0.0f)
+                                                {
+                                                    curSign = 1;
+                                                } else {
+                                                    curSign = -1;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else {
+                                for (int ci = 0; ci < 2; ++ci)
+                                {
+                                    for (int cj = 0; cj < 2; ++cj)
+                                    {
+                                        for (int ck = 0; ck < 2; ++ck)
+                                        {
+                                            if (curOct->m_children[ci][cj][ck]->lineSegmentIntersects(coord, bestCent))
+                                            {
+                                                myStack.push_back(curOct->m_children[ci][cj][ck]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        while (numChanged)
+                        {
+                            m_triMarked[m_triMarkChanged[--numChanged]] = 0;
+                        }
+                        return curSign;
+                    }
+                    break;
+                case 1://edge
+                    {
+                        set<TopologyEdgeInfo>::const_iterator myEdge = m_topoHelp->getEdgeInfo().find(TopologyEdgeInfo(-1, myInfo.node1, myInfo.node2));
+                        CaretAssert(myEdge != m_topoHelp->getEdgeInfo().end());
+                        int tile1, tile2;
+                        myEdge->getTiles(tile1, tile2);
+                        Vector3D normalaccum, tempvec;//default constructor initializes it to the zero vector
+                        if (tile1 > -1)
+                        {
+                            const int32_t* tile1nodes = m_base->m_surface->getTriangle(tile1);
+                            MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile1nodes[0]),
+                                                        m_base->m_surface->getCoordinate(tile1nodes[1]),
+                                                        m_base->m_surface->getCoordinate(tile1nodes[2]), tempvec.m_vec);
+                            normalaccum += tempvec;
+                        }
+                        if (tile2 > -1)
+                        {
+                            const int32_t *tile2nodes = m_base->m_surface->getTriangle(tile2);
+                            MathFunctions::normalVector(m_base->m_surface->getCoordinate(tile2nodes[0]),
+                                                        m_base->m_surface->getCoordinate(tile2nodes[1]),
+                                                        m_base->m_surface->getCoordinate(tile2nodes[2]), tempvec.m_vec);
+                            normalaccum += tempvec;
+                        }
+                        if (normalaccum.dot(result) < 0.0f)
+                        {
+                            return -1;
+                        }
+                    }
+                    break;
+                case 2://face
+                    {
+                        Vector3D triNormal;
+                        const int32_t* triNodes = m_base->m_surface->getTriangle(myInfo.triangle);
+                        Vector3D vert1 = m_base->m_surface->getCoordinate(triNodes[0]);
+                        Vector3D vert2 = m_base->m_surface->getCoordinate(triNodes[1]);
+                        Vector3D vert3 = m_base->m_surface->getCoordinate(triNodes[2]);
+                        MathFunctions::normalVector(vert1.m_vec, vert2.m_vec, vert3.m_vec, triNormal.m_vec);
+                        if (triNormal.dot(result) < 0.0f)
+                        {
+                            return -1;
+                        }
+                    }
+                    break;
             }
             break;
     }

@@ -57,7 +57,14 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 5.0f, float approxLim = 20.0f, int approxNeighborhood = 2);
+        enum WindingLogic
+        {
+            EVEN_ODD,
+            NEGATIVE,
+            NONZERO,
+            NORMALS
+        };
+        AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 5.0f, float approxLim = 20.0f, int approxNeighborhood = 2, WindingLogic myWinding = EVEN_ODD);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters*, ProgressObject*);
         static AString getCommandSwitch();
@@ -109,11 +116,11 @@ namespace caret {
             Vector3D tempPoint;
         };
         float unsignedDistToTri(float coord[3], int32_t triangle, ClosestPointInfo& myInfo);
-        int computeSign(float coord[3], ClosestPointInfo myInfo);
+        int computeSign(float coord[3], ClosestPointInfo myInfo, AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding);
         bool pointInTri(Vector3D verts[3], Vector3D inPlane, int majAxis, int midAxis);
     public:
         SignedDistToSurfIndexed(CaretPointer<SignedDistToSurfIndexedBase> myBase);
-        float dist(float coord[3]);
+        float dist(float coord[3], AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding);
     };
 
     typedef TemplateAutoOperation<AlgorithmCreateSignedDistanceVolume> AutoAlgorithmCreateSignedDistanceVolume;

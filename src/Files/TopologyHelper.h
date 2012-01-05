@@ -134,6 +134,9 @@ namespace caret {
          /// Get the neighbors of a node
          void getNodeNeighbors(const int nodeNum, std::vector<int>& neighborsOut) const;
 
+         /// Get the neighbors of a node
+         const std::vector<int>& getNodeNeighbors(const int nodeNum) const;
+
          /// Get the neighboring nodes for a node.  Returns a pointer to an array
          /// containing the neighbors.
          const int* getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const;
@@ -171,6 +174,9 @@ namespace caret {
          
          /// Get the tiles used by a node
          void getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) const;
+         
+         /// Get the tiles used by a node
+         const std::vector<int>& getNodeTiles(const int nodeNum) const;
          
          /// Get the tiles for a node.  Returns a pointer to an array
          /// containing the tiles.

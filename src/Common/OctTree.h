@@ -227,15 +227,23 @@ namespace caret
     bool Oct<T>::lineIntersects(const float p1[3], const float p2[3])
     {
         float direction[3];
-        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside on zero length queries
+        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside logic on zero length queries
         MathFunctions::subtractVectors(p2, p1, direction);
         bool first = true;
         for (int i = 0; i < 3; ++i)
         {
             if (direction[i] != 0.0f)
             {
-                float templow = (m_bounds[i][0] - p1[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
-                float temphigh = (m_bounds[i][2] - p1[i]) / direction[i];
+                float templow;
+                float temphigh;
+                if (direction[i] > 0.0f)
+                {
+                    templow = (m_bounds[i][0] - p1[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][2] - p1[i]) / direction[i];
+                } else {
+                    templow = (m_bounds[i][2] - p1[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][0] - p1[i]) / direction[i];
+                }
                 if (first)
                 {
                     first = false;
@@ -244,13 +252,11 @@ namespace caret
                 } else {
                     if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
-                    if (curhigh < curlow) return false;//if intersection is null, false
                 }
+                if (curhigh < curlow) return false;//if intersection is null, false
+            } else {
+                if (p1[i] < m_bounds[i][0] || p1[i] > m_bounds[i][2]) return false;
             }
-        }
-        if (first)
-        {
-            return pointInside(p1);
         }
         return true;
     }
@@ -259,15 +265,23 @@ namespace caret
     bool Oct<T>::rayIntersects(const float start[3], const float p2[3])
     {
         float direction[3];
-        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside on zero length queries
+        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside logic on zero length queries
         MathFunctions::subtractVectors(p2, start, direction);
         bool first = true;
         for (int i = 0; i < 3; ++i)
         {
             if (direction[i] != 0.0f)
             {
-                float templow = (m_bounds[i][0] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
-                float temphigh = (m_bounds[i][2] - start[i]) / direction[i];
+                float templow;
+                float temphigh;
+                if (direction[i] > 0.0f)
+                {
+                    templow = (m_bounds[i][0] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][2] - start[i]) / direction[i];
+                } else {
+                    templow = (m_bounds[i][2] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][0] - start[i]) / direction[i];
+                }
                 if (first)
                 {
                     first = false;
@@ -276,13 +290,11 @@ namespace caret
                 } else {
                     if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
-                    if (curhigh < curlow || curhigh < 0.0f) return false;//if intersection is null or has no positive range, false
                 }
+                if (curhigh < curlow || curhigh < 0.0f) return false;//if intersection is null or has no positive range, false
+            } else {
+                if (start[i] < m_bounds[i][0] || start[i] > m_bounds[i][2]) return false;
             }
-        }
-        if (first)
-        {
-            return pointInside(start);
         }
         return true;
     }
@@ -291,15 +303,23 @@ namespace caret
     bool Oct<T>::lineSegmentIntersects(const float start[3], const float end[3])
     {
         float direction[3];
-        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside on zero length queries
+        float curlow = 1.0f, curhigh = -1.0f;//quiet compiler, make default say "false", but we use pointInside logic on zero length queries
         MathFunctions::subtractVectors(end, start, direction);//parameterize the line segment to the range [0, 1] of t
         bool first = true;
         for (int i = 0; i < 3; ++i)
         {
             if (direction[i] != 0.0f)
             {
-                float templow = (m_bounds[i][0] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
-                float temphigh = (m_bounds[i][2] - start[i]) / direction[i];
+                float templow;
+                float temphigh;
+                if (direction[i] > 0.0f)
+                {
+                    templow = (m_bounds[i][0] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][2] - start[i]) / direction[i];
+                } else {
+                    templow = (m_bounds[i][2] - start[i]) / direction[i];//compute the range of t over which this line lies between the planes for this axis
+                    temphigh = (m_bounds[i][0] - start[i]) / direction[i];
+                }
                 if (first)
                 {
                     first = false;
@@ -308,13 +328,11 @@ namespace caret
                 } else {
                     if (templow > curlow) curlow = templow;//intersect the ranges
                     if (temphigh < curhigh) curhigh = temphigh;
-                    if (curhigh < curlow || curhigh < 0.0f || curlow > 1.0f) return false;//if intersection is null or has no positive range, or has no range less than 1, false
                 }
+                if (curhigh < curlow || curhigh < 0.0f || curlow > 1.0f) return false;//if intersection is null or has no positive range, or has no range less than 1, false
+            } else {
+                if (start[i] < m_bounds[i][0] || start[i] > m_bounds[i][2]) return false;
             }
-        }
-        if (first)
-        {
-            return pointInside(start);
         }
         return true;
     }

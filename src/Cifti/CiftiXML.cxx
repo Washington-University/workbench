@@ -654,12 +654,23 @@ bool CiftiXML::hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const
     {
         return false;
     }
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return false;
+    }
     const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
     if (myVol.m_transformationMatrixVoxelIndicesIJKtoXYZ.size() == 0)
     {
         return false;
     }
-    return true;
+    for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
+    {
+        if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool CiftiXML::hasColumnSurfaceData(const caret::StructureEnum::Enum structure) const

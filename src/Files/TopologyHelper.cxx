@@ -728,7 +728,13 @@ TopologyHelper::getNodeNeighborsToDepthOld(const int rootNode,
    }
 */
 }
-      
+
+const std::vector< int >& TopologyHelper::getNodeNeighbors(const int nodeNum) const
+{
+    CaretAssertVectorIndex(nodes, nodeNum);
+    return nodes[nodeNum].neighbors;
+}
+
 /**
  * Get the neighboring nodes for a node.  Returns a pointer to an array
  * containing the neighbors.
@@ -749,6 +755,12 @@ TopologyHelper::getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) cons
 {
     CaretAssertVectorIndex(nodes, nodeNum);
     tilesOut = nodes[nodeNum].tiles;
+}
+
+const std::vector<int>& TopologyHelper::getNodeTiles(const int nodeNum) const
+{
+    CaretAssertVectorIndex(nodes, nodeNum);
+    return nodes[nodeNum].tiles;
 }
 
 const int* TopologyHelper::getNodeTiles(const int nodeNum, int& numTilesOut)
