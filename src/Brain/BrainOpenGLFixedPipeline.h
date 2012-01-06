@@ -132,11 +132,14 @@ namespace caret {
                                   const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                   const float voxelXYZ[3]);
         
-        void drawVolumeAxesLabels(
-                                      const VolumeSliceViewPlaneEnum::Enum slicePlane,
+        void drawVolumeAxesLabels(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                       const int32_t viewport[4]);
         
         void drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEnum::Enum slicePlane,
+                                       const int64_t sliceIndex,
+                                       std::vector<VolumeDrawInfo>& volumeDrawInfo);
+        
+        void drawVolumeOrthogonalSliceVolumeViewer(const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
