@@ -176,23 +176,25 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 {
                     throw OperationException("short read from replacement file, aborting");
                 }
-                if (swapBytes->m_present)
+                float tempVal;
+                char* tempValPointer = (char*)&tempVal;//copy method isn't as fast, but it is clean
+                for (int j = 0; j < readSize; ++j)
                 {
-                    float tempVal;
-                    char* tempValPointer = (char*)&tempVal;//copy method isn't as fast, but it is clean
-                    for (int j = 0; j < readSize; ++j)
+                    if (swapBytes->m_present)
                     {
                         char* elemPointer = (char*)(myScratch.getArray() + j);
                         for (int k = 0; k < (int)sizeof(float); ++k)
                         {
                             tempValPointer[k] = elemPointer[sizeof(float) - 1 - k];
                         }
-                        if (transpose->m_present)
-                        {
-                            inputArray[i + j * rowSize] = tempVal;
-                        } else {
-                            inputArray[i * rowSize + j] = tempVal;
-                        }
+                    } else {
+                        tempVal = myScratch[j];
+                    }
+                    if (transpose->m_present)
+                    {
+                        inputArray[i + j * rowSize] = tempVal;
+                    } else {
+                        inputArray[i * rowSize + j] = tempVal;
                     }
                 }
             }
