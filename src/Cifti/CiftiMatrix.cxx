@@ -320,6 +320,7 @@ void CiftiMatrix::writeToNewFile(const AString &fileNameIn, const int64_t  &offs
             if(m_needsSwapping != needsSwappingIn) ByteSwapping::swapBytes(row,rowSize);
             outFile.write((char *)row, rowSize*sizeof(float));
         }
+        delete[] row;
     }
     outFile.close();
 }
