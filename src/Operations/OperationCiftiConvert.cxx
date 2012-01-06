@@ -27,7 +27,9 @@
 #include "CiftiFile.h"
 #include "CiftiXML.h"
 #include "GiftiFile.h"
+#include "CaretPointer.h"
 #include <vector>
+#include <QFile>
 
 using namespace caret;
 using namespace std;
@@ -55,8 +57,8 @@ OperationParameters* OperationCiftiConvert::getParameters()
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
     ret->setHelpText(
-        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  ") +
-        "NOTE: -from-gifti-ext does not currently work!"
+        AString("This command writes a Cifti file as something that can be more easily used by some other programs.  Only one of -to-gifti-ext or -from-gifti-ext ") +
+        "may be specified."
     );
     return ret;
 }
@@ -81,7 +83,14 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         vector<int64_t> myDims;
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
-        GiftiDataArray* myArray = new GiftiDataArray(myHeader.getIntent(), NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
+        NiftiIntentEnum::Enum myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE;
+        if (myDims[0] != myDims[1] ||
+            myInFile->hasRowSurfaceData(StructureEnum::CORTEX_LEFT) != myInFile->hasColumnSurfaceData(StructureEnum::CORTEX_LEFT) ||
+            myInFile->hasRowSurfaceData(StructureEnum::CORTEX_RIGHT) != myInFile->hasColumnSurfaceData(StructureEnum::CORTEX_RIGHT))
+        {//HACK: guess at the right intent type, because it isn't in the nifti header, or in the cifti XML
+            myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE_TIME;
+        }
+        GiftiDataArray* myArray = new GiftiDataArray(myIntent, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
         float* myOutData = myArray->getDataPointerFloat();
         for (int i = 0; i < myInFile->getNumberOfRows(); ++i)
         {
@@ -99,7 +108,6 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
     }
     if (fromGiftiExt->m_present)
     {
-        throw OperationException("cifti writing not yet supported");
         AString myGiftiName = fromGiftiExt->getString(1);
         GiftiFile myInFile;
         myInFile.readFile(myGiftiName);
@@ -112,7 +120,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             throw OperationException("input gifti has the wrong data type");
         }
-        //CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
+        CiftiFile* myOutFile = fromGiftiExt->getOutputCifti(2);
         CiftiHeader myHeader;
         switch (dataArrayRef->getIntent())
         {
@@ -134,7 +142,53 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         myCiftiDims.push_back(myDims[1]);
         myCiftiDims.push_back(myDims[0]);
         myHeader.setDimensions(myDims);
-        CiftiMatrix myMatrix;
-        myMatrix.setup(myDims);
+        myOutFile->setHeader(myHeader);
+        myOutFile->setCiftiXML(CiftiXML(dataArrayRef->getMetaData()->get("CiftiXML")));
+        int64_t rowSize = dataArrayRef->getNumberOfComponents();
+        int64_t colSize = dataArrayRef->getNumberOfRows();
+        OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
+        if (fromGiftiReplace->m_present)
+        {
+            AString replaceFileName = fromGiftiReplace->getString(1);
+            QFile replaceFile(replaceFileName);
+            if (replaceFile.size() != (int64_t)(sizeof(float) * rowSize * colSize))
+            {
+                throw OperationException("replacement file is the wrong size, size is " + AString::number(replaceFile.size()) + ", needed " + AString::number(sizeof(float) * rowSize * colSize));
+            }
+            if (!replaceFile.open(QIODevice::ReadOnly))
+            {
+                throw OperationException("unable to open replacement file for reading");
+            }
+            OptionalParameter* swapBytes = fromGiftiReplace->getOptionalParameter(2);
+            CaretArray<float> myScratch(rowSize);
+            for (int i = 0; i < colSize; ++i)
+            {
+                if (replaceFile.read((char*)(myScratch.getArray()), sizeof(float) * rowSize) != (int64_t)(sizeof(float) * rowSize))
+                {
+                    throw OperationException("short read from replacement file, aborting");
+                }
+                if (swapBytes->m_present)
+                {
+                    float tempVal;
+                    char* tempValPointer = (char*)&tempVal;//copy method isn't as fast, but it is clean
+                    for (int j = 0; j < rowSize; ++j)
+                    {
+                        char* elemPointer = (char*)(myScratch.getArray() + j);
+                        for (int k = 0; k < (int)sizeof(float); ++k)
+                        {
+                            tempValPointer[k] = elemPointer[sizeof(float) - 1 - k];
+                        }
+                        myScratch[j] = tempVal;
+                    }
+                }
+                myOutFile->setRow(myScratch.getArray(), i);
+            }
+        } else {
+            float* inputArray = dataArrayRef->getDataPointerFloat();
+            for (int i = 0; i < colSize; ++i)
+            {
+                myOutFile->setRow(inputArray + (i * rowSize), i);
+            }
+        }
     }
 }

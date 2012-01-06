@@ -127,10 +127,10 @@ LevelProgress::LevelProgress(ProgressObject* myProgObj, const float finishedProg
     if (m_progObjRef != NULL)
     {
         m_progObjRef->setInternalWeight(internalWeight);
+        EventProgressUpdate myUpdate(myProgObj);
+        myUpdate.m_starting = true;
+        EventManager::get()->sendEvent(myUpdate.getPointer());
     }
-    EventProgressUpdate myUpdate(myProgObj);
-    myUpdate.m_starting = true;
-    EventManager::get()->sendEvent(myUpdate.getPointer());
 }
 
 void ProgressObject::setInternalWeight(const float& myInternalWeight)

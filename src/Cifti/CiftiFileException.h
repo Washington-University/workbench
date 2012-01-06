@@ -28,7 +28,7 @@
 #ifndef __CIFTI_FILE_EXCEPTION_H__
 #define __CIFTI_FILE_EXCEPTION_H__
 
-#include <exception>
+#include "CaretException.h"
 #include "AString.h"
 
 namespace caret {
@@ -36,7 +36,7 @@ namespace caret {
 class StatisticException;
 
 /// Exception involving data files
-class CiftiFileException : public std::exception {
+class CiftiFileException : public CaretException {
 
 public:
     // Constructor

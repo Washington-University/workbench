@@ -194,6 +194,7 @@ namespace caret {
         bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
         
+        CiftiXML& operator=(const CiftiXML& right);
     protected:
         CiftiRootElement m_root;
         CiftiMatrixIndicesMapElement* m_rowMap, *m_colMap;//assumes only one matrix

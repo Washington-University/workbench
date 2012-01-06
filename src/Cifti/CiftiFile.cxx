@@ -290,7 +290,7 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
  *
  * @param ciftixml
  */
-void CiftiFile::setCiftiXML(CiftiXML & xml) throw (CiftiFileException)
+void CiftiFile::setCiftiXML(const CiftiXML & xml) throw (CiftiFileException)
 {
     this->m_xml = xml;
     setupMatrix();

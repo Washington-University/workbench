@@ -68,7 +68,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
     if(dimensions.size() >2)
     {
         m_dimensions.clear();
-        for(int64_t i = 0;i<dimensions.size();i++)
+        for(int64_t i = 0; i < (int64_t)dimensions.size(); i++)
         {
             if(dimensions[i]>1) m_dimensions.push_back(dimensions[i]);
         }
@@ -284,7 +284,6 @@ void CiftiMatrix::flushCache() throw (CiftiFileException)
         file->open(QIODevice::ReadWrite);
         file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
-        int64_t matrixLength = m_dimensions[0]*m_dimensions[1];
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
         file->write((char *)m_matrix,matrixSize*sizeof(float));
         file->close();

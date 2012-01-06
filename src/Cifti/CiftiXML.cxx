@@ -723,3 +723,11 @@ bool CiftiXML::hasSurfaceData(const caret::CiftiBrainModelElement* myModel) cons
     }
     return true;
 }
+
+CiftiXML& CiftiXML::operator=(const CiftiXML& right)
+{
+    if (this == &right) return *this;
+    m_root = right.m_root;
+    rootChanged();
+    return *this;
+}

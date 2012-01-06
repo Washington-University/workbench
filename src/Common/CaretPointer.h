@@ -186,7 +186,7 @@ namespace caret {
         {
             m_share = NULL;
         } else {
-            CaretMutexLocker(&(toGrab->m_mutex));
+            CaretMutexLocker locked(&(toGrab->m_mutex));
             m_share = toGrab;
             ++(m_share->m_refCount);
         }
@@ -215,7 +215,7 @@ namespace caret {
         if (m_share == NULL) return;
         bool shouldDelete = false;
         {
-            CaretMutexLocker(&(m_share->m_mutex));
+            CaretMutexLocker locked(&(m_share->m_mutex));
             if (--(m_share->m_refCount) == 0)
             {
                 shouldDelete = true;//because we need to unlock the mutex before deleting the object containing it, or bad things will happen
@@ -324,7 +324,7 @@ namespace caret {
         {
             m_share = NULL;
         } else {
-            CaretMutexLocker(&(toGrab->m_mutex));
+            CaretMutexLocker locked(&(toGrab->m_mutex));
             m_share = toGrab;
             ++(m_share->m_refCount);
         }
@@ -363,7 +363,7 @@ namespace caret {
         if (m_share == NULL) return;
         bool shouldDelete = false;
         {
-            CaretMutexLocker(&(m_share->m_mutex));
+            CaretMutexLocker locked(&(m_share->m_mutex));
             if (--(m_share->m_refCount) == 0)
             {
                 shouldDelete = true;//because we need to unlock the mutex before deleting the object containing it, or bad things will happen
@@ -465,7 +465,7 @@ namespace caret {
         {
             m_share = NULL;
         } else {
-            CaretMutexLocker(&(toGrab->m_mutex));
+            CaretMutexLocker locked(&(toGrab->m_mutex));
             m_share = toGrab;
             ++(m_share->m_refCount);
         }
@@ -494,7 +494,7 @@ namespace caret {
         if (m_share == NULL) return;
         bool shouldDelete = false;
         {
-            CaretMutexLocker(&(m_share->m_mutex));
+            CaretMutexLocker locked(&(m_share->m_mutex));
             if (--(m_share->m_refCount) == 0)
             {
                 shouldDelete = true;//because we need to unlock the mutex before deleting the object containing it, or bad things will happen

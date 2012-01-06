@@ -167,7 +167,7 @@ void OperationParameters::setHelpText(const AString& textIn)
 void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     CiftiParameter* myParam = new CiftiParameter(key, name, description);
-    myParam->m_parameter = new CiftiFile();
+    myParam->m_parameter = new CiftiFile(ON_DISK);
     m_outputList.push_back(myParam);
 }
 
