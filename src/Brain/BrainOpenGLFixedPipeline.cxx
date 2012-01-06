@@ -1045,14 +1045,15 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                               volumeDrawInfo);
     
     if (volumeDrawInfo.empty() == false) {
-        const VolumeSliceIndicesSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
+        VolumeSliceCoordinateSelection* selectedSlices = volumeController->getSelectedVolumeSlices(tabNumber);
         
         VolumeFile* underlayVolumeFile = volumeDrawInfo[0].volumeFile;
-        float selectedVoxelXYZ[3];
-        underlayVolumeFile->indexToSpace(selectedSlices->getSliceIndexParasagittal(),
-                                         selectedSlices->getSliceIndexCoronal(), 
-                                         selectedSlices->getSliceIndexAxial(),
-                                         selectedVoxelXYZ);
+        selectedSlices->updateForVolumeFile(underlayVolumeFile);
+        float selectedVoxelXYZ[3] = {
+            selectedSlices->getSliceCoordinateParasagittal(),
+            selectedSlices->getSliceCoordinateCoronal(),
+            selectedSlices->getSliceCoordinateAxial()
+        };
 
         switch (volumeController->getSliceViewMode(tabNumber)) {
             case VolumeSliceViewModeEnum::MONTAGE:
@@ -1075,15 +1076,15 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         sliceIndex = -1;
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
-                        sliceIndex = selectedSlices->getSliceIndexAxial();
+                        sliceIndex = selectedSlices->getSliceIndexAxial(underlayVolumeFile);
                         maximumSliceIndex = dimensions[2];
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
-                        sliceIndex = selectedSlices->getSliceIndexCoronal();
+                        sliceIndex = selectedSlices->getSliceIndexCoronal(underlayVolumeFile);
                         maximumSliceIndex = dimensions[1];
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        sliceIndex = selectedSlices->getSliceIndexParasagittal();
+                        sliceIndex = selectedSlices->getSliceIndexParasagittal(underlayVolumeFile);
                         maximumSliceIndex = dimensions[0];
                         break;
                 }
@@ -1144,11 +1145,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(VolumeSliceViewPlaneEnum::AXIAL, 
-                                                        selectedSlices->getSliceIndexAxial(),
+                                                        selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         VolumeSliceViewPlaneEnum::AXIAL, 
-                                                        selectedSlices->getSliceIndexAxial(), 
+                                                        selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::AXIAL, 
                                                        selectedVoxelXYZ);
@@ -1161,11 +1162,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(VolumeSliceViewPlaneEnum::CORONAL, 
-                                                        selectedSlices->getSliceIndexCoronal(),
+                                                        selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         VolumeSliceViewPlaneEnum::CORONAL, 
-                                                        selectedSlices->getSliceIndexCoronal(), 
+                                                        selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
                        this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::CORONAL, 
                                                        selectedVoxelXYZ);
@@ -1178,11 +1179,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                                        selectedSlices->getSliceIndexParasagittal(),
+                                                        selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                                        selectedSlices->getSliceIndexParasagittal(), 
+                                                        selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                        selectedVoxelXYZ);
@@ -1197,11 +1198,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
-                                                        selectedSlices->getSliceIndexAxial(),
+                                                        selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         slicePlane, 
-                                                        selectedSlices->getSliceIndexAxial(), 
+                                                        selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
@@ -1214,11 +1215,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
-                                                        selectedSlices->getSliceIndexCoronal(),
+                                                        selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         slicePlane, 
-                                                        selectedSlices->getSliceIndexCoronal(), 
+                                                        selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
@@ -1231,11 +1232,11 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
                         this->drawVolumeOrthogonalSliceVolumeViewer(slicePlane, 
-                                                        selectedSlices->getSliceIndexParasagittal(),
+                                                        selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
                                                         slicePlane, 
-                                                        selectedSlices->getSliceIndexParasagittal(), 
+                                                        selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
                         this->drawVolumeAxesCrosshairs(slicePlane, 
                                                        selectedVoxelXYZ);
@@ -1416,9 +1417,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                            const int64_t sliceIndex,
                                            std::vector<VolumeDrawInfo>& volumeDrawInfo)
 {
-    ElapsedTimer drawTimer;
-    drawTimer.start();
-    
     const int32_t numberOfVolumesToDraw = static_cast<int32_t>(volumeDrawInfo.size());
     
     IdentificationItemVoxel* voxelID = 
@@ -1961,8 +1959,6 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     glEnable(GL_DEPTH_TEST);
     
     glDisable(GL_BLEND);
-    
-    std::cout << "Time to draw volume slices (second): " << drawTimer.getElapsedTimeSeconds() << std::endl;
 }
 
 
@@ -2677,39 +2673,40 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     /*
      * Determine volumes that are to be drawn  
      */
-    if (wholeBrainController->getUnderlayVolumeFile(tabNumberIndex) != NULL) {
+    VolumeFile* underlayVolumeFile = wholeBrainController->getUnderlayVolumeFile(tabNumberIndex);
+    if (underlayVolumeFile != NULL) {
         std::vector<VolumeDrawInfo> volumeDrawInfo;
         this->setupVolumeDrawInfo(browserTabContent,
                                   wholeBrainController->getBrain()->getPaletteFile(),
                                   volumeDrawInfo);
         if (volumeDrawInfo.empty() == false) {
-            const VolumeSliceIndicesSelection* slices = 
+            const VolumeSliceCoordinateSelection* slices = 
             wholeBrainController->getSelectedVolumeSlices(tabNumberIndex);
             if (slices->isSliceAxialEnabled()) {
                 this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::AXIAL, 
-                                                slices->getSliceIndexAxial(), 
+                                                slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
                                                 VolumeSliceViewPlaneEnum::AXIAL, 
-                                                slices->getSliceIndexAxial(), 
+                                                slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
             }
             if (slices->isSliceCoronalEnabled()) {
                 this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::CORONAL, 
-                                                slices->getSliceIndexCoronal(), 
+                                                slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
                                                 VolumeSliceViewPlaneEnum::CORONAL, 
-                                                slices->getSliceIndexCoronal(), 
+                                                slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
             }
             if (slices->isSliceParasagittalEnabled()) {
                 this->drawVolumeOrthogonalSlice(VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                                slices->getSliceIndexParasagittal(), 
+                                                slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
                                                 VolumeSliceViewPlaneEnum::PARASAGITTAL, 
-                                                slices->getSliceIndexParasagittal(), 
+                                                slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
             }
         }

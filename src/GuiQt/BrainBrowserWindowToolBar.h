@@ -276,6 +276,7 @@ namespace caret {
         
         void readVolumeSliceCoordinatesAndUpdateSliceIndices();
         void readVolumeSliceIndicesAndUpdateSliceCoordinates();
+        void updateSliceIndicesAndCoordinatesRanges();
         
     private slots:
         void volumeIndicesResetActionTriggered();

@@ -101,7 +101,7 @@ SphereOpenGL.h
 Surface.h
 SurfaceSelection.h
 SurfaceNodeColoring.h
-VolumeSliceIndicesSelection.h
+VolumeSliceCoordinateSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
 VolumeSurfaceOutlineSelection.h
@@ -160,7 +160,7 @@ SphereOpenGL.cxx
 Surface.cxx
 SurfaceSelection.cxx
 SurfaceNodeColoring.cxx
-VolumeSliceIndicesSelection.cxx
+VolumeSliceCoordinateSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx
 VolumeSurfaceOutlineSelection.cxx

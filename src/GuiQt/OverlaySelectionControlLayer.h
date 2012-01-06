@@ -103,6 +103,8 @@ namespace caret {
         OverlaySelectionControlLayer(const OverlaySelectionControlLayer&);
         OverlaySelectionControlLayer& operator=(const OverlaySelectionControlLayer&);
         
+        void updateUserInterfaceAndGraphicsWindow();
+        
         /** selection control that contains this layer */
         OverlaySelectionControl* overlaySelectionControl;
     };

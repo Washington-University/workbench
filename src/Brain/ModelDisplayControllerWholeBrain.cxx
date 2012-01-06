@@ -334,7 +334,7 @@ ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTa
  * @return
  *   Volume slice selection for tab.
  */
-VolumeSliceIndicesSelection* 
+VolumeSliceCoordinateSelection* 
 ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
     this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(this->getUnderlayVolumeFile(windowTabNumber));
@@ -348,7 +348,7 @@ ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTa
  * @return
  *   Volume slice selection for tab.
  */
-const VolumeSliceIndicesSelection* 
+const VolumeSliceCoordinateSelection* 
 ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
@@ -414,10 +414,7 @@ ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabN
 void
 ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-    if (vf != NULL) {
-        this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
-    }
+    this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
 
 /**
@@ -516,11 +513,7 @@ ModelDisplayControllerWholeBrain::receiveEvent(Event* event)
         for (int32_t windowTabNumber = 0; 
              windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
              windowTabNumber++) {
-            VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-            if (vf != NULL) {
-                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(vf,
-                                                                                     highlighXYZ);
-            }
+             this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
         }
         
         idLocationEvent->setEventProcessed();

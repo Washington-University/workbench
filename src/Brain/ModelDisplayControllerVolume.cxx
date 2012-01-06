@@ -185,7 +185,7 @@ ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
  * @return
  *   Volume slice selection for tab.
  */
-VolumeSliceIndicesSelection* 
+VolumeSliceCoordinateSelection* 
 ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
@@ -200,7 +200,7 @@ ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNum
  * @return
  *   Volume slice selection for tab.
  */
-const VolumeSliceIndicesSelection* 
+const VolumeSliceCoordinateSelection* 
 ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
@@ -313,10 +313,7 @@ ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
 void
 ModelDisplayControllerVolume::setSlicesToOrigin(const int32_t windowTabNumber)
 {
-    VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-    if (vf != NULL) {
-        this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin(vf);
-    }
+    this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
 
 /**
@@ -338,11 +335,7 @@ ModelDisplayControllerVolume::receiveEvent(Event* event)
         for (int32_t windowTabNumber = 0; 
              windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
              windowTabNumber++) {
-            VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
-            if (vf != NULL) {
-                this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(vf,
-                                                                                     highlighXYZ);
-            }
+             this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
         }
         
         idLocationEvent->setEventProcessed();

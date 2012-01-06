@@ -29,7 +29,7 @@
 #include "EventListenerInterface.h"
 #include "ModelDisplayController.h"
 
-#include "VolumeSliceIndicesSelection.h"
+#include "VolumeSliceCoordinateSelection.h"
 #include "VolumeSliceViewPlaneEnum.h"
 #include "VolumeSliceViewModeEnum.h"
 
@@ -75,9 +75,9 @@ namespace caret {
         
         void updateController(const int32_t windowTabNumber);
         
-        VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber);
+        VolumeSliceCoordinateSelection* getSelectedVolumeSlices(const int32_t windowTabNumber);
         
-        const VolumeSliceIndicesSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
+        const VolumeSliceCoordinateSelection* getSelectedVolumeSlices(const int32_t windowTabNumber) const;
         
         virtual void setSlicesToOrigin(const int32_t windowTabNumber);
         
@@ -112,7 +112,7 @@ namespace caret {
         /** Montage slice spacing */
         int32_t montageSliceSpacing[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        mutable VolumeSliceIndicesSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        mutable VolumeSliceCoordinateSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeFile* lastVolumeFile;
     };

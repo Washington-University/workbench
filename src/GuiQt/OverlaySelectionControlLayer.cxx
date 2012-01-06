@@ -40,6 +40,7 @@
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditor.h"
 #include "CaretMappableDataFile.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -194,8 +195,7 @@ OverlaySelectionControlLayer::paletteDisplayCheckBoxToggled(bool toggled)
 
     this->updateControl(browserTabContent);
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**
@@ -217,8 +217,7 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
     
     this->updateControl(browserTabContent);
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -239,8 +238,7 @@ OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
     
     this->overlaySelectionControl->updateControl();
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -261,8 +259,7 @@ OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
     
     this->overlaySelectionControl->updateControl();
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -284,8 +281,7 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
     
     emit controlRemoved();
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 void 
@@ -367,8 +363,7 @@ OverlaySelectionControlLayer::fileSelected(int fileIndex)
 
     this->updateControl(browserTabContent);
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -395,8 +390,7 @@ OverlaySelectionControlLayer::columnSelected(int columnIndex)
     
     this->updateControl(browserTabContent);
     
-    EventGraphicsUpdateOneWindow updateGraphics(this->browserWindowIndex);
-    EventManager::get()->sendEvent(updateGraphics.getPointer());
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -543,3 +537,14 @@ OverlaySelectionControlLayer::setVisible(const bool visible)
 {
     this->widgetGroup->setVisible(visible);
 }
+
+/**
+ * Update the user-interface and graphics windows for the selected tab.
+ */
+void 
+OverlaySelectionControlLayer::updateUserInterfaceAndGraphicsWindow()
+{
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
+}
+
