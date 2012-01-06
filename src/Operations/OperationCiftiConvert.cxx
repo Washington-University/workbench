@@ -56,6 +56,7 @@ OperationParameters* OperationCiftiConvert::getParameters()
     OptionalParameter* fromGiftiReplace = fromGiftiExt->createOptionalParameter(1, "-replace-binary", "replace data with a binary file");
     fromGiftiReplace->addStringParameter(1, "binary-in", "the binary file that contains replacement data");
     fromGiftiReplace->createOptionalParameter(2, "-flip-endian", "byteswap the binary file");
+    fromGiftiReplace->createOptionalParameter(3, "-transpose", "transpose the binary file");
     ret->setHelpText(
         AString("This command writes a Cifti file as something that can be more easily used by some other programs.  Only one of -to-gifti-ext or -from-gifti-ext ") +
         "may be specified."
@@ -147,6 +148,7 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         int64_t rowSize = dataArrayRef->getNumberOfComponents();
         int64_t colSize = dataArrayRef->getNumberOfRows();
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
+        float* inputArray = dataArrayRef->getDataPointerFloat();
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
@@ -160,10 +162,17 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 throw OperationException("unable to open replacement file for reading");
             }
             OptionalParameter* swapBytes = fromGiftiReplace->getOptionalParameter(2);
-            CaretArray<float> myScratch(rowSize);
-            for (int i = 0; i < colSize; ++i)
+            OptionalParameter* transpose = fromGiftiReplace->getOptionalParameter(3);
+            int64_t readSize = rowSize, numReads = colSize;
+            if (transpose->m_present)
             {
-                if (replaceFile.read((char*)(myScratch.getArray()), sizeof(float) * rowSize) != (int64_t)(sizeof(float) * rowSize))
+                readSize = colSize;
+                numReads = rowSize;
+            }
+            CaretArray<float> myScratch(readSize);
+            for (int i = 0; i < numReads; ++i)
+            {
+                if (replaceFile.read((char*)(myScratch.getArray()), sizeof(float) * readSize) != (int64_t)(sizeof(float) * readSize))
                 {
                     throw OperationException("short read from replacement file, aborting");
                 }
@@ -171,24 +180,26 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                 {
                     float tempVal;
                     char* tempValPointer = (char*)&tempVal;//copy method isn't as fast, but it is clean
-                    for (int j = 0; j < rowSize; ++j)
+                    for (int j = 0; j < readSize; ++j)
                     {
                         char* elemPointer = (char*)(myScratch.getArray() + j);
                         for (int k = 0; k < (int)sizeof(float); ++k)
                         {
                             tempValPointer[k] = elemPointer[sizeof(float) - 1 - k];
                         }
-                        myScratch[j] = tempVal;
+                        if (transpose->m_present)
+                        {
+                            inputArray[i + j * rowSize] = tempVal;
+                        } else {
+                            inputArray[i * rowSize + j] = tempVal;
+                        }
                     }
                 }
-                myOutFile->setRow(myScratch.getArray(), i);
             }
-        } else {
-            float* inputArray = dataArrayRef->getDataPointerFloat();
-            for (int i = 0; i < colSize; ++i)
-            {
-                myOutFile->setRow(inputArray + (i * rowSize), i);
-            }
+        }
+        for (int i = 0; i < colSize; ++i)
+        {
+            myOutFile->setRow(inputArray + (i * rowSize), i);
         }
     }
 }
