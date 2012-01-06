@@ -604,7 +604,7 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                                 {
                                     if (triNormal.dot(verts[0] - point) / factor > 0.0f && pointInTri(verts, point, 0, 1))
                                     {
-                                        if (triNormal.dot(positiveZ) < 0.0f)
+                                        if (triNormal[2] < 0.0f)
                                         {
                                             ++crossCount;
                                         } else {
