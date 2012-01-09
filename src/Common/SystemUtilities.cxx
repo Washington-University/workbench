@@ -373,6 +373,7 @@ AString
 SystemUtilities::createUniqueID()
 {
     const AString uuid = QUuid::createUuid().toString();
+    std::cout << "Generated UUID: " << qPrintable(uuid) << std::endl;
     return uuid;
 }
 

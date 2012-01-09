@@ -72,17 +72,17 @@ namespace caret {
                                         float* rgbv);
         
         bool assignLabelColoring(const BrainStructure* brainStructure,
-                                 const AString& labelColumnName,
+                                 const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
         bool assignMetricColoring(const BrainStructure* brainStructure,
-                                  const AString& metricColumnName,
+                                  const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignRgbaColoring(const BrainStructure* brainStructure,
-                                const AString& rgbaColumnName,
+                                const AString& rgbaMapUniqueID,
                                 const int32_t numberOfNodes,
                                 float* rgbv);
         

@@ -147,12 +147,12 @@ OverlaySet::setUnderlayToVolume(BrowserTabContent* browserTabContent)
         if (overlayIndex >= 0) {
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* mapFile;
-            AString mapName;
+            AString mapUniqueID;
             int32_t mapIndex;
             this->overlays[overlayIndex].getSelectionData(browserTabContent, 
                                                           mapFiles, 
                                                           mapFile, 
-                                                          mapName, 
+                                                          mapUniqueID, 
                                                           mapIndex);
             
             const int32_t numMapFiles = static_cast<int32_t>(mapFiles.size());

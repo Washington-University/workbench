@@ -158,7 +158,7 @@ Overlay::copyData(const Overlay* overlay)
     
     this->mapFiles = overlay->mapFiles;
     this->selectedMapFile = overlay->selectedMapFile;
-    this->selectedMapName = overlay->selectedMapName;
+    this->selectedMapUniqueID = overlay->selectedMapUniqueID;
 }
 
 /**
@@ -184,13 +184,13 @@ Overlay::swapData(Overlay* overlay)
  *    Tab in which this overlay is applied.
  * @param mapDataFileTypeOut
  *    Type of map file out.
- * @param selectedMapNameOut
- *    Name of map that is selected.
+ * @param selectedMapUniqueIDOut
+ *    UniqueID of map that is selected.
  */
 void 
 Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                           DataFileTypeEnum::Enum& mapDataFileTypeOut,
-                          AString& selectedMapNameOut)
+                          AString& selectedMapUniqueIDOut)
 {
     std::vector<CaretMappableDataFile*> allFiles;
     CaretMappableDataFile* selectedFile;
@@ -198,7 +198,7 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
     this->getSelectionData(browserTabContent,
                            allFiles,
                            selectedFile,
-                           selectedMapNameOut,
+                           selectedMapUniqueIDOut,
                            selectedIndex);
     
     mapDataFileTypeOut = DataFileTypeEnum::UNKNOWN;
@@ -206,7 +206,7 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
         mapDataFileTypeOut = selectedFile->getDataFileType();
     }
     else {
-        selectedMapNameOut = "";
+        selectedMapUniqueIDOut = "";
     }    
 }
 
@@ -227,12 +227,12 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                           int32_t& selectedMapIndexOut)
 {
     std::vector<CaretMappableDataFile*> mapFiles;
-    AString mapName;
+    AString mapUniqueID;
     
     this->getSelectionData(browserTabContent, 
                            mapFiles, 
                            selectedMapFileOut, 
-                           mapName, 
+                           mapUniqueID, 
                            selectedMapIndexOut);
 }
 
@@ -246,8 +246,8 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
  *    Contains all map files that can be selected.
  * @param selectedMapFileOut
  *    The selected map file.  May be NULL.
- * @param selectedMapNameOut
- *    Name of selected map.
+ * @param selectedMapUniqueIDOut
+ *    UniqueID of selected map.
  * @param selectedMapIndexOut
  *    Index of selected map in the selected file.
  */
@@ -255,12 +255,12 @@ void
 Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                           std::vector<CaretMappableDataFile*>& mapFilesOut,
                           CaretMappableDataFile* &selectedMapFileOut,
-                          AString& selectedMapNameOut,
+                          AString& selectedMapUniqueIDOut,
                           int32_t& selectedMapIndexOut)
 {
     mapFilesOut.clear();
     selectedMapFileOut = NULL;
-    selectedMapNameOut = "";
+    selectedMapUniqueIDOut = "";
     selectedMapIndexOut = -1;
     
     /**
@@ -356,21 +356,21 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
      * map is still valid.  If not, use first map.
      */
     if (this->selectedMapFile != NULL) {
-        const int32_t mapIndex = this->selectedMapFile->getMapIndexFromName(this->selectedMapName);
+        const int32_t mapIndex = this->selectedMapFile->getMapIndexFromUniqueID(this->selectedMapUniqueID);
         if (mapIndex < 0) {
-            this->selectedMapName = this->selectedMapFile->getMapName(0);
+            this->selectedMapUniqueID = this->selectedMapFile->getMapUniqueID(0);
         }
     }
     else {
         /*
-         * Look for a file that contains the selected map name.
+         * Look for a file that contains the selected map unique ID.
          */
-        if (this->selectedMapName.isEmpty() == false) {
+        if (this->selectedMapUniqueID.isEmpty() == false) {
             for (std::vector<CaretMappableDataFile*>::iterator iter = mapFilesOut.begin();
                  iter != mapFilesOut.end();
                  iter++) {
                 CaretMappableDataFile* mapTypeFile = *iter;
-                const int32_t mapIndex = mapTypeFile->getMapIndexFromName(this->selectedMapName);
+                const int32_t mapIndex = mapTypeFile->getMapIndexFromUniqueID(this->selectedMapUniqueID);
                 if (mapIndex >= 0) {
                     this->selectedMapFile = mapTypeFile;
                     break;
@@ -389,7 +389,7 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
                     CaretMappableDataFile* mapTypeFile = *iter;
                     if (mapTypeFile->getNumberOfMaps() > 0) {
                         this->selectedMapFile = mapTypeFile;
-                        this->selectedMapName = mapTypeFile->getMapName(0);
+                        this->selectedMapUniqueID = mapTypeFile->getMapUniqueID(0);
                     }
                 }
             }
@@ -398,8 +398,8 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
     
     selectedMapFileOut = this->selectedMapFile;
     if (selectedMapFileOut != NULL) {
-        selectedMapNameOut = this->selectedMapName;
-        selectedMapIndexOut = this->selectedMapFile->getMapIndexFromName(selectedMapNameOut);
+        selectedMapUniqueIDOut = this->selectedMapUniqueID;
+        selectedMapIndexOut = this->selectedMapFile->getMapIndexFromUniqueID(selectedMapUniqueIDOut);
     }
 }
 
@@ -415,7 +415,7 @@ Overlay::setSelectionData(CaretMappableDataFile* selectedMapFile,
                           const int32_t selectedMapIndex)
 {
     this->selectedMapFile = selectedMapFile;
-    this->selectedMapName = selectedMapFile->getMapName(selectedMapIndex);    
+    this->selectedMapUniqueID = selectedMapFile->getMapUniqueID(selectedMapIndex);    
 }
 
 /**

@@ -114,6 +114,8 @@ public:
     void clearModified();
 
     bool isModified() const;
+    
+    void resetUniqueIdentifier();
 
 private:
     std::map<AString,AString> createTreeMap();

@@ -120,13 +120,13 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
         if (overlay->isEnabled()) {
             std::vector<CaretMappableDataFile*> mapFiles;
             CaretMappableDataFile* selectedMapFile;
-            AString selectedMapName;
+            AString selectedMapUniqueID;
             int32_t selectedMapIndex;
             
             overlay->getSelectionData(browserTabContent,
                                       mapFiles,
                                       selectedMapFile,
-                                      selectedMapName,
+                                      selectedMapUniqueID,
                                       selectedMapIndex);
             
             DataFileTypeEnum::Enum mapDataFileType = DataFileTypeEnum::UNKNOWN;
@@ -144,13 +144,13 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
                 }
                     break;
                 case DataFileTypeEnum::LABEL:
-                    isColoringValid = this->assignLabelColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
+                    isColoringValid = this->assignLabelColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
                     break;
                 case DataFileTypeEnum::METRIC:
-                    isColoringValid = this->assignMetricColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
+                    isColoringValid = this->assignMetricColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
                     break;
                 case DataFileTypeEnum::RGBA:
-                    isColoringValid = this->assignRgbaColoring(brainStructure, selectedMapName, numNodes, overlayRGBV);
+                    isColoringValid = this->assignRgbaColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
                     break;
                 case DataFileTypeEnum::VOLUME:
                     break;
@@ -199,8 +199,8 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
  * Assign label coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
- * @param labelColumnName
- *    Name of selected column.
+ * @param labelMapUniqueID
+ *    UniqueID of selected map.
  * @param numberOfNodes
  *    Number of nodes in surface.
  * @param rgbv
@@ -213,7 +213,7 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
  */
 bool 
 SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure, 
-                                         const AString& labelColumnName,
+                                         const AString& labelMapUniqueID,
                                          const int32_t numberOfNodes,
                                          float* rgbv)
 {
@@ -226,7 +226,7 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
          iter != allLabelFiles.end();
          iter++) {
         LabelFile* lf = *iter;
-        displayColumn = lf->getColumnIndexFromColumnName(labelColumnName);
+        displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
         if (displayColumn >= 0) {
             labelFile = lf;
             break;
@@ -268,9 +268,25 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
     return true;
 }
 
+/**
+ * Assign metric coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param metricMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
 bool 
 SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure, 
-                                          const AString& metricColumnName,
+                                          const AString& metricMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
 {
@@ -283,7 +299,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
          iter != allMetricFiles.end();
          iter++) {
         MetricFile* mf = *iter;
-        displayColumn = mf->getColumnIndexFromColumnName(metricColumnName);
+        displayColumn = mf->getMapIndexFromUniqueID(metricMapUniqueID);
         if (displayColumn >= 0) {
             metricFile = mf;
             break;
@@ -337,6 +353,22 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     return true;
 }
 
+/**
+ * Assign connectivity coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param connectivityLoaderFile
+ *    The connectivity loader file containing the data.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
 bool 
 SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStructure,
                                                 ConnectivityLoaderFile* connectivityLoaderFile,
@@ -348,9 +380,25 @@ SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStruc
                                                    numberOfNodes);
 }
 
+/**
+ * Assign RGBA coloring to nodes
+ * @param brainStructure
+ *    The brain structure that contains the data files.
+ * @param metricMapUniqueID
+ *    UniqueID of selected map.
+ * @param numberOfNodes
+ *    Number of nodes in surface.
+ * @param rgbv
+ *    Color components set by this method.
+ *    Red, green, blue, valid.  If the valid component is
+ *    zero, it indicates that the overlay did not assign
+ *    any coloring to the node.
+ * @return
+ *    True if coloring is valid, else false.
+ */
 bool 
 SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
-                                        const AString& /*rgbaColumnName*/,
+                                        const AString& /*rgbaMapUniqueID*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)
 {

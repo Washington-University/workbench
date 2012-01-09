@@ -122,6 +122,19 @@ GiftiMetaData::getUniqueID() const
 }
 
 /**
+ * Reset the unique identifier.
+ * Do not call this method unless you really need to such 
+ * as in the caret when multiple data arrays have the 
+ * same unique identifier.
+ */
+void 
+GiftiMetaData::resetUniqueIdentifier()
+{
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
+              SystemUtilities::createUniqueID());
+}
+
+/**
  * Remove the UniqueID from this metadata.
  *
  *
@@ -166,7 +179,8 @@ GiftiMetaData::append(const GiftiMetaData& smd)
 }
 
 /**
- * Clears this metadata and then copies all metadata from "smd".
+ * Clears this metadata and then copies all metadata from "smd"
+ * with the exception of the Unique ID.
  *
  * @param smd   Metadata that is to be copied to "this".
  *

@@ -450,13 +450,13 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
      */
     std::vector<CaretMappableDataFile*> dataFiles;
     CaretMappableDataFile* selectedFile = NULL;
-    AString selectedColumnName = "";
-    int32_t selectedColumnIndex = -1;
+    AString selectedMapUniqueID = "";
+    int32_t selectedMapIndex = -1;
     so->getSelectionData(browserTabContent,
                          dataFiles, 
                          selectedFile, 
-                         selectedColumnName, 
-                         selectedColumnIndex);
+                         selectedMapUniqueID, 
+                         selectedMapIndex);
     
     /*
      * Load the file selection combo box.
@@ -498,7 +498,7 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
         for (int32_t i = 0; i < numMaps; i++) {
             this->columnSelectionComboBox->addItem(selectedFile->getMapName(i));
         }
-        this->columnSelectionComboBox->setCurrentIndex(selectedColumnIndex);
+        this->columnSelectionComboBox->setCurrentIndex(selectedMapIndex);
     }
     
     this->paletteDisplayCheckBox->setChecked(so->isPaletteDisplayEnabled());

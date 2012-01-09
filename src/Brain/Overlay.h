@@ -59,12 +59,12 @@ namespace caret {
         
         void getSelectionData(BrowserTabContent* browserTabContent,
                               DataFileTypeEnum::Enum& mapFileTypeOut,
-                              AString& selectedMapNameOut);
+                              AString& selectedMapUniqueIDOut);
         
         void getSelectionData(BrowserTabContent* browserTabContent,
                               std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
-                              AString& selectedMapNameOut,
+                              AString& selectedMapUniqueIDOut,
                               int32_t& selectedMapIndexOut);
         
         void getSelectionData(BrowserTabContent* browserTabContent,
@@ -101,8 +101,8 @@ namespace caret {
         /* selected mappable file */
         CaretMappableDataFile* selectedMapFile;
         
-        /* selected data file map */
-        AString selectedMapName;
+        /* selected data file map unique id */
+        AString selectedMapUniqueID;
         
         /* Display palette in graphics window */
         bool paletteDisplayedFlag;
