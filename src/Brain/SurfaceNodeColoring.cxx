@@ -144,13 +144,25 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
                 }
                     break;
                 case DataFileTypeEnum::LABEL:
-                    isColoringValid = this->assignLabelColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
+                    isColoringValid = this->assignLabelColoring(brainStructure, 
+                                                                dynamic_cast<LabelFile*>(selectedMapFile),
+                                                                selectedMapUniqueID, 
+                                                                numNodes, 
+                                                                overlayRGBV);
                     break;
                 case DataFileTypeEnum::METRIC:
-                    isColoringValid = this->assignMetricColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
+                    isColoringValid = this->assignMetricColoring(brainStructure, 
+                                                                 dynamic_cast<MetricFile*>(selectedMapFile),
+                                                                 selectedMapUniqueID, 
+                                                                 numNodes, 
+                                                                 overlayRGBV);
                     break;
                 case DataFileTypeEnum::RGBA:
-                    isColoringValid = this->assignRgbaColoring(brainStructure, selectedMapUniqueID, numNodes, overlayRGBV);
+                    isColoringValid = this->assignRgbaColoring(brainStructure, 
+                                                               dynamic_cast<RgbaFile*>(selectedMapFile),
+                                                               selectedMapUniqueID, 
+                                                               numNodes, 
+                                                               overlayRGBV);
                     break;
                 case DataFileTypeEnum::VOLUME:
                     break;
@@ -199,6 +211,8 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
  * Assign label coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
+ * @param labelFile
+ *    Label file that is selected.
  * @param labelMapUniqueID
  *    UniqueID of selected map.
  * @param numberOfNodes
@@ -213,23 +227,28 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
  */
 bool 
 SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure, 
+                                         const LabelFile* labelFile,
                                          const AString& labelMapUniqueID,
                                          const int32_t numberOfNodes,
                                          float* rgbv)
 {
+    if (labelFile == NULL) {
+        return false;
+    }
+    
     std::vector<LabelFile*> allLabelFiles;
     brainStructure->getLabelFiles(allLabelFiles);
     
     int32_t displayColumn = -1;
-    LabelFile* labelFile = NULL;
     for (std::vector<LabelFile*>::iterator iter = allLabelFiles.begin();
          iter != allLabelFiles.end();
          iter++) {
         LabelFile* lf = *iter;
-        displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
-        if (displayColumn >= 0) {
-            labelFile = lf;
-            break;
+        if (lf == labelFile) {
+            displayColumn = lf->getMapIndexFromUniqueID(labelMapUniqueID);
+            if (displayColumn >= 0) {
+                break;
+            }
         }
     }
     
@@ -244,7 +263,7 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
         rgbv[i*4+3] = 0.0;
     }   
     
-    GiftiLabelTable* labelTable = labelFile->getLabelTable();
+    const GiftiLabelTable* labelTable = labelFile->getLabelTable();
     
     /*
      * Assign colors from labels to nodes
@@ -272,6 +291,8 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
  * Assign metric coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
+ * @param metricFile
+ *    Metric file that is selected.
  * @param metricMapUniqueID
  *    UniqueID of selected map.
  * @param numberOfNodes
@@ -286,6 +307,7 @@ SurfaceNodeColoring::assignLabelColoring(const BrainStructure* brainStructure,
  */
 bool 
 SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure, 
+                                          MetricFile* metricFile,
                                           const AString& metricMapUniqueID,
                                           const int32_t numberOfNodes,
                                           float* rgbv)
@@ -294,15 +316,15 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
     brainStructure->getMetricFiles(allMetricFiles);
     
     int32_t displayColumn = -1;
-    MetricFile* metricFile = NULL;
     for (std::vector<MetricFile*>::iterator iter = allMetricFiles.begin();
          iter != allMetricFiles.end();
          iter++) {
         MetricFile* mf = *iter;
-        displayColumn = mf->getMapIndexFromUniqueID(metricMapUniqueID);
-        if (displayColumn >= 0) {
-            metricFile = mf;
-            break;
+        if (mf == metricFile) {
+            displayColumn = mf->getMapIndexFromUniqueID(metricMapUniqueID);
+            if (displayColumn >= 0) {
+                break;
+            }
         }
     }
     
@@ -310,7 +332,7 @@ SurfaceNodeColoring::assignMetricColoring(const BrainStructure* brainStructure,
         return false;
     }
     
-    PaletteColorMapping* paletteColorMapping = metricFile->getPaletteColorMapping(displayColumn);
+    const PaletteColorMapping* paletteColorMapping = metricFile->getPaletteColorMapping(displayColumn);
     
     /*
      * Invalidate all coloring.
@@ -384,6 +406,8 @@ SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStruc
  * Assign RGBA coloring to nodes
  * @param brainStructure
  *    The brain structure that contains the data files.
+ * @param rgbaFile
+ *    RGBA file that is selected.
  * @param metricMapUniqueID
  *    UniqueID of selected map.
  * @param numberOfNodes
@@ -398,6 +422,7 @@ SurfaceNodeColoring::assignConnectivityColoring(const BrainStructure* brainStruc
  */
 bool 
 SurfaceNodeColoring::assignRgbaColoring(const BrainStructure* /*brainStructure*/, 
+                                        const RgbaFile* /*rgbaFile*/,
                                         const AString& /*rgbaMapUniqueID*/,
                                         const int32_t numberOfNodes,
                                         float* rgbv)

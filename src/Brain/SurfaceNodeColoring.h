@@ -33,8 +33,11 @@ namespace caret {
     class BrainStructure;
     class BrowserTabContent;
     class ConnectivityLoaderFile;
+    class LabelFile;
+    class MetricFile;
     class Palette;
     class PaletteColorMapping;
+    class RgbaFile;
     class Surface;
     class OverlaySet;
     
@@ -72,16 +75,19 @@ namespace caret {
                                         float* rgbv);
         
         bool assignLabelColoring(const BrainStructure* brainStructure,
+                                 const LabelFile* labelFile,
                                  const AString& labelMapUniqueID,
                                  const int32_t numberOfNodes,
                                  float* rgbv);
 
         bool assignMetricColoring(const BrainStructure* brainStructure,
+                                  MetricFile* metricFile,
                                   const AString& metricMapUniqueID,
                                   const int32_t numberOfNodes,
                                   float* rgbv);
         
         bool assignRgbaColoring(const BrainStructure* brainStructure,
+                                const RgbaFile* rgbaFile,
                                 const AString& rgbaMapUniqueID,
                                 const int32_t numberOfNodes,
                                 float* rgbv);
