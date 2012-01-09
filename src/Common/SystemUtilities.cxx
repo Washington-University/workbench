@@ -29,6 +29,8 @@
 #include <QDateTime>
 #include <QDir>
 
+#include <QUuid>
+
 #include "CaretOMP.h"
 
 #ifndef _WIN32
@@ -364,10 +366,14 @@ SystemUtilities::testRelativePath(
     return correctFlag;
 }
 
+/**
+ * @return A Universally Unique Identifier (UUID).
+ */
 AString
 SystemUtilities::createUniqueID()
 {
-    return AString("");
+    const AString uuid = QUuid::createUuid().toString();
+    return uuid;
 }
 
 /**

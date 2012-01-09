@@ -326,6 +326,11 @@ namespace caret {
         GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
         
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
+
+        AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
+        
     };
 
 }

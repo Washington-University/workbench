@@ -82,15 +82,24 @@ GiftiMetaData::operator=(const GiftiMetaData& o)
 void
 GiftiMetaData::copyHelper(const GiftiMetaData& o)
 {
+    /*
+     * Preserve this instance's Unique ID.
+     */
+    const AString uid = this->getUniqueID();
     this->metadata = o.metadata;
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+              uid);
     this->clearModified();
 }
 
 void
 GiftiMetaData::initializeMembersGiftiMetaData()
 {
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
+              SystemUtilities::createUniqueID());
     this->modifiedFlag = false;
 }
+
 /**
  * Get the Unique ID.  If there is not a unique ID, one is created.
  * @return String containing unique ID.
@@ -99,23 +108,29 @@ GiftiMetaData::initializeMembersGiftiMetaData()
 AString
 GiftiMetaData::getUniqueID() const
 {
-    AString uid = "UID";
+    AString uid;
+    
     MetaDataConstIterator iter = this->metadata.find(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
-    if (iter == this->metadata.end()) {
-        CaretAssertMessage(0, "UUID generation needs implementation");
+    if (iter != this->metadata.end()) {
+        uid = iter->second;
     }
+    else {
+        CaretAssertMessage(0, "GiftMetaData does not have UniqueID!!!");
+    }
+    
     return uid;
 }
 
 /**
  * Remove the UniqueID from this metadata.
  *
- */
+ *
 void
 GiftiMetaData::removeUniqueID()
 {
     this->remove(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID);
 }
+*/
 
 /**
  * Clear the metadata.  Note does create a UniqueID.
@@ -125,6 +140,8 @@ void
 GiftiMetaData::clear()
 {
     this->metadata.clear();
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID, 
+              SystemUtilities::createUniqueID());
     this->clearModified();
 }
 
@@ -141,7 +158,9 @@ GiftiMetaData::append(const GiftiMetaData& smd)
     for (MetaDataConstIterator iter = smd.metadata.begin();
          iter != smd.metadata.end();
          iter++) {
-        this->set(iter->first, iter->second);
+        if (iter->first != GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID) {
+            this->set(iter->first, iter->second);
+        }
     }
     this->setModified();
 }
@@ -155,7 +174,13 @@ GiftiMetaData::append(const GiftiMetaData& smd)
 void
 GiftiMetaData::replace(const GiftiMetaData& smd)
 {
+    /*
+     * Preserve UniqueID.
+     */
+    const AString uid = this->getUniqueID();
     this->metadata = smd.metadata;
+    this->set(GiftiMetaDataXmlElements::METADATA_NAME_UNIQUE_ID,
+              uid);
     this->setModified();
 }
 

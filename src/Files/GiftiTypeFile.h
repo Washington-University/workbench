@@ -135,6 +135,10 @@ namespace caret {
         
         virtual const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;        
         
+        virtual AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
+        
     private:
         void copyHelperGiftiTypeFile(const GiftiTypeFile& gtf);
         

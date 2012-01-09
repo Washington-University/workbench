@@ -622,3 +622,39 @@ GiftiTypeFile::getMapLabelTable(const int32_t /*mapIndex*/) const
     return this->giftiFile->getLabelTable();
 }
 
+/**
+ * Get the unique ID (UUID) for the map at the given index.
+ * 
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    String containing UUID for the map.
+ */
+AString 
+GiftiTypeFile::getMapUniqueID(const int32_t mapIndex) const
+{
+    const GiftiMetaData* md = this->giftiFile->getDataArray(mapIndex)->getMetaData();
+    return md->getUniqueID();    
+}
+
+/**
+ * Find the index of the map that uses the given unique ID (UUID).
+ * 
+ * @param uniqueID
+ *    Unique ID (UUID) of the desired map.
+ * @return
+ *    Index of the map using the given UUID.
+ */
+int32_t 
+GiftiTypeFile::getMapIndexFromUniqueID(const AString& uniqueID) const
+{
+    const int32_t numberOfArrays = this->giftiFile->getNumberOfDataArrays();
+    for (int32_t i = 0; i < numberOfArrays; i++) {
+        if (this->getMapUniqueID(i) == uniqueID) {
+            return i;
+        }
+    }
+    
+    return -1;
+}
+

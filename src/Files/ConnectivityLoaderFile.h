@@ -94,6 +94,10 @@ namespace caret {
         
         virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex);
         
+        virtual AString getMapUniqueID(const int32_t mapIndex) const;
+        
+        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
+        
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
         
         virtual bool isMappedWithPalette() const;
@@ -157,6 +161,9 @@ namespace caret {
         float getSelectedTimePoint() const;
         
     private:
+        ConnectivityLoaderFile(const ConnectivityLoaderFile&);
+        ConnectivityLoaderFile& operator=(const ConnectivityLoaderFile&);
+        
         enum LoaderType {
             LOADER_TYPE_INVALID,
             LOADER_TYPE_DENSE,
@@ -211,6 +218,8 @@ namespace caret {
         bool dataLoadingEnabled;
         
         float selectedTimePoint;
+        
+        AString uniqueID; // DO NOT COPY
     };
     
 } // namespace

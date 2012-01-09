@@ -66,7 +66,7 @@ private:
 public:
     AString getUniqueID() const;
 
-    void removeUniqueID();
+    //void removeUniqueID();
 
     void clear();
 
@@ -126,7 +126,7 @@ public:
 
 private:
     /**the metadata storage. */
-    std::map<AString,AString> metadata;    
+    mutable std::map<AString,AString> metadata;    
     typedef std::map<AString,AString>::iterator MetaDataIterator;
     typedef std::map<AString,AString>::const_iterator MetaDataConstIterator;
     

@@ -121,6 +121,10 @@ namespace caret {
         GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) { return VolumeBase::getMapLabelTable(mapIndex); }
         
         const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const { return VolumeBase::getMapLabelTable(mapIndex); }
+
+        AString getMapUniqueID(const int32_t mapIndex) const { return VolumeBase::getMapUniqueID(mapIndex); }
+        
+        int32_t getMapIndexFromUniqueID(const AString& uniqueID) const { return VolumeBase::getMapIndexFromUniqueID(uniqueID); }
     };
 
 }

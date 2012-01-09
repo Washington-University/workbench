@@ -127,6 +127,26 @@ namespace caret {
         virtual GiftiMetaData* getMapMetaData(const int32_t mapIndex) = 0;
         
         /**
+         * Get the unique ID (UUID) for the map at the given index.
+         * 
+         * @param mapIndex
+         *    Index of the map.
+         * @return
+         *    String containing UUID for the map.
+         */
+        virtual AString getMapUniqueID(const int32_t mapIndex) const = 0;
+        
+        /**
+         * Find the index of the map that uses the given unique ID (UUID).
+         * 
+         * @param uniqueID
+         *    Unique ID (UUID) of the desired map.
+         * @return
+         *    Index of the map using the given UUID.
+         */
+        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const = 0;
+        
+        /**
          * @return Is the data in the file mapped to colors using
          * a palette.
          */

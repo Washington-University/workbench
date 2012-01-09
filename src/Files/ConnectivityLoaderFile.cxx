@@ -61,6 +61,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->timeSeriesGraphEnabled = false;
     this->selectedTimePoint = 0.0;
     this->dataLoadingEnabled = true;
+    this->uniqueID = SystemUtilities::createUniqueID();
     
     this->setFileName("");
 }
@@ -475,6 +476,34 @@ ConnectivityLoaderFile::setMapName(const int32_t /*mapIndex*/,
                                    const AString& /*mapName*/)
 {
     
+}
+
+/**
+ * Get the unique ID (UUID) for the map at the given index.
+ * 
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    String containing UUID for the map.
+ */
+AString 
+ConnectivityLoaderFile::getMapUniqueID(const int32_t /*mapIndex*/) const
+{
+    return this->uniqueID;
+}
+
+/**
+ * Find the index of the map that uses the given unique ID (UUID).
+ * 
+ * @param uniqueID
+ *    Unique ID (UUID) of the desired map.
+ * @return
+ *    Index of the map using the given UUID.
+ */
+int32_t 
+ConnectivityLoaderFile::getMapIndexFromUniqueID(const AString& /*uniqueID*/) const
+{
+    return 0;
 }
 
 /**

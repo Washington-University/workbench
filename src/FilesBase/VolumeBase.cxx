@@ -764,6 +764,41 @@ VolumeBase::getMapLabelTable(const int32_t /*mapIndex*/) const
     return m_labelTable;
 }
 
+/**
+ * Get the unique ID (UUID) for the map at the given index.
+ * 
+ * @param mapIndex
+ *    Index of the map.
+ * @return
+ *    String containing UUID for the map.
+ */
+AString 
+VolumeBase::getMapUniqueID(const int32_t mapIndex) const
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    return m_brickAttributes[mapIndex]->m_metadata->getUniqueID();
+}
+
+/**
+ * Find the index of the map that uses the given unique ID (UUID).
+ * 
+ * @param uniqueID
+ *    Unique ID (UUID) of the desired map.
+ * @return
+ *    Index of the map using the given UUID.
+ */
+int32_t 
+VolumeBase::getMapIndexFromUniqueID(const AString& uniqueID) const
+{
+    for (int64_t i = 0; i < m_dimensions[3]; i++) {
+        if (m_brickAttributes[i]->m_metadata->getUniqueID() == uniqueID) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+
 
 
 //==================================================================================
