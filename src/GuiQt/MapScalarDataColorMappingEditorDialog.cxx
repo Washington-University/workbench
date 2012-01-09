@@ -1189,10 +1189,10 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         }
         
         if (dataValues != NULL) {
-            delete dataValues;
+            delete[] dataValues;
         }
         if (dataRGBA != NULL) {
-            delete dataRGBA;
+            delete[] dataRGBA;
         }
         
         /*
