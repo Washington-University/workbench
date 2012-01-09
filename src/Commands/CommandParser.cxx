@@ -57,14 +57,10 @@ void CommandParser::executeOperation(ProgramParameters& parameters) throw (Comma
         m_autoOper->useParameters(myAlgParams.getPointer(), NULL);//TODO: progress status for caret_command? would probably get messed up by any command info output
         
         writeOutput(myOutAssoc);
-    } catch (OperationException& e) {
-        throw CommandException(e);
-    } catch (AlgorithmException& e) {
-        throw CommandException(e);
-    } catch (DataFileException& e) {
-        throw CommandException(e);
-    } catch (CiftiFileException& e) {
-        throw CommandException(e);
+    } catch (ProgramParametersException& e) {
+        throw e;
+    } catch (CaretException& e) {
+        throw CommandException(e);//rethrow EVERYTHING else as CommandException
     }
     
 }

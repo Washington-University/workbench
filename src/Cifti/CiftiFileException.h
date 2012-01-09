@@ -42,21 +42,10 @@ public:
     // Constructor
     CiftiFileException(const AString& msg);
 
-    /// Constructor
-    CiftiFileException(const AString& filename, const AString& msg);
+    CiftiFileException(const CaretException& e);
 
     /// Destructor
     virtual ~CiftiFileException() throw();
-
-    /// get description of exception
-    virtual AString whatAString() const throw();
-
-    /// get description of exception (private to prevent its use)
-    virtual const char* what() const throw();
-
-protected:
-    /// Description of the exception
-    AString exceptionDescription;
 
 private:
 };

@@ -186,7 +186,7 @@ void CiftiFile::setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn
  *
  * @param fileName specifies the name and path of the file to write to
  */
-void CiftiFile::writeFile(const AString &fileName) throw (CiftiFileException)
+void CiftiFile::writeFile(const AString &fileName)
 {
     if(QFile::exists(fileName))
     {

@@ -241,8 +241,8 @@ ConnectivityLoaderFile::setup(const AString& path,
         this->paletteColorMapping->setInterpolatePaletteFlag(true);
     }
     catch (CiftiFileException& e) {
-        throw DataFileException(e.whatAString());
-    }    
+        throw DataFileException(e.whatString());
+    }
 }
 
 /**
@@ -772,7 +772,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
         }
     }
     catch (CiftiFileException& e) {
-        throw DataFileException(e.whatAString());
+        throw DataFileException(e.whatString());
     }
 }
 
@@ -833,7 +833,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
         }
     }
     catch (CiftiFileException& e) {
-        throw DataFileException(e.whatAString());
+        throw DataFileException(e.whatString());
     }
 }
 
@@ -889,7 +889,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
         }
     }
     catch (CiftiFileException& e) {
-        throw DataFileException(e.whatAString());
+        throw DataFileException(e.whatString());
     }
 }
 

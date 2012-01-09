@@ -29,23 +29,9 @@
 
 using namespace caret;
 
-CiftiFileException::CiftiFileException(const AString& msg)
+CiftiFileException::CiftiFileException(const AString& s) : CaretException(s)
 {
-    exceptionDescription = msg;
 }
-
-/**
- * Constructor.
- */
-CiftiFileException::CiftiFileException(const AString& filename, const AString& msg)
-{
-    AString s("Error  ");
-    s.append(filename);
-    s.append(": ");
-    s.append(msg);
-    exceptionDescription = s;
-}
-
 
 /**
  * Destructor.
@@ -54,21 +40,6 @@ CiftiFileException::~CiftiFileException() throw()
 {
 }
 
-/**
- * Text message describing exception.
- */
-
-const char*
-CiftiFileException::what() const throw() 
+CiftiFileException::CiftiFileException(const CaretException& e): CaretException(e)
 {
-    return exceptionDescription.toAscii().constData();
-}
-
-/**
- * Text message describing exception.
- */
-AString
-CiftiFileException::whatAString() const throw()
-{
-    return exceptionDescription;
 }
