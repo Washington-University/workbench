@@ -525,18 +525,19 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 
 /**
  * @return Is contralateral identification enabled?
- */
+ *
 bool 
 CaretPreferences::isContralateralIdentificationEnabled() const
 {
     return this->contralateralIdentificationEnabled;
 }
+*/
 
 /**
  * Set contralateral identification enabled.
  * @param enabled
  *    New status.
- */
+ *
 void 
 CaretPreferences::setContralateralIdentificationEnabled(const bool enabled)
 {
@@ -544,6 +545,7 @@ CaretPreferences::setContralateralIdentificationEnabled(const bool enabled)
     this->setBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL, 
                      this->contralateralIdentificationEnabled);
 }
+*/
 
 /**
  * Initialize/Read the preferences
@@ -613,8 +615,8 @@ CaretPreferences::readPreferences()
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
                                                          true);
     
-    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
-                                                                   false);
+//    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
+//                                                                   false);
 }
 
 /**

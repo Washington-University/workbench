@@ -35,6 +35,7 @@
 #include "BrainStructureNodeAttributes.h"
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesInformation.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -705,7 +706,9 @@ BrainStructure::receiveEvent(Event* event)
         dynamic_cast<EventIdentificationHighlightLocation*>(event);
         CaretAssert(idLocationEvent);
 
-        const bool contralateralIdEnabled = SessionManager::get()->getCaretPreferences()->isContralateralIdentificationEnabled();
+        //const bool contralateralIdEnabled = SessionManager::get()->getCaretPreferences()->isContralateralIdentificationEnabled();
+        DisplayPropertiesInformation* dpi = this->brain->getDisplayPropertiesInformation();
+        const bool contralateralIdEnabled = dpi->isContralateralIdentificationEnabled();
         
         NodeIdentificationTypeEnum::Enum identificationType = NodeIdentificationTypeEnum::NONE;
         int32_t highlighNodeIndex = -1;

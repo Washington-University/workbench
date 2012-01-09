@@ -28,6 +28,7 @@
 #include "BrainStructure.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
@@ -63,6 +64,9 @@ Brain::Brain()
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
+    
+    this->displayPropertiesInformation = new DisplayPropertiesInformation(this);
+    this->displayProperties.push_back(this->displayPropertiesInformation);
     
     this->displayPropertiesVolume = new DisplayPropertiesVolume(this);
     this->displayProperties.push_back(this->displayPropertiesVolume);
@@ -1049,6 +1053,22 @@ Brain::getDisplayPropertiesVolume() const
     return this->displayPropertiesVolume;
 }
 
+/**
+ * @return The information display properties.
+ */
+DisplayPropertiesInformation*
+Brain::getDisplayPropertiesInformation()
+{
+    return this->displayPropertiesInformation;
+}
 
+/**
+ * @return The information display properties.
+ */
+const DisplayPropertiesInformation*
+Brain::getDisplayPropertiesInformation() const
+{
+    return this->displayPropertiesInformation;
+}
 
 

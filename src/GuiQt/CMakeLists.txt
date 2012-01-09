@@ -38,6 +38,7 @@ DisplayControlVolumeSurfaceOutlinePage.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
+InformationDisplayWidget.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MultiPageDialog.h
@@ -90,6 +91,7 @@ EventUserInterfaceUpdate.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
+InformationDisplayWidget.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
@@ -141,6 +143,7 @@ EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx
+InformationDisplayWidget.cxx
 ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx

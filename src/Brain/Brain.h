@@ -40,6 +40,7 @@ namespace caret {
     class BrainStructure;
     class CaretDataFile;
     class DisplayProperties;
+    class DisplayPropertiesInformation;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
@@ -106,6 +107,10 @@ namespace caret {
         
         const DisplayPropertiesVolume* getDisplayPropertiesVolume() const;
         
+        DisplayPropertiesInformation* getDisplayPropertiesInformation();
+        
+        const DisplayPropertiesInformation* getDisplayPropertiesInformation() const;
+        
     private:
         void processReadDataFileEvent(EventDataFileRead* readDataFileEvent);
         
@@ -168,6 +173,12 @@ namespace caret {
          * is also in the displayProperties vector.
          */
         DisplayPropertiesVolume* displayPropertiesVolume;
+        
+        /**
+         * Display properties for information - DO NOT delete since this
+         * is also in the displayProperties vector.
+         */
+        DisplayPropertiesInformation* displayPropertiesInformation;
     };
 
 } // namespace

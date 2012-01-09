@@ -29,7 +29,7 @@
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
 #include "EventUserInterfaceUpdate.h"
-#include "HyperLinkTextBrowser.h"
+#include "InformationDisplayWidget.h"
 #include "OverlaySelectionControl.h"
 #include "WuQtUtilities.h"
 
@@ -86,7 +86,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     overlayLayout->addWidget(this->topBottomOverlayControl);
     overlayLayout->addWidget(this->leftRightOverlayControl);
     
-    this->informationWidget = this->createInformationWidget();
+    this->informationWidget = new InformationDisplayWidget();
     
     this->topBottomConnectivityLoaderControl = this->createConnectivityWidget(Qt::Horizontal);
     this->leftRightConnectivityLoaderControl = this->createConnectivityWidget(Qt::Vertical);
@@ -309,88 +309,6 @@ BrainBrowserWindowToolBox::createGiftiColumnSelectionPanel()
 }
 
 /**
- * Create the information widget.
- * @return The information widget.
- */
-QWidget* 
-BrainBrowserWindowToolBox::createInformationWidget()
-{
-    this->informationTextBrowser = new HyperLinkTextBrowser();
-    this->informationTextBrowser->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum));
-    QAction* clearAction = WuQtUtilities::createAction("Clear", 
-                                                       "Clear contents of information display", 
-                                                       this, 
-                                                       this, 
-                                                       SLOT(clearInformationText()));
-    
-    QAction* copyAction = WuQtUtilities::createAction("Copy", 
-                                                       "Copy selection from information display", 
-                                                       this, 
-                                                       this->informationTextBrowser, 
-                                                       SLOT(copy()));
-    
-    QAction* clearIdSymbolAction = WuQtUtilities::createAction("RID", 
-                                                      "Remove ID symbols from ALL surfaces.", 
-                                                      this, 
-                                                      this, 
-                                                      SLOT(removeIdSymbols()));
-    
-    QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
-                     copyAction, SLOT(setEnabled(bool)));
-    copyAction->setEnabled(false);
-    
-    QToolBar* idToolBarLeft = new QToolBar();
-    idToolBarLeft->setOrientation(Qt::Vertical);
-    idToolBarLeft->setFloatable(false);
-    idToolBarLeft->setMovable(false);
-    idToolBarLeft->addAction(clearAction);
-    idToolBarLeft->addSeparator();
-    idToolBarLeft->addAction(copyAction);
-    idToolBarLeft->addSeparator();
-    
-    QToolBar* idToolBarRight = new QToolBar();
-    idToolBarRight->setOrientation(Qt::Vertical);
-    idToolBarRight->setFloatable(false);
-    idToolBarRight->setMovable(false);
-    idToolBarRight->addAction(clearIdSymbolAction);
-    idToolBarRight->addSeparator();
-    
-    QWidget* w = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
-    layout->addWidget(idToolBarLeft);
-    layout->addWidget(this->informationTextBrowser);
-    layout->addWidget(idToolBarRight);
-    layout->setStretchFactor(idToolBarLeft, 0);
-    layout->setStretchFactor(this->informationTextBrowser, 100);
-    layout->setStretchFactor(idToolBarRight, 0);
-    
-    return w;
-}
-
-/**
- * Clear the information text.
- */
-void 
-BrainBrowserWindowToolBox::clearInformationText()
-{
-    this->informationTextBrowser->setText("");
-}
-
-
-/**
- * Remove ID symbols from all surfaces.
- */
-void 
-BrainBrowserWindowToolBox::removeIdSymbols()
-{
-    EventManager::get()->sendEvent(EventIdentificationSymbolRemoval().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-
-
-/**
  * Receive events from the event manager.
  * 
  * @param event
@@ -420,14 +338,7 @@ BrainBrowserWindowToolBox::receiveEvent(Event* event)
             if (textEvent->isImportant()) {
                 this->tabWidget->setCurrentWidget(this->informationWidget);
             }
-            switch(textEvent->getTextType()) {
-                case EventInformationTextDisplay::TYPE_PLAIN:
-                    this->informationTextBrowser->append(textEvent->getText());
-                    break;
-                case EventInformationTextDisplay::TYPE_HTML:
-                    this->informationTextBrowser->appendHtml(textEvent->getText());
-                    break;
-            }
+            this->informationWidget->processTextEvent(textEvent);
             textEvent->setEventProcessed();
         }
     }
@@ -461,7 +372,7 @@ BrainBrowserWindowToolBox::updateDisplayedPanel()
         this->leftRightOverlayControl->updateControl();
     }
     else if (selectedTopLevelWidget == this->informationWidget) {
-        // nothing to do!
+        this->informationWidget->updateInformationDisplayWidget();
     }
     else if (selectedTopLevelWidget == this->connectivityWidget) {
         switch (this->orientation) {

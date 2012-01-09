@@ -84,7 +84,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(this->createColorsWidget(), "Colors");
-    tabWidget->addTab(this->createIdentificationWidget(), "ID");
+//    tabWidget->addTab(this->createIdentificationWidget(), "ID");
     tabWidget->addTab(this->createLoggingWidget(), "Logging");
     tabWidget->addTab(this->createVolumeWidget(), "Volume");
     this->setCentralWidget(tabWidget);
@@ -133,7 +133,7 @@ PreferencesDialog::updateDialog()
     this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
     
-    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
+//    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -346,10 +346,10 @@ PreferencesDialog::createIdentificationWidget()
  *    New value.
  */
 void 
-PreferencesDialog::identificationContralateralCheckBoxToggled(bool value)
+PreferencesDialog::identificationContralateralCheckBoxToggled(bool /*value*/)
 {
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setContralateralIdentificationEnabled(value);    
+//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+//    prefs->setContralateralIdentificationEnabled(value);    
 }
 
 

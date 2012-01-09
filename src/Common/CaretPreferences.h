@@ -86,9 +86,9 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
-        bool isContralateralIdentificationEnabled() const;
+        //bool isContralateralIdentificationEnabled() const;
         
-        void setContralateralIdentificationEnabled(const bool enabled);
+        //void setContralateralIdentificationEnabled(const bool enabled);
         
     private:
         CaretPreferences(const CaretPreferences&);
@@ -132,7 +132,7 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
-        bool contralateralIdentificationEnabled;
+        //bool contralateralIdentificationEnabled;
         
         static const AString NAME_AXES_CROSSHAIRS;
         static const AString NAME_AXES_LABELS;
@@ -150,7 +150,7 @@ namespace caret {
     const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
-    const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
+    //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";

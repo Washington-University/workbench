@@ -59,6 +59,7 @@ BrowserTabContent.h
 BrowserTabYoking.h
 ConnectivityLoaderManager.h
 DisplayProperties.h
+DisplayPropertiesInformation.h
 DisplayPropertiesVolume.h
 EventBrowserTabDelete.h
 EventBrowserTabGet.h
@@ -119,6 +120,7 @@ BrowserTabContent.cxx
 BrowserTabYoking.cxx
 ConnectivityLoaderManager.cxx
 DisplayProperties.cxx
+DisplayPropertiesInformation.cxx
 DisplayPropertiesVolume.cxx
 EventBrowserTabDelete.cxx
 EventBrowserTabGet.cxx
