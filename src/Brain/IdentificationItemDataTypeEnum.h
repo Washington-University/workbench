@@ -59,6 +59,8 @@ public:
         FOCUS_VOLUME,
         /** Surface Node*/
         SURFACE_NODE,
+        /** Surface Node Identification Symbol */
+        SURFACE_NODE_IDENTIFICATION_SYMBOL,
         /** Surface Triangle */
         SURFACE_TRIANGLE,
         /** Volume Voxel */

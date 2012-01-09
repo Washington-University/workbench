@@ -26,6 +26,7 @@
  */ 
 
 #include "Event.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -37,12 +38,27 @@ namespace caret {
     public:
         EventIdentificationSymbolRemoval();
         
+        EventIdentificationSymbolRemoval(const StructureEnum::Enum structure,
+                                         const int32_t nodeNumber);
+        
         virtual ~EventIdentificationSymbolRemoval();
+        
+        bool isRemoveAllSurfaceSymbols() const;
+        
+        bool isRemoveSurfaceNodeSymbol() const;
+        
+        StructureEnum::Enum getSurfaceStructure() const;
+        
+        int32_t getSurfaceNodeNumber() const;
         
     private:
         EventIdentificationSymbolRemoval(const EventIdentificationSymbolRemoval&);
         
         EventIdentificationSymbolRemoval& operator=(const EventIdentificationSymbolRemoval&);
+        
+        StructureEnum::Enum structure;
+        
+        int32_t nodeNumber;
     };
 
 } // namespace

@@ -44,6 +44,7 @@
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationTextGenerator.h"
@@ -66,10 +67,12 @@ IdentificationManager::IdentificationManager()
 : CaretObject()
 {
     this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
+    this->surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
     this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
     this->voxelIdentification = new IdentificationItemVoxel();
     
     this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
+    this->allIdentificationItems.push_back(this->surfaceNodeIdentificationSymbol);
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
     this->allIdentificationItems.push_back(this->voxelIdentification);
     
@@ -91,6 +94,8 @@ IdentificationManager::~IdentificationManager()
     this->reset();
     delete this->surfaceNodeIdentification;
     this->surfaceNodeIdentification = NULL;
+    delete this->surfaceNodeIdentificationSymbol;
+    this->surfaceNodeIdentificationSymbol = NULL;
     delete this->surfaceTriangleIdentification;
     this->surfaceTriangleIdentification = NULL;
     delete this->voxelIdentification;
@@ -161,6 +166,22 @@ IdentificationManager::filterSelections()
                 nodeID->setModelXYZ(xyz);
                 nodeID->setBrain(triangleID->getBrain());
             }
+        }
+    }
+    
+    /*
+     * See if node identification symbol is too far from selected node.
+     * This may occur if the symbol is on the other side of the surface.
+     */
+    if ((this->surfaceNodeIdentificationSymbol->getNodeNumber() >= 0)
+        && (this->surfaceNodeIdentification->getNodeNumber() >= 0)) {
+        const double depthDiff = (this->surfaceNodeIdentificationSymbol->getScreenDepth()
+                                  - this->surfaceNodeIdentification->getScreenDepth());
+        if (depthDiff > 0.00001) {
+            this->surfaceNodeIdentificationSymbol->reset();
+        }
+        else {
+            this->surfaceNodeIdentification->reset();
         }
     }
     
@@ -320,6 +341,24 @@ const IdentificationItemSurfaceNode*
 IdentificationManager::getSurfaceNodeIdentification() const
 {
     return this->surfaceNodeIdentification;
+}
+
+/**
+ * @return Identification for surface node.
+ */
+const IdentificationItemSurfaceNodeIdentificationSymbol* 
+IdentificationManager::getSurfaceNodeIdentificationSymbol() const
+{
+    return this->surfaceNodeIdentificationSymbol;
+}
+
+/**
+ * @return Identification for surface node.
+ */
+IdentificationItemSurfaceNodeIdentificationSymbol* 
+IdentificationManager::getSurfaceNodeIdentificationSymbol()
+{
+    return this->surfaceNodeIdentificationSymbol;
 }
 
 /**

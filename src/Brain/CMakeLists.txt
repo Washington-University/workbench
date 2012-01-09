@@ -79,6 +79,7 @@ EventSurfacesGet.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemSurfaceNode.h
+IdentificationItemSurfaceNodeIdentificationSymbol.h
 IdentificationItemSurfaceTriangle.h
 IdentificationItemVoxel.h
 IdentificationManager.h
@@ -138,6 +139,7 @@ EventSurfacesGet.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemSurfaceNode.cxx
+IdentificationItemSurfaceNodeIdentificationSymbol.cxx
 IdentificationItemSurfaceTriangle.cxx
 IdentificationItemVoxel.cxx
 IdentificationManager.cxx

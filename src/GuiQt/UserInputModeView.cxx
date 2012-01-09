@@ -37,12 +37,14 @@
 #include "ConnectivityLoaderManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
+#include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "MouseEvent.h"
@@ -144,57 +146,69 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     
     bool updateGraphicsFlag = false;
     
-    IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
-    Surface* surface = idNode->getSurface();
-    const int32_t nodeIndex = idNode->getNodeNumber();
-    if ((surface != NULL) &&
-        (nodeIndex >= 0)) {
-        try {
-            connMan->loadDataForSurfaceNode(surface, nodeIndex);
-            updateGraphicsFlag = true;
-            
-            BrainStructure* brainStructure = surface->getBrainStructure();
-            CaretAssert(brainStructure);
-            
-            EventIdentificationHighlightLocation idLocation(idManager,
-                                                            brainStructure,
-                                                            brainStructure->getStructure(),
-                                                            nodeIndex,
-                                                            brainStructure->getNumberOfNodes(),
-                                                            surface->getCoordinate(nodeIndex));
-            EventManager::get()->sendEvent(idLocation.getPointer());
-
-        }
-        catch (DataFileException e) {
-            QMessageBox::critical(openGLWidget, "", e.whatString());
-        }
+    IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
+    if ((idSymbol->getSurface() != NULL)
+        && (idSymbol->getNodeNumber() >= 0)) {
+        EventIdentificationSymbolRemoval idRemoval(idSymbol->getSurface()->getStructure(),
+                                                   idSymbol->getNodeNumber());
+        EventManager::get()->sendEvent(idRemoval.getPointer());
+        updateGraphicsFlag = true;
     }
-    
-    const IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
-    if (idVoxel->isValid()) {
-        const VolumeFile* volumeFile = idVoxel->getVolumeFile();
-        int64_t voxelIJK[3];
-        idVoxel->getVoxelIJK(voxelIJK);
-        if (volumeFile != NULL) {
-            float xyz[3];
-            volumeFile->indexToSpace(voxelIJK, xyz);
-            
-            EventIdentificationHighlightLocation idLocation(idManager,
-                                                            volumeFile,
-                                                            voxelIJK,
-                                                            xyz);
-            EventManager::get()->sendEvent(idLocation.getPointer());
-            
-            updateGraphicsFlag = true;
-            
+    else {
+        
+        IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
+        Surface* surface = idNode->getSurface();
+        const int32_t nodeIndex = idNode->getNodeNumber();
+        if ((surface != NULL) &&
+            (nodeIndex >= 0)) {
             try {
-                connMan->loadDataForVoxelAtCoordinate(xyz);
+                connMan->loadDataForSurfaceNode(surface, nodeIndex);
+                updateGraphicsFlag = true;
+                
+                BrainStructure* brainStructure = surface->getBrainStructure();
+                CaretAssert(brainStructure);
+                
+                EventIdentificationHighlightLocation idLocation(idManager,
+                                                                brainStructure,
+                                                                brainStructure->getStructure(),
+                                                                nodeIndex,
+                                                                brainStructure->getNumberOfNodes(),
+                                                                surface->getCoordinate(nodeIndex));
+                EventManager::get()->sendEvent(idLocation.getPointer());
+                
             }
             catch (DataFileException e) {
                 QMessageBox::critical(openGLWidget, "", e.whatString());
             }
         }
+        
+        const IdentificationItemVoxel* idVoxel = idManager->getVoxelIdentification();
+        if (idVoxel->isValid()) {
+            const VolumeFile* volumeFile = idVoxel->getVolumeFile();
+            int64_t voxelIJK[3];
+            idVoxel->getVoxelIJK(voxelIJK);
+            if (volumeFile != NULL) {
+                float xyz[3];
+                volumeFile->indexToSpace(voxelIJK, xyz);
+                
+                EventIdentificationHighlightLocation idLocation(idManager,
+                                                                volumeFile,
+                                                                voxelIJK,
+                                                                xyz);
+                EventManager::get()->sendEvent(idLocation.getPointer());
+                
+                updateGraphicsFlag = true;
+                
+                try {
+                    connMan->loadDataForVoxelAtCoordinate(xyz);
+                }
+                catch (DataFileException e) {
+                    QMessageBox::critical(openGLWidget, "", e.whatString());
+                }
+            }
+        }
     }
+    
     const BrowserTabContent* btc = NULL;
     const AString idMessage = idManager->getIdentificationText(btc,
                                                                brain);

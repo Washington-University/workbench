@@ -61,6 +61,7 @@
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "IdentificationItemSurfaceNode.h"
+#include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationWithColor.h"
@@ -603,9 +604,10 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
             this->drawSurfaceNodeAttributes(surface);
             break;
         case MODE_IDENTIFICATION:
-            glShadeModel(GL_FLAT);
+            glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
             this->drawSurfaceNodes(surface);
             this->drawSurfaceTriangles(surface);
+            this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
     }
@@ -903,26 +905,63 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     
     const float* coordinates = surface->getCoordinate(0);
 
-    for (int32_t i = 0; i < numNodes; i++) {
-        bool drawIt = false;
-        switch (brainStructure->getNodeAttributes(i)->getIdentificationType()) {
-            case NodeIdentificationTypeEnum::NONE:
-                break;
-            case NodeIdentificationTypeEnum::NORMAL:
-                drawIt = true;
-                glColor3f(0.0, 1.0, 0.0);
-                break;
-            case NodeIdentificationTypeEnum::CONTRALATERAL:
-                drawIt = true;
-                glColor3f(0.0, 0.0, 1.0);
-                break;
+    IdentificationItemSurfaceNodeIdentificationSymbol* symbolID = 
+        this->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
+    bool isSelect = false;
+    if (this->isIdentifyMode()) {
+        if (symbolID->isEnabledForSelection()) {
+            isSelect = true;
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
         }
-        if (drawIt) {
+        else {
+            return;
+        }
+    }
+    
+    uint8_t idRGB[3];
+    
+    for (int32_t i = 0; i < numNodes; i++) {
+        if (brainStructure->getNodeAttributes(i)->getIdentificationType() != NodeIdentificationTypeEnum::NONE) {
+            if (isSelect) {
+                this->colorIdentification->addItem(idRGB, 
+                                                   IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
+                                                   i);
+                glColor3ubv(idRGB);
+            }
+            else {
+                switch (brainStructure->getNodeAttributes(i)->getIdentificationType()) {
+                    case NodeIdentificationTypeEnum::NONE:
+                        break;
+                    case NodeIdentificationTypeEnum::NORMAL:
+                        glColor3f(0.0, 1.0, 0.0);
+                        break;
+                    case NodeIdentificationTypeEnum::CONTRALATERAL:
+                        glColor3f(0.0, 0.0, 1.0);
+                        break;
+                }
+            }
             const int32_t i3 = i * 3;
             glPushMatrix();
             glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
             this->drawSphere(3.5);
             glPopMatrix();
+        }
+    }
+    
+    if (isSelect) {
+        int nodeIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
+                                         this->mouseX, 
+                                         this->mouseY,
+                                         nodeIndex,
+                                         depth);
+        if (nodeIndex >= 0) {
+            symbolID->setSurface(surface);
+            symbolID->setNodeNumber(nodeIndex);
+            symbolID->setScreenDepth(depth);
+            this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
+            CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
         }
     }
 }

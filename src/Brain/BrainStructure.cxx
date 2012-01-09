@@ -787,8 +787,24 @@ BrainStructure::receiveEvent(Event* event)
             dynamic_cast<EventIdentificationSymbolRemoval*>(event);
         CaretAssert(idRemovalEvent);
         
-        for (uint32_t i = 0; i < this->nodeAttributes.size(); i++) {
-            this->nodeAttributes[i]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+        if (idRemovalEvent->isRemoveAllSurfaceSymbols()) {
+            for (uint32_t i = 0; i < this->nodeAttributes.size(); i++) {
+                this->nodeAttributes[i]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+            }
+        }
+        else if (idRemovalEvent->isRemoveSurfaceNodeSymbol()) {
+            const StructureEnum::Enum idStructure = idRemovalEvent->getSurfaceStructure();
+            const int32_t idNodeNumber = idRemovalEvent->getSurfaceNodeNumber();
+            if (idStructure == this->structure) {
+                if (this->getNumberOfNodes() >= idNodeNumber) {
+                    this->nodeAttributes[idNodeNumber]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+                }
+            }
+            else if (this->structure == StructureEnum::getContralateralStructure(idStructure)) {
+                if (this->getNumberOfNodes() >= idNodeNumber) {
+                    this->nodeAttributes[idNodeNumber]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+                }
+            }
         }
         idRemovalEvent->setEventProcessed();
     }
