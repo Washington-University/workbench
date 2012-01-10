@@ -52,6 +52,8 @@ namespace caret {
 
         void setUserInputProcessor(UserInputReceiverInterface* userInputProcessor);
         
+        UserInputReceiverInterface* getUserInputProcessor();
+        
     private:
         enum MODE_GET_OR_SET {
             GET,

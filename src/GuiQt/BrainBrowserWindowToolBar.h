@@ -157,7 +157,16 @@ namespace caret {
         
         QWidget* tabBarWidget;
         QTabBar* tabBar;
+        
+        /** Widget displayed at bottom of toolbar for mouse input controls */
+        QWidget* userInputControlsWidget;
 
+        /** Layout for widget displayed at bottom of toolbar for mouse input controls */
+        QHBoxLayout* userInputControlsWidgetLayout;
+
+        /** Is set to the user input widget provided by the user input processor */
+        QWidget* userInputControlsWidgetActiveInputWidget;
+        
         /**
          * When updating, no signals should be emitted.  This variable
          * is incremented at the beginning of an update method and
@@ -341,6 +350,7 @@ namespace caret {
         void toolsInputModeActionTriggered(QAction*);
         
     private:
+        void updateDisplayedToolsUserInputWidget();
         QMenu* toolsConnectMenu;
         QAction* toolsConnectToAllenDatabaseAction;
         QAction* toolsConnectToConnectomeDatabaseAction;

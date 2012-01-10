@@ -51,6 +51,7 @@ StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
 TimeSeriesManager.h
+UserInputModeBordersWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -108,6 +109,7 @@ StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
 TimeSeriesManager.h
 UserInputModeBorders.h
+UserInputModeBordersWidget.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -162,6 +164,7 @@ StructureSurfaceSelectionControl.cxx
 SurfaceSelectionControl.cxx
 TimeSeriesManager.cxx
 UserInputModeBorders.cxx
+UserInputModeBordersWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 WuQDataEntryDialog.cxx

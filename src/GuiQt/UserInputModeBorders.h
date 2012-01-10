@@ -31,9 +31,43 @@
 
 namespace caret {
 
+    class UserInputModeBordersWidget;
+    
     class UserInputModeBorders : public CaretObject, public UserInputReceiverInterface {
         
     public:
+        enum Mode {
+            MODE_CREATE,
+            MODE_EDIT,
+            MODE_EDIT_POINTS,
+            MODE_UPDATE
+        };
+        
+        enum CreateOperation {
+            CREATE_OPERATION_DRAW,
+            CREATE_OPERATION_FINISH,
+            CREATE_OPERATION_RESET,
+            CREATE_OPERATION_ROTATE,
+            CREATE_OPERATION_UNDO
+        };
+        
+        enum EditOperation {
+            EDIT_OPERATION_DELETE,  
+            EDIT_OPERATION_EDIT,  
+            EDIT_OPERATION_REVERSE
+        };
+        
+        enum PointEditOperation {
+            POINT_EDIT_OPERATION_DELETE,
+            POINT_EDIT_OPERATION_MOVE
+        };
+        
+        enum UpdateOperation {
+            UPDATE_OPERATION_ERASE,
+            UPDATE_OPERATION_EXTEND,
+            UPDATE_OPERATION_REPLACE
+        };
+        
         UserInputModeBorders();
         
         virtual ~UserInputModeBorders();
@@ -47,6 +81,13 @@ namespace caret {
         void initialize();
         
         void finish();
+
+        QWidget* getWidgetForToolBar();
+        
+        Mode getMode() const;
+        
+        void setMode(const Mode mode);
+        
     private:
         UserInputModeBorders(const UserInputModeBorders&);
 
@@ -56,8 +97,10 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        UserInputModeBordersWidget* borderToolsWidget;
+        
+        Mode mode;
     };
-    
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
 #endif // __USER_INPUT_MODE_BORDERS_DECLARE__

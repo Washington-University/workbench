@@ -31,6 +31,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "MouseEvent.h"
+#include "UserInputModeBordersWidget.h"
 
 using namespace caret;
     
@@ -48,7 +49,8 @@ using namespace caret;
 UserInputModeBorders::UserInputModeBorders()
 : CaretObject()
 {
-    
+    this->mode = MODE_CREATE;
+    this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
 
 /**
@@ -107,7 +109,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
 void 
 UserInputModeBorders::initialize()
 {
-    
+    this->borderToolsWidget->updateWidget();
 }
 
 /**
@@ -121,6 +123,19 @@ UserInputModeBorders::finish()
 }
 
 /**
+ * @return A widget for display at the bottom of the
+ * Browser Window Toolbar when this mode is active.
+ * If no user-interface controls are needed, return NULL.
+ * The toolbar will take ownership of the widget and
+ * delete it so derived class MUST NOT delete the widget.
+ */
+QWidget* 
+UserInputModeBorders::getWidgetForToolBar()
+{
+    return this->borderToolsWidget;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
@@ -129,3 +144,26 @@ UserInputModeBorders::toString() const
 {
     return "UserInputModeBorders";
 }
+
+/**
+ * @return the mode.
+ */
+UserInputModeBorders::Mode 
+UserInputModeBorders::getMode() const
+{
+    return this->mode;
+}
+
+/**
+ * Set the mode.
+ * @param mode
+ *    New value for mode.
+ */
+void 
+UserInputModeBorders::setMode(const Mode mode)
+{
+    this->mode = mode;
+    this->borderToolsWidget->updateWidget();
+}
+
+

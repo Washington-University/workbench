@@ -47,6 +47,9 @@ namespace caret {
         void initialize();
         
         void finish();
+
+        QWidget* getWidgetForToolBar();
+        
     private:
         UserInputModeView(const UserInputModeView&);
 

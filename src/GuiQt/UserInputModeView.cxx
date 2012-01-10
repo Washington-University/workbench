@@ -344,6 +344,17 @@ UserInputModeView::finish()
 }
 
 /**
+ * @return A widget for display at the bottom of the
+ * Browser Window Toolbar when this mode is active.
+ * View mode has no widget so this returns NULL.
+ */
+QWidget* 
+UserInputModeView::getWidgetForToolBar()
+{
+    return NULL;
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

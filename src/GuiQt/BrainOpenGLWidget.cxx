@@ -79,6 +79,7 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->userInputBordersModeProcessor = new UserInputModeBorders();
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
+    this->selectedUserInputProcessor->initialize();
     this->mousePressX = -10000;
     this->mousePressY = -10000;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
@@ -600,16 +601,25 @@ BrainOpenGLWidget::receiveEvent(Event* event)
                 inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
             }
             else if (inputModeEvent->isSetUserInputMode()) {
+                UserInputReceiverInterface* newUserInputProcessor = NULL;
                 switch (inputModeEvent->getUserInputMode()) {
                     case UserInputReceiverInterface::INVALID:
                         CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
                         break;
                     case UserInputReceiverInterface::BORDERS:
-                        this->selectedUserInputProcessor = this->userInputBordersModeProcessor;
+                        newUserInputProcessor = this->userInputBordersModeProcessor;
                         break;
                     case UserInputReceiverInterface::VIEW:
-                        this->selectedUserInputProcessor = this->userInputViewModeProcessor;
+                        newUserInputProcessor = this->userInputViewModeProcessor;
                         break;
+                }
+                
+                if (newUserInputProcessor != NULL) {
+                    if (newUserInputProcessor != this->selectedUserInputProcessor) {
+                        this->selectedUserInputProcessor->finish();
+                        this->selectedUserInputProcessor = newUserInputProcessor;
+                        this->selectedUserInputProcessor->initialize();
+                    }
                 }
             }
             inputModeEvent->setEventProcessed();

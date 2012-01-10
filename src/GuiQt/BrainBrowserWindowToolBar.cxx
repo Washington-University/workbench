@@ -81,6 +81,7 @@
 #include "SessionManager.h"
 #include "Surface.h"
 #include "StructureSurfaceSelectionControl.h"
+#include "UserInputReceiverInterface.h"
 #include "UserView.h"
 #include "VolumeFile.h"
 #include "VolumeSliceViewModeEnum.h"
@@ -272,6 +273,19 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addStretch();
 
     /*
+     * Widget below toolbar for user input mode mouse controls
+     */
+    this->userInputControlsWidgetLayout = new QHBoxLayout();
+    this->userInputControlsWidgetLayout->addSpacing(5);
+    WuQtUtilities::setLayoutMargins(this->userInputControlsWidgetLayout, 0, 0, 0);
+    this->userInputControlsWidget = new QWidget();
+    QVBoxLayout* userInputLayout = new QVBoxLayout(this->userInputControlsWidget);
+    WuQtUtilities::setLayoutMargins(userInputLayout, 2, 1, 0);
+    userInputLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    userInputLayout->addLayout(this->userInputControlsWidgetLayout);
+    userInputControlsWidgetActiveInputWidget = NULL;
+    
+    /*
      * Arrange the tabbar and the toolbar vertically.
      */
     QWidget* w = new QWidget();
@@ -279,6 +293,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     WuQtUtilities::setLayoutMargins(layout, 1, 2, 0);
     layout->addWidget(this->tabBarWidget);
     layout->addWidget(this->toolbarWidget);
+    layout->addWidget(this->userInputControlsWidget);
     
     this->addWidget(w);
     
@@ -2027,6 +2042,8 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
     
     EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
                                                                        inputMode).getPointer());    
+    
+    this->updateDisplayedToolsUserInputWidget();
 }
 
 /**
@@ -2087,7 +2104,40 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
     
     this->toolsWidgetGroup->blockAllSignals(false);
 
+    this->updateDisplayedToolsUserInputWidget();
+    
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+}
+
+void 
+BrainBrowserWindowToolBar::updateDisplayedToolsUserInputWidget()
+{
+    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
+    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
+    
+    UserInputReceiverInterface* userInputProcessor = getInputModeEvent.getUserInputProcessor();
+    QWidget* userInputWidget = userInputProcessor->getWidgetForToolBar();
+    
+    /*
+     * If a widget is display and needs to change,
+     * remove the old widget.
+     */
+    if (this->userInputControlsWidgetActiveInputWidget != NULL) {
+        if (userInputWidget != this->userInputControlsWidgetActiveInputWidget) {
+            this->userInputControlsWidgetLayout->removeWidget(this->userInputControlsWidgetActiveInputWidget);
+            this->userInputControlsWidgetActiveInputWidget = NULL;
+        }
+    }
+    if (this->userInputControlsWidgetActiveInputWidget == NULL) {
+        if (userInputWidget != NULL) {
+            this->userInputControlsWidgetActiveInputWidget = userInputWidget;
+            this->userInputControlsWidgetLayout->addWidget(this->userInputControlsWidgetActiveInputWidget);
+            this->userInputControlsWidget->setVisible(true);
+        }
+        else {
+            this->userInputControlsWidget->setVisible(false);
+        }
+    }
 }
 
 /**

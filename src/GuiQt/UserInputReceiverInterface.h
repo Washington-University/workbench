@@ -25,6 +25,7 @@
  * 
  */ 
 
+class QWidget;
 
 namespace caret {
 
@@ -85,6 +86,15 @@ namespace caret {
          * longer set to receive events.
          */
         virtual void finish() = 0;
+        
+        /**
+         * @return A widget for display at the bottom of the
+         * Browser Window Toolbar when this mode is active.
+         * If no user-interface controls are needed, return NULL.
+         * The toolbar will take ownership of the widget and
+         * delete it so derived class MUST NOT delete the widget.
+         */
+        virtual QWidget* getWidgetForToolBar() = 0;
         
     protected:
         UserInputReceiverInterface() { }

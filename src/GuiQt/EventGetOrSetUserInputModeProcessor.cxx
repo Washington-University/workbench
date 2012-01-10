@@ -96,6 +96,14 @@ EventGetOrSetUserInputModeProcessor::setUserInputProcessor(UserInputReceiverInte
     this->userInputMode      = this->userInputProcessor->getUserInputMode();
 }
 
+/**
+ * @return The user input processor valid only when GETTING.
+ */
+UserInputReceiverInterface* 
+EventGetOrSetUserInputModeProcessor::getUserInputProcessor()
+{
+    return this->userInputProcessor;
+}
 
 /**
  * @return true if this event is GETTING the user input mode.
