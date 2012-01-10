@@ -307,8 +307,6 @@ OverlaySet::initializeOverlays(ModelDisplayController* mdc)
     ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
     ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
     
-    VolumeFile* underlayVolume = NULL;
-    
     if (mdcs != NULL) {
         Surface* surface = mdcs->getSurface();
         BrainStructure* brainStructure = surface->getBrainStructure();
@@ -328,9 +326,6 @@ OverlaySet::initializeOverlays(ModelDisplayController* mdc)
     else if (mdcv != NULL) {
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
         for (int32_t i = 0; i < numVolumes; i++) {
-            if (i == 0) {
-                underlayVolume = brain->getVolumeFile(i);
-            }
             mapFiles.push_back(brain->getVolumeFile(i));
             mapFileIndices.push_back(0);
         }

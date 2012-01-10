@@ -167,32 +167,6 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     this->surfaceControllerSelector->getSelectableSurfaceControllers(availableSurfaceControllers);
     
     /*
-     * Determine available structures
-     */
-    bool haveCortexLeft = false;
-    bool haveCortexRight = false;
-    bool haveCerebellum = false;    
-    for (std::vector<StructureEnum::Enum>::const_iterator iter = availableStructures.begin();
-         iter != availableStructures.end();
-         iter++) {
-        const StructureEnum::Enum structure = *iter;
-        
-        switch (structure) {
-            case StructureEnum::CEREBELLUM:
-                haveCerebellum = true;
-                break;
-            case StructureEnum::CORTEX_LEFT:
-                haveCortexLeft = true;
-                break;
-            case StructureEnum::CORTEX_RIGHT:
-                haveCortexRight = true;
-                break;
-            default:
-                break;
-        }
-    }
-    
-    /*
      * Update the structure selection.
      */
     StructureEnum::Enum selectedStructure = this->surfaceControllerSelector->getSelectedStructure();

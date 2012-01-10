@@ -960,7 +960,6 @@ void
 BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
 {
     bool showInFullScreen = false;
-    bool showInTabMontage = false;
     
     BrainBrowserWindowScreenModeEnum::Enum previousScreenMode = this->screenMode;
     
@@ -974,12 +973,10 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
     }
     else if (action == this->viewScreenMontageTabsAction) {
         this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE;
-        showInTabMontage = true;
     }
     else if (action == this->viewScreenFullMontageTabsAction) {
         this->screenMode = BrainBrowserWindowScreenModeEnum::TAB_MONTAGE_FULL_SCREEN;
         showInFullScreen = true;
-        showInTabMontage = true;
     }
     else {
         CaretAssert(0);

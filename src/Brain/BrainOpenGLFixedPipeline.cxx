@@ -1309,36 +1309,7 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
         unsigned char green[3] = { 0, 255, 0 };
         unsigned char blue[3]  = { 0, 0, 255 };
         
-        float crosshairX = 0;
-        float crosshairY = 0;
-        
-        unsigned char* xColor = red;
-        unsigned char* yColor = red;
-        
-        bool drawIt = true;
-        switch(slicePlane) {
-            case VolumeSliceViewPlaneEnum::AXIAL:
-                crosshairX = voxelXYZ[0]; //slices[0] * spacing[0] + origin[0];
-                xColor = red;
-                crosshairY = voxelXYZ[1]; //slices[1] * spacing[1] + origin[1];
-                yColor = green;
-                break;
-            case VolumeSliceViewPlaneEnum::CORONAL:
-                crosshairX = voxelXYZ[0]; //slices[0] * spacing[0] + origin[0];
-                xColor = red;
-                crosshairY = voxelXYZ[2]; //slices[2] * spacing[2] + origin[2];
-                yColor = blue;
-                break;
-            case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                crosshairX = voxelXYZ[1]; //slices[1] * spacing[1] + origin[1];
-                xColor = green;
-                crosshairY = voxelXYZ[2]; //slices[2] * spacing[2] + origin[2];
-                yColor = blue;
-                break;
-            default:
-                drawIt = false;
-                break;
-        }
+        const bool drawIt = (slicePlane != VolumeSliceViewPlaneEnum::ALL);
         
         if (drawIt) {
             const float bigNumber = 10000;
@@ -1356,8 +1327,7 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
             glVertex3f(voxelXYZ[0], voxelXYZ[1],  bigNumber);
             glEnd();
         }
-    }
-    
+    }    
 }
 
 /**

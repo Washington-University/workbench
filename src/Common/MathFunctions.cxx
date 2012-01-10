@@ -963,9 +963,8 @@ MathFunctions::rayIntersectPlane(
     // Parametric coordinate of where ray intersects plane
     //
     double denom = A * ray[0] + B * ray[1] + C * ray[2];
-    double t = 0.0;
     if (denom != 0) {
-        t = -(A * rayOrigin[0] + B * rayOrigin[1] + C * rayOrigin[2] + D) / denom;
+        const double t = -(A * rayOrigin[0] + B * rayOrigin[1] + C * rayOrigin[2] + D) / denom;
         
         intersectionXYZandDistance[0] = (float)(rayOrigin[0] + ray[0] * t);
         intersectionXYZandDistance[1] = (float)(rayOrigin[1] + ray[1] * t);

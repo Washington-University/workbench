@@ -196,7 +196,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
             /*
              * May be very near zero so force to zero.
              */
-            scalar = 0.0;
+            normalizedValues[i] = 0.0;
             if (hideZeroValues) {
                 continue;
             }

@@ -515,7 +515,7 @@ GiftiLabelTable::getLabelBestMatching(const AString& name) const
             }
         }
     }
-    return NULL;
+    return bestMatchingLabel;
 }
 
 /**
