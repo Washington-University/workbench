@@ -60,6 +60,8 @@ public:
         EVENT_DATA_FILE_READ,
         /** Get node data files */
         EVENT_GET_NODE_DATA_FILES,
+        /** get or set the user input mode */
+        EVENT_GET_OR_SET_USER_INPUT_MODE,
         /** Update all graphics windows */
         EVENT_GRAPHICS_UPDATE_ALL_WINDOWS,
         /** Update graphics in a window */

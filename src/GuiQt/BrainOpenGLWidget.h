@@ -44,7 +44,9 @@ namespace caret {
     class IdentificationManager;
     class ModelDisplayController;
     class MouseEvent;
+    class UserInputModeBorders;
     class UserInputModeView;
+    class UserInputReceiverInterface;
     
     class BrainOpenGLWidget : public QGLWidget, public EventListenerInterface {
         Q_OBJECT
@@ -118,7 +120,9 @@ namespace caret {
         
         BrainOpenGLWidgetTextRenderer* textRenderer;
         
+        UserInputReceiverInterface* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;
+        UserInputModeBorders* userInputBordersModeProcessor;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__

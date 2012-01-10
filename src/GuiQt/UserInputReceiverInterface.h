@@ -44,6 +44,16 @@ namespace caret {
     class UserInputReceiverInterface {
         
     public:
+        /** Enumerated type for input modes */
+        enum UserInputMode {
+            /** Invalid */
+            INVALID,
+            /** Border Operations */
+            BORDERS,
+            /** Viewing Operations */
+            VIEW
+        };
+        
         /**
          * Called when a mouse events occurs for 'this' 
          * user input receiver.
@@ -58,6 +68,11 @@ namespace caret {
         virtual void processMouseEvent(MouseEvent* mouseEvent,
                                BrowserTabContent* browserTabContent,
                                BrainOpenGLWidget* openGLWidget) = 0;
+        
+        /**
+         * @return The input mode enumerated type.
+         */
+        virtual UserInputMode getUserInputMode() const = 0;
         
         /**
          * Called when 'this' user input receiver is set

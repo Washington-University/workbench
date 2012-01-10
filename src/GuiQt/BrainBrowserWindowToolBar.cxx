@@ -64,6 +64,7 @@
 #include "EventBrowserTabNew.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventBrowserWindowNew.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
@@ -1940,20 +1941,92 @@ BrainBrowserWindowToolBar::createToolsWidget()
     QToolButton* connectToDatabaseToolButton = new QToolButton();
     connectToDatabaseToolButton->setDefaultAction(connectToolButtonAction);
     
+    
+    /*
+     * Borders 
+     */ 
+    this->toolsInputModeBordersAction = WuQtUtilities::createAction("B",
+                                                                    "Perform border operations with mouse",
+                                                                    this);
+    QToolButton* inputModeBordersToolButton = new QToolButton();
+    this->toolsInputModeBordersAction->setCheckable(true);
+    inputModeBordersToolButton->setDefaultAction(this->toolsInputModeBordersAction);
+    
+    /*
+     * View Mode
+     */
+    this->toolsInputModeViewAction = WuQtUtilities::createAction("V",
+                                                                 "Perform viewing operations with mouse\n"
+                                                                 "\n"
+                                                                 "Identify: Click Left Mouse\n"
+                                                                 "Pan:      Move mouse with left mouse button down and keyboard shift key down\n"
+                                                                 "Rotate:   Move mouse with left mouse button down\n"
+#ifdef CARET_OS_MACOSX
+                                                                 "Zoom:     Move mouse with left mouse button down and keyboard apple key down",
+#else // CARET_OS_MACOSX
+                                                                 "Zoom:     Move mouse with left mouse button down and keyboard control key down",
+#endif // CARET_OS_MACOSX
+                                                                 this);
+    this->toolsInputModeViewAction->setCheckable(true);
+    QToolButton* inputModeViewToolButton = new QToolButton();
+    inputModeViewToolButton->setDefaultAction(this->toolsInputModeViewAction);
+    
+    /*
+     * Layout for input modes
+     */
+    QWidget* inputModeWidget = new QWidget();
+    QGridLayout* inputModeLayout = new QGridLayout(inputModeWidget);
+    WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 0, 0);
+    inputModeLayout->addWidget(inputModeBordersToolButton, 0, 0);
+    inputModeLayout->addWidget(inputModeViewToolButton, 0, 1);
+    
+    this->toolsInputModeActionGroup = new QActionGroup(this);
+    this->toolsInputModeActionGroup->addAction(this->toolsInputModeBordersAction);
+    this->toolsInputModeActionGroup->addAction(this->toolsInputModeViewAction);
+    QObject::connect(this->toolsInputModeActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(toolsInputModeActionTriggered(QAction*)));
+    this->toolsInputModeActionGroup->setExclusive(true);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
     layout->addWidget(connectToDatabaseToolButton, 0, Qt::AlignHCenter);
     layout->addStretch();
+    layout->addWidget(inputModeWidget, 0, Qt::AlignHCenter);
     
     this->toolsWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->toolsWidgetGroup->add(this->toolsInputModeActionGroup);
     
     QWidget* w = this->createToolWidget("Tools", 
                                         widget, 
                                         WIDGET_PLACEMENT_LEFT, 
-                                        WIDGET_PLACEMENT_BOTTOM,
+                                        WIDGET_PLACEMENT_NONE,
                                         0);
     return w;
+}
+
+/**
+ * Called when a tools input mode button is clicked.
+ * @param action
+ *    Action of tool button that was clicked.
+ */
+void 
+BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
+{
+    UserInputReceiverInterface::UserInputMode inputMode = UserInputReceiverInterface::INVALID;
+    
+    if (action == this->toolsInputModeBordersAction) {
+        inputMode = UserInputReceiverInterface::BORDERS;
+    }
+    else if (action == this->toolsInputModeViewAction) {
+        inputMode = UserInputReceiverInterface::VIEW;
+    }
+    else {
+        CaretAssertMessage(0, "Tools input mode action is invalid, new action added???");
+    }
+    
+    EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
+                                                                       inputMode).getPointer());    
 }
 
 /**
@@ -1996,6 +2069,21 @@ BrainBrowserWindowToolBar::updateToolsWidget(BrowserTabContent* /*browserTabCont
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     this->toolsWidgetGroup->blockAllSignals(true);
+    
+    EventGetOrSetUserInputModeProcessor getInputModeEvent(this->browserWindowIndex);
+    EventManager::get()->sendEvent(getInputModeEvent.getPointer());
+
+    switch (getInputModeEvent.getUserInputMode()) {
+        case UserInputReceiverInterface::INVALID:
+            // may get here when program is exiting and widgets are being destroyed
+            break;
+        case UserInputReceiverInterface::BORDERS:
+            this->toolsInputModeBordersAction->setChecked(true);
+            break;
+        case UserInputReceiverInterface::VIEW:
+            this->toolsInputModeViewAction->setChecked(true);
+            break;
+    }
     
     this->toolsWidgetGroup->blockAllSignals(false);
 
@@ -2495,6 +2583,10 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
             layout->setRowStretch(0, 0);
             layout->addWidget(childWidget, 0, 0, 1, 2);
             //layout->addStretch();
+            break;
+        case WIDGET_PLACEMENT_NONE:
+            layout->setRowStretch(0, 0);
+            layout->addWidget(childWidget, 0, 0, 1, 2);
             break;
         default:
             CaretAssert(0);

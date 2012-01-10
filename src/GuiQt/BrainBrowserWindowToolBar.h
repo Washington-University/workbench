@@ -338,11 +338,16 @@ namespace caret {
 
     private slots:
         void toolsConnectToDatabaseActionTriggered(bool);
+        void toolsInputModeActionTriggered(QAction*);
         
     private:
         QMenu* toolsConnectMenu;
         QAction* toolsConnectToAllenDatabaseAction;
         QAction* toolsConnectToConnectomeDatabaseAction;
+        
+        QActionGroup* toolsInputModeActionGroup;
+        QAction* toolsInputModeBordersAction;
+        QAction* toolsInputModeViewAction;
         
     private:
         BrainBrowserWindowToolBox* toolBox;

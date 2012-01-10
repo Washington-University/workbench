@@ -83,6 +83,15 @@ UserInputModeView::~UserInputModeView()
 }
 
 /**
+ * @return The input mode enumerated type.
+ */
+UserInputModeView::UserInputMode 
+UserInputModeView::getUserInputMode() const
+{
+    return UserInputReceiverInterface::VIEW;
+}
+
+/**
  * Called when a mouse events occurs for 'this' 
  * user input receiver.
  *

@@ -84,6 +84,7 @@ DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
+EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
@@ -106,6 +107,7 @@ StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
 TimeSeriesManager.h
+UserInputModeBorders.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -136,6 +138,7 @@ DisplayControlDialog.cxx
 DisplayControlVolumeSurfaceOutlinePage.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
+EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
@@ -158,6 +161,7 @@ StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionControl.cxx
 TimeSeriesManager.cxx
+UserInputModeBorders.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 WuQDataEntryDialog.cxx

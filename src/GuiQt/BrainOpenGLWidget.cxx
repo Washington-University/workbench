@@ -46,6 +46,7 @@
 #include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "IdentificationManager.h"
@@ -57,6 +58,7 @@
 #include "ModelDisplayControllerYokingGroup.h"
 #include "MouseEvent.h"
 #include "Surface.h"
+#include "UserInputModeBorders.h"
 #include "UserInputModeView.h"
 
 using namespace caret;
@@ -74,11 +76,14 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
     this->openGL = NULL;
     this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     this->windowIndex = windowIndex;
+    this->userInputBordersModeProcessor = new UserInputModeBorders();
     this->userInputViewModeProcessor = new UserInputModeView();
+    this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->mousePressX = -10000;
     this->mousePressY = -10000;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ALL_WINDOWS);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GRAPHICS_UPDATE_ONE_WINDOW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE);
 }
 
 /**
@@ -98,6 +103,8 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
         this->openGL = NULL;
     }
     delete this->userInputViewModeProcessor;
+    delete this->userInputBordersModeProcessor;
+    this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -498,7 +505,7 @@ BrainOpenGLWidget::processMouseEvent(MouseEvent* mouseEvent)
         if (viewportContent != NULL) {
             BrowserTabContent* browserTabContent = viewportContent->getBrowserTabContent();
             if (browserTabContent != NULL) {
-                this->userInputViewModeProcessor->processMouseEvent(mouseEvent,
+                this->selectedUserInputProcessor->processMouseEvent(mouseEvent,
                                                                     browserTabContent,
                                                                     this);
                 
@@ -581,6 +588,31 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             if (needUpdate) {
                 this->updateGL();
             }
+        }
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE) {
+        EventGetOrSetUserInputModeProcessor* inputModeEvent =
+        dynamic_cast<EventGetOrSetUserInputModeProcessor*>(event);
+        CaretAssert(inputModeEvent);
+        
+        if (inputModeEvent->getWindowIndex() == this->windowIndex) {
+            if (inputModeEvent->isGetUserInputMode()) {
+                inputModeEvent->setUserInputProcessor(this->selectedUserInputProcessor);
+            }
+            else if (inputModeEvent->isSetUserInputMode()) {
+                switch (inputModeEvent->getUserInputMode()) {
+                    case UserInputReceiverInterface::INVALID:
+                        CaretAssertMessage(0, "INVALID is NOT allowed for user input mode");
+                        break;
+                    case UserInputReceiverInterface::BORDERS:
+                        this->selectedUserInputProcessor = this->userInputBordersModeProcessor;
+                        break;
+                    case UserInputReceiverInterface::VIEW:
+                        this->selectedUserInputProcessor = this->userInputViewModeProcessor;
+                        break;
+                }
+            }
+            inputModeEvent->setEventProcessed();
         }
     }
     else {

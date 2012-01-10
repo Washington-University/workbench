@@ -106,6 +106,10 @@ EventTypeEnum::initialize()
                                      "EVENT_GET_NODE_DATA_FILES",
                                      "Get node data files"));
     
+    enumData.push_back(EventTypeEnum(EVENT_GET_OR_SET_USER_INPUT_MODE,
+                                     "EVENT_GET_OR_SET_USER_INPUT_MODE",
+                                     "Get or set the user input mode"));
+    
     enumData.push_back(EventTypeEnum(EVENT_GRAPHICS_UPDATE_ALL_WINDOWS, 
                                      "EVENT_GRAPHICS_UPDATE_ALL_WINDOWS", 
                                      "Update all graphics windows"));
@@ -145,7 +149,7 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
                                      "Get all model display YOKING GROUP controllers"));
-    
+
     enumData.push_back(EventTypeEnum(EVENT_SPEC_FILE_READ_DATA_FILES,
                                      "EVENT_SPEC_FILE_READ_DATA_FILES",
                                      "Read the selected data files in a spec file"));

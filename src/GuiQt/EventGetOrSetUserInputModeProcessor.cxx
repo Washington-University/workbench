@@ -1,0 +1,117 @@
+/*LICENSE_START*/ 
+/* 
+ *  Copyright 1995-2002 Washington University School of Medicine 
+ * 
+ *  http://brainmap.wustl.edu 
+ * 
+ *  This file is part of CARET. 
+ * 
+ *  CARET is free software; you can redistribute it and/or modify 
+ *  it under the terms of the GNU General Public License as published by 
+ *  the Free Software Foundation; either version 2 of the License, or 
+ *  (at your option) any later version. 
+ * 
+ *  CARET is distributed in the hope that it will be useful, 
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ *  GNU General Public License for more details. 
+ * 
+ *  You should have received a copy of the GNU General Public License 
+ *  along with CARET; if not, write to the Free Software 
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA 
+ * 
+ */ 
+
+#include "EventGetOrSetUserInputModeProcessor.h"
+
+using namespace caret;
+
+/**
+ * Constructor for SETTING the user input mode.
+ *
+ * @param windowIndex
+ *    Index of the window for the user input mode.
+ * @param userInputMode
+ *    The requested input mode.
+ */
+EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const int32_t windowIndex,
+                                                                         const UserInputReceiverInterface::UserInputMode userInputMode)
+: Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
+{
+    this->userInputProcessor = NULL;
+    this->userInputMode = userInputMode;
+    this->windowIndex   = windowIndex;
+    this->modeGetOrSet  = SET;
+}
+
+/**
+ * Constructor for GETTING the user input mode.
+ *
+ * @param windowIndex
+ *    Index of the window for the user input mode.
+ */
+EventGetOrSetUserInputModeProcessor::EventGetOrSetUserInputModeProcessor(const int32_t windowIndex)
+: Event(EventTypeEnum::EVENT_GET_OR_SET_USER_INPUT_MODE)
+{
+    this->userInputProcessor = NULL;
+    this->userInputMode = UserInputReceiverInterface::INVALID;
+    this->windowIndex   = windowIndex;
+    this->modeGetOrSet  = GET;
+}
+
+/*
+ * Destructor.
+ */
+EventGetOrSetUserInputModeProcessor::~EventGetOrSetUserInputModeProcessor()
+{
+}
+
+/**
+ * @return The window index.
+ */
+int32_t 
+EventGetOrSetUserInputModeProcessor::getWindowIndex() const 
+{ 
+    return this->windowIndex; 
+}
+
+/**
+ * @return The requested input mode.
+ */
+UserInputReceiverInterface::UserInputMode 
+EventGetOrSetUserInputModeProcessor::getUserInputMode() const
+{
+    return this->userInputMode; 
+}
+
+/**
+ * Set the user input processor which is called when GETTING.
+ * @param userInputProcessor
+ *    Value of current input processor.
+ */
+void 
+EventGetOrSetUserInputModeProcessor::setUserInputProcessor(UserInputReceiverInterface* userInputProcessor)
+{
+    this->userInputProcessor = userInputProcessor;
+    this->userInputMode      = this->userInputProcessor->getUserInputMode();
+}
+
+
+/**
+ * @return true if this event is GETTING the user input mode.
+ */
+bool 
+EventGetOrSetUserInputModeProcessor::isGetUserInputMode() const
+{
+    return (this->modeGetOrSet == GET);
+}
+
+/**
+ * @return true if this event is SETTING the user input mode.
+ */
+bool 
+EventGetOrSetUserInputModeProcessor::isSetUserInputMode() const
+{
+    return (this->modeGetOrSet == SET);
+}
+

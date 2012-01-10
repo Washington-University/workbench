@@ -1,5 +1,5 @@
-#ifndef __USER_INPUT_MODE_VIEW__H_
-#define __USER_INPUT_MODE_VIEW__H_
+#ifndef __USER_INPUT_MODE_BORDERS__H_
+#define __USER_INPUT_MODE_BORDERS__H_
 
 /*LICENSE_START*/
 /* 
@@ -31,12 +31,12 @@
 
 namespace caret {
 
-    class UserInputModeView : public CaretObject, public UserInputReceiverInterface {
+    class UserInputModeBorders : public CaretObject, public UserInputReceiverInterface {
         
     public:
-        UserInputModeView();
+        UserInputModeBorders();
         
-        virtual ~UserInputModeView();
+        virtual ~UserInputModeBorders();
         
         void processMouseEvent(MouseEvent* mouseEvent,
                                BrowserTabContent* browserTabContent,
@@ -48,26 +48,19 @@ namespace caret {
         
         void finish();
     private:
-        UserInputModeView(const UserInputModeView&);
+        UserInputModeBorders(const UserInputModeBorders&);
 
-        UserInputModeView& operator=(const UserInputModeView&);
+        UserInputModeBorders& operator=(const UserInputModeBorders&);
         
-        void processIdentification(MouseEvent* mouseEvent,
-                                   BrowserTabContent* browserTabContent,
-                                   BrainOpenGLWidget* openGLWidget);
-        
-        void processModelViewTransformation(MouseEvent* mouseEvent,
-                                            BrowserTabContent* browserTabContent,
-                                            BrainOpenGLWidget* openGLWidget);
     public:
         virtual AString toString() const;
         
     private:
     };
     
-#ifdef __USER_INPUT_MODE_VIEW_DECLARE__
+#ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __USER_INPUT_MODE_VIEW_DECLARE__
+#endif // __USER_INPUT_MODE_BORDERS_DECLARE__
 
 } // namespace
-#endif  //__USER_INPUT_MODE_VIEW__H_
+#endif  //__USER_INPUT_MODE_BORDERS__H_
