@@ -50,6 +50,10 @@ namespace caret {
 
         QWidget* getWidgetForToolBar();
         
+        static void processModelViewTransformation(MouseEvent* mouseEvent,
+                                                   BrowserTabContent* browserTabContent,
+                                                   BrainOpenGLWidget* openGLWidget);
+        
     private:
         UserInputModeView(const UserInputModeView&);
 
@@ -59,9 +63,6 @@ namespace caret {
                                    BrowserTabContent* browserTabContent,
                                    BrainOpenGLWidget* openGLWidget);
         
-        void processModelViewTransformation(MouseEvent* mouseEvent,
-                                            BrowserTabContent* browserTabContent,
-                                            BrainOpenGLWidget* openGLWidget);
     public:
         virtual AString toString() const;
         

@@ -57,10 +57,17 @@ namespace caret {
         
         void modeComboBoxSelection(int);
         
+        void createResetButtonClicked();
+        void createUndoButtonClicked();
+        void createFinishButtonClicked();
+        
     private:
         UserInputModeBordersWidget(const UserInputModeBordersWidget&);
 
         UserInputModeBordersWidget& operator=(const UserInputModeBordersWidget&);
+        
+        void setActionGroupByActionData(QActionGroup* actionGroup, 
+                                        const int dataInteger);
         
         QActionGroup* modeActionGroup;
         

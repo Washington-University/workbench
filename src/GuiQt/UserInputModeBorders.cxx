@@ -30,8 +30,10 @@
 
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "ModelDisplayController.h"
 #include "MouseEvent.h"
 #include "UserInputModeBordersWidget.h"
+#include "UserInputModeView.h"
 
 using namespace caret;
     
@@ -50,6 +52,7 @@ UserInputModeBorders::UserInputModeBorders()
 : CaretObject()
 {
     this->mode = MODE_CREATE;
+    this->createOperation = CREATE_OPERATION_DRAW;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
 
@@ -86,19 +89,56 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                        BrowserTabContent* browserTabContent,
                        BrainOpenGLWidget* openGLWidget)
 {
-    switch (mouseEvent->getMouseEventType()) {
-        case MouseEventTypeEnum::INVALID:
-            break;
-        case MouseEventTypeEnum::LEFT_CLICKED:
-            break;
-        case MouseEventTypeEnum::LEFT_DRAGGED:
-            break;
-        case MouseEventTypeEnum::LEFT_PRESSED:
-            break;
-        case MouseEventTypeEnum::LEFT_RELEASED:
-            break;
-        case MouseEventTypeEnum::WHEEL_MOVED:
-            break;
+    ModelDisplayController* modelController = browserTabContent->getModelControllerForDisplay();
+    if (modelController != NULL) {
+        //const int32_t tabIndex = browserTabContent->getTabNumber();
+        //const float dx = mouseEvent->getDx();
+        //const float dy = mouseEvent->getDy();
+        
+        switch (this->mode) {
+            case MODE_CREATE:
+            {
+                switch (mouseEvent->getMouseEventType()) {
+                    case MouseEventTypeEnum::INVALID:
+                        break;
+                    case MouseEventTypeEnum::LEFT_CLICKED:
+                        break;
+                    case MouseEventTypeEnum::LEFT_DRAGGED:
+                        switch (this->createOperation) {
+                            case CREATE_OPERATION_DRAW:
+                                break;
+                            case CREATE_OPERATION_TRANSFORM:
+                                UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                                  browserTabContent, 
+                                                                                  openGLWidget);
+                                break;
+                        }
+                        break;
+                    case MouseEventTypeEnum::LEFT_PRESSED:
+                        break;
+                    case MouseEventTypeEnum::LEFT_RELEASED:
+                        break;
+                    case MouseEventTypeEnum::WHEEL_MOVED:
+                        break;
+                }
+            }
+                break;
+            case MODE_EDIT:
+            {
+                
+            }
+                break;
+            case MODE_EDIT_POINTS:
+            {
+                
+            }
+                break;
+            case MODE_UPDATE:
+            {
+                
+            }
+                break;
+        }
     }
 }
 
@@ -163,6 +203,27 @@ void
 UserInputModeBorders::setMode(const Mode mode)
 {
     this->mode = mode;
+    this->borderToolsWidget->updateWidget();
+}
+
+/**
+ * @return the create operation.
+ */
+UserInputModeBorders::CreateOperation 
+UserInputModeBorders::getCreateOperation() const
+{
+    return this->createOperation;
+}
+
+/**
+ * Set the create operation.
+ * @param createOperation
+ *    New value for create operation.
+ */
+void 
+UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
+{
+    this->createOperation = createOperation;
     this->borderToolsWidget->updateWidget();
 }
 

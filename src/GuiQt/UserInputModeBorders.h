@@ -45,10 +45,7 @@ namespace caret {
         
         enum CreateOperation {
             CREATE_OPERATION_DRAW,
-            CREATE_OPERATION_FINISH,
-            CREATE_OPERATION_RESET,
-            CREATE_OPERATION_ROTATE,
-            CREATE_OPERATION_UNDO
+            CREATE_OPERATION_TRANSFORM
         };
         
         enum EditOperation {
@@ -88,6 +85,10 @@ namespace caret {
         
         void setMode(const Mode mode);
         
+        CreateOperation getCreateOperation() const;
+        
+        void setCreateOperation(const CreateOperation createOperation);
+        
     private:
         UserInputModeBorders(const UserInputModeBorders&);
 
@@ -100,6 +101,8 @@ namespace caret {
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;
+        
+        CreateOperation createOperation;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
