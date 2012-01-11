@@ -60,34 +60,7 @@ using namespace caret;
 SurfaceProjectionVanEssen::SurfaceProjectionVanEssen()
 : SurfaceProjection()
 {
-    this->dR = 0.0;
-    
-    for (int32_t i = 0; i < 2; i++) {
-        for (int32_t j = 0; j < 3; j++) {
-            for (int32_t k = 0; k < 3; k++) {
-                this->triAnatomical[i][j][k] = 0;
-            }
-            this->triVertices[i][j] = 0.0;
-        }
-        this->vertex[i] = 0.0;
-    }
-    
-    this->vertexAnatomical[0][0] = 0.0;
-    this->vertexAnatomical[0][1] = 0.0;
-    this->vertexAnatomical[1][0] = 0.0;
-    this->vertexAnatomical[1][1] = 0.0;
-    
-    this->posAnatomical[0] = 0.0;
-    this->posAnatomical[1] = 0.0;
-    this->posAnatomical[2] = 0.0;
-    
-    this->thetaR = 0.0;
-    
-    this->phiR = 0.0;
-
-    this->fracRI = 0.0;
-    
-    this->fracRJ = 0.0;
+    this->resetAllValues();
 }
 
 /**
@@ -615,5 +588,55 @@ SurfaceProjectionVanEssen::setPosAnatomical(const float posAnatomical[3])
     this->posAnatomical[2] = posAnatomical[2];
     this->setModified();
 }
+
+/**
+ * Reset the surface projection to its initial state.
+ */
+void 
+SurfaceProjectionVanEssen::reset()
+{
+    this->resetAllValues();
+}
+
+/**
+ * Since reset overrides the 'super' class it should
+ * never be called from a constructor.  So, this 
+ * method does the actual reset, and since it does
+ * not override a method from the 'super' class, it
+ * may be called from this class' constructor.
+ */
+void 
+SurfaceProjectionVanEssen::resetAllValues()
+{
+    this->dR = 0.0;
+    
+    for (int32_t i = 0; i < 2; i++) {
+        for (int32_t j = 0; j < 3; j++) {
+            for (int32_t k = 0; k < 3; k++) {
+                this->triAnatomical[i][j][k] = 0;
+            }
+            this->triVertices[i][j] = 0.0;
+        }
+        this->vertex[i] = 0.0;
+    }
+    
+    this->vertexAnatomical[0][0] = 0.0;
+    this->vertexAnatomical[0][1] = 0.0;
+    this->vertexAnatomical[1][0] = 0.0;
+    this->vertexAnatomical[1][1] = 0.0;
+    
+    this->posAnatomical[0] = 0.0;
+    this->posAnatomical[1] = 0.0;
+    this->posAnatomical[2] = 0.0;
+    
+    this->thetaR = 0.0;
+    
+    this->phiR = 0.0;
+    
+    this->fracRI = 0.0;
+    
+    this->fracRJ = 0.0;
+}
+
 
 

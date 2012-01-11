@@ -96,6 +96,8 @@ namespace caret {
         
         void setStructure(const StructureEnum::Enum structure);
         
+        void reset();
+        
     public:
         /**Tag for root element of a SurfaceProjectedItem */
         static  const std::string XML_TAG_SURFACE_PROJECTED_ITEM;

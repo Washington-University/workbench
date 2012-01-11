@@ -68,8 +68,15 @@ namespace caret {
                                 float xyzOut[3],
                                 const bool isUnprojectedOntoSurface = false) const;
         
+        /**
+         * Reset the surface projection to its initial state.
+         */
+        void reset();
+        
     private:
         void copyHelperSurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj);
+        
+        void resetAllValues();
         
         int32_t triangleVertices[3];
         

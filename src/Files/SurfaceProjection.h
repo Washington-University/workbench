@@ -53,6 +53,11 @@ namespace caret {
         SurfaceProjection& operator=(const SurfaceProjection& obj);
         
         /**
+         * Reset the surface projection to its initial state.
+         */
+        virtual void reset() = 0;
+        
+        /**
          * Unproject to the surface using 'this' projection.
          * 
          * @param surfaceFile

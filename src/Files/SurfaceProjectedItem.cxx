@@ -102,8 +102,11 @@ SurfaceProjectedItem::copyHelper(const SurfaceProjectedItem& spi)
     *this->vanEssenProjection    = *spi.vanEssenProjection;
 }
 
-void
-SurfaceProjectedItem::initializeMembersSurfaceProjectedItem()
+/**
+ * Reset to default values as if no projection of any type.
+ */
+void 
+SurfaceProjectedItem::reset()
 {
     this->projectionType = SurfaceProjectionTypeEnum::UNPROJECTED;
     this->originalXYZ[0] = 0.0;
@@ -113,9 +116,16 @@ SurfaceProjectedItem::initializeMembersSurfaceProjectedItem()
     this->volumeXYZ[1] = 0.0;
     this->volumeXYZ[2] = 0.0;
     this->structure = StructureEnum::INVALID;
-    
+    this->barycentricProjection->reset();
+    this->vanEssenProjection->reset();
+}
+
+void
+SurfaceProjectedItem::initializeMembersSurfaceProjectedItem()
+{
     this->barycentricProjection = new SurfaceProjectionBarycentric();
     this->vanEssenProjection    = new SurfaceProjectionVanEssen();
+    this->reset();
 }
 
 /**

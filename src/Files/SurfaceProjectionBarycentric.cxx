@@ -56,15 +56,7 @@ using namespace caret;
 SurfaceProjectionBarycentric::SurfaceProjectionBarycentric()
 : SurfaceProjection()
 {
-    this->triangleAreas[0] = 0.0;
-    this->triangleAreas[1] = 0.0;
-    this->triangleAreas[2] = 0.0;
-    
-    this->triangleVertices[0] = 0;
-    this->triangleVertices[1] = 0;
-    this->triangleVertices[2] = 0;
-    
-    this->signedDistanceAboveSurface = 0.0;
+    this->resetAllValues();
 }
 
 /**
@@ -300,3 +292,34 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
     
     return true;
 }
+
+/**
+ * Reset the surface projection to its initial state.
+ */
+void 
+SurfaceProjectionBarycentric::reset()
+{
+    this->resetAllValues();
+}
+
+/**
+ * Since reset overrides the 'super' class it should
+ * never be called from a constructor.  So, this 
+ * method does the actual reset, and since it does
+ * not override a method from the 'super' class, it
+ * may be called from this class' constructor.
+ */
+void 
+SurfaceProjectionBarycentric::resetAllValues()
+{
+    this->triangleAreas[0] = 0.0;
+    this->triangleAreas[1] = 0.0;
+    this->triangleAreas[2] = 0.0;
+    
+    this->triangleVertices[0] = 0;
+    this->triangleVertices[1] = 0;
+    this->triangleVertices[2] = 0;
+    
+    this->signedDistanceAboveSurface = 0.0;
+}
+

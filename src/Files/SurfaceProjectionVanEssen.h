@@ -94,10 +94,14 @@ namespace caret {
         
         void setPosAnatomical(const float posAnatomical[3]);
         
+        void reset();
+        
     private:
         void copyHelperSurfaceProjectionVanEssen(const SurfaceProjectionVanEssen& obj);
         
         void computeProjectionPoint(float projection[3]) const;
+        
+        void resetAllValues();
         
         float dR;
         
