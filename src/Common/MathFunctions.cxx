@@ -505,11 +505,16 @@ MathFunctions::distanceSquared3D(
                    const double p1[3],
                    const double p2[3])
 {
-    double dist = distanceSquared3D(p1, p2);
-    if (dist != 0.0f) {
-        dist = std::sqrt(dist);
-    }
-    return dist;
+    double dx = p1[0] - p2[0];
+    double dy = p1[1] - p2[1];
+    double dz = p1[2] - p2[2];
+    double distSQ = dx*dx + dy*dy + dz*dz;
+    return distSQ;
+//    double dist = distanceSquared3D(p1, p2);
+//    if (dist != 0.0f) {
+//        dist = std::sqrt(dist);
+//    }
+//    return dist;
 }
 
 /**

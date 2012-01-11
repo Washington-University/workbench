@@ -371,6 +371,7 @@ namespace caret {
         friend class BrainBrowserWindow;
         
         bool isContructorFinished;
+        bool isDestructionInProgress;
     };
 }
 

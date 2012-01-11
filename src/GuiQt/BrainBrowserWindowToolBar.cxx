@@ -119,6 +119,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->updateCounter = 0;
     
     this->isContructorFinished = false;
+    this->isDestructionInProgress = false;
 
     this->viewOrientationLeftIcon = NULL;
     this->viewOrientationRightIcon = NULL;
@@ -318,6 +319,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
  */
 BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
 {
+    this->isDestructionInProgress = true;
+    
     if (this->viewOrientationLeftIcon != NULL) {
         delete this->viewOrientationLeftIcon;
         this->viewOrientationLeftIcon = NULL;
@@ -382,6 +385,8 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     for (int i = (this->tabBar->count() - 1); i >= 0; i--) {
         this->tabClosed(i);
     }
+
+    this->isDestructionInProgress = true;
 }
 
 /**
@@ -858,6 +863,10 @@ BrainBrowserWindowToolBar::tabClosed(int indx)
 void 
 BrainBrowserWindowToolBar::updateToolBar()
 {
+    if (this->isDestructionInProgress) {
+        return;
+    }
+    
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
     
     BrowserTabContent* browserTabContent = this->getTabContentFromSelectedTab();

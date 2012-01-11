@@ -56,9 +56,9 @@ namespace caret {
         
         void setSignedDistanceAboveSurface(const float signedDistanceAboveSurface);
         
-        const int32_t* getTriangleVertices() const;
+        const int32_t* getTriangleNodes() const;
         
-        void setTriangleVertices(const int32_t triangleVertices[3]);
+        void setTriangleNodes(const int32_t triangleNodes[3]);
         
         const float* getTriangleAreas() const;
         
@@ -78,7 +78,7 @@ namespace caret {
         
         void resetAllValues();
         
-        int32_t triangleVertices[3];
+        int32_t triangleNodes[3];
         
         float triangleAreas[3];
         
@@ -86,7 +86,7 @@ namespace caret {
 
         static  const std::string XML_TAG_PROJECTION_BARYCENTRIC;
         
-        static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_VERTICES;
+        static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_NODES;
         
         static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_AREAS;
         

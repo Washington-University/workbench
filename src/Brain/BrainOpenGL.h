@@ -35,6 +35,7 @@ namespace caret {
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class IdentificationManager;
+    class SurfaceProjectedItem;
     
     /**
      * Performs drawing of graphics using OpenGL.
@@ -63,7 +64,7 @@ namespace caret {
         /**
          * Selection on a model.
          *
-         * @param viewportConent
+         * @param viewportContent
          *    Viewport content in which mouse was clicked
          * @param mouseX
          *    X position of mouse click
@@ -73,6 +74,24 @@ namespace caret {
         virtual void selectModel(BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY) = 0;
+        
+        /**
+         * Project the given window coordinate to the active models.
+         * If the projection is successful, The 'original' XYZ
+         * coordinate in 'projectionOut' will be valid.  In addition,
+         * the barycentric coordinate may also be valid in 'projectionOut'.
+         *
+         * @param viewportContent
+         *    Viewport content in which mouse was clicked
+         * @param mouseX
+         *    X position of mouse click
+         * @param mouseY
+         *    Y position of mouse click
+         */
+        virtual void projectToModel(BrainOpenGLViewportContent* viewportContent,
+                                    const int32_t mouseX,
+                                    const int32_t mouseY,
+                                    SurfaceProjectedItem& projectionOut) = 0;
         
         /**
          * Initializle the orthographic viewport.

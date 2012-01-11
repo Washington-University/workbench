@@ -44,6 +44,7 @@ namespace caret {
     class IdentificationManager;
     class ModelDisplayController;
     class MouseEvent;
+    class SurfaceProjectedItem;
     class UserInputModeBorders;
     class UserInputModeView;
     class UserInputReceiverInterface;
@@ -64,6 +65,10 @@ namespace caret {
         IdentificationManager* performIdentification(const int x,
                                                      const int y);
         
+        void performProjection(const int x,
+                               const int y,
+                               SurfaceProjectedItem& projectionOut);
+ 
         QImage  captureImage(const int32_t imageSizeX,
                              const int32_t imageSizeY);
     protected:

@@ -94,6 +94,10 @@ namespace caret {
 
         UserInputModeBorders& operator=(const UserInputModeBorders&);
         
+        void drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
+                                const int32_t mouseX,
+                                const int32_t mouseY);
+        
     public:
         virtual AString toString() const;
         

@@ -426,6 +426,32 @@ BrainOpenGLWidget::performIdentification(const int x,
     return idManager;
 }
 
+void 
+BrainOpenGLWidget::performProjection(const int x,
+                                     const int y,
+                                     SurfaceProjectedItem& projectionOut)
+{
+    BrainOpenGLViewportContent* projectionViewport = this->getViewportContentAtXY(x, y);
+    
+    this->makeCurrent();
+    CaretLogFine("Performing projection");
+    
+    if (projectionViewport != NULL) {
+        /*
+         * ID coordinate needs to be relative to the viewport
+         *
+         int vp[4];
+         idViewport->getViewport(vp);
+         const int idX = x - vp[0];
+         const int idY = y - vp[1];
+         */
+        this->openGL->projectToModel(projectionViewport,
+                                     x,
+                                     y,
+                                     projectionOut);
+    }
+}
+
 
 /** 
  * Receive mouse move events from Qt.

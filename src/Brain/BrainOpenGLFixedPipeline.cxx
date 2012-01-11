@@ -67,6 +67,9 @@
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
 #include "MathFunctions.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -78,9 +81,8 @@
 #include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineSelection.h"
 
@@ -150,6 +152,48 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
                             viewportContent);
 
     this->getIdentificationManager()->filterSelections();
+}
+
+/**
+ * Project the given window coordinate to the active models.
+ * If the projection is successful, The 'original' XYZ
+ * coordinate in 'projectionOut' will be valid.  In addition,
+ * the barycentric coordinate may also be valid in 'projectionOut'.
+ *
+ * @param viewportContent
+ *    Viewport content in which mouse was clicked
+ * @param mouseX
+ *    X position of mouse click
+ * @param mouseY
+ *    Y position of mouse click
+ */
+void 
+BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportContent,
+                                         const int32_t mouseX,
+                                         const int32_t mouseY,
+                                         SurfaceProjectedItem& projectionOut)
+{
+    this->getIdentificationManager()->reset();
+    
+    this->modeProjectionData = &projectionOut;
+    this->modeProjectionData->reset();
+    
+    /*
+     * For projection which uses colors for finding triangles, 
+     * set the background to white.
+     */
+    glClearColor(1.0, 1.0, 1.0, 0.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+    
+    this->mouseX = mouseX;
+    this->mouseY = mouseY;
+    
+    this->colorIdentification->reset();
+    
+    this->drawModelInternal(MODE_PROJECTION,
+                            viewportContent);
+    
+    this->modeProjectionData = NULL;
 }
 
 /**
@@ -379,6 +423,7 @@ BrainOpenGLFixedPipeline::initializeMembersBrainOpenGL()
     }
     
     this->initializedOpenGLFlag = false;
+    this->modeProjectionData = NULL;
 }
 /**
  * Initialize OpenGL.
@@ -519,6 +564,7 @@ BrainOpenGLFixedPipeline::enableLighting()
             glEnable(GL_COLOR_MATERIAL);
             break;
         case MODE_IDENTIFICATION:
+        case MODE_PROJECTION:
             this->disableLighting();
             break;
     }
@@ -610,6 +656,11 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
             this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
+        case MODE_PROJECTION:
+            glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
+            this->drawSurfaceTriangles(surface);
+            glShadeModel(GL_SMOOTH);
+            break;
     }
     
     this->disableLighting();
@@ -630,17 +681,32 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
     const float* normals     = surface->getNormalVector(0);
     const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
 
-    IdentificationItemSurfaceTriangle* triangleID = 
-        this->getIdentificationManager()->getSurfaceTriangleIdentification();
+    IdentificationItemSurfaceTriangle* triangleID = NULL;
+    /*
+     * Check for a 'selection' type mode
+     */
     bool isSelect = false;
-    if (this->isIdentifyMode()) {
-        if (triangleID->isEnabledForSelection()) {
+    bool isProjection = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            triangleID = this->getIdentificationManager()->getSurfaceTriangleIdentification();
+            if (triangleID->isEnabledForSelection()) {
+                isSelect = true;
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
             isSelect = true;
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
-        else {
-            return;
-        }
+            isProjection = true;
+            break;
+    }
+    
+    if (isSelect) {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     
     uint8_t rgb[3];
@@ -687,9 +753,11 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
         
         
         if (triangleIndex >= 0) {
-            triangleID->setSurface(surface);
-            triangleID->setTriangleNumber(triangleIndex);
-            triangleID->setScreenDepth(depth);
+            if (triangleID != NULL) {
+                triangleID->setSurface(surface);
+                triangleID->setTriangleNumber(triangleIndex);
+                triangleID->setScreenDepth(depth);
+            }
             
             /*
              * Node indices
@@ -710,7 +778,9 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                 c1[1] + c2[1] + c3[1],
                 c1[2] + c2[2] + c3[2]
             };
-            this->setIdentifiedItemScreenXYZ(triangleID, average);
+            if (triangleID != NULL) {
+                this->setIdentifiedItemScreenXYZ(triangleID, average);
+            }
                    
             GLdouble selectionModelviewMatrix[16];
             glGetDoublev(GL_MODELVIEW_MATRIX, selectionModelviewMatrix);
@@ -767,18 +837,104 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                                                        wc3[1], 
                                                                        this->mouseX, 
                                                                        this->mouseY);
-                    triangleID->setNearestNode(n3);
-                    triangleID->setNearestNodeScreenXYZ(wc3);
-                    triangleID->setNearestNodeModelXYZ(dc3);
-                    if ((d1 < d2) && (d1 < d3)) {
-                        triangleID->setNearestNode(n1);
-                        triangleID->setNearestNodeScreenXYZ(wc1);
-                        triangleID->setNearestNodeModelXYZ(dc1);
+                    if (triangleID != NULL) {
+                        triangleID->setNearestNode(n3);
+                        triangleID->setNearestNodeScreenXYZ(wc3);
+                        triangleID->setNearestNodeModelXYZ(dc3);
+                        if ((d1 < d2) && (d1 < d3)) {
+                            triangleID->setNearestNode(n1);
+                            triangleID->setNearestNodeScreenXYZ(wc1);
+                            triangleID->setNearestNodeModelXYZ(dc1);
+                        }
+                        else if ((d2 < d1) && (d2 < d3)) {
+                            triangleID->setNearestNode(n2);
+                            triangleID->setNearestNodeScreenXYZ(wc2);
+                            triangleID->setNearestNodeModelXYZ(dc2);
+                        }
                     }
-                    else if ((d2 < d1) && (d2 < d3)) {
-                        triangleID->setNearestNode(n2);
-                        triangleID->setNearestNodeScreenXYZ(wc2);
-                        triangleID->setNearestNodeModelXYZ(dc2);
+                    
+                    /*
+                     * Getting projected position?
+                     */
+                    if (isProjection) {
+                        CaretAssert(this->modeProjectionData);
+                        
+                        /*
+                         * Place window coordinates of triangle's nodes
+                         * onto the screen
+                         */
+                        wc1[2] = 0.0;
+                        wc2[2] = 0.0;
+                        wc3[2] = 0.0;
+                        
+                        /*
+                         * Area of triangle when projected to display
+                         */
+                        const double triangleDisplayArea = 
+                            MathFunctions::triangleArea(wc1, wc2, wc3);
+                        
+                        /*
+                         * If area of triangle on display is small,
+                         * use a coordinate from the triangle
+                         */
+                        if (triangleDisplayArea < 0.001) {
+                            this->modeProjectionData->setOriginalXYZ(c1);
+                            this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::UNPROJECTED);
+                        }
+                        else {
+                            /*
+                             * Determine position in triangle using barycentric coordinates
+                             */
+                            double displayXYZ[3] = { 
+                                this->mouseX, 
+                                this->mouseY, 
+                                0.0 
+                            };
+                            
+                            const double areaU = (MathFunctions::triangleArea(displayXYZ, wc2, wc3)
+                                                  / triangleDisplayArea);
+                            const double areaV = (MathFunctions::triangleArea(displayXYZ, wc3, wc1)
+                                                  / triangleDisplayArea);
+                            const double areaW = (MathFunctions::triangleArea(displayXYZ, wc1, wc2)
+                                                  / triangleDisplayArea);
+                            double totalArea = areaU + areaV + areaW;
+                            if (totalArea <= 0) {
+                                totalArea = 1.0;
+                            }
+                            if ((areaU < 0.0) || (areaV < 0.0) || (areaW < 0.0)) {
+                                CaretLogWarning("Invalid tile area: less than zero when projecting to surface.");
+                            }
+                            else {
+                                /*
+                                 * Convert to surface coordinates
+                                 */
+                                const float projectedXYZ[3] = {
+                                    (dc1[0]*areaU + dc2[0]*areaV + dc3[0]*areaW) / totalArea,
+                                    (dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea,
+                                    (dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea
+                                };
+                                this->modeProjectionData->setOriginalXYZ(projectedXYZ);
+                                this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::UNPROJECTED);
+                                
+                                const float barycentricAreas[3] = {
+                                    areaU,
+                                    areaV,
+                                    areaW
+                                };
+                                
+                                const int32_t barycentricNodes[3] = {
+                                    n1,
+                                    n2,
+                                    n3
+                                };
+                                
+                                SurfaceProjectionBarycentric* barycentric =
+                                    this->modeProjectionData->getBarycentricProjection();
+                                barycentric->setTriangleAreas(barycentricAreas);
+                                barycentric->setTriangleNodes(barycentricNodes);
+                                this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
+                            }
+                        }
                     }
             }
             CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
@@ -803,15 +959,24 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
     
     IdentificationItemSurfaceNode* nodeID = 
     this->getIdentificationManager()->getSurfaceNodeIdentification();
+    /*
+     * Check for a 'selection' type mode
+     */
     bool isSelect = false;
-    if (this->isIdentifyMode()) {
-        if (nodeID->isEnabledForSelection()) {
-            isSelect = true;
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
-        }
-        else {
-            return;
-        }
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (nodeID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            break;
     }
     
     uint8_t rgb[3];
@@ -907,15 +1072,26 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 
     IdentificationItemSurfaceNodeIdentificationSymbol* symbolID = 
         this->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
     bool isSelect = false;
-    if (this->isIdentifyMode()) {
-        if (symbolID->isEnabledForSelection()) {
-            isSelect = true;
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
-        }
-        else {
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (symbolID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
             return;
-        }
+            break;
     }
     
     uint8_t idRGB[3];
@@ -1430,21 +1606,26 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
     
     IdentificationItemVoxel* voxelID = 
     this->getIdentificationManager()->getVoxelIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
     bool isSelect = false;
-    if (this->isIdentifyMode()) {
-        if (voxelID->isEnabledForSelection()) {
-            isSelect = true;
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
-        }
-        else {
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
             return;
-        }
-    }
-    else {
-        /*
-         * Disable depth testing since want to overlays previously drawn layers.
-         */
-        glDisable(GL_DEPTH_TEST);
+            break;
     }
     
     /*
@@ -1989,16 +2170,28 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
     
     IdentificationItemVoxel* voxelID = 
     this->getIdentificationManager()->getVoxelIdentification();
+
+    /*
+     * Check for a 'selection' type mode
+     */
     bool isSelect = false;
-    if (this->isIdentifyMode()) {
-        if (voxelID->isEnabledForSelection()) {
-            isSelect = true;
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
-        }
-        else {
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (voxelID->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
             return;
-        }
+            break;
     }
+    
     
     /*
      * For slices disable culling since want to see both side
@@ -3006,10 +3199,25 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
                   savedViewport);
     
     CaretAssert(brain);
-    const bool selectFlag = (this->mode == MODE_IDENTIFICATION);
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool selectFlag = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            selectFlag = true;
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
     if (selectFlag) {
         return;
     }
+    
     this->disableLighting();
     
     PaletteFile* paletteFile = brain->getPaletteFile();

@@ -104,7 +104,7 @@ void
 SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj)
 {
     this->setTriangleAreas(obj.getTriangleAreas());
-    this->setTriangleVertices(obj.getTriangleVertices());
+    this->setTriangleNodes(obj.getTriangleNodes());
     this->signedDistanceAboveSurface = obj.signedDistanceAboveSurface;
 }
 
@@ -117,7 +117,7 @@ SurfaceProjectionBarycentric::toString() const
 {
     const AString txt = (SurfaceProjection::toString()
                          + "\nSurfaceProjectionBarycentric::triangleAreas=" + AString::fromNumbers(this->triangleAreas, 3, ",")
-                         + "triangleVertices=" + AString::fromNumbers(this->triangleVertices, 3, ",")
+                         + "triangleNodes=" + AString::fromNumbers(this->triangleNodes, 3, ",")
                          + "signedDistanceAboveSurface=" + AString::number(this->signedDistanceAboveSurface));
     return txt;
 }
@@ -145,26 +145,26 @@ SurfaceProjectionBarycentric::setSignedDistanceAboveSurface(const float signedDi
 }
 
 /**
- * @return The triangle vertices (3 elements).
+ * @return The triangle nodes (3 elements).
  */
 const int32_t* 
-SurfaceProjectionBarycentric::getTriangleVertices() const
+SurfaceProjectionBarycentric::getTriangleNodes() const
 {
-    return this->triangleVertices;
+    return this->triangleNodes;
 }
 
 /**
- * Set the triangle vertices.
+ * Set the triangle nodes.
  * 
- * @param triangleVertices
- *    New values for vertices.
+ * @param triangleNodes
+ *    New values for nodes.
  */
 void 
-SurfaceProjectionBarycentric::setTriangleVertices(const int32_t triangleVertices[3])
+SurfaceProjectionBarycentric::setTriangleNodes(const int32_t triangleNodes[3])
 {
-    this->triangleVertices[0] = triangleVertices[0];
-    this->triangleVertices[1] = triangleVertices[1];
-    this->triangleVertices[2] = triangleVertices[2];
+    this->triangleNodes[0] = triangleNodes[0];
+    this->triangleNodes[1] = triangleNodes[1];
+    this->triangleNodes[2] = triangleNodes[2];
     this->setModified();
 }
 
@@ -207,9 +207,9 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
                                                  float xyzOut[3],
                                                  const bool isUnprojectedOntoSurface) const
 {
-    const int32_t n1 = this->triangleVertices[0];
-    const int32_t n2 = this->triangleVertices[1];
-    const int32_t n3 = this->triangleVertices[2];
+    const int32_t n1 = this->triangleNodes[0];
+    const int32_t n2 = this->triangleNodes[1];
+    const int32_t n3 = this->triangleNodes[2];
     
     CaretAssert(n1 < surfaceFile.getNumberOfNodes());
     CaretAssert(n2 < surfaceFile.getNumberOfNodes());
@@ -316,9 +316,9 @@ SurfaceProjectionBarycentric::resetAllValues()
     this->triangleAreas[1] = 0.0;
     this->triangleAreas[2] = 0.0;
     
-    this->triangleVertices[0] = 0;
-    this->triangleVertices[1] = 0;
-    this->triangleVertices[2] = 0;
+    this->triangleNodes[0] = 0;
+    this->triangleNodes[1] = 0;
+    this->triangleNodes[2] = 0;
     
     this->signedDistanceAboveSurface = 0.0;
 }

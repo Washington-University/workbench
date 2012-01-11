@@ -362,3 +362,20 @@ SurfaceProjectedItem::setStructure(const StructureEnum::Enum structure)
     this->structure = structure;
 }
 
+/** 
+ * @return the barycentric projection 
+ */
+SurfaceProjectionBarycentric* 
+SurfaceProjectedItem::getBarycentricProjection()
+{
+    return this->barycentricProjection;
+}
+
+/** 
+ * @return the Van Essen projection 
+ */
+SurfaceProjectionVanEssen* 
+SurfaceProjectedItem::getVanEssenProjection()
+{
+    return this->vanEssenProjection;
+}

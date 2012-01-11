@@ -64,7 +64,8 @@ namespace caret {
     private:
         enum Mode {
             MODE_DRAWING,
-            MODE_IDENTIFICATION
+            MODE_IDENTIFICATION,
+            MODE_PROJECTION
         };
         
         BrainOpenGLFixedPipeline(const BrainOpenGLFixedPipeline&);
@@ -80,6 +81,11 @@ namespace caret {
         void selectModel(BrainOpenGLViewportContent* viewportContent,
                          const int32_t mouseX,
                          const int32_t mouseY);
+        
+        void projectToModel(BrainOpenGLViewportContent* viewportContent,
+                            const int32_t mouseX,
+                            const int32_t mouseY,
+                            SurfaceProjectedItem& projectionOut);
         
         void initializeOpenGL();
         
@@ -103,8 +109,6 @@ namespace caret {
             int32_t brickIndex;
             float opacity;
         };
-        
-        bool isIdentifyMode() const { return this->mode == MODE_IDENTIFICATION; }
         
         void drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent);
@@ -229,6 +233,8 @@ namespace caret {
         
         /** Identify using color */
         IdentificationWithColor* colorIdentification;
+
+        SurfaceProjectedItem* modeProjectionData;
         
         uint32_t sphereDisplayList;
         

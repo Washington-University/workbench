@@ -30,8 +30,11 @@
 
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
+#include "CaretLogger.h"
 #include "ModelDisplayController.h"
 #include "MouseEvent.h"
+#include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
 #include "UserInputModeBordersWidget.h"
 #include "UserInputModeView.h"
 
@@ -74,6 +77,39 @@ UserInputModeBorders::getUserInputMode() const
 }
 
 /**
+ * Draw a border point at the mouse coordinates.
+ */
+void 
+UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
+                                         const int32_t mouseX,
+                                         const int32_t mouseY)
+{
+    SurfaceProjectedItem projectedItem;
+    openGLWidget->performProjection(mouseX,
+                                    mouseY,
+                                    projectedItem);
+    
+    if (projectedItem.isOriginalXYZValid()) {
+        float xyz[3];
+        projectedItem.getOriginalXYZ(xyz);
+        
+        AString txt = ("Projected Position: " 
+                       + AString::fromNumbers(xyz, 3, ","));
+        
+        if (projectedItem.getProjectionType() == SurfaceProjectionTypeEnum::BARYCENTRIC) {
+            SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();
+            
+            txt += ("\nBarycentric Position: " 
+                    + AString::fromNumbers(bp->getTriangleAreas(), 3, ",")
+                    + "   "
+                    + AString::fromNumbers(bp->getTriangleNodes(), 3, ","));
+        }
+        
+        CaretLogFiner(txt);
+    }
+}
+
+/**
  * Called when a mouse events occurs for 'this' 
  * user input receiver.
  *
@@ -94,6 +130,8 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         //const int32_t tabIndex = browserTabContent->getTabNumber();
         //const float dx = mouseEvent->getDx();
         //const float dy = mouseEvent->getDy();
+        const int mouseX = mouseEvent->getX();
+        const int mouseY = mouseEvent->getY();
         
         switch (this->mode) {
             case MODE_CREATE:
@@ -102,10 +140,16 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     case MouseEventTypeEnum::INVALID:
                         break;
                     case MouseEventTypeEnum::LEFT_CLICKED:
+                        this->drawPointAtMouseXY(openGLWidget,
+                                                 mouseX,
+                                                 mouseY);
                         break;
                     case MouseEventTypeEnum::LEFT_DRAGGED:
                         switch (this->createOperation) {
                             case CREATE_OPERATION_DRAW:
+                                this->drawPointAtMouseXY(openGLWidget,
+                                                         mouseX,
+                                                         mouseY);
                                 break;
                             case CREATE_OPERATION_TRANSFORM:
                                 UserInputModeView::processModelViewTransformation(mouseEvent, 
