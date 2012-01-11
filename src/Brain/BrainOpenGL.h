@@ -32,6 +32,7 @@
 
 namespace caret {
     
+    class Border;
     class BrainOpenGLTextRenderInterface;
     class BrainOpenGLViewportContent;
     class IdentificationManager;
@@ -116,6 +117,8 @@ namespace caret {
          */
         IdentificationManager* getIdentificationManager();
 
+        void setBorderBeingDrawn(Border* borderBeingDrawn);
+        
         static void getMinMaxPointSize(float& minPointSizeOut, float& maxPointSizeOut);
         
         static void getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut);
@@ -128,6 +131,8 @@ namespace caret {
     protected:
         /** Optional text rendering (if not null) */
         BrainOpenGLTextRenderInterface* textRenderer;
+        
+        Border* borderBeingDrawn;
         
         /** version number of OpenGL */
         static float versionOfOpenGL;

@@ -372,10 +372,28 @@ SurfaceProjectedItem::getBarycentricProjection()
 }
 
 /** 
+ * @return the barycentric projection 
+ */
+const SurfaceProjectionBarycentric* 
+SurfaceProjectedItem::getBarycentricProjection() const
+{
+    return this->barycentricProjection;
+}
+
+/** 
  * @return the Van Essen projection 
  */
 SurfaceProjectionVanEssen* 
 SurfaceProjectedItem::getVanEssenProjection()
+{
+    return this->vanEssenProjection;
+}
+
+/** 
+ * @return the Van Essen projection 
+ */
+const SurfaceProjectionVanEssen* 
+SurfaceProjectedItem::getVanEssenProjection() const
 {
     return this->vanEssenProjection;
 }

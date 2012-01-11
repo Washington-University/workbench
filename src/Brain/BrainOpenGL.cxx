@@ -94,3 +94,17 @@ BrainOpenGL::getMinMaxLineWidth(float& minLineWidthOut, float& maxLineWidthOut)
     maxLineWidthOut = BrainOpenGL::maxLineWidth;
 }
 
+/**
+ * Set the border being drawn by the user.  If not NULL then 
+ * subclasses should draw the border.
+ *
+ * @param borderBeingDrawn
+ *    Pointer to border that is being drawn.
+ */
+void 
+BrainOpenGL::setBorderBeingDrawn(Border* borderBeingDrawn)
+{
+    this->borderBeingDrawn = borderBeingDrawn;
+}
+
+

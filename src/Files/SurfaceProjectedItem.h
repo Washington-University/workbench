@@ -96,7 +96,11 @@ namespace caret {
         
         void setStructure(const StructureEnum::Enum structure);
         
+        const SurfaceProjectionBarycentric* getBarycentricProjection() const;
+        
         SurfaceProjectionBarycentric* getBarycentricProjection();
+        
+        const SurfaceProjectionVanEssen* getVanEssenProjection() const;
         
         SurfaceProjectionVanEssen* getVanEssenProjection();
         

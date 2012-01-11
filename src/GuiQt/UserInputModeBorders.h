@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class Border;
     class UserInputModeBordersWidget;
     
     class UserInputModeBorders : public CaretObject, public UserInputReceiverInterface {
@@ -65,7 +66,8 @@ namespace caret {
             UPDATE_OPERATION_REPLACE
         };
         
-        UserInputModeBorders();
+        UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
+                             const int32_t windowIndex);
         
         virtual ~UserInputModeBorders();
         
@@ -102,11 +104,27 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void createOperationFinish(const AString& name);
+        
+        void createOperationUndo();
+        
+        void createOperationReset();
+        
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;
         
         CreateOperation createOperation;
+        
+        /** 
+         * Pointer to border drawn by OpenGL.  Since owned
+         * by OpenGL, DO NOT delete this!!!
+         */
+        Border* borderBeingDrawnByOpenGL;
+        
+        int32_t windowIndex;
+        
+        friend class UserInputModeBordersWidget;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

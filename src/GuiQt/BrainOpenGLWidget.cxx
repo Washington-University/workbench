@@ -32,6 +32,7 @@
 #include "BrainOpenGLWidget.h"
 #undef __BRAIN_OPENGL_WIDGET_DEFINE__
 
+#include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
@@ -74,9 +75,11 @@ BrainOpenGLWidget::BrainOpenGLWidget(QWidget* parent,
 : QGLWidget(parent)
 {
     this->openGL = NULL;
+    this->borderBeingDrawn = new Border();
     this->textRenderer = new BrainOpenGLWidgetTextRenderer(this);
     this->windowIndex = windowIndex;
-    this->userInputBordersModeProcessor = new UserInputModeBorders();
+    this->userInputBordersModeProcessor = new UserInputModeBorders(this->borderBeingDrawn,
+                                                                   windowIndex);
     this->userInputViewModeProcessor = new UserInputModeView();
     this->selectedUserInputProcessor = this->userInputViewModeProcessor;
     this->selectedUserInputProcessor->initialize();
@@ -106,6 +109,9 @@ BrainOpenGLWidget::~BrainOpenGLWidget()
     delete this->userInputViewModeProcessor;
     delete this->userInputBordersModeProcessor;
     this->selectedUserInputProcessor = NULL; // DO NOT DELETE since it does not own the object to which it points
+    
+    delete this->borderBeingDrawn;
+    
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
@@ -152,6 +158,15 @@ BrainOpenGLWidget::resizeGL(int w, int h)
     this->openGL->updateOrthoSize(0, w, h);
     this->windowWidth[this->windowIndex] = w;
     this->windowHeight[this->windowIndex] = h;
+}
+
+/**
+ * @return Pointer to the border that is being drawn.
+ */
+Border* 
+BrainOpenGLWidget::getBorderBeingDrawn()
+{
+    return this->borderBeingDrawn;
 }
 
 /**
@@ -237,6 +252,12 @@ BrainOpenGLWidget::paintGL()
         }
     }
     
+    if (this->selectedUserInputProcessor == userInputBordersModeProcessor) {
+        this->openGL->setBorderBeingDrawn(this->borderBeingDrawn);
+    }
+    else {
+        this->openGL->setBorderBeingDrawn(NULL);
+    }
     this->openGL->drawModels(this->drawingViewportContents);
 }
 

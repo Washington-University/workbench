@@ -27,10 +27,12 @@
 #include "UserInputModeBorders.h"
 #undef __USER_INPUT_MODE_BORDERS_DECLARE__
 
-
+#include "Border.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "EventGraphicsUpdateOneWindow.h"
+#include "EventManager.h"
 #include "ModelDisplayController.h"
 #include "MouseEvent.h"
 #include "SurfaceProjectedItem.h"
@@ -50,10 +52,19 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param borderBeingDrawnByOpenGL
+ *    Border that is displayed in OpenGL area when a border is being drawn
+ * @param windowIndex
+ *    Index of the browser window using this border processing.
  */
-UserInputModeBorders::UserInputModeBorders()
-: CaretObject()
+UserInputModeBorders::UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
+                                           const int32_t windowIndex)
+: CaretObject(),
+UserInputReceiverInterface()
 {
+    this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
+    this->windowIndex = windowIndex;
     this->mode = MODE_CREATE;
     this->createOperation = CREATE_OPERATION_DRAW;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
@@ -103,6 +114,18 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
                     + AString::fromNumbers(bp->getTriangleAreas(), 3, ",")
                     + "   "
                     + AString::fromNumbers(bp->getTriangleNodes(), 3, ","));
+            
+            SurfaceProjectedItem* spi = new SurfaceProjectedItem();
+            spi->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
+            spi->setStructure(projectedItem.getStructure());
+            SurfaceProjectionBarycentric* spb = spi->getBarycentricProjection();
+            spb->setTriangleAreas(bp->getTriangleAreas());
+            spb->setTriangleNodes(bp->getTriangleNodes());
+            spb->setSignedDistanceAboveSurface(0.0);
+            openGLWidget->getBorderBeingDrawn()->addPoint(spi);
+        }
+        else {
+            
         }
         
         CaretLogFiner(txt);
@@ -142,7 +165,8 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     case MouseEventTypeEnum::LEFT_CLICKED:
                         this->drawPointAtMouseXY(openGLWidget,
                                                  mouseX,
-                                                 mouseY);
+                                                 mouseY);        
+                        mouseEvent->setGraphicsUpdateOneWindowRequested();
                         break;
                     case MouseEventTypeEnum::LEFT_DRAGGED:
                         switch (this->createOperation) {
@@ -150,6 +174,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 this->drawPointAtMouseXY(openGLWidget,
                                                          mouseX,
                                                          mouseY);
+                                mouseEvent->setGraphicsUpdateOneWindowRequested();
                                 break;
                             case CREATE_OPERATION_TRANSFORM:
                                 UserInputModeView::processModelViewTransformation(mouseEvent, 
@@ -183,6 +208,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
             }
                 break;
         }
+        
     }
 }
 
@@ -270,5 +296,35 @@ UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
     this->createOperation = createOperation;
     this->borderToolsWidget->updateWidget();
 }
+
+void 
+UserInputModeBorders::createOperationFinish(const AString& name)
+{
+    this->borderBeingDrawnByOpenGL->setName(name);
+    // copy border and add to border file.
+    this->borderBeingDrawnByOpenGL->clear();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+}
+
+/**
+ * Undo (remove last point) from border being drawn.
+ */
+void 
+UserInputModeBorders::createOperationUndo()
+{
+    this->borderBeingDrawnByOpenGL->removeLastPoint();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+}
+
+/**
+ * Reset the border being drawn.
+ */
+void 
+UserInputModeBorders::createOperationReset()
+{
+    this->borderBeingDrawnByOpenGL->clear();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+}
+
 
 

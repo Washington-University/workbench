@@ -45,6 +45,7 @@
 
 #include <limits>
 
+#include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -648,6 +649,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
         case MODE_DRAWING:
             this->drawSurfaceTrianglesWithVertexArrays(surface);
             this->drawSurfaceNodeAttributes(surface);
+            this->drawSurfaceBorderBeingDrawn(surface);
             break;
         case MODE_IDENTIFICATION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
@@ -927,7 +929,8 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                     n2,
                                     n3
                                 };
-                                
+                            
+                                this->modeProjectionData->setStructure(surface->getStructure());
                                 SurfaceProjectionBarycentric* barycentric =
                                     this->modeProjectionData->getBarycentricProjection();
                                 barycentric->setTriangleAreas(barycentricAreas);
@@ -1141,6 +1144,55 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
         }
     }
 }
+
+/**
+ * Draw the border that is begin drawn.
+ * @param surface
+ *    Surface on which border is being drawn.
+ */
+void 
+BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(Surface* surface)
+{
+    const StructureEnum::Enum structure = surface->getStructure();
+    
+    glColor3f(1.0, 0.0, 0.0);
+    
+    if (this->borderBeingDrawn != NULL) {
+        const int32_t numBorderPoints = this->borderBeingDrawn->getNumberOfPoints();
+                
+        for (int32_t i = 0; i < numBorderPoints; i++) {
+            const SurfaceProjectedItem* p = this->borderBeingDrawn->getPoint(i);
+            if (structure != p->getStructure()) {
+                continue;
+            }
+            bool isXyzValid = false;
+            float xyz[3];
+            
+            switch (p->getProjectionType()) {
+                case SurfaceProjectionTypeEnum::BARYCENTRIC:
+                    isXyzValid = p->getBarycentricProjection()->unprojectToSurface(*surface, 
+                                                                                   xyz);
+                    break;
+                case SurfaceProjectionTypeEnum::UNPROJECTED:
+                    p->getOriginalXYZ(xyz);
+                    isXyzValid = true;
+                    break;
+                case SurfaceProjectionTypeEnum::VANESSEN:
+                    CaretAssertMessage(0, "Border should NEVER contain a VanEssen Projection");
+                    break;
+            }
+            
+            if (isXyzValid) {
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                this->drawSphere(1.5);
+                glPopMatrix();
+            }
+        }
+        
+    }
+}
+
 
 /**
  * Setup volume drawing information for an overlay set.

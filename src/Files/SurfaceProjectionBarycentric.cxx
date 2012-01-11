@@ -201,6 +201,8 @@ SurfaceProjectionBarycentric::setTriangleAreas(const float triangleAreas[3])
  *    Output containing coordinate created by unprojecting.
  * @param isUnprojectedOntoSurface
  *    If true, ouput coordinate will be directly on the surface.
+ * @return
+ *    True if unprojection was successful.
  */
 bool 
 SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,

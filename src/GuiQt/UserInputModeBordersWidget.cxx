@@ -27,6 +27,7 @@
 #include <QActionGroup>
 #include <QBoxLayout>
 #include <QComboBox>
+#include <QInputDialog>
 #include <QLabel>
 #include <QStackedWidget>
 #include <QToolButton>
@@ -349,7 +350,7 @@ UserInputModeBordersWidget::createCreateOperationWidget()
 void 
 UserInputModeBordersWidget::createResetButtonClicked()
 {
-    
+    this->inputModeBorders->createOperationReset();
 }
 
 /**
@@ -358,7 +359,7 @@ UserInputModeBordersWidget::createResetButtonClicked()
 void 
 UserInputModeBordersWidget::createUndoButtonClicked()
 {
-    
+    this->inputModeBorders->createOperationUndo();
 }
 
 /**
@@ -367,7 +368,12 @@ UserInputModeBordersWidget::createUndoButtonClicked()
 void 
 UserInputModeBordersWidget::createFinishButtonClicked()
 {
-    
+    const QString name= QInputDialog::getText(this,
+                                              "Finish Border",
+                                              "Name");
+    if (name.isNull() == false) {
+        this->inputModeBorders->createOperationFinish(name);
+    }
 }
 
 /**

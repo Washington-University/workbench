@@ -37,6 +37,7 @@ class QMouseEvent;
 
 namespace caret {
 
+    class Border;
     class BrainOpenGL;
     class BrainOpenGLWidgetTextRenderer;
     class BrainOpenGLViewportContent;
@@ -71,6 +72,9 @@ namespace caret {
  
         QImage  captureImage(const int32_t imageSizeX,
                              const int32_t imageSizeY);
+        
+        Border* getBorderBeingDrawn();
+        
     protected:
         void initializeGL();
         
@@ -128,6 +132,8 @@ namespace caret {
         UserInputReceiverInterface* selectedUserInputProcessor;
         UserInputModeView* userInputViewModeProcessor;
         UserInputModeBorders* userInputBordersModeProcessor;
+        
+        Border* borderBeingDrawn;
     };
     
 #ifdef __BRAIN_OPENGL_WIDGET_DEFINE__
