@@ -57,7 +57,7 @@ void VolumeFile::readFile(const AString& filename) throw (DataFileException)
         myNifti.readVolumeFile(*this, filename);
         this->setFileName(filename);
     }
-    catch (NiftiException e) {
+    catch (const NiftiException& e) {
         throw DataFileException(e);
     }
 }
@@ -77,7 +77,7 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
         NiftiFile myNifti;
         myNifti.writeVolumeFile(*this, filename);
     }
-    catch (NiftiException e) {
+    catch (const NiftiException& e) {
         throw DataFileException(e);
     }
 }

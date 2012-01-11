@@ -301,7 +301,7 @@ Brain::readLabelFile(const AString& filename,
         try {
             bs->addLabelFile(labelFile);
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             delete labelFile;
             throw e;
         }
@@ -357,7 +357,7 @@ Brain::readMetricFile(const AString& filename,
         try {
             bs->addMetricFile(metricFile);
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             delete metricFile;
             throw e;
         }
@@ -413,7 +413,7 @@ Brain::readRgbaFile(const AString& filename,
         try {
             bs->addRgbaFile(rgbaFile);
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             delete rgbaFile;
             throw e;
         }
@@ -475,7 +475,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
     try {
         vf->readFile(filename);
     }
-    catch (DataFileException e) {
+    catch (const DataFileException& e) {
         delete vf;
         throw e;
     }
@@ -696,7 +696,7 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
                            structure,
                            filename);
     }
-    catch (DataFileException e) {
+    catch (const DataFileException& e) {
         readDataFileEvent->setErrorMessage(e.whatString());
         readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
     }    
@@ -815,7 +815,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                                        structure, 
                                        filename);
                 }
-                catch (DataFileException e) {
+                catch (const DataFileException& e) {
                     if (errorMessage.isEmpty() == false) {
                         errorMessage += "\n";
                     }

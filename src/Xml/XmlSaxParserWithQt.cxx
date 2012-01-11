@@ -198,7 +198,7 @@ XmlSaxParserWithQt::PrivateHandler::error(const QXmlParseException& exception)
         XmlSaxParserException spe = fromQXmlParseException(exception);
         this->handler->error(spe);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         this->errorMessage = e.whatString();
         return false;
     }
@@ -212,7 +212,7 @@ XmlSaxParserWithQt::PrivateHandler::fatalError(const QXmlParseException& excepti
         XmlSaxParserException spe = fromQXmlParseException(exception);
         this->handler->fatalError(spe);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         this->errorMessage = e.whatString();
         return false;
     }
@@ -226,7 +226,7 @@ XmlSaxParserWithQt::PrivateHandler::warning(const QXmlParseException& exception)
         XmlSaxParserException spe = fromQXmlParseException(exception);
         this->handler->warning(spe);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         this->errorMessage = e.whatString();
         return false;
     }
@@ -240,7 +240,7 @@ XmlSaxParserWithQt::PrivateHandler::startDocument()
     try {
         this->handler->startDocument();
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         //this->errorMessage = e.whatString();
         this->errorMessage = e.whatString();
         return false;
@@ -262,7 +262,7 @@ XmlSaxParserWithQt::PrivateHandler::startElement(const QString& namespaceURI,
                                     qName, 
                                     xmlAtts);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         //this->errorMessage = e.whatString();
         this->errorMessage = e.whatString();
         return false;
@@ -276,7 +276,7 @@ XmlSaxParserWithQt::PrivateHandler::endDocument()
     try {
         this->handler->endDocument();
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         //this->errorMessage = QString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;
@@ -292,7 +292,7 @@ XmlSaxParserWithQt::PrivateHandler::endElement(const QString& namespaceURI,
     try {
         this->handler->endElement(namespaceURI, localName, qName);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         //this->errorMessage = QString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;
@@ -307,7 +307,7 @@ XmlSaxParserWithQt::PrivateHandler::characters(const QString& ch)
     try {
         this->handler->characters(ch.toStdString().c_str());
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         //this->errorMessage = QString::fromStdString(e.whatString());
         this->errorMessage = e.whatString();
         return false;

@@ -186,7 +186,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 EventManager::get()->sendEvent(idLocation.getPointer());
                 
             }
-            catch (DataFileException e) {
+            catch (const DataFileException& e) {
                 QMessageBox::critical(openGLWidget, "", e.whatString());
             }
         }
@@ -211,7 +211,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 try {
                     connMan->loadDataForVoxelAtCoordinate(xyz);
                 }
-                catch (DataFileException e) {
+                catch (const DataFileException& e) {
                     QMessageBox::critical(openGLWidget, "", e.whatString());
                 }
             }

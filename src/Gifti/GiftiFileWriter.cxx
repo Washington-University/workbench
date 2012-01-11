@@ -169,7 +169,7 @@ GiftiFileWriter::start(const int numberOfDataArrays,
             labelTable->writeAsXML(*this->xmlWriter);
         }
     }
-    catch (GiftiException& e) {
+    catch (const GiftiException& e) {
         this->closeFiles();
         throw e;
     }
@@ -231,11 +231,11 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
         //
         this->dataArraysWrittenCounter++;
     }
-    catch (GiftiException& e) {
+    catch (const GiftiException& e) {
         this->closeFiles();
         throw e;
     }    
-    catch (XmlException& e) {
+    catch (const XmlException& e) {
         this->closeFiles();
         throw GiftiException(e);
     }    
@@ -258,7 +258,7 @@ GiftiFileWriter::finish() throw (GiftiException)
         this->xmlWriter->writeEndElement();
         this->xmlWriter->writeEndDocument();
     }
-    catch (XmlException& e) {
+    catch (const XmlException& e) {
         this->closeFiles();
         throw GiftiException(e);
     }

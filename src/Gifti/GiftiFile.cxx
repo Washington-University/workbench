@@ -836,7 +836,7 @@ GiftiFile::readFile(const AString& filename) throw (DataFileException)
     try {
         parser->parseFile(filename, &saxReader);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         this->setFileName("");
         
         int lineNum = e.getLineNumber();
@@ -901,7 +901,7 @@ GiftiFile::writeFile(const AString& filename) throw (DataFileException)
         //
         giftiFileWriter.finish();
     }
-    catch (GiftiException& e) {
+    catch (const GiftiException& e) {
         throw DataFileException(e);
     }
     

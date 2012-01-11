@@ -227,7 +227,7 @@ CommandClassCreate::createHeaderFile(const AString& outputFileName,
     try {
         tf.writeFile(outputFileName);
     }
-    catch (DataFileException e) {
+    catch (const DataFileException& e) {
         throw CommandException(e);
     }
 }
@@ -349,7 +349,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     try {
         tf.writeFile(outputFileName);
     }
-    catch (DataFileException e) {
+    catch (const DataFileException& e) {
         throw CommandException(e);
     }
 }

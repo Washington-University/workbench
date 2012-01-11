@@ -370,7 +370,7 @@ SpecFile::readFile(const AString& filename) throw (DataFileException)
     try {
         parser->parseFile(filename, &saxReader);
     }
-    catch (XmlSaxParserException& e) {
+    catch (const XmlSaxParserException& e) {
         this->setFileName("");
         
         int lineNum = e.getLineNumber();
@@ -497,10 +497,10 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         
         this->clearModified();
     }
-    catch (GiftiException e) {
+    catch (const GiftiException& e) {
         throw DataFileException(e);
     }
-    catch (XmlException e) {
+    catch (const XmlException& e) {
         throw DataFileException(e);
     }
 }

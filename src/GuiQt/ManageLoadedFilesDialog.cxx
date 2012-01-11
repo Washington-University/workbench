@@ -183,7 +183,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
                 this->fileRows[i]->saveFile();
             }
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             if (msg.isEmpty() == false) {
                 msg += "\n";
             }
@@ -322,7 +322,7 @@ ManageFileRow::removeFileToolButtonPressed()
         this->widgetGroup->setEnabled(false);
         this->parentWidget->updateUserInterfaceAndGraphics();
     }
-    catch (DataFileException e) {
+    catch (const DataFileException& e) {
         this->parentWidget->updateUserInterfaceAndGraphics();
         WuQMessageBox::errorOk(this->parentWidget, e.whatString());
     }

@@ -531,7 +531,7 @@ GiftiFileSaxReader::processArrayData() throw (XmlSaxParserException)
                            externalFileOffsetForReadingData,
                               this->giftiFile->getReadMetaDataOnlyFlag());
    }
-   catch (GiftiException& e) {
+   catch (const GiftiException& e) {
        throw XmlSaxParserException(e.whatString());
    }
 }

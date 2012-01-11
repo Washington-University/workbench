@@ -542,7 +542,7 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         try {
             specFile.readFile(specFileName);
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             errorMessages += e.whatString();
         }
         
@@ -833,7 +833,7 @@ BrainBrowserWindow::processDataFileOpen()
                     try {
                         specFile.readFile(name);
                     }
-                    catch (DataFileException e) {
+                    catch (const DataFileException& e) {
                         errorMessages += e.whatString();
                     }
                     

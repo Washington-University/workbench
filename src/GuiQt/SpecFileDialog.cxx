@@ -537,7 +537,7 @@ SpecFileDialog::writeUpdatedSpecFile(const bool confirmIt)
         try {
             this->specFile->writeFile(specFile->getFileName());
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             WuQMessageBox::errorOk(this, e.whatString());
         }
     }

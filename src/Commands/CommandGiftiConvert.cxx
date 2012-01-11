@@ -87,7 +87,7 @@ CommandGiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
         gf.setEncodingForWriting(encoding);
         gf.writeFile(outputFileName);
     }
-    catch (GiftiException e) {
+    catch (const GiftiException& e) {
         throw CommandException(e);
     }
 }

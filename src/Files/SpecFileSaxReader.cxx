@@ -178,7 +178,7 @@ SpecFileSaxReader::endElement(const AString& namespaceURI,
                this->fileAttributeTypeName = "";
                this->fileAttributeStructureName = "";
            }
-           catch (DataFileException e) {
+           catch (const DataFileException& e) {
                throw XmlSaxParserException(e);
            }
        }

@@ -1550,7 +1550,7 @@ GiftiDataArray::getPaletteColorMapping()
             try {
                 this->paletteColorMapping->decodeFromStringXML(paletteString);
             }
-            catch (XmlException e) {
+            catch (const XmlException& e) {
                 this->paletteColorMapping = new PaletteColorMapping();
                 CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
             }
@@ -1577,7 +1577,7 @@ GiftiDataArray::getPaletteColorMapping() const
             try {
                 this->paletteColorMapping->decodeFromStringXML(paletteString);
             }
-            catch (XmlException e) {
+            catch (const XmlException& e) {
                 this->paletteColorMapping = new PaletteColorMapping();
                 CaretLogSevere("Failed to parse Palette XML: " + e.whatString());
             }

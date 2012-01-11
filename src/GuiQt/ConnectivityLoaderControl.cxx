@@ -464,7 +464,7 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                 loaderFile->setupLocalFile(name, 
                                   DataFileTypeEnum::fromQFileDialogFilter(this->previousCiftiFileTypeFilter, NULL));
             }
-            catch (DataFileException e) {
+            catch (const DataFileException& e) {
                 QMessageBox::critical(this, 
                                       "ERROR", 
                                       e.whatString());                
@@ -584,7 +584,7 @@ ConnectivityLoaderControl::networkButtonPressed(QAbstractButton* button)
                                          this->previousNetworkUserName,
                                          this->previousNetworkPassword);
         }
-        catch (DataFileException e) {
+        catch (const DataFileException& e) {
             QMessageBox::critical(this, 
                                   "ERROR", 
                                   e.whatString());                
