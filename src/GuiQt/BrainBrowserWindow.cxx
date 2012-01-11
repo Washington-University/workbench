@@ -408,7 +408,7 @@ BrainBrowserWindow::createActions()
                                 guiManager,
                                 SLOT(processShowSearchHelpOnlineWindow()));
     this->searchHelpOnlineAction->setEnabled(false);
-    
+
 }
 
 /**

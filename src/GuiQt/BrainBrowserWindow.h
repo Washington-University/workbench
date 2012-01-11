@@ -78,7 +78,7 @@ namespace caret {
         void closeEvent(QCloseEvent* event);
         
     private slots:        
-        void processDisplayControl();
+        void processDisplayControl();        
         void processNewWindow();
         void processDataFileOpen();
         void processDataFileOpenFromSpecFile();

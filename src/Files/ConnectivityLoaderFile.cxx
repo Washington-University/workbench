@@ -829,7 +829,25 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
             }
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
-                break;
+            {
+                this->zeroizeData();
+
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                    if (this->ciftiInterface->getRowFromNode(this->data,
+                                                             nodeIndex,
+                                                             structure)) {
+                        CaretLogFine("Read row for node " + AString::number(nodeIndex));
+                        this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                    }
+                }
+            }
+            break;
         }
     }
     catch (CiftiFileException& e) {
@@ -885,7 +903,24 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
             }
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
-                break;
+            {
+                this->zeroizeData();
+
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                this->allocateData(num);
+                
+                if (this->ciftiInterface->hasRowVolumeData()) {
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data,xyz))                                                             
+                    {
+                        CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
+                        this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for node " + AString::fromNumbers(xyz, 3, ","));
+                    }
+                }
+            }
+            break;
         }
     }
     catch (CiftiFileException& e) {

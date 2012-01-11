@@ -65,7 +65,9 @@ GuiManager::GuiManager(QObject* parent)
     this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->preferencesDialog = NULL;
+    this->timeCourseDialog = NULL;
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
 }
 
 /**
@@ -456,6 +458,9 @@ GuiManager::receiveEvent(Event* event)
         
         eventNewBrowser->setEventProcessed();
     }
+    else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
+        this->processUpdateTimeCourseDialog();
+    }
 }
 
 /**
@@ -583,6 +588,35 @@ GuiManager::processShowDisplayControlDialog(BrainBrowserWindow* browserWindow)
     this->displayControlDialog->setVisible(true);
     this->displayControlDialog->show();
     this->displayControlDialog->activateWindow();
+}
+
+/**
+ * Show Timeseries Time Course
+ */
+void GuiManager::processUpdateTimeCourseDialog()
+{
+    BrainBrowserWindow* browserWindow = NULL;   
+    
+    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
+        if (this->brainBrowserWindows[i] != NULL && this->brainBrowserWindows[i]->isVisible()) {
+            if (this->brainBrowserWindows[i] != NULL) {
+                browserWindow = this->brainBrowserWindows[i];
+                break;
+            }
+        }
+    }
+    
+    if(browserWindow == NULL) return;//not the best error checking but at least it
+                                     //won't crash
+
+    if (this->timeCourseDialog == NULL) {
+        this->timeCourseDialog = new TimeCourseDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->timeCourseDialog);
+    }
+    //this->timeCourseDialog->updateDialog();
+    this->timeCourseDialog->setVisible(true);
+    this->timeCourseDialog->show();
+    this->timeCourseDialog->activateWindow();
 }
 
 /**

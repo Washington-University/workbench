@@ -169,6 +169,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_PROGRESS_UPDATE, 
                                      "EVENT_PROGRESS_UPDATE", 
                                      "Update the progress amount, text, or finished status"));
+
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG, 
+                                     "EVENT_UPDATE_TIME_COURSE_DIALOG", 
+                                     "Update the time course dialog after user has selected a node"));
     
     enumData.push_back(EventTypeEnum(EVENT_COUNT, 
                                     "EVENT_COUNT", 

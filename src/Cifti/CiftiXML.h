@@ -193,6 +193,7 @@ namespace caret {
         bool hasColumnVolumeData() const;
         bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
+        bool hasRowTimeData(const StructureEnum::Enum structure) const;
         
         CiftiXML& operator=(const CiftiXML& right);
     protected:

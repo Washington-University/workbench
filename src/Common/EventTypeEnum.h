@@ -92,6 +92,8 @@ public:
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */
         EVENT_PROGRESS_UPDATE,
+        /** Update and show the time course dialog */
+        EVENT_UPDATE_TIME_COURSE_DIALOG,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };

@@ -50,8 +50,10 @@ SpecFileDialog.h
 StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
+TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
+ui_TimeCourseDialog.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -89,6 +91,7 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
+EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -107,9 +110,11 @@ SpecFileDialog.h
 StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
+TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
+ui_TimeCourseDialog.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -144,6 +149,7 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
+EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
@@ -162,6 +168,7 @@ SpecFileDialog.cxx
 StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionControl.cxx
+TimeCourseDialog.cxx
 TimeSeriesManager.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
@@ -179,8 +186,8 @@ WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx
 )
 
-#SET(FORMS
-#    mainwindow.ui)
+SET(FORMS
+    TimeCourseDialog.ui)
 
 #
 # Process the header files with moc producing moc_*.cpp files

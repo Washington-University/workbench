@@ -41,6 +41,7 @@
 #include "EventInformationTextDisplay.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUpdateTimeCourseDialog.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemSurfaceNode.h"
@@ -155,6 +156,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
     
     bool updateGraphicsFlag = false;
     
+
     IdentificationItemSurfaceNodeIdentificationSymbol* idSymbol = idManager->getSurfaceNodeIdentificationSymbol();
     if ((idSymbol->getSurface() != NULL)
         && (idSymbol->getNodeNumber() >= 0)) {
@@ -168,6 +170,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
         Surface* surface = idNode->getSurface();
         const int32_t nodeIndex = idNode->getNodeNumber();
+
         if ((surface != NULL) &&
             (nodeIndex >= 0)) {
             try {
@@ -184,6 +187,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 brainStructure->getNumberOfNodes(),
                                                                 surface->getCoordinate(nodeIndex));
                 EventManager::get()->sendEvent(idLocation.getPointer());
+                EventUpdateTimeCourseDialog e;
+                EventManager::get()->sendEvent(e.getPointer());
                 
             }
             catch (const DataFileException& e) {
@@ -205,6 +210,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 voxelIJK,
                                                                 xyz);
                 EventManager::get()->sendEvent(idLocation.getPointer());
+                EventUpdateTimeCourseDialog e;
+                EventManager::get()->sendEvent(e.getPointer());
                 
                 updateGraphicsFlag = true;
                 

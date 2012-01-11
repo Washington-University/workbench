@@ -34,6 +34,7 @@
 #include <QObject>
 
 #include "EventListenerInterface.h"
+#include "TimeCourseDialog.h"
 
 class QDialog;
 class QWidget;
@@ -90,6 +91,7 @@ namespace caret {
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowDisplayControlDialog(BrainBrowserWindow* browserWindow);
+        void processUpdateTimeCourseDialog();
         
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
@@ -138,6 +140,8 @@ namespace caret {
         ImageCaptureDialog* imageCaptureDialog;
         
         PreferencesDialog* preferencesDialog;
+
+        TimeCourseDialog* timeCourseDialog;
         
         /** 
          * Tracks non-modal dialogs that are created only one time

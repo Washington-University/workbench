@@ -230,11 +230,20 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
     
     if (haveData) {
         this->colorConnectivityData();
+        
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
     return haveData;
 }
+
+/**
+  * updateTimeCourseDialog
+  */
+
+/**
+ * addTimeCourse
+ */
 
 /**
  * Load data for the voxel near the given coordinate.
@@ -355,6 +364,10 @@ ConnectivityLoaderManager::receiveEvent(Event* event)
         
         colorEvent->setEventProcessed();
     }
+    /*else if (event->getEventType() == EventTypeEnum::UPDATE_TIME_COURSE_DIALOG)
+    {
+        Event
+    }*/
 }
 
 /**
