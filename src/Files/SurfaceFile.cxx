@@ -535,14 +535,14 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
             if (myIndex >= myEnd) myIndex = 0;
             if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
             {
-                helpOut = m_topoHelpers[myIndex];//can easily be "fixed" to support such brokenness by simply testing for equal
+                helpOut = m_topoHelpers[myIndex];//NOTE: can give sorted info to something that doesn't ask for sorted, if it already exists
                 ++myIndex;
                 return;
             }
             ++myIndex;
         }
     }//UNLOCK the mutex while we build a new helper, so that they can be built in parallel
-    CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));
+    CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));//could copy from an existing one instead of rebuilding
     CaretMutexLocker myLock(&m_helperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     helpOut = ret;

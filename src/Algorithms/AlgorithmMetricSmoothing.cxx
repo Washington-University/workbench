@@ -131,6 +131,8 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         if (myRoi != NULL)
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
+        } else {
+            myRoiColumn = NULL;
         }
         float* myScratch = new float[numNodes];
         for (int32_t col = 0; col < numCols; ++col)
@@ -170,6 +172,8 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         if (myRoi != NULL)
         {
             myRoiColumn = myRoi->getValuePointerForColumn(0);
+        } else {
+            myRoiColumn = NULL;
         }
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int32_t i = 0; i < numNodes; ++i)

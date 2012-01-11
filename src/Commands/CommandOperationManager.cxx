@@ -27,6 +27,7 @@
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
 #include "AlgorithmCreateSignedDistanceVolume.h"
+#include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
 #include "AlgorithmVolumeToSurfaceMapping.h"
@@ -87,6 +88,7 @@ CommandOperationManager::deleteCommandOperationManager()
 CommandOperationManager::CommandOperationManager()
 {
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeToSurfaceMapping()));
