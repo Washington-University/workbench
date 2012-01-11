@@ -165,6 +165,10 @@ public:
                     const float v2[3],
                     const float v3[3]);
 
+    static float triangleArea(const double v1[3],
+                              const double v2[3],
+                              const double v3[3]);
+    
     static float triangleArea(
                     const float xyzAll[],
                     const int32_t offsetCoord1,

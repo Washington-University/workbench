@@ -625,6 +625,34 @@ MathFunctions::triangleArea(
 }
 
 /**
+ * Calculate the area for a triangle (with doubles)
+ * @param v1 - XYZ coordinates for vertex 1
+ * @param v2 - XYZ coordinates for vertex 2
+ * @param v3 - XYZ coordinates for vertex 3
+ * 
+ * @return Area of triangle.
+ *
+ */
+float
+MathFunctions::triangleArea(const double v1[3],
+                            const double v2[3],
+                            const double v3[3])
+{
+    /*
+     * Using doubles for the intermediate calculations
+     * produces results different from that if floats
+     * were used in the "area" equation.  I'm
+     * assuming double is more accurate (JWH).
+     */
+    double a = MathFunctions::distanceSquared3D(v1,v2);
+    double b = MathFunctions::distanceSquared3D(v2,v3);
+    double c = MathFunctions::distanceSquared3D(v3,v1);
+    float area =
+    (float)(0.25f* std::sqrt(std::abs(4.0*a*c - (a-b+c)*(a-b+c))));
+    return area;
+}
+
+/**
  * Calculate the area of a triangle formed by 3 coordinates.
  * @param xyzAll One-dimensional array containing the XYZ coordinates.
  * @param offsetCoord1  Offset of node 1's X-coordinate which is
