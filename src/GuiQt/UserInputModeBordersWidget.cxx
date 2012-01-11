@@ -26,6 +26,7 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QBoxLayout>
+#include <QComboBox>
 #include <QLabel>
 #include <QStackedWidget>
 #include <QToolButton>
@@ -121,6 +122,12 @@ UserInputModeBordersWidget::updateWidget()
             break;
     }
     const int selectedModeInteger = (int)this->inputModeBorders->getMode();
+
+    const int modeComboBoxIndex = this->modeComboBox->findData(selectedModeInteger);
+    CaretAssert(modeComboBoxIndex >= 0);
+    this->modeComboBox->blockSignals(true);
+    this->modeComboBox->setCurrentIndex(modeComboBoxIndex);
+    this->modeComboBox->blockSignals(false);
     
     /*
      * Select the button for the mode
@@ -145,6 +152,14 @@ UserInputModeBordersWidget::updateWidget()
 QWidget* 
 UserInputModeBordersWidget::createModeWidget()
 {
+    this->modeComboBox = new QComboBox();
+    this->modeComboBox->addItem("Create", (int)UserInputModeBorders::MODE_CREATE);
+    this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
+    this->modeComboBox->addItem("Edit Points", (int)UserInputModeBorders::MODE_EDIT_POINTS);
+    this->modeComboBox->addItem("Update", (int)UserInputModeBorders::MODE_UPDATE);
+    QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(modeComboBoxSelection(int)));
+    
     QAction* createAction = WuQtUtilities::createAction("Create", "Create new borders", this);
     createAction->setCheckable(true);
     createAction->setData((int)UserInputModeBorders::MODE_CREATE);
@@ -181,6 +196,7 @@ UserInputModeBordersWidget::createModeWidget()
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    layout->addWidget(this->modeComboBox);
     layout->addWidget(createToolButton);
     layout->addWidget(editToolButton);
     layout->addWidget(editPointsToolButton);
@@ -189,6 +205,19 @@ UserInputModeBordersWidget::createModeWidget()
     widget->setFixedWidth(widget->sizeHint().width());
     
     return widget;
+}
+
+/**
+ * Called when a mode is selected from the mode combo box.
+ * @param indx
+ *   Index of item selected.
+ */
+void 
+UserInputModeBordersWidget::modeComboBoxSelection(int indx)
+{
+    const int modeInteger = this->modeComboBox->itemData(indx).toInt();
+    const UserInputModeBorders::Mode mode = (UserInputModeBorders::Mode)modeInteger;
+    this->inputModeBorders->setMode(mode);
 }
 
 /**

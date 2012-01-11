@@ -29,6 +29,7 @@
 #include <QWidget>
 
 class QActionGroup;
+class QComboBox;
 class QStackedWidget;
 
 namespace caret {
@@ -54,6 +55,8 @@ namespace caret {
         void pointEditOperationActionTriggered(QAction*);
         void updateOperationActionTriggered(QAction*);
         
+        void modeComboBoxSelection(int);
+        
     private:
         UserInputModeBordersWidget(const UserInputModeBordersWidget&);
 
@@ -78,6 +81,8 @@ namespace caret {
         QWidget* createPointEditOperationWidget();
         
         QWidget* createUpdateOperationWidget();
+        
+        QComboBox* modeComboBox;
         
         QWidget* widgetMode;
         
