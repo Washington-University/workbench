@@ -2242,6 +2242,8 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
                      SLOT(surfaceSelectionControlChanged(const StructureEnum::Enum,
                                                          ModelDisplayControllerSurface*)));
     
+    this->surfaceSurfaceSelectionControl->setFixedWidth(275);
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
