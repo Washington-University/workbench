@@ -49,6 +49,7 @@ namespace Ui {
     class TimeCourseDialog;
 }
 
+class TimeLine;
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -56,6 +57,8 @@ class TimeCourseDialog : public QDialog
 public:
     explicit TimeCourseDialog(QWidget *parent = 0);
     ~TimeCourseDialog();
+    void updateDialog();
+    void addTimeLine(TimeLine &tl);
 
 private slots:
     void on_TDClose_clicked();
@@ -78,8 +81,20 @@ private slots:
 
 private:
     Ui::TimeCourseDialog *ui;
+    std::vector<TimeLine> tlV;
+
+
 };
 
+class TimeLine {
+public:
+    TimeLine(uint64_t nodeidIn, double *pointIn,std::vector<double> &xIn, std::vector<double>&yIn);
+    virtual ~TimeLine();
+    uint64_t nodeid;
+    double point[3];
+    std::vector<double> x;
+    std::vector<double> y;
+};
 
 
 //-----------------------------------------------------------------

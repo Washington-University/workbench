@@ -80,6 +80,21 @@ TimeCourseDialog::~TimeCourseDialog()
     delete ui;
 }
 
+void TimeCourseDialog::addTimeLine(TimeLine &tl)
+{
+    if(tlV.size() > ui->TDKeepLast->value())
+        tlV.erase(tlV.begin());
+    tlV.push_back(tl);
+}
+
+void TimeCourseDialog::updateDialog()
+{
+    if(tlV.size() == 0) return;
+    this->setVisible(true);
+    this->show();
+    this->activateWindow();
+}
+
 
 
 
@@ -124,6 +139,19 @@ void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
 }
 
 void TimeCourseDialog::on_TDKeepLast_valueChanged(double arg1)
+{
+
+}
+
+TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn, std::vector<double> &yIn)
+{
+    nodeid = nodeidIn;
+    for(int i=0;i<3;i++) point[i] = pointIn[i];
+    x = xIn;
+    y = yIn;
+}
+
+TimeLine::~TimeLine()
 {
 
 }

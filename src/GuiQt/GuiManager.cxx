@@ -613,10 +613,10 @@ void GuiManager::processUpdateTimeCourseDialog()
         this->timeCourseDialog = new TimeCourseDialog(browserWindow);
         this->nonModalDialogs.push_back(this->timeCourseDialog);
     }
-    //this->timeCourseDialog->updateDialog();
-    this->timeCourseDialog->setVisible(true);
-    this->timeCourseDialog->show();
-    this->timeCourseDialog->activateWindow();
+    this->timeCourseDialog->updateDialog();
+    //this->timeCourseDialog->setVisible(true);
+    //this->timeCourseDialog->show();
+    //this->timeCourseDialog->activateWindow();
 }
 
 /**
