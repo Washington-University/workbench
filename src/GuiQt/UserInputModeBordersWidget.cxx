@@ -288,9 +288,9 @@ UserInputModeBordersWidget::createCreateOperationWidget()
     QToolButton* drawToolButton = new QToolButton();
     drawToolButton->setDefaultAction(drawAction);
     
-    QAction* transformAction = WuQtUtilities::createAction("Transform", 
+    QAction* transformAction = WuQtUtilities::createAction("Adjust View", 
                                                         "Pause border drawing and allow the mouse to\n"
-                                                        "transform (pan/zoom/rotate) the surface", 
+                                                        "adjust view (pan/zoom/rotate) of the surface", 
                                                         this);
     transformAction->setCheckable(true);
     transformAction->setData(static_cast<int>(UserInputModeBorders::CREATE_OPERATION_TRANSFORM));
