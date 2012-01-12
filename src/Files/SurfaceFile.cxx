@@ -328,6 +328,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
     {
         return;
     }
+    m_normalsComputed = true;
     m_normalsAveraged = averageNormals;
     int32_t numCoords = this->getNumberOfNodes();
     if (numCoords > 0) {
