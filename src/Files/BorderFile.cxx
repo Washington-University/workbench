@@ -56,6 +56,13 @@ BorderFile::BorderFile()
 BorderFile::~BorderFile()
 {
     delete this->metadata;
+    
+    for (std::vector<Border*>::iterator iter = this->borders.begin();
+         iter != this->borders.end();
+         iter++) {
+        delete *iter;
+    }
+    this->borders.clear();
 }
 
 /**
