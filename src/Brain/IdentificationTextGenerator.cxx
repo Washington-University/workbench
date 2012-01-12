@@ -297,10 +297,10 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
         spi->getProjectedPosition(*idSurfaceBorder->getSurface(), xyz, false);
 
         const AString boldText = ("BORDER " 
-                                  + border->getName() 
-                                  + " - " 
                                   + StructureEnum::toGuiName(spi->getStructure())
-                                  + ": ");
+                                  + " "
+                                  + border->getName() 
+                                  + " ");
         const AString text = ("("
                               + AString::number(idSurfaceBorder->getBorderIndex())
                               + ","
