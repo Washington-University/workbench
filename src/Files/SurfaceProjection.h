@@ -72,9 +72,18 @@ namespace caret {
         virtual bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                         float xyzOut[3],
                                         const bool isUnprojectedOntoSurface = false) const = 0;
+        
+        int32_t getProjectionSurfaceNumberOfNodes() const;
+        
+        void setProjectionSurfaceNumberOfNodes(const int surfaceNumberOfNodes);
 
+    protected:
+        /** Number of nodes in surface to which item is projected. */
+        int32_t projectionSurfaceNumberOfNodes;
+        
     private:
         void copyHelperSurfaceProjection(const SurfaceProjection& obj);
+        
     };
     
 #ifdef __SURFACE_PROJECTION_DECLARE__

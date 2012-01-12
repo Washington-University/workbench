@@ -24,6 +24,7 @@
 
 #include "CaretAssert.h"
 
+#include "BorderFile.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretLogger.h"
@@ -60,6 +61,7 @@ using namespace caret;
 Brain::Brain()
 {
     this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
+    this->borderFile = new BorderFile();
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;
@@ -94,6 +96,7 @@ Brain::~Brain()
     this->displayProperties.clear();
     
     this->resetBrain();
+    delete this->borderFile;
     delete this->connectivityLoaderManager;
     delete this->paletteFile;
     delete this->specFile;
@@ -198,6 +201,7 @@ Brain::resetBrain()
     this->volumeFiles.clear();
     
     this->brainStructures.clear();
+    this->borderFile->clear();
     this->paletteFile->clear();
     
     this->connectivityLoaderManager->reset();
@@ -529,9 +533,9 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
  *    If reading failed.
  */
 void 
-Brain::readBorderProjectionFile(const AString& /*filename*/) throw (DataFileException)
+Brain::readBorderProjectionFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading not implemented for: border projection");
+    this->borderFile->readFile(filename);
 }
 
 /**
@@ -592,6 +596,24 @@ void
 Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
 {
     throw DataFileException("Reading not implemented for: scene");
+}
+
+/**
+ * @return The border file.
+ */
+BorderFile* 
+Brain::getBorderFile()
+{
+    return this->borderFile;
+}
+
+/**
+ * @return The border file.
+ */
+const BorderFile* 
+Brain::getBorderFile() const
+{
+    return this->borderFile;
 }
 
 /*
@@ -973,6 +995,7 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
         this->getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
     }
     
+    allDataFilesOut.push_back(this->borderFile);
     allDataFilesOut.push_back(this->paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
@@ -1006,7 +1029,7 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
  * @param caretDataFile
  *    Data file to remove.
  * @return
- *    true if file was written, else false.
+ *    true if file was removed, else false.
  */
 bool 
 Brain::removeDataFile(CaretDataFile* caretDataFile)
@@ -1016,6 +1039,11 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         if (this->getBrainStructure(i)->removeDataFile(caretDataFile)) {
             return true;
         }
+    }
+    
+    if (this->borderFile == caretDataFile) {
+        this->borderFile->clear();
+        return true;
     }
     
     if (this->paletteFile == caretDataFile) {

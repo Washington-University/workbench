@@ -152,6 +152,15 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
                                                  float xyzOut[3],
                                                  const bool isUnprojectedOntoSurface) const
 {
+    /*
+     * Make sure projection surface number of nodes matches surface.
+     */
+    if (this->projectionSurfaceNumberOfNodes > 0) {
+        if (surfaceFile.getNumberOfNodes() != this->projectionSurfaceNumberOfNodes) {
+            return false;
+        }
+    }
+    
     const int is = 0;
     const int js = 1;
     

@@ -28,11 +28,14 @@
 #undef __USER_INPUT_MODE_BORDERS_DECLARE__
 
 #include "Border.h"
+#include "BorderFile.h"
+#include "Brain.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "MouseEvent.h"
 #include "SurfaceProjectedItem.h"
@@ -119,6 +122,7 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
             spi->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
             spi->setStructure(projectedItem.getStructure());
             SurfaceProjectionBarycentric* spb = spi->getBarycentricProjection();
+            spb->setProjectionSurfaceNumberOfNodes(bp->getProjectionSurfaceNumberOfNodes());
             spb->setTriangleAreas(bp->getTriangleAreas());
             spb->setTriangleNodes(bp->getTriangleNodes());
             spb->setSignedDistanceAboveSurface(0.0);
@@ -297,12 +301,22 @@ UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
     this->borderToolsWidget->updateWidget();
 }
 
+/**
+ * Finish the border that the user was drawing.
+ */
 void 
 UserInputModeBorders::createOperationFinish(const AString& name)
 {
-    this->borderBeingDrawnByOpenGL->setName(name);
-    // copy border and add to border file.
+    if (this->borderBeingDrawnByOpenGL->getNumberOfPoints() > 1) {
+        Border* border = new Border(*this->borderBeingDrawnByOpenGL);
+        border->setName(name);
+        
+        BorderFile* borderFile = GuiManager::get()->getBrain()->getBorderFile();
+        borderFile->addBorder(border);
+    }
+    
     this->borderBeingDrawnByOpenGL->clear();
+
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
 }
 

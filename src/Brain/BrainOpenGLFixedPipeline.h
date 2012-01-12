@@ -128,7 +128,12 @@ namespace caret {
         
         void drawSurfaceNodeAttributes(Surface* surface);
         
-        void drawSurfaceBorderBeingDrawn(Surface* surface);
+        void drawSurfaceBorderBeingDrawn(const Surface* surface);
+        
+        void drawSurfaceBorders(const Surface* surface);
+        
+        void drawBorder(const Surface* surface,
+                        const Border* border);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelDisplayControllerVolume* volumeController,

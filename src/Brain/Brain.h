@@ -37,6 +37,7 @@
 
 namespace caret {
     
+    class BorderFile;
     class BrainStructure;
     class CaretDataFile;
     class DisplayProperties;
@@ -71,10 +72,14 @@ namespace caret {
         BrainStructure* getBrainStructure(StructureEnum::Enum structure,
                                           bool createIfNotFound);
 
+        BorderFile* getBorderFile();
+        
+        const BorderFile* getBorderFile() const;
+        
         PaletteFile* getPaletteFile();
         
         const PaletteFile* getPaletteFile() const;
-        
+
         SpecFile* getSpecFile();
         
         int32_t getNumberOfVolumeFiles() const;
@@ -150,6 +155,8 @@ namespace caret {
         void updateWholeBrainController();
         
         std::vector<BrainStructure*> brainStructures;
+        
+        BorderFile* borderFile;
         
         PaletteFile* paletteFile;
         

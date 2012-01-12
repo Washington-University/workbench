@@ -46,6 +46,7 @@
 #include <limits>
 
 #include "Border.h"
+#include "BorderFile.h"
 #include "Brain.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -648,6 +649,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
     switch (this->mode) {
         case MODE_DRAWING:
             this->drawSurfaceTrianglesWithVertexArrays(surface);
+            this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
             break;
@@ -655,6 +657,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
             this->drawSurfaceNodes(surface);
             this->drawSurfaceTriangles(surface);
+            this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
@@ -933,6 +936,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                 this->modeProjectionData->setStructure(surface->getStructure());
                                 SurfaceProjectionBarycentric* barycentric =
                                     this->modeProjectionData->getBarycentricProjection();
+                                barycentric->setProjectionSurfaceNumberOfNodes(surface->getNumberOfNodes());
                                 barycentric->setTriangleAreas(barycentricAreas);
                                 barycentric->setTriangleNodes(barycentricNodes);
                                 this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
@@ -1146,50 +1150,85 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 }
 
 /**
+ * Draw a border on a surface.
+ * @param surface
+ *   Surface on which borders are drawn.
+ * @param border
+ *   Border that is drawn on the surface.
+ */
+void 
+BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
+                                     const Border* border)
+{
+    CaretAssert(surface);
+    CaretAssert(border);
+    
+    const StructureEnum::Enum structure = surface->getStructure();
+    const int32_t numBorderPoints = border->getNumberOfPoints();
+    
+    for (int32_t i = 0; i < numBorderPoints; i++) {
+        const SurfaceProjectedItem* p = border->getPoint(i);
+        if (structure != p->getStructure()) {
+            continue;
+        }
+        bool isXyzValid = false;
+        float xyz[3];
+        
+        switch (p->getProjectionType()) {
+            case SurfaceProjectionTypeEnum::BARYCENTRIC:
+                isXyzValid = p->getBarycentricProjection()->unprojectToSurface(*surface, 
+                                                                               xyz);
+                break;
+            case SurfaceProjectionTypeEnum::UNPROJECTED:
+                p->getOriginalXYZ(xyz);
+                isXyzValid = true;
+                break;
+            case SurfaceProjectionTypeEnum::VANESSEN:
+                CaretAssertMessage(0, "Border should NEVER contain a VanEssen Projection");
+                break;
+        }
+        
+        if (isXyzValid) {
+            glPushMatrix();
+            glTranslatef(xyz[0], xyz[1], xyz[2]);
+            this->drawSphere(1.5);
+            glPopMatrix();
+        }
+    }    
+}
+/**
+ * Draw borders on a surface.
+ * @param surface
+ *   Surface on which borders are drawn.
+ */
+void 
+BrainOpenGLFixedPipeline::drawSurfaceBorders(const Surface* surface)
+{
+    glColor3f(0.0, 0.0, 1.0);
+    
+    const BorderFile* borderFile = surface->getBrainStructure()->getBrain()->getBorderFile();
+    const int32_t numBorders = borderFile->getNumberOfBorders();
+    
+    for (int32_t i = 0; i < numBorders; i++) {
+        const Border* border = borderFile->getBorder(i);
+        this->drawBorder(surface, border);
+    }
+}
+
+/**
  * Draw the border that is begin drawn.
  * @param surface
  *    Surface on which border is being drawn.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
 {
     const StructureEnum::Enum structure = surface->getStructure();
     
     glColor3f(1.0, 0.0, 0.0);
     
     if (this->borderBeingDrawn != NULL) {
-        const int32_t numBorderPoints = this->borderBeingDrawn->getNumberOfPoints();
-                
-        for (int32_t i = 0; i < numBorderPoints; i++) {
-            const SurfaceProjectedItem* p = this->borderBeingDrawn->getPoint(i);
-            if (structure != p->getStructure()) {
-                continue;
-            }
-            bool isXyzValid = false;
-            float xyz[3];
-            
-            switch (p->getProjectionType()) {
-                case SurfaceProjectionTypeEnum::BARYCENTRIC:
-                    isXyzValid = p->getBarycentricProjection()->unprojectToSurface(*surface, 
-                                                                                   xyz);
-                    break;
-                case SurfaceProjectionTypeEnum::UNPROJECTED:
-                    p->getOriginalXYZ(xyz);
-                    isXyzValid = true;
-                    break;
-                case SurfaceProjectionTypeEnum::VANESSEN:
-                    CaretAssertMessage(0, "Border should NEVER contain a VanEssen Projection");
-                    break;
-            }
-            
-            if (isXyzValid) {
-                glPushMatrix();
-                glTranslatef(xyz[0], xyz[1], xyz[2]);
-                this->drawSphere(1.5);
-                glPopMatrix();
-            }
-        }
-        
+        this->drawBorder(surface, this->borderBeingDrawn);
     }
 }
 

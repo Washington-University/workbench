@@ -209,6 +209,15 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
                                                  float xyzOut[3],
                                                  const bool isUnprojectedOntoSurface) const
 {
+    /*
+     * Make sure projection surface number of nodes matches surface.
+     */
+    if (this->projectionSurfaceNumberOfNodes > 0) {
+        if (surfaceFile.getNumberOfNodes() != this->projectionSurfaceNumberOfNodes) {
+            return false;
+        }
+    }
+    
     const int32_t n1 = this->triangleNodes[0];
     const int32_t n2 = this->triangleNodes[1];
     const int32_t n3 = this->triangleNodes[2];

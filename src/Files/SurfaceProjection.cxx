@@ -51,7 +51,7 @@ using namespace caret;
 SurfaceProjection::SurfaceProjection()
 : CaretObjectTracksModification()
 {
-    
+    this->projectionSurfaceNumberOfNodes = 0;
 }
 
 /**
@@ -96,8 +96,29 @@ SurfaceProjection::operator=(const SurfaceProjection& obj)
  *    Object that is copied.
  */
 void 
-SurfaceProjection::copyHelperSurfaceProjection(const SurfaceProjection& /*obj*/)
+SurfaceProjection::copyHelperSurfaceProjection(const SurfaceProjection& obj)
 {
-    
+    this->projectionSurfaceNumberOfNodes = obj.projectionSurfaceNumberOfNodes;
 }
+
+/**
+ * @return The number of nodes in the surface to which this projection is made.
+ */
+int32_t 
+SurfaceProjection::getProjectionSurfaceNumberOfNodes() const
+{
+    return this->projectionSurfaceNumberOfNodes;
+}
+
+/**
+ * Set the number of nodes in the surface to which this projection is made.
+ * @param projectionSurfaceNumberOfNodes
+ *    Number of nodes in the surface.
+ */
+void 
+SurfaceProjection::setProjectionSurfaceNumberOfNodes(const int projectionSurfaceNumberOfNodes)
+{
+    this->projectionSurfaceNumberOfNodes = projectionSurfaceNumberOfNodes;
+}
+
 
