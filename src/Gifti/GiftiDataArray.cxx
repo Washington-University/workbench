@@ -816,134 +816,184 @@ GiftiDataArray::readFromText(const AString text,
 /**
  * convert array indexing order of data.
  */
-void 
+void
 GiftiDataArray::convertArrayIndexingOrder() throw (GiftiException)
 {
-   const int32_t numDim = static_cast<int32_t>(dimensions.size());
-   if (numDim <= 1) {
-      return;
-   }
-   
-   if (numDim > 2) {
-       throw GiftiException("Row/Column Major order conversion unavailable for arrays "
-                           "with dimensions greater than two.");
-   }
-   
-   //
-   // Swap data
-   //
-   if (numDim == 2) {
-       int32_t dimI = dimensions[0];
-       int32_t dimJ = dimensions[1];
+    const int32_t numDim = static_cast<int32_t>(dimensions.size());
 
-       /*
-        * If a dimensions is "1", the data does not need to be transposed.
-        */
-       if ((dimI == 1) || (dimJ == 1)) {
-          return;
-       }
+    if (numDim > 2) {
+        throw GiftiException("Row/Column Major order conversion unavailable for arrays "
+                             "with dimensions greater than two.");
+    }
 
-       //
-       // Is matrix square?
-       //
-       if (dimI == dimJ) {
-           switch (dataType) {
-               case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
-                 {
-                   for (int64_t i = 1; i < dimI; i++) {
-                       for (int64_t j = 0; j < i; j++) {
-                           const int64_t indexLowerLeft  = (i * dimJ) + j;
-                           const int64_t indexUpperRight = (j * dimI) + i;
-                           float temp = dataPointerFloat[indexLowerLeft];
-                           dataPointerFloat[indexLowerLeft] = dataPointerFloat[indexUpperRight];
-                           dataPointerFloat[indexUpperRight] = temp;
-                       }
-                   }
-                 }
-                 break;
-              case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
-                 {
-                   for (int64_t i = 1; i < dimI; i++) {
-                       for (int64_t j = 0; j < i; j++) {
-                           const int64_t indexLowerLeft  = (i * dimJ) + j;
-                           const int64_t indexUpperRight = (j * dimI) + i;
-                           const int32_t temp = dataPointerInt[indexLowerLeft];
-                           dataPointerInt[indexLowerLeft] = dataPointerInt[indexUpperRight];
-                           dataPointerInt[indexUpperRight] = temp;
-                       }
-                   }
-                 }
-                 break;
-              case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
-                 {
-                   for (int64_t i = 1; i < dimI; i++) {
-                       for (int64_t j = 0; j < i; j++) {
-                           const int64_t indexLowerLeft  = (i * dimJ) + j;
-                           const int64_t indexUpperRight = (j * dimI) + i;
-                           const uint8_t temp = dataPointerUByte[indexLowerLeft];
-                           dataPointerUByte[indexLowerLeft] = dataPointerUByte[indexUpperRight];
-                           dataPointerUByte[indexUpperRight] = temp;
-                       }
-                   }
-                 }
-                 break;
-               default:
-                   throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
-                   break;
-           }
-       }
-       else {
-           //
-           // Copy the data
-           //
-           std::vector<uint8_t> dataCopy = data;
+    //
+    // Swap data
+    //
+    if (numDim == 2) {
+        int32_t dimI = dimensions[0];
+        int32_t dimJ = dimensions[1];
 
-          switch (dataType) {
-             case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
+        /*
+         * If a dimensions is "1", the data does not need to be transposed.
+         */
+        if ((dimI != 1) && (dimJ != 1)) {
+
+            //
+            // Is matrix square?
+            //
+            if (dimI == dimJ) {
+                switch (dataType) {
+                case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
                 {
-                   float* ptr = (float*)&(dataCopy[0]);
-                   for (int64_t i = 0; i < dimI; i++) {
-                      for (int64_t j = 0; j < dimJ; j++) {
-                         const int64_t indx = (i * dimJ) + j;
-                         const int64_t ptrIndex = (j * dimI) + i;
-                         dataPointerFloat[indx] = ptr[ptrIndex];
-                      }
-                   }
+                    for (int64_t i = 1; i < dimI; i++) {
+                        for (int64_t j = 0; j < i; j++) {
+                            const int64_t indexLowerLeft  = (i * dimJ) + j;
+                            const int64_t indexUpperRight = (j * dimI) + i;
+                            float temp = dataPointerFloat[indexLowerLeft];
+                            dataPointerFloat[indexLowerLeft] = dataPointerFloat[indexUpperRight];
+                            dataPointerFloat[indexUpperRight] = temp;
+                        }
+                    }
                 }
                 break;
-             case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
+                case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
                 {
-                   uint32_t* ptr = (uint32_t*)&(dataCopy[0]);
-                   for (int64_t i = 0; i < dimI; i++) {
-                      for (int64_t j = 0; j < dimJ; j++) {
-                         const int64_t indx = (i * dimJ) + j;
-                         const int64_t ptrIndex = (j * dimI) + i;
-                         dataPointerInt[indx] = ptr[ptrIndex];
-                      }
-                   }
+                    for (int64_t i = 1; i < dimI; i++) {
+                        for (int64_t j = 0; j < i; j++) {
+                            const int64_t indexLowerLeft  = (i * dimJ) + j;
+                            const int64_t indexUpperRight = (j * dimI) + i;
+                            const int32_t temp = dataPointerInt[indexLowerLeft];
+                            dataPointerInt[indexLowerLeft] = dataPointerInt[indexUpperRight];
+                            dataPointerInt[indexUpperRight] = temp;
+                        }
+                    }
                 }
                 break;
-             case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
+                case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
                 {
-                   uint8_t* ptr = (uint8_t*)&(dataCopy[0]);
-                   for (int64_t i = 0; i < dimI; i++) {
-                      for (int64_t j = 0; j < dimJ; j++) {
-                         const int64_t indx = (i * dimJ) + j;
-                         const int64_t ptrIndex = (j * dimI) + i;
-                         dataPointerUByte[indx] = ptr[ptrIndex];
-                      }
-                   }
+                    for (int64_t i = 1; i < dimI; i++) {
+                        for (int64_t j = 0; j < i; j++) {
+                            const int64_t indexLowerLeft  = (i * dimJ) + j;
+                            const int64_t indexUpperRight = (j * dimI) + i;
+                            const uint8_t temp = dataPointerUByte[indexLowerLeft];
+                            dataPointerUByte[indexLowerLeft] = dataPointerUByte[indexUpperRight];
+                            dataPointerUByte[indexUpperRight] = temp;
+                        }
+                    }
                 }
                 break;
-              default:
-                  throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
-                  break;
-          }
-          
-          dimensions[0] = dimJ;
-          dimensions[1] = dimI;
-      }
-   }
+                default:
+                    throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
+                    break;
+                }
+            } else {
+                //
+                // Copy the data
+                //
+                std::vector<uint8_t> dataCopy = data;
+
+                switch (arraySubscriptingOrder)
+                {
+                case GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER:
+                    switch (dataType) {
+                    case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
+                    {
+                        float* ptr = (float*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (j * dimI) + i;
+                                const int64_t ptrIndex = (i * dimJ) + j;
+                                dataPointerFloat[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
+                    {
+                        uint32_t* ptr = (uint32_t*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (j * dimI) + i;
+                                const int64_t ptrIndex = (i * dimJ) + j;
+                                dataPointerInt[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
+                    {
+                        uint8_t* ptr = (uint8_t*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (j * dimI) + i;
+                                const int64_t ptrIndex = (i * dimJ) + j;
+                                dataPointerUByte[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    default:
+                        throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
+                        break;
+                    }
+                    break;
+                case GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER:
+                    switch (dataType) {
+                    case NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32:
+                    {
+                        float* ptr = (float*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (i * dimJ) + j;
+                                const int64_t ptrIndex = (j * dimI) + i;
+                                dataPointerFloat[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    case NiftiDataTypeEnum::NIFTI_TYPE_INT32:
+                    {
+                        uint32_t* ptr = (uint32_t*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (i * dimJ) + j;
+                                const int64_t ptrIndex = (j * dimI) + i;
+                                dataPointerInt[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    case NiftiDataTypeEnum::NIFTI_TYPE_UINT8:
+                    {
+                        uint8_t* ptr = (uint8_t*)&(dataCopy[0]);
+                        for (int64_t i = 0; i < dimI; i++) {
+                            for (int64_t j = 0; j < dimJ; j++) {
+                                const int64_t indx = (i * dimJ) + j;
+                                const int64_t ptrIndex = (j * dimI) + i;
+                                dataPointerUByte[indx] = ptr[ptrIndex];
+                            }
+                        }
+                    }
+                    break;
+                    default:
+                        throw GiftiException("DataType " + NiftiDataTypeEnum::toName(dataType) + " not supported in GIFTI");
+                        break;
+                    }
+                    break;
+                }
+
+            }
+        }
+    }
+    switch (arraySubscriptingOrder)
+    {
+    case GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER:
+        arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER;
+        break;
+    case GiftiArrayIndexingOrderEnum::ROW_MAJOR_ORDER:
+        arraySubscriptingOrder = GiftiArrayIndexingOrderEnum::COLUMN_MAJOR_ORDER;
+        break;
+    }
 }
 
 /**

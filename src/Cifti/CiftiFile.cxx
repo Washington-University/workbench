@@ -188,11 +188,6 @@ void CiftiFile::setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn
  */
 void CiftiFile::writeFile(const AString &fileName)
 {
-    if(QFile::exists(fileName))
-    {
-        throw CiftiFileException("in place writes aren't supported.");
-        return;
-    }
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
     QByteArray xmlBytes;
     CiftiXML xml = m_xml;
