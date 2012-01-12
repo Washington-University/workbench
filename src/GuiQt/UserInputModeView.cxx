@@ -322,7 +322,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         //
         else if (mouseEvent->isShiftKeyDown()) {
             const float* t1 = modelController->getTranslation(tabIndex);
-            float t2[] = { t1[0] + dx, t1[1] + dy, t2[2] };
+            float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
             modelController->setTranslation(tabIndex, t2);
         }
         

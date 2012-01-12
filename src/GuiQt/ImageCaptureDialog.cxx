@@ -266,7 +266,7 @@ void ImageCaptureDialog::applyButtonPressed()
         try {
             imageFile.writeFile(filename);
         }
-        catch (const DataFileException& e) {
+        catch (const DataFileException& /*e*/) {
             QString msg("Unable to save: " + filename);
             WuQMessageBox::errorOk(this, msg);
         }
