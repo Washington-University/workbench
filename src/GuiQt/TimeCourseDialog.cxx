@@ -60,14 +60,14 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     // when resizing
     std::vector<double>x;
     std::vector<double>y;
-    for(int64_t i=0;i<5;i++)
+    /*for(int64_t i=0;i<5;i++)
     {
         x.push_back((double)i);
         y.push_back((double)i);
-    }
+    }*/
 
 
-    plot->populate(x,y);
+    //plot->populate(x,y);
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
     //plot->setGeometry(0,0,5,5);
@@ -143,18 +143,7 @@ void TimeCourseDialog::on_TDKeepLast_valueChanged(double arg1)
 
 }
 
-TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn, std::vector<double> &yIn)
-{
-    nodeid = nodeidIn;
-    for(int i=0;i<3;i++) point[i] = pointIn[i];
-    x = xIn;
-    y = yIn;
-}
 
-TimeLine::~TimeLine()
-{
-
-}
 
 PlotTC::PlotTC(QWidget *parent):
     QwtPlot( parent )

@@ -111,6 +111,7 @@ StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionControl.h
 TimeCourseDialog.h
+TimeLine.h
 TimeSeriesManager.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
@@ -169,6 +170,7 @@ StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionControl.cxx
 TimeCourseDialog.cxx
+TimeLine.cxx
 TimeSeriesManager.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx

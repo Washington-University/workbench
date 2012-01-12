@@ -62,6 +62,7 @@
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
 #include "TimeSeriesManager.h"
+#include "TimeLine.h"
 
 using namespace caret;
 
@@ -742,6 +743,12 @@ ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int /*state*/)
         }
     }
     this->updateOtherConnectivityLoaderControls();
+}
+
+void
+ConnectivityLoaderControl::getTimeLines(std::vector<TimeLine> &tl)
+{
+
 }
 
 /**

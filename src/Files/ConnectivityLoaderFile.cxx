@@ -37,6 +37,7 @@
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
+#include "TimeCourseDialog.h"
 
 using namespace caret;
 
@@ -841,6 +842,20 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                                                              structure)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                        if(this->timeSeriesGraphEnabled)
+                        {
+                            std::vector<double> x;
+                            std::vector<double> y;
+
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                x.push_back(i);
+                                y.push_back(this->data[i]);
+                            }
+                            double point[3] = {0.0,0.0,0.0};
+                            TimeLine tl(nodeIndex, point, x,y);
+
+                        }
                     }
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));

@@ -230,7 +230,6 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
     
     if (haveData) {
         this->colorConnectivityData();
-        
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     

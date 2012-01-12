@@ -43,13 +43,13 @@
 #include "qwt_text.h"
 #include "qwt_math.h"
 #include "math.h"
+#include "TimeLine.h"
 
 
 namespace Ui {
     class TimeCourseDialog;
 }
 
-class TimeLine;
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -86,15 +86,7 @@ private:
 
 };
 
-class TimeLine {
-public:
-    TimeLine(uint64_t nodeidIn, double *pointIn,std::vector<double> &xIn, std::vector<double>&yIn);
-    virtual ~TimeLine();
-    uint64_t nodeid;
-    double point[3];
-    std::vector<double> x;
-    std::vector<double> y;
-};
+
 
 
 //-----------------------------------------------------------------

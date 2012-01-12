@@ -62,6 +62,7 @@ namespace caret {
         
         void updateControl();
         QDoubleSpinBox *getTimeSpinBox(int32_t &index);
+        void getTimeLines(std::vector<TimeLine> &tl);
         
     private:
         ConnectivityLoaderControl(const ConnectivityLoaderControl&);
