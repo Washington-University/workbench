@@ -647,7 +647,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
     
     this->enableLighting();
     
-    switch (this->mode) {
+    switch (this->mode)  {
         case MODE_DRAWING:
             /*
              * There have been occaisonal issues with specific surfaces
