@@ -32,6 +32,7 @@ namespace caret {
 
     class Brain;
     class BrowserTabContent;
+    class IdentificationItemBorderSurface;
     class IdentificationItemSurfaceNode;
     class IdentificationManager;
     class IdentificationStringBuilder;
@@ -56,6 +57,9 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        void generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
+                                                    const IdentificationItemBorderSurface* idSurfaceBorder) const;
+        
         void generateSurfaceIdentificationText(IdentificationStringBuilder& idText,
                                                const Brain* brain,
                                                const IdentificationItemSurfaceNode* idSurfaceNode) const;

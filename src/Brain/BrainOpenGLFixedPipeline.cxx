@@ -62,6 +62,7 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -1155,10 +1156,19 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
  *   Surface on which borders are drawn.
  * @param border
  *   Border that is drawn on the surface.
+ * @param borderFileIndex
+ *   Index of border file.
+ * @param borderIndex
+ *   Index of border.
+ * @param isSelect
+ *   Selection mode is active.
  */
 void 
 BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
-                                     const Border* border)
+                                     const Border* border,
+                                     const int32_t borderFileIndex,
+                                     const int32_t borderIndex,
+                                     const bool isSelect)
 {
     CaretAssert(surface);
     CaretAssert(border);
@@ -1189,6 +1199,15 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         }
         
         if (isXyzValid) {
+            if (isSelect) {
+                uint8_t idRGB[3];
+                this->colorIdentification->addItem(idRGB, 
+                                                   IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                                   borderFileIndex,
+                                                   borderIndex,
+                                                   i);
+                glColor3ubv(idRGB);
+            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             this->drawSphere(1.5);
@@ -1202,16 +1221,77 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
  *   Surface on which borders are drawn.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceBorders(const Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 {
+    IdentificationItemBorderSurface* idBorder = this->getIdentificationManager()->getSurfaceBorderIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (idBorder->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    
     glColor3f(0.0, 0.0, 1.0);
     
-    const BorderFile* borderFile = surface->getBrainStructure()->getBrain()->getBorderFile();
-    const int32_t numBorders = borderFile->getNumberOfBorders();
+    Brain* brain = surface->getBrainStructure()->getBrain();
+    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        BorderFile* borderFile = brain->getBorderFile(i);
+        const int32_t numBorders = borderFile->getNumberOfBorders();
+        
+        for (int32_t j = 0; j < numBorders; j++) {
+            Border* border = borderFile->getBorder(j);
+            this->drawBorder(surface, 
+                             border,
+                             i,
+                             j,
+                             isSelect);
+        }
+    }
     
-    for (int32_t i = 0; i < numBorders; i++) {
-        const Border* border = borderFile->getBorder(i);
-        this->drawBorder(surface, border);
+    if (isSelect) {
+        int32_t borderFileIndex = -1;
+        int32_t borderIndex = -1;
+        int32_t borderPointIndex;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                         this->mouseX, 
+                                         this->mouseY,
+                                         borderFileIndex,
+                                         borderIndex,
+                                         borderPointIndex,
+                                         depth);
+        if (borderFileIndex >= 0) {
+            Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
+            idBorder->setBorder(border);
+            idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
+            idBorder->setBorderIndex(borderIndex);
+            idBorder->setBorderPointIndex(borderPointIndex);
+            idBorder->setSurface(surface);
+            idBorder->setScreenDepth(depth);
+            float xyz[3];
+            border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
+                                                                     xyz,
+                                                                     false);
+            this->setIdentifiedItemScreenXYZ(idBorder, xyz);
+            CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+        }
     }
 }
 
@@ -1223,12 +1303,14 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(const Surface* surface)
 void 
 BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
 {
-    const StructureEnum::Enum structure = surface->getStructure();
-    
     glColor3f(1.0, 0.0, 0.0);
     
     if (this->borderBeingDrawn != NULL) {
-        this->drawBorder(surface, this->borderBeingDrawn);
+        this->drawBorder(surface, 
+                         this->borderBeingDrawn,
+                         -1,
+                         -1,
+                         false);
     }
 }
 
@@ -3132,6 +3214,75 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeE
                         GL_DEPTH_COMPONENT,
                         GL_FLOAT,
                         &depthOut);
+    }
+    this->colorIdentification->reset();
+}
+
+/**
+ * Analyze color information to extract identification data.
+ * @param dataType
+ *    Type of data.
+ * @param x
+ *    X-coordinate of identification.
+ * @param y
+ *    X-coordinate of identification.
+ * @param indexOut
+ *    First index of identified item.
+ * @param indexOut
+ *    Second index of identified item.
+ * @param indexOut
+ *    Third index of identified item.
+ * @param depthOut
+ *    Depth of identified item.
+ */
+void
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+                                                     const int32_t x,
+                                                     const int32_t y,
+                                                     int32_t& index1Out,
+                                                     int32_t& index2Out,
+                                                     int32_t& index3Out,
+                                                     float& depthOut)
+{
+    // Figure out item was picked using color in color buffer
+    //
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    uint8_t pixels[3];
+    glReadPixels((int)x,
+                 (int)y,
+                 1,
+                 1,
+                 GL_RGB,
+                 GL_UNSIGNED_BYTE,
+                 pixels);
+    
+    index1Out = -1;
+    index2Out = -1;
+    index3Out = -1;
+    depthOut = -1.0;
+    
+    CaretLogFine("ID color is "
+                 + QString::number(pixels[0]) + ", "
+                 + QString::number(pixels[1]) + ", "
+                 + QString::number(pixels[2]));
+    
+    this->colorIdentification->getItem(pixels, dataType, &index1Out, &index2Out, &index3Out);
+    
+    if (index1Out >= 0) {
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        glReadPixels(x,
+                     y,
+                     1,
+                     1,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     &depthOut);
     }
     this->colorIdentification->reset();
 }

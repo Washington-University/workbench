@@ -311,7 +311,7 @@ UserInputModeBorders::createOperationFinish(const AString& name)
         Border* border = new Border(*this->borderBeingDrawnByOpenGL);
         border->setName(name);
         
-        BorderFile* borderFile = GuiManager::get()->getBrain()->getBorderFile();
+        BorderFile* borderFile = GuiManager::get()->getBrain()->getFirstBorderFile();
         borderFile->addBorder(border);
     }
     

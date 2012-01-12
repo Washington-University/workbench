@@ -31,6 +31,7 @@ namespace caret {
     class Brain;
     class BrowserTabContent;
     class IdentificationItem;
+    class IdentificationItemBorderSurface;
     class IdentificationItemSurfaceNode;
     class IdentificationItemSurfaceNodeIdentificationSymbol;
     class IdentificationItemSurfaceTriangle;
@@ -46,6 +47,10 @@ namespace caret {
         virtual ~IdentificationManager();
         
         void reset();
+        
+        IdentificationItemBorderSurface* getSurfaceBorderIdentification();
+        
+        const IdentificationItemBorderSurface* getSurfaceBorderIdentification() const;
         
         IdentificationItemSurfaceNode* getSurfaceNodeIdentification();
         
@@ -103,6 +108,8 @@ namespace caret {
         
         /** Volume items */
         std::vector<IdentificationItem*> volumeSelectedItems;
+        
+        IdentificationItemBorderSurface* surfaceBorderIdentification;
         
         IdentificationItemSurfaceNode* surfaceNodeIdentification;
         

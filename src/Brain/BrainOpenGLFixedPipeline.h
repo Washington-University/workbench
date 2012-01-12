@@ -130,10 +130,13 @@ namespace caret {
         
         void drawSurfaceBorderBeingDrawn(const Surface* surface);
         
-        void drawSurfaceBorders(const Surface* surface);
+        void drawSurfaceBorders(Surface* surface);
         
         void drawBorder(const Surface* surface,
-                        const Border* border);
+                        const Border* border,
+                        const int32_t borderFileIndex,
+                        const int32_t borderIndex,
+                        const bool isSelect);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelDisplayControllerVolume* volumeController,
@@ -182,6 +185,14 @@ namespace caret {
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
+        
+        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+                                        const int32_t x,
+                                        const int32_t y,
+                                        int32_t& index1Out,
+                                        int32_t& index2Out,
+                                        int32_t& index3Out,
+                                        float& depthOut);
         
         void setIdentifiedItemScreenXYZ(IdentificationItem* item,
                                         const float itemXYZ[3]);

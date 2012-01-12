@@ -43,6 +43,7 @@
 #include "IdentificationManager.h"
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
+#include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -66,11 +67,13 @@ using namespace caret;
 IdentificationManager::IdentificationManager()
 : CaretObject()
 {
+    this->surfaceBorderIdentification = new IdentificationItemBorderSurface();
     this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
     this->surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
     this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
     this->voxelIdentification = new IdentificationItemVoxel();
     
+    this->allIdentificationItems.push_back(this->surfaceBorderIdentification);
     this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
     this->allIdentificationItems.push_back(this->surfaceNodeIdentificationSymbol);
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
@@ -79,7 +82,7 @@ IdentificationManager::IdentificationManager()
     this->surfaceSelectedItems.push_back(this->surfaceNodeIdentification);
     this->surfaceSelectedItems.push_back(this->surfaceTriangleIdentification);
     
-    //this->layeredSelectedItems.push_back();
+    this->layeredSelectedItems.push_back(this->surfaceBorderIdentification);
     
     this->volumeSelectedItems.push_back(this->voxelIdentification);
     
@@ -92,6 +95,8 @@ IdentificationManager::IdentificationManager()
 IdentificationManager::~IdentificationManager()
 {
     this->reset();
+    delete this->surfaceBorderIdentification;
+    this->surfaceBorderIdentification = NULL;
     delete this->surfaceNodeIdentification;
     this->surfaceNodeIdentification = NULL;
     delete this->surfaceNodeIdentificationSymbol;
@@ -395,6 +400,24 @@ IdentificationItemVoxel*
 IdentificationManager::getVoxelIdentification()
 {
     return this->voxelIdentification;
+}
+
+/**
+ * @return Identification for borders.
+ */
+IdentificationItemBorderSurface* 
+IdentificationManager::getSurfaceBorderIdentification()
+{
+    return this->surfaceBorderIdentification;
+}
+
+/**
+ * @return Identification for borders.
+ */
+const IdentificationItemBorderSurface* 
+IdentificationManager::getSurfaceBorderIdentification() const
+{
+    return this->surfaceBorderIdentification;
 }
 
 /**

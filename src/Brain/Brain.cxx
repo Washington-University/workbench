@@ -61,7 +61,6 @@ using namespace caret;
 Brain::Brain()
 {
     this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
-    this->borderFile = new BorderFile();
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;
@@ -96,7 +95,7 @@ Brain::~Brain()
     this->displayProperties.clear();
     
     this->resetBrain();
-    delete this->borderFile;
+
     delete this->connectivityLoaderManager;
     delete this->paletteFile;
     delete this->specFile;
@@ -201,7 +200,15 @@ Brain::resetBrain()
     this->volumeFiles.clear();
     
     this->brainStructures.clear();
-    this->borderFile->clear();
+    
+    for (std::vector<BorderFile*>::iterator bfi = this->borderFiles.begin();
+         bfi != this->borderFiles.end();
+         bfi++) {
+        BorderFile* bf = *bfi;
+        delete bf;
+    }
+    this->borderFiles.clear();
+    
     this->paletteFile->clear();
     
     this->connectivityLoaderManager->reset();
@@ -535,7 +542,15 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
 void 
 Brain::readBorderProjectionFile(const AString& filename) throw (DataFileException)
 {
-    this->borderFile->readFile(filename);
+    BorderFile* bf = new BorderFile;
+    try {
+        bf->readFile(filename);
+        this->borderFiles.push_back(bf);
+    }
+    catch (DataFileException& dfe) {
+        delete bf;
+        throw dfe;
+    }
 }
 
 /**
@@ -598,22 +613,47 @@ Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
     throw DataFileException("Reading not implemented for: scene");
 }
 
+int32_t 
+Brain::getNumberOfBorderFiles() const
+{
+    return this->borderFiles.size();
+}
+
 /**
- * @return The border file.
+ * @return The first border file.  If there are no
+ * border files, one will be created.
  */
 BorderFile* 
-Brain::getBorderFile()
+Brain::getFirstBorderFile()
 {
-    return this->borderFile;
+    if (this->borderFiles.empty()) {
+        BorderFile* bf = new BorderFile();
+        this->borderFiles.push_back(bf);
+    }
+    
+    return this->borderFiles[0];
 }
 
 /**
  * @return The border file.
+ * @param indx Index of the border file.
+ */
+BorderFile* 
+Brain::getBorderFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(this->borderFiles, indx);
+    return this->borderFiles[indx];
+}
+
+/**
+ * @return The border file.
+ * @param indx Index of the border file.
  */
 const BorderFile* 
-Brain::getBorderFile() const
+Brain::getBorderFile(const int32_t indx) const
 {
-    return this->borderFile;
+    CaretAssertVectorIndex(this->borderFiles, indx);
+    return this->borderFiles[indx];
 }
 
 /*
@@ -995,7 +1035,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
         this->getBrainStructure(i)->getAllDataFiles(allDataFilesOut);
     }
     
-    allDataFilesOut.push_back(this->borderFile);
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->borderFiles.begin(),
+                           this->borderFiles.end());
+    
     allDataFilesOut.push_back(this->paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
@@ -1041,9 +1084,15 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         }
     }
     
-    if (this->borderFile == caretDataFile) {
-        this->borderFile->clear();
-        return true;
+    for (std::vector<BorderFile*>::iterator bfi = this->borderFiles.begin();
+         bfi != this->borderFiles.end();
+         bfi++) {
+        BorderFile* bf = *bfi;
+        if (bf == caretDataFile) {
+            delete bf;
+            this->borderFiles.erase(bfi);
+            return true;
+        }
     }
     
     if (this->paletteFile == caretDataFile) {

@@ -27,12 +27,14 @@
 #include "IdentificationTextGenerator.h"
 #undef __IDENTIFICATION_TEXT_GENERATOR_DECLARE__
 
+#include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventManager.h"
+#include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
@@ -40,6 +42,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "Surface.h"
+#include "SurfaceProjectedItem.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -96,6 +99,9 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                                                 brain, 
                                                 idManager->getAdditionalSurfaceNodeIdentification(i));
     }
+    
+    this->generateSurfaceBorderIdentifcationText(idText,
+                                                 idManager->getSurfaceBorderIdentification());
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
@@ -271,6 +277,37 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     }
     
 }
+
+
+/**
+ * Generate identification text for a surface border identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idSurfaceBorder
+ *     Information for surface border ID.
+ */
+void 
+IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(IdentificationStringBuilder& idText,
+                                                                    const IdentificationItemBorderSurface* idSurfaceBorder) const
+{
+    if (idSurfaceBorder->isValid()) {
+        const Border* border = idSurfaceBorder->getBorder();
+        const SurfaceProjectedItem* spi = border->getPoint(idSurfaceBorder->getBorderPointIndex());
+        float xyz[3];
+        spi->getProjectedPosition(*idSurfaceBorder->getSurface(), xyz, false);
+
+        const AString boldText = "BORDER " + border->getName() + ": ";
+        const AString text = ("("
+                              + AString::number(idSurfaceBorder->getBorderIndex())
+                              + ","
+                              + AString::number(idSurfaceBorder->getBorderPointIndex())
+                              + ") ("
+                              + AString::fromNumbers(xyz, 3, ",")
+                              + ")");
+        idText.addLine(true, boldText, text);
+    }
+}
+
 
 /**
  * Get a description of this object's content.

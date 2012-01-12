@@ -79,6 +79,7 @@ EventSurfaceColoringInvalidate.h
 EventSurfacesGet.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
+IdentificationItemBorderSurface.h
 IdentificationItemSurfaceNode.h
 IdentificationItemSurfaceNodeIdentificationSymbol.h
 IdentificationItemSurfaceTriangle.h
@@ -140,6 +141,7 @@ EventSurfaceColoringInvalidate.cxx
 EventSurfacesGet.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
+IdentificationItemBorderSurface.cxx
 IdentificationItemSurfaceNode.cxx
 IdentificationItemSurfaceNodeIdentificationSymbol.cxx
 IdentificationItemSurfaceTriangle.cxx
