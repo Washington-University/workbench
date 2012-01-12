@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <algorithm>
+
 #define __BORDER_FILE_DECLARE__
 #include "BorderFile.h"
 #undef __BORDER_FILE_DECLARE__
