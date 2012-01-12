@@ -491,7 +491,7 @@ SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
 void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
 {
     {//lock before modifying member (base)
-        CaretMutexLocker myLock(&m_helperMutex);
+        CaretMutexLocker myLock(&m_geoHelperMutex);
         if (m_geoBase == NULL)
         {
             m_geoHelpers.clear();//just to be sure
@@ -513,7 +513,7 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
         }
     }//UNLOCK before building a new one, so they can be built in parallel - this actually just involves initializing the marked array
     CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
-    CaretMutexLocker myLock(&m_helperMutex);//relock before modifying the array
+    CaretMutexLocker myLock(&m_geoHelperMutex);//relock before modifying the array
     m_geoHelpers.push_back(ret);
     helpOut = ret;
 }
@@ -528,7 +528,7 @@ CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper() const
 void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted) const
 {
     {
-        CaretMutexLocker myLock(&m_helperMutex);//lock before searching with the shared index
+        CaretMutexLocker myLock(&m_topoHelperMutex);//lock before searching with the shared index
         int32_t& myIndex = m_topoHelperIndex;
         int32_t myEnd = m_topoHelpers.size();
         for (int32_t i = 0; i < myEnd; ++i)
@@ -544,7 +544,7 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
         }
     }//UNLOCK the mutex while we build a new helper, so that they can be built in parallel
     CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));//could copy from an existing one instead of rebuilding
-    CaretMutexLocker myLock(&m_helperMutex);//lock before modifying the array
+    CaretMutexLocker myLock(&m_topoHelperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     helpOut = ret;
 }
@@ -558,7 +558,9 @@ CaretPointer<TopologyHelper> SurfaceFile::getTopologyHelper(bool infoSorted) con
 
 void caret::SurfaceFile::invalidateHelpers()
 {
-    CaretMutexLocker myLock(&m_helperMutex);//make this function threadsafe
+    CaretMutexLocker myLock(&m_geoHelperMutex);//make this function threadsafe
+    CaretMutexLocker myLock2(&m_topoHelperMutex);
+    CaretMutexLocker myLock3(&m_locatorMutex);
     m_topoHelperIndex = 0;
     m_topoHelpers.clear();
     m_geoHelperIndex = 0;
@@ -622,7 +624,7 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
 {
     if (m_locator == NULL)//try to avoid locking even once
     {
-        CaretMutexLocker myLock(&m_helperMutex);
+        CaretMutexLocker myLock(&m_locatorMutex);
         if (m_locator == NULL)//test again AFTER lock to avoid race conditions
         {
             m_locator = CaretPointer<CaretPointLocator>(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));

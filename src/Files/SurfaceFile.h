@@ -155,7 +155,7 @@ namespace caret {
         
         mutable BoundingBox* boundingBox;
         
-        mutable CaretMutex m_helperMutex;
+        mutable CaretMutex m_topoHelperMutex, m_geoHelperMutex, m_locatorMutex;
     };
 
 } // namespace
