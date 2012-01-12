@@ -406,8 +406,9 @@ XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
    const wchar_t TAB = 9;
 
    int32_t num = text.length();
+   std::string tempstring = text.toStdString();
    for (int32_t i = 0; i < num; i++) {
-      char c = text.toStdString().at(i);
+      char c = tempstring.at(i);
 
       bool printIt = true; //c.isPrint();
 

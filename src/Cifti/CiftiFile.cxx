@@ -95,6 +95,10 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
             QFile inputFile(fileName);
             inputFile.setFileName(fileName);
             inputFile.open(QIODevice::ReadWrite);
+            if (!inputFile.isOpen())
+            {
+                throw CiftiFile("unable to open cifti file");//so permissions problems result in an exception, not an abort later
+            }
             inputFile.seek(NIFTI2_HEADER_SIZE);
             char extensions[4];
             inputFile.read(extensions,4);
