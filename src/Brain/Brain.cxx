@@ -491,6 +491,7 @@ Brain::readVolumeFile(const AString& filename) throw (DataFileException)
         throw e;
     }
     vf->clearModified();
+    
     this->volumeFiles.push_back(vf);
 }
 
