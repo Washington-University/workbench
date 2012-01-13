@@ -423,24 +423,24 @@ IdentificationManager::getSurfaceBorderIdentification() const
 /**
  * Add an additional surface node identifications
  * typically made as a result of identification in a volume or
- * an interhemispheric identification.
+ * an contralateral identification.
  * @param surface
  *   Surface on which identification took place.
  * @param nodeIndex
  *   Index of surface node.
- * @param isInterhemisphericIdentification
- *   True if interhemispheric identification.
+ * @param isContralateralIdentification
+ *   True if contralateral identification.
  */
 void 
 IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
                                                               const int32_t nodeIndex,
-                                                              bool isInterhemisphericIdentification)
+                                                              bool isContralateralIdentification)
 {
     if (surface != this->surfaceNodeIdentification->getSurface()) {
         IdentificationItemSurfaceNode* nodeID = new IdentificationItemSurfaceNode();
         nodeID->setSurface(surface);
         nodeID->setNodeNumber(nodeIndex);
-        nodeID->setIsInterhemispheric(isInterhemisphericIdentification);
+        nodeID->setContralateral(isContralateralIdentification);
         this->additionalSurfaceNodeIdentifications.push_back(nodeID);
     }
 }
@@ -448,7 +448,7 @@ IdentificationManager::addAdditionalSurfaceNodeIdentification(Surface* surface,
 /**
  * @return the number of additional surface node identifications
  * typically made as a result of identification in a volume or
- * an interhemispheric identification.
+ * an contralateral identification.
  */
 int32_t 
 IdentificationManager::getNumberOfAdditionalSurfaceNodeIdentifications() const

@@ -341,7 +341,7 @@ PreferencesDialog::createIdentificationWidget()
 }
 
 /**
- * Called when interhemispheric checkbox is toggled.
+ * Called when contralateral checkbox is toggled.
  * @param value
  *    New value.
  */

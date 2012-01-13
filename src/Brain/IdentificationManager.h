@@ -77,7 +77,7 @@ namespace caret {
         
         void addAdditionalSurfaceNodeIdentification(Surface* surface,
                                                     const int32_t nodeIndex,
-                                                    bool isInterhemisphericIdentification);
+                                                    bool isContralateralIdentification);
         
         int32_t getNumberOfAdditionalSurfaceNodeIdentifications() const;
         

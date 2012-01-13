@@ -51,9 +51,9 @@ namespace caret {
         
         void setNodeNumber(const int32_t nodeNumber);
         
-        bool isInterhemispheric() const;
+        bool isContralateral() const;
         
-        void setIsInterhemispheric(const bool status);
+        void setContralateral(const bool status);
         
         virtual void reset();
         
@@ -69,7 +69,7 @@ namespace caret {
         
         int32_t nodeNumber;
         
-        bool interhemisphericFlag;
+        bool contralateralFlag;
     };
     
 #ifdef __IDENTIFICATION_ITEM_SURFACE_NODE_DECLARE__

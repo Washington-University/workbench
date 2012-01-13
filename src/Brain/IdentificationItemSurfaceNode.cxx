@@ -66,7 +66,7 @@ IdentificationItemSurfaceNode::reset()
     IdentificationItem::reset();
     this->surface = NULL;
     this->nodeNumber = -1;
-    this->interhemisphericFlag = false;
+    this->contralateralFlag = false;
 }
 
 /**
@@ -129,23 +129,23 @@ IdentificationItemSurfaceNode::setNodeNumber(const int32_t nodeNumber)
 }
 
 /**
- * @return Is this an interhemispheric identification?
+ * @return Is this a contralateral identification?
  */
 bool 
-IdentificationItemSurfaceNode::isInterhemispheric() const
+IdentificationItemSurfaceNode::isContralateral() const
 {
-    return this->interhemisphericFlag;
+    return this->contralateralFlag;
 }
 
 /**
- * Set interhemispheric identification status.
+ * Set contralateral identification status.
  * @param status
  *    New status.
  */
 void 
-IdentificationItemSurfaceNode::setIsInterhemispheric(const bool status)
+IdentificationItemSurfaceNode::setContralateral(const bool status)
 {
-    this->interhemisphericFlag = status;
+    this->contralateralFlag = status;
 }
 
 /**
@@ -159,6 +159,6 @@ IdentificationItemSurfaceNode::toString() const
     text += IdentificationItem::toString() + "\n";
     text += "Surface: " + surface->getFileNameNoPath() + "\n";
     text += "Node: " + AString::number(this->nodeNumber) + "\n";
-    text += "Interhemispheric: " + AString::fromBool(this->interhemisphericFlag);
+    text += "Contralateral: " + AString::fromBool(this->contralateralFlag);
     return text;
 }

@@ -211,7 +211,7 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
     if ((surface != NULL) 
         && (nodeNumber >= 0)) {
         AString surfaceID;
-        if (idSurfaceNode->isInterhemispheric()) {
+        if (idSurfaceNode->isContralateral()) {
             surfaceID += "CONTRALATERAL ";
         }
         surfaceID += ("NODE " + StructureEnum::toGuiName(surface->getStructure()));
