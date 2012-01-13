@@ -56,6 +56,8 @@ namespace caret {
         
         int32_t getNumberOfColumns() const;
         
+        void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
+
         GiftiLabelTable* getLabelTable();
         
         const GiftiLabelTable* getLabelTable() const;
@@ -71,6 +73,8 @@ namespace caret {
                          const int32_t labelIndex);
         
         const int32_t* getLabelKeyPointerForColumn(const int32_t columnIndex) const;
+        
+        void setLabelKeysForColumn(const int32_t columnIndex, const int32_t* keysIn);
         
     protected:
         /**

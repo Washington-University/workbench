@@ -66,7 +66,7 @@ namespace caret {
         };
         AlgorithmCreateSignedDistanceVolume(ProgressObject* myProgObj, SurfaceFile* mySurf, VolumeFile* myVolOut, float exactLim = 5.0f, float approxLim = 20.0f, int approxNeighborhood = 2, WindingLogic myWinding = EVEN_ODD);
         static OperationParameters* getParameters();
-        static void useParameters(OperationParameters*, ProgressObject*);
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

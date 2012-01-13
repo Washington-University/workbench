@@ -47,9 +47,9 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     
     ret->addSurfaceParameter(2, "surface", "the surface to compute on");
     
-    ret->addMetricOutputParameter(3, "metric-out", "the output metric");
+    ret->addDoubleParameter(3, "distance", "distance in mm to dilate");
     
-    ret->addDoubleParameter(4, "distance", "distance in mm to dilate");
+    ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
     OptionalParameter* roiOpt = ret->createOptionalParameter(5, "-bad-node-roi", "specify an roi of nodes to overwrite, rather than nodes with value zero");
     roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote nodes to have their values replaced");
@@ -70,8 +70,8 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
 {
     MetricFile* myMetric = myParams->getMetric(1);
     SurfaceFile* mySurf = myParams->getSurface(2);
-    MetricFile* myMetricOut = myParams->getOutputMetric(3);
-    float distance = (float)myParams->getDouble(4);
+    float distance = (float)myParams->getDouble(3);
+    MetricFile* myMetricOut = myParams->getOutputMetric(4);
     OptionalParameter* roiOpt = myParams->getOptionalParameter(5);
     MetricFile* badNodeRoi = NULL;
     if (roiOpt->m_present)
@@ -88,10 +88,10 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
             throw AlgorithmException("invalid column specified");
         }
     }
-    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, myMetricOut, distance, badNodeRoi, columnNum);//executes the algorithm
+    AlgorithmMetricDilate(myProgObj, myMetric, mySurf, distance, myMetricOut, badNodeRoi, columnNum);
 }
 
-AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, MetricFile* myMetricOut, float distance, const MetricFile* badNodeRoi, int columnNum) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const MetricFile* myMetric, const SurfaceFile* mySurf, float distance, MetricFile* myMetricOut, const MetricFile* badNodeRoi, int columnNum) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     int numNodes = mySurf->getNumberOfNodes();

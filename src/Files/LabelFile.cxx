@@ -255,6 +255,27 @@ LabelFile::getLabelKeyPointerForColumn(const int32_t columnIndex) const
     return this->columnDataPointers[columnIndex];    
 }
 
+void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
+{
+    giftiFile->clear();
+    std::vector<int64_t> dimensions;
+    dimensions.push_back(nodes);
+    for (int32_t i = 0; i < columns; ++i)
+    {
+        giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_LABEL, NiftiDataTypeEnum::NIFTI_TYPE_INT32, dimensions, GiftiEncodingEnum::GZIP_BASE64_BINARY));
+        columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerInt());
+    }
+    setModified();
+}
 
-
-
+void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* valuesIn)
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    int32_t* myColumn = columnDataPointers[columnIndex];
+    int numNodes = (int)getNumberOfNodes();
+    for (int i = 0; i < numNodes; ++i)
+    {
+        myColumn[i] = valuesIn[i];
+    }
+    setModified();
+}

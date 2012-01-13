@@ -33,7 +33,7 @@ namespace caret {
     {
     public:
         static OperationParameters* getParameters();
-        static void useParameters(OperationParameters*, ProgressObject*);
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

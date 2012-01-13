@@ -140,7 +140,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     if (myPresmooth > 0.0f)
     {
         toProcess = new MetricFile();
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, toProcess, myPresmooth, myRoi, myColumn);
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, toProcess, myRoi, myColumn);
     }
     mySurf->computeNormals(myAvgNormals);
     const float* myNormals = mySurf->getNormalData();

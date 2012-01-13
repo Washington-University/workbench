@@ -99,10 +99,10 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
             throw AlgorithmException("unknown smoothing method name");
         }
     }
-    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myMetricOut, myKernel, myRoi, columnNum, myMethod);
+    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, columnNum, myMethod);
 }
 
-AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, MetricFile* myMetricOut, double myKernel, MetricFile* myRoi, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, MetricFile* myRoi, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
 {
     const float precomputeWeightWork = 5.0f;//maybe should be a member variable?
     LevelProgress myProgress(myProgObj, 1.0f + precomputeWeightWork);

@@ -46,7 +46,7 @@ namespace caret {
                                 MetricFile* myRoi = NULL,
                                 const int32_t myColumn = -1);
         static OperationParameters* getParameters();
-        static void useParameters(OperationParameters*, ProgressObject*);
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

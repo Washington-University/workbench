@@ -20,6 +20,7 @@ ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
+AlgorithmLabelDilate.h
 AlgorithmMetricDilate.h
 AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
@@ -28,6 +29,7 @@ AlgorithmVolumeToSurfaceMapping.h
 AbstractAlgorithm.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
+AlgorithmLabelDilate.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx

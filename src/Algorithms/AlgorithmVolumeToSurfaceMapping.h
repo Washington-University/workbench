@@ -88,7 +88,7 @@ namespace caret {
         };
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, VolumeFile* roiVol = NULL, int32_t subdivisions = 3);
         static OperationParameters* getParameters();
-        static void useParameters(OperationParameters*, ProgressObject*);
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

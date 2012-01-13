@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-OperationCiftiConvert     : operation name, in CamelCase, with initial capital, same as what you saved the header file to
-OPERATION_CIFTI_CONVERT    : uppercase of operation name, with underscore between words, used in #ifdef guards
--cifti-convert   : switch for the command line to use, often hyphenated version of operation name, lowercase, minus "operation"
-CONVERT A CIFTI FILE TO ANOTHER FORMAT : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the operation takes no parameters, uncomment the line below for takesParameters(), otherwise delete it
-
-next, make OperationCiftiConvert.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiConvert/g' | sed 's/-[c]ommand-switch/-cifti-convert/g' | sed 's/[S]HORT DESCRIPTION/CONVERT A CIFTI FILE TO ANOTHER FORMAT/g' > OperationCiftiConvert.cxx
-cat Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiConvert/g' | sed 's/-[c]ommand-switch/-cifti-convert/g' | sed 's/[S]HORT DESCRIPTION/CONVERT A CIFTI FILE TO ANOTHER FORMAT/g' > Operations/OperationCiftiConvert.cxx
-cat src/Operations/OperationTemplate.cxx.txt | sed 's/[O]perationName/OperationCiftiConvert/g' | sed 's/-[c]ommand-switch/-cifti-convert/g' | sed 's/[S]HORT DESCRIPTION/CONVERT A CIFTI FILE TO ANOTHER FORMAT/g' > src/Operations/OperationCiftiConvert.cxx
-
-or manually copy and replace
-
-next, implement its functions
-
-add these to Operations/CMakeLists.txt:
-
-OperationCiftiConvert.h
-OperationCiftiConvert.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "OperationCiftiConvert.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractOperation.h"
 
 namespace caret {
@@ -71,7 +33,7 @@ namespace caret {
     {
     public:
         static OperationParameters* getParameters();
-        static void useParameters(OperationParameters*, ProgressObject*);
+        static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };

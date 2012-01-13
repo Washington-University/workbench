@@ -1,5 +1,5 @@
-#ifndef __OPERATION_SET_STRUCTURE_H__
-#define __OPERATION_SET_STRUCTURE_H__
+#ifndef __ALGORITHM_LABEL_DILATE_H__
+#define __ALGORITHM_LABEL_DILATE_H__
 
 /*LICENSE_START*/
 /*
@@ -25,21 +25,26 @@
  *
  */
 
-#include "AbstractOperation.h"
+#include "AbstractAlgorithm.h"
 
 namespace caret {
     
-    class OperationSetStructure : public AbstractOperation
+    class AlgorithmLabelDilate : public AbstractAlgorithm
     {
+        AlgorithmLabelDilate();
+    protected:
+        static float getSubAlgorithmWeight();
+        static float getAlgorithmInternalWeight();
     public:
+        AlgorithmLabelDilate(ProgressObject* myProgObj, const LabelFile* myLabel, const SurfaceFile* mySurf, float myDist, LabelFile* myLabelOut, int columnNum = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<OperationSetStructure> AutoOperationSetStructure;
+    typedef TemplateAutoOperation<AlgorithmLabelDilate> AutoAlgorithmLabelDilate;
 
 }
 
-#endif //__OPERATION_SET_STRUCTURE_H__
+#endif //__ALGORITHM_LABEL_DILATE_H__
