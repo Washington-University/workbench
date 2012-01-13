@@ -23,10 +23,10 @@
  */ 
 
 #include <fstream>
-#include <memory>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretPointer.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #define __SPEC_FILE_DEFINE__
