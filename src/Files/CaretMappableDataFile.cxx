@@ -85,3 +85,19 @@ CaretMappableDataFile::copyCaretMappableDataFile(const CaretMappableDataFile&)
     
 }
 
+int32_t CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapName)
+{
+    bool ok = false;
+    int32_t ret = mapName.toInt(&ok) - 1;//compensate for 1-indexing that command line parsing uses
+    if (ok)
+    {
+        if (ret < 0 || ret >= getNumberOfMaps())
+        {
+            ret = -1;
+        }
+    } else {//DO NOT search by name if the string was parsed as an integer correctly, or some idiot who names their maps as integers will get confused
+            //when getting map "12" out of a file after the file expands to more than 12 elements suddenly does something different
+        ret = getMapIndexFromName(mapName);
+    }
+    return ret;
+}

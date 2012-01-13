@@ -45,11 +45,16 @@ OperationParameters* AlgorithmLabelDilate::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addLabelParameter(1, "label", "the input label");
+    
     ret->addSurfaceParameter(2, "surface", "the surface to dilate on");
+    
     ret->addDoubleParameter(3, "dilate-dist", "distance in mm to dilate the labels");
+    
     ret->addLabelOutputParameter(4, "label-out", "the output label file");
+    
     OptionalParameter* columnSelect = ret->createOptionalParameter(5, "-column", "select a single column to dilate");
-    columnSelect->addIntegerParameter(1, "column-number", "the column number");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
+    
     ret->setHelpText(
         AString("Fills in label information where the label is currently unassigned, up to the specified distance away from other labels.  ") +
         "By default, dilates all columns of the input label."
@@ -67,7 +72,7 @@ void AlgorithmLabelDilate::useParameters(OperationParameters* myParams, Progress
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
-        columnNum = (int)columnSelect->getInteger(1);
+        columnNum = (int)myLabel->getMapIndexFromNameOrNumber(columnSelect->getString(1));
         if (columnNum < 0)
         {
             throw AlgorithmException("invalid column specified");

@@ -55,7 +55,7 @@ OperationParameters* AlgorithmMetricDilate::getParameters()
     roiOpt->addMetricParameter(1, "roi-metric", "metric file, all positive values denote nodes to have their values replaced");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(6, "-column", "select a single column to dilate");
-    columnSelect->addIntegerParameter(1, "column-number", "the column number");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
     
     ret->setHelpText(
         AString("For all metric nodes that are designated as bad, if they neighbor a good node or are within the specified distance of a good node, ") +
@@ -82,7 +82,7 @@ void AlgorithmMetricDilate::useParameters(OperationParameters* myParams, Progres
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
-        columnNum = (int)columnSelect->getInteger(1);//get the integer argument to the option
+        columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
         if (columnNum < 0)
         {
             throw AlgorithmException("invalid column specified");

@@ -96,6 +96,18 @@ namespace caret {
         virtual int32_t getMapIndexFromName(const AString& mapName) = 0;
         
         /**
+         * Find the index of the map that uses the given name.
+         * 
+         * @param mapName
+         *    Name of the desired map.
+         * @return
+         *    Index of the map using the given name.  If there is more
+         *    than one map with the given name, this method is likely
+         *    to return the index of the first map with the name.
+         */
+        virtual int32_t getMapIndexFromNameOrNumber(const AString& mapName);
+        
+        /**
          * Set the name of the map at the given index.
          *
          * @param mapIndex

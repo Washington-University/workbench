@@ -49,16 +49,23 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to compute the gradient on");
+    
     ret->addMetricParameter(2, "metric-in", "the metric to compute the gradient of");
+    
     ret->addMetricOutputParameter(3, "metric-out", "the magnitude of the gradient");
+    
     OptionalParameter* presmooth = ret->createOptionalParameter(4, "-presmooth", "smooth the metric before computing the gradient");
     presmooth->addDoubleParameter(5, "presmoothing", "how much smoothing to apply");
+    
     OptionalParameter* roiOption = ret->createOptionalParameter(6, "-roi", "select a region of interest to take the gradient of");
     roiOption->addMetricParameter(7, "roi-metric", "the area to smooth within, as a metric");
+    
     OptionalParameter* vecOut = ret->createOptionalParameter(11, "-vectors", "output vectors");
     vecOut->addMetricOutputParameter(12, "vector-metric-out", "the vectors as a metric with 3x the number of input columns");
+    
     OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column to compute the gradient of");
-    columnSelect->addIntegerParameter(9, "column-num", "the column number");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
+    
     ret->createOptionalParameter(10, "-average-normals", "average the normals of each node with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
@@ -93,7 +100,11 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     OptionalParameter* columnSelect = myParams->getOptionalParameter(8);
     if (columnSelect->m_present)
     {
-        myColumn = (int32_t)columnSelect->getInteger(9);//todo: subtract one for 1-based conventions?
+        myColumn = (int)myMetricIn->getMapIndexFromNameOrNumber(columnSelect->getString(1));
+        if (myColumn < 0)
+        {
+            throw AlgorithmException("invalid column specified");
+        }
     }
     OptionalParameter* avgNormals = myParams->getOptionalParameter(10);
     bool myAvgNormals = avgNormals->m_present;

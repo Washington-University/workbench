@@ -47,7 +47,7 @@ OperationParameters* OperationMetricMask::getParameters()
     ret->addMetricParameter(2, "mask", "the mask metric");
     ret->addMetricOutputParameter(3, "metric-out", "the output metric");
     OptionalParameter* columnSelect = ret->createOptionalParameter(4, "-column", "select a single column");
-    columnSelect->addIntegerParameter(1, "column-number", "the column number");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
     ret->setHelpText(
         AString("By default, the output metric is a copy of the input metric, but with zeros wherever the mask metric is not positive.  ") +
         "if -column is specified, the output contains only one column, the masked version of the specified input column."
@@ -67,10 +67,10 @@ void OperationMetricMask::useParameters(OperationParameters* myParams, ProgressO
     }
     MetricFile* myMetricOut = myParams->getOutputMetric(3);//gets the output metric with key 2
     OptionalParameter* columnSelect = myParams->getOptionalParameter(4);//gets optional parameter with key 3
-    int64_t columnNum = -1;
+    int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column
-        columnNum = columnSelect->getInteger(1);
+        columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
         if (columnNum < 0 || columnNum >= myMetric->getNumberOfColumns())
         {
             throw OperationException("invalid column specified");

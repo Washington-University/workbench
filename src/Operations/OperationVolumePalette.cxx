@@ -46,7 +46,7 @@ OperationParameters* OperationVolumePalette::getParameters()
     ret->addStringParameter(1, "volume", "the volume file to modify");
     ret->addStringParameter(2, "mode", "the mapping mode");
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(3, "-subvolume", "select a single subvolume");
-    subvolumeSelect->addIntegerParameter(1, "sub-num", "the subvolume number to modify");
+    subvolumeSelect->addStringParameter(1, "subvolume", "the subvolume number or name");
     
     OptionalParameter* posMinMaxPercent = ret->createOptionalParameter(4, "-pos-percent", "percentage min/max for positive data coloring");
     posMinMaxPercent->addDoubleParameter(1, "pos-min-%", "the percentile for the least positive data");
@@ -105,21 +105,17 @@ void OperationVolumePalette::useParameters(OperationParameters* myParams, Progre
     {
         throw OperationException("unknown mapping mode");
     }
+    VolumeFile myVolume;
+    myVolume.readFile(myVolumeName);
     int mySubvolume = -1;
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(3);
     if (subvolumeSelect->m_present)
     {
-        mySubvolume = subvolumeSelect->getInteger(1);
-        if (mySubvolume < 0)//don't allow them to use the special value -1
+        mySubvolume = (int)myVolume.getMapIndexFromNameOrNumber(subvolumeSelect->getString(1));
+        if (mySubvolume < 0 || mySubvolume >= myVolume.getNumberOfMaps())
         {
-            throw OperationException("invalid column number");
+            throw OperationException("invalid column specified");
         }
-    }
-    VolumeFile myVolume;
-    myVolume.readFile(myVolumeName);
-    if (mySubvolume >= myVolume.getNumberOfMaps())
-    {
-        throw OperationException("invalid subvolume number");
     }
     PaletteColorMapping myMapping = *(myVolume.getMapPaletteColorMapping(0));//create the mapping, then use operator= to set for all requested columns, take defaults from first map
     myMapping.setScaleMode(myMode);

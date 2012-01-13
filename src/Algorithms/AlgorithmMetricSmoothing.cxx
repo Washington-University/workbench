@@ -48,15 +48,22 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addSurfaceParameter(1, "surface", "the surface to smooth on");
+    
     ret->addMetricParameter(2, "metric-in", "the metric to smooth");
+    
     ret->addDoubleParameter(3, "smoothing-kernel", "the sigma for the gaussian kernel function, in mm");
+    
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
+    
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to smooth");
     roiOption->addMetricParameter(6, "roi-metric", "the roi to smooth within, as a metric");
+    
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to smooth");
-    columnSelect->addIntegerParameter(8, "column-number", "the column number to smooth");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
+    
     OptionalParameter* methodSelect = ret->createOptionalParameter(9, "-method", "select smoothing method, default GEO_GAUSS_AREA");
     methodSelect->addStringParameter(10, "method", "the name of the smoothing method");
+    
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
@@ -83,7 +90,11 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
     OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
     if (columnSelect->m_present)
     {
-        columnNum = columnSelect->getInteger(8);//todo: subtract one for 1-based conventions?
+        columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
+        if (columnNum < 0)
+        {
+            throw AlgorithmException("invalid column specified");
+        }
     }
     Method myMethod = GEO_GAUSS_AREA;
     OptionalParameter* methodSelect = myParams->getOptionalParameter(9);

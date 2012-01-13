@@ -47,7 +47,7 @@ OperationParameters* OperationMetricPalette::getParameters()
     ret->addStringParameter(1, "metric", "the metric to modify");
     ret->addStringParameter(2, "mode", "the mapping mode");
     OptionalParameter* columnSelect = ret->createOptionalParameter(3, "-column", "select a single column");
-    columnSelect->addIntegerParameter(1, "col-num", "the column number to modify");
+    columnSelect->addStringParameter(1, "column", "the column number or name");
     
     OptionalParameter* posMinMaxPercent = ret->createOptionalParameter(4, "-pos-percent", "percentage min/max for positive data coloring");
     posMinMaxPercent->addDoubleParameter(1, "pos-min-%", "the percentile for the least positive data");
@@ -106,21 +106,17 @@ void OperationMetricPalette::useParameters(OperationParameters* myParams, Progre
     {
         throw OperationException("unknown mapping mode");
     }
+    MetricFile myMetric;
+    myMetric.readFile(myMetricName);
     int myColumn = -1;
     OptionalParameter* columnSelect = myParams->getOptionalParameter(3);
     if (columnSelect->m_present)
     {
-        myColumn = columnSelect->getInteger(1);
-        if (myColumn < 0)//don't allow them to use the special value -1
+        myColumn = (int)myMetric.getMapIndexFromNameOrNumber(columnSelect->getString(1));
+        if (myColumn < 0 || myColumn >= myMetric.getNumberOfColumns())
         {
-            throw OperationException("invalid column number");
+            throw OperationException("invalid column specified");
         }
-    }
-    MetricFile myMetric;
-    myMetric.readFile(myMetricName);
-    if (myColumn >= myMetric.getNumberOfMaps())
-    {
-        throw OperationException("invalid column number");
     }
     PaletteColorMapping myMapping = *(myMetric.getMapPaletteColorMapping(0));//create the mapping, then use operator= to set for all requested columns, take defaults from first map
     myMapping.setScaleMode(myMode);

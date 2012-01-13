@@ -49,8 +49,11 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addVolumeParameter(1, "volume", "the volume to map data from");
+    
     ret->addSurfaceParameter(2, "surface", "the surface to map the data onto");
+    
     ret->addMetricOutputParameter(3, "metric-out", "the output metric file");
+    
     ret->createOptionalParameter(4, "-trilinear", "use trilinear volume interpolation");
     
     ret->createOptionalParameter(5, "-nearest", "use nearest neighbor volume interpolation");
@@ -64,7 +67,7 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
-    subvolumeSelect->addIntegerParameter(1, "subvol-num", "the index of the subvolume");
+    subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
         AString("You must specify exactly one mapping method.  The ribbon mapping method only takes data from within regions where ") +
@@ -87,10 +90,10 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(7);
     if (subvolumeSelect->m_present)
     {
-        mySubVol = subvolumeSelect->getInteger(1);
-        if (mySubVol < 0)//don't let them use the special value -1
+        mySubVol = (int)myVolume->getMapIndexFromNameOrNumber(subvolumeSelect->getString(1));
+        if (mySubVol < 0)
         {
-            throw AlgorithmException("invalid subvolume specified");
+            throw AlgorithmException("invalid column specified");
         }
     }
     bool haveMethod = false;
