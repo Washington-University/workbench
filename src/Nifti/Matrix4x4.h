@@ -153,7 +153,11 @@ public:
 
     bool isModified() const;
 
-    void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+    void writeAsGiftiXML(XmlWriter& xmlWriter,
+                         const AString& xmlMatrixTag,
+                         const AString& xmlDataSpaceTag,
+                         const AString& xmlTransformedSpaceTag,
+                         const AString& xmlMatrixDataTag) throw (XmlException);
     
 private:
     double fixZero(const double f);

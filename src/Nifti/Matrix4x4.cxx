@@ -1187,15 +1187,52 @@ Matrix4x4::Determinant3(const double matrixIn[3][3]) const
 }
 
 /**
- * Write the metadata in GIFTI XML format.
+ * Write the matrix as a GIFTI matrix using the given XML tags.
  *
- * @param xmlWriter - output stream
- * @throws XmlException if an error occurs while writing.
+ * @param xmlWriter 
+ *    The XML writer
+ * @param xmlMatrixTag
+ *    XML tag for for the matrix and its components.
+ * @param xmlDataSpaceTag
+ *    XML tag for for the data space name.
+ * @param xmlTransformedSpaceTag
+ *    XML tag for for the transformed space name.
+ * @param xmlMatrixDataTag
+ *    XML tag for the matrix data.
+ *
+ * @throws XmlException 
+ *    If an error occurs while writing.
  */
-void
-Matrix4x4::writeAsXML(XmlWriter& /*xmlWriter*/) throw (XmlException)
+void 
+Matrix4x4::writeAsGiftiXML(XmlWriter& xmlWriter,
+                           const AString& xmlMatrixTag,
+                           const AString& xmlDataSpaceTag,
+                           const AString& xmlTransformedSpaceTag,
+                           const AString& xmlMatrixDataTag) throw (XmlException)
 {
-    CaretAssertMessage(0, "Not implemented");
+    xmlWriter.writeStartElement(xmlMatrixTag);
+    
+    xmlWriter.writeElementNoSpace(xmlDataSpaceTag, this->dataSpaceName);
+    xmlWriter.writeElementNoSpace(xmlTransformedSpaceTag, this->transformedSpaceName);
+
+    xmlWriter.writeStartElement(xmlMatrixDataTag);
+    for (int32_t i = 0; i < 4; i++) {
+        for (int32_t j = 0; j < 4; j++) {
+            const AString txt = (AString::number(this->matrix[i][j]) + " ");
+            if (j == 0) {
+                xmlWriter.writeCharactersWithIndent(txt);
+            }
+            else {
+                xmlWriter.writeCharacters(txt);
+            }
+            if (j == 3) {
+                xmlWriter.writeCharacters("\n");
+            }
+        }
+    }
+    xmlWriter.writeEndElement();
+    
+    xmlWriter.writeEndElement();
 }
 
 /**

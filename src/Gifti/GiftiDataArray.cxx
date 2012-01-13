@@ -1081,7 +1081,11 @@ GiftiDataArray::writeAsXML(std::ostream& stream,
    // Write the matrices
    //
    for (int32_t i = 0; i < getNumberOfMatrices(); i++) {
-       this->matrices[i].writeAsXML(xmlWriter);
+       this->matrices[i].writeAsGiftiXML(xmlWriter,
+                                         GiftiXmlElements::TAG_COORDINATE_TRANSFORMATION_MATRIX,
+                                         GiftiXmlElements::TAG_MATRIX_DATA_SPACE,
+                                         GiftiXmlElements::TAG_MATRIX_TRANSFORMED_SPACE,
+                                         GiftiXmlElements::TAG_MATRIX_DATA);
    }
    
    //
