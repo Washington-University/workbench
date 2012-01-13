@@ -793,7 +793,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     }
     
     switch (dataFileType) {
-        case DataFileTypeEnum::BORDER_PROJECTION:
+        case DataFileTypeEnum::BORDER:
             this->readBorderProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
@@ -802,7 +802,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->readConnectivityFile(dataFileName, dataFileType);
             break;
-        case DataFileTypeEnum::FOCI_PROJECTION:
+        case DataFileTypeEnum::FOCI:
             this->readFociProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::LABEL:

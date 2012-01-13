@@ -40,14 +40,14 @@ public:
      * Enumerated values.
      */
     enum Enum {
-        /** Border Projection */
-        BORDER_PROJECTION,
+        /** Border */
+        BORDER,
         /** Connectivity - Dense */
         CONNECTIVITY_DENSE,
         /** Connectivity - Dense Time Series */
         CONNECTIVITY_DENSE_TIME_SERIES,
-        /** Foci Projection */
-        FOCI_PROJECTION,
+        /** Foci */
+        FOCI,
         /** Labels */
         LABEL,
         /** Metric */

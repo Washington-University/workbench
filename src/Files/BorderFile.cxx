@@ -47,7 +47,7 @@ using namespace caret;
  * Constructor.
  */
 BorderFile::BorderFile()
-: CaretDataFile(DataFileTypeEnum::BORDER_PROJECTION)
+: CaretDataFile(DataFileTypeEnum::BORDER)
 {
     this->initializeBorderFile();
 }

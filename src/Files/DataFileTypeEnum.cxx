@@ -112,12 +112,12 @@ DataFileTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(DataFileTypeEnum(BORDER_PROJECTION, 
-                                        "BORDER_PROJECTION", 
-                                        "Border Projection",
+    enumData.push_back(DataFileTypeEnum(BORDER, 
+                                        "BORDER", 
+                                        "Border",
                                         false,
                                         true,
-                                        "borderproj"));
+                                        "border"));
     
     enumData.push_back(DataFileTypeEnum(CONNECTIVITY_DENSE, 
                                         "CONNECTIVITY_DENSE", 
@@ -133,12 +133,12 @@ DataFileTypeEnum::initialize()
                                         false,
                                         "dtseries.nii"));
     
-    enumData.push_back(DataFileTypeEnum(FOCI_PROJECTION, 
-                                        "FOCI_PROJECTION", 
-                                        "Foci Projection",
+    enumData.push_back(DataFileTypeEnum(FOCI, 
+                                        "FOCI", 
+                                        "Foci",
                                         false,
                                         true,
-                                        "fociproj"));
+                                        "foci"));
     
     enumData.push_back(DataFileTypeEnum(LABEL, 
                                         "LABEL", 
