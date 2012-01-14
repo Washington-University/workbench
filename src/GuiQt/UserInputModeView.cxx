@@ -51,6 +51,8 @@
 #include "MouseEvent.h"
 #include "ModelDisplayController.h"
 #include "Surface.h"
+#include "TimeLine.h"
+#include "TimeCourseDialog.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -186,7 +188,14 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 nodeIndex,
                                                                 brainStructure->getNumberOfNodes(),
                                                                 surface->getCoordinate(nodeIndex));
-                EventManager::get()->sendEvent(idLocation.getPointer());
+                EventManager::get()->sendEvent(idLocation.getPointer());                
+                std::vector <TimeLine> tlV;
+                connMan->getSurfaceTimeLines(tlV);
+                if(tlV.size()!=0)
+                {
+                    TimeCourseDialog *tcDialog = GuiManager::get()->getTimeCourseDialog();
+                    tcDialog->addTimeLines(tlV);
+                }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
                 
@@ -210,6 +219,13 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 voxelIJK,
                                                                 xyz);
                 EventManager::get()->sendEvent(idLocation.getPointer());
+                std::vector <TimeLine> tlV;
+                connMan->getVolumeTimeLines(tlV);
+                if(tlV.size()!=0)
+                {
+                    TimeCourseDialog *tcDialog = GuiManager::get()->getTimeCourseDialog();
+                    tcDialog->addTimeLines(tlV);
+                }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
                 

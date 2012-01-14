@@ -30,6 +30,7 @@
 #include "DataFileException.h"
 #include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
+#include "TimeLine.h"
 
 namespace caret {
 
@@ -73,6 +74,8 @@ namespace caret {
                                  const float seconds) throw (DataFileException);
         
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
+        void getVolumeTimeLines(std::vector<TimeLine> &tlV);
+        void getSurfaceTimeLines(std::vector<TimeLine> &tlV);
         
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);

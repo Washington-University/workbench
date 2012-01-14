@@ -97,6 +97,7 @@ namespace caret {
                                                      const int32_t imageSizeX,
                                                      const int32_t imageSizeY,
                                                      ImageFile& imageFileOut);
+        TimeCourseDialog *getTimeCourseDialog();
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();

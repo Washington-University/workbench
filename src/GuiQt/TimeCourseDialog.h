@@ -49,7 +49,8 @@
 namespace Ui {
     class TimeCourseDialog;
 }
-
+namespace caret {
+class PlotTC;
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -59,6 +60,7 @@ public:
     ~TimeCourseDialog();
     void updateDialog();
     void addTimeLine(TimeLine &tl);
+    void addTimeLines(std::vector<TimeLine> &tlV);
 
 private slots:
     void on_TDClose_clicked();
@@ -80,6 +82,7 @@ private slots:
     void on_TDKeepLast_valueChanged(double arg1);
 
 private:
+    PlotTC *plot;
     Ui::TimeCourseDialog *ui;
     std::vector<TimeLine> tlV;
 
@@ -105,6 +108,9 @@ public:
 
 protected:
     virtual void resizeEvent( QResizeEvent * );
+    std::vector<QwtPlotCurve *> plotV;
+    std::vector<QPen> colorsV;
+    int64_t nextColor;
 
 };
 
@@ -130,6 +136,6 @@ int main(int argc, char **argv)
 
     return a.exec();
 }*/
-
+}
 
 #endif //__TIME_COURSE_DIALOG__

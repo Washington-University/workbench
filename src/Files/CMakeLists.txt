@@ -43,6 +43,7 @@ SurfaceProjectionBarycentric.h
 SurfaceProjectionTypeEnum.h
 SurfaceProjectionVanEssen.h
 SurfaceTypeEnum.h
+TimeLine.h
 TextFile.h
 TopologyHelper.h
 VolumeFile.h
@@ -73,6 +74,7 @@ SurfaceProjectionTypeEnum.cxx
 SurfaceProjectionVanEssen.cxx
 SurfaceTypeEnum.cxx
 TextFile.cxx
+TimeLine.cxx
 TopologyHelper.cxx
 VolumeFile.cxx
 )

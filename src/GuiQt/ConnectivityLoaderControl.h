@@ -31,6 +31,7 @@
 #include <QWidget>
 
 #include "AString.h"
+#include "TimeLine.h"
 
 class QAbstractButton;
 class QButtonGroup;

@@ -37,7 +37,6 @@
 #include "PaletteColorMapping.h"
 #include "SurfaceFile.h"
 #include "VolumeFile.h"
-#include "TimeCourseDialog.h"
 
 using namespace caret;
 
@@ -853,8 +852,9 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                                 y.push_back(this->data[i]);
                             }
                             double point[3] = {0.0,0.0,0.0};
-                            TimeLine tl(nodeIndex, point, x,y);
-
+                            this->tl.nodeid = nodeIndex;
+                            this->tl.x = x;
+                            this->tl.y = y;
                         }
                     }
                     else {
@@ -929,6 +929,21 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                     {
                         CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
                         this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                        if(this->timeSeriesGraphEnabled)
+                        {
+                            std::vector<double> x;
+                            std::vector<double> y;
+
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                x.push_back(i);
+                                y.push_back(this->data[i]);
+                            }
+                            double point[3] = {0.0,0.0,0.0};
+                            //this->tl.nodeid = nodeIndex;
+                            this->tl.x = x;
+                            this->tl.y = y;
+                        }
                     }
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::fromNumbers(xyz, 3, ","));
@@ -1472,6 +1487,15 @@ float
 ConnectivityLoaderFile::getSelectedTimePoint() const
 {
     return this->selectedTimePoint;
+}
+
+/**
+  * create TimeLine data for Time Course Dialog
+  */
+void
+ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
+{
+    tlOut = this->tl;
 }
 
 

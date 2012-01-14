@@ -620,6 +620,32 @@ void GuiManager::processUpdateTimeCourseDialog()
 }
 
 /**
+  * Allows Connectivity Manager to update the Time Course Dialog
+  */
+TimeCourseDialog * GuiManager::getTimeCourseDialog()
+{
+    BrainBrowserWindow* browserWindow = NULL;
+
+    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
+        if (this->brainBrowserWindows[i] != NULL && this->brainBrowserWindows[i]->isVisible()) {
+            if (this->brainBrowserWindows[i] != NULL) {
+                browserWindow = this->brainBrowserWindows[i];
+                break;
+            }
+        }
+    }
+
+    if(browserWindow == NULL) return NULL;//not the best error checking but at least it
+                                     //won't crash
+
+    if (this->timeCourseDialog == NULL) {
+        this->timeCourseDialog = new TimeCourseDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->timeCourseDialog);
+    }
+    return this->timeCourseDialog;
+}
+
+/**
  * Capture an image of the browser window's graphics area.
  * If either of the image dimensions
  * is zero, the image will be the size of the graphcis 

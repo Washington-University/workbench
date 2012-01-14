@@ -42,7 +42,7 @@
 #include "qwt_math.h"
 #include "math.h"
 
-
+using namespace caret;
 
 TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     QDialog(parent),
@@ -50,7 +50,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    PlotTC *plot = new PlotTC();
+    this->plot = new PlotTC();
 
 
 
@@ -70,6 +70,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     //plot->populate(x,y);
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
+
     //plot->setGeometry(0,0,5,5);
     //plot->update();
 
@@ -87,12 +88,38 @@ void TimeCourseDialog::addTimeLine(TimeLine &tl)
     tlV.push_back(tl);
 }
 
+void TimeCourseDialog::addTimeLines(std::vector<TimeLine> &tlVIn)
+{
+    int max = 5;ui->TDKeepLast->value();
+    for(int i = 0;i<tlVIn.size();i++)
+    {
+        tlV.push_back(tlVIn[i]);
+    }
+    if(tlV.size()>max)
+    {
+        int numToDelete = tlV.size()-max;
+        for(int i =0;i<numToDelete;i++)
+        {
+            tlV.erase(tlV.begin());
+        }
+    }
+}
+
 void TimeCourseDialog::updateDialog()
 {
     if(tlV.size() == 0) return;
+    plot->detachItems();
+    for(int i = 0;i<tlV.size();i++)
+    {
+        plot->populate(tlV[i].x,tlV[i].y);
+    }
+    plot->setAxisAutoScale(1);
+
     this->setVisible(true);
     this->show();
     this->activateWindow();
+    plot->update();
+    plot->replot();
 }
 
 
@@ -169,7 +196,12 @@ PlotTC::PlotTC(QWidget *parent):
     canvasPalette.setColor( QPalette::Foreground, QColor( 133, 190, 232 ) );
     canvas()->setPalette( canvasPalette );
 
-
+    colorsV.push_back(QPen(Qt::red));
+    colorsV.push_back(QPen(Qt::blue));
+    colorsV.push_back(QPen(Qt::green));
+    colorsV.push_back(QPen(Qt::magenta));
+    colorsV.push_back(QPen(Qt::cyan));
+    nextColor = 0;
 }
 
 void PlotTC::populate(std::vector<double> &x, std::vector<double> &y)
@@ -179,10 +211,17 @@ void PlotTC::populate(std::vector<double> &x, std::vector<double> &y)
     //setAxisScale(yLeft,0,y.size()-1);
 
     QwtPlotCurve *tc = new QwtPlotCurve();
+    tc->attach(this);
+    if((this->itemList()).size()>5)
+    {
+        this->detachItems(this->itemList().at(0)->rtti(),true);
+        //plotV[0]->detach();
+        //plotV.erase(plotV.begin());
+    }
     tc->setRenderHint(QwtPlotItem::RenderAntialiased);
     //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
-    tc->setPen(QPen(Qt::red));
-
+    tc->setPen(colorsV[nextColor%5]);
+    nextColor++;
 
     QVector<double> qx;
     QVector<double> qy;
@@ -191,7 +230,7 @@ void PlotTC::populate(std::vector<double> &x, std::vector<double> &y)
 
     tc->setSamples(qx,qy);
     tc->attach(this);
-
+    this->update();
 
 }
 

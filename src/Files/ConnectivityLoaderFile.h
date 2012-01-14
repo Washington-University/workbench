@@ -30,6 +30,7 @@
 
 #include "CaretMappableDataFile.h"
 #include "StructureEnum.h"
+#include "TimeLine.h"
 
 namespace caret {
 
@@ -159,6 +160,8 @@ namespace caret {
         void setTimeSeriesGraphEnabled(const bool showGraph);
         
         float getSelectedTimePoint() const;
+
+        void getTimeLine(TimeLine &tl);
         
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
@@ -218,6 +221,8 @@ namespace caret {
         bool dataLoadingEnabled;
         
         float selectedTimePoint;
+
+        TimeLine tl;
         
         AString uniqueID; // DO NOT COPY
     };

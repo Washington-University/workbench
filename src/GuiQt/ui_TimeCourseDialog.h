@@ -29,7 +29,7 @@
 #include "TimeCourseDialog.h"
 
 QT_BEGIN_NAMESPACE
-
+using namespace caret;
 class Ui_TimeCourseDialog
 {
 public:

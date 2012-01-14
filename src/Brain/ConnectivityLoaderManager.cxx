@@ -405,3 +405,44 @@ ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
 
     return haveData;
 }
+
+/**
+  * Get Surface TimeLines
+  */
+void
+ConnectivityLoaderManager::getSurfaceTimeLines(std::vector<TimeLine> &tlV)
+{
+    for(int i =0;i<this->connectivityLoaderFiles.size();i++)
+    {
+        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+        if(clf->isDenseTimeSeries() &&
+           clf->isSurfaceMappable() &&
+           clf->isTimeSeriesGraphEnabled())
+        {
+            TimeLine tl;
+            clf->getTimeLine(tl);
+            tlV.push_back(tl);
+        }
+    }
+
+}
+
+/**
+  * Get Volume TimeLines
+  */
+void
+ConnectivityLoaderManager::getVolumeTimeLines(std::vector<TimeLine> &tlV)
+{
+    for(int i =0;i<this->connectivityLoaderFiles.size();i++)
+    {
+        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+        if(clf->isDenseTimeSeries() &&
+           clf->isVolumeMappable() &&
+           clf->isTimeSeriesGraphEnabled())
+        {
+            TimeLine tl;
+            clf->getTimeLine(tl);
+            tlV.push_back(tl);
+        }
+    }
+}

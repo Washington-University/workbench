@@ -1,3 +1,5 @@
+#ifndef __TIME_LINE__
+#define __TIME_LINE__
 /*LICENSE_START*/
 /*
  *  Copyright 1995-2011 Washington University School of Medicine
@@ -22,17 +24,21 @@
  *
  */
 /*LICENSE_END*/
-
+#include "stdint.h"
+#include "vector"
 #include "TimeLine.h"
-TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn, std::vector<double> &yIn)
-{
-    nodeid = nodeidIn;
-    for(int i=0;i<3;i++) point[i] = pointIn[i];
-    x = xIn;
-    y = yIn;
+namespace caret {
+class TimeLine {
+public:
+    TimeLine();
+    TimeLine(uint64_t nodeidIn, double *pointIn,std::vector<double> &xIn, std::vector<double>&yIn);
+    virtual ~TimeLine();
+    uint64_t nodeid;
+    double point[3];
+    std::vector<double> x;
+    std::vector<double> y;
+};
 }
+#endif//__TIME_LINE__
 
-TimeLine::~TimeLine()
-{
 
-}
