@@ -44,6 +44,7 @@ CaretOMP.h
 CaretPointer.h
 CaretPointLocator.h
 CaretPreferences.h
+ColorManager.h
 CubicSpline.h
 DataCompressZLib.h
 DataFile.h
@@ -99,6 +100,7 @@ CaretObject.cxx
 CaretObjectTracksModification.cxx
 CaretPointLocator.cxx
 CaretPreferences.cxx
+ColorManager.cxx
 CubicSpline.cxx
 DataCompressZLib.cxx
 DataFile.cxx

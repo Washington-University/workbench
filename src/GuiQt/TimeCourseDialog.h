@@ -44,6 +44,8 @@
 #include "qwt_math.h"
 #include "math.h"
 #include "TimeLine.h"
+#include "ColorManager.h"
+#include "QList"
 
 
 namespace Ui {
@@ -60,7 +62,7 @@ public:
     ~TimeCourseDialog();
     void updateDialog();
     void addTimeLine(TimeLine &tl);
-    void addTimeLines(std::vector<TimeLine> &tlV);
+    void addTimeLines(QList<TimeLine> &tlV);
 
 private slots:
     void on_TDClose_clicked();
@@ -84,8 +86,7 @@ private slots:
 private:
     PlotTC *plot;
     Ui::TimeCourseDialog *ui;
-    std::vector<TimeLine> tlV;
-
+    QList<TimeLine> tlV;
 
 };
 
@@ -104,14 +105,13 @@ class PlotTC : public QwtPlot
 {
 public:
     PlotTC( QWidget *parent = NULL);
-     void populate(std::vector<double> &x, std::vector<double> &y);
-
+     void populate(QList<TimeLine> &tlV);
+     void sortByColorId(QList<TimeLine> &tlV);
 protected:
     virtual void resizeEvent( QResizeEvent * );
-    std::vector<QwtPlotCurve *> plotV;
-    std::vector<QPen> colorsV;
-    int64_t nextColor;
-
+    QList<QwtPlotCurve *> plotV;
+    ColorManager colors;
+    int max;
 };
 
 

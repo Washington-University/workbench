@@ -27,6 +27,7 @@
 #include "stdint.h"
 #include "vector"
 #include "TimeLine.h"
+#include "ColorManager.h"
 namespace caret {
 class TimeLine {
 public:
@@ -37,6 +38,7 @@ public:
     double point[3];
     std::vector<double> x;
     std::vector<double> y;
+    ColorId colorID;
 };
 }
 #endif//__TIME_LINE__

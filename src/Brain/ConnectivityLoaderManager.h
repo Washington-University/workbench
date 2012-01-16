@@ -74,8 +74,8 @@ namespace caret {
                                  const float seconds) throw (DataFileException);
         
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
-        void getVolumeTimeLines(std::vector<TimeLine> &tlV);
-        void getSurfaceTimeLines(std::vector<TimeLine> &tlV);
+        void getVolumeTimeLines(QList<TimeLine> &tlV);
+        void getSurfaceTimeLines(QList<TimeLine> &tlV);
         
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);

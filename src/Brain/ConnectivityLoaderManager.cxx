@@ -410,7 +410,7 @@ ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
   * Get Surface TimeLines
   */
 void
-ConnectivityLoaderManager::getSurfaceTimeLines(std::vector<TimeLine> &tlV)
+ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 {
     for(int i =0;i<this->connectivityLoaderFiles.size();i++)
     {
@@ -431,7 +431,7 @@ ConnectivityLoaderManager::getSurfaceTimeLines(std::vector<TimeLine> &tlV)
   * Get Volume TimeLines
   */
 void
-ConnectivityLoaderManager::getVolumeTimeLines(std::vector<TimeLine> &tlV)
+ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
 {
     for(int i =0;i<this->connectivityLoaderFiles.size();i++)
     {

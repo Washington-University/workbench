@@ -189,7 +189,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 brainStructure->getNumberOfNodes(),
                                                                 surface->getCoordinate(nodeIndex));
                 EventManager::get()->sendEvent(idLocation.getPointer());                
-                std::vector <TimeLine> tlV;
+                QList <TimeLine> tlV;
                 connMan->getSurfaceTimeLines(tlV);
                 if(tlV.size()!=0)
                 {
@@ -219,7 +219,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 voxelIJK,
                                                                 xyz);
                 EventManager::get()->sendEvent(idLocation.getPointer());
-                std::vector <TimeLine> tlV;
+                QList <TimeLine> tlV;
                 connMan->getVolumeTimeLines(tlV);
                 if(tlV.size()!=0)
                 {

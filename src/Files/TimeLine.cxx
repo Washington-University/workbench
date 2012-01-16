@@ -27,11 +27,12 @@
 using namespace caret;
 TimeLine::TimeLine()
 {
-
+    colorID = -1;
 }
 
 TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn, std::vector<double> &yIn)
 {
+    colorID = -1;
     nodeid = nodeidIn;
     for(int i=0;i<3;i++) point[i] = pointIn[i];
     x = xIn;

@@ -52,27 +52,8 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 
     this->plot = new PlotTC();
 
-
-
-
-    // We put a dummy widget around to have
-    // so that Qt paints a widget background
-    // when resizing
-    std::vector<double>x;
-    std::vector<double>y;
-    /*for(int64_t i=0;i<5;i++)
-    {
-        x.push_back((double)i);
-        y.push_back((double)i);
-    }*/
-
-
-    //plot->populate(x,y);
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
-
-    //plot->setGeometry(0,0,5,5);
-    //plot->update();
 
 }
 
@@ -83,36 +64,25 @@ TimeCourseDialog::~TimeCourseDialog()
 
 void TimeCourseDialog::addTimeLine(TimeLine &tl)
 {
-    if(tlV.size() > ui->TDKeepLast->value())
-        tlV.erase(tlV.begin());
     tlV.push_back(tl);
 }
 
-void TimeCourseDialog::addTimeLines(std::vector<TimeLine> &tlVIn)
+void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
 {
-    int max = 5;ui->TDKeepLast->value();
     for(int i = 0;i<tlVIn.size();i++)
     {
         tlV.push_back(tlVIn[i]);
-    }
-    if(tlV.size()>max)
-    {
-        int numToDelete = tlV.size()-max;
-        for(int i =0;i<numToDelete;i++)
-        {
-            tlV.erase(tlV.begin());
-        }
     }
 }
 
 void TimeCourseDialog::updateDialog()
 {
     if(tlV.size() == 0) return;
+
+
     plot->detachItems();
-    for(int i = 0;i<tlV.size();i++)
-    {
-        plot->populate(tlV[i].x,tlV[i].y);
-    }
+    plot->populate(tlV);
+
     plot->setAxisAutoScale(1);
 
     this->setVisible(true);
@@ -175,6 +145,7 @@ void TimeCourseDialog::on_TDKeepLast_valueChanged(double arg1)
 PlotTC::PlotTC(QWidget *parent):
     QwtPlot( parent )
 {
+    max = 5;//colors.getMaxColors();
     // panning with the left mouse button
     (void) new QwtPlotPanner( canvas() );
 
@@ -195,43 +166,49 @@ PlotTC::PlotTC(QWidget *parent):
     QPalette canvasPalette( Qt::white );
     canvasPalette.setColor( QPalette::Foreground, QColor( 133, 190, 232 ) );
     canvas()->setPalette( canvasPalette );
-
-    colorsV.push_back(QPen(Qt::red));
-    colorsV.push_back(QPen(Qt::blue));
-    colorsV.push_back(QPen(Qt::green));
-    colorsV.push_back(QPen(Qt::magenta));
-    colorsV.push_back(QPen(Qt::cyan));
-    nextColor = 0;
 }
 
-void PlotTC::populate(std::vector<double> &x, std::vector<double> &y)
+void PlotTC::populate(QList<TimeLine> &tlV)
 {
+
+    //Delete oldest time lines first if we are displaying more than max number of time lines
+    if(tlV.size()>max)
+    {
+        for(int i =0;i<tlV.size()-max;i++)
+        {
+            colors.removeColor(tlV.at(0).colorID);
+            tlV.pop_front();
+        }
+    }
+    // Make sure all timelines have a valid color assigned to them
+    for(int i=0;i<tlV.size();i++)
+    {
+        if(tlV.at(i).colorID == -1)
+        {
+            tlV[i].colorID = colors.getNewColor();
+        }
+    }
     // Insert new curves
     //setAxisScale(xBottom,0,x.size()-1);
     //setAxisScale(yLeft,0,y.size()-1);
 
-    QwtPlotCurve *tc = new QwtPlotCurve();
-    tc->attach(this);
-    if((this->itemList()).size()>5)
+    //Plot Time Lines
+    for(int i = 0;i<tlV.size();i++)
     {
-        this->detachItems(this->itemList().at(0)->rtti(),true);
-        //plotV[0]->detach();
-        //plotV.erase(plotV.begin());
+        QwtPlotCurve *tc = new QwtPlotCurve();
+        tc->setRenderHint(QwtPlotItem::RenderAntialiased);
+        //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
+        tc->setPen(QPen(colors.getColor(tlV[i].colorID)));
+
+        QVector<double> qx;
+        QVector<double> qy;
+        qx = qx.fromStdVector(tlV[i].x);
+        qy = qy.fromStdVector(tlV[i].y);
+
+        tc->setSamples(qx,qy);
+        tc->attach(this);
     }
-    tc->setRenderHint(QwtPlotItem::RenderAntialiased);
-    //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
-    tc->setPen(colorsV[nextColor%5]);
-    nextColor++;
-
-    QVector<double> qx;
-    QVector<double> qy;
-    qx = qx.fromStdVector(x);
-    qy = qy.fromStdVector(y);
-
-    tc->setSamples(qx,qy);
-    tc->attach(this);
     this->update();
-
 }
 
 void PlotTC::resizeEvent( QResizeEvent *event )
