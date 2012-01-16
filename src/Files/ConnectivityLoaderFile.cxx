@@ -843,18 +843,15 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                         this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
                         if(this->timeSeriesGraphEnabled)
                         {
-                            std::vector<double> x;
-                            std::vector<double> y;
-
+                            tl.x.clear();
+                            tl.y.clear();
                             for(int64_t i = 0;i<num;i++)
                             {
-                                x.push_back(i);
-                                y.push_back(this->data[i]);
+                                tl.x.push_back(i);
+                                tl.y.push_back(this->data[i]);
                             }
                             double point[3] = {0.0,0.0,0.0};
                             this->tl.nodeid = nodeIndex;
-                            this->tl.x = x;
-                            this->tl.y = y;
                         }
                     }
                     else {
@@ -931,18 +928,16 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                         this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
                         if(this->timeSeriesGraphEnabled)
                         {
-                            std::vector<double> x;
-                            std::vector<double> y;
-
+                            tl.x.clear();
+                            tl.y.clear();
                             for(int64_t i = 0;i<num;i++)
                             {
-                                x.push_back(i);
-                                y.push_back(this->data[i]);
+                                tl.x.push_back(i);
+                                tl.y.push_back(this->data[i]);
                             }
                             double point[3] = {0.0,0.0,0.0};
                             //this->tl.nodeid = nodeIndex;
-                            this->tl.x = x;
-                            this->tl.y = y;
+
                         }
                     }
                     else {

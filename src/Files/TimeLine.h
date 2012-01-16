@@ -28,16 +28,17 @@
 #include "vector"
 #include "TimeLine.h"
 #include "ColorManager.h"
+#include "QVector"
 namespace caret {
 class TimeLine {
 public:
     TimeLine();
-    TimeLine(uint64_t nodeidIn, double *pointIn,std::vector<double> &xIn, std::vector<double>&yIn);
+    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn);
     virtual ~TimeLine();
     uint64_t nodeid;
     double point[3];
-    std::vector<double> x;
-    std::vector<double> y;
+    QVector<double> x;
+    QVector<double> y;
     ColorId colorID;
 };
 }

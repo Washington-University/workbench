@@ -60,7 +60,7 @@ class TimeCourseDialog : public QDialog
 public:
     explicit TimeCourseDialog(QWidget *parent = 0);
     ~TimeCourseDialog();
-    void updateDialog();
+    void updateDialog(bool forceUpdate = false);
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
 
@@ -76,8 +76,6 @@ private slots:
     void on_TDMinActivity_valueChanged(double arg1);
 
     void on_TDMaxActivity_valueChanged(double arg1);
-
-    void on_TDShowAverage_stateChanged(int arg1);
 
     void on_TDShowAverage_toggled(bool checked);
 
@@ -105,37 +103,22 @@ class PlotTC : public QwtPlot
 {
 public:
     PlotTC( QWidget *parent = NULL);
-     void populate(QList<TimeLine> &tlV);
+     void populate(QList<TimeLine> &tlVIn);
      void sortByColorId(QList<TimeLine> &tlV);
+     void setDisplayAverage(bool checked);
+     void calculateAndDisplayAverage(QList<TimeLine> &tlV);
+     void clear(QList<TimeLine> &tlV);
 protected:
     virtual void resizeEvent( QResizeEvent * );
     QList<QwtPlotCurve *> plotV;
     ColorManager colors;
     int max;
+    bool displayAverage;
+    TimeLine averageTimeLine;
 };
 
 
-/*
-int main(int argc, char **argv)
-{
-    QApplication a(argc, argv);
 
-    Plot *plot = new Plot();
-
-    // We put a dummy widget around to have
-    // so that Qt paints a widget background
-    // when resizing
-
-    QWidget window;
-    QHBoxLayout *layout = new QHBoxLayout( &window );
-    layout->setContentsMargins( 0, 0, 0, 0 );
-    layout->addWidget( plot );
-
-    window.resize(600,400);
-    window.show();
-
-    return a.exec();
-}*/
 }
 
 #endif //__TIME_COURSE_DIALOG__

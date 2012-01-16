@@ -30,7 +30,7 @@ TimeLine::TimeLine()
     colorID = -1;
 }
 
-TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn, std::vector<double> &yIn)
+TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn)
 {
     colorID = -1;
     nodeid = nodeidIn;
@@ -41,5 +41,6 @@ TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, std::vector<double> &xIn,
 
 TimeLine::~TimeLine()
 {
-
+    x.clear();
+    y.clear();
 }

@@ -75,11 +75,9 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
     }
 }
 
-void TimeCourseDialog::updateDialog()
+void TimeCourseDialog::updateDialog(bool forceUpdate)
 {
-    if(tlV.size() == 0) return;
-
-
+    if(tlV.isEmpty() && !forceUpdate) return;
     plot->detachItems();
     plot->populate(tlV);
 
@@ -102,7 +100,9 @@ void TimeCourseDialog::on_TDClose_clicked()
 
 void TimeCourseDialog::on_TDClearChart_clicked()
 {
-
+    this->plot->clear(tlV);
+    tlV.clear();
+    this->updateDialog(true);
 }
 
 void TimeCourseDialog::on_TDMinTime_valueChanged(double arg1)
@@ -125,14 +125,10 @@ void TimeCourseDialog::on_TDMaxActivity_valueChanged(double arg1)
 
 }
 
-void TimeCourseDialog::on_TDShowAverage_stateChanged(int arg1)
-{
-
-}
-
 void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
 {
-
+    this->plot->setDisplayAverage(checked);
+    this->updateDialog();
 }
 
 void TimeCourseDialog::on_TDKeepLast_valueChanged(double arg1)
@@ -166,15 +162,25 @@ PlotTC::PlotTC(QWidget *parent):
     QPalette canvasPalette( Qt::white );
     canvasPalette.setColor( QPalette::Foreground, QColor( 133, 190, 232 ) );
     canvas()->setPalette( canvasPalette );
+    this->displayAverage = false;
+}
+
+void PlotTC::clear(QList<TimeLine> &tlV)
+{
+    for(int i =0;i<tlV.size();)
+    {
+        colors.removeColor(tlV.at(0).colorID);
+        tlV.pop_front();
+    }
 }
 
 void PlotTC::populate(QList<TimeLine> &tlV)
 {
-
+    if(tlV.isEmpty()) return;
     //Delete oldest time lines first if we are displaying more than max number of time lines
     if(tlV.size()>max)
     {
-        for(int i =0;i<tlV.size()-max;i++)
+        for(int i =0;i<(tlV.size()-max);)
         {
             colors.removeColor(tlV.at(0).colorID);
             tlV.pop_front();
@@ -200,15 +206,62 @@ void PlotTC::populate(QList<TimeLine> &tlV)
         //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
         tc->setPen(QPen(colors.getColor(tlV[i].colorID)));
 
-        QVector<double> qx;
-        QVector<double> qy;
-        qx = qx.fromStdVector(tlV[i].x);
-        qy = qy.fromStdVector(tlV[i].y);
-
-        tc->setSamples(qx,qy);
+        tc->setSamples(tlV[i].x,tlV[i].y);
         tc->attach(this);
     }
-    this->update();
+    if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
+
+}
+
+
+void PlotTC::calculateAndDisplayAverage(QList<TimeLine> &tlV)
+{
+    int64_t xmax =0;
+    for(int i =0;i<tlV.size();i++)
+    {
+        xmax = std::max<int64_t>(tlV[i].x.size(),xmax);
+    }
+    averageTimeLine.x.clear();
+    averageTimeLine.y.clear();
+    for(int i =0;i<xmax;i++)
+    {
+        averageTimeLine.x.push_back(0.0);
+        averageTimeLine.y.push_back(0.0);
+        uint64_t divisor = 0.0;
+
+        for(int j = 0;j<tlV.size();j++)
+        {
+            if(i>=tlV[j].x.size()) continue;
+            divisor++;
+            averageTimeLine.x[i] += tlV[j].x[i];
+            averageTimeLine.y[i] += tlV[j].y[i];
+
+        }
+        averageTimeLine.x[i] /= divisor;
+        averageTimeLine.y[i] /= divisor;
+    }
+    QwtPlotCurve *tc = new QwtPlotCurve();
+    QPen pen(colors.getColor(averageTimeLine.colorID));
+    pen.setDashOffset(4);
+    pen.setWidth(2);
+    tc->setRenderHint(QwtPlotItem::RenderAntialiased);
+    //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
+    tc->setPen(pen);
+    tc->setSamples(averageTimeLine.x,averageTimeLine.y);
+    tc->attach(this);
+}
+
+void PlotTC::setDisplayAverage(bool checked)
+{
+    displayAverage = checked;
+    if(checked)
+    {
+        averageTimeLine.colorID = colors.getNewColor();
+    }
+    else
+    {
+        colors.removeColor(averageTimeLine.colorID);
+    }
 }
 
 void PlotTC::resizeEvent( QResizeEvent *event )
