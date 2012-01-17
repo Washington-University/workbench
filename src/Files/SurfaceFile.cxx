@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <QThread>
+
 #include "BoundingBox.h"
 #include "DataFileTypeEnum.h"
 #include "SurfaceFile.h"
@@ -95,6 +97,32 @@ SurfaceFile::clear()
     GiftiTypeFile::clear();
     invalidateHelpers();
 }
+
+/**
+ * Runs topology helper creation in a thread
+ */
+class CreateTopologyHelperThread : public QThread
+{
+public:
+    CreateTopologyHelperThread(SurfaceFile* surfaceFile) {
+        this->surfaceFile = surfaceFile;
+    }
+    ~CreateTopologyHelperThread() {
+        std::cout << "Delete topology helper for " << this->surfaceFile->getFileNameNoPath() << std::endl;
+    }
+    void run() {
+        /*
+         * NEED to prevent SurfaceFile destructor from completing until this is done
+         * Perhaps before starting this thread, set a variable in SurfaceFile and 
+         * then have this method clear the variable after topology helper is created.
+         */
+        this->surfaceFile->getTopologyHelper();
+        
+        this->deleteLater();
+    }
+    
+    SurfaceFile* surfaceFile;
+};
 
 /**
  * Validate the contents of the file after it
@@ -176,6 +204,12 @@ SurfaceFile::validateDataArraysAfterReading() throw (DataFileException)
             this->nodeColoring[i4+3] = 1.0f;
         }
     }
+    
+    /*
+     * Create the topology helper in a thread so files dont' take
+     * too long to read.
+     */
+//    (new CreateTopologyHelperThread(this))->start();
 }
 
 /**
