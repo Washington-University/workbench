@@ -649,13 +649,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
     
     switch (this->mode)  {
         case MODE_DRAWING:
-            /*
-             * There have been occaisonal issues with specific surfaces
-             * not drawn on Mac and all surface not drawn on Windows
-             * debug.  Perhaps there is a problem with using vertex arrays.
-             */
-            //this->drawSurfaceTrianglesWithVertexArrays(surface);
-            this->drawSurfaceTriangles(surface);
+            this->drawSurfaceTrianglesWithVertexArrays(surface);
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
