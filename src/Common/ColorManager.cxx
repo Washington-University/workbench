@@ -76,7 +76,7 @@ void ColorManager::init()
     colors.push_back(Qt::darkMagenta);
     colors.push_back(Qt::darkYellow);
 
-    for(uint i = 0;i<colors.size();i++)
+    for(int i = 0;i<(int)colors.size();i++)
     {
         takenColors.push_back(false);
     }

@@ -412,7 +412,7 @@ ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
 void
 ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i =0;i<this->connectivityLoaderFiles.size();i++)
+    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
     {
         ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
         if(clf->isDenseTimeSeries() &&
@@ -433,7 +433,7 @@ ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 void
 ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i =0;i<this->connectivityLoaderFiles.size();i++)
+    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
     {
         ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
         if(clf->isDenseTimeSeries() &&

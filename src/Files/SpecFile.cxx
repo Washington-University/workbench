@@ -23,6 +23,7 @@
  */ 
 
 #include <fstream>
+#include <memory>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
