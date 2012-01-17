@@ -36,10 +36,12 @@
 
 
 #include "CaretObjectTracksModification.h"
+#include "XmlException.h"
 
 namespace caret {
 
     class SurfaceFile;
+    class XmlWriter;
     
     class SurfaceProjection : public CaretObjectTracksModification {
         
@@ -89,6 +91,15 @@ namespace caret {
         
         void setProjectionSurfaceNumberOfNodes(const int surfaceNumberOfNodes);
 
+        /**
+         * Write the projection to XML.
+         * @param xmlWriter
+         *   The XML Writer.
+         * @throw XmlException
+         *   If an error occurs.
+         */
+        virtual void writeAsXML(XmlWriter& xmlWriter) throw (XmlException) = 0;
+        
     protected:
         /** Number of nodes in surface to which item is projected. */
         int32_t projectionSurfaceNumberOfNodes;

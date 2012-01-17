@@ -100,6 +100,8 @@ namespace caret {
         
         void setValid(const bool valid);
         
+        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
     private:
         void copyHelperSurfaceProjectionVanEssen(const SurfaceProjectionVanEssen& obj);
         
@@ -129,32 +131,52 @@ namespace caret {
         
         bool projectionValid;
         
-        static  const std::string XML_TAG_PROJECTION_VAN_ESSEN;
+        static  const AString XML_TAG_PROJECTION_VAN_ESSEN;
         
-        static  const std::string XML_TAG_VAN_ESSEN_DR;
+        static  const AString XML_TAG_DR;
         
-        static  const std::string XML_TAG_VAN_ESSEN_TRI_ANATOMICAL;
+        static  const AString XML_TAG_TRI_ANATOMICAL;
         
-        static  const std::string XML_TAG_VAN_ESSEN_THETA_R;
+        static  const AString XML_TAG_THETA_R;
         
-        static  const std::string XML_TAG_VAN_ESSEN_PHI_R;
+        static  const AString XML_TAG_PHI_R;
         
-        static  const std::string XML_TAG_VAN_ESSEN_TRI_VERTICES;
+        static  const AString XML_TAG_TRI_VERTICES;
         
-        static  const std::string XML_TAG_VAN_ESSEN_VERTEX;
+        static  const AString XML_TAG_VERTEX;
         
-        static  const std::string XML_TAG_VAN_ESSEN_VERTEX_ANATOMICAL;
+        static  const AString XML_TAG_VERTEX_ANATOMICAL;
         
-        static  const std::string XML_TAG_VAN_ESSEN_POS_ANATOMICAL;
+        static  const AString XML_TAG_POS_ANATOMICAL;
         
-        static  const std::string XML_TAG_VAN_ESSEN_FRAC_RI;
+        static  const AString XML_TAG_FRAC_RI;
         
-        static  const std::string XML_TAG_VAN_ESSEN_FRAC_RJ;
+        static  const AString XML_TAG_FRAC_RJ;
         
     };
     
 #ifdef __SURFACE_PROJECTION_VAN_ESSEN_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+      const AString SurfaceProjectionVanEssen::XML_TAG_PROJECTION_VAN_ESSEN = "VanEssenProjection";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_DR = "DR";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_TRI_ANATOMICAL = "TriAnatomical";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_THETA_R = "ThetaR";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_PHI_R = "PhiR";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_TRI_VERTICES = "TriVertices";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_VERTEX = "Vertex";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_VERTEX_ANATOMICAL = "VertexAnatomical";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_POS_ANATOMICAL = "PosAnatomical";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_FRAC_RI = "FracRI";
+    
+      const AString SurfaceProjectionVanEssen::XML_TAG_FRAC_RJ = "FracRJ";
 #endif // __SURFACE_PROJECTION_VAN_ESSEN_DECLARE__
 
 } // namespace

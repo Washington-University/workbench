@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -671,5 +672,44 @@ SurfaceProjectionVanEssen::setValid(const bool valid)
     this->projectionValid = valid;
 }
 
+/**
+ * Write the projection to XML.
+ * @param xmlWriter
+ *   The XML Writer.
+ * @throw XmlException
+ *   If an error occurs.
+ */
+void 
+SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+{
+    if (this->projectionValid) {
+        xmlWriter.writeStartElement(XML_TAG_PROJECTION_VAN_ESSEN);
+        xmlWriter.writeElementCharacters(XML_TAG_DR,
+                                         this->dR);
+        xmlWriter.writeElementCharacters(XML_TAG_TRI_ANATOMICAL,
+                                         (float*)this->triAnatomical,
+                                         18);
+        xmlWriter.writeElementCharacters(XML_TAG_THETA_R,
+                                         this->thetaR);
+        xmlWriter.writeElementCharacters(XML_TAG_PHI_R,
+                                         this->phiR);
+        xmlWriter.writeElementCharacters(XML_TAG_TRI_VERTICES,
+                                         (int32_t*)this->triVertices,
+                                         6);
+        xmlWriter.writeElementCharacters(XML_TAG_VERTEX,
+                                         (int32_t*)this->vertex);
+        xmlWriter.writeElementCharacters(XML_TAG_VERTEX_ANATOMICAL,
+                                         (float*)this->vertexAnatomical,
+                                         4);
+        xmlWriter.writeElementCharacters(XML_TAG_POS_ANATOMICAL,
+                                         this->posAnatomical,
+                                         3);
+        xmlWriter.writeElementCharacters(XML_TAG_FRAC_RI,
+                                         this->fracRI);
+        xmlWriter.writeElementCharacters(XML_TAG_FRAC_RJ,
+                                         this->fracRJ);
+        xmlWriter.writeEndElement();
+    }
+}
 
 

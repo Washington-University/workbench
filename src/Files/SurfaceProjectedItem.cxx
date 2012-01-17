@@ -22,10 +22,13 @@
  * 
  */ 
 
-
+#define __SURFACE_PROJECTED_ITEM_DEFINE__
 #include "SurfaceProjectedItem.h"
+#undef __SURFACE_PROJECTED_ITEM_DEFINE__
+
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
+#include "XmlWriter.h"
 
 /**
  * \class SurfaceProjectedItem
@@ -385,18 +388,17 @@ SurfaceProjectedItem::getVanEssenProjection() const
 void 
 SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
 {
-/*
-    xmlWriter.writeStartElement(XML_TAG_BORDER);
-    
-    xmlWriter.writeElementCharacters(XML_TAG_NAME, this->name);
-    
-    const int32_t numPoints = this->getNumberOfPoints();
-    for (int32_t i = 0; i < numPoints; i++) {
-        this->points[i]->writeAsXML(xmlWriter);    
+    xmlWriter.writeStartElement(XML_TAG_SURFACE_PROJECTED_ITEM);
+    xmlWriter.writeElementCharacters(XML_TAG_STRUCTURE, StructureEnum::toName(this->structure));
+    if (this->stereotaxicXYZValid) {
+        xmlWriter.writeElementCharacters(XML_TAG_STEREOTAXIC_XYZ, this->stereotaxicXYZ, 3);
     }
-    
+    if (this->volumeXYZValid) {
+        xmlWriter.writeElementCharacters(XML_TAG_VOLUME_XYZ, this->volumeXYZ, 3);
+    }
+    this->barycentricProjection->writeAsXML(xmlWriter);
+    this->vanEssenProjection->writeAsXML(xmlWriter);
     xmlWriter.writeEndElement();
-*/
 }
 
 /**

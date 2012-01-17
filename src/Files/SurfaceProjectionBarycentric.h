@@ -74,6 +74,8 @@ namespace caret {
         
         void setValid(const bool valid);
         
+        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
     private:
         void copyHelperSurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj);
         
@@ -87,18 +89,24 @@ namespace caret {
 
         bool projectionValid;
         
-        static  const std::string XML_TAG_PROJECTION_BARYCENTRIC;
+        static  const AString XML_TAG_PROJECTION_BARYCENTRIC;
         
-        static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_NODES;
+        static  const AString XML_TAG_TRIANGLE_NODES;
         
-        static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_AREAS;
+        static  const AString XML_TAG_TRIANGLE_AREAS;
         
-        static  const std::string XML_TAG_BARYCENTRIC_SIGNED_DISTANCE_ABOVE_SURFACE;
+        static  const AString XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE;
         
     };
     
 #ifdef __SURFACE_PROJECTION_BARYCENTRIC_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+      const AString SurfaceProjectionBarycentric::XML_TAG_PROJECTION_BARYCENTRIC = "ProjectionBarycentric";
+    
+      const AString SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES = "TriangleNodes";
+    
+      const AString SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS = "TriangleAreas";
+    
+      const AString SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE = "SignedDistanceAboveSurface";
 #endif // __SURFACE_PROJECTION_BARYCENTRIC_DECLARE__
 
 } // namespace

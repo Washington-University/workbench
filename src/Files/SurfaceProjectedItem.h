@@ -1,5 +1,5 @@
-#ifndef __SURFACEPROJECTEDITEM_H__
-#define __SURFACEPROJECTEDITEM_H__
+#ifndef __SURFACE_PROJECTED_ITEM_H__
+#define __SURFACE_PROJECTED_ITEM_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -99,11 +99,14 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        static AString XML_TAG_SURFACE_PROJECTED_ITEM;
-        
         virtual void clearModified();
         
         virtual bool isModified() const;
+        
+        static AString XML_TAG_SURFACE_PROJECTED_ITEM;
+        static AString XML_TAG_STEREOTAXIC_XYZ;
+        static AString XML_TAG_VOLUME_XYZ;
+        static AString XML_TAG_STRUCTURE;
         
     protected:
         /** stereotaxic position of projected item. */
@@ -129,6 +132,13 @@ namespace caret {
         
     };
     
+#ifdef __SURFACE_PROJECTED_ITEM_DEFINE__
+    AString SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM = "SurfaceProjectedItem";
+    AString SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ        = "StereotaxicXYZ";
+    AString SurfaceProjectedItem::XML_TAG_VOLUME_XYZ             = "VolumeXYZ";
+    AString SurfaceProjectedItem::XML_TAG_STRUCTURE              = "Structure";
+#endif // __SURFACE_PROJECTED_ITEM_DEFINE__
+    
 } // namespace
 
-#endif // __SURFACEPROJECTEDITEM_H__
+#endif // __SURFACE_PROJECTED_ITEM_H__

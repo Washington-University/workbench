@@ -24,7 +24,7 @@
  */ 
 
 #include <algorithm>
-
+#include <fstream>
 #define __BORDER_FILE_DECLARE__
 #include "BorderFile.h"
 #undef __BORDER_FILE_DECLARE__
@@ -33,6 +33,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
+#include "XmlAttributes.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -301,5 +303,74 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
 void 
 BorderFile::writeFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Writing border files not implmented.");
+    this->setFileName(filename);
+    
+    try {
+        //
+        // Format the version string so that it ends with at most one zero
+        //
+        const AString versionString = AString::number(1.0);
+        
+        //
+        // Open the file
+        //
+        char* name = this->getFileName().toCharArray();
+        std::ofstream xmlFileOutputStream(name);
+        delete[] name;
+        if (! xmlFileOutputStream) {
+            AString msg = "Unable to open " + this->getFileName() + " for writing.";
+            throw DataFileException(msg);
+        }
+        //
+        // Create the xml writer
+        //
+        XmlWriter xmlWriter(xmlFileOutputStream);
+        
+        //
+        // Write header info
+        //
+        xmlWriter.writeStartDocument("1.0");
+        
+        //
+        // Write GIFTI root element
+        //
+        XmlAttributes attributes;
+        
+        //attributes.addAttribute("xmlns:xsi",
+        //                        "http://www.w3.org/2001/XMLSchema-instance");
+        //attributes.addAttribute("xsi:noNamespaceSchemaLocation",
+        //                        "http://brainvis.wustl.edu/caret6/xml_schemas/GIFTI_Caret.xsd");
+        attributes.addAttribute(BorderFile::XML_ATTRIBUTE_VERSION,
+                                versionString);
+        xmlWriter.writeStartElement(BorderFile::XML_TAG_BORDER_FILE,
+                                    attributes);
+        
+        //
+        // Write Metadata
+        //
+        if (metadata != NULL) {
+            metadata->writeAsXML(xmlWriter);
+        }
+                
+        //
+        // Write borders
+        //
+        const int32_t numBorders = this->getNumberOfBorders();
+        for (int32_t i = 0; i < numBorders; i++) {
+            this->borders[i]->writeAsXML(xmlWriter);
+        }
+        
+        xmlWriter.writeEndElement();
+        xmlWriter.writeEndDocument();
+        
+        xmlFileOutputStream.close();
+        
+        this->clearModified();
+    }
+    catch (const GiftiException& e) {
+        throw DataFileException(e);
+    }
+    catch (const XmlException& e) {
+        throw DataFileException(e);
+    }
 }

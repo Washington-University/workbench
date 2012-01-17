@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "MathFunctions.h"
 #include "SurfaceFile.h"
+#include "XmlWriter.h"
 
 using namespace caret;
 
@@ -357,3 +358,21 @@ SurfaceProjectionBarycentric::resetAllValues()
     this->signedDistanceAboveSurface = 0.0;
 }
 
+/**
+ * Write the projection to XML.
+ * @param xmlWriter
+ *   The XML Writer.
+ * @throw XmlException
+ *   If an error occurs.
+ */
+void 
+SurfaceProjectionBarycentric::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+{
+    if (this->projectionValid) {
+        xmlWriter.writeStartElement(XML_TAG_PROJECTION_BARYCENTRIC);
+        xmlWriter.writeElementCharacters(XML_TAG_TRIANGLE_AREAS, this->triangleAreas, 3);
+        xmlWriter.writeElementCharacters(XML_TAG_TRIANGLE_NODES, this->triangleNodes, 3);
+        xmlWriter.writeElementCharacters(XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE, this->signedDistanceAboveSurface);
+        xmlWriter.writeEndElement();
+    }
+}
