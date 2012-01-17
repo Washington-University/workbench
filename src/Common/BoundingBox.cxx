@@ -30,13 +30,14 @@
 using namespace caret;
 
 /**
- * Constructor that should never be called.
+ * Constructor setup for update of an update method.
  *
  */
 BoundingBox::BoundingBox()
 : CaretObject()
 {
     this->initializeMembersBoundingBox();
+    this->resetForUpdate();
 }
 
 /**
@@ -110,23 +111,6 @@ BoundingBox::copyHelper(const BoundingBox& bo)
         this->boundingBox[i] = bo.boundingBox[i];
     }
 }
-void resetZeros();
-
-void resetWithMaximumExtent();
-
-void resetForUpdate();
-
-void set(const float* points3D, const int numPoints);
-
-void set(const float minX,
-         const float maxX,
-         const float minY,
-         const float maxY,
-         const float minZ,
-         const float maxZ);
-
-void set(const float minMaxXYZ[6]);
-
 
 /**
  * Reset a new bounding box with the minimum and maximum values
@@ -174,6 +158,7 @@ BoundingBox::resetForUpdate()
 void
 BoundingBox::set(const float* points3D, const int64_t numPoints)
 {
+    this->resetForUpdate();
     for (int64_t i = 0; i < numPoints; i++) {
         this->update(&points3D[i*3]);
     }

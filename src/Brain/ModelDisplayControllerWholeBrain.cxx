@@ -406,7 +406,6 @@ ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabN
     return vf;
 }
 
-
 /**
  * Set the selected slices to the origin.
  * @param  windowTabNumber  Window for which slices set to origin is requested.
@@ -425,6 +424,7 @@ ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumbe
  *    Structure for the surface
  * @param windowTabNumber
  *    Tab number of window.
+ * @param Pointer to selected surface for given structure or NULL if not available.
  */
 Surface* 
 ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
@@ -446,6 +446,10 @@ ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum s
      */
     BrainStructure* brainStructure = this->brain->getBrainStructure(structure, 
                                                                     false);
+    if (brainStructure == NULL) {
+        return NULL;
+    }
+    
     std::vector<Surface*> surfaces;
     brainStructure->getSurfacesOfType(surfaceType,
                                       surfaces);

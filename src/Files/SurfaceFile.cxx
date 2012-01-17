@@ -577,7 +577,17 @@ SurfaceFile::getBoundingBox() const
 {
     if (this->boundingBox == NULL) {
         this->boundingBox = new BoundingBox();
-        this->boundingBox->set(this->coordinatePointer, this->getNumberOfNodes());
+        
+        /*
+         * For bounding box, must make sure each node is connected.
+         */
+        CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+        const int32_t numberOfNodes = this->getNumberOfNodes();
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            if (th->getNodeHasNeighbors(i)) {
+                this->boundingBox->update(&this->coordinatePointer[i*3]);
+            }
+        }
     }
     return this->boundingBox;
 }
@@ -637,3 +647,32 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
         return m_locator->closestPoint(target);
     }
 }
+
+/**
+ * @return Information about the surface.
+ */
+AString 
+SurfaceFile::getInformation() const
+{
+    AString txt;
+    
+    txt += ("Name: "
+            + this->getFileNameNoPath()
+            + "\n");
+    txt += ("Type: "
+            + SurfaceTypeEnum::toGuiName(this->getSurfaceType())
+            + "\n");
+    txt += ("Number of Nodes: "
+            + AString::number(this->getNumberOfNodes())
+            + "\n");
+    txt += ("Number of Triangles: "
+            + AString::number(this->getNumberOfTriangles())
+            + "\n");
+    txt += ("Bounds: ("
+            + AString::fromNumbers(this->getBoundingBox()->getBounds(), 6, ", ")
+            + ")\n");
+    
+    return txt;
+}
+
+

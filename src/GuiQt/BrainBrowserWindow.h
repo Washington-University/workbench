@@ -106,6 +106,8 @@ namespace caret {
         void processFileMenuAboutToShow();
         void processViewMenuAboutToShow();
         
+        void processSurfaceMenuInformation();
+        
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {

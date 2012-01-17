@@ -51,11 +51,15 @@
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
 #include "StructureSelectionControl.h"
+#include "Surface.h"
 #include "WuQDataEntryDialog.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -661,7 +665,49 @@ BrainBrowserWindow::createMenuSurface()
 {
     QMenu* menu = new QMenu("Surface", this);
     
+    menu->addAction("Information...", 
+                    this, 
+                    SLOT(processSurfaceMenuInformation()));
+    
     return menu;
+}
+
+/**
+ * Called when Information is selected from the surface menu.
+ */
+void 
+BrainBrowserWindow::processSurfaceMenuInformation()
+{
+    BrowserTabContent* btc = this->getBrowserTabContent();  
+    if (btc != NULL) {
+        AString txt = "";
+        
+        ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+        ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+        if (mdcs != NULL) {
+            txt += mdcs->getSurface()->getInformation();
+        }
+        
+        ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+        if (mdcwb != NULL) {
+            std::vector<StructureEnum::Enum> allStructures;
+            StructureEnum::getAllEnums(allStructures);
+            
+            for (std::vector<StructureEnum::Enum>::iterator iter = allStructures.begin();
+                 iter != allStructures.end();
+                 iter++) {
+                const Surface* surface = mdcwb->getSelectedSurface(*iter, btc->getTabNumber());
+                if (surface != NULL) {
+                    txt += surface->getInformation();
+                }
+            }
+        }
+        
+        if (txt.isEmpty() == false) {
+            WuQMessageBox::informationOk(this,
+                                         txt);
+        }
+    }
 }
 
 /**

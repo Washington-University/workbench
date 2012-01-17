@@ -99,6 +99,8 @@ namespace caret {
         
         virtual void setModified();
         
+        AString getInformation() const;
+        
     protected:
         /**
          * Validate the contents of the file after it
