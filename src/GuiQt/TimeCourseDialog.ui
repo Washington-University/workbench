@@ -214,7 +214,7 @@
   <customwidget>
    <class>TimeCourseDialog</class>
    <extends>QWidget</extends>
-   <header>timecoursedialog.h</header>
+   <header>TimeCourseDialog.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
