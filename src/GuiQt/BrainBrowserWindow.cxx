@@ -956,6 +956,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                            otherFileNames.end());
                            
 
+    bool createDefaultTabsFlag = commandLineFlag;
+    
     AString errorMessages;
     
     /*
@@ -982,9 +984,12 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     errorMessages += e.whatString();
                 }
                 
-                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                               this);
-                if (sfd->exec() == QDialog::Accepted) {
+                if (commandLineFlag) {
+                    /*
+                     * Load all files in SpecFile if from command line
+                     */
+                    specFile.setAllFilesSelected(true);
+                    
                     EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                  &specFile);
                     
@@ -997,11 +1002,29 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                         errorMessages += readSpecFileEvent.getErrorMessage();
                     }
                 }
-                
-                delete sfd;
-                
-                if (commandLineFlag == false) {
-                    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+                else {
+                    /*
+                     * If not command line, prompt user for file selections
+                     */
+                    SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                                   this);
+                    if (sfd->exec() == QDialog::Accepted) {
+                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                     &specFile);
+                        
+                        EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                        
+                        if (readSpecFileEvent.isError()) {
+                            if (errorMessages.isEmpty() == false) {
+                                errorMessages += "\n";
+                            }
+                            errorMessages += readSpecFileEvent.getErrorMessage();
+                        }
+                        
+                        createDefaultTabsFlag = true;
+                    }
+                    
+                    delete sfd;
                 }
             }
             else {
@@ -1056,7 +1079,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         }
     }
     
-    if (commandLineFlag) {
+    if (createDefaultTabsFlag) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
     }
     
