@@ -96,6 +96,10 @@ namespace caret {
         
         void reset();
         
+        bool isValid();
+        
+        void setValid(const bool valid);
+        
     private:
         void copyHelperSurfaceProjectionVanEssen(const SurfaceProjectionVanEssen& obj);
         
@@ -122,6 +126,8 @@ namespace caret {
         float vertexAnatomical[2][2];
         
         float posAnatomical[3];
+        
+        bool projectionValid;
         
         static  const std::string XML_TAG_PROJECTION_VAN_ESSEN;
         

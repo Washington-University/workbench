@@ -68,10 +68,11 @@ namespace caret {
                                 float xyzOut[3],
                                 const bool isUnprojectedOntoSurface = false) const;
         
-        /**
-         * Reset the surface projection to its initial state.
-         */
         void reset();
+        
+        bool isValid();
+        
+        void setValid(const bool valid);
         
     private:
         void copyHelperSurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj);
@@ -84,6 +85,8 @@ namespace caret {
         
         float signedDistanceAboveSurface;
 
+        bool projectionValid;
+        
         static  const std::string XML_TAG_PROJECTION_BARYCENTRIC;
         
         static  const std::string XML_TAG_BARYCENTRIC_TRIANGLE_NODES;

@@ -53,6 +53,18 @@ namespace caret {
         SurfaceProjection& operator=(const SurfaceProjection& obj);
         
         /**
+         * @return Is the projection valid?
+         */
+        virtual bool isValid() = 0;
+        
+        /**
+         * Set the validity of the projection.
+         * @param valid
+         *    New validity status.
+         */
+        virtual void setValid(const bool valid) = 0;
+        
+        /**
          * Reset the surface projection to its initial state.
          */
         virtual void reset() = 0;

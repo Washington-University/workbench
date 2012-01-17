@@ -135,6 +135,8 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
     this->fracRI = obj.fracRI;
     
     this->fracRJ = obj.fracRJ;    
+
+    this->projectionValid = obj.projectionValid;
 }
 
 /**
@@ -617,6 +619,8 @@ SurfaceProjectionVanEssen::reset()
 void 
 SurfaceProjectionVanEssen::resetAllValues()
 {
+    this->projectionValid = false;
+    
     this->dR = 0.0;
     
     for (int32_t i = 0; i < 2; i++) {
@@ -645,6 +649,26 @@ SurfaceProjectionVanEssen::resetAllValues()
     this->fracRI = 0.0;
     
     this->fracRJ = 0.0;
+}
+
+/**
+ * @return Is the projection valid?
+ */
+bool 
+SurfaceProjectionVanEssen::isValid()
+{
+    return this->projectionValid;
+}
+
+/**
+ * Set the validity of the projection.
+ * @param valid
+ *    New validity status.
+ */
+void 
+SurfaceProjectionVanEssen::setValid(const bool valid)
+{
+    this->projectionValid = valid;
 }
 
 

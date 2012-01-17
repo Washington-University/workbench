@@ -27,6 +27,17 @@
 #include "SurfaceProjectionBarycentric.h"
 #include "SurfaceProjectionVanEssen.h"
 
+/**
+ * \class SurfaceProjectedItem
+ * \brief Maintains position of an item projected to a surface.
+ * 
+ * Multiple projections are supported and may be valid at one time.
+ * (1) Barycentric projects to a surface triangle.  (2) VanEssen
+ * projects to an edget of a triangle.  (3) Stereotaxic is a
+ * three-dimensional coordinate.   A volume coordinate is also
+ * available.
+ */
+
 using namespace caret;
 
 /**
@@ -37,20 +48,6 @@ SurfaceProjectedItem::SurfaceProjectedItem()
     : CaretObjectTracksModification()
 {
     this->initializeMembersSurfaceProjectedItem();
-}
-
-/**
- * Constructor that creates an unprojected item at the coordiante.
- * @param xyz - coordinate of projected item.
- *
- */
-SurfaceProjectedItem::SurfaceProjectedItem(const float xyz[3])
-    : CaretObjectTracksModification()
-{
-    this->initializeMembersSurfaceProjectedItem();
-    this->originalXYZ[0] = xyz[0];
-    this->originalXYZ[1] = xyz[1];
-    this->originalXYZ[2] = xyz[2];
 }
 
 /**
@@ -93,9 +90,12 @@ SurfaceProjectedItem::operator=(const SurfaceProjectedItem& o)
 void
 SurfaceProjectedItem::copyHelper(const SurfaceProjectedItem& spi)
 {
-    this->projectionType = spi.getProjectionType();
-    spi.getOriginalXYZ(this->originalXYZ);
-    spi.getVolumeXYZ(this->volumeXYZ);
+    this->setStereotaxicXYZ(spi.getStereotaxicXYZ());
+    this->stereotaxicXYZValid = spi.stereotaxicXYZValid;
+    
+    this->setVolumeXYZ(spi.getVolumeXYZ());
+    this->volumeXYZValid = spi.volumeXYZValid;
+    
     this->structure = spi.structure;
     
     *this->barycentricProjection = *spi.barycentricProjection;
@@ -108,13 +108,14 @@ SurfaceProjectedItem::copyHelper(const SurfaceProjectedItem& spi)
 void 
 SurfaceProjectedItem::reset()
 {
-    this->projectionType = SurfaceProjectionTypeEnum::UNPROJECTED;
-    this->originalXYZ[0] = 0.0;
-    this->originalXYZ[1] = 0.0;
-    this->originalXYZ[2] = 0.0;
+    this->stereotaxicXYZ[0] = 0.0;
+    this->stereotaxicXYZ[1] = 0.0;
+    this->stereotaxicXYZ[2] = 0.0;
+    this->stereotaxicXYZValid = false;
     this->volumeXYZ[0] = 0.0;
     this->volumeXYZ[1] = 0.0;
     this->volumeXYZ[2] = 0.0;
+    this->volumeXYZValid = false;
     this->structure = StructureEnum::INVALID;
     this->barycentricProjection->reset();
     this->vanEssenProjection->reset();
@@ -129,21 +130,21 @@ SurfaceProjectedItem::initializeMembersSurfaceProjectedItem()
 }
 
 /**
- * Unproject the item to the original XYZ coordinates. 
+ * Unproject the item to the stereotaxic XYZ coordinates. 
  * 
  * @param sf - Surface on which unprojection takes place.
  * @param pasteOntoSurfaceFlag - place item directly on surface.
  *
  */
 void
-SurfaceProjectedItem::unprojectToOriginalXYZ(const SurfaceFile& sf,
+SurfaceProjectedItem::unprojectToStereotaxicXYZ(const SurfaceFile& sf,
                                              const bool isUnprojectedOntoSurface)
 {
     float xyz[3];
     if (getProjectedPosition(sf, 
                              xyz, 
                              isUnprojectedOntoSurface)) {
-        this->setOriginalXYZ(xyz);
+        this->setStereotaxicXYZ(xyz);
     }
 }
 
@@ -168,13 +169,14 @@ SurfaceProjectedItem::unprojectToVolumeXYZ(const SurfaceFile& sf,
 
 /**
  * Get the projected position of this item.
+ * The first valid of this positions is used: (1) Barycentric,
+ * (2) VanEssen, (3) Stereotaxic.
  * 
  * @param surfaceFile  Surface File for positioning.
  * @param 
  * @param pasteOntoSurfaceFlag   Place directly on the surface.
  * 
- * @return  An array containing the coordinate of the projected point or
- *    null if the projected position is invalid.
+ * @return  true if the position is valid, else false.
  *
  */
 bool
@@ -184,81 +186,83 @@ SurfaceProjectedItem::getProjectedPosition(const SurfaceFile& surfaceFile,
 {
     bool valid = false;
     
-    switch (this->projectionType) {
-        case SurfaceProjectionTypeEnum::BARYCENTRIC:
+    if (valid == false) {
+        if (this->barycentricProjection->isValid()) {
             valid = this->barycentricProjection->unprojectToSurface(surfaceFile, 
-                                                            xyzOut, 
-                                                            isUnprojectedOntoSurface);
-            break;
-        case SurfaceProjectionTypeEnum::UNPROJECTED:
-            if (this->isOriginalXYZValid()) {
-                valid = true;
-                this->getOriginalXYZ(xyzOut);
-            }
-            break;
-        case SurfaceProjectionTypeEnum::VANESSEN:
+                                                                    xyzOut, 
+                                                                    isUnprojectedOntoSurface);
+        }
+    }
+    
+    if (valid == false) {
+        if (this->vanEssenProjection->isValid()) {
             valid = this->barycentricProjection->unprojectToSurface(surfaceFile, 
-                                                            xyzOut, 
-                                                            isUnprojectedOntoSurface);
-            break;
+                                                                    xyzOut, 
+                                                                    isUnprojectedOntoSurface);
+        }
+    }
+    
+    if (valid == false) {
+        if (this->stereotaxicXYZValid) {
+            this->getStereotaxicXYZ(xyzOut);
+            valid = true;
+        }
     }
     
     return valid;
 }
 
 /**
- * Get the focus' position.
+ * Get the stereotaxic position.
  * 
- * @return  Position of the focus.
+ * @return  Stereotaxic position.
  *
  */
 const float*
-SurfaceProjectedItem::getOriginalXYZ() const
+SurfaceProjectedItem::getStereotaxicXYZ() const
 {
-    return this->originalXYZ;
+    return this->stereotaxicXYZ;
 }
 
 /**
- * Get the original XYZ position.
- * @param xyzOut  Position placed into here.
+ * Get the Stereotaxic XYZ position.
+ * @param stereotaxicXYZOut  Position placed into here.
  *
  */
 void
-SurfaceProjectedItem::getOriginalXYZ(float xyzOut[3]) const
+SurfaceProjectedItem::getStereotaxicXYZ(float stereotaxicXYZOut[3]) const
 {
-    xyzOut[0] = this->originalXYZ[0];
-    xyzOut[1] = this->originalXYZ[1];
-    xyzOut[2] = this->originalXYZ[2];
+    stereotaxicXYZOut[0] = this->stereotaxicXYZ[0];
+    stereotaxicXYZOut[1] = this->stereotaxicXYZ[1];
+    stereotaxicXYZOut[2] = this->stereotaxicXYZ[2];
 }
 
 /**
- * Get the validity of the original XYZ coordinate.
- * @return Validity of original XYZ coordinate.
+ * Get the validity of the Stereotaxic XYZ coordinate.
+ * @return Validity of Stereotaxic XYZ coordinate.
  *
  */
 bool
-SurfaceProjectedItem::isOriginalXYZValid() const
+SurfaceProjectedItem::isStereotaxicXYZValid() const
 {
-    if ((this->originalXYZ[0] != 0.0) 
-        || (this->originalXYZ[1] != 0.0) 
-        || (this->originalXYZ[2] != 0.0)) {
-        return true;
-    }
-    return false;
+    return this->stereotaxicXYZValid;
 }
 
 /**
- * Set the focus' position.
+ * Set the items stereotaxic coordinates and sets the validity
+ * of the stereotaxic coordinates to true.
  * 
- * @param xyz  New position of the focus.
+ * @param stereotaxicXYZ  New position.
  *
  */
 void
-SurfaceProjectedItem::setOriginalXYZ(const float xyz[3])
+SurfaceProjectedItem::setStereotaxicXYZ(const float stereotaxicXYZ[3])
 {
-    this->originalXYZ[0] = xyz[0];
-    this->originalXYZ[1] = xyz[1];
-    this->originalXYZ[2] = xyz[2];
+    this->stereotaxicXYZ[0] = stereotaxicXYZ[0];
+    this->stereotaxicXYZ[1] = stereotaxicXYZ[1];
+    this->stereotaxicXYZ[2] = stereotaxicXYZ[2];
+    this->stereotaxicXYZValid = true;
+    this->setModified();
 }
 
 /**
@@ -294,16 +298,12 @@ SurfaceProjectedItem::getVolumeXYZ(float xyzOut[3]) const
 bool
 SurfaceProjectedItem::isVolumeXYZValid() const
 {
-    if ((this->originalXYZ[0] != 0.0) 
-        || (this->originalXYZ[1] != 0.0) 
-        || (this->originalXYZ[2] != 0.0)) {
-        return true;
-    }
-    return false;
+    return this->volumeXYZValid;
 }
 
 /**
- * Set the value of volumeXYZ
+ * Set the item's volume coordinates and sets the validity
+ * of the volume coordinates to true.
  *
  * @param volumeXYZ new value of volumeXYZ
  *
@@ -314,30 +314,8 @@ SurfaceProjectedItem::setVolumeXYZ(const float volumeXYZ[3])
     this->volumeXYZ[0] = volumeXYZ[0];
     this->volumeXYZ[1] = volumeXYZ[1];
     this->volumeXYZ[2] = volumeXYZ[2];
-}
-
-/**
- * Get the value of projectionType
- *
- * @return the value of projectionType
- *
- */
-SurfaceProjectionTypeEnum::Enum
-SurfaceProjectedItem::getProjectionType() const
-{
-    return this->projectionType;
-}
-
-/**
- * Set the value of projectionType
- *
- * @param projectionType new value of projectionType
- *
- */
-void
-SurfaceProjectedItem::setProjectionType(const SurfaceProjectionTypeEnum::Enum projectionType)
-{
-    this->projectionType = projectionType;
+    this->volumeXYZValid = true;
+    this->setModified();
 }
 
 /**
@@ -360,6 +338,7 @@ void
 SurfaceProjectedItem::setStructure(const StructureEnum::Enum structure)
 {
     this->structure = structure;
+    this->setModified();
 }
 
 /** 
@@ -397,3 +376,58 @@ SurfaceProjectedItem::getVanEssenProjection() const
 {
     return this->vanEssenProjection;
 }
+
+/**
+ * Write the border to the XML Writer.
+ * @param xmlWriter
+ *   Writer for XML output.
+ */
+void 
+SurfaceProjectedItem::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+{
+/*
+    xmlWriter.writeStartElement(XML_TAG_BORDER);
+    
+    xmlWriter.writeElementCharacters(XML_TAG_NAME, this->name);
+    
+    const int32_t numPoints = this->getNumberOfPoints();
+    for (int32_t i = 0; i < numPoints; i++) {
+        this->points[i]->writeAsXML(xmlWriter);    
+    }
+    
+    xmlWriter.writeEndElement();
+*/
+}
+
+/**
+ * Set the status to unmodified.
+ */
+void 
+SurfaceProjectedItem::clearModified()
+{
+    CaretObjectTracksModification::clearModified();
+    this->barycentricProjection->clearModified();
+    this->vanEssenProjection->clearModified();
+}
+
+/**
+ * Is the object modified?
+ * @return true if modified, else false.
+ */
+bool 
+SurfaceProjectedItem::isModified() const
+{
+    if (CaretObjectTracksModification::isModified()) {
+        return true;
+    }
+    if (this->barycentricProjection->isModified()) {
+        return true;
+    }
+    if (this->vanEssenProjection->isModified()) {
+        return true;
+    }
+    
+    return false;
+}
+
+

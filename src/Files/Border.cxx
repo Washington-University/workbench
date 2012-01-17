@@ -29,10 +29,9 @@
 
 #include "CaretAssert.h"
 #include "SurfaceProjectedItem.h"
+#include "XmlWriter.h"
 
 using namespace caret;
-
-
     
 /**
  * \class Border 
@@ -231,3 +230,24 @@ Border::toString() const
 {
     return "Border";
 }
+
+/**
+ * Write the border to the XML Writer.
+ * @param xmlWriter
+ *   Writer for XML output.
+ */
+void 
+Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
+{
+    xmlWriter.writeStartElement(XML_TAG_BORDER);
+    
+    xmlWriter.writeElementCharacters(XML_TAG_NAME, this->name);
+    
+    const int32_t numPoints = this->getNumberOfPoints();
+    for (int32_t i = 0; i < numPoints; i++) {
+        this->points[i]->writeAsXML(xmlWriter);    
+    }
+    
+    xmlWriter.writeEndElement();
+}
+

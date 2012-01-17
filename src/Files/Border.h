@@ -28,9 +28,12 @@
 
 #include "CaretObjectTracksModification.h"
 
+#include "XmlException.h"
+
 namespace caret {
 
     class SurfaceProjectedItem;
+    class XmlWriter;
     
     class Border : public CaretObjectTracksModification {
         
@@ -63,6 +66,11 @@ namespace caret {
         
         void removeLastPoint();
         
+        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
+        static const AString XML_TAG_BORDER;
+        static const AString XML_TAG_NAME;
+        
     private:
         void copyHelperBorder(const Border& obj);
         
@@ -72,7 +80,8 @@ namespace caret {
     };
     
 #ifdef __BORDER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    const AString Border::XML_TAG_BORDER = "Border";
+    const AString Border::XML_TAG_NAME   = "Name";
 #endif // __BORDER_DECLARE__
 
 } // namespace

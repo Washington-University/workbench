@@ -103,37 +103,42 @@ UserInputModeBorders::drawPointAtMouseXY(BrainOpenGLWidget* openGLWidget,
                                     mouseY,
                                     projectedItem);
     
-    if (projectedItem.isOriginalXYZValid()) {
-        float xyz[3];
-        projectedItem.getOriginalXYZ(xyz);
+    SurfaceProjectedItem* spi = new SurfaceProjectedItem();
+    
+    AString txt;
+    if (projectedItem.isStereotaxicXYZValid()) {
+        spi->setStereotaxicXYZ(projectedItem.getStereotaxicXYZ());
         
-        AString txt = ("Projected Position: " 
-                       + AString::fromNumbers(xyz, 3, ","));
-        
-        if (projectedItem.getProjectionType() == SurfaceProjectionTypeEnum::BARYCENTRIC) {
-            SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();
-            
-            txt += ("\nBarycentric Position: " 
-                    + AString::fromNumbers(bp->getTriangleAreas(), 3, ",")
-                    + "   "
-                    + AString::fromNumbers(bp->getTriangleNodes(), 3, ","));
-            
-            SurfaceProjectedItem* spi = new SurfaceProjectedItem();
-            spi->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
-            spi->setStructure(projectedItem.getStructure());
-            SurfaceProjectionBarycentric* spb = spi->getBarycentricProjection();
-            spb->setProjectionSurfaceNumberOfNodes(bp->getProjectionSurfaceNumberOfNodes());
-            spb->setTriangleAreas(bp->getTriangleAreas());
-            spb->setTriangleNodes(bp->getTriangleNodes());
-            spb->setSignedDistanceAboveSurface(0.0);
-            openGLWidget->getBorderBeingDrawn()->addPoint(spi);
-        }
-        else {
-            
-        }
-        
-        CaretLogFiner(txt);
+        txt += ("Projected Position: " 
+                + AString::fromNumbers(projectedItem.getStereotaxicXYZ(), 3, ","));
     }
+    
+    if (projectedItem.getBarycentricProjection()->isValid()) {
+        SurfaceProjectionBarycentric* bp = projectedItem.getBarycentricProjection();
+        
+        txt += ("\nBarycentric Position: " 
+                + AString::fromNumbers(bp->getTriangleAreas(), 3, ",")
+                + "   "
+                + AString::fromNumbers(bp->getTriangleNodes(), 3, ","));
+        
+        SurfaceProjectionBarycentric* spb = spi->getBarycentricProjection();
+        spb->setProjectionSurfaceNumberOfNodes(bp->getProjectionSurfaceNumberOfNodes());
+        spb->setTriangleAreas(bp->getTriangleAreas());
+        spb->setTriangleNodes(bp->getTriangleNodes());
+        spb->setSignedDistanceAboveSurface(0.0);
+        spb->setValid(true);
+    }
+
+    if (spi->isStereotaxicXYZValid()
+        || spi->getBarycentricProjection()->isValid()) {
+        spi->setStructure(projectedItem.getStructure());
+        this->borderBeingDrawnByOpenGL->addPoint(spi);
+    }
+    else {
+        delete spi;
+    }
+    
+    CaretLogFiner(txt);
 }
 
 /**

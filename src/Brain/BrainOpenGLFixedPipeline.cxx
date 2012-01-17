@@ -890,8 +890,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                          * use a coordinate from the triangle
                          */
                         if (triangleDisplayArea < 0.001) {
-                            this->modeProjectionData->setOriginalXYZ(c1);
-                            this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::UNPROJECTED);
+                            this->modeProjectionData->setStereotaxicXYZ(c1);
                         }
                         else {
                             /*
@@ -925,8 +924,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                     (dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea,
                                     (dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea
                                 };
-                                this->modeProjectionData->setOriginalXYZ(projectedXYZ);
-                                this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::UNPROJECTED);
+                                this->modeProjectionData->setStereotaxicXYZ(projectedXYZ);
                                 
                                 const float barycentricAreas[3] = {
                                     areaU,
@@ -946,7 +944,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                 barycentric->setProjectionSurfaceNumberOfNodes(surface->getNumberOfNodes());
                                 barycentric->setTriangleAreas(barycentricAreas);
                                 barycentric->setTriangleNodes(barycentricNodes);
-                                this->modeProjectionData->setProjectionType(SurfaceProjectionTypeEnum::BARYCENTRIC);
+                                barycentric->setValid(true);
                             }
                         }
                     }
@@ -1187,23 +1185,11 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         if (structure != p->getStructure()) {
             continue;
         }
-        bool isXyzValid = false;
         float xyz[3];
-        
-        switch (p->getProjectionType()) {
-            case SurfaceProjectionTypeEnum::BARYCENTRIC:
-                isXyzValid = p->getBarycentricProjection()->unprojectToSurface(*surface, 
-                                                                               xyz);
-                break;
-            case SurfaceProjectionTypeEnum::UNPROJECTED:
-                p->getOriginalXYZ(xyz);
-                isXyzValid = true;
-                break;
-            case SurfaceProjectionTypeEnum::VANESSEN:
-                CaretAssertMessage(0, "Border should NEVER contain a VanEssen Projection");
-                break;
-        }
-        
+        const bool isXyzValid = p->getProjectedPosition(*surface, 
+                                                        xyz,
+                                                        false);
+                 
         if (isXyzValid) {
             if (isSelect) {
                 uint8_t idRGB[3];

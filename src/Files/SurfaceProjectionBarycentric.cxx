@@ -106,6 +106,7 @@ SurfaceProjectionBarycentric::copyHelperSurfaceProjectionBarycentric(const Surfa
     this->setTriangleAreas(obj.getTriangleAreas());
     this->setTriangleNodes(obj.getTriangleNodes());
     this->signedDistanceAboveSurface = obj.signedDistanceAboveSurface;
+    this->projectionValid = obj.projectionValid;
 }
 
 /**
@@ -314,6 +315,26 @@ SurfaceProjectionBarycentric::reset()
 }
 
 /**
+ * @return Is the projection valid?
+ */
+bool 
+SurfaceProjectionBarycentric::isValid()
+{
+    return this->projectionValid;
+}
+
+/**
+ * Set the validity of the projection.
+ * @param valid
+ *    New validity status.
+ */
+void 
+SurfaceProjectionBarycentric::setValid(const bool valid)
+{
+    this->projectionValid = valid;
+}
+
+/**
  * Since reset overrides the 'super' class it should
  * never be called from a constructor.  So, this 
  * method does the actual reset, and since it does
@@ -323,6 +344,8 @@ SurfaceProjectionBarycentric::reset()
 void 
 SurfaceProjectionBarycentric::resetAllValues()
 {
+    this->projectionValid  = false;
+    
     this->triangleAreas[0] = 0.0;
     this->triangleAreas[1] = 0.0;
     this->triangleAreas[2] = 0.0;

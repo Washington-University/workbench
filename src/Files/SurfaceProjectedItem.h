@@ -28,24 +28,19 @@
 
 #include "CaretObjectTracksModification.h"
 #include "StructureEnum.h"
-#include "SurfaceProjectionTypeEnum.h"
+#include "XmlException.h"
 
 namespace caret {
     
     class SurfaceFile;
     class SurfaceProjectionBarycentric;
     class SurfaceProjectionVanEssen;
+    class XmlWriter;
     
-    /**
-     * Information about something (focus, border point, etc)
-     * projected to a surface.
-     */
     class SurfaceProjectedItem : public CaretObjectTracksModification {
         
     public:
         SurfaceProjectedItem();
-        
-        SurfaceProjectedItem(const float xyz[3]);
         
         SurfaceProjectedItem(const SurfaceProjectedItem& o);
         
@@ -59,7 +54,7 @@ namespace caret {
         void initializeMembersSurfaceProjectedItem();
         
     public:
-        void unprojectToOriginalXYZ(
+        void unprojectToStereotaxicXYZ(
                                     const SurfaceFile& sf,
                                     const bool isUnprojectedOntoSurface);
         
@@ -72,13 +67,13 @@ namespace caret {
                                   float xyzOut[3],
                                   const bool isUnprojectedOntoSurface) const;
         
-        const float* getOriginalXYZ() const;
+        const float* getStereotaxicXYZ() const;
         
-        void getOriginalXYZ(float xyzOut[3]) const;
+        void getStereotaxicXYZ(float stereotaxicXYZOut[3]) const;
         
-        bool isOriginalXYZValid() const;
+        bool isStereotaxicXYZValid() const;
         
-        void setOriginalXYZ(const float xyz[3]);
+        void setStereotaxicXYZ(const float stereotaxicXYZ[3]);
         
         const float* getVolumeXYZ() const;
         
@@ -87,10 +82,6 @@ namespace caret {
         bool isVolumeXYZValid() const;
         
         void setVolumeXYZ(const float volumeXYZ[3]);
-        
-        SurfaceProjectionTypeEnum::Enum getProjectionType() const;
-        
-        void setProjectionType(const SurfaceProjectionTypeEnum::Enum projectionType);
         
         StructureEnum::Enum getStructure() const;
         
@@ -106,19 +97,26 @@ namespace caret {
         
         void reset();
         
-    public:
-        /**Tag for root element of a SurfaceProjectedItem */
-        static  const std::string XML_TAG_SURFACE_PROJECTED_ITEM;
+        void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
+        
+        static AString XML_TAG_SURFACE_PROJECTED_ITEM;
+        
+        virtual void clearModified();
+        
+        virtual bool isModified() const;
         
     protected:
-        /**projection type. */
-        SurfaceProjectionTypeEnum::Enum projectionType;
+        /** stereotaxic position of projected item. */
+        float stereotaxicXYZ[3];
         
-        /**original position of projected item. */
-        float originalXYZ[3];
+        /** stereotaxic position of projected item valid */
+        bool stereotaxicXYZValid;
         
-        /** Position in volume */
+        /** position in volume */
         float volumeXYZ[3];
+        
+        /** position in volume valid */
+        bool volumeXYZValid;
         
         /** Structure to which projected. */
         StructureEnum::Enum structure;
@@ -129,14 +127,6 @@ namespace caret {
         /** The Van Essen projection */
         SurfaceProjectionVanEssen* vanEssenProjection;
         
-    private:
-        static  const std::string XML_TAG_STRUCTURE;
-        
-        static  const std::string XML_TAG_ORIGINAL_XYZ;
-        
-        static  const std::string XML_TAG_VOLUME_XYZ;
-        
-        static  const std::string XML_TAG_PROJECTION_TYPE;
     };
     
 } // namespace
