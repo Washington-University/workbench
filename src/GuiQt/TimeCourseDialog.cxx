@@ -280,4 +280,5 @@ void PlotTC::resizeEvent( QResizeEvent *event )
 void TimeCourseDialog::on_TDKeepLast_valueChanged(int arg1)
 {
     this->plot->setMaxTimeLines(arg1);
+    this->updateDialog();
 }
