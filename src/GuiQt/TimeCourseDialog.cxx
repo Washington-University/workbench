@@ -50,7 +50,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    this->plot = new PlotTC();
+    this->plot = new caret::PlotTC();
 
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
@@ -131,17 +131,14 @@ void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
     this->updateDialog();
 }
 
-void TimeCourseDialog::on_TDKeepLast_valueChanged(double arg1)
-{
 
-}
 
 
 
 PlotTC::PlotTC(QWidget *parent):
     QwtPlot( parent )
 {
-    max = 5;//colors.getMaxColors();
+    max = 5;
     // panning with the left mouse button
     (void) new QwtPlotPanner( canvas() );
 
@@ -201,16 +198,31 @@ void PlotTC::populate(QList<TimeLine> &tlV)
     //Plot Time Lines
     for(int i = 0;i<tlV.size();i++)
     {
-        QwtPlotCurve *tc = new QwtPlotCurve();
-        tc->setRenderHint(QwtPlotItem::RenderAntialiased);
-        //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
-        tc->setPen(QPen(colors.getColor(tlV[i].colorID)));
-
-        tc->setSamples(tlV[i].x,tlV[i].y);
-        tc->attach(this);
+        drawTimeLine(tlV[i]);
     }
     if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
+}
 
+void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
+{
+    QPen *myPen;
+    if(pen == NULL)
+
+    {
+        myPen = new QPen(colors.getColor(tl.colorID));
+    }
+    else
+    {
+        myPen = pen;
+    }
+    QwtPlotCurve *tc = new QwtPlotCurve();
+    tc->setRenderHint(QwtPlotItem::RenderAntialiased);
+    //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
+    tc->setPen(*myPen);
+
+    tc->setSamples(tl.x,tl.y);
+    tc->attach(this);
+    if(pen == NULL) delete myPen;
 }
 
 
@@ -240,15 +252,10 @@ void PlotTC::calculateAndDisplayAverage(QList<TimeLine> &tlV)
         averageTimeLine.x[i] /= divisor;
         averageTimeLine.y[i] /= divisor;
     }
-    QwtPlotCurve *tc = new QwtPlotCurve();
     QPen pen(colors.getColor(averageTimeLine.colorID));
     pen.setDashOffset(4);
     pen.setWidth(2);
-    tc->setRenderHint(QwtPlotItem::RenderAntialiased);
-    //tc->setLegendAttribute(QwtPlotCurve::LegendShowLine, true);
-    tc->setPen(pen);
-    tc->setSamples(averageTimeLine.x,averageTimeLine.y);
-    tc->attach(this);
+    drawTimeLine(averageTimeLine,&pen);
 }
 
 void PlotTC::setDisplayAverage(bool checked)
@@ -269,3 +276,8 @@ void PlotTC::resizeEvent( QResizeEvent *event )
     QwtPlot::resizeEvent( event );
 }
 
+
+void TimeCourseDialog::on_TDKeepLast_valueChanged(int arg1)
+{
+    this->plot->setMaxTimeLines(arg1);
+}

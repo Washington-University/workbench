@@ -51,8 +51,10 @@
 namespace Ui {
     class TimeCourseDialog;
 }
+using namespace caret;
 namespace caret {
-class PlotTC;
+    class PlotTC;
+}
 class TimeCourseDialog : public QDialog
 {
     Q_OBJECT
@@ -79,7 +81,9 @@ private slots:
 
     void on_TDShowAverage_toggled(bool checked);
 
-    void on_TDKeepLast_valueChanged(double arg1);
+
+
+    void on_TDKeepLast_valueChanged(int arg1);
 
 private:
     PlotTC *plot;
@@ -89,6 +93,7 @@ private:
 };
 
 
+namespace caret {
 
 
 //-----------------------------------------------------------------
@@ -108,7 +113,11 @@ public:
      void setDisplayAverage(bool checked);
      void calculateAndDisplayAverage(QList<TimeLine> &tlV);
      void clear(QList<TimeLine> &tlV);
+     void setMaxTimeLines(int maxIn) { max = maxIn; }
+     int getMaxTimeLines() { return max;}
+
 protected:
+    void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
     virtual void resizeEvent( QResizeEvent * );
     QList<QwtPlotCurve *> plotV;
     ColorManager colors;

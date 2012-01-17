@@ -53,7 +53,6 @@ SurfaceSelectionControl.h
 TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
-ui_TimeCourseDialog.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -114,7 +113,6 @@ TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
-ui_TimeCourseDialog.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
@@ -189,11 +187,14 @@ WuQtUtilities.cxx
 SET(FORMS
     TimeCourseDialog.ui)
 
+
 #
 # Process the header files with moc producing moc_*.cpp files
 #
-INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR})
-QT4_WRAP_UI(FORMS ${FORMS})
+
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_BINARY_DIR}
+                    ${CMAKE_SOURCE_DIR}/GuiQt)
+QT4_WRAP_UI(FORMS_HEADERS ${FORMS})
 QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 
 #
@@ -202,7 +203,7 @@ QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 ADD_LIBRARY(GuiQt
 ${SOURCE_FILES}
 ${MOC_SOURCE_FILES}
-${FORMS}
+${FORMS_HEADERS}
 )
 
 INCLUDE_DIRECTORIES(
