@@ -860,103 +860,206 @@ BrainBrowserWindow::processDataFileOpen()
         this->previousOpenFileNameFilter = fd.selectedFilter();
         
         /*
-         * Load each file.
+         * Load the files.
          */
+        std::vector<AString> filenamesVector;
         QStringListIterator nameIter(selectedFiles);
         while (nameIter.hasNext()) {
-            AString name = nameIter.next();
-            
-            //FileInformation fileInfo(name);
-            //if (fileInfo.isAbsolute()) {
-            //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
-            //}
-            
-            bool isValidType = false;
-            DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-            if (isValidType) {
-                if (fileType == DataFileTypeEnum::SPECIFICATION) {
-                    SpecFile specFile;
-                    try {
-                        specFile.readFile(name);
+            filenamesVector.push_back(nameIter.next());
+        }
+        this->loadFiles(filenamesVector,
+                        false);
+    }
+}
+
+/**
+ * Load the files that were specified on the command line.
+ * @param filenames
+ *    Names of files on the command line.
+ */
+void 
+BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames)
+{
+    this->loadFiles(filenames,
+                    true);
+}
+
+/**
+ * Load data files.  If there are errors, an error message dialog
+ * will be displayed.
+ *
+ * @param filenames
+ *    Names of files.
+ * @param commandLineFlag
+ *    True if files are loaded from command line.
+ */
+void 
+BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
+                              const bool commandLineFlag)
+{
+    /*
+     * Pick out specific file types.
+     */
+    AString specFileName;
+    std::vector<AString> volumeFileNames;
+    std::vector<AString> surfaceFileNames;
+    std::vector<AString> otherFileNames;
+    const int32_t numFiles = static_cast<int32_t>(filenames.size());
+    for (int32_t i = 0; i < numFiles; i++) {
+        const AString name = filenames[i];
+        bool isValidType = false;
+        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+        if (isValidType) {
+            switch (fileType) {
+                case DataFileTypeEnum::SPECIFICATION:
+                    if (specFileName.isEmpty() == false) {
+                        QMessageBox::critical(this, 
+                                              "ERROR", 
+                                              "More than one spec file cannot be loaded");
+                        return;
+
                     }
-                    catch (const DataFileException& e) {
-                        errorMessages += e.whatString();
-                    }
-                    
-                    SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                                   this);
-                    if (sfd->exec() == QDialog::Accepted) {
-                        EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                     &specFile);
-                        
-                        EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                        
-                        if (readSpecFileEvent.isError()) {
-                            if (errorMessages.isEmpty() == false) {
-                                errorMessages += "\n";
-                            }
-                            errorMessages += readSpecFileEvent.getErrorMessage();
-                        }
-                    }
-                    
-                    delete sfd;
-                    
-                    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+                    specFileName = name;
+                    break;
+                case DataFileTypeEnum::SURFACE:
+                    surfaceFileNames.push_back(name);
+                    break;
+                case DataFileTypeEnum::VOLUME:
+                    volumeFileNames.push_back(name);
+                    break;
+                default:
+                    otherFileNames.push_back(name);
+                    break;
+            }
+        }
+    }
+    
+    /*
+     * Load files in this order:
+     * (1) Spec File - Limit to one.
+     * (2) Volume File
+     * (3) Surface File
+     * (4) All other files.
+     */
+    std::vector<AString> filenamesToLoad;
+    if (specFileName.isEmpty() == false) {
+        filenamesToLoad.push_back(specFileName);
+    }
+    filenamesToLoad.insert(filenamesToLoad.end(),
+                           volumeFileNames.begin(),
+                           volumeFileNames.end());
+    filenamesToLoad.insert(filenamesToLoad.end(),
+                           surfaceFileNames.begin(),
+                           surfaceFileNames.end());
+    filenamesToLoad.insert(filenamesToLoad.end(),
+                           otherFileNames.begin(),
+                           otherFileNames.end());
+                           
+
+    AString errorMessages;
+    
+    /*
+     * Load each file.
+     */
+    const int32_t numFilesToLoad = static_cast<int32_t>(filenamesToLoad.size());
+    for (int32_t i = 0; i < numFilesToLoad; i++) {
+        AString name = filenamesToLoad[i];
+        
+        //FileInformation fileInfo(name);
+        //if (fileInfo.isAbsolute()) {
+        //    prefs->addToPreviousOpenFileDirectories(fileInfo.getPathName());
+        //}
+        
+        bool isValidType = false;
+        DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
+        if (isValidType) {
+            if (fileType == DataFileTypeEnum::SPECIFICATION) {
+                SpecFile specFile;
+                try {
+                    specFile.readFile(name);
                 }
-                else {
-                    EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
-                                                    fileType,
-                                                    name);
+                catch (const DataFileException& e) {
+                    errorMessages += e.whatString();
+                }
+                
+                SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                               this);
+                if (sfd->exec() == QDialog::Accepted) {
+                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                 &specFile);
                     
-                    EventManager::get()->sendEvent(loadFileEvent.getPointer());
+                    EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
                     
-                    if (loadFileEvent.isError()) {
-                        AString loadErrorMessage = "";
-                        
-                        if (loadFileEvent.isErrorInvalidStructure()) {
-                            WuQDataEntryDialog ded("Structure",
-                                                   this);
-                            StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
-                            ded.setTextAtTop(("File \""
-                                              + FileInformation(name).getFileName()
-                                              + "\"\nhas missing or invalid structure, select it's structure."
-                                              "\nAfter loading, save file with File Menu->Save Manage Files"
-                                              "\nto prevent this error."),
-                                             false);
-                            if (ded.exec() == WuQDataEntryDialog::Accepted) {
-                                EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
-                                                                         ssc->getSelectedStructure(),
-                                                                         fileType,
-                                                                         name);
-                                
-                                EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
-                                if (loadFileEventStructure.isError()) {
-                                    loadErrorMessage = loadFileEventStructure.getErrorMessage();
-                                }
-                            }
+                    if (readSpecFileEvent.isError()) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
                         }
-                        else {
-                            loadErrorMessage = loadFileEvent.getErrorMessage();
-                        }
-                        if (loadErrorMessage.isEmpty() == false) {
-                            if (errorMessages.isEmpty() == false) {
-                                errorMessages += "\n";
-                            }
-                            errorMessages += loadErrorMessage;
-                        }
-                    }                    
+                        errorMessages += readSpecFileEvent.getErrorMessage();
+                    }
+                }
+                
+                delete sfd;
+                
+                if (commandLineFlag == false) {
+                    this->toolbar->addDefaultTabsAfterLoadingSpecFile();
                 }
             }
             else {
-                if (errorMessages.isEmpty() == false) {
-                    errorMessages += "\n";
-                }
-                errorMessages += ("Extension for " + name + " does not match a Caret file type");
+                EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
+                                                fileType,
+                                                name);
+                
+                EventManager::get()->sendEvent(loadFileEvent.getPointer());
+                
+                if (loadFileEvent.isError()) {
+                    AString loadErrorMessage = "";
+                    
+                    if (loadFileEvent.isErrorInvalidStructure()) {
+                        WuQDataEntryDialog ded("Structure",
+                                               this);
+                        StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
+                        ded.setTextAtTop(("File \""
+                                          + FileInformation(name).getFileName()
+                                          + "\"\nhas missing or invalid structure, select it's structure."
+                                          "\nAfter loading, save file with File Menu->Save Manage Files"
+                                          "\nto prevent this error."),
+                                         false);
+                        if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                            EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
+                                                                     ssc->getSelectedStructure(),
+                                                                     fileType,
+                                                                     name);
+                            
+                            EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
+                            if (loadFileEventStructure.isError()) {
+                                loadErrorMessage = loadFileEventStructure.getErrorMessage();
+                            }
+                        }
+                    }
+                    else {
+                        loadErrorMessage = loadFileEvent.getErrorMessage();
+                    }
+                    if (loadErrorMessage.isEmpty() == false) {
+                        if (errorMessages.isEmpty() == false) {
+                            errorMessages += "\n";
+                        }
+                        errorMessages += loadErrorMessage;
+                    }
+                }                    
             }
         }
-        
+        else {
+            if (errorMessages.isEmpty() == false) {
+                errorMessages += "\n";
+            }
+            errorMessages += ("Extension for " + name + " does not match a Caret file type");
+        }
     }
-
+    
+    if (commandLineFlag) {
+        this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    }
+    
     if (errorMessages.isEmpty() == false) {
         QMessageBox::critical(this, 
                               "ERROR", 
@@ -967,6 +1070,7 @@ BrainBrowserWindow::processDataFileOpen()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
+
 
 /**
  * Called when open data file from spec file is selected.

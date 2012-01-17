@@ -74,6 +74,8 @@ namespace caret {
         
         BrainBrowserWindowScreenModeEnum::Enum getScreenMode() const;
         
+        void loadFilesFromCommandLine(const std::vector<AString>& filenames);
+        
     protected:
         void closeEvent(QCloseEvent* event);
         
@@ -122,6 +124,9 @@ namespace caret {
         
         BrainBrowserWindow(const BrainBrowserWindow&);
         BrainBrowserWindow& operator=(const BrainBrowserWindow&);
+        
+        void loadFiles(const std::vector<AString>& filenames,
+                       const bool commandLineFlag);
         
         void createActions();
         void createActionsUsedByToolBar();
