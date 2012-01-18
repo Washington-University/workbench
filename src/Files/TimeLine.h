@@ -33,13 +33,14 @@ namespace caret {
 class TimeLine {
 public:
     TimeLine();
-    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn);
+    TimeLine(uint64_t nodeidIn, double *pointIn,QVector<double> &xIn, QVector<double>&yIn,void * idIn = NULL);
     virtual ~TimeLine();
     uint64_t nodeid;
     double point[3];
     QVector<double> x;
     QVector<double> y;
     ColorId colorID;
+    void *id;//pointer to originating clf that helps us track where timeline came from
 };
 }
 #endif//__TIME_LINE__

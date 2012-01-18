@@ -1490,6 +1490,7 @@ ConnectivityLoaderFile::getSelectedTimePoint() const
 void
 ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
 {
+    this->tl.id = (void *)this;
     tlOut = this->tl;
 }
 

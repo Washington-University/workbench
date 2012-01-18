@@ -28,15 +28,17 @@ using namespace caret;
 TimeLine::TimeLine()
 {
     colorID = -1;
+    id = NULL;
 }
 
-TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn)
+TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn, void *idIn)
 {
     colorID = -1;
     nodeid = nodeidIn;
     for(int i=0;i<3;i++) point[i] = pointIn[i];
     x = xIn;
     y = yIn;
+    id = idIn;
 }
 
 TimeLine::~TimeLine()

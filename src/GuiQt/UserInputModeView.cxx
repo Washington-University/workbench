@@ -192,9 +192,8 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 QList <TimeLine> tlV;
                 connMan->getSurfaceTimeLines(tlV);
                 if(tlV.size()!=0)
-                {
-                    TimeCourseDialog *tcDialog = GuiManager::get()->getTimeCourseDialog();
-                    tcDialog->addTimeLines(tlV);
+                {                    
+                    GuiManager::get()->addTimeLines(tlV);                    
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
@@ -223,8 +222,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 connMan->getVolumeTimeLines(tlV);
                 if(tlV.size()!=0)
                 {
-                    TimeCourseDialog *tcDialog = GuiManager::get()->getTimeCourseDialog();
-                    tcDialog->addTimeLines(tlV);
+                    GuiManager::get()->addTimeLines(tlV);                    
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());

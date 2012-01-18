@@ -64,8 +64,7 @@ GuiManager::GuiManager(QObject* parent)
     
     this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
-    this->preferencesDialog = NULL;
-    this->timeCourseDialog = NULL;
+    this->preferencesDialog = NULL;    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
 }
@@ -459,7 +458,7 @@ GuiManager::receiveEvent(Event* event)
         eventNewBrowser->setEventProcessed();
     }
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
-        this->processUpdateTimeCourseDialog();
+        this->processUpdateTimeCourseDialogs();
     }
 }
 
@@ -593,37 +592,22 @@ GuiManager::processShowDisplayControlDialog(BrainBrowserWindow* browserWindow)
 /**
  * Show Timeseries Time Course
  */
-void GuiManager::processUpdateTimeCourseDialog()
+void GuiManager::processUpdateTimeCourseDialogs()
 {
-    BrainBrowserWindow* browserWindow = NULL;   
-    
-    for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
-        if (this->brainBrowserWindows[i] != NULL && this->brainBrowserWindows[i]->isVisible()) {
-            if (this->brainBrowserWindows[i] != NULL) {
-                browserWindow = this->brainBrowserWindows[i];
-                break;
-            }
-        }
-    }
-    
-    if(browserWindow == NULL) return;//not the best error checking but at least it
-                                     //won't crash
-
-    if (this->timeCourseDialog == NULL) {
-        this->timeCourseDialog = new TimeCourseDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->timeCourseDialog);
-    }
-    this->timeCourseDialog->updateDialog();
-    //this->timeCourseDialog->setVisible(true);
-    //this->timeCourseDialog->show();
-    //this->timeCourseDialog->activateWindow();
+    //if(!this->timeCourseDialog) this->timeCourseDialog = this->getTimeCourseDialog();
+    QList<TimeCourseDialog *> list = this->timeCourseDialogs.values();
+    for(int i=0;i<list.size();i++)
+    {
+        list[i]->updateDialog();
+    }    
 }
 
 /**
   * Allows Connectivity Manager to update the Time Course Dialog
   */
-TimeCourseDialog * GuiManager::getTimeCourseDialog()
+TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
 {
+    if(timeCourseDialogs.contains(id)) return timeCourseDialogs.value(id);
     BrainBrowserWindow* browserWindow = NULL;
 
     for (int32_t i = 0; i < static_cast<int32_t>(this->brainBrowserWindows.size()); i++) {
@@ -638,11 +622,31 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog()
     if(browserWindow == NULL) return NULL;//not the best error checking but at least it
                                      //won't crash
 
-    if (this->timeCourseDialog == NULL) {
-        this->timeCourseDialog = new TimeCourseDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->timeCourseDialog);
+    if (this->timeCourseDialogs[id] == NULL) {
+        this->timeCourseDialogs.insert(id, new TimeCourseDialog(browserWindow));
+        this->nonModalDialogs.push_back(this->timeCourseDialogs[id]);
     }
-    return this->timeCourseDialog;
+    return this->timeCourseDialogs[id];
+}
+
+/**
+ * Adds time lines to all corresponding time course dialogs
+ */
+void GuiManager::addTimeLines(QList <TimeLine> &tlV)
+{
+    for(int i =0;i<tlV.size();i++)
+    {
+        this->getTimeCourseDialog(tlV[i].id)->addTimeLine(tlV[i]);
+    }
+}
+
+/**
+ * Removes Time Course Dialog from GuiManager and calls destroy on object
+ */
+void GuiManager::removeTimeCourseDialog(void *id)
+{
+    this->timeCourseDialogs.remove(id);
+    //this->nonModalDialogs remove
 }
 
 /**

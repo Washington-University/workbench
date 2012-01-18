@@ -91,13 +91,15 @@ namespace caret {
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowDisplayControlDialog(BrainBrowserWindow* browserWindow);
-        void processUpdateTimeCourseDialog();
-        
+                
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
                                                      const int32_t imageSizeY,
                                                      ImageFile& imageFileOut);
-        TimeCourseDialog *getTimeCourseDialog();
+        void processUpdateTimeCourseDialogs();
+        TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
+        void addTimeLines(QList <TimeLine> &tlV);
+        void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();
@@ -140,9 +142,7 @@ namespace caret {
         
         ImageCaptureDialog* imageCaptureDialog;
         
-        PreferencesDialog* preferencesDialog;
-
-        TimeCourseDialog* timeCourseDialog;
+        PreferencesDialog* preferencesDialog;       
         
         /** 
          * Tracks non-modal dialogs that are created only one time
@@ -151,6 +151,7 @@ namespace caret {
          * is reparented to a different BrainBrowserWindow.
          */
         std::vector<QDialog*> nonModalDialogs;
+        QMap<void *,TimeCourseDialog *> timeCourseDialogs;
     };
     
 #ifdef __GUI_MANAGER_DEFINE__
