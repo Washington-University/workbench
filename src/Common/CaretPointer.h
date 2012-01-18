@@ -346,7 +346,7 @@ namespace caret {
     T& CaretArray<T>::operator[](const I& index)
     {
         CaretAssert(m_pointer != NULL);
-        CaretAssert(index >= 0 && index < (I)m_size);
+        CaretAssert(index >= 0 && (int64_t)index < m_size);
         return m_pointer[index];
     }
 
@@ -354,7 +354,7 @@ namespace caret {
     const T& CaretArray<T>::operator[](const I& index) const
     {
         CaretAssert(m_pointer != NULL);
-        CaretAssert(index >= 0 && index < (I)m_size);
+        CaretAssert(index >= 0 && (int64_t)index < m_size);
         return m_pointer[index];
     }
 

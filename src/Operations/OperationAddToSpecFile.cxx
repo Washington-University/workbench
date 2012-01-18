@@ -81,6 +81,8 @@ void OperationAddToSpecFile::useParameters(OperationParameters* myParams, Progre
     if (mySpecInfo.exists())
     {
         mySpec.readFile(mySpecName);
+    } else {
+        mySpec.setFileName(mySpecName);
     }
     mySpec.addDataFile(myType, myStrucure, myDataFileName);
     mySpec.writeFile(mySpecName);
