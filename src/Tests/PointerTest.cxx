@@ -24,14 +24,12 @@
 #include "PointerTest.h"
 #include <iostream>
 
-//#include "CaretPointer.h"
-#include <boost/shared_ptr.hpp>
+#include "CaretPointer.h"
 #include "CaretMutex.h"
 #include "CaretOMP.h"
 
 using namespace caret;
 using namespace std;
-using namespace boost;
 
 struct DelTestObj
 {
@@ -59,11 +57,11 @@ void PointerTest::execute()
     QMutex messageMutex;//QString does NOT behave well under threading
     int deltrack1, deltrack2, deltrack3;
     {//scope to control when things get destroyed
-        shared_ptr<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
         //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
 #pragma omp CARET_PAR
         {
-            shared_ptr<DelTestObj> myScratch1, myScratch2, myScratch3;
+            CaretPointer<DelTestObj> myScratch1, myScratch2, myScratch3;
 #pragma omp CARET_FOR schedule(dynamic)
             for (int i = 0; i < ITERATIONS; ++i)
             {

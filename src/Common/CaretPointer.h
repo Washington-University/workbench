@@ -41,7 +41,7 @@ namespace caret {
             int64_t m_refCount;
             CaretMutex m_mutex;//protects m_refCount
             bool m_doNotDelete;
-            T* m_pointer;//allows grab and release to be atomic including securing the correct pointer value (avoid assignment races)
+            T* m_pointer;
             CaretPointerShare()
             {
                 m_refCount = 1;//NOTE: don't initialize to 0, so we don't have to change it every time we make one
@@ -79,7 +79,7 @@ namespace caret {
             int64_t m_refCount;
             CaretMutex m_mutex;//protects m_refCount
             bool m_doNotDelete;
-            T* m_pointer;//allows grab and release to be atomic including securing the correct pointer value (avoid assignment races)
+            T* m_pointer;
             int64_t m_size;
             CaretArrayShare()
             {
