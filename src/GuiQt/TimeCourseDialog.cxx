@@ -63,7 +63,7 @@ TimeCourseDialog::~TimeCourseDialog()
 }
 
 void TimeCourseDialog::addTimeLine(TimeLine &tl)
-{
+{    
     tlV.push_back(tl);
 }
 
@@ -78,6 +78,10 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
 void TimeCourseDialog::updateDialog(bool forceUpdate)
 {
     if(tlV.isEmpty() && !forceUpdate) return;
+    if(!(this->filename.length())) 
+    {   this->filename = tlV[0].filename;
+        this->setWindowTitle("Time Course -" + filename);
+    }
     plot->detachItems();
     plot->populate(tlV);
 

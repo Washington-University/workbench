@@ -25,6 +25,7 @@
  */
 /*LICENSE_END*/
 #include "stdint.h"
+#include "AString.h"
 #include "vector"
 #include "TimeLine.h"
 #include "ColorManager.h"
@@ -41,6 +42,7 @@ public:
     QVector<double> y;
     ColorId colorID;
     void *id;//pointer to originating clf that helps us track where timeline came from
+    AString filename;
 };
 }
 #endif//__TIME_LINE__

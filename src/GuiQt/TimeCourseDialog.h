@@ -89,6 +89,7 @@ private:
     PlotTC *plot;
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
+    AString filename;
 
 };
 
