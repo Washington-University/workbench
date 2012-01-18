@@ -39,6 +39,8 @@ TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *
     m_clc = clc;
     m_helper = new AnimationHelper(index,clc);
     m_isPlaying = false;
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
 }
 
 void TimeSeriesManager::toggleAnimation()

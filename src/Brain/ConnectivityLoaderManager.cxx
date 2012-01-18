@@ -141,6 +141,10 @@ ConnectivityLoaderManager::addConnectivityLoaderFile(const AString& path,
         newConnectivityLoaderFile = this->addConnectivityLoaderFile();
     }
     newConnectivityLoaderFile->setupLocalFile(path, connectivityFileType);
+    if(newConnectivityLoaderFile->isDenseTimeSeries()&& !newConnectivityLoaderFile->isEmpty())
+    {
+        newConnectivityLoaderFile->loadTimePointAtTime(0.0);
+    }
     return newConnectivityLoaderFile;
 }
 
