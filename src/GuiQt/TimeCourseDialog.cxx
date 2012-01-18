@@ -83,7 +83,7 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
         this->filename = tlV[0].filename;
         AString temp = filename;
         if(temp.length() > 80) temp = "..." + temp.right(80);
-        this->setWindowTitle("Time Course - " + temp);
+        this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
     }
     plot->detachItems();
     plot->populate(tlV);

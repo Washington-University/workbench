@@ -419,8 +419,9 @@ ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
            clf->isSurfaceMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
-            TimeLine tl;
+            TimeLine tl;            
             clf->getTimeLine(tl);
+            tl.clmID = i+1;
             tlV.push_back(tl);
         }
     }
@@ -440,8 +441,9 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
            clf->isVolumeMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
-            TimeLine tl;
+            TimeLine tl;            
             clf->getTimeLine(tl);
+            tl.clmID = i+1;
             tlV.push_back(tl);
         }
     }

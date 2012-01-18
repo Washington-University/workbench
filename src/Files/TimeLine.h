@@ -43,6 +43,7 @@ public:
     ColorId colorID;
     void *id;//pointer to originating clf that helps us track where timeline came from
     AString filename;
+    int64_t clmID; //the timelines number in the connectivity loader manager
 };
 }
 #endif//__TIME_LINE__
