@@ -26,6 +26,10 @@
 
 using namespace caret;
 
-CaretMutexLocker::CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(&(theMutex->m_mutex))
+CaretMutexLocker::CaretMutexLocker(CaretMutex* theMutex) : QMutexLocker(theMutex)
+{
+}
+
+CaretMutex::CaretMutex(QMutex::RecursionMode mode): QMutex(mode)
 {
 }

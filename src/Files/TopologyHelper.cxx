@@ -87,6 +87,9 @@ TopologyHelper::TopologyHelper(const SurfaceFile* sf,
     nodes.reserve(maxNodeNum);
     for (int i = 0; i < maxNodeNum; i++) {
         nodes.push_back(NodeInfo(i));
+        nodes[i].neighbors.reserve(6);
+        nodes[i].edges.reserve(6);
+        nodes[i].tiles.reserve(6);
     }
 
     //

@@ -26,6 +26,7 @@ NiftiTest.h
 NiftiMatrixTest.h
 TestInterface.h
 TimerTest.h
+PointerTest.h
 ProgressTest.h
 VolumeFileTest.h
 XnatTest.h
@@ -36,6 +37,7 @@ HeapTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx
 TimerTest.cxx
+PointerTest.cxx
 ProgressTest.cxx
 VolumeFileTest.cxx
 XnatTest.cxx

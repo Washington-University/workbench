@@ -29,10 +29,10 @@
 
 namespace caret {
 
-   class CaretMutex
+   class CaretMutex : public QMutex
    {
-      QMutex m_mutex;
-      friend class CaretMutexLocker;
+   public:
+       CaretMutex(RecursionMode mode = NonRecursive);
    };
    
    class CaretMutexLocker : public QMutexLocker

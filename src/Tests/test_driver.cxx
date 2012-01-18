@@ -38,6 +38,7 @@
 #include "HeapTest.h"
 #include "NiftiTest.h"
 #include "NiftiMatrixTest.h"
+#include "PointerTest.h"
 #include "ProgressTest.h"
 #include "TimerTest.h"
 #include "VolumeFileTest.h"
@@ -66,6 +67,7 @@ int main(int argc, char** argv)
         mytests.push_back(new NiftiFileTest("niftifile"));
         mytests.push_back(new NiftiHeaderTest("niftiheader"));
         mytests.push_back(new NiftiMatrixTest("niftimatrix"));
+        mytests.push_back(new PointerTest("pointer"));
         mytests.push_back(new ProgressTest("progress"));
         mytests.push_back(new TimerTest("timer"));
         mytests.push_back(new VolumeFileTest("volumefile"));
