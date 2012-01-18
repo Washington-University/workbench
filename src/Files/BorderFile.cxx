@@ -30,10 +30,12 @@
 #undef __BORDER_FILE_DECLARE__
 
 #include "Border.h"
+#include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "GiftiMetaData.h"
 #include "XmlAttributes.h"
+#include "XmlSaxParser.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -279,6 +281,24 @@ BorderFile::removeBorder(Border* border)
 }
 
 /**
+ * @return The version of the file as a number.
+ */
+float 
+BorderFile::getFileVersion()
+{
+    return BorderFile::borderFileVersion;
+}
+
+/**
+ * @return The version of the file as a string.
+ */
+AString 
+BorderFile::getFileVersionAsString()
+{
+    return AString::number(BorderFile::borderFileVersion);
+}
+
+/**
  * Read the data file.
  *
  * @param filename
@@ -289,7 +309,39 @@ BorderFile::removeBorder(Border* border)
 void 
 BorderFile::readFile(const AString& filename) throw (DataFileException)
 {
-    throw DataFileException("Reading border files not implmented.");
+    BorderFileSaxReader saxReader(this);
+    std::auto_ptr<XmlSaxParser> parser(XmlSaxParser::createXmlParser());
+    try {
+        parser->parseFile(filename, &saxReader);
+    }
+    catch (const XmlSaxParserException& e) {
+        this->setFileName("");
+        
+        int lineNum = e.getLineNumber();
+        int colNum  = e.getColumnNumber();
+        
+        AString msg =
+        "Parse Error while reading "
+        + filename;
+        
+        if ((lineNum >= 0) && (colNum >= 0)) {
+            msg += (" line/col ("
+                    + AString::number(e.getLineNumber())
+                    + "/"
+                    + AString::number(e.getColumnNumber())
+                    + ")");
+        }
+        
+        msg += (": " + e.whatString());
+        
+        DataFileException dfe(msg);
+        CaretLogThrowing(dfe);
+        throw dfe;
+    }
+    
+    this->setFileName(filename);
+    
+    this->clearModified();
 }
 
 /**

@@ -21,6 +21,7 @@ ADD_LIBRARY(Files
 BinaryFileReader.h
 Border.h
 BorderFile.h
+BorderFileSaxReader.h
 CaretDataFile.h
 CaretMappableDataFile.h
 ConnectivityLoaderFile.h
@@ -50,6 +51,7 @@ VolumeFile.h
 BinaryFileReader.cxx
 Border.cxx
 BorderFile.cxx
+BorderFileSaxReader.cxx
 DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx

@@ -71,11 +71,16 @@ namespace caret {
         
         void removeBorder(Border* border);
         
+        static float getFileVersion();
+        
+        static AString getFileVersionAsString();
+        
         /** XML Tag for BorderFile element */
         static const AString XML_TAG_BORDER_FILE;
         
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
+        
     private:
         void copyHelperBorderFile(const BorderFile& obj);
         
@@ -84,11 +89,17 @@ namespace caret {
         GiftiMetaData* metadata;
         
         std::vector<Border*> borders;
+        
+        /** Version of this BorderFile */
+        static const float borderFileVersion;
+        
     };
     
 #ifdef __BORDER_FILE_DECLARE__
     const AString BorderFile::XML_TAG_BORDER_FILE = "BorderFile";
     const AString BorderFile::XML_ATTRIBUTE_VERSION = "Version";
+    
+    const float BorderFile::borderFileVersion = 1.0;
 #endif // __BORDER_FILE_DECLARE__
 
 } // namespace
