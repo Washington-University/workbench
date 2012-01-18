@@ -42,10 +42,10 @@ using namespace caret;
  */
 SurfaceProjectedItemSaxReader::SurfaceProjectedItemSaxReader(SurfaceProjectedItem* surfaceProjectedItem)
 {
-   this->state = STATE_NONE;
-   this->stateStack.push(this->state);
-   this->elementText = "";
-   this->surfaceProjectedItem  = surfaceProjectedItem;
+    this->state = STATE_NONE;
+    this->stateStack.push(this->state);
+    this->elementText = "";
+    this->surfaceProjectedItem  = surfaceProjectedItem;
 }
 
 /**
@@ -61,11 +61,11 @@ SurfaceProjectedItemSaxReader::~SurfaceProjectedItemSaxReader()
  */
 void 
 SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
-                                         const AString& /* localName */,
-                                         const AString& qName,
-                                         const XmlAttributes& /*attributes*/)  throw (XmlSaxParserException)
+                                            const AString& /* localName */,
+                                            const AString& qName,
+                                            const XmlAttributes& /*attributes*/)  throw (XmlSaxParserException)
 {
-   const STATE previousState = this->state;
+    const STATE previousState = this->state;
     switch (state) {
         case STATE_NONE:
             if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
@@ -86,31 +86,23 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
             else if (qName == SurfaceProjectionVanEssen::XML_TAG_PROJECTION_VAN_ESSEN) {
                 state = STATE_VAN_ESSEN;
             }
-            else if (qName == SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ) {
-                // nothing
-            }
-            else if (qName == SurfaceProjectedItem::XML_TAG_STRUCTURE) {
-                // nothing
-            }
-            else if (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ) {
+            else if ((qName == SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ)
+                     || (qName == SurfaceProjectedItem::XML_TAG_STRUCTURE)
+                     || (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ)) {
                 // nothing
             }
             else {
                 AString txt = XmlUtilities::createInvalidChildElementMessage(SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM,
-                                                                            qName);
+                                                                             qName);
                 XmlSaxParserException e(txt);
                 CaretLogThrowing(e);
                 throw e;
             }
             break;
         case STATE_BARYCENTRIC:
-            if (qName == SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE) {
-                // nothing
-            }
-            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS) {
-                // nothing
-            }
-            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES) {
+            if ((qName == SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE)
+                || (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS)
+                || (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES)) {
                 // nothing
             }
             else {
@@ -122,72 +114,34 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
             }
             break;
         case STATE_VAN_ESSEN:
+            if ((qName == SurfaceProjectionVanEssen::XML_TAG_DR)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_FRAC_RI)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_FRAC_RJ)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_PHI_R)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_POS_ANATOMICAL)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_PROJECTION_VAN_ESSEN)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_THETA_R)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_TRI_ANATOMICAL)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_TRI_VERTICES)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_VERTEX)
+                || (qName == SurfaceProjectionVanEssen::XML_TAG_VERTEX_ANATOMICAL)) {
+                // nothing
+            }
+            else {
+                AString txt = XmlUtilities::createInvalidChildElementMessage(SurfaceProjectionVanEssen::XML_TAG_PROJECTION_VAN_ESSEN,
+                                                                             qName);
+                XmlSaxParserException e(txt);
+                CaretLogThrowing(e);
+                throw e;
+            }
             break;
     }
-/*
-   switch (this->state) {
-      case STATE_NONE:
-           if (qName == GiftiXmlElements::TAG_METADATA) {
-               this->state = STATE_SURFACE_PROJECTED_ITEM;
-           }
-         else {
-            std::ostringstream str;
-            str << "Root element is \"" << qName.toStdString() << "\" but should be "
-                << GiftiXmlElements::TAG_METADATA.toStdString();
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_METADATA:
-           if (qName == GiftiXmlElements::TAG_METADATA_ENTRY) {
-            this->state = STATE_METADATA_MD;
-         }
-         else {
-            std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_METADATA.toStdString() << " is \"" << qName.toStdString() 
-             << "\" but should be " << GiftiXmlElements::TAG_METADATA_ENTRY.toStdString();
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_METADATA_MD:
-         if (qName == GiftiXmlElements::TAG_METADATA_NAME) {
-            this->state = STATE_METADATA_MD_NAME;
-         }
-         else if (qName == GiftiXmlElements::TAG_METADATA_VALUE) {
-            this->state = STATE_METADATA_MD_VALUE;
-         }
-         else {
-            std::ostringstream str;
-            str << "Child of " << GiftiXmlElements::TAG_METADATA_ENTRY.toStdString() << " is \"" << qName.toStdString() 
-                << "\" but should be one of \n"
-                << "   " << GiftiXmlElements::TAG_METADATA_NAME.toStdString() << "\n"
-                << "   " << GiftiXmlElements::TAG_METADATA_VALUE.toStdString();
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_METADATA_MD_NAME:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_METADATA_NAME.toStdString() << " has child \"" << qName.toStdString()
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-      case STATE_METADATA_MD_VALUE:
-         {
-            std::ostringstream str;
-            str << GiftiXmlElements::TAG_METADATA_VALUE.toStdString() << " has child \"" << qName.toStdString() 
-                << "\" but should not have any child nodes";
-             throw XmlSaxParserException(AString::fromStdString(str.str()));
-         }
-         break;
-   }
-*/
-   //
-   // Save previous state
-   //
-   this->stateStack.push(previousState);
-   
-   this->elementText = "";
+    //
+    // Save previous state
+    //
+    this->stateStack.push(previousState);
+    
+    this->elementText = "";
 }
 
 /**
@@ -195,8 +149,8 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
  */
 void 
 SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
-                                       const AString& /* localName */,
-                                       const AString& qName) throw (XmlSaxParserException)
+                                          const AString& /* localName */,
+                                          const AString& qName) throw (XmlSaxParserException)
 {
     const AString text = this->elementText.trimmed();
     
@@ -206,18 +160,11 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
         case STATE_SURFACE_PROJECTED_ITEM:
             if (qName == SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ) {
                 std::vector<float> xyz;
-                AString::toNumbers(text, xyz);
-                if (xyz.size() == 3) {
-                    this->surfaceProjectedItem->setStereotaxicXYZ(xyz.data());
-                }
-                else {
-                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ,
-                                                                       3,
-                                                                       xyz.size());
-                    XmlSaxParserException e(txt);
-                    CaretLogThrowing(e);
-                    throw e;
-                }
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        3,
+                                                        xyz);
+                this->surfaceProjectedItem->setStereotaxicXYZ(xyz.data());
             }
             else if (qName == SurfaceProjectedItem::XML_TAG_STRUCTURE) {
                 bool isValid = false;
@@ -230,76 +177,146 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
             }
             else if (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ) {
                 std::vector<float> xyz;
-                AString::toNumbers(text, xyz);
-                if (xyz.size() == 3) {
-                    this->surfaceProjectedItem->setVolumeXYZ(xyz.data());
-                }
-                else {
-                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectedItem::XML_TAG_VOLUME_XYZ,
-                                                                                     3,
-                                                                                     xyz.size());
-                    XmlSaxParserException e(txt);
-                    CaretLogThrowing(e);
-                    throw e;
-                }
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        3,
+                                                        xyz);
+                this->surfaceProjectedItem->setVolumeXYZ(xyz.data());
             }
             break;
         case STATE_BARYCENTRIC:
         {
             SurfaceProjectionBarycentric* bp = this->surfaceProjectedItem->getBarycentricProjection();
-
+            
             if (qName == SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE) {
                 bp->setSignedDistanceAboveSurface(text.toFloat());
             }
             else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS) {
                 std::vector<float> areas;
-                AString::toNumbers(text, areas);
-                if (areas.size() == 3) {
-                    bp->setTriangleAreas(areas.data());
-                }
-                else {
-                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS,
-                                                                                     3,
-                                                                                     areas.size());
-                    XmlSaxParserException e(txt);
-                    CaretLogThrowing(e);
-                    throw e;
-                }
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        3,
+                                                        areas);
+                bp->setTriangleAreas(areas.data());
             }
             else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES) {
                 std::vector<int32_t> nodes;
-                AString::toNumbers(text, nodes);
-                if (nodes.size() == 3) {
-                    bp->setTriangleNodes(nodes.data());
-                }
-                else {
-                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES,
-                                                                                     3,
-                                                                                     nodes.size());
-                    XmlSaxParserException e(txt);
-                    CaretLogThrowing(e);
-                    throw e;
-                }
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        3,
+                                                        nodes);
+                bp->setTriangleNodes(nodes.data());
             }
         }
             break;
         case STATE_VAN_ESSEN:
+        {
+            SurfaceProjectionVanEssen* ve = this->surfaceProjectedItem->getVanEssenProjection();
+            
+            if (qName == SurfaceProjectionVanEssen::XML_TAG_DR) {
+                ve->setDR(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_FRAC_RI) {
+                ve->setFracRI(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_FRAC_RJ) {
+                ve->setFracRJ(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_PHI_R) {
+                ve->setPhiR(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_POS_ANATOMICAL) {
+                std::vector<float> xyz;
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        3,
+                                                        xyz);
+                ve->setPosAnatomical(xyz.data());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_THETA_R) {
+                ve->setThetaR(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_TRI_ANATOMICAL) {
+                std::vector<float> data;
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        18,
+                                                        data);
+                float ta[2][3][3];
+                int32_t ctr = 0;
+                for (int32_t i = 0; i < 2; i++) {
+                    for (int32_t j = 0; j < 3; j++) {
+                        for (int32_t k = 0; k < 3; k++) {
+                            ta[i][j][k] = data[ctr];
+                            ctr++;
+                        }
+                    }
+                }
+                ve->setTriAnatomical(ta);
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_TRI_VERTICES) {
+                std::vector<int32_t> data;
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        6,
+                                                        data);
+                int32_t tv[2][3];
+                int32_t ctr = 0;
+                for (int32_t i = 0; i < 2; i++) {
+                    for (int32_t j = 0; j < 3; j++) {
+                        tv[i][j] = data[ctr];
+                        ctr++;
+                    }
+                }
+                ve->setTriVertices(tv);
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_VERTEX) {
+                std::vector<int32_t> data;
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        2,
+                                                        data);
+                int32_t tv[2];
+                int32_t ctr = 0;
+                for (int32_t i = 0; i < 2; i++) {
+                    tv[i] = data[ctr];
+                    ctr++;
+                }
+                ve->setVertex(tv);
+            }
+            else if (qName == SurfaceProjectionVanEssen::XML_TAG_VERTEX_ANATOMICAL) {
+                std::vector<float> data;
+                XmlUtilities::getArrayOfNumbersFromText(qName,
+                                                        text,
+                                                        4,
+                                                        data);
+                float va[2][2];
+                int32_t ctr = 0;
+                for (int32_t i = 0; i < 2; i++) {
+                    for (int32_t j = 0; j < 2; j++) {
+                        va[i][j] = data[ctr];
+                        ctr++;
+                    }
+                }
+                ve->setVertexAnatomical(va);
+            }
+        }
             break;
     }
-
-   //
-   // Clear out for new elements
-   //
-   this->elementText = "";
-   
-   //
-   // Go to previous state
-   //
-   if (this->stateStack.empty()) {
-       throw XmlSaxParserException("State stack is empty while reading XML MetaData.");
-   }
-   this->state = this->stateStack.top();
-   this->stateStack.pop();
+    
+    //
+    // Clear out for new elements
+    //
+    this->elementText = "";
+    
+    //
+    // Go to previous state
+    //
+    if (this->stateStack.empty()) {
+        throw XmlSaxParserException("State stack is empty while reading XML MetaData.");
+    }
+    this->state = this->stateStack.top();
+    this->stateStack.pop();
 }
 
 /**
@@ -308,7 +325,7 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
 void 
 SurfaceProjectedItemSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
-   this->elementText += ch;
+    this->elementText += ch;
 }
 
 /**
@@ -317,11 +334,11 @@ SurfaceProjectedItemSaxReader::characters(const char* ch) throw (XmlSaxParserExc
 void 
 SurfaceProjectedItemSaxReader::fatalError(const XmlSaxParserException& e) throw (XmlSaxParserException)
 {
-   //
-   // Stop parsing
-   //
-   CaretLogSevere("XML Parser Fatal Error: " + e.whatString());
-   throw e;
+    //
+    // Stop parsing
+    //
+    CaretLogSevere("XML Parser Fatal Error: " + e.whatString());
+    throw e;
 }
 
 // a warning occurs

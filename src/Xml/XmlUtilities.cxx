@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include "CaretLogger.h"
+#include "XmlSaxParserException.h"
 #include "XmlUtilities.h"
 
 using namespace caret;
@@ -177,4 +179,72 @@ XmlUtilities::createInvalidNumberOfElementsMessage(const AString& elementName,
                 + " elements but contains "
                 + AString::number(numberOfElements));
     return txt;
+}
+
+/**
+ * Extract numbers from the text.  If the count of numbers is not 
+ * the correct amount, an exception is thrown.
+ *
+ * @param elementName
+ *    Name of element for which numbers are desired.
+ * @param text
+ *    Text from which numbers are extracted.
+ * @param correctVectorLength
+ *    Count of numbers that are expected.
+ * @param numbersOut
+ *    Numbers are loaded into this vector.
+ * @throw XmlSaxParserException
+ *    If the correct count of numbers is not obtained.
+ */
+void 
+XmlUtilities::getArrayOfNumbersFromText(const AString& elementName,
+                                        const AString& text,
+                                        const int32_t correctVectorLength,
+                                        std::vector<float>& numbersOut) throw (XmlSaxParserException)
+{
+    numbersOut.clear();
+    AString::toNumbers(text, numbersOut);
+    
+    if (static_cast<int32_t>(numbersOut.size()) != correctVectorLength) {
+        AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(elementName,
+                                                                         correctVectorLength,
+                                                                         numbersOut.size());
+        XmlSaxParserException e(txt);
+        CaretLogThrowing(e);
+        throw e;
+    }
+}
+
+/**
+ * Extract numbers from the text.  If the count of numbers is not 
+ * the correct amount, an exception is thrown.
+ *
+ * @param elementName
+ *    Name of element for which numbers are desired.
+ * @param text
+ *    Text from which numbers are extracted.
+ * @param correctVectorLength
+ *    Count of numbers that are expected.
+ * @param numbersOut
+ *    Numbers are loaded into this vector.
+ * @throw XmlSaxParserException
+ *    If the correct count of numbers is not obtained.
+ */
+void 
+XmlUtilities::getArrayOfNumbersFromText(const AString& elementName,
+                                        const AString& text,
+                                        const int32_t correctVectorLength,
+                                        std::vector<int32_t>& numbersOut) throw (XmlSaxParserException)
+{
+    numbersOut.clear();
+    AString::toNumbers(text, numbersOut);
+    
+    if (static_cast<int32_t>(numbersOut.size()) != correctVectorLength) {
+        AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(elementName,
+                                                                         correctVectorLength,
+                                                                         numbersOut.size());
+        XmlSaxParserException e(txt);
+        CaretLogThrowing(e);
+        throw e;
+    }
 }

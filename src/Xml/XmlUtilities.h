@@ -28,6 +28,7 @@
 #include <AString.h>
 
 #include "CaretObject.h"
+#include "XmlSaxParserException.h"
 
 namespace caret {
     
@@ -55,6 +56,16 @@ namespace caret {
         static AString createInvalidNumberOfElementsMessage(const AString& elementName,
                                                             const int32_t correctNumberOfElements,
                                                             const int32_t numberOfElements);
+        
+        static void getArrayOfNumbersFromText(const AString& elementName,
+                                              const AString& text,
+                                              const int32_t requiredCountOfNumbers,
+                                              std::vector<float>& numbersOut) throw (XmlSaxParserException);
+        
+        static void getArrayOfNumbersFromText(const AString& elementName,
+                                              const AString& text,
+                                              const int32_t requiredCountOfNumbers,
+                                              std::vector<int32_t>& numbersOut) throw (XmlSaxParserException);
     private:
 
     };
