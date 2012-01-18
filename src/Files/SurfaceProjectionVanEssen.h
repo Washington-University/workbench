@@ -102,6 +102,28 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
+        static  const AString XML_TAG_PROJECTION_VAN_ESSEN;
+        
+        static  const AString XML_TAG_DR;
+        
+        static  const AString XML_TAG_TRI_ANATOMICAL;
+        
+        static  const AString XML_TAG_THETA_R;
+        
+        static  const AString XML_TAG_PHI_R;
+        
+        static  const AString XML_TAG_TRI_VERTICES;
+        
+        static  const AString XML_TAG_VERTEX;
+        
+        static  const AString XML_TAG_VERTEX_ANATOMICAL;
+        
+        static  const AString XML_TAG_POS_ANATOMICAL;
+        
+        static  const AString XML_TAG_FRAC_RI;
+        
+        static  const AString XML_TAG_FRAC_RJ;
+        
     private:
         void copyHelperSurfaceProjectionVanEssen(const SurfaceProjectionVanEssen& obj);
         
@@ -130,28 +152,6 @@ namespace caret {
         float posAnatomical[3];
         
         bool projectionValid;
-        
-        static  const AString XML_TAG_PROJECTION_VAN_ESSEN;
-        
-        static  const AString XML_TAG_DR;
-        
-        static  const AString XML_TAG_TRI_ANATOMICAL;
-        
-        static  const AString XML_TAG_THETA_R;
-        
-        static  const AString XML_TAG_PHI_R;
-        
-        static  const AString XML_TAG_TRI_VERTICES;
-        
-        static  const AString XML_TAG_VERTEX;
-        
-        static  const AString XML_TAG_VERTEX_ANATOMICAL;
-        
-        static  const AString XML_TAG_POS_ANATOMICAL;
-        
-        static  const AString XML_TAG_FRAC_RI;
-        
-        static  const AString XML_TAG_FRAC_RJ;
         
     };
     

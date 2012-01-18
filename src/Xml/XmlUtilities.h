@@ -46,6 +46,14 @@ namespace caret {
         
         static AString decodeXmlSpecialCharacters(const AString& text);
         
+        static AString createInvalidRootElementMessage(const AString& validRootElementName,
+                                                       const AString& rootElementName);
+        
+        static AString createInvalidChildElementMessage(const AString& elementName,
+                                                        const AString& invalidChildElementName);
+        
+        static AString createInvalidVersionMessage(const float supportedVersion,
+                                                   const float invalidVersion);
     private:
 
     };

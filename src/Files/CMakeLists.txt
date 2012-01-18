@@ -39,6 +39,7 @@ SpecFileDataFile.h
 SpecFileSaxReader.h
 SurfaceFile.h
 SurfaceProjectedItem.h
+SurfaceProjectedItemSaxReader.h
 SurfaceProjection.h
 SurfaceProjectionBarycentric.h
 SurfaceProjectionVanEssen.h
@@ -69,6 +70,7 @@ SpecFileDataFile.cxx
 SpecFileSaxReader.cxx
 SurfaceFile.cxx
 SurfaceProjectedItem.cxx
+SurfaceProjectedItemSaxReader.cxx
 SurfaceProjection.cxx
 SurfaceProjectionBarycentric.cxx
 SurfaceProjectionVanEssen.cxx

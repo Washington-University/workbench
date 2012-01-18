@@ -30,8 +30,11 @@
 #include "SurfaceProjectionVanEssen.h"
 #include "XmlWriter.h"
 
+
+using namespace caret;
+
 /**
- * \class SurfaceProjectedItem
+ * \class caret::SurfaceProjectedItem
  * \brief Maintains position of an item projected to a surface.
  * 
  * Multiple projections are supported and may be valid at one time.
@@ -40,8 +43,6 @@
  * three-dimensional coordinate.   A volume coordinate is also
  * available.
  */
-
-using namespace caret;
 
 /**
  * Constructor.

@@ -1,6 +1,6 @@
 
-#ifndef __BORDER_FILE_SAX_READER_H__
-#define __BORDER_FILE_SAX_READER_H__
+#ifndef __SURFACE_PROJECTED_ITEM_SAX_READER_H__
+#define __SURFACE_PROJECTED_ITEM_SAX_READER_H__
 
 /*LICENSE_START*/
 /*
@@ -37,18 +37,17 @@
 
 namespace caret {
 
-    class Border;
-    class BorderFile;
-    class GiftiMetaDataSaxReader;
     class SurfaceProjectedItem;
     class XmlAttributes;
-    class XmlException;
     
-    class BorderFileSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
+    /**
+     * class for reading SurfaceProjectedItem with a SAX Parser
+     */
+    class SurfaceProjectedItemSaxReader : public CaretObject, public XmlSaxParserHandlerInterface {
     public:
-        BorderFileSaxReader(BorderFile* borderFile);
+        SurfaceProjectedItemSaxReader(SurfaceProjectedItem* surfaceProjectedItem);
         
-        virtual ~BorderFileSaxReader();
+        virtual ~SurfaceProjectedItemSaxReader();
         
         void startElement(const AString& namespaceURI,
                           const AString& localName,
@@ -72,19 +71,21 @@ namespace caret {
         void endDocument() throw (XmlSaxParserException);
         
         
+    private:
+        SurfaceProjectedItemSaxReader(const SurfaceProjectedItemSaxReader&);
+        SurfaceProjectedItemSaxReader& operator=(const SurfaceProjectedItemSaxReader&);
+        
     protected:
         /// file reading states
         enum STATE {
             /// no state
             STATE_NONE,
-            /// processing BorderFile tag
-            STATE_BORDER_FILE,
-            /// processing MetaData tag
-            STATE_METADATA,
-            /// processing Border
-            STATE_BORDER,
-            /// processing SurfaceProjectedItem tag
-            STATE_SURFACE_PROJECTED_ITEM
+            /// processing SurfaceProjectedItem tags
+            STATE_SURFACE_PROJECTED_ITEM,
+            /// processing Barycentric tags
+            STATE_BARYCENTRIC,
+            /// processing Van Essen tags
+            STATE_VAN_ESSEN
         };
         
         /// file reading state
@@ -96,23 +97,21 @@ namespace caret {
         /// the error message
         AString errorMessage;
         
-        /// Border file that is being read
-        BorderFile* borderFile;
+        /// meta data name
+        AString metaDataName;
         
-        /// border that is being read
-        Border* border;
-        
-        /// surface projected item that is being read
-        SurfaceProjectedItem* surfaceProjectedItem;
+        /// meta data value
+        AString metaDataValue;
         
         /// element text
         AString elementText;
         
-        /// GIFTI meta data sax reader
-        GiftiMetaDataSaxReader* metaDataSaxReader;        
+        /// GIFTI meta data being read
+        SurfaceProjectedItem* surfaceProjectedItem;
+        
     };
-
+    
 } // namespace
 
-#endif // __BORDER_FILE_SAX_READER_H__
+#endif // __SURFACE_PROJECTED_ITEM_SAX_READER_H__
 

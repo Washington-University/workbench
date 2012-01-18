@@ -76,6 +76,14 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
+        static  const AString XML_TAG_PROJECTION_BARYCENTRIC;
+        
+        static  const AString XML_TAG_TRIANGLE_NODES;
+        
+        static  const AString XML_TAG_TRIANGLE_AREAS;
+        
+        static  const AString XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE;
+        
     private:
         void copyHelperSurfaceProjectionBarycentric(const SurfaceProjectionBarycentric& obj);
         
@@ -88,14 +96,6 @@ namespace caret {
         float signedDistanceAboveSurface;
 
         bool projectionValid;
-        
-        static  const AString XML_TAG_PROJECTION_BARYCENTRIC;
-        
-        static  const AString XML_TAG_TRIANGLE_NODES;
-        
-        static  const AString XML_TAG_TRIANGLE_AREAS;
-        
-        static  const AString XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE;
         
     };
     

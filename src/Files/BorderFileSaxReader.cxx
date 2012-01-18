@@ -40,6 +40,11 @@
 using namespace caret;
 
 /**
+ * \class caret::BorderFileSaxReader
+ * \brief Reads a border file using a SAX XML Parser.
+ */
+
+/**
  * constructor.
  */
 BorderFileSaxReader::BorderFileSaxReader(BorderFile* borderFile)
