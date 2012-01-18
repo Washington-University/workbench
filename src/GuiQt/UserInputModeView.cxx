@@ -177,6 +177,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
             (nodeIndex >= 0)) {
             try {
                 connMan->loadDataForSurfaceNode(surface, nodeIndex);
+                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex);
                 updateGraphicsFlag = true;
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
@@ -218,15 +219,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                                                                 voxelIJK,
                                                                 xyz);
                 EventManager::get()->sendEvent(idLocation.getPointer());
-                QList <TimeLine> tlV;
-                connMan->getVolumeTimeLines(tlV);
-                if(tlV.size()!=0)
-                {
-                    GuiManager::get()->addTimeLines(tlV);                    
-                }
-                EventUpdateTimeCourseDialog e;
-                EventManager::get()->sendEvent(e.getPointer());
-                
+                                
                 updateGraphicsFlag = true;
                 
                 try {
@@ -235,6 +228,20 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 catch (const DataFileException& e) {
                     QMessageBox::critical(openGLWidget, "", e.whatString());
                 }
+                try {
+                    connMan->loadTimeLineForVoxelAtCoordinate(xyz);
+                }
+                catch (const DataFileException& e) {
+                    QMessageBox::critical(openGLWidget, "", e.whatString());
+                }
+                QList <TimeLine> tlV;
+                connMan->getVolumeTimeLines(tlV);
+                if(tlV.size()!=0)
+                {
+                    GuiManager::get()->addTimeLines(tlV);                    
+                }
+                EventUpdateTimeCourseDialog e;
+                EventManager::get()->sendEvent(e.getPointer());
             }
         }
     }

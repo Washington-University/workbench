@@ -76,6 +76,11 @@ namespace caret {
         static const int32_t MINIMUM_NUMBER_OF_LOADERS;
         void getVolumeTimeLines(QList<TimeLine> &tlV);
         void getSurfaceTimeLines(QList<TimeLine> &tlV);
+
+        bool loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
+                                    const int32_t nodeIndex) throw (DataFileException);
+        
+        bool loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);

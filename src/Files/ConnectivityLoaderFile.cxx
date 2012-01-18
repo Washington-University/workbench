@@ -830,7 +830,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
-                this->zeroizeData();
+                /*this->zeroizeData();
 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
@@ -857,7 +857,7 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
                     }
-                }
+                }*/
             }
             break;
         }
@@ -916,7 +916,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
-                this->zeroizeData();
+                /*this->zeroizeData();
 
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 this->allocateData(num);
@@ -943,7 +943,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                     else {
                         CaretLogFine("FAILED to read row for node " + AString::fromNumbers(xyz, 3, ","));
                     }
-                }
+                }*/
             }
             break;
         }
@@ -1490,9 +1490,126 @@ ConnectivityLoaderFile::getSelectedTimePoint() const
 void
 ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
 {
-    this->tl.id = (void *)this;    
+    this->tl.id = (void *)this;
     this->tl.filename = this->getFileName();
     tlOut = this->tl;
+}
+
+void 
+ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
+                          const int32_t nodeIndex) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+        
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;            
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();                
+                float *data = new float [num];
+                
+                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                    if (this->ciftiInterface->getRowFromNode(data,
+                                                             nodeIndex,
+                                                             structure)) {
+                        CaretLogFine("Read row for node " + AString::number(nodeIndex));                        
+                        if(this->timeSeriesGraphEnabled)
+                        {
+                            tl.x.clear();
+                            tl.y.clear();
+                            this->tl.x.reserve(num);
+                            this->tl.y.reserve(num);
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                tl.x.push_back(i);
+                                tl.y.push_back(data[i]);
+                            }
+                            double point[3] = {0.0,0.0,0.0};
+                            this->tl.nodeid = nodeIndex;
+                        }
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                    }
+                }
+                delete [] data;
+            }
+            break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+
+}
+
+void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            {
+                this->zeroizeData();
+
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();                
+                float *data = new float [num];
+                if (this->ciftiInterface->hasRowVolumeData()) {
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))                                                             
+                    {
+                        CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
+                        this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                        if(this->timeSeriesGraphEnabled)
+                        {
+                            tl.x.clear();
+                            tl.y.clear();
+                            this->tl.x.reserve(num);
+                            this->tl.y.reserve(num);
+                            for(int64_t i = 0;i<num;i++)
+                            {
+                                tl.x.push_back(i);
+                                tl.y.push_back(data[i]);
+                            }
+                            double point[3] = {0.0,0.0,0.0};
+                            //this->tl.nodeid = nodeIndex;
+
+                        }
+                    }
+                    else {
+                        CaretLogFine("FAILED to read row for node " + AString::fromNumbers(xyz, 3, ","));
+                    }
+                }
+                delete [] data;
+            }
+            break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
 }
 
 

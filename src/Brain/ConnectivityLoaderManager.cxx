@@ -448,3 +448,64 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
         }
     }
 }
+
+/**
+ * Load data for the given surface node index.
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndex
+ *    Index of the surface node.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
+                            const int32_t nodeIndex) throw (DataFileException)
+{
+    bool haveData = false;
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {
+            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+            haveData = true;
+        }
+    }
+    
+    //if (haveData) {
+        //this->colorConnectivityData();
+        //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    //}
+    
+    return haveData;
+}
+
+/**
+ * Load data for the voxel near the given coordinate.
+ * @param xyz
+ *     Coordinate of voxel.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+{
+    bool haveData = false;
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {
+            clf->loadTimeLineForVoxelAtCoordinate(xyz);
+            haveData = true;
+        }
+    }
+    
+    //if (haveData) {
+        //this->colorConnectivityData();
+        //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    //}
+    
+    return haveData;
+}
