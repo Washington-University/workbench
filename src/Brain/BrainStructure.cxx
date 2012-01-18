@@ -425,6 +425,15 @@ BrainStructure::getVolumeInteractionSurface()
     this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
                             allAnatomicalSurfaces);
     if (allAnatomicalSurfaces.empty() == false) {
+        const int32_t numSurfaces = static_cast<int32_t>(allAnatomicalSurfaces.size());
+        for (int32_t i = 0; i < numSurfaces; i++) {
+            /*
+             * For now, look for a surface with midthickness in its name
+             */
+            if (allAnatomicalSurfaces[i]->getFileNameNoPath().toLower().indexOf("midthick")) {
+                return allAnatomicalSurfaces[i];
+            }
+        }
         return allAnatomicalSurfaces[0];
     }
     return NULL;
