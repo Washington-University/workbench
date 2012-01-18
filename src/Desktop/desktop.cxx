@@ -44,6 +44,7 @@
 #include "SystemUtilities.h"
 #include "WuQtUtilities.h"
 #include "FileInformation.h"
+#include "BrainBrowserWindow.h"
 
 static bool caretLoggerIsValid = false;
 
@@ -203,6 +204,29 @@ main(int argc, char* argv[])
         FileInformation progInfo(argv[0]);
         AString progName = progInfo.getFileName();
         parseCommandLine(progName, parameters, myState);
+        //sanity check command line
+        bool haveSpec = false;
+        bool haveFiles = false;
+        for (int i = 0; i < (int)myState.fileList.size(); ++i)
+        {
+            if (myState.fileList[i].endsWith(".spec"))
+            {
+                if (haveSpec)
+                {
+                    cerr << "error, cannot load multiple spec files at this time" << endl;
+                    return -1;
+                }
+                haveSpec = true;
+            } else {
+                haveFiles = true;
+            }
+        }
+        //if error to have both data and spec files
+        /*if (haveFiles && haveSpec)
+        {
+            cerr << "error, cannot specify both spec files and data files on the command line" << endl;
+            return -1;
+        }//*/
         
         /*
         * Splash Screen
@@ -217,49 +241,6 @@ main(int argc, char* argv[])
             Sleeper::sleep(2);
         }
         
-        //begin using parsed command line
-        bool haveSpec = false;
-        bool haveFiles = false;
-        for (int i = 0; i < (int)myState.fileList.size(); ++i)
-        {
-            if (myState.fileList[i].endsWith(".spec"))
-            {
-                haveSpec = true;
-            } else {
-                haveFiles = true;
-            }
-        }
-        //error to have both
-        if (haveFiles && haveSpec)
-        {
-            cerr << "error, cannot specify both spec files and data files on the command line" << endl;
-            printHelp(progName);
-            return -1;
-        }
-        if (haveFiles)
-        {
-        }
-        if (haveSpec)
-        {
-            if (myState.fileList.size() > 1)
-            {
-                cerr << "error, cannot specify more than one spec file" << endl;
-                printHelp(progName);
-                return -1;
-            }
-            switch (myState.specLoadType)
-            {
-                case 0://load none
-                    break;
-                case 1://use spec dialog
-                    break;
-                case 2://load all
-                    break;
-                default:
-                    CaretAssert(false);
-            }
-        }
-        
         /*
         * Create the GUI Manager.
         */
@@ -271,17 +252,32 @@ main(int argc, char* argv[])
         * object that was not deleted by CaretObject::printListOfObjectsNotDeleted
         * since it does not go out of scope.
         */
-        /*EventBrowserWindowNew* newBrowserWindow = new EventBrowserWindowNew(NULL, NULL);
-        EventManager::get()->sendEvent(newBrowserWindow->getPointer());
-        delete newBrowserWindow;//*/
         
-        //TSC: do this with explicit scoping instead of new, so that it does go out of scope.
-        //Better idea would be to have EVERYTHING except CaretObject::printListOfObjectsNotDeleted(true); in a single explicit scope
+        EventBrowserWindowNew newBrowserWindow(NULL, NULL);
+        EventManager::get()->sendEvent(newBrowserWindow.getPointer());
+        splashScreen.close();
+
+        BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
+        
+        //use command line
+        if (haveFiles)
         {
-            EventBrowserWindowNew newBrowserWindow(NULL, NULL);
-            EventManager::get()->sendEvent(newBrowserWindow.getPointer());
+            myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);//second parameter unused in this case
         }
-        //GuiManager::get()->newBrainBrowserWindow(NULL);
+        if (haveSpec)
+        {
+            switch (myState.specLoadType)
+            {
+                case 0://dialog
+                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG);
+                    break;
+                case 1://load all
+                    myWindow->loadFilesFromCommandLine(myState.fileList, BrainBrowserWindow::LOAD_SPEC_FILE_CONTENTS);
+                    break;
+                default:
+                    CaretAssert(false);
+            }
+        }
         
         if (QGLPixelBuffer::hasOpenGLPbuffers()) {
             CaretLogConfig("OpenGL PBuffers are supported");
@@ -293,7 +289,6 @@ main(int argc, char* argv[])
         /*
         * Start the app which will launch the main window.
         */
-        splashScreen.close();
         result = app.exec();
         
         /*
@@ -347,9 +342,6 @@ void printHelp(const AString& progName)
     << endl
     << "    -spec-load-all" << endl
     << "        load all files in the given spec file, don't show spec file dialog" << endl
-    << endl
-    << "    -spec-load-none" << endl
-    << "        don't load any files from the spec file, or show spec file dialog" << endl
     << endl;
 }
 
@@ -367,9 +359,7 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                 printHelp(progName);
                 exit(0);
             } else if (thisParam == "-spec-load-all") {
-                myState.specLoadType = 2;
-            } else if (thisParam == "-spec-load-none") {
-                myState.specLoadType = 0;
+                myState.specLoadType = 1;
             } else {
                 cerr << "unrecognized option \"" << thisParam << "\"" << endl;
                 printHelp(progName);
@@ -383,5 +373,5 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 
 ProgramState::ProgramState()
 {
-    specLoadType = 1;//0: none, 1: use spec window, 2: all
+    specLoadType = 0;//0: use spec window, 1: all
 }
