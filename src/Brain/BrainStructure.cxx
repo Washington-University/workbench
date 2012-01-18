@@ -400,6 +400,15 @@ BrainStructure::getVolumeInteractionSurface() const
     this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
                             allAnatomicalSurfaces);
     if (allAnatomicalSurfaces.empty() == false) {
+        const int32_t numSurfaces = static_cast<int32_t>(allAnatomicalSurfaces.size());
+        for (int32_t i = 0; i < numSurfaces; i++) {
+            /*
+             * For now, look for a surface with midthickness in its name
+             */
+            if (allAnatomicalSurfaces[i]->getFileNameNoPath().toLower().indexOf("midthick")) {
+                return allAnatomicalSurfaces[i];
+            }
+        }
         return allAnatomicalSurfaces[0];
     }
     return NULL;
@@ -740,7 +749,7 @@ BrainStructure::receiveEvent(Event* event)
                 const Surface* s = this->getVolumeInteractionSurface();
                 if (s != NULL) {
                     const float* xyz = idLocationEvent->getXYZ();
-                    const float toleranceDistance = 3.0;
+                    const float toleranceDistance = 10.0;
                     int32_t nearestNodeIndex = s->closestNode(xyz, toleranceDistance);
                     if (nearestNodeIndex >= 0) {
                         highlighNodeIndex = nearestNodeIndex;
