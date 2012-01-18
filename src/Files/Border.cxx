@@ -34,7 +34,7 @@
 using namespace caret;
     
 /**
- * \class Border 
+ * \class caret::Border 
  * \brief A border is a connected line segment on a source or volume.
  */
 

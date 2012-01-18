@@ -36,7 +36,7 @@ namespace caret {
     class PaletteColorMapping;
     
     /**
-     * \class CaretMappableDataFile 
+     * \class caret::CaretMappableDataFile 
      * \brief A Caret data file that is mappable to surfaces and/or volumes.
      *
      * This class is essentially an interface that defines methods for

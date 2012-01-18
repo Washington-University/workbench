@@ -32,7 +32,6 @@
 
 namespace caret {
 
-/// Enumerated type for data files
 class DataFileTypeEnum {
 
 public:

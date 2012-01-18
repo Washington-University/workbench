@@ -44,7 +44,7 @@ using namespace caret;
 
     
 /**
- * \class BorderFile 
+ * \class caret::BorderFile 
  * \brief File containing borders.
  */
 

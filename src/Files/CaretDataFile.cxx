@@ -32,7 +32,7 @@ using namespace caret;
 
     
 /**
- * \class CaretDataFile 
+ * \class caret::CaretDataFile 
  * \brief A data file with abstract methods for caret data
  *
  * This class is essentially an interface that defines methods

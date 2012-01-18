@@ -33,6 +33,12 @@
 using namespace caret;
 
 /**
+ * \class caret::DataFileTypeEnum 
+ * \brief An enumerated type for data files.
+ */
+
+
+/**
  * Constructor.
  *
  * @param enumValue
