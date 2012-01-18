@@ -22,6 +22,8 @@
  */
 /*LICENSE_END*/
 
+#include <QTextStream>
+
 #include "AString.h"
 #include "CaretLogger.h"
 #include <iostream>
@@ -276,6 +278,68 @@ AString::fromNumbers(const double* array,
         s += AString::number(array[i]);
     }
     return s;
+}
+
+/**
+ * Convert the contents of given string to floats.  Each 
+ * piece of text is converted to float.  If a piece of 
+ * text does not convert to a float, it is ignored.  This
+ * should allow separation with characters other than
+ * whitespace.
+ *
+ * @param s
+ *     String convert to floats.
+ * @param numbersOut
+ *    Vector that will contain the given of this string
+ *    as numbers.
+ */
+void 
+AString::toNumbers(const AString& s,
+                   std::vector<float>& numbersOut)
+{
+    AString copy = s;
+    QTextStream stream(&copy);
+    
+    AString numberString;
+    bool valid = false;
+    while (stream.atEnd() == false) {
+        stream >> numberString;
+        const float floatValue = numberString.toFloat(&valid);
+        if (valid) {
+            numbersOut.push_back(floatValue);
+        }
+    }
+}
+
+/**
+ * Convert the contents of given string to ints.  Each 
+ * piece of text is converted to int.  If a piece of 
+ * text does not convert to an int, it is ignored.  This
+ * should allow separation with characters other than
+ * whitespace.
+ *
+ * @param s
+ *     String convert to ints.
+ * @param numbersOut
+ *    Vector that will contain the given of this string
+ *    as numbers.
+ */
+void 
+AString::toNumbers(const AString& s,
+                   std::vector<int32_t>& numbersOut)
+{
+    AString copy = s;
+    QTextStream stream(&copy);
+    
+    AString numberString;
+    bool valid = false;
+    while (stream.atEnd() == false) {
+        stream >> numberString;
+        const int32_t intValue = numberString.toInt(&valid);
+        if (valid) {
+            numbersOut.push_back(intValue);
+        }
+    }
 }
 
 /**

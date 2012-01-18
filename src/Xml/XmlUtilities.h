@@ -31,9 +31,6 @@
 
 namespace caret {
     
-    /**
-     * XML Utilities.
-     */
     class XmlUtilities : public CaretObject{
         
     private:
@@ -49,11 +46,15 @@ namespace caret {
         static AString createInvalidRootElementMessage(const AString& validRootElementName,
                                                        const AString& rootElementName);
         
-        static AString createInvalidChildElementMessage(const AString& elementName,
+        static AString createInvalidChildElementMessage(const AString& parentElementName,
                                                         const AString& invalidChildElementName);
         
         static AString createInvalidVersionMessage(const float supportedVersion,
                                                    const float invalidVersion);
+        
+        static AString createInvalidNumberOfElementsMessage(const AString& elementName,
+                                                            const int32_t correctNumberOfElements,
+                                                            const int32_t numberOfElements);
     private:
 
     };

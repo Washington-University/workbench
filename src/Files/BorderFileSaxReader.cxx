@@ -33,9 +33,11 @@
 #include "BorderFileSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "SurfaceProjectedItem.h"
+#include "SurfaceProjectedItemSaxReader.h"
 
 #include "XmlAttributes.h"
 #include "XmlException.h"
+#include "XmlUtilities.h"
 
 using namespace caret;
 
@@ -55,6 +57,7 @@ BorderFileSaxReader::BorderFileSaxReader(BorderFile* borderFile)
    this->stateStack.push(this->state);
    this->elementText = "";
    this->metaDataSaxReader = NULL;
+    this->surfaceProjectedItemSaxReader = NULL;
     this->border = NULL;
     this->surfaceProjectedItem = NULL;
 }
@@ -64,6 +67,21 @@ BorderFileSaxReader::BorderFileSaxReader(BorderFile* borderFile)
  */
 BorderFileSaxReader::~BorderFileSaxReader()
 {
+    /*
+     * If reading fails, allocated items need to be deleted.
+     */
+    if (this->metaDataSaxReader != NULL) {
+        delete this->metaDataSaxReader;
+    }
+    if (this->surfaceProjectedItemSaxReader != NULL) {
+        delete this->surfaceProjectedItemSaxReader;
+    }
+    if (this->surfaceProjectedItem != NULL) {
+        delete this->surfaceProjectedItem;
+    }
+    if (this->border != NULL) {
+        delete this->border;
+    }
 }
 
 
@@ -87,34 +105,16 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
             //
              const float version = attributes.getValueAsFloat(BorderFile::XML_ATTRIBUTE_VERSION);
             if (version > BorderFile::getFileVersion()) {
-                AString msg =
-                   "File version is " 
-                + AString::number(version) 
-                + " but versions newer than "
-                + BorderFile::getFileVersionAsString()
-                + " are not supported.  Update your software.";
-                XmlSaxParserException e(msg);
-                CaretLogThrowing(e);
-                throw e;
-            }
-            else if (version < 1.0) {
-                AString msg =
-                "File version is " 
-                + AString::number(version) 
-                + " but versions before"
-                + BorderFile::getFileVersionAsString()
-                + " are not supported.  Update your software.";
+                AString msg = XmlUtilities::createInvalidVersionMessage(BorderFile::getFileVersion(), 
+                                                                        version);
                 XmlSaxParserException e(msg);
                 CaretLogThrowing(e);
                 throw e;
             }
          }
          else {
-             const AString msg =
-             "Root elements is "
-             + qName
-             + " but should be "
-             + BorderFile::XML_TAG_BORDER_FILE;
+             const AString msg = XmlUtilities::createInvalidRootElementMessage(BorderFile::XML_TAG_BORDER_FILE,
+                                                                               qName);
              XmlSaxParserException e(msg);
              CaretLogThrowing(e);
              throw e;
@@ -124,13 +124,12 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
            if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
                this->state = STATE_SURFACE_PROJECTED_ITEM;
                this->surfaceProjectedItem = new SurfaceProjectedItem();
+               this->surfaceProjectedItemSaxReader = new SurfaceProjectedItemSaxReader(this->surfaceProjectedItem);
+               this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
            else if (qName != Border::XML_TAG_NAME) {
-               const AString msg =
-               "Invalid child of "
-               + Border::XML_TAG_BORDER
-               + " is "
-               + qName;
+               const AString msg = XmlUtilities::createInvalidChildElementMessage(Border::XML_TAG_BORDER, 
+                                                                                  qName);
                XmlSaxParserException e(msg);
                CaretLogThrowing(e);
                throw e;
@@ -147,11 +146,8 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
              this->border = new Border();
          }
          else {
-             const AString msg =
-             "Invalid child of "
-             + BorderFile::XML_TAG_BORDER_FILE
-             + " is "
-             + qName;
+             const AString msg = XmlUtilities::createInvalidChildElementMessage(BorderFile::XML_TAG_BORDER_FILE, 
+                                                                                qName);
              XmlSaxParserException e(msg);
              CaretLogThrowing(e);
              throw e;
@@ -161,6 +157,7 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
            this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
       case STATE_SURFACE_PROJECTED_ITEM:
+           this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            break;
    }
    
@@ -190,7 +187,7 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
            }
            else if (qName == Border::XML_TAG_BORDER) {
                this->borderFile->addBorder(this->border);
-               this->border = NULL;
+               this->border = NULL;  // do not delete since added to border file
            }
            else {
            }
@@ -206,10 +203,13 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
            }
          break;
       case STATE_SURFACE_PROJECTED_ITEM:
-           CaretAssert(this->surfaceProjectedItem);
+           CaretAssert(this->surfaceProjectedItemSaxReader);
+           this->surfaceProjectedItemSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM) {
                this->border->addPoint(this->surfaceProjectedItem);
-               this->surfaceProjectedItem = NULL; 
+               this->surfaceProjectedItem = NULL; // do not delete since added to border
+               delete this->surfaceProjectedItemSaxReader;
+               this->surfaceProjectedItemSaxReader = NULL;
            }
          break;
    }
@@ -237,6 +237,9 @@ BorderFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
     if (this->metaDataSaxReader != NULL) {
         this->metaDataSaxReader->characters(ch);
+    }
+    else if (this->surfaceProjectedItemSaxReader != NULL) {
+        this->surfaceProjectedItemSaxReader->characters(ch);
     }
     else {
         elementText += ch;

@@ -161,7 +161,7 @@ XmlWriter::writeElementCharacters(const AString& localName, const int* values, c
         if (i > 0) {
             str.append(" ");
         }
-        str.append(AString::number(values[i],'f',this->numberOfDecimalPlaces));
+        str.append(AString::number(values[i]));
     }
     this->writeElementCharacters(localName, str);
 }

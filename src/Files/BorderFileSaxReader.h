@@ -41,6 +41,7 @@ namespace caret {
     class BorderFile;
     class GiftiMetaDataSaxReader;
     class SurfaceProjectedItem;
+    class SurfaceProjectedItemSaxReader;
     class XmlAttributes;
     class XmlException;
     
@@ -104,6 +105,9 @@ namespace caret {
         
         /// surface projected item that is being read
         SurfaceProjectedItem* surfaceProjectedItem;
+        
+        /// Reads a SurfaceProjectedItem
+        SurfaceProjectedItemSaxReader* surfaceProjectedItemSaxReader;
         
         /// element text
         AString elementText;

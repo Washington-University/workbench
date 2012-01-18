@@ -33,6 +33,7 @@
 
 #include "XmlAttributes.h"
 #include "XmlException.h"
+#include "XmlUtilities.h"
 
 using namespace caret;
 
@@ -71,20 +72,19 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
                 this->state = STATE_SURFACE_PROJECTED_ITEM;
             }
             else {
-                AString txt("Root element is \"" 
-                         + qName
-                         + "\" but should be "
-                         + SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM
-                         + "\"");
-                throw XmlSaxParserException(txt);
+                AString txt = XmlUtilities::createInvalidRootElementMessage(SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM,
+                                                                            qName);
+                XmlSaxParserException e(txt);
+                CaretLogThrowing(e);
+                throw e;
             }
             break;
         case STATE_SURFACE_PROJECTED_ITEM:
             if (qName == SurfaceProjectionBarycentric::XML_TAG_PROJECTION_BARYCENTRIC) {
-                
+                state = STATE_BARYCENTRIC;
             }
             else if (qName == SurfaceProjectionVanEssen::XML_TAG_PROJECTION_VAN_ESSEN) {
-                
+                state = STATE_VAN_ESSEN;
             }
             else if (qName == SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ) {
                 // nothing
@@ -96,10 +96,30 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
                 // nothing
             }
             else {
-                
+                AString txt = XmlUtilities::createInvalidChildElementMessage(SurfaceProjectedItem::XML_TAG_SURFACE_PROJECTED_ITEM,
+                                                                            qName);
+                XmlSaxParserException e(txt);
+                CaretLogThrowing(e);
+                throw e;
             }
             break;
         case STATE_BARYCENTRIC:
+            if (qName == SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE) {
+                // nothing
+            }
+            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS) {
+                // nothing
+            }
+            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES) {
+                // nothing
+            }
+            else {
+                AString txt = XmlUtilities::createInvalidChildElementMessage(SurfaceProjectionBarycentric::XML_TAG_PROJECTION_BARYCENTRIC,
+                                                                             qName);
+                XmlSaxParserException e(txt);
+                CaretLogThrowing(e);
+                throw e;
+            }
             break;
         case STATE_VAN_ESSEN:
             break;
@@ -176,14 +196,92 @@ SurfaceProjectedItemSaxReader::startElement(const AString& /* namespaceURI */,
 void 
 SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                                        const AString& /* localName */,
-                                       const AString& /*qName*/) throw (XmlSaxParserException)
+                                       const AString& qName) throw (XmlSaxParserException)
 {
+    const AString text = this->elementText.trimmed();
+    
     switch (state) {
         case STATE_NONE:
             break;
         case STATE_SURFACE_PROJECTED_ITEM:
+            if (qName == SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ) {
+                std::vector<float> xyz;
+                AString::toNumbers(text, xyz);
+                if (xyz.size() == 3) {
+                    this->surfaceProjectedItem->setStereotaxicXYZ(xyz.data());
+                }
+                else {
+                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectedItem::XML_TAG_STEREOTAXIC_XYZ,
+                                                                       3,
+                                                                       xyz.size());
+                    XmlSaxParserException e(txt);
+                    CaretLogThrowing(e);
+                    throw e;
+                }
+            }
+            else if (qName == SurfaceProjectedItem::XML_TAG_STRUCTURE) {
+                bool isValid = false;
+                this->surfaceProjectedItem->setStructure(StructureEnum::fromName(text,
+                                                                                 &isValid));
+                if (isValid == false) {
+                    CaretLogWarning("Invalid structure name: " 
+                                    + text);
+                }
+            }
+            else if (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ) {
+                std::vector<float> xyz;
+                AString::toNumbers(text, xyz);
+                if (xyz.size() == 3) {
+                    this->surfaceProjectedItem->setVolumeXYZ(xyz.data());
+                }
+                else {
+                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectedItem::XML_TAG_VOLUME_XYZ,
+                                                                                     3,
+                                                                                     xyz.size());
+                    XmlSaxParserException e(txt);
+                    CaretLogThrowing(e);
+                    throw e;
+                }
+            }
             break;
         case STATE_BARYCENTRIC:
+        {
+            SurfaceProjectionBarycentric* bp = this->surfaceProjectedItem->getBarycentricProjection();
+
+            if (qName == SurfaceProjectionBarycentric::XML_TAG_SIGNED_DISTANCE_ABOVE_SURFACE) {
+                bp->setSignedDistanceAboveSurface(text.toFloat());
+            }
+            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS) {
+                std::vector<float> areas;
+                AString::toNumbers(text, areas);
+                if (areas.size() == 3) {
+                    bp->setTriangleAreas(areas.data());
+                }
+                else {
+                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_AREAS,
+                                                                                     3,
+                                                                                     areas.size());
+                    XmlSaxParserException e(txt);
+                    CaretLogThrowing(e);
+                    throw e;
+                }
+            }
+            else if (qName == SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES) {
+                std::vector<int32_t> nodes;
+                AString::toNumbers(text, nodes);
+                if (nodes.size() == 3) {
+                    bp->setTriangleNodes(nodes.data());
+                }
+                else {
+                    AString txt = XmlUtilities::createInvalidNumberOfElementsMessage(SurfaceProjectionBarycentric::XML_TAG_TRIANGLE_NODES,
+                                                                                     3,
+                                                                                     nodes.size());
+                    XmlSaxParserException e(txt);
+                    CaretLogThrowing(e);
+                    throw e;
+                }
+            }
+        }
             break;
         case STATE_VAN_ESSEN:
             break;

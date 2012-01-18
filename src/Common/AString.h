@@ -96,6 +96,11 @@ namespace caret {
         int32_t indexOfAnyChar(const AString& str,
                                const int from) const;
         
+        static void toNumbers(const AString& s,
+                              std::vector<float>& numbersOut);
+        static void toNumbers(const AString& s,
+                              std::vector<int32_t>& numbersOut);
+                
         //I may move these outside the class since they don't require access to the class's internals
         static AString fromNumbers(const std::vector<int32_t>& v, const AString& separator);
         static AString fromNumbers(const std::vector<uint32_t>& v, const AString& separator);

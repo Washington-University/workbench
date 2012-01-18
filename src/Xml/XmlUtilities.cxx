@@ -26,6 +26,10 @@
 
 using namespace caret;
 
+/**
+ * \class caret::XmlUtilities
+ * \brief Contains static methods for assistance with XML processing.
+ */
 
 /**
  * Constructor.
@@ -39,6 +43,15 @@ XmlUtilities::XmlUtilities() {
 XmlUtilities::~XmlUtilities() {
 }
 
+/**
+ * Replace special characters (&<>'\) with XML
+ * compatible encoded (&amp;  &lt  &gt  &apos  &quot).
+ *
+ * @param text 
+ *    special characters are handled in this string.
+ * @return
+ *    Copy of input with special characters handled.
+ */
 AString 
 XmlUtilities::encodeXmlSpecialCharacters(const AString& text)
 {
@@ -51,9 +64,17 @@ XmlUtilities::encodeXmlSpecialCharacters(const AString& text)
     textOut.replace("\"", "&quot;");
     
     return textOut;
-    
 }
 
+/**
+ * Replace encoded characters (&amp;  &lt  &gt  &apos  &quot)
+ * with normal characters (&<>'\).
+ *
+ * @param text 
+ *    special characters are handled in this string.
+ * @return
+ *    Copy of input with special characters handled.
+ */
 AString 
 XmlUtilities::decodeXmlSpecialCharacters(const AString& text)
 {
@@ -65,7 +86,95 @@ XmlUtilities::decodeXmlSpecialCharacters(const AString& text)
     textOut.replace("&quot;", "\"");
     
     return textOut;
-    
 }
 
+/**
+ * Create a message for an invalid root element.
+ *
+ * @param validRootElementName
+ *    The valid root element.
+ * @param rootElementName
+ *    The invalid root element that was encountered.
+ * @return
+ *    Message describing the invalid root element.
+ */
+AString 
+XmlUtilities::createInvalidRootElementMessage(const AString& validRootElementName,
+                                               const AString& rootElementName)
+{
+    AString txt("Root element is \"" 
+                + rootElementName
+                + "\" but should be "
+                + validRootElementName
+                + "\"");
+    return txt;
+}
 
+/**
+ * Create a message for an invalid child element.
+ *
+ * @param parentElementName
+ *    The parent element.
+ * @param invalidChildElementName
+ *    The invalid child element that was encountered.
+ * @return
+ *    Message describing the invalid child element.
+ */
+AString 
+XmlUtilities::createInvalidChildElementMessage(const AString& parentElementName,
+                                                const AString& invalidChildElementName)
+{
+    AString txt("\""
+                + parentElementName
+                + " contains invalid child named \""
+                + invalidChildElementName
+                + "\"");
+    return txt;
+}
+
+/**
+ * Create an invalid version message.
+ *
+ * @param supportedVersion
+ *    The latest supported version number.
+ * @param invalidVersion
+ *     The invalid version number that was encountered.
+ * @return
+ *     Message describing the invalid verion.
+ */
+AString 
+XmlUtilities::createInvalidVersionMessage(const float supportedVersion,
+                                           const float invalidVersion)
+{
+    AString txt("File version is " 
+                + AString::number(invalidVersion) 
+                + " but versions newer than "
+                + supportedVersion
+                + " are not supported.  Check for update to your software.");
+    return txt;
+}
+
+/**
+ * Create an invalid number of elements message.
+ * 
+ * @param elementName
+ *    Name of the element.
+ * @param correctNumberOfElements
+ *    Number of elements that should be present.
+ * @param numberOfElements
+ *    Actual number of elements.
+ * @return
+ *    Message describing the incorrect number of elements.
+ */
+AString 
+XmlUtilities::createInvalidNumberOfElementsMessage(const AString& elementName,
+                                                   const int32_t correctNumberOfElements,
+                                                   const int32_t numberOfElements)
+{
+    AString txt(elementName
+                + " should contain "
+                + AString::number(correctNumberOfElements)
+                + " elements but contains "
+                + AString::number(numberOfElements));
+    return txt;
+}
