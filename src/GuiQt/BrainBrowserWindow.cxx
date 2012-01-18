@@ -868,6 +868,7 @@ BrainBrowserWindow::processDataFileOpen()
             filenamesVector.push_back(nameIter.next());
         }
         this->loadFiles(filenamesVector,
+                        LOAD_SPEC_FILE_WITH_DIALOG,
                         false);
     }
 }
@@ -876,11 +877,15 @@ BrainBrowserWindow::processDataFileOpen()
  * Load the files that were specified on the command line.
  * @param filenames
  *    Names of files on the command line.
+ * @param loadSpecFileMode
+ *    Specifies handling of SpecFiles
  */
 void 
-BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames)
+BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenames,
+                                             const LoadSpecFileMode loadSpecFileMode)
 {
     this->loadFiles(filenames,
+                    loadSpecFileMode,
                     true);
 }
 
@@ -890,11 +895,14 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
  *
  * @param filenames
  *    Names of files.
+ * @param loadSpecFileMode
+ *    Specifies handling of SpecFiles
  * @param commandLineFlag
- *    True if files are loaded from command line.
+ *    True if files are being loaded from the command line.
  */
 void 
 BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
+                              const LoadSpecFileMode loadSpecFileMode,
                               const bool commandLineFlag)
 {
     /*
@@ -984,31 +992,14 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     errorMessages += e.whatString();
                 }
                 
-                if (commandLineFlag) {
-                    /*
-                     * Load all files in SpecFile if from command line
-                     */
-                    specFile.setAllFilesSelected(true);
-                    
-                    EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
-                                                                 &specFile);
-                    
-                    EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
-                    
-                    if (readSpecFileEvent.isError()) {
-                        if (errorMessages.isEmpty() == false) {
-                            errorMessages += "\n";
-                        }
-                        errorMessages += readSpecFileEvent.getErrorMessage();
-                    }
-                }
-                else {
-                    /*
-                     * If not command line, prompt user for file selections
-                     */
-                    SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
-                                                                                   this);
-                    if (sfd->exec() == QDialog::Accepted) {
+                switch (loadSpecFileMode) {
+                    case LOAD_SPEC_FILE_CONTENTS:
+                    {
+                        /*
+                         * Load all files listed in spec file
+                         */
+                        specFile.setAllFilesSelected(true);
+                        
                         EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                      &specFile);
                         
@@ -1020,11 +1011,34 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             }
                             errorMessages += readSpecFileEvent.getErrorMessage();
                         }
-                        
-                        createDefaultTabsFlag = true;
                     }
-                    
-                    delete sfd;
+                        break;
+                    case LOAD_SPEC_FILE_WITH_DIALOG:
+                    {
+                        /*
+                         * Allow user to choose files listed in the spec file
+                         */
+                        SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
+                                                                                       this);
+                        if (sfd->exec() == QDialog::Accepted) {
+                            EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
+                                                                         &specFile);
+                            
+                            EventManager::get()->sendEvent(readSpecFileEvent.getPointer());
+                            
+                            if (readSpecFileEvent.isError()) {
+                                if (errorMessages.isEmpty() == false) {
+                                    errorMessages += "\n";
+                                }
+                                errorMessages += readSpecFileEvent.getErrorMessage();
+                            }
+                            
+                            createDefaultTabsFlag = true;
+                        }
+                        
+                        delete sfd;
+                    }
+                        break;
                 }
             }
             else {

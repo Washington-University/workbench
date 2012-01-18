@@ -74,7 +74,18 @@ namespace caret {
         
         BrainBrowserWindowScreenModeEnum::Enum getScreenMode() const;
         
-        void loadFilesFromCommandLine(const std::vector<AString>& filenames);
+        /**
+         * Mode for loading spec files
+         */
+        enum LoadSpecFileMode {
+            /** Do not show spec file dialog, just load all files listed in spec file */
+            LOAD_SPEC_FILE_CONTENTS,
+            /** Show spec file in spec file dialog for user selections */
+            LOAD_SPEC_FILE_WITH_DIALOG
+        };
+        
+        void loadFilesFromCommandLine(const std::vector<AString>& filenames,
+                                      const LoadSpecFileMode loadSpecFileMode);
         
     protected:
         void closeEvent(QCloseEvent* event);
@@ -126,6 +137,7 @@ namespace caret {
         BrainBrowserWindow& operator=(const BrainBrowserWindow&);
         
         void loadFiles(const std::vector<AString>& filenames,
+                       const LoadSpecFileMode loadSpecFileMode,
                        const bool commandLineFlag);
         
         void createActions();
