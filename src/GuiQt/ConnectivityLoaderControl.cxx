@@ -507,9 +507,6 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                 }
             }
             manager->loadTimePointAtTime(loaderFile,0.0);
-            //loaderFile->loadTimePointAtTime(0.0);
-
-
         }        
     }
     
