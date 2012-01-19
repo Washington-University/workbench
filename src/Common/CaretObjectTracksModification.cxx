@@ -41,7 +41,7 @@ using namespace caret;
 
     
 /**
- * \class CaretObjectTracksModification 
+ * \class caret::CaretObjectTracksModification 
  * \brief CaretObject base class with implementation of tracks modification interface.
  */
 /**

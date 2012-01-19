@@ -36,6 +36,7 @@
 #include "CaretPointLocator.h"
 #include "CaretPreferences.h"
 #include "DisplayPropertiesInformation.h"
+#include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventIdentificationHighlightLocation.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -52,8 +53,6 @@
 #include "RgbaFile.h"
 #include "SessionManager.h"
 #include "Surface.h"
-
-#include <algorithm>
 
 using namespace caret;
 
@@ -271,10 +270,17 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
     if (numNodes == 0) {
         const int32_t numSurfaceNodes = surface->getNumberOfNodes();
         if (numSurfaceNodes > 0) {
+            ElapsedTimer timer;
+            timer.start();
             this->nodeAttributes.resize(numSurfaceNodes);
             for (int32_t i = 0; i < numSurfaceNodes; i++) {
                 this->nodeAttributes[i] = new BrainStructureNodeAttributes();
             }
+            CaretLogInfo("Time to create BrainStructureNodeAttributes for \""
+                         + StructureEnum::toGuiName(this->structure)
+                         + "\" was "
+                         + AString::number(timer.getElapsedTimeSeconds())
+                         + " seconds.");
         }
     }
     

@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class CaretColorEnum 
+ * \class caret::CaretColorEnum 
  * \brief Enumerate types for standard colors (HTML 4.01)
  *
  * Enumerated types for standard colors

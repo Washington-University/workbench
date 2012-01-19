@@ -30,7 +30,7 @@
 using namespace caret;
 
 /**
- * \class SpecFileDataFile
+ * \class caret::SpecFileDataFile
  * \brief  Name of file and its attributes including structure.
  *
  * Contains the name of a file and is attributes including

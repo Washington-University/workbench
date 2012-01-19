@@ -42,7 +42,7 @@
 using namespace caret;
 
 /**
- * \class SpecFile
+ * \class caret::SpecFile
  * \brief A spec file groups caret data files.
  */
 

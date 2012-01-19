@@ -62,6 +62,8 @@ namespace caret {
         
         void start();
         
+        void reset();
+        
         double getElapsedTimeSeconds() const;
         
         double getElapsedTimeMilliseconds() const;

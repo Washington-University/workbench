@@ -41,7 +41,7 @@ using namespace caret;
 
     
 /**
- * \class CaretPreferences 
+ * \class caret::CaretPreferences 
  * \brief Preferences for use in Caret.
  *
  * Maintains preferences for use in Caret.  The

@@ -39,6 +39,7 @@
 #include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
+#include "ElapsedTimer.h"
 #include "EventDataFileRead.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -968,6 +969,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     
     AString errorMessages;
     
+    ElapsedTimer timer;
+    timer.start();
+    float specFileTimeStart = 0.0;
+    float specFileTimeEnd   = 0.0;
+    
     /*
      * Load each file.
      */
@@ -995,6 +1001,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 switch (loadSpecFileMode) {
                     case LOAD_SPEC_FILE_CONTENTS:
                     {
+                        timer.reset(); // resets timer
+                        specFileTimeStart = timer.getElapsedTimeSeconds();
+                        
                         /*
                          * Load all files listed in spec file
                          */
@@ -1011,6 +1020,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             }
                             errorMessages += readSpecFileEvent.getErrorMessage();
                         }
+                        specFileTimeEnd = timer.getElapsedTimeSeconds();
                     }
                         break;
                     case LOAD_SPEC_FILE_WITH_DIALOG:
@@ -1021,6 +1031,9 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                         SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
                                                                                        this);
                         if (sfd->exec() == QDialog::Accepted) {
+                            timer.reset();
+                            specFileTimeStart = timer.getElapsedTimeSeconds();
+                            
                             EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                                          &specFile);
                             
@@ -1032,6 +1045,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                 }
                                 errorMessages += readSpecFileEvent.getErrorMessage();
                             }
+                            specFileTimeEnd = timer.getElapsedTimeSeconds();
                             
                             createDefaultTabsFlag = true;
                         }
@@ -1093,8 +1107,31 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
         }
     }
     
+    const float specFileTime = specFileTimeEnd - specFileTimeStart;
+    
+    const float createTabsStartTime = timer.getElapsedTimeSeconds();
     if (createDefaultTabsFlag) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+    }
+    const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
+    
+    const float guiStartTime = timer.getElapsedTimeSeconds();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    const float guiTime = timer.getElapsedTimeSeconds() - guiStartTime;
+    
+    if (specFileName.isEmpty() == false) {
+        CaretLogInfo("Time to read files from spec file (in GUI) \""
+                     + FileInformation(specFileName).getFileName()
+                     + "\" was "
+                     + AString::number(timer.getElapsedTimeSeconds())
+                     + " seconds.\n  Time to read spec data files was "
+                     + AString::number(specFileTime)
+                     + " seconds.\n  Time to update GUI was "
+                     + AString::number(guiTime)
+                     + " seconds.\n  Time to create tabs was "
+                     + AString::number(createTabsTime));
     }
     
     if (errorMessages.isEmpty() == false) {
@@ -1103,9 +1140,6 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               errorMessages);
     }
     
-    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 

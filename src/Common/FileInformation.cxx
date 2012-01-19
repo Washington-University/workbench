@@ -33,7 +33,7 @@
 using namespace caret;
 
 /**
- * \class FileInformation
+ * \class caret::FileInformation
  *
  * \brief Information about a file path.
  *

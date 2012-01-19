@@ -37,7 +37,7 @@ using namespace std;
 
     
 /**
- * \class DescriptiveStatistics 
+ * \class caret::DescriptiveStatistics 
  * \brief Contains descriptive statics for some group of data.
  *
  * Provides descriptive statistics for a group of data

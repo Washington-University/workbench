@@ -50,7 +50,7 @@ using namespace caret;
 
     
 /**
- * \class SurfaceProjectionVanEssen 
+ * \class caret::SurfaceProjectionVanEssen 
  * \brief Maintains a VanEssen Projection that projects to an edge with offset.
  *
  */

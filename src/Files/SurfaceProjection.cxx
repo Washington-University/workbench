@@ -41,7 +41,7 @@ using namespace caret;
 
     
 /**
- * \class SurfaceProjection 
+ * \class caret::SurfaceProjection 
  * \brief Abstract class for Surface Projections.
  */
 

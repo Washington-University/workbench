@@ -32,7 +32,7 @@
 using namespace caret;
 
 /**
- * \class SpecFileDataFileTypeGroup
+ * \class caret::SpecFileDataFileTypeGroup
  * \brief Groups files of the same DataFileType.
  *
  * Groups files of the same data type in a SpecFile.

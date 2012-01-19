@@ -31,6 +31,7 @@
 #include "CaretPreferences.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
+#include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
 #include "EventModelDisplayControllerAdd.h"
@@ -847,6 +848,9 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void 
 Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent)
 {
+    ElapsedTimer timer;
+    timer.start();
+    
     AString errorMessage;
     
     SpecFile* sf = readSpecFileDataFilesEvent->getSpecFile();
@@ -898,6 +902,12 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     if (errorMessage.isEmpty() == false) {
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
+    
+    CaretLogInfo("Time to read files from spec file (in Brain) \""
+                 + sf->getFileNameNoPath()
+                 + "\" was "
+                 + AString::number(timer.getElapsedTimeSeconds())
+                 + " seconds.");
 }
 
 /**

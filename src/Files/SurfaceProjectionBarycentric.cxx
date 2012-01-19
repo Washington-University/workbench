@@ -46,7 +46,7 @@ using namespace caret;
 
     
 /**
- * \class SurfaceProjectionBarycentric 
+ * \class caret::SurfaceProjectionBarycentric 
  * \brief Maintains a barycentric projection.
  *
  */

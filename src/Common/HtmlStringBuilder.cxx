@@ -28,7 +28,7 @@
 using namespace caret;
 
 /**
- * \class HtmlStringBuilder
+ * \class caret::HtmlStringBuilder
  * \brief Assists with constructing HTML text.
  */
 

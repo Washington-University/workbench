@@ -36,7 +36,7 @@ using namespace caret;
 
     
 /**
- * \class UserView 
+ * \class caret::UserView 
  * \brief Translation, Rotation, and Scaling for a view set by the user.
  *
  * Translation, Rotation, and Scaling for a view set by the user.

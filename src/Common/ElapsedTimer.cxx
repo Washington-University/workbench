@@ -75,6 +75,18 @@ ElapsedTimer::start()
 }
 
 /**
+ * Reset the timer as if no time had elapsed.
+ */
+void 
+ElapsedTimer::reset()
+{
+    /*
+     * Start will change the time to 'now'.
+     */
+    this->start();
+}
+
+/**
  * Get the elapsed time in seconds.
  *
  * @return Elapsed time in seconds.
