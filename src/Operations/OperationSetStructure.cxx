@@ -47,14 +47,28 @@ OperationParameters* OperationSetStructure::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "data-file", "the file to set the structure of");
+    
     ret->addStringParameter(2, "structure", "the structure to set the file to");
-    AString myText = AString("The existing file is modified and rewritten to the same filename.  Valid values for the structure argument are:\n\n");
+    
+    OptionalParameter* surfType = ret->createOptionalParameter(3, "-surface-type", "set the type of a surface (only used if file is a surface file");
+    surfType->addStringParameter(1, "type", "name of surface type");
+    
+    AString myText = AString("The existing file is modified and rewritten to the same filename.  Valid values for the structure name are:\n\n");
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
     for (int i = 0; i < (int)myStructureEnums.size(); ++i)
     {
         myText += StructureEnum::toName(myStructureEnums[i]) + "\n";
     }
+    
+    myText += "\nValid names for the surface type are:\n\n";
+    vector<SurfaceTypeEnum::Enum> mySurfTypeEnums;
+    SurfaceTypeEnum::getAllEnums(mySurfTypeEnums);
+    for (int i = 0; i < (int)mySurfTypeEnums.size(); ++i)
+    {
+        myText += SurfaceTypeEnum::toName(mySurfTypeEnums[i]) + "\n";
+    }
+    
     ret->setHelpText(myText);
     return ret;
 }
@@ -79,9 +93,24 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
     {
         case DataFileTypeEnum::SURFACE:
             {
+                OptionalParameter* surfType = myParams->getOptionalParameter(3);
+                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;//so compilers won't complain about uninitialized
+                if (surfType->m_present)
+                {
+                    AString mySurfTypeName = surfType->getString(1);
+                    mySurfType = SurfaceTypeEnum::fromName(mySurfTypeName, &ok);
+                    if (!ok)
+                    {
+                        throw OperationException("unrecognized surface type");
+                    }
+                }
                 SurfaceFile mySurf;
                 mySurf.readFile(fileName);
                 mySurf.setStructure(myStrucure);
+                if (surfType->m_present)
+                {
+                    mySurf.setSurfaceType(mySurfType);
+                }
                 mySurf.writeFile(fileName);
             }
             break;
