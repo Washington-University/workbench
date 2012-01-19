@@ -397,21 +397,66 @@ const Surface*
 BrainStructure::getVolumeInteractionSurfacePrivate() const
 {
     Surface* volumeInteractionSurface = NULL;
-    std::vector<Surface*> allAnatomicalSurfaces;
+    
+    /*
+     * Give preference to anatomical surfaces but if there are none
+     * (perhaps the surface types are missing), use all surfaces.
+     */
+    std::vector<Surface*> interactionSurfaces;
     this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
-                            allAnatomicalSurfaces);
-    if (allAnatomicalSurfaces.empty() == false) {
-        volumeInteractionSurface = allAnatomicalSurfaces[0];
+                            interactionSurfaces);
+    if (interactionSurfaces.empty()) {
+        interactionSurfaces = this->surfaces;
+    }
+    
+    if (interactionSurfaces.empty() == false) {
+        /*
+         * Default to first surface
+         */
+        volumeInteractionSurface = interactionSurfaces[0];
         
-        const int32_t numSurfaces = static_cast<int32_t>(allAnatomicalSurfaces.size());
+        /*
+         * Now look for a surface with certain strings in their name
+         */
+        Surface* midThicknessSurface = NULL;
+        Surface* whiteMatterSurface  = NULL;
+        Surface* pialSurface         = NULL;
+        Surface* anatomicalSurface   = NULL;
+        Surface* fiducialSurface     = NULL;
+        const int32_t numSurfaces = static_cast<int32_t>(interactionSurfaces.size());
         for (int32_t i = 0; i < numSurfaces; i++) {
-            /*
-             * For now, look for a surface with midthickness in its name
-             */
-            if (allAnatomicalSurfaces[i]->getFileNameNoPath().toLower().indexOf("midthick")) {
-                volumeInteractionSurface = allAnatomicalSurfaces[i];
-                break;
+            const AString name = interactionSurfaces[i]->getFileNameNoPath().toLower();
+            if (name.indexOf("midthick")) {
+                midThicknessSurface = interactionSurfaces[i];
             }
+            if (name.indexOf("white")) {
+                whiteMatterSurface = interactionSurfaces[i];
+            }
+            if (name.indexOf("pial")) {
+                pialSurface = interactionSurfaces[i];
+            }
+            if (name.indexOf("anatomical")) {
+                anatomicalSurface = interactionSurfaces[i];
+            }
+            if (name.indexOf("fiducial")) {
+                fiducialSurface = interactionSurfaces[i];
+            }
+        }
+        
+        if (midThicknessSurface != NULL) {
+            volumeInteractionSurface = midThicknessSurface;
+        }
+        else if (whiteMatterSurface != NULL) {
+            volumeInteractionSurface = whiteMatterSurface;
+        }
+        else if (pialSurface != NULL) {
+            volumeInteractionSurface = pialSurface;
+        }
+        else if (anatomicalSurface != NULL) {
+            volumeInteractionSurface = anatomicalSurface;
+        }
+        else if (fiducialSurface != NULL) {
+            volumeInteractionSurface = fiducialSurface;
         }
     }
     
