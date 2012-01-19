@@ -50,7 +50,7 @@ OperationParameters* OperationSetStructure::getParameters()
     
     ret->addStringParameter(2, "structure", "the structure to set the file to");
     
-    OptionalParameter* surfType = ret->createOptionalParameter(3, "-surface-type", "set the type of a surface (only used if file is a surface file");
+    OptionalParameter* surfType = ret->createOptionalParameter(3, "-surface-type", "set the type of a surface (only used if file is a surface file)");
     surfType->addStringParameter(1, "type", "name of surface type");
     
     AString myText = AString("The existing file is modified and rewritten to the same filename.  Valid values for the structure name are:\n\n");
