@@ -67,46 +67,46 @@ SurfaceTypeEnum::initialize()
     }
     initializedFlag = true;
 
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_UNKNOWN, 
-                                       "SURFACE_TYPE_UNKNOWN", 
+    enumData.push_back(SurfaceTypeEnum(UNKNOWN, 
+                                       "UNKNOWN", 
                                        "Unknown",
                                        "Unknown"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_RECONSTRUCTION, 
-                                       "SURFACE_TYPE_RECONSTRUCTION", 
+    enumData.push_back(SurfaceTypeEnum(RECONSTRUCTION, 
+                                       "RECONSTRUCTION", 
                                        "Reconstruction",
                                        "Reconstruction"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_ANATOMICAL, 
-                                       "SURFACE_TYPE_ANATOMICAL", 
+    enumData.push_back(SurfaceTypeEnum(ANATOMICAL, 
+                                       "ANATOMICAL", 
                                        "Anatomical",
                                        "Anatomical"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_INFLATED, 
-                                       "SURFACE_TYPE_INFLATED", 
+    enumData.push_back(SurfaceTypeEnum(INFLATED, 
+                                       "INFLATED", 
                                        "Inflated",
                                        "Inflated"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_VERY_INFLATED, 
-                                       "SURFACE_TYPE_VERY_INFLATED", 
+    enumData.push_back(SurfaceTypeEnum(VERY_INFLATED, 
+                                       "VERY_INFLATED", 
                                        "VeryInflated",
                                        "VeryInflated"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_SPHERICAL, 
-                                       "SURFACE_TYPE_SPHERICAL", 
+    enumData.push_back(SurfaceTypeEnum(SPHERICAL, 
+                                       "SPHERICAL", 
                                        "Spherical",
                                        "Spherical"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_SEMI_SPHERICAL, 
-                                       "SURFACE_TYPE_SEMI_SPHERICAL", 
+    enumData.push_back(SurfaceTypeEnum(SEMI_SPHERICAL, 
+                                       "SEMI_SPHERICAL", 
                                        "SemiSpherical",
                                        "SemiSpherical"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_ELLIPSOID, 
-                                       "SURFACE_TYPE_ELLIPSOID", 
+    enumData.push_back(SurfaceTypeEnum(ELLIPSOID, 
+                                       "ELLIPSOID", 
                                        "Ellipsoid",
                                        "Ellipsoid"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_FLAT, 
-                                       "SURFACE_TYPE_FLAT", 
+    enumData.push_back(SurfaceTypeEnum(FLAT, 
+                                       "FLAT", 
                                        "Flat",
                                        "Flat"));
-    enumData.push_back(SurfaceTypeEnum(SURFACE_TYPE_HULL, 
-                                       "SURFACE_TYPE_HULL", 
+    enumData.push_back(SurfaceTypeEnum(HULL, 
+                                       "HULL", 
                                        "Hull",
-                                       "Hull"));    
+                                       "Hull"));
 }
 
 /**
@@ -163,7 +163,7 @@ SurfaceTypeEnum::fromName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e = SURFACE_TYPE_UNKNOWN;
+    Enum e = UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -213,7 +213,7 @@ SurfaceTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e = SURFACE_TYPE_UNKNOWN;
+    Enum e = UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -263,7 +263,7 @@ SurfaceTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e = SURFACE_TYPE_UNKNOWN;
+    Enum e = UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -313,7 +313,7 @@ SurfaceTypeEnum::fromGiftiName(const AString& s, bool* isValidOut)
     initialize();
     
     bool validFlag = false;
-    Enum e = SURFACE_TYPE_UNKNOWN;
+    Enum e = UNKNOWN;
     
     for (std::vector<SurfaceTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();

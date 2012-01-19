@@ -403,7 +403,7 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
      * (perhaps the surface types are missing), use all surfaces.
      */
     std::vector<Surface*> interactionSurfaces;
-    this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
+    this->getSurfacesOfType(SurfaceTypeEnum::ANATOMICAL, 
                             interactionSurfaces);
     if (interactionSurfaces.empty()) {
         interactionSurfaces = this->surfaces;

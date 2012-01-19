@@ -94,7 +94,7 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
         case DataFileTypeEnum::SURFACE:
             {
                 OptionalParameter* surfType = myParams->getOptionalParameter(3);
-                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;//so compilers won't complain about uninitialized
+                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::ANATOMICAL;//so compilers won't complain about uninitialized
                 if (surfType->m_present)
                 {
                     AString mySurfTypeName = surfType->getString(1);

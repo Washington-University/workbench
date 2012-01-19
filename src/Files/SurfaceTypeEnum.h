@@ -43,25 +43,25 @@ public:
      */
     enum Enum {
         /** UNKNOWN */
-        SURFACE_TYPE_UNKNOWN,
+        UNKNOWN,
         /** Reconstruction (raw) */
-        SURFACE_TYPE_RECONSTRUCTION,
+        RECONSTRUCTION,
         /** Anatomical */
-        SURFACE_TYPE_ANATOMICAL,
+        ANATOMICAL,
         /** Inflated */
-        SURFACE_TYPE_INFLATED,
+        INFLATED,
         /** Very Inflated */
-        SURFACE_TYPE_VERY_INFLATED,
+        VERY_INFLATED,
         /** Spherical */
-        SURFACE_TYPE_SPHERICAL,
+        SPHERICAL,
         /** Semi-Spherical (CMW) */
-        SURFACE_TYPE_SEMI_SPHERICAL,
+        SEMI_SPHERICAL,
         /** Ellipsoid */
-        SURFACE_TYPE_ELLIPSOID,
+        ELLIPSOID,
         /** Flat */
-        SURFACE_TYPE_FLAT,
+        FLAT,
         /** Hull */
-        SURFACE_TYPE_HULL
+        HULL
     };
 
 

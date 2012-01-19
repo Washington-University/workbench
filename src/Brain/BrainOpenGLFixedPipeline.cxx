@@ -2995,16 +2995,16 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                 case StructureEnum::CORTEX_LEFT:
                     drawIt = wholeBrainController->isLeftEnabled(tabNumberIndex);
                     dx = -wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                    if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
                         dx -= surface->getBoundingBox()->getMaxX();
                     }
                     break;
                 case StructureEnum::CORTEX_RIGHT:
                     drawIt = wholeBrainController->isRightEnabled(tabNumberIndex);
                     dx = wholeBrainController->getLeftRightSeparation(tabNumberIndex);
-                    if ((surfaceType != SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL)
-                        && (surfaceType != SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION)) {
+                    if ((surfaceType != SurfaceTypeEnum::ANATOMICAL)
+                        && (surfaceType != SurfaceTypeEnum::RECONSTRUCTION)) {
                         dx -= surface->getBoundingBox()->getMinX();
                     }
                     break;

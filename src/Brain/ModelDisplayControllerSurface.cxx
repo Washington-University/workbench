@@ -166,7 +166,7 @@ ModelDisplayControllerSurface::resetView(const int32_t windowTabNumber)
 void
 ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
 {
-    if (this->surface->getSurfaceType() != SurfaceTypeEnum::SURFACE_TYPE_FLAT) {
+    if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
         switch (this->surface->getStructure()) {
             case StructureEnum::CORTEX_LEFT:
                 this->leftView(windowTabNumber);
@@ -191,7 +191,7 @@ ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
 void
 ModelDisplayControllerSurface::medialView(const int32_t windowTabNumber)
 {
-    if (this->surface->getSurfaceType() != SurfaceTypeEnum::SURFACE_TYPE_FLAT) {
+    if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
         switch (this->surface->getStructure()) {
             case StructureEnum::CORTEX_LEFT:
                 this->rightView(windowTabNumber);

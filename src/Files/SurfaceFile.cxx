@@ -497,7 +497,7 @@ SurfaceTypeEnum::Enum
 SurfaceFile::getSurfaceType() const
 {
     if (this->coordinateDataArray == NULL) {
-        return SurfaceTypeEnum::SURFACE_TYPE_UNKNOWN;
+        return SurfaceTypeEnum::UNKNOWN;
     }
     
     const AString geometricTypeName = 

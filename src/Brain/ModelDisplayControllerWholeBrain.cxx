@@ -69,7 +69,7 @@ void
 ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBrain()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->selectedSurfaceType[i] = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;
+        this->selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
         this->cerebellumEnabled[i] = true;
         this->leftEnabled[i] = true;
         this->rightEnabled[i] = true;
@@ -170,7 +170,7 @@ ModelDisplayControllerWholeBrain::updateController()
                 this->selectedSurfaceType[i] = this->availableSurfaceTypes[0];
             }
             else {
-                this->selectedSurfaceType[i] = SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL;
+                this->selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
             }
         }
         
@@ -199,9 +199,9 @@ ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTab
      * turn of the display of volume slices.
      */
     switch (surfaceType) {
-        case SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL:
+        case SurfaceTypeEnum::ANATOMICAL:
             break;
-        case SurfaceTypeEnum::SURFACE_TYPE_RECONSTRUCTION:
+        case SurfaceTypeEnum::RECONSTRUCTION:
             break;
         default:
             this->volumeSlicesSelected[windowTabNumber].setSliceAxialEnabled(false);
