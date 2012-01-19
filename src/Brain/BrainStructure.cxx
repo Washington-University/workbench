@@ -394,24 +394,52 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
  * Returns NULL if no anatomical surfaces.
  */
 const Surface* 
-BrainStructure::getVolumeInteractionSurface() const
+BrainStructure::getVolumeInteractionSurfacePrivate() const
 {
+    Surface* volumeInteractionSurface = NULL;
     std::vector<Surface*> allAnatomicalSurfaces;
     this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
                             allAnatomicalSurfaces);
     if (allAnatomicalSurfaces.empty() == false) {
+        volumeInteractionSurface = allAnatomicalSurfaces[0];
+        
         const int32_t numSurfaces = static_cast<int32_t>(allAnatomicalSurfaces.size());
         for (int32_t i = 0; i < numSurfaces; i++) {
             /*
              * For now, look for a surface with midthickness in its name
              */
             if (allAnatomicalSurfaces[i]->getFileNameNoPath().toLower().indexOf("midthick")) {
-                return allAnatomicalSurfaces[i];
+                volumeInteractionSurface = allAnatomicalSurfaces[i];
+                break;
             }
         }
-        return allAnatomicalSurfaces[0];
     }
-    return NULL;
+    
+    if (volumeInteractionSurface != NULL) {
+        std::cout << "Volume Interaction Surface for "
+        << StructureEnum::toGuiName(this->structure)
+        << ": " 
+        << volumeInteractionSurface->getFileNameNoPath()
+        << std::endl;
+    }
+    else {
+        std::cout << "Volume Interaction Surface for "
+        << StructureEnum::toGuiName(this->structure)
+        << " is invalid." 
+        << std::endl;
+    }
+    
+    return volumeInteractionSurface;
+}
+
+/**
+ * @return The surface used for volume interaction.
+ * Returns NULL if no anatomical surfaces.
+ */
+const Surface* 
+BrainStructure::getVolumeInteractionSurface() const
+{
+    return this->getVolumeInteractionSurfacePrivate();
 }
 
 /**
@@ -421,22 +449,12 @@ BrainStructure::getVolumeInteractionSurface() const
 Surface* 
 BrainStructure::getVolumeInteractionSurface()
 {
-    std::vector<Surface*> allAnatomicalSurfaces;
-    this->getSurfacesOfType(SurfaceTypeEnum::SURFACE_TYPE_ANATOMICAL, 
-                            allAnatomicalSurfaces);
-    if (allAnatomicalSurfaces.empty() == false) {
-        const int32_t numSurfaces = static_cast<int32_t>(allAnatomicalSurfaces.size());
-        for (int32_t i = 0; i < numSurfaces; i++) {
-            /*
-             * For now, look for a surface with midthickness in its name
-             */
-            if (allAnatomicalSurfaces[i]->getFileNameNoPath().toLower().indexOf("midthick")) {
-                return allAnatomicalSurfaces[i];
-            }
-        }
-        return allAnatomicalSurfaces[0];
-    }
-    return NULL;
+    /*
+     * Kludge to avoid duplicated code and ease maintenance
+     */
+    const Surface* constSurface = this->getVolumeInteractionSurfacePrivate();
+    Surface* s = (Surface*)constSurface;
+    return s;
 }
 
 /**

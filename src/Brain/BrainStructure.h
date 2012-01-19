@@ -133,6 +133,8 @@ namespace caret {
         bool removeDataFile(CaretDataFile* caretDataFile);
         
     private:
+        const Surface* getVolumeInteractionSurfacePrivate() const;
+        
         Brain* brain;
         
         StructureEnum::Enum structure;
