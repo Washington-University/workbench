@@ -347,13 +347,13 @@ SurfaceProjectionBarycentric::resetAllValues()
 {
     this->projectionValid  = false;
     
-    this->triangleAreas[0] = 0.0;
-    this->triangleAreas[1] = 0.0;
-    this->triangleAreas[2] = 0.0;
+    this->triangleAreas[0] = -1.0;
+    this->triangleAreas[1] = -1.0;
+    this->triangleAreas[2] = -1.0;
     
-    this->triangleNodes[0] = 0;
-    this->triangleNodes[1] = 0;
-    this->triangleNodes[2] = 0;
+    this->triangleNodes[0] = -1;
+    this->triangleNodes[1] = -1;
+    this->triangleNodes[2] = -1;
     
     this->signedDistanceAboveSurface = 0.0;
 }

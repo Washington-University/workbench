@@ -207,6 +207,7 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                                                         nodes);
                 bp->setTriangleNodes(nodes.data());
             }
+            bp->setValid(true);
         }
             break;
         case STATE_VAN_ESSEN:
@@ -300,6 +301,7 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                 }
                 ve->setVertexAnatomical(va);
             }
+            ve->setValid(true);
         }
             break;
     }
