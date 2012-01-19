@@ -1577,8 +1577,6 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
-                this->zeroizeData();
-
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();                
                 float *data = new float [num];
                 if (this->ciftiInterface->hasRowVolumeData()) {
