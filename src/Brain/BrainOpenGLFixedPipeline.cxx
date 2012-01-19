@@ -1102,8 +1102,9 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
     
     uint8_t idRGB[3];
     
+    BrainStructureNodeAttributes* nodeAttributes = brainStructure->getNodeAttributes();
     for (int32_t i = 0; i < numNodes; i++) {
-        if (brainStructure->getNodeAttributes(i)->getIdentificationType() != NodeIdentificationTypeEnum::NONE) {
+        if (nodeAttributes->getIdentificationType(i) != NodeIdentificationTypeEnum::NONE) {
             if (isSelect) {
                 this->colorIdentification->addItem(idRGB, 
                                                    IdentificationItemDataTypeEnum::SURFACE_NODE_IDENTIFICATION_SYMBOL, 
@@ -1111,7 +1112,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 glColor3ubv(idRGB);
             }
             else {
-                switch (brainStructure->getNodeAttributes(i)->getIdentificationType()) {
+                switch (nodeAttributes->getIdentificationType(i)) {
                     case NodeIdentificationTypeEnum::NONE:
                         break;
                     case NodeIdentificationTypeEnum::NORMAL:

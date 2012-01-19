@@ -23,19 +23,25 @@
  * 
  */ 
 
+#include <algorithm>
+
 #define __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
 #include "BrainStructureNodeAttributes.h"
 #undef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
+
+#include "CaretAssert.h"
 
 using namespace caret;
 
 
     
 /**
- * \class BrainStructureNodeAttributes 
- * \brief Contains attributes for a node in a brain structure.
+ * \class caret::BrainStructureNodeAttributes 
+ * \brief Contains attributes for all node in a brain structure.
  *
- * Contains attributes for a node in a brain structure.
+ * Contains attributes for all nodes in a brain structure.
+ * If the number of nodes in the brain structure changes,
+ * this class' update() method must be called.
  */
 
 /**
@@ -44,7 +50,7 @@ using namespace caret;
 BrainStructureNodeAttributes::BrainStructureNodeAttributes()
 : CaretObject()
 {
-    this->reset();
+    this->update(0);
 }
 
 /**
@@ -62,35 +68,54 @@ BrainStructureNodeAttributes::~BrainStructureNodeAttributes()
 AString 
 BrainStructureNodeAttributes::toString() const
 {
-    return ("identified=" + NodeIdentificationTypeEnum::toName(this->identificationType));
+    return ("BrainStructureNodeAttributes");
 }
 
-/**
- * Reset this node's attributes.
- */
 void 
-BrainStructureNodeAttributes::reset()
+BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
 {
-    this->identificationType = NodeIdentificationTypeEnum::NONE;
+    if (numberOfNodes > 0) {
+        this->identificationType.resize(numberOfNodes);
+        this->setAllIdentificationNone();
+    }
+    else {
+        this->identificationType.clear();
+    }
+}
+
+void 
+BrainStructureNodeAttributes::setAllIdentificationNone()
+{
+    std::fill(this->identificationType.begin(),
+              this->identificationType.end(),
+              NodeIdentificationTypeEnum::NONE);
 }
 
 /**
+ * Get the identification type for the given node.
+ * @param nodeNumber
+ *     Number of node.
  * @return The identified status of the node.
  */
 NodeIdentificationTypeEnum::Enum 
-BrainStructureNodeAttributes::getIdentificationType() const
+BrainStructureNodeAttributes::getIdentificationType(const int32_t nodeNumber) const
 {
-    return this->identificationType;
+    CaretAssertVectorIndex(this->identificationType, nodeNumber);
+    return this->identificationType[nodeNumber];
 }
 
 /**
- * Set the identified status of the node.
+ * Set the identification type for the given node.
+ * @param nodeNumber
+ *     Number of node.
  * @param identifiedStatus
  *    New identified status.
  */
 void 
-BrainStructureNodeAttributes::setIdentificationType(const NodeIdentificationTypeEnum::Enum identificationType)
+BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeNumber,
+                                                    const NodeIdentificationTypeEnum::Enum identificationType)
 {
-    this->identificationType = identificationType;
+    CaretAssertVectorIndex(this->identificationType, nodeNumber);
+    this->identificationType[nodeNumber] = identificationType;
 }
 

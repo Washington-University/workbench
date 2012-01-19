@@ -67,6 +67,7 @@ BrainStructure::BrainStructure(Brain* brain,
     
     this->brain = brain;
     this->structure = structure;
+    this->nodeAttributes = new BrainStructureNodeAttributes();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
@@ -116,11 +117,7 @@ BrainStructure::~BrainStructure()
     }
     this->rgbaFiles.clear();
 
-    for (uint64_t i = 0; i < this->nodeAttributes.size(); i++) {
-        delete this->nodeAttributes[i];
-        this->nodeAttributes[i] = NULL;
-    }
-    this->nodeAttributes.clear();
+    delete this->nodeAttributes;
 }
 
 /**
@@ -269,19 +266,7 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
     
     if (numNodes == 0) {
         const int32_t numSurfaceNodes = surface->getNumberOfNodes();
-        if (numSurfaceNodes > 0) {
-            ElapsedTimer timer;
-            timer.start();
-            this->nodeAttributes.resize(numSurfaceNodes);
-            for (int32_t i = 0; i < numSurfaceNodes; i++) {
-                this->nodeAttributes[i] = new BrainStructureNodeAttributes();
-            }
-            CaretLogInfo("Time to create BrainStructureNodeAttributes for \""
-                         + StructureEnum::toGuiName(this->structure)
-                         + "\" was "
-                         + AString::number(timer.getElapsedTimeSeconds())
-                         + " seconds.");
-        }
+        this->nodeAttributes->update(numSurfaceNodes);
     }
     
     surface->setBrainStructure(this);
@@ -857,16 +842,18 @@ BrainStructure::receiveEvent(Event* event)
         
         IdentificationManager* idManager = idLocationEvent->getIdentificationManager();
         if (highlighNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes(highlighNodeIndex);
-            nodeAtts->setIdentificationType(identificationType);
+            BrainStructureNodeAttributes* nodeAtts = this->getNodeAttributes();
+            nodeAtts->setIdentificationType(highlighNodeIndex,
+                                            identificationType);
             idManager->addAdditionalSurfaceNodeIdentification(this->getVolumeInteractionSurface(), 
                                                               highlighNodeIndex,
                                                               (identificationType == NodeIdentificationTypeEnum::CONTRALATERAL));
             idLocationEvent->setEventProcessed();
         }
         if (contralateralHighlightNodeIndex >= 0) {
-            BrainStructureNodeAttributes* nodeAtts = contralateralBrainStructure->getNodeAttributes(contralateralHighlightNodeIndex);
-            nodeAtts->setIdentificationType(contralateralIdentificationType);
+            BrainStructureNodeAttributes* nodeAtts = contralateralBrainStructure->getNodeAttributes();
+            nodeAtts->setIdentificationType(contralateralHighlightNodeIndex,
+                                            contralateralIdentificationType);
             idManager->addAdditionalSurfaceNodeIdentification(contralateralSurface, 
                                                               contralateralHighlightNodeIndex,
                                                               true);
@@ -878,21 +865,21 @@ BrainStructure::receiveEvent(Event* event)
         CaretAssert(idRemovalEvent);
         
         if (idRemovalEvent->isRemoveAllSurfaceSymbols()) {
-            for (uint32_t i = 0; i < this->nodeAttributes.size(); i++) {
-                this->nodeAttributes[i]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
-            }
+            this->nodeAttributes->setAllIdentificationNone();
         }
         else if (idRemovalEvent->isRemoveSurfaceNodeSymbol()) {
             const StructureEnum::Enum idStructure = idRemovalEvent->getSurfaceStructure();
             const int32_t idNodeNumber = idRemovalEvent->getSurfaceNodeNumber();
             if (idStructure == this->structure) {
                 if (this->getNumberOfNodes() >= idNodeNumber) {
-                    this->nodeAttributes[idNodeNumber]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+                    this->nodeAttributes->setIdentificationType(idNodeNumber,
+                                                                NodeIdentificationTypeEnum::NONE);
                 }
             }
             else if (this->structure == StructureEnum::getContralateralStructure(idStructure)) {
                 if (this->getNumberOfNodes() >= idNodeNumber) {
-                    this->nodeAttributes[idNodeNumber]->setIdentificationType(NodeIdentificationTypeEnum::NONE);
+                    this->nodeAttributes->setIdentificationType(idNodeNumber,
+                                                                NodeIdentificationTypeEnum::NONE);
                 }
             }
         }
@@ -921,31 +908,25 @@ BrainStructure::getBrainStructureIdentifier() const
 }
 
 /**
- * Get the attributes for a node.
- * @param nodeIndex
- *    Index of the node.
+ * Get the attributes for this brain structure.
  * @return
- *    Attributes for the given node.
+ *    Attributes for this brain structure.
  */
 BrainStructureNodeAttributes* 
-BrainStructure::getNodeAttributes(const int32_t nodeIndex)
+BrainStructure::getNodeAttributes()
 {
-    CaretAssertVectorIndex(this->nodeAttributes, nodeIndex);
-    return this->nodeAttributes[nodeIndex];
+    return this->nodeAttributes;
 }
 
 /**
- * Get the attributes for a node.
- * @param nodeIndex
- *    Index of the node.
+ * Get the attributes for this brain structure.
  * @return
- *    Attributes for the given node.
+ *    Attributes for this brain structure.
  */
 const BrainStructureNodeAttributes* 
-BrainStructure::getNodeAttributes(const int32_t nodeIndex) const
+BrainStructure::getNodeAttributes() const
 {
-    CaretAssertVectorIndex(this->nodeAttributes, nodeIndex);
-    return this->nodeAttributes[nodeIndex];
+    return this->nodeAttributes;
 }
 
 /**

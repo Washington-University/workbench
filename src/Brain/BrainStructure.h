@@ -124,9 +124,9 @@ namespace caret {
         
         int64_t getBrainStructureIdentifier() const;
         
-        BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex);
+        BrainStructureNodeAttributes* getNodeAttributes();
         
-        const BrainStructureNodeAttributes* getNodeAttributes(const int32_t nodeIndex) const;
+        const BrainStructureNodeAttributes* getNodeAttributes() const;
         
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
@@ -156,7 +156,7 @@ namespace caret {
         /** Generates unique number assigned to each brain structure */
         static int64_t brainStructureIdentifierCounter;
         
-        std::vector<BrainStructureNodeAttributes*> nodeAttributes;
+        BrainStructureNodeAttributes* nodeAttributes;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__

@@ -38,11 +38,14 @@ namespace caret {
         
         virtual ~BrainStructureNodeAttributes();
         
-        NodeIdentificationTypeEnum::Enum getIdentificationType() const;
+        NodeIdentificationTypeEnum::Enum getIdentificationType(const int32_t nodeNumber) const;
         
-        void setIdentificationType(const NodeIdentificationTypeEnum::Enum identificationType);
+        void setIdentificationType(const int32_t nodeNumber,
+                                   const NodeIdentificationTypeEnum::Enum identificationType);
         
-        void reset();
+        void setAllIdentificationNone();
+        
+        void update(const int32_t numberOfNodes);
         
     private:
         BrainStructureNodeAttributes(const BrainStructureNodeAttributes&);
@@ -53,7 +56,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        NodeIdentificationTypeEnum::Enum identificationType;
+        std::vector<NodeIdentificationTypeEnum::Enum> identificationType;
     };
     
 #ifdef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
