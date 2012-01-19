@@ -506,6 +506,10 @@ ConnectivityLoaderControl::fileButtonPressed(QAbstractButton* button)
                     this->animators[fileIndex] = NULL;
                 }
             }
+            manager->loadTimePointAtTime(loaderFile,0.0);
+            //loaderFile->loadTimePointAtTime(0.0);
+
+
         }        
     }
     

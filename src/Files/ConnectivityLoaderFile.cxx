@@ -1513,9 +1513,7 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
-                break;     
-            case LOADER_TYPE_DENSE:
-                break;
+                break;            
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();                
@@ -1572,8 +1570,6 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
-                break;
-            case LOADER_TYPE_DENSE:
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
