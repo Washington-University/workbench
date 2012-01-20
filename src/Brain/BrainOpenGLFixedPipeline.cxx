@@ -1112,16 +1112,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 glColor3ubv(idRGB);
             }
             else {
-                switch (nodeAttributes->getIdentificationType(i)) {
-                    case NodeIdentificationTypeEnum::NONE:
-                        break;
-                    case NodeIdentificationTypeEnum::NORMAL:
-                        glColor3f(0.0, 1.0, 0.0);
-                        break;
-                    case NodeIdentificationTypeEnum::CONTRALATERAL:
-                        glColor3f(0.0, 0.0, 1.0);
-                        break;
-                }
+                glColor4fv(nodeAttributes->getIdentificationRGBA(i));
             }
             const int32_t i3 = i * 3;
             glPushMatrix();

@@ -38,14 +38,19 @@ namespace caret {
         
         virtual ~BrainStructureNodeAttributes();
         
-        NodeIdentificationTypeEnum::Enum getIdentificationType(const int32_t nodeNumber) const;
+        NodeIdentificationTypeEnum::Enum getIdentificationType(const int32_t nodeIndex) const;
         
-        void setIdentificationType(const int32_t nodeNumber,
+        void setIdentificationType(const int32_t nodeIndex,
                                    const NodeIdentificationTypeEnum::Enum identificationType);
         
         void setAllIdentificationNone();
         
         void update(const int32_t numberOfNodes);
+        
+        const float* getIdentificationRGBA(const int32_t nodeIndex) const;
+        
+        void setIdentificationRGBA(const int32_t nodeIndex,
+                                   const float rgba[3]);
         
     private:
         BrainStructureNodeAttributes(const BrainStructureNodeAttributes&);
@@ -57,6 +62,7 @@ namespace caret {
         
     private:
         std::vector<NodeIdentificationTypeEnum::Enum> identificationType;
+        std::vector<float> identificationRGBA;
     };
     
 #ifdef __BRAIN_STRUCTURE_NODE_ATTRIBUTE_DECLARE__
