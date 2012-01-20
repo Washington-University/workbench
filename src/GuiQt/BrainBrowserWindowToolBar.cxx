@@ -66,6 +66,7 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGetOrSetUserInputModeProcessor.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
@@ -471,8 +472,8 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     this->tabBar->blockSignals(false);
     
     if (this->isContructorFinished) {
-        this->updateUserInterface();
-        this->updateGraphicsWindow();
+        //this->updateUserInterface();
+        //this->updateGraphicsWindow();
     }
 }
 
@@ -571,6 +572,10 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (this->tabBar->count() > 0) {
         this->tabBar->setCurrentIndex(0);
     }
+    EventUserInterfaceUpdate f;
+    EventManager::get()->sendEvent(f.getPointer());
+    EventGraphicsUpdateAllWindows e;
+    EventManager::get()->sendEvent(e.getPointer());
 }
 
 /**
