@@ -49,7 +49,9 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     ui(new Ui::TimeCourseDialog)
 {
     ui->setupUi(this);
-
+#ifdef CARET_OS_WINDOWS
+    this->setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
+#endif
     this->plot = new caret::PlotTC();
 
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
