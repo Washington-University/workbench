@@ -85,6 +85,18 @@ private slots:
 
     void on_TDKeepLast_valueChanged(int arg1);
 
+    void on_zoomXCheckBox_toggled(bool checked);
+
+    void on_zoomYCheckBox_toggled(bool checked);    
+
+    void on_lineWidthSpinBox_valueChanged(int arg1);
+
+
+
+    void on_autoFitTimeLinesCheckBox_toggled(bool checked);
+
+    void on_resetViewButton_clicked();
+
 private:
     PlotTC *plot;
     Ui::TimeCourseDialog *ui;
@@ -97,14 +109,6 @@ private:
 namespace caret {
 
 
-//-----------------------------------------------------------------
-//              simple.cpp
-//
-//      A simple example which shows how to use QwtPlot connected
-//      to a data class without any storage, calculating each values
-//      on the fly.
-//-----------------------------------------------------------------
-
 class PlotTC : public QwtPlot
 {
 public:
@@ -116,7 +120,11 @@ public:
      void clear(QList<TimeLine> &tlV);
      void setMaxTimeLines(int maxIn) { max = maxIn; }
      int getMaxTimeLines() { return max;}
-
+     void setAutoScaleEnabled(bool checked);
+     void setTimeLineWidth(int width);
+     QwtPlotMagnifier * magnifier;
+     void resetView();
+     bool getAutoScale();
 protected:
     void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
     virtual void resizeEvent( QResizeEvent * );
@@ -125,6 +133,9 @@ protected:
     int max;
     bool displayAverage;
     TimeLine averageTimeLine;
+    bool autoScaleEnabled;
+    bool autoScaleOnce;
+    int lineWidth;
 };
 
 

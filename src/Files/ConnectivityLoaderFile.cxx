@@ -1583,7 +1583,7 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                     if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))                                                             
                     {
                         CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
-                        this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
+                        //this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
                         if(this->timeSeriesGraphEnabled)
                         {
                             tl.x.clear();

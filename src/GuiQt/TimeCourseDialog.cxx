@@ -88,8 +88,6 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     plot->detachItems();
     plot->populate(tlV);
 
-    plot->setAxisAutoScale(1);
-
     this->setVisible(true);
     this->show();
     this->activateWindow();
@@ -146,11 +144,16 @@ PlotTC::PlotTC(QWidget *parent):
     QwtPlot( parent )
 {
     max = 5;
+    lineWidth = 1;
+    autoScaleEnabled = true;
     // panning with the left mouse button
     (void) new QwtPlotPanner( canvas() );
 
-    // zoom in/out with the wheel
-    (void) new QwtPlotMagnifier( canvas() );
+    // zoom in/out with the wheel`
+    magnifier = new QwtPlotMagnifier( canvas() );
+    magnifier->setAxisEnabled(QwtPlot::yLeft,false);
+    magnifier->setAxisEnabled(QwtPlot::yRight,false);
+    
 
     setAutoFillBackground( true );
     setPalette( QPalette( QColor( 165, 193, 228 ) ) );    
@@ -203,11 +206,22 @@ void PlotTC::populate(QList<TimeLine> &tlV)
     //setAxisScale(yLeft,0,y.size()-1);
 
     //Plot Time Lines
+    if(this->getAutoScale())
+    {
+        setAxisAutoScale(QwtPlot::xBottom);
+        setAxisAutoScale(QwtPlot::yLeft);
+    }
+    
     for(int i = 0;i<tlV.size();i++)
     {
         drawTimeLine(tlV[i]);
     }
     if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
+    if(!this->getAutoScale())
+    {
+        setAxisAutoScale(QwtPlot::xBottom,false);
+        setAxisAutoScale(QwtPlot::yLeft,false);
+    }
 }
 
 void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
@@ -217,6 +231,7 @@ void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
 
     {
         myPen = new QPen(colors.getColor(tl.colorID));
+        myPen->setWidth(this->lineWidth);
     }
     else
     {
@@ -283,9 +298,64 @@ void PlotTC::resizeEvent( QResizeEvent *event )
     QwtPlot::resizeEvent( event );
 }
 
-
 void TimeCourseDialog::on_TDKeepLast_valueChanged(int arg1)
 {
     this->plot->setMaxTimeLines(arg1);
     this->updateDialog();
+}
+
+void TimeCourseDialog::on_zoomXCheckBox_toggled(bool checked)
+{
+    this->plot->magnifier->setAxisEnabled(QwtPlot::xBottom,checked);
+    this->plot->magnifier->setAxisEnabled(QwtPlot::xTop,checked);
+}
+
+void TimeCourseDialog::on_zoomYCheckBox_toggled(bool checked)
+{
+    this->plot->magnifier->setAxisEnabled(QwtPlot::yLeft,checked);
+    this->plot->magnifier->setAxisEnabled(QwtPlot::yRight,checked);
+}
+
+void TimeCourseDialog::on_lineWidthSpinBox_valueChanged(int arg1)
+{
+    this->plot->setTimeLineWidth(arg1);
+    this->updateDialog(true);
+}
+
+void PlotTC::setTimeLineWidth(int width)
+{
+    this->lineWidth = width;    
+}
+
+void PlotTC::setAutoScaleEnabled(bool checked)
+{
+    this->autoScaleEnabled = checked;
+}
+
+bool PlotTC::getAutoScale()
+{
+    if(autoScaleOnce || autoScaleEnabled)
+    {
+        autoScaleOnce = false;
+        return true;
+    }
+    else
+        return false;
+}
+
+void PlotTC::resetView()
+{
+    autoScaleOnce = true;
+}
+
+void TimeCourseDialog::on_autoFitTimeLinesCheckBox_toggled(bool checked)
+{
+    this->plot->setAutoScaleEnabled(checked);
+    this->updateDialog(true);
+}
+
+void TimeCourseDialog::on_resetViewButton_clicked()
+{
+    this->plot->resetView();
+    this->updateDialog(true);
 }
