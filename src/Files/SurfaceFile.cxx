@@ -261,6 +261,26 @@ SurfaceFile::getCoordinate(const int32_t nodeIndex) const
     return &(this->coordinatePointer[offset]);    
 }
 
+/**
+ * Get a coordinate.
+ *
+ * @param
+ *    nodeIndex of coordinate.
+ * @param xyzOut
+ *    Will contain coordinate upon exit.
+ */
+void 
+SurfaceFile::getCoordinate(const int32_t nodeIndex,
+                           float xyzOut[3]) const
+{
+    CaretAssert(this->coordinatePointer);
+    const int32_t offset = nodeIndex * 3;
+    CaretAssert((offset >= 0) && (offset < (this->getNumberOfNodes() * 3)));
+    xyzOut[0] = this->coordinatePointer[offset];
+    xyzOut[1] = this->coordinatePointer[offset+1];
+    xyzOut[2] = this->coordinatePointer[offset+2];
+}
+
 const float* SurfaceFile::getCoordinateData() const
 {
     CaretAssert(this->coordinatePointer);

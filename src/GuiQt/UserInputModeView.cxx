@@ -34,6 +34,7 @@
 #include "BrainStructure.h"
 #include "BrainStructureNodeAttributes.h"
 #include "BrowserTabContent.h"
+#include "CaretLogger.h"
 #include "ConnectivityLoaderManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationHighlightLocation.h"
@@ -183,13 +184,25 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretAssert(brainStructure);
                 
+                float xyz[3];
                 const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
+                if (volumeInteractionSurface != NULL) {
+                    volumeInteractionSurface->getCoordinate(nodeIndex,
+                                                            xyz);
+                }
+                else {
+                    CaretLogWarning("No surface/volume interaction surface for "
+                                    + StructureEnum::toGuiName(brainStructure->getStructure()));
+                    xyz[0] = -10000000.0;
+                    xyz[1] = -10000000.0;
+                    xyz[2] = -10000000.0;
+                }
                 EventIdentificationHighlightLocation idLocation(idManager,
                                                                 brainStructure,
                                                                 brainStructure->getStructure(),
                                                                 nodeIndex,
                                                                 brainStructure->getNumberOfNodes(),
-                                                                surface->getCoordinate(nodeIndex));
+                                                                xyz);
                 EventManager::get()->sendEvent(idLocation.getPointer());                
                 QList <TimeLine> tlV;
                 connMan->getSurfaceTimeLines(tlV);

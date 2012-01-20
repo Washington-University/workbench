@@ -452,17 +452,15 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
     }
     
     if (volumeInteractionSurface != NULL) {
-        std::cout << "Volume Interaction Surface for "
-        << StructureEnum::toGuiName(this->structure)
-        << ": " 
-        << volumeInteractionSurface->getFileNameNoPath()
-        << std::endl;
+        CaretLogFiner("Volume Interaction Surface for "
+                      + StructureEnum::toGuiName(this->structure)
+                      + ": " 
+                      + volumeInteractionSurface->getFileNameNoPath());
     }
     else {
-        std::cout << "Volume Interaction Surface for "
-        << StructureEnum::toGuiName(this->structure)
-        << " is invalid." 
-        << std::endl;
+        CaretLogFiner("Volume Interaction Surface for "
+                      + StructureEnum::toGuiName(this->structure)
+                      + " is invalid.");
     }
     
     return volumeInteractionSurface;

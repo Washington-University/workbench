@@ -64,6 +64,9 @@ namespace caret {
         
         const float* getCoordinate(const int32_t nodeIndex) const;
         
+        void getCoordinate(const int32_t nodeIndex,
+                           float xyzOut[3]) const;
+        
         const float* getCoordinateData() const;
         
         const float* getNormalVector(const int32_t nodeIndex) const;
