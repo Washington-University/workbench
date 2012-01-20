@@ -595,10 +595,10 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
             }
             ++myIndex;
         }
-    }//UNLOCK the mutex while we build a new helper, so that they can be built in parallel
-    if (infoSorted && !m_topoBase->isNodeInfoSorted())
-    {
-        m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
+        if (m_topoBase == NULL || (infoSorted && !m_topoBase->isNodeInfoSorted()))
+        {
+            m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
+        }
     }
     CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));//could copy from an existing one instead of rebuilding
     CaretMutexLocker myLock(&m_topoHelperMutex);//lock before modifying the array

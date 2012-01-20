@@ -325,7 +325,7 @@ namespace caret {
             m_share = new CaretArrayShare();
             m_share->m_pointer = new T[size];
             m_share->m_size = size;
-            T* end = m_pointer + size, *iter = m_pointer;
+            T* end = m_share->m_pointer + size, *iter = m_share->m_pointer;
             do
             {
                 *iter = initializer;//somewhat optimized, since this code will probably get used many places

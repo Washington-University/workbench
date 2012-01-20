@@ -774,16 +774,18 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                     break;
                 case 1://edge
                     {
-                        set<TopologyEdgeInfo>::const_iterator myEdge = m_topoHelp->getEdgeInfo().find(TopologyEdgeInfo(-1, myInfo.node1, myInfo.node2));
-                        CaretAssert(myEdge != m_topoHelp->getEdgeInfo().end());
                         const vector<TopologyEdgeInfo>& edgeInfo = m_topoHelp->getEdgeInfo();
                         const vector<int>& edges = m_topoHelp->getNodeEdges(myInfo.node1);
                         int whichEdge = -1, numEdges = (int)edges.size();
                         for (int i = 0; i < numEdges; ++i)
                         {
+                            if (edgeInfo[edges[i]].node1 == myInfo.node2 || edgeInfo[edges[i]].node2 == myInfo.node2)
+                            {
+                                whichEdge = edges[i];
+                            }
                         }
-                        int tile1, tile2;
-                        myEdge->getTiles(tile1, tile2);
+                        CaretAssert(whichEdge != -1);
+                        int tile1 = edgeInfo[whichEdge].tiles[0].tile, tile2 = edgeInfo[whichEdge].tiles[1].tile;
                         Vector3D normalaccum, tempvec;//default constructor initializes it to the zero vector
                         if (tile1 > -1)
                         {

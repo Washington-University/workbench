@@ -96,7 +96,7 @@ TopologyHelperBase::TopologyHelperBase(const SurfaceFile* surfIn, bool sortFlag)
         m_boundaryCount[i] = 0;
         for (int j = 0; j < numNeigh; ++j)
         {
-            if (m_edgeInfo[myEdgeList[j]].numTiles == 1) ++m_boundaryCount[i];
+            if (tempEdgeInfo[myEdgeList[j]].numTiles == 1) ++m_boundaryCount[i];
             scratch[myNeighList[j]] = -1;//NOTE: -1 as sentinel because 0 is a valid edge number
         }
     }//neighbor, edge and tile info done
@@ -159,7 +159,6 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
     tempNeigh.reserve(numNeigh);
     tempEdges.reserve(numNeigh);
     tempTiles.reserve(numTiles);
-    int nextNodeIndex = firstIndex;
     int nextNode = myNodeInfo.m_neighbors[firstIndex];
     int nextEdge = myNodeInfo.m_edges[firstIndex];
     int nextTile;
