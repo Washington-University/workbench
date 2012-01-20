@@ -122,7 +122,7 @@ void TopologyHelperBase::processTileNeighbor(vector<TopologyEdgeInfo>& tempEdgeI
     if (scratch[neighbor] == -1)
     {
         TopologyEdgeInfo tempInfo(root, neighbor, thirdNode, tile, tileEdge, reversed);
-        int myEdge = (int)m_edgeInfo.size();
+        int myEdge = (int)tempEdgeInfo.size();
         tempEdgeInfo.push_back(tempInfo);
         m_nodeInfo[root].addNeighborInfo(neighbor, myEdge);
         m_nodeInfo[neighbor].addNeighborInfo(root, myEdge);
