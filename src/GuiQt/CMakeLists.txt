@@ -25,6 +25,7 @@ INCLUDE(${QT_USE_FILE})
 # up in development tools such as XCode.
 #
 SET(MOC_INPUT_HEADER_FILES
+BorderDrawFinishDialog.h
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
@@ -72,6 +73,7 @@ WuQWidgetObjectGroup.h
 # named MOC_INPUT_HEADER_FILES
 #
 SET(SOURCE_FILES
+BorderDrawFinishDialog.h
 BrainBrowserWindow.h
 BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
@@ -128,7 +130,7 @@ WuQSpinBoxGroup.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
-
+BorderDrawFinishDialog.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowToolBar.cxx

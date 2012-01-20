@@ -296,11 +296,15 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
         float xyz[3];
         spi->getProjectedPosition(*idSurfaceBorder->getSurface(), xyz, false);
 
-        const AString boldText = ("BORDER " 
-                                  + StructureEnum::toGuiName(spi->getStructure())
-                                  + " "
-                                  + border->getName() 
-                                  + " ");
+        AString boldText = ("BORDER " 
+                            + StructureEnum::toGuiName(spi->getStructure())
+                            + " Name: "
+                            + border->getName());
+        if (border->getClassName().isEmpty() == false) {
+            boldText += (" ClassName: "
+                         + border->getClassName()
+                         + ": ");
+        }
         const AString text = ("("
                               + AString::number(idSurfaceBorder->getBorderIndex())
                               + ","

@@ -104,7 +104,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void createOperationFinish(const AString& name);
+        void createOperationFinish();
         
         void createOperationUndo();
         

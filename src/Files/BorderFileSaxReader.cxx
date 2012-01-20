@@ -127,7 +127,8 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
                this->surfaceProjectedItemSaxReader = new SurfaceProjectedItemSaxReader(this->surfaceProjectedItem);
                this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
-           else if (qName != Border::XML_TAG_NAME) {
+           else if ((qName != Border::XML_TAG_NAME) 
+                    && (qName != Border::XML_TAG_CLASS_NAME)) {
                const AString msg = XmlUtilities::createInvalidChildElementMessage(Border::XML_TAG_BORDER, 
                                                                                   qName);
                XmlSaxParserException e(msg);
@@ -184,6 +185,9 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
            CaretAssert(this->border);
            if (qName == Border::XML_TAG_NAME) {
                this->border->setName(this->elementText.trimmed());
+           }
+           else if (qName == Border::XML_TAG_CLASS_NAME) {
+               this->border->setClassName(this->elementText.trimmed());
            }
            else if (qName == Border::XML_TAG_BORDER) {
                this->borderFile->addBorder(this->border);

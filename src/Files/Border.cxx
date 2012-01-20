@@ -100,6 +100,7 @@ Border::copyHelperBorder(const Border& obj)
     }
     
     this->name = obj.name;
+    this->className = obj.className;
     
     this->clearModified();
 }
@@ -117,6 +118,7 @@ Border::clear()
     this->points.clear();
     
     this->name = "";
+    this->className = "";
     
     this->setModified();
 }
@@ -139,6 +141,27 @@ void
 Border::setName(const AString& name)
 {
     this->name = name;
+    this->setModified();
+}
+
+/**
+ * @return the class name of the border.
+ */
+AString 
+Border::getClassName() const
+{
+    return this->className;
+}
+
+/**
+ * Set the class name of the border.
+ * @param className
+ *   New class name for border.
+ */
+void 
+Border::setClassName(const AString& className)
+{
+    this->className = className;
     this->setModified();
 }
 
@@ -242,6 +265,10 @@ Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     xmlWriter.writeStartElement(XML_TAG_BORDER);
     
     xmlWriter.writeElementCharacters(XML_TAG_NAME, this->name);
+    
+    if (this->className.isEmpty() == false) {
+        xmlWriter.writeElementCharacters(XML_TAG_CLASS_NAME, this->className);
+    }
     
     const int32_t numPoints = this->getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {

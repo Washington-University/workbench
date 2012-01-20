@@ -33,6 +33,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -310,19 +311,11 @@ UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
  * Finish the border that the user was drawing.
  */
 void 
-UserInputModeBorders::createOperationFinish(const AString& name)
+UserInputModeBorders::createOperationFinish()
 {
-    if (this->borderBeingDrawnByOpenGL->getNumberOfPoints() > 1) {
-        Border* border = new Border(*this->borderBeingDrawnByOpenGL);
-        border->setName(name);
-        
-        BorderFile* borderFile = GuiManager::get()->getBrain()->getFirstBorderFile();
-        borderFile->addBorder(border);
-    }
-    
     this->borderBeingDrawnByOpenGL->clear();
 
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

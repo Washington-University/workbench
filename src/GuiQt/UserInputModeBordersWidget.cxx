@@ -38,6 +38,7 @@
 #undef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__
 
 #include "CaretAssert.h"
+#include "BorderDrawFinishDialog.h"
 #include "UserInputModeBorders.h"
 #include "WuQtUtilities.h"
 
@@ -368,11 +369,10 @@ UserInputModeBordersWidget::createUndoButtonClicked()
 void 
 UserInputModeBordersWidget::createFinishButtonClicked()
 {
-    const QString name= QInputDialog::getText(this,
-                                              "Finish Border",
-                                              "Name");
-    if (name.isNull() == false) {
-        this->inputModeBorders->createOperationFinish(name);
+    BorderDrawFinishDialog finishBorderDialog(this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                              this);
+    if (finishBorderDialog.exec() == BorderDrawFinishDialog::Accepted) {
+        this->inputModeBorders->createOperationFinish();
     }
 }
 

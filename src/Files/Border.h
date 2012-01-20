@@ -54,6 +54,10 @@ namespace caret {
         
         void setName(const AString& name);
         
+        AString getClassName() const;
+        
+        void setClassName(const AString& name);
+        
         int32_t getNumberOfPoints() const;
         
         const SurfaceProjectedItem* getPoint(const int32_t indx) const;
@@ -70,17 +74,21 @@ namespace caret {
         
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
+        static const AString XML_TAG_CLASS_NAME;
         
     private:
         void copyHelperBorder(const Border& obj);
         
         AString name;
         
+        AString className;
+        
         std::vector<SurfaceProjectedItem*> points;
     };
     
 #ifdef __BORDER_DECLARE__
     const AString Border::XML_TAG_BORDER = "Border";
+    const AString Border::XML_TAG_CLASS_NAME   = "ClassName";
     const AString Border::XML_TAG_NAME   = "Name";
 #endif // __BORDER_DECLARE__
 
