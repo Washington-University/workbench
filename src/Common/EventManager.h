@@ -80,6 +80,8 @@ namespace caret {
         
         EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
         
+        int64_t eventCounter;
+        
         static EventManager* singletonEventManager;
         
     };

@@ -44,7 +44,7 @@ using namespace caret;
  */
 EventManager::EventManager()
 {
-    
+    this->eventCounter = 0;
 }
 
 /**
@@ -214,7 +214,11 @@ EventManager::sendEvent(Event* event)
     EventTypeEnum::Enum eventType = event->getEventType();
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
     
-    AString msg = ("Sending event: " 
+    const AString eventNumberString = AString::number(this->eventCounter);
+    
+    AString msg = ("Sending event "
+                   + eventNumberString
+                   + ": "
                    + event->toString() 
                    + " from thread: " 
                    + AString::number((uint64_t)QThread::currentThread()));
@@ -239,7 +243,7 @@ EventManager::sendEvent(Event* event)
         listener->receiveEvent(event);
         
         if (event->isError()) {
-            CaretLogWarning("Event had error: " + event->toString());
+            CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
             break;
         }
     }
@@ -248,7 +252,9 @@ EventManager::sendEvent(Event* event)
      * Verify event was processed.
      */
     if (event->getEventProcessCount() == 0) {
-        CaretLogWarning("Event not processed: " + event->toString());
+        CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
     }
+    
+    this->eventCounter++;
 }
 
