@@ -213,17 +213,18 @@ void PlotTC::populate(QList<TimeLine> &tlV)
         setAxisAutoScale(QwtPlot::xBottom);
         setAxisAutoScale(QwtPlot::yLeft);
     }
+    else
+    {
+        setAxisAutoScale(QwtPlot::xBottom,false);
+        setAxisAutoScale(QwtPlot::yLeft,false);
+    }
     
     for(int i = 0;i<tlV.size();i++)
     {
         drawTimeLine(tlV[i]);
     }
     if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
-    if(!this->getAutoScale())
-    {
-        setAxisAutoScale(QwtPlot::xBottom,false);
-        setAxisAutoScale(QwtPlot::yLeft,false);
-    }
+    
 }
 
 void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
