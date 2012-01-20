@@ -183,6 +183,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretAssert(brainStructure);
                 
+                const Surface* volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
                 EventIdentificationHighlightLocation idLocation(idManager,
                                                                 brainStructure,
                                                                 brainStructure->getStructure(),
