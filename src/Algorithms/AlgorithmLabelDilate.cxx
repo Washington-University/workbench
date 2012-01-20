@@ -149,7 +149,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                     {
                         colScratch[i] = bestLabel;
                     } else {
-                        myTopoHelp->getNodeNeighbors(i, nodeList);
+                        nodeList = myTopoHelp->getNodeNeighbors(i);
                         nodeList.push_back(i);
                         myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
                         numInRange = (int)nodeList.size();
@@ -220,7 +220,7 @@ AlgorithmLabelDilate::AlgorithmLabelDilate(ProgressObject* myProgObj, const Labe
                 {
                     colScratch[i] = bestLabel;
                 } else {
-                    myTopoHelp->getNodeNeighbors(i, nodeList);
+                    nodeList = myTopoHelp->getNodeNeighbors(i);
                     nodeList.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
                     numInRange = (int)nodeList.size();

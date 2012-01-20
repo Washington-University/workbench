@@ -62,9 +62,12 @@ namespace caret {
         bool operator==(const T* right) const;
         bool operator!=(const T* right) const;
         T& operator*();
+        const T& operator*() const;
         T* operator->();
+        const T* operator->() const;
         T* getPointer();
         operator T*();
+        operator const T*() const;
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
         T* releasePointer();
@@ -108,7 +111,9 @@ namespace caret {
         template <typename I>
         const T& operator[](const I& index) const;
         operator T*();
+        operator const T*() const;
         T* getArray();
+        const T* getArray() const;
         const int64_t& size() const;
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
@@ -177,7 +182,20 @@ namespace caret {
     }
 
     template <typename T>
+    CaretPointer<T>::operator const T*() const
+    {
+        return m_pointer;
+    }
+
+    template <typename T>
     T& CaretPointer<T>::operator*()
+    {
+        CaretAssert(m_pointer != NULL);
+        return *(m_pointer);
+    }
+
+    template <typename T>
+    const T& CaretPointer<T>::operator*() const
     {
         CaretAssert(m_pointer != NULL);
         return *(m_pointer);
@@ -217,6 +235,14 @@ namespace caret {
     template <typename T>
     T* CaretPointer<T>::operator->()
     {
+        CaretAssert(m_pointer != NULL);
+        return m_pointer;
+    }
+
+    template <typename T>
+    const T* CaretPointer<T>::operator->() const
+    {
+        CaretAssert(m_pointer != NULL);
         return m_pointer;
     }
 
@@ -331,6 +357,12 @@ namespace caret {
     }
 
     template <typename T>
+    const T* CaretArray<T>::getArray() const
+    {
+        return m_pointer;
+    }
+
+    template <typename T>
     const int64_t& CaretArray<T>::size() const
     {
         return m_size;
@@ -338,6 +370,12 @@ namespace caret {
 
     template <typename T>
     CaretArray<T>::operator T*()
+    {
+        return m_pointer;
+    }
+
+    template <typename T>
+    CaretArray<T>::operator const T*() const
     {
         return m_pointer;
     }

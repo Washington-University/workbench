@@ -137,6 +137,9 @@ namespace caret {
         /** The node coloring. */
         std::vector<float> nodeColoring;
         
+        ///topology base for surface
+        mutable CaretPointer<TopologyHelperBase> m_topoBase;
+        
         ///tracks allocated TopologyHelpers for this class
         mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
         

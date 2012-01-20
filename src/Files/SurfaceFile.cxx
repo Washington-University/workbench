@@ -317,10 +317,10 @@ SurfaceFile::getNumberOfTriangles() const
 const int32_t* 
 SurfaceFile::getTriangle(const int32_t indx) const
 {
-    CaretAssert(this->trianglePointer);
+    CaretAssert(this->trianglePointer != NULL);
+    CaretAssert((indx >= 0) && (indx < this->getNumberOfTriangles()));
     const int32_t offset = indx * 3;
-    CaretAssert((offset >= 0) && (offset < (this->getNumberOfTriangles() * 3)));
-    return &(this->trianglePointer[offset]);    
+    return &(this->trianglePointer[offset]);
 }
 
 /**
@@ -454,7 +454,6 @@ SurfaceFile::computeNormals(const bool averageNormals)
             float* avgTemp = new float[numCoords * 3];
 #pragma omp CARET_PAR
             {
-                std::vector<int32_t> neighbors;
                 float tempVec[3];
                 CaretPointer<TopologyHelper> myTopoHelp = getTopologyHelper();//TODO: make this not circular - separate base that doesn't handle helpers (and is used by helpers) from file that handles helpers and normals?
     #pragma omp CARET_FOR
@@ -464,7 +463,7 @@ SurfaceFile::computeNormals(const bool averageNormals)
                     tempVec[0] = 0.0f;
                     tempVec[1] = 0.0f;
                     tempVec[2] = 0.0f;
-                    myTopoHelp->getNodeNeighbors(i, neighbors);
+                    const std::vector<int32_t>& neighbors = myTopoHelp->getNodeNeighbors(i);
                     int32_t numNeigh = (int32_t)neighbors.size();
                     for (int32_t j = 0; j < numNeigh; ++j)
                     {
@@ -588,7 +587,7 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
         for (int32_t i = 0; i < myEnd; ++i)
         {
             if (myIndex >= myEnd) myIndex = 0;
-            if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->getNodeSortedInfoValid()))//1 reference: in this class, so unused elsewhere
+            if (m_topoHelpers[myIndex].getReferenceCount() == 1 && (!infoSorted || m_topoHelpers[myIndex]->isNodeInfoSorted()))//1 reference: in this class, so unused elsewhere
             {
                 helpOut = m_topoHelpers[myIndex];//NOTE: can give sorted info to something that doesn't ask for sorted, if it already exists
                 ++myIndex;
@@ -597,7 +596,11 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
             ++myIndex;
         }
     }//UNLOCK the mutex while we build a new helper, so that they can be built in parallel
-    CaretPointer<TopologyHelper> ret(new TopologyHelper(this, infoSorted));//could copy from an existing one instead of rebuilding
+    if (infoSorted && !m_topoBase->isNodeInfoSorted())
+    {
+        m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
+    }
+    CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));//could copy from an existing one instead of rebuilding
     CaretMutexLocker myLock(&m_topoHelperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     helpOut = ret;
@@ -621,6 +624,7 @@ void caret::SurfaceFile::invalidateHelpers()
     m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
     m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
     m_locator = CaretPointer<CaretPointLocator>(NULL);
+    m_topoBase = CaretPointer<TopologyHelperBase>(NULL);
 }
 
 /**

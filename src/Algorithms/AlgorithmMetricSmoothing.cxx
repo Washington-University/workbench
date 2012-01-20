@@ -226,7 +226,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsGeoGauss(SurfaceFile* mySurf, do
             myGeoHelp->getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
             if (distances.size() < 7)
             {
-                myTopoHelp->getNodeNeighbors(i, m_weightLists[i].m_nodes);
+                m_weightLists[i].m_nodes = myTopoHelp->getNodeNeighbors(i);
                 m_weightLists[i].m_nodes.push_back(i);
                 myGeoHelp->getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
             }
@@ -265,7 +265,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGauss(SurfaceFile* mySurf,
                 myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
                 if (distances.size() < 7)
                 {
-                    myTopoHelp->getNodeNeighbors(i, nodes);
+                    nodes = myTopoHelp->getNodeNeighbors(i);
                     nodes.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
                 }
@@ -309,7 +309,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsGeoGaussArea(SurfaceFile* mySurf
             myGeoHelp->getNodesToGeoDist(i, myGeoDist, tempList[i].m_nodes, distances, true);
             if (distances.size() < 7)
             {
-                myTopoHelp->getNodeNeighbors(i, tempList[i].m_nodes);
+                tempList[i].m_nodes = myTopoHelp->getNodeNeighbors(i);
                 tempList[i].m_nodes.push_back(i);
                 myGeoHelp->getGeoToTheseNodes(i, tempList[i].m_nodes, distances, true);
             }
@@ -374,7 +374,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(SurfaceFile* myS
                 myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
                 if (distances.size() < 7)
                 {
-                    myTopoHelp->getNodeNeighbors(i, nodes);
+                    nodes = myTopoHelp->getNodeNeighbors(i);
                     nodes.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
                 }

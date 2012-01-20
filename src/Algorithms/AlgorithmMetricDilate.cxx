@@ -176,7 +176,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                     {
                         colScratch[i] = weightedSum / totalWeight;
                     } else {
-                        myTopoHelp->getNodeNeighbors(i, nodeList);
+                        nodeList = myTopoHelp->getNodeNeighbors(i);
                         nodeList.push_back(i);
                         myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
                         numInRange = (int)nodeList.size();
@@ -269,7 +269,7 @@ AlgorithmMetricDilate::AlgorithmMetricDilate(ProgressObject* myProgObj, const Me
                 {
                     colScratch[i] = weightedSum / totalWeight;
                 } else {
-                    myTopoHelp->getNodeNeighbors(i, nodeList);
+                    nodeList = myTopoHelp->getNodeNeighbors(i);
                     nodeList.push_back(i);
                     myGeoHelp->getGeoToTheseNodes(i, nodeList, distList);//ok, its a little silly to do this
                     numInRange = (int)nodeList.size();

@@ -35,7 +35,8 @@ using namespace std;
 
 GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
 {
-    TopologyHelper topoHelpIn(surfaceIn);//leave this building one privately, to not introduce even worse dependencies regarding SurfaceFile
+    CaretPointer<TopologyHelperBase> topoBase(new TopologyHelperBase(surfaceIn));
+    TopologyHelper topoHelpIn(topoBase);//leave this building one privately, to not introduce even worse dependencies regarding SurfaceFile
     numNodes = surfaceIn->getNumberOfNodes();
     //allocate
     numNeighbors = new int32_t[numNodes];
@@ -67,37 +68,23 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
     vector<vector<float> > distances2Vec;
     nodeNeighbors2Vec.resize(numNodes);
     distances2Vec.resize(numNodes);
-    const set<TopologyEdgeInfo>& myEdgeInfo = topoHelpIn.getEdgeInfo();
-    set<TopologyEdgeInfo>::const_iterator myiter, myend = myEdgeInfo.end();
-    for (myiter = myEdgeInfo.begin(); myiter != myend; ++myiter)
+    const vector<TopologyEdgeInfo>& myEdgeInfo = topoHelpIn.getEdgeInfo();
+    int numEdges = myEdgeInfo.size();
+    for (int i = 0; i < numEdges; ++i)
     {
-        int32_t neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
-        myiter->getTiles(tile1, tile2);
-        if (tile2 == -1)
+        if (myEdgeInfo[i].numTiles < 2)
         {
             continue;//skip edges that have only one triangle
         }
-        myiter->getNodes(neigh1Node, neigh2Node);
+        int32_t neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
+        tile1 = myEdgeInfo[i].tiles[0].tile;
+        tile2 = myEdgeInfo[i].tiles[1].tile;
+        neigh1Node = myEdgeInfo[i].node1;
+        neigh2Node = myEdgeInfo[i].node2;
+        baseNode = myEdgeInfo[i].tiles[0].node3;
+        farNode = myEdgeInfo[i].tiles[1].node3;
         const float* neigh1Coord = surfaceIn->getCoordinate(neigh1Node);
         const float* neigh2Coord = surfaceIn->getCoordinate(neigh2Node);
-        const int32_t* triangle1 = surfaceIn->getTriangle(tile1);
-        const int32_t* triangle2 = surfaceIn->getTriangle(tile2);
-        for (int32_t i = 0; i < 3; ++i)
-        {
-            if (triangle1[i] != neigh1Node && triangle1[i] != neigh2Node)
-            {
-                baseNode = triangle1[i];
-                break;
-            }
-        }
-        for (int32_t i = 0; i < 3; ++i)
-        {
-            if (triangle2[i] != neigh1Node && triangle2[i] != neigh2Node)
-            {
-                farNode = triangle2[i];
-                break;
-            }
-        }
         const float* baseCoord = surfaceIn->getCoordinate(baseNode);
         const float* farCoord = surfaceIn->getCoordinate(farNode);
         const int32_t num_reserve = 8;//uses 8 in case it is used on a mesh with haphazard topology, these vectors go away when the constructor terminates anyway
@@ -148,7 +135,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
         nodeNeighbors2Vec[baseNode].push_back(farNode);
         distances2Vec[baseNode].push_back(tempf);
     }
-    for (int32_t i = 0; i < numNodes; ++i)
+    for (int i = 0; i < numNodes; ++i)
     {//copy it from vector into straight dynamic array, because now it won't change again, to use a bit less memory
         numNeighbors2[i] = nodeNeighbors2Vec[i].size();
         nodeNeighbors2[i] = new int32_t[numNeighbors2[i]];

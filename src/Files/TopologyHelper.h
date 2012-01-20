@@ -1,3 +1,6 @@
+#ifndef __TOPOLOGY_HELPER_H__
+#define __TOPOLOGY_HELPER_H__
+
 /*LICENSE_START*/
 /*
  *  Copyright 1995-2002 Washington University School of Medicine
@@ -21,287 +24,175 @@
  *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  */
-/*LICENSE_END*/
 
-
-
-#ifndef __VE_TOPOLOGY_HELPER_H__
-#define __VE_TOPOLOGY_HELPER_H__
-
-#include <algorithm>
-#include <iostream>
-#include <set>
 #include <vector>
-#include "CaretMutex.h"
+#include "CaretPointer.h"
 
 namespace caret {
 
-   class SurfaceFile;
-
-   /// Stores the two nodes and two tiles for an edge (link) in the surface.
-   class TopologyEdgeInfo {
-      public:
-         /// nodes in the edge
-         int node1, node2;
-         
-         /// tiles used by the edge
-         int tile1, tile2;
-         
-         /// flat to indicate if edge is used by more than two triangles
-         bool edgeHasMoreThanTwoTriangles;
-         
-         /// constructor
-         TopologyEdgeInfo(const int tileIn, const int node1In, const int node2In) {
-            edgeHasMoreThanTwoTriangles = false;
-            tile1 = tileIn;
-            tile2 = -1;
-            node1 = node1In;
-            node2 = node2In;
-            if (node2 > node1) {
-               std::swap(node1, node2);
+    class SurfaceFile;
+    
+    struct TopologyEdgeInfo
+    {
+        struct Tile
+        {
+            int tile;
+            int node3;
+            int whichEdge;//whether this is edge 0 (0-1), 1 (1-2), or 2 (2-0)
+            bool edgeReversed;//whether ordering the nodes as 1, 2, 3 results in a flipped tile compared to topology
+        };
+        int node1, node2, numTiles;
+        Tile tiles[2];//should be so amazingly rare (and inherently bad) for an edge to have 3 triangles that it isn't worth making this a vector
+        TopologyEdgeInfo()//also, a vector would have poor data locality, each edge would have its tiles list in an unrelated spot to the previous edge
+        {
+            numTiles = 0;
+        }
+        TopologyEdgeInfo(const int& firstNode, const int& secondNode, const int& thirdNode, const int& tile, const int& whichEdge, const bool& reversed)
+        {
+            node1 = firstNode;//always called with firstNode less than secondNode, so don't need to swap
+            node2 = secondNode;
+            tiles[0].tile = tile;
+            tiles[0].node3 = thirdNode;
+            tiles[0].edgeReversed = reversed;
+            tiles[0].whichEdge = whichEdge;
+            numTiles = 1;
+        }
+        void addTile(const int& thirdNode, const int& tile, const int& whichEdge, const bool& reversed)
+        {
+            if (numTiles < 2)
+            {
+                tiles[numTiles].tile = tile;
+                tiles[numTiles].node3 = thirdNode;
+                tiles[numTiles].edgeReversed = reversed;
+                tiles[numTiles].whichEdge = whichEdge;
             }
-         }
-         
-         /// equals operator
-         bool operator==(const TopologyEdgeInfo& e) {
-            return ((node1 == e.node1) && (node2 == e.node2));
-         }
-         
-         /// add a tile to the edge
-         void addTile(const int tileIn) {
-            if (tile2 < 0) {
-               tile2 = tileIn;
+            ++numTiles;
+        }
+    };
+    
+    struct TopologyTileInfo
+    {
+        struct Edge
+        {
+            int edge;
+            bool reversed;
+        };
+        Edge edges[3];
+    };
+    
+    class TopologyHelperBase
+    {
+        TopologyHelperBase();//prevent default, copy, assign
+        TopologyHelperBase(const TopologyHelperBase&);
+        TopologyHelperBase& operator=(const TopologyHelperBase&);
+        void processTileNeighbor(std::vector<TopologyEdgeInfo>& tempEdgeInfo, CaretArray<int>& scratch, const int& root, const int32_t& neighbor, const int& thirdNode, const int& tile, const int& tileEdge, const bool& reversed);
+        void sortNeighbors(const SurfaceFile* mySurf, const int& node, CaretArray<int>& nodeScratch, CaretArray<int>& tileScratch);
+        struct NodeInfo
+        {
+            std::vector<int> m_neighbors;
+            std::vector<int> m_edges;//index into the topology edges vector, matched with neighbors
+            std::vector<int> m_tiles;
+            std::vector<int> m_whichVertex;//stores which tile vertex this node is, matched to m_tiles
+            void addTileInfo(int tile, int vertexNum)//don't take edge info yet because it is built after neighbor info
+            {
+                m_tiles.push_back(tile);
+                m_whichVertex.push_back(vertexNum);
             }
-            else {
-               edgeHasMoreThanTwoTriangles = true;
-               /*if (DebugControl::getDebugOn()) {
-                  std::cout << "INFO: Edge (" << node1 << ", " << node2
-                              << ") is used by more than two tiles" << std::endl;
-                  std::cout << "   Triangles: " << tile1 << " " << tile2 
-                           << " " << tileIn << std::endl;
-               }//*/
+            void addNeighborInfo(int neighbor, int edge)//after we have tile info, we then generate neighbor info with the help of a mark array
+            {
+                m_neighbors.push_back(neighbor);
+                m_edges.push_back(edge);
             }
-         }
-         
-         /// get the more than two triangles flag
-         bool getEdgeUsedByMoreThanTwoTriangles() const { return edgeHasMoreThanTwoTriangles; }
-         
-         /// get the nodes
-         void getNodes(int& n1, int& n2) const { n1 = node1; n2 = node2; }
-         
-         /// get the tiles
-         void getTiles(int& t1, int& t2) const { t1 = tile1; t2 = tile2; }
+        };
+        std::vector<NodeInfo> m_nodeInfo;
+        std::vector<TopologyEdgeInfo> m_edgeInfo;
+        std::vector<TopologyTileInfo> m_tileInfo;
+        std::vector<int> m_boundaryCount;
+        int m_maxNeigh, m_maxTiles, m_numNodes, m_numTris;
+        bool m_neighborsSorted;
+    public:
+        TopologyHelperBase(const SurfaceFile* surfIn, bool sortNeighbors = false);
+        bool isNodeInfoSorted() const {
+            return m_neighborsSorted;
+        }
+        friend class TopologyHelper;
+    };
+    
+    /// This class is used to determine the node neighbors and edges for a Topology File.
+    class TopologyHelper {
+        const CaretPointer<TopologyHelperBase> m_base;
+        mutable CaretArray<int> m_markNodes, m_nodelist[2];//persistent, never cleared, only initialized once, saving bazillions of nanoseconds
+        mutable CaretMutex m_usingMarkNodes;
+        bool m_neighborsSorted;
+        int m_numNodes, m_maxNeigh;
+        const std::vector<TopologyHelperBase::NodeInfo>& m_nodeInfo;//references for convenience instead of using the m_base pointer
+        const std::vector<TopologyEdgeInfo>& m_edgeInfo;
+        const std::vector<TopologyTileInfo>& m_tileInfo;
+        const std::vector<int>& m_boundaryCount;
+        
+        TopologyHelper();//prevent default, copy, assign, prolly not needed since there are reference members
+        TopologyHelper(const TopologyHelper& right);
+        TopologyHelper& operator=(const TopologyHelper& right);
+    public:
+        /// Constructor for use with a TopologyHelperBase (the only way, for now)
+        TopologyHelper(const CaretPointer<TopologyHelperBase>& myBase);
 
-         /// return positive if the edge is oriented the same as the triangle in
-         int getEdgeOrientation(const int nodes[3]) const {
-            for (int i = 0; i < 3; i++) {
-               if (nodes[i] == node1) {
-                  int iNext = i + 1;
-                  if (iNext >= 3) iNext = 0;
-                  if (nodes[iNext] == node2) {
-                     return 1; 
-                  }
-                  else {
-                     return -1;
-                  }
-               }
-            }
-            return 0;
-         }
+        /// Get the number of nodes
+        int getNumberOfNodes() const {
+            return m_numNodes;
+        }
 
-   };
-         
-         
-   /// This class is used to determine the node neighbors and edges for a Topology File.
-   class TopologyHelper {
-      public:
-         /// Constructor for use with a Caret Topology File
-         TopologyHelper(const SurfaceFile* sfIn,
-                        const bool sortNodeInfo = false);
-         
-         /// Destructor
-         ~TopologyHelper();
-         
-         /// Get the number of nodes
-         int getNumberOfNodes() const { return nodes.size(); }
-         
-         /// See if a node has neighbors
-         bool getNodeHasNeighbors(const int nodeNum) const;
-         
-         /// Get the number of neighbors for a node
-         int getNodeNumberOfNeighbors(const int nodeNum) const;
+        /// See if a node has neighbors
+        bool getNodeHasNeighbors(const int nodeNum) const;
 
-         /// Get the neighbors of a node
-         void getNodeNeighbors(const int nodeNum, std::vector<int>& neighborsOut) const;
+        /// Get the number of neighbors for a node
+        int getNodeNumberOfNeighbors(const int nodeNum) const;
 
-         /// Get the neighbors of a node
-         const std::vector<int>& getNodeNeighbors(const int nodeNum) const;
+        /// Get the neighbors of a node
+        const std::vector<int>& getNodeNeighbors(const int nodeNum) const;
 
-         /// Get the neighboring nodes for a node.  Returns a pointer to an array
-         /// containing the neighbors.
-         const int* getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const;
-         
-         /// Get the node neighbors, restricted by roi
-         void getNodeNeighborsInROI(const int nodeNum, std::vector<int>& neighborsOut, const float *roiValues) const;
-         
-         /// Get the neighbors of a node to a specified depth the old way
-         void getNodeNeighborsToDepthOld(const int nodeNum, 
+        /// Get the neighboring nodes for a node.  Returns a pointer to an array
+        /// containing the neighbors.
+        const int* getNodeNeighbors(const int nodeNum, int& numNeighborsOut) const;
+        
+        ///get the edges of a node
+        const std::vector<int>& getNodeEdges(const int nodeNum) const;
+
+        /// Get the neighbors to a specified depth - CURRENTLY UNIMPLEMENTED
+        void getNodeNeighborsToDepth(const int nodeNum,
                                     const int depth,
                                     std::vector<int>& neighborsOut) const;
-         
-         /// Get the neighbors to a specified depth as fast as possible, order unimportant (this is the new code)
-         void getNodeNeighborsToDepth(const int nodeNum, 
-                                    const int depth,
-                                    std::vector<int>& neighborsOut) const;
 
-         /// Get the neighbors to a specified depth preserving the kind of ordering of the old code
-         void getNodeNeighborsToDepthIter(const int nodeNum, 
-                                    const int depth,
-                                    std::vector<int>& neighborsOut) const;
+        /// Get the number of boundary edges used by node
+        const std::vector<int>& getNumberOfBoundaryEdgesForAllNodes() const;
 
-      private:
-         void depthNeighHelper(int root, int remdepth, std::vector<int>& neighborsOut) const;
-         mutable std::vector<int> markNodes, nodelist[2];//persistent, never cleared, only initialized once, saving bazillions of nanoseconds
-         mutable CaretMutex usingMarkNodes;
-         //could be templated over bool, which stores bitwise, but we already have three times that many floats and six times the ints in memory
-      public:
-         
-         /// Get the number of boundary edges used by node
-         void getNumberOfBoundaryEdgesForAllNodes(std::vector<int>& numBoundaryEdges) const;
-         
-         /// Get the maximum number of neighbors of all nodes
-         int getMaximumNumberOfNeighbors() const;
-         
-         /// Get the tiles used by a node
-         void getNodeTiles(const int nodeNum, std::vector<int>& tilesOut) const;
-         
-         /// Get the tiles used by a node
-         const std::vector<int>& getNodeTiles(const int nodeNum) const;
-         
-         /// Get the tiles for a node.  Returns a pointer to an array
-         /// containing the tiles.
-         const int* getNodeTiles(const int nodeNum, int& numTilesOut);
-         
-         /// get node sorted info validity
-         bool getNodeSortedInfoValid() const { return nodeSortedInfoBuilt; }
-                     
-         /// Get the edge information
-         const std::set<TopologyEdgeInfo>& getEdgeInfo() const { return topologyEdges; }
-         
-         /// Get the number of edges
-         int getNumberOfEdges() const { return topologyEdges.size(); }
+        /// Get the maximum number of neighbors of all nodes
+        int getMaximumNumberOfNeighbors() const;
 
-      private:
-         
-         /// Stores tiles and vertices of an edge (link) for use when sorting nodes by NodeInfo.
-         /// These edges are those opposite of a NodeInfo node, this is, given a tile with
-         /// nodes A, B, and C, the nodes B and C would be stored in an NodeEdgeInfo for node A. 
-         class NodeEdgeInfo {
-            public:
-               /// nodes in the edge
-               int node1, node2;
-               
-               /// tile used by this edge
-               int tileNumber;
-               
-               /// constructor
-               NodeEdgeInfo(const int tileNum, const int node1In, const int node2In) {
-                  tileNumber = tileNum;
-                  node1 = node1In;
-                  node2 = node2In;
-               }
-               
-               /// get the other node in the edge
-               int getOtherNode(const int node) const {
-                  if (node1 == node) return node2;
-                  else               return node1;
-               }
-               
-               /// see if a node is in the edge
-               bool containsNode(const int node) const {
-                  return ((node1 == node) || (node2 == node));
-               }
-         };
-         
-         /// Stores information about a node for sorting
-         class NodeInfo {
-            public:
-               /// this node's number
-               int nodeNumber;
-               
-               /// tile's used by this node
-               std::vector<int> tiles;
-               
-               /// the neighboring nodes of this edge
-               std::vector<int> neighbors;
-               
-               /// the edges used to form tiles with this node
-               std::vector<NodeEdgeInfo> edges;
-               
-               /// allow sorting flag
-               bool  sortMe;
-               
-               /// constructor
-               NodeInfo(const int nodeNumberIn) {
-                  nodeNumber = nodeNumberIn;
-                  sortMe = true;
-               }
-               
-               /// add a neighbor to this node without edge information
-               void addNeighbor(const int newNeighbor1) {
-                  for (unsigned int i = 0; i < neighbors.size(); i++) {
-                     if (neighbors[i] == newNeighbor1) {
-                        return;
-                     }
-                  }
-                  neighbors.push_back(newNeighbor1);
-                  sortMe = false;
-               }
-               
-               /// add two neighbors that form a tile using this node
-               void addNeighbors(const int tileNum, const int newNeighbor1, const int newNeighbor2) {
-                  edges.push_back(NodeEdgeInfo(tileNum, newNeighbor1, newNeighbor2));
-               }
+        /// Get the tiles used by a node
+        const std::vector<int>& getNodeTiles(const int nodeNum) const;
 
-               /// add a tile to the node
-               void addTile(const int tileNum) { tiles.push_back(tileNum); }
-               
-               /// find an edge that has one endpoint equal to "seekingNode" but
-               /// does not contain the node "notNode".
-               const NodeEdgeInfo* findEdgeWithPoint(const int seekingNode, 
-                                                const int notNode) {
-                  for (unsigned int i = 0; i < edges.size(); i++) {
-                     if ( ((edges[i].node1 == seekingNode) &&
-                           (edges[i].node2 != notNode)) ||
-                        ((edges[i].node2 == seekingNode) &&
-                           (edges[i].node1 != notNode)) ) {
-                        return &edges[i];
-                     }
-                  }
-                  return NULL;
-               }
+        /// Get the tiles for a node.  Returns a pointer to an array
+        /// containing the tiles.
+        const int* getNodeTiles(const int nodeNum, int& numTilesOut) const;
 
-               /// sort the neighbors for this node
-               void sortNeighbors();
-         };
-         
-         /// Node storage
-         std::vector<NodeInfo> nodes;
-         
-         /// edge storage
-         std::set<TopologyEdgeInfo> topologyEdges;
-         
-         /// add information about an edge
-         void addEdgeInfo(const int tileNum, const int node1, const int node2);
-         
-         /// node sorted info built
-         bool nodeSortedInfoBuilt;
-         
-   };
+        /// get node sorted info validity
+        bool isNodeInfoSorted() const {
+            return m_neighborsSorted;
+        }
 
-   bool operator<(const TopologyEdgeInfo& e1, const TopologyEdgeInfo& e2);
+        /// Get the edge information
+        const std::vector<TopologyEdgeInfo>& getEdgeInfo() const {
+            return m_edgeInfo;
+        }
+
+        /// Get the number of edges
+        int getNumberOfEdges() const {
+            return m_edgeInfo.size();
+        }
+
+    };
 
 }
-#endif // __VE_TOPOLOGY_HELPER_H__
 
-
+#endif //__TOPOLOGY_HELPER_H__
