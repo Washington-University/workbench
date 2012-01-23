@@ -266,7 +266,9 @@ void
 BorderFile::removeBorder(const int32_t indx)
 {
     CaretAssertVectorIndex(this->borders, indx);
+    Border* border = this->getBorder(indx);
     this->borders.erase(this->borders.begin() + indx);
+    delete border;
     this->setModified();
 }
 
@@ -278,17 +280,13 @@ BorderFile::removeBorder(const int32_t indx)
 void 
 BorderFile::removeBorder(Border* border)
 {
-    std::vector<Border*>::iterator iter = std::find(this->borders.begin(),
-                                                    this->borders.end(),
-                                                    border);
-    if (iter != this->borders.end()) {
-        this->borders.erase(iter);
-        this->setModified();
+    const int32_t numBorders = this->getNumberOfBorders();
+    for (int32_t i = 0;i < numBorders; i++) {
+        this->removeBorder(i);
+        return;
     }
-    else {
-        CaretLogWarning("Attempting to delete border not in border file with name: "
+    CaretLogWarning("Attempting to delete border not in border file with name: "
                         + border->getName());
-    }
 }
 
 /**

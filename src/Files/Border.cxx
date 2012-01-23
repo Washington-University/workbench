@@ -245,6 +245,17 @@ Border::removeLastPoint()
 }
 
 /**
+ * Reverse the order of points in a border.
+ */
+void 
+Border::reverse()
+{
+    std::reverse(this->points.begin(),
+                 this->points.end());
+    this->setModified();
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */

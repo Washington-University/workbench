@@ -37,6 +37,8 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "IdentificationItemBorderSurface.h"
+#include "IdentificationManager.h"
 #include "ModelDisplayController.h"
 #include "MouseEvent.h"
 #include "SurfaceProjectedItem.h"
@@ -168,9 +170,33 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const int mouseX = mouseEvent->getX();
         const int mouseY = mouseEvent->getY();
         
+        const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
+        const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
+        const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
+        
         switch (this->mode) {
             case MODE_CREATE:
             {
+                switch (this->createOperation) {
+                    case CREATE_OPERATION_DRAW:
+                        if (isLeftClick 
+                            || isLeftDrag) {
+                            this->drawPointAtMouseXY(openGLWidget,
+                                                     mouseX,
+                                                     mouseY);
+                            mouseEvent->setGraphicsUpdateOneWindowRequested();
+                        }
+                        break;
+                    case CREATE_OPERATION_TRANSFORM:
+                        if (isLeftDrag
+                            || isWheel) {
+                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                          browserTabContent, 
+                                                                          openGLWidget);
+                        }
+                        break;
+                }
+                /*
                 switch (mouseEvent->getMouseEventType()) {
                     case MouseEventTypeEnum::INVALID:
                         break;
@@ -181,19 +207,6 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         mouseEvent->setGraphicsUpdateOneWindowRequested();
                         break;
                     case MouseEventTypeEnum::LEFT_DRAGGED:
-                        switch (this->createOperation) {
-                            case CREATE_OPERATION_DRAW:
-                                this->drawPointAtMouseXY(openGLWidget,
-                                                         mouseX,
-                                                         mouseY);
-                                mouseEvent->setGraphicsUpdateOneWindowRequested();
-                                break;
-                            case CREATE_OPERATION_TRANSFORM:
-                                UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                                  browserTabContent, 
-                                                                                  openGLWidget);
-                                break;
-                        }
                         break;
                     case MouseEventTypeEnum::LEFT_PRESSED:
                         break;
@@ -202,20 +215,57 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     case MouseEventTypeEnum::WHEEL_MOVED:
                         break;
                 }
+                 */
             }
                 break;
             case MODE_REVISE:
             {
-                
+                switch (this->reviseOperation) {
+                    case REVISE_OPERATION_ERASE:
+                        break;
+                    case REVISE_OPERATION_EXTEND:
+                        break;
+                    case REVISE_OPERATION_REPLACE:
+                        break;
+                    case REVISE_OPERATION_DELETE:  
+                        if (isLeftClick) {
+                            IdentificationManager* idManager =
+                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            if (idBorder->isValid()) {
+                                BorderFile* borderFile = idBorder->getBorderFile();
+                                Border* border = idBorder->getBorder();
+                                borderFile->removeBorder(border);
+                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                            }
+                        }
+                        break;
+                    case REVISE_OPERATION_REVERSE:
+                        if (isLeftClick) {
+                            IdentificationManager* idManager =
+                            openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                            IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                            if (idBorder->isValid()) {
+                                Border* border = idBorder->getBorder();
+                                border->reverse();
+                                mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                            }
+                        }
+                        break;
+                }
             }
                 break;
             case MODE_SELECT:
             {
-                
+                switch (this->selectOperation) {
+                    case SELECT_CLASS:
+                        break;
+                    case SELECT_NAME:
+                        break;
+                }
             }
                 break;
         }
-        
     }
 }
 

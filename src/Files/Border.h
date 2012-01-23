@@ -70,6 +70,8 @@ namespace caret {
         
         void removeLastPoint();
         
+        void reverse();
+        
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
         static const AString XML_TAG_BORDER;
