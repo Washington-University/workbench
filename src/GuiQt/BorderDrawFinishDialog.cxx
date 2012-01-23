@@ -183,7 +183,7 @@ BorderDrawFinishDialog::okButtonPressed()
         BorderDrawFinishDialog::previousName = name;
     }
     
-    const AString className = this->classNameLabel->text().trimmed();
+    const QString className = this->classNameLabel->text().trimmed();
     borderBeingCreated->setClassName(className);
     BorderDrawFinishDialog::previousClassName = className;
     
