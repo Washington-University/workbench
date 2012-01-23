@@ -32,6 +32,7 @@
 
 namespace caret {
 
+    class BrainStructure;
     class Surface;
     
     class SurfaceSelection : public CaretObject {
@@ -40,6 +41,8 @@ namespace caret {
         SurfaceSelection();
         
         SurfaceSelection(const StructureEnum::Enum structure);
+        
+        SurfaceSelection(BrainStructure* brainStructure);
         
         virtual ~SurfaceSelection();
         
@@ -52,6 +55,11 @@ namespace caret {
         std::vector<Surface*> getAvailableSurfaces() const;
         
     private:
+        enum Mode {
+            MODE_BRAIN_STRUCTURE,
+            MODE_STRUCTURE
+        };
+        
         SurfaceSelection(const SurfaceSelection&);
 
         SurfaceSelection& operator=(const SurfaceSelection&);
@@ -59,6 +67,10 @@ namespace caret {
         void updateSelection() const;
         
         mutable Surface* selectedSurface;
+        
+        BrainStructure* brainStructure;
+        
+        Mode mode;
         
         /** If empty, allow any structure, otherwise restrict to these structures */
         std::vector<StructureEnum::Enum> allowableStructures;

@@ -50,6 +50,28 @@ using namespace caret;
 SurfaceSelectionControl::SurfaceSelectionControl(SurfaceSelection* surfaceSelection)
 : QObject()
 {
+    this->initializeControl(surfaceSelection);
+    this->thisInstanceOwnsSurfaceSelection = false;
+}
+
+/**
+ * Constructor.
+ * @param brainStructure
+ *   Allows selection of any surface with the specified brain structure.
+ */
+SurfaceSelectionControl::SurfaceSelectionControl(BrainStructure* brainStructure)
+{
+    SurfaceSelection* ss = new SurfaceSelection(brainStructure);
+    this->initializeControl(ss);
+    this->thisInstanceOwnsSurfaceSelection = true;
+}
+
+/**
+ * Help initialize an instance.
+ */
+void 
+SurfaceSelectionControl::initializeControl(SurfaceSelection* surfaceSelection)
+{
     this->surfaceComboBox = new QComboBox();
     QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(comboBoxCurrentIndexChanged(int)));
@@ -61,7 +83,9 @@ SurfaceSelectionControl::SurfaceSelectionControl(SurfaceSelection* surfaceSelect
  */
 SurfaceSelectionControl::~SurfaceSelectionControl()
 {
-    
+    if (this->thisInstanceOwnsSurfaceSelection) {
+        delete this->surfaceSelection;
+    }
 }
 
 /**

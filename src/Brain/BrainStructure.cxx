@@ -68,6 +68,8 @@ BrainStructure::BrainStructure(Brain* brain,
     this->brain = brain;
     this->structure = structure;
     this->nodeAttributes = new BrainStructureNodeAttributes();
+    this->volumeInteractionSurface = NULL;
+    
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
@@ -387,7 +389,20 @@ BrainStructure::getSurfacesOfType(const SurfaceTypeEnum::Enum surfaceType,
 const Surface* 
 BrainStructure::getVolumeInteractionSurfacePrivate() const
 {
-    Surface* volumeInteractionSurface = NULL;
+    bool valid = false;
+    if (this->volumeInteractionSurface != NULL) {
+        const int32_t numSurfaces = this->getNumberOfSurfaces();
+        for (int32_t i = 0; i < numSurfaces; i++) {
+            if (this->surfaces[i] == this->volumeInteractionSurface) {
+                valid = true;
+                break;
+            }
+        }
+    }
+    if (valid) {
+        return this->volumeInteractionSurface;
+    }
+    this->volumeInteractionSurface = NULL;
     
     /*
      * Give preference to anatomical surfaces but if there are none
@@ -404,7 +419,7 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
         /*
          * Default to first surface
          */
-        volumeInteractionSurface = interactionSurfaces[0];
+        this->volumeInteractionSurface = interactionSurfaces[0];
         
         /*
          * Now look for a surface with certain strings in their name
@@ -417,45 +432,45 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
         const int32_t numSurfaces = static_cast<int32_t>(interactionSurfaces.size());
         for (int32_t i = 0; i < numSurfaces; i++) {
             const AString name = interactionSurfaces[i]->getFileNameNoPath().toLower();
-            if (name.indexOf("midthick")) {
+            if (name.indexOf("midthick") >= 0) {
                 midThicknessSurface = interactionSurfaces[i];
             }
-            if (name.indexOf("white")) {
+            if (name.indexOf("white") >= 0) {
                 whiteMatterSurface = interactionSurfaces[i];
             }
-            if (name.indexOf("pial")) {
+            if (name.indexOf("pial") >= 0) {
                 pialSurface = interactionSurfaces[i];
             }
-            if (name.indexOf("anatomical")) {
+            if (name.indexOf("anatomical") >= 0) {
                 anatomicalSurface = interactionSurfaces[i];
             }
-            if (name.indexOf("fiducial")) {
+            if (name.indexOf("fiducial") >= 0) {
                 fiducialSurface = interactionSurfaces[i];
             }
         }
         
         if (midThicknessSurface != NULL) {
-            volumeInteractionSurface = midThicknessSurface;
+            this->volumeInteractionSurface = midThicknessSurface;
         }
         else if (whiteMatterSurface != NULL) {
-            volumeInteractionSurface = whiteMatterSurface;
+            this->volumeInteractionSurface = whiteMatterSurface;
         }
         else if (pialSurface != NULL) {
-            volumeInteractionSurface = pialSurface;
+            this->volumeInteractionSurface = pialSurface;
         }
         else if (anatomicalSurface != NULL) {
-            volumeInteractionSurface = anatomicalSurface;
+            this->volumeInteractionSurface = anatomicalSurface;
         }
         else if (fiducialSurface != NULL) {
-            volumeInteractionSurface = fiducialSurface;
+            this->volumeInteractionSurface = fiducialSurface;
         }
     }
     
-    if (volumeInteractionSurface != NULL) {
+    if (this->volumeInteractionSurface != NULL) {
         CaretLogFiner("Volume Interaction Surface for "
                       + StructureEnum::toGuiName(this->structure)
                       + ": " 
-                      + volumeInteractionSurface->getFileNameNoPath());
+                      + this->volumeInteractionSurface->getFileNameNoPath());
     }
     else {
         CaretLogFiner("Volume Interaction Surface for "
@@ -463,7 +478,7 @@ BrainStructure::getVolumeInteractionSurfacePrivate() const
                       + " is invalid.");
     }
     
-    return volumeInteractionSurface;
+    return this->volumeInteractionSurface;
 }
 
 /**
@@ -489,6 +504,17 @@ BrainStructure::getVolumeInteractionSurface()
     const Surface* constSurface = this->getVolumeInteractionSurfacePrivate();
     Surface* s = (Surface*)constSurface;
     return s;
+}
+
+/**
+ * Set the volume interaction surface.
+ * @param volumeInteractionSurface
+ *    New volume interaction surface.
+ */
+void 
+BrainStructure::setVolumeInteractionSurface(Surface* volumeInteractionSurface)
+{
+    this->volumeInteractionSurface = volumeInteractionSurface;
 }
 
 /**

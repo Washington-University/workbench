@@ -33,6 +33,7 @@
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
@@ -59,6 +60,7 @@
 #include "SpecFileDialog.h"
 #include "StructureSelectionControl.h"
 #include "Surface.h"
+#include "SurfaceSelectionControl.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -670,7 +672,42 @@ BrainBrowserWindow::createMenuSurface()
                     this, 
                     SLOT(processSurfaceMenuInformation()));
     
+    menu->addAction("Volume Interaction...", 
+                    this, 
+                    SLOT(processSurfaceMenuVolumeInteraction()));
+    
     return menu;
+}
+
+/**
+ * Called when Volume Interaction is selected from the surface menu.
+ */
+void 
+BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numBrainStructures = brain->getNumberOfBrainStructures();
+    if (numBrainStructures <= 0) {
+        return;
+    }
+    
+    WuQDataEntryDialog ded("Volume Interaction Surfaces",
+                           this);
+    std::vector<SurfaceSelectionControl*> surfaceSelectionControls;
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        BrainStructure* bs = brain->getBrainStructure(i);
+        SurfaceSelectionControl* ssc = ded.addSurfaceSelectionControl(StructureEnum::toGuiName(bs->getStructure()), 
+                                                                      bs);
+        ssc->setSurface(bs->getVolumeInteractionSurface());
+        surfaceSelectionControls.push_back(ssc);
+    }
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        for (int32_t i = 0; i < numBrainStructures; i++) {
+            BrainStructure* bs = brain->getBrainStructure(i);
+            bs->setVolumeInteractionSurface(surfaceSelectionControls[i]->getSurface());
+        }
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
 }
 
 /**

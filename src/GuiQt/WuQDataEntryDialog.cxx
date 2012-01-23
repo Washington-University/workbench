@@ -39,6 +39,7 @@
 #include <QSpinBox>
 #include <QTextEdit>
 #include "StructureSelectionControl.h"
+#include "SurfaceSelectionControl.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -99,6 +100,16 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
+    for (std::vector<StructureSelectionControl*>::iterator iter = this->structureSelectionControlsToDelete.begin();
+         iter != this->structureSelectionControlsToDelete.end();
+         iter++) {
+        delete *iter;
+    }
+    for (std::vector<SurfaceSelectionControl*>::iterator iter = this->surfaceSelectionControlsToDelete.begin();
+         iter != this->surfaceSelectionControlsToDelete.end();
+         iter++) {
+        delete *iter;
+    }
 }
 
 /**
@@ -423,8 +434,26 @@ WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
     
     this->addWidget(labelText,
                     structureSelectionControl->getWidget());
+    this->structureSelectionControlsToDelete.push_back(structureSelectionControl);
     
     return structureSelectionControl;
+}
+
+/**
+ * Add a surface selection control
+ */
+SurfaceSelectionControl* 
+WuQDataEntryDialog::addSurfaceSelectionControl(const QString& labelText,
+                                               BrainStructure* brainStructure)
+{
+    SurfaceSelectionControl* surfaceSelectionControl =
+    new SurfaceSelectionControl(brainStructure);
+    
+    this->addWidget(labelText,
+                    surfaceSelectionControl->getWidget());
+    this->surfaceSelectionControlsToDelete.push_back(surfaceSelectionControl);
+    
+    return surfaceSelectionControl;
 }
 
 

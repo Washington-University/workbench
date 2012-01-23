@@ -29,6 +29,7 @@
 #include "SurfaceSelection.h"
 #undef __SURFACE_SELECTION_DECLARE__
 
+#include "BrainStructure.h"
 #include "EventManager.h"
 #include "EventSurfacesGet.h"
 #include "Surface.h"
@@ -51,7 +52,7 @@ using namespace caret;
 SurfaceSelection::SurfaceSelection()
 : CaretObject()
 {
-    
+    this->mode = MODE_STRUCTURE;
 }
 
 /**
@@ -63,6 +64,21 @@ SurfaceSelection::SurfaceSelection(const StructureEnum::Enum structure)
 : CaretObject()
 {
     this->allowableStructures.push_back(structure);
+    this->mode = MODE_STRUCTURE;
+}
+
+/**
+ * Constructor for surface from a brain structure.
+ * WARNING: If the brain structure becomes invalid, any further
+ * use of this instance may cause a crash.
+ *
+ * @param brainStructure
+ *   Only surfaces in brain structure are available.
+ */
+SurfaceSelection::SurfaceSelection(BrainStructure* brainStructure)
+{
+    this->brainStructure = brainStructure;
+    this->mode = MODE_BRAIN_STRUCTURE;
 }
 
 /**
@@ -111,13 +127,32 @@ SurfaceSelection::setSurface(Surface* surface)
 std::vector<Surface*> 
 SurfaceSelection::getAvailableSurfaces() const
 {
-    EventSurfacesGet getSurfacesEvent;
-    for (int32_t i = 0; i < static_cast<int32_t>(this->allowableStructures.size()); i++) {
-        getSurfacesEvent.addStructureConstraint(this->allowableStructures[i]);
+    std::vector<Surface*> surfaces;
+    
+    switch (mode) {
+        case MODE_BRAIN_STRUCTURE:
+        {
+            const int32_t numSurfaces = this->brainStructure->getNumberOfSurfaces();
+            for (int32_t i = 0; i < numSurfaces; i++) {
+                surfaces.push_back(this->brainStructure->getSurface(i));
+            }
+        }
+            break;
+        case MODE_STRUCTURE:
+        {
+            EventSurfacesGet getSurfacesEvent;
+            for (int32_t i = 0; i < static_cast<int32_t>(this->allowableStructures.size()); i++) {
+                getSurfacesEvent.addStructureConstraint(this->allowableStructures[i]);
+            }
+            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
+            surfaces = getSurfacesEvent.getSurfaces();
+        }
+            break;
+            
     }
-    EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
+    
 
-    return getSurfacesEvent.getSurfaces();
+    return surfaces;
 }
 
 /**

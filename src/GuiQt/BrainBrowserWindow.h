@@ -120,6 +120,7 @@ namespace caret {
         void processViewMenuAboutToShow();
         
         void processSurfaceMenuInformation();
+        void processSurfaceMenuVolumeInteraction();
         
     private:
         // Contains status of components such as enter/exit full screen

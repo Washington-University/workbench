@@ -90,6 +90,8 @@ namespace caret {
         
         Surface* getVolumeInteractionSurface();
         
+        void setVolumeInteractionSurface(Surface* surface);
+        
         Brain* getBrain();
         
         const Brain* getBrain() const;
@@ -157,6 +159,8 @@ namespace caret {
         static int64_t brainStructureIdentifierCounter;
         
         BrainStructureNodeAttributes* nodeAttributes;
+        
+        mutable Surface* volumeInteractionSurface;
     };
     
 #ifdef __BRAIN_STRUCTURE_DEFINE__

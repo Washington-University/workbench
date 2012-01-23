@@ -31,6 +31,7 @@
 class QComboBox;
 
 namespace caret {
+    class BrainStructure;
     class Surface;
     class SurfaceSelection;
 
@@ -40,6 +41,8 @@ namespace caret {
 
     public:
         SurfaceSelectionControl(SurfaceSelection* surfaceSelection);
+        
+        SurfaceSelectionControl(BrainStructure* brainStructure);
         
         virtual ~SurfaceSelectionControl();
         
@@ -64,9 +67,13 @@ namespace caret {
         SurfaceSelectionControl& operator=(const SurfaceSelectionControl&);
         
     private:
+        void initializeControl(SurfaceSelection* surfaceSelection);
+        
         SurfaceSelection* surfaceSelection;
         
         QComboBox* surfaceComboBox;
+        
+        bool thisInstanceOwnsSurfaceSelection;
     };
     
 #ifdef __SURFACE_SELECTION_CONTROL_DECLARE__
