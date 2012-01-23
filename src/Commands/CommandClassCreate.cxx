@@ -264,7 +264,7 @@ CommandClassCreate::createImplementationFile(const AString& outputFileName,
     t += ("\n");
     t += ("    \n");
     t += ("/**\n");
-    t += (" * \\class " + className + " \n");
+    t += (" * \\class caret::" + className + " \n");
     t += (" * \\brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>\n");
     t += (" *\n");
     t += (" * <REPLACE-WITH-THOROUGH DESCRIPTION>\n");
