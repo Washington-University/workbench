@@ -251,12 +251,9 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
 TopologyHelper::TopologyHelper(const CaretPointer<TopologyHelperBase>& myBase) : m_base(myBase), m_nodeInfo(myBase->m_nodeInfo), m_edgeInfo(myBase->m_edgeInfo),
                                                                                     m_tileInfo(myBase->m_tileInfo), m_boundaryCount(myBase->m_boundaryCount)
 {
-    m_maxNeigh = myBase->m_maxNeigh;
-    m_neighborsSorted = myBase->m_neighborsSorted;
-    m_numNodes = myBase->m_numNodes;
-    m_markNodes = CaretArray<int>(m_numNodes, 0);
-    m_nodelist[0] = CaretArray<int>(m_numNodes);
-    m_nodelist[1] = CaretArray<int>(m_numNodes);
+    m_maxNeigh = m_base->m_maxNeigh;
+    m_neighborsSorted = m_base->m_neighborsSorted;
+    m_numNodes = m_base->m_numNodes;
 }
 
 const vector<int>& TopologyHelper::getNumberOfBoundaryEdgesForAllNodes() const
@@ -311,4 +308,63 @@ const vector<int>& TopologyHelper::getNodeEdges(const int nodeNum) const
 {
     CaretAssertVectorIndex(m_nodeInfo, nodeNum);
     return m_nodeInfo[nodeNum].m_edges;
+}
+
+void TopologyHelper::checkArrays() const
+{
+    if (m_markNodes.size() != m_numNodes)
+    {
+        m_markNodes = CaretArray<int>(m_numNodes, 0);
+        m_nodelist[0] = CaretArray<int>(m_numNodes);
+        m_nodelist[1] = CaretArray<int>(m_numNodes);
+    }
+}
+
+void TopologyHelper::getNodeNeighborsToDepth(const int nodeNum, const int depth, vector<int>& neighborsOut) const
+{
+    if (depth < 2)
+    {
+        neighborsOut = getNodeNeighbors(nodeNum);
+        return;
+    }
+    int expected = (7 * depth * (depth + 1)) / 2;
+    if (expected > m_numNodes) expected = m_numNodes;
+    neighborsOut.clear();
+    neighborsOut.reserve(expected);
+    CaretArray<int>* curlist = &(m_nodelist[0]), *nextlist = &(m_nodelist[1]), *templist;//using raw pointers instead of CaretArray::operator= because this is single threaded
+    int curNum = 1, nextNum = 0;//curnum gets initialized to 1 because it starts with the root node
+    CaretMutexLocker locked(&m_usingMarkNodes);//lock before possibly constructing this object's scratch space
+    checkArrays();
+    m_markNodes[nodeNum] = 1;
+    (*curlist)[0] = nodeNum;//just use iterative, because depth-first recursive does unneeded work, and has very little reason to ever be faster
+    for (int curdepth = 0; curdepth < depth; ++curdepth)
+    {
+        for (int i = 0; i < curNum; ++i)
+        {
+            const vector<int>& nodeNeighbors = m_nodeInfo[(*curlist)[i]].m_neighbors;
+            int numNeigh = (int)nodeNeighbors.size();
+            for (int j = 0; j < numNeigh; ++j)
+            {
+                int thisNode = nodeNeighbors[j];
+                if (m_markNodes[thisNode] == 0)
+                {
+                    m_markNodes[thisNode] = 1;
+                    (*nextlist)[nextNum] = thisNode;
+                    ++nextNum;
+                    neighborsOut.push_back(thisNode);
+                }
+            }
+        }
+        templist = curlist;
+        curlist = nextlist;
+        nextlist = templist;
+        curNum = nextNum;
+        nextNum = 0;//we restart the list by zeroing the count, and just overwrite the old values
+    }
+    m_markNodes[nodeNum] = 0;//clean up the mark array
+    int numNeigh = (int)neighborsOut.size();
+    for (int i = 0; i < numNeigh; ++i)
+    {
+        m_markNodes[neighborsOut[i]] = 0;
+    }
 }

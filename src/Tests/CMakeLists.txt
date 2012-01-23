@@ -27,6 +27,7 @@ NiftiMatrixTest.h
 TestInterface.h
 TimerTest.h
 TopologyHelperOld.h
+TopologyHelperTest.h
 PointerTest.h
 ProgressTest.h
 VolumeFileTest.h
@@ -39,6 +40,7 @@ NiftiTest.cxx
 NiftiMatrixTest.cxx
 TimerTest.cxx
 TopologyHelperOld.cxx
+TopologyHelperTest.cxx
 PointerTest.cxx
 ProgressTest.cxx
 VolumeFileTest.cxx

@@ -130,6 +130,8 @@ namespace caret {
         const std::vector<TopologyTileInfo>& m_tileInfo;
         const std::vector<int>& m_boundaryCount;
         
+        void checkArrays() const;//used to make the thread arrays for neighbors to depth lazy (not allocated until first needed)
+        
         TopologyHelper();//prevent default, copy, assign, prolly not needed since there are reference members
         TopologyHelper(const TopologyHelper& right);
         TopologyHelper& operator=(const TopologyHelper& right);
@@ -158,7 +160,7 @@ namespace caret {
         ///get the edges of a node
         const std::vector<int>& getNodeEdges(const int nodeNum) const;
 
-        /// Get the neighbors to a specified depth - CURRENTLY UNIMPLEMENTED
+        /// Get the neighbors to a specified depth
         void getNodeNeighborsToDepth(const int nodeNum,
                                     const int depth,
                                     std::vector<int>& neighborsOut) const;

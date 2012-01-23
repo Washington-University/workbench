@@ -44,7 +44,7 @@ namespace caret {
       {
          m_identifier = identifier;
          m_failed = false;
-         m_default_path = "../../../wb_files";
+         m_default_path = "../../wb_files";
       }
    public:
       const AString& getIdentifier()

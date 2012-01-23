@@ -45,16 +45,16 @@ namespace caret {
         AString(const char *ch) : QString(ch){}
         AString(const QByteArray &a) : QString(a) {}
         AString(const Null &t) : QString(t) {}
-        //AString &operator=(const Null &t) { QString::operator=(t); return *this; }
+        AString &operator=(const Null &t) { QString::operator=(t); return *this; }
         //AString(int size, Qt::Initialization) :  QString(size,Qt::Initialization) {}
         
         //using QString::operator=;
-        //AString &operator=(QChar c) { QString::operator=(c); return *this;}
-        //AString &operator=(const QString &string) { QString::operator=(string); return *this;}
-        //AString &operator=(const QLatin1String &latin1) { QString::operator=(latin1); return *this;}
-        //AString &operator=(const char *ch) { QString::operator=(ch); return *this;}
-        //AString &operator=(const QByteArray &a) { QString::operator=(a); return *this;}
-        //AString &operator=(char c) { QString::operator=(c); return *this;}
+        AString &operator=(QChar c) { QString::operator=(c); return *this;}
+        AString &operator=(const QString &string) { QString::operator=(string); return *this;}
+        AString &operator=(const QLatin1String &latin1) { QString::operator=(latin1); return *this;}
+        AString &operator=(const char *ch) { QString::operator=(ch); return *this;}
+        AString &operator=(const QByteArray &a) { QString::operator=(a); return *this;}
+        AString &operator=(char c) { QString::operator=(c); return *this;}
         
         //std::string compatibility
         operator std::string () {return this->toStdString(); }

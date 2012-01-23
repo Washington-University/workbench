@@ -220,23 +220,32 @@ namespace caret {
     template<typename T, OperationParametersEnum::Enum TYPE>
     struct PointerTemplateParameter : public AbstractParameter
     {
-        virtual OperationParametersEnum::Enum getType() { return TYPE; };
+        virtual OperationParametersEnum::Enum getType() { return TYPE; }
         CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
         PointerTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_parameter = NULL;
-        };
+        }
     };
     
     template<typename T, OperationParametersEnum::Enum TYPE>
     struct PrimitiveTemplateParameter : public AbstractParameter
     {
-        virtual OperationParametersEnum::Enum getType() { return TYPE; };
+        virtual OperationParametersEnum::Enum getType() { return TYPE; }
         T m_parameter;
         PrimitiveTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
         {
             m_parameter = 0;
-        };
+        }
+    };
+    
+    struct StringParameter : public AbstractParameter
+    {
+        virtual OperationParametersEnum::Enum getType() { return OperationParametersEnum::STRING; }
+        AString m_parameter;
+        StringParameter(int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
+        {//AString self-initializes, so don't need to do anything
+        }
     };
     
     //some friendlier names
@@ -247,7 +256,6 @@ namespace caret {
     typedef PointerTemplateParameter<CiftiFile, OperationParametersEnum::CIFTI> CiftiParameter;
     typedef PrimitiveTemplateParameter<double, OperationParametersEnum::DOUBLE> DoubleParameter;
     typedef PrimitiveTemplateParameter<int64_t, OperationParametersEnum::INT> IntegerParameter;
-    typedef PrimitiveTemplateParameter<AString, OperationParametersEnum::STRING> StringParameter;
     typedef PrimitiveTemplateParameter<bool, OperationParametersEnum::BOOL> BooleanParameter;
     
 }

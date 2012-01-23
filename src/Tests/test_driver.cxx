@@ -41,6 +41,7 @@
 #include "PointerTest.h"
 #include "ProgressTest.h"
 #include "TimerTest.h"
+#include "TopologyHelperTest.h"
 #include "VolumeFileTest.h"
 #include "XnatTest.h"
 
@@ -70,6 +71,7 @@ int main(int argc, char** argv)
         mytests.push_back(new PointerTest("pointer"));
         mytests.push_back(new ProgressTest("progress"));
         mytests.push_back(new TimerTest("timer"));
+        mytests.push_back(new TopologyHelperTest("topohelp"));
         mytests.push_back(new VolumeFileTest("volumefile"));
         mytests.push_back(new XnatTest("xnat"));
         if (argc < 2)

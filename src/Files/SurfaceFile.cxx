@@ -549,7 +549,7 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
         {
             m_geoHelpers.clear();//just to be sure
             m_geoHelperIndex = 0;
-            m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and will often do so single threaded at the moment
+            m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and is single threaded at the moment
         }//keep locked while searching
         int32_t& myIndex = m_geoHelperIndex;
         int32_t myEnd = m_geoHelpers.size();
@@ -565,7 +565,8 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
             ++myIndex;
         }
     }//UNLOCK before building a new one, so they can be built in parallel - this actually just involves initializing the marked array
-    CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
+    CaretPointer<GeodesicHelperBase> tempBase = m_geoBase;//make a LOCAL pointer object so that it can't get pointed elsewhere in the middle of constructing a helper
+    CaretPointer<GeodesicHelper> ret(new GeodesicHelper(tempBase));
     CaretMutexLocker myLock(&m_geoHelperMutex);//relock before modifying the array
     m_geoHelpers.push_back(ret);
     helpOut = ret;
@@ -573,9 +574,9 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
 
 CaretPointer<GeodesicHelper> SurfaceFile::getGeodesicHelper() const
 {//this convenience function is here because in order to guarantee thread safety, the real function explicitly copies to a reference argument before letting the mutex unlock
-    CaretPointer<GeodesicHelper> ret;//gcc seems to make it so that the copy of a return takes place before destructors, but just to be safe
+    CaretPointer<GeodesicHelper> ret;//the copy of a return should take place before destructors (including the locker for the helper mutex), but just to be safe
     getGeodesicHelper(ret);//this call is therefore thread safe and guaranteed to modify reference count before it unlocks the mutex for helpers
-    return ret;//so we are already safe by here
+    return ret;//so we are already safe by here, at the expense of a second copy constructor/operator= of a CaretPointer
 }
 
 void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted) const
@@ -600,7 +601,8 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
             m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
         }
     }
-    CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));//could copy from an existing one instead of rebuilding
+    CaretPointer<TopologyHelperBase> tempBase = m_topoBase;//make a LOCAL pointer object so that it can't get pointed elsewhere in the middle of constructing a helper
+    CaretPointer<TopologyHelper> ret(new TopologyHelper(tempBase));
     CaretMutexLocker myLock(&m_topoHelperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     helpOut = ret;
