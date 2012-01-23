@@ -31,6 +31,7 @@
 namespace caret {
 
     class Border;
+    class GiftiLabelTable;
     
     class BorderFile : public CaretDataFile {
         
@@ -71,6 +72,14 @@ namespace caret {
         
         void removeBorder(Border* border);
         
+        GiftiLabelTable* getClassNamesTable();
+        
+        const GiftiLabelTable* getClassNamesTable() const;
+        
+        GiftiLabelTable* getColorTable();
+        
+        const GiftiLabelTable* getColorTable() const;
+        
         static float getFileVersion();
         
         static AString getFileVersionAsString();
@@ -80,6 +89,10 @@ namespace caret {
         
         /** XML Tag for Version attribute */
         static const AString XML_ATTRIBUTE_VERSION;
+        
+        virtual bool isModified() const;
+        
+        virtual void clearModified();
         
     private:
         void copyHelperBorderFile(const BorderFile& obj);
@@ -92,6 +105,10 @@ namespace caret {
         
         /** Version of this BorderFile */
         static const float borderFileVersion;
+        
+        GiftiLabelTable* classNamesTable;
+        
+        GiftiLabelTable* colorTable;
         
     };
     

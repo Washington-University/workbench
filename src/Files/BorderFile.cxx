@@ -34,6 +34,7 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "XmlAttributes.h"
 #include "XmlSaxParser.h"
@@ -70,6 +71,9 @@ BorderFile::~BorderFile()
         delete *iter;
     }
     this->borders.clear();
+
+    delete this->classNamesTable;
+    delete this->colorTable;
 }
 
 /**
@@ -78,6 +82,8 @@ BorderFile::~BorderFile()
 void 
 BorderFile::initializeBorderFile()
 {
+    this->classNamesTable = new GiftiLabelTable();
+    this->colorTable = new GiftiLabelTable();
     this->metadata = new GiftiMetaData();
 }
 
@@ -120,6 +126,8 @@ BorderFile::operator=(const BorderFile& obj)
 void 
 BorderFile::copyHelperBorderFile(const BorderFile& obj)
 {
+    *this->classNamesTable = *obj.classNamesTable;
+    *this->colorTable = *obj.colorTable;
     *this->metadata = *obj.metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
@@ -184,6 +192,8 @@ void
 BorderFile::clear()
 {
     CaretDataFile::clear();
+    this->classNamesTable->clear();
+    this->colorTable->clear();
     this->metadata->clear();
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
@@ -279,6 +289,42 @@ BorderFile::removeBorder(Border* border)
         CaretLogWarning("Attempting to delete border not in border file with name: "
                         + border->getName());
     }
+}
+
+/**
+ * @return The class names table.
+ */
+GiftiLabelTable* 
+BorderFile::getClassNamesTable()
+{
+    return this->classNamesTable;
+}
+
+/**
+ * @return The class names table.
+ */
+const GiftiLabelTable* 
+BorderFile::getClassNamesTable() const
+{
+    return this->classNamesTable;
+}
+
+/**
+ * @return The color table.
+ */
+GiftiLabelTable* 
+BorderFile::getColorTable()
+{
+    return this->colorTable;
+}
+
+/**
+ * @return The color table.
+ */
+const GiftiLabelTable* 
+BorderFile::getColorTable() const
+{
+    return this->colorTable;
 }
 
 /**
@@ -427,3 +473,51 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         throw DataFileException(e);
     }
 }
+
+/**
+ * @return Is this border file modified?
+ */
+bool 
+BorderFile::isModified() const
+{
+    if (CaretDataFile::isModified()) {
+        return true;
+    }
+    if (this->metadata->isModified()) {
+        return true;
+    }
+    if (this->classNamesTable->isModified()) {
+        return true;
+    }
+    if (this->colorTable->isModified()) {
+        return true;
+    }
+    
+    const int32_t numBorders = this->getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        if (this->borders[i]->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Clear the modification status of this border file.
+ */
+void 
+BorderFile::clearModified()
+{
+    CaretDataFile::clearModified();
+    
+    this->metadata->clearModified();
+    this->classNamesTable->clearModified();
+    this->colorTable->clearModified();
+    
+    const int32_t numBorders = this->getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        this->borders[i]->clearModified();
+    }
+}
+
