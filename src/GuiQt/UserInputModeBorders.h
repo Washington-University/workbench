@@ -39,9 +39,8 @@ namespace caret {
     public:
         enum Mode {
             MODE_CREATE,
-            MODE_EDIT,
-            MODE_EDIT_POINTS,
-            MODE_UPDATE
+            MODE_REVISE,
+            MODE_SELECT
         };
         
         enum CreateOperation {
@@ -49,21 +48,17 @@ namespace caret {
             CREATE_OPERATION_TRANSFORM
         };
         
-        enum EditOperation {
-            EDIT_OPERATION_DELETE,  
-            EDIT_OPERATION_EDIT,  
-            EDIT_OPERATION_REVERSE
+        enum ReviseOperation {
+            REVISE_OPERATION_ERASE,
+            REVISE_OPERATION_EXTEND,
+            REVISE_OPERATION_REPLACE,
+            REVISE_OPERATION_DELETE,  
+            REVISE_OPERATION_REVERSE
         };
         
-        enum PointEditOperation {
-            POINT_EDIT_OPERATION_DELETE,
-            POINT_EDIT_OPERATION_MOVE
-        };
-        
-        enum UpdateOperation {
-            UPDATE_OPERATION_ERASE,
-            UPDATE_OPERATION_EXTEND,
-            UPDATE_OPERATION_REPLACE
+        enum SelectOperation {
+            SELECT_CLASS,
+            SELECT_NAME
         };
         
         UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
@@ -91,6 +86,14 @@ namespace caret {
         
         void setCreateOperation(const CreateOperation createOperation);
         
+        ReviseOperation getReviseOperation() const;
+        
+        void setReviseOperation(const ReviseOperation reviseOperation);
+        
+        SelectOperation getSelectOperation() const;
+        
+        void setSelectOperation(const SelectOperation selectOperation);
+        
     private:
         UserInputModeBorders(const UserInputModeBorders&);
 
@@ -115,6 +118,10 @@ namespace caret {
         Mode mode;
         
         CreateOperation createOperation;
+        
+        ReviseOperation reviseOperation;
+        
+        SelectOperation selectOperation;
         
         /** 
          * Pointer to border drawn by OpenGL.  Since owned

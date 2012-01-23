@@ -71,17 +71,14 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->widgetCreateOperation = this->createCreateOperationWidget();
     
-    this->widgetEditOperation = this->createEditOperationWidget();
+    this->widgetReviseOperation = this->createReviseOperationWidget();
     
-    this->widgetPointEditOperation = this->createPointEditOperationWidget();
-    
-    this->widgetUpdateOperation = this->createUpdateOperationWidget();
+    this->widgetSelectOperation = this->createSelectOperationWidget();
     
     this->operationStackedWidget = new QStackedWidget();
     this->operationStackedWidget->addWidget(this->widgetCreateOperation);
-    this->operationStackedWidget->addWidget(this->widgetEditOperation);
-    this->operationStackedWidget->addWidget(this->widgetPointEditOperation);
-    this->operationStackedWidget->addWidget(this->widgetUpdateOperation);
+    this->operationStackedWidget->addWidget(this->widgetReviseOperation);
+    this->operationStackedWidget->addWidget(this->widgetSelectOperation);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
@@ -115,14 +112,11 @@ UserInputModeBordersWidget::updateWidget()
             this->setActionGroupByActionData(this->createOperationActionGroup,
                                              inputModeBorders->getCreateOperation());
             break;
-        case UserInputModeBorders::MODE_EDIT:
-            this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
+        case UserInputModeBorders::MODE_REVISE:
+            this->operationStackedWidget->setCurrentWidget(this->widgetReviseOperation);
             break;
-        case UserInputModeBorders::MODE_EDIT_POINTS:
-            this->operationStackedWidget->setCurrentWidget(this->widgetPointEditOperation);
-            break;
-        case UserInputModeBorders::MODE_UPDATE:
-            this->operationStackedWidget->setCurrentWidget(this->widgetUpdateOperation);
+        case UserInputModeBorders::MODE_SELECT:
+            this->operationStackedWidget->setCurrentWidget(this->widgetSelectOperation);
             break;
     }
     const int selectedModeInteger = (int)this->inputModeBorders->getMode();
@@ -184,9 +178,8 @@ UserInputModeBordersWidget::createModeWidget()
 {
     this->modeComboBox = new QComboBox();
     this->modeComboBox->addItem("Create", (int)UserInputModeBorders::MODE_CREATE);
-    this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
-    this->modeComboBox->addItem("Edit Points", (int)UserInputModeBorders::MODE_EDIT_POINTS);
-    this->modeComboBox->addItem("Update", (int)UserInputModeBorders::MODE_UPDATE);
+    this->modeComboBox->addItem("Revise", (int)UserInputModeBorders::MODE_REVISE);
+    this->modeComboBox->addItem("Select", (int)UserInputModeBorders::MODE_SELECT);
     QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
     
@@ -196,29 +189,22 @@ UserInputModeBordersWidget::createModeWidget()
     QToolButton* createToolButton = new QToolButton();
     createToolButton->setDefaultAction(createAction);
     
-    QAction* editAction = WuQtUtilities::createAction("Edit", "Edit border attributes", this);
-    editAction->setCheckable(true);
-    editAction->setData((int)UserInputModeBorders::MODE_EDIT);
-    QToolButton* editToolButton = new QToolButton();
-    editToolButton->setDefaultAction(editAction);
+    QAction* reviseAction = WuQtUtilities::createAction("Revise", "Revise Borders", this);
+    reviseAction->setCheckable(true);
+    reviseAction->setData((int)UserInputModeBorders::MODE_REVISE);
+    QToolButton* reviseToolButton = new QToolButton();
+    reviseToolButton->setDefaultAction(reviseAction);
     
-    QAction* editPointsAction = WuQtUtilities::createAction("Points", "Edit border points", this);
-    editPointsAction->setCheckable(true);
-    editPointsAction->setData((int)UserInputModeBorders::MODE_EDIT_POINTS);
-    QToolButton* editPointsToolButton = new QToolButton();
-    editPointsToolButton->setDefaultAction(editPointsAction);
-    
-    QAction* updateAction = WuQtUtilities::createAction("Update", "Add/Remove/Replace segments of borders", this);
-    updateAction->setCheckable(true);
-    updateAction->setData((int)UserInputModeBorders::MODE_UPDATE);
-    QToolButton* updateToolButton = new QToolButton();
-    updateToolButton->setDefaultAction(updateAction);
+    QAction* selectAction = WuQtUtilities::createAction("Select", "Select Borders", this);
+    selectAction->setCheckable(true);
+    selectAction->setData((int)UserInputModeBorders::MODE_SELECT);
+    QToolButton* selectToolButton = new QToolButton();
+    selectToolButton->setDefaultAction(selectAction);
     
     this->modeActionGroup = new QActionGroup(this);
     this->modeActionGroup->addAction(createAction);
-    this->modeActionGroup->addAction(editAction);
-    this->modeActionGroup->addAction(editPointsAction);
-    this->modeActionGroup->addAction(updateAction);
+    this->modeActionGroup->addAction(reviseAction);
+    this->modeActionGroup->addAction(selectAction);
     this->modeActionGroup->setExclusive(true);
     QObject::connect(this->modeActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(modeActionTriggered(QAction*)));
@@ -233,9 +219,8 @@ UserInputModeBordersWidget::createModeWidget()
     }
     else {
         layout->addWidget(createToolButton);
-        layout->addWidget(editToolButton);
-        layout->addWidget(editPointsToolButton);
-        layout->addWidget(updateToolButton);
+        layout->addWidget(reviseToolButton);
+        layout->addWidget(selectToolButton);
     }
     
     widget->setFixedWidth(widget->sizeHint().width());
@@ -391,162 +376,74 @@ UserInputModeBordersWidget::createOperationActionTriggered(QAction* action)
 }
 
 /**
- * @return The edit mode widget.
+ * @return The revise widget.
+ REVISE_OPERATION_ERASE,
+ REVISE_OPERATION_EXTEND,
+ REVISE_OPERATION_REPLACE,
+ REVISE_OPERATION_DELETE,  
+ REVISE_OPERATION_REVERSE
  */
 QWidget* 
-UserInputModeBordersWidget::createEditOperationWidget()
+UserInputModeBordersWidget::createReviseOperationWidget()
 {
+    QAction* eraseAction = WuQtUtilities::createAction("Erase", 
+                                                      "Erase the an end of the border by \n"
+                                                      "dragging the mouse along the region\n"
+                                                      "that is to be deleted", 
+                                                      this);
+    eraseAction->setCheckable(true);
+    eraseAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_ERASE));
+    QToolButton* eraseToolButton = new QToolButton();
+    eraseToolButton->setDefaultAction(eraseAction);
+    
+    QAction* extendAction = WuQtUtilities::createAction("Extend", 
+                                                      "Extend a border by dragging the mouse\n"
+                                                      "starting at the end of a border and \n"
+                                                      "until its new termination point.", 
+                                                      this);
+    extendAction->setCheckable(true);
+    extendAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_EXTEND));
+    QToolButton* extendToolButton = new QToolButton();
+    extendToolButton->setDefaultAction(extendAction);
+    
+    QAction* replaceAction = WuQtUtilities::createAction("Replace", 
+                                                      "Replace a section of a border by placing\n"
+                                                      "the mouse over a point on the border where\n"
+                                                      "and dragging the mouse to the end of the \n"
+                                                      "section that is to be replaced.", 
+                                                      this);
+    replaceAction->setCheckable(true);
+    replaceAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_REPLACE));
+    QToolButton* replaceToolButton = new QToolButton();
+    replaceToolButton->setDefaultAction(replaceAction);
+    
     QAction* deleteAction = WuQtUtilities::createAction("Delete", 
                                                         "Delete a border by clicking\n"
                                                         "the mouse over the border",
                                                         this);
     deleteAction->setCheckable(true);
+    deleteAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
-    
-    QAction* editAction = WuQtUtilities::createAction("Edit", 
-                                                      "Edit a border by clicking the mouse\n"
-                                                      "on a border which then pops up a dialog\n"
-                                                      "for editing the borders attributes", 
-                                                      this);
-    editAction->setCheckable(true);
-    QToolButton* editToolButton = new QToolButton();
-    editToolButton->setDefaultAction(editAction);
     
     QAction* reverseAction = WuQtUtilities::createAction("Reverse", 
                                                          "Reverse the order of the points in a\n"
                                                          "border by clicking the mouse on the border", 
                                                          this);
     reverseAction->setCheckable(true);
+    reverseAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_REVERSE));
     QToolButton* reverseToolButton = new QToolButton();
     reverseToolButton->setDefaultAction(reverseAction);
     
-    this->editOperationActionGroup = new QActionGroup(this);
-    this->editOperationActionGroup->addAction(deleteAction);
-    this->editOperationActionGroup->addAction(editAction);
-    this->editOperationActionGroup->addAction(reverseAction);
-    this->editOperationActionGroup->setExclusive(true);
-    QObject::connect(this->editOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(editOperationActionTriggered(QAction*)));
-    
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
-    layout->addWidget(deleteToolButton);
-    layout->addWidget(editToolButton);
-    layout->addWidget(reverseToolButton);
-    
-    widget->setFixedWidth(widget->sizeHint().width());
-    return widget;
-}
-
-/**
- * Called when a edit button is clicked.
- * @param action
- *    Action that was triggered.
- */
-void 
-UserInputModeBordersWidget::editOperationActionTriggered(QAction* action)
-{
-    
-}
-
-/**
- * @return The point edit mode widget.
- */
-QWidget* 
-UserInputModeBordersWidget::createPointEditOperationWidget()
-{
-    QAction* deleteAction = WuQtUtilities::createAction("Delete", 
-                                                        "Delete points in a border by\n"
-                                                        "clicking them with the mouse", 
-                                                        this);
-    deleteAction->setCheckable(true);
-    QToolButton* deleteToolButton = new QToolButton();
-    deleteToolButton->setDefaultAction(deleteAction);
-    
-    QAction* moveAction = WuQtUtilities::createAction("Move", 
-                                                      "Move points in a border by depressing the\n"
-                                                      "mouse over a border point, move the mouse,\n"
-                                                      "and release the mouse", 
-                                                      this);
-    moveAction->setCheckable(true);
-    QToolButton* moveToolButton = new QToolButton();
-    moveToolButton->setDefaultAction(moveAction);
-    
-    this->pointEditOperationActionGroup = new QActionGroup(this);
-    this->pointEditOperationActionGroup->addAction(deleteAction);
-    this->pointEditOperationActionGroup->addAction(moveAction);
-    this->pointEditOperationActionGroup->setExclusive(true);
-    QObject::connect(this->pointEditOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(pointEditOperationActionTriggered(QAction*)));
-    
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
-    layout->addWidget(deleteToolButton);
-    layout->addWidget(moveToolButton);
-    
-    widget->setFixedWidth(widget->sizeHint().width());
-    return widget;
-}
-
-/**
- * Called when a point edit button is clicked.
- * @param action
- *    Action that was triggered.
- */
-void 
-UserInputModeBordersWidget::pointEditOperationActionTriggered(QAction* action)
-{
-    
-}
-
-/**
- * @return The update operation widget.
- */
-QWidget* 
-UserInputModeBordersWidget::createUpdateOperationWidget()
-{
-    QAction* eraseAction = WuQtUtilities::createAction("Erase", 
-                                                       "Erase from an end of the border by\n"
-                                                       "depressing the mouse at the end of\n"
-                                                       "the border, moving the mouse along the\n"
-                                                       "border to the new end point, and then\n"
-                                                       "release the mouse button", 
-                                                       this);
-    eraseAction->setCheckable(true);
-    QToolButton* eraseToolButton = new QToolButton();
-    eraseToolButton->setDefaultAction(eraseAction);
-    
-    QAction* extendAction = WuQtUtilities::createAction("Extend", 
-                                                        "Extend a border by depressing the mouse button\n"
-                                                        "at an end of the border, moving the mouse\n"
-                                                        "to create the new segment, and then \n"
-                                                        "releasing the mouse button", 
-                                                        this);
-    extendAction->setCheckable(true);
-    QToolButton* extendToolButton = new QToolButton();
-    extendToolButton->setDefaultAction(extendAction);
-    
-    QAction* replaceAction = WuQtUtilities::createAction("Replace", 
-                                                         "Replace a segment in the border by moving the\n"
-                                                         "mouse to a location on the border, depressing the\n"
-                                                         "mouse button, moving the mouse along the new\n"
-                                                         "segment, returning the mouse to a point on the\n"
-                                                         "border, and then releasing the mouse", 
-                                                         this);
-    replaceAction->setCheckable(true);
-    QToolButton* replaceToolButton = new QToolButton();
-    replaceToolButton->setDefaultAction(replaceAction);
-    
-    this->updateOperationActionGroup = new QActionGroup(this);
-    this->updateOperationActionGroup->addAction(eraseAction);
-    this->updateOperationActionGroup->addAction(extendAction);
-    this->updateOperationActionGroup->addAction(replaceAction);
-    this->updateOperationActionGroup->setExclusive(true);
-    QObject::connect(this->updateOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(updateOperationActionTriggered(QAction*)));
+    this->reviseOperationActionGroup = new QActionGroup(this);
+    this->reviseOperationActionGroup->addAction(eraseAction);
+    this->reviseOperationActionGroup->addAction(extendAction);
+    this->reviseOperationActionGroup->addAction(replaceAction);
+    this->reviseOperationActionGroup->addAction(deleteAction);
+    this->reviseOperationActionGroup->addAction(reverseAction);
+    this->reviseOperationActionGroup->setExclusive(true);
+    QObject::connect(this->reviseOperationActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(reviseOperationActionTriggered(QAction*)));
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -554,19 +451,79 @@ UserInputModeBordersWidget::createUpdateOperationWidget()
     layout->addWidget(eraseToolButton);
     layout->addWidget(extendToolButton);
     layout->addWidget(replaceToolButton);
+    layout->addWidget(deleteToolButton);
+    layout->addWidget(reverseToolButton);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
 
 /**
- * Called when a update button is clicked.
+ * Called when a revise button is clicked.
  * @param action
  *    Action that was triggered.
  */
 void 
-UserInputModeBordersWidget::updateOperationActionTriggered(QAction* action)
+UserInputModeBordersWidget::reviseOperationActionTriggered(QAction* action)
 {
+    const int reviseModeInteger = action->data().toInt();
+    const UserInputModeBorders::ReviseOperation reviseOperation = 
+    static_cast<UserInputModeBorders::ReviseOperation>(reviseModeInteger);
+    this->inputModeBorders->setReviseOperation(reviseOperation);
+}
+
+/**
+ * @return The select widget.
+ */
+QWidget* 
+UserInputModeBordersWidget::createSelectOperationWidget()
+{
+    QAction* classAction = WuQtUtilities::createAction("Class", 
+                                                        "Filter display of borders by\n"
+                                                        "selection of border classes", 
+                                                        this);
+    classAction->setCheckable(true);
+    classAction->setData(static_cast<int>(UserInputModeBorders::SELECT_CLASS));
+    QToolButton* classToolButton = new QToolButton();
+    classToolButton->setDefaultAction(classAction);
     
+    QAction* nameAction = WuQtUtilities::createAction("Name", 
+                                                      "Filter display of borders by \n"
+                                                      "selection of border names", 
+                                                      this);
+    nameAction->setCheckable(true);
+    nameAction->setData(static_cast<int>(UserInputModeBorders::SELECT_NAME));
+    QToolButton* nameToolButton = new QToolButton();
+    nameToolButton->setDefaultAction(nameAction);
+    
+    this->selectOperationActionGroup = new QActionGroup(this);
+    this->selectOperationActionGroup->addAction(classAction);
+    this->selectOperationActionGroup->addAction(nameAction);
+    this->selectOperationActionGroup->setExclusive(true);
+    QObject::connect(this->selectOperationActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(selectOperationActionTriggered(QAction*)));
+    
+    QWidget* widget = new QWidget();
+    QHBoxLayout* layout = new QHBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    layout->addWidget(classToolButton);
+    layout->addWidget(nameToolButton);
+    
+    widget->setFixedWidth(widget->sizeHint().width());
+    return widget;
+}
+
+/**
+ * Called when a select button is clicked.
+ * @param action
+ *    Action that was triggered.
+ */
+void 
+UserInputModeBordersWidget::selectOperationActionTriggered(QAction* action)
+{
+    const int selectModeInteger = action->data().toInt();
+    const UserInputModeBorders::SelectOperation selectOperation = 
+    static_cast<UserInputModeBorders::SelectOperation>(selectModeInteger);
+    this->inputModeBorders->setSelectOperation(selectOperation);
 }
 

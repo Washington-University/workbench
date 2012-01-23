@@ -71,6 +71,8 @@ UserInputReceiverInterface()
     this->windowIndex = windowIndex;
     this->mode = MODE_CREATE;
     this->createOperation = CREATE_OPERATION_DRAW;
+    this->reviseOperation = REVISE_OPERATION_ERASE;
+    this->selectOperation = SELECT_CLASS;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
 
@@ -202,17 +204,12 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 }
             }
                 break;
-            case MODE_EDIT:
+            case MODE_REVISE:
             {
                 
             }
                 break;
-            case MODE_EDIT_POINTS:
-            {
-                
-            }
-                break;
-            case MODE_UPDATE:
+            case MODE_SELECT:
             {
                 
             }
@@ -336,6 +333,46 @@ UserInputModeBorders::createOperationReset()
 {
     this->borderBeingDrawnByOpenGL->clear();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+}
+
+/**
+ * @return The revise operation.
+ */
+UserInputModeBorders::ReviseOperation 
+UserInputModeBorders::getReviseOperation() const
+{
+    return this->reviseOperation;
+}
+
+/**
+ * Set the revise operation.
+ * @param reviseOperation
+ *   New revise operation.
+ */
+void 
+UserInputModeBorders::setReviseOperation(const ReviseOperation reviseOperation)
+{
+    this->reviseOperation = reviseOperation;
+}
+
+/**
+ * @return The select operation.
+ */
+UserInputModeBorders::SelectOperation 
+UserInputModeBorders::getSelectOperation() const
+{
+    return this->selectOperation;
+}
+
+/**
+ * Set the select operation.
+ * @param selectOperation
+ *   New select operation.
+ */
+void 
+UserInputModeBorders::setSelectOperation(const SelectOperation selectOperation)
+{
+    this->selectOperation = selectOperation;
 }
 
 
