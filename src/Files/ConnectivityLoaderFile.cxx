@@ -1537,7 +1537,7 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
                             }
-                            double point[3] = {0.0,0.0,0.0};
+                            //double point[3] = {0.0,0.0,0.0};
                             this->tl.nodeid = nodeIndex;
                         }
                     }
@@ -1595,7 +1595,7 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
                             }
-                            double point[3] = {0.0,0.0,0.0};
+                            //double point[3] = {0.0,0.0,0.0};
                             //this->tl.nodeid = nodeIndex;
 
                         }
