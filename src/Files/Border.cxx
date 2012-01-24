@@ -27,6 +27,7 @@
 #include "Border.h"
 #undef __BORDER_DECLARE__
 
+#include <algorithm>
 #include "CaretAssert.h"
 #include "SurfaceProjectedItem.h"
 #include "XmlWriter.h"
