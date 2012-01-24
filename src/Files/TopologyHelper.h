@@ -120,7 +120,7 @@ namespace caret {
     
     /// This class is used to determine the node neighbors and edges for a Topology File.
     class TopologyHelper {
-        const CaretPointer<TopologyHelperBase> m_base;
+        CaretPointer<TopologyHelperBase> m_base;
         mutable CaretArray<int> m_markNodes, m_nodelist[2];//persistent, never cleared, only initialized once, saving bazillions of nanoseconds
         mutable CaretMutex m_usingMarkNodes;
         bool m_neighborsSorted;
@@ -137,7 +137,7 @@ namespace caret {
         TopologyHelper& operator=(const TopologyHelper& right);
     public:
         /// Constructor for use with a TopologyHelperBase (the only way, for now)
-        TopologyHelper(const CaretPointer<TopologyHelperBase>& myBase);
+        TopologyHelper(const CaretPointer<TopologyHelperBase> myBase);
 
         /// Get the number of nodes
         int getNumberOfNodes() const {

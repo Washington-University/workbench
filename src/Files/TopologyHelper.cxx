@@ -248,9 +248,9 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
     }
 }
 
-TopologyHelper::TopologyHelper(const CaretPointer<TopologyHelperBase>& myBase) : m_base(myBase), m_nodeInfo(myBase->m_nodeInfo), m_edgeInfo(myBase->m_edgeInfo),
+TopologyHelper::TopologyHelper(const CaretPointer<TopologyHelperBase> myBase) : m_base(myBase), m_nodeInfo(myBase->m_nodeInfo), m_edgeInfo(myBase->m_edgeInfo),
                                                                                     m_tileInfo(myBase->m_tileInfo), m_boundaryCount(myBase->m_boundaryCount)
-{
+{//by-value so that it makes a private copy that can't be pointed elsewhere during this constructor
     m_maxNeigh = m_base->m_maxNeigh;
     m_neighborsSorted = m_base->m_neighborsSorted;
     m_numNodes = m_base->m_numNodes;

@@ -565,8 +565,7 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
             ++myIndex;
         }
     }//UNLOCK before building a new one, so they can be built in parallel - this actually just involves initializing the marked array
-    CaretPointer<GeodesicHelperBase> tempBase = m_geoBase;//make a LOCAL pointer object so that it can't get pointed elsewhere in the middle of constructing a helper
-    CaretPointer<GeodesicHelper> ret(new GeodesicHelper(tempBase));
+    CaretPointer<GeodesicHelper> ret(new GeodesicHelper(m_geoBase));
     CaretMutexLocker myLock(&m_geoHelperMutex);//relock before modifying the array
     m_geoHelpers.push_back(ret);
     helpOut = ret;
@@ -601,8 +600,7 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
             m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
         }
     }
-    CaretPointer<TopologyHelperBase> tempBase = m_topoBase;//make a LOCAL pointer object so that it can't get pointed elsewhere in the middle of constructing a helper
-    CaretPointer<TopologyHelper> ret(new TopologyHelper(tempBase));
+    CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));
     CaretMutexLocker myLock(&m_topoHelperMutex);//lock before modifying the array
     m_topoHelpers.push_back(ret);
     helpOut = ret;

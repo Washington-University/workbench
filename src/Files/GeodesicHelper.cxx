@@ -148,9 +148,9 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
     }
 }
 
-GeodesicHelper::GeodesicHelper(CaretPointer<GeodesicHelperBase>& baseIn)
+GeodesicHelper::GeodesicHelper(const CaretPointer<GeodesicHelperBase>& baseIn)
 {
-    m_myBase = baseIn;//ensure it doesn't get deleted while we are using its data
+    m_myBase = baseIn;//copy the pointer so it doesn't get changed or deleted while we get its members
     //get references and info from base
     numNodes = m_myBase->numNodes;
     distances = m_myBase->distances;

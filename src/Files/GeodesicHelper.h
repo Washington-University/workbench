@@ -145,7 +145,7 @@ namespace caret {
         CaretPointer<GeodesicHelperBase> m_myBase;//mostly just for automatic memory management
         CaretMutex inUse;//could add a function and a locker pointer to be able to lock to thread once, then call repeatedly without locking, if mutex overhead is actually a factor
     public:
-        GeodesicHelper(CaretPointer<GeodesicHelperBase>& baseIn);
+        GeodesicHelper(const CaretPointer<GeodesicHelperBase>& baseIn);
         ~GeodesicHelper() {
             if (marked) {
                 delete[] output;
