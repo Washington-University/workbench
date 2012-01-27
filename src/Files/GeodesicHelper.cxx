@@ -26,8 +26,9 @@
 #include "SurfaceFile.h"
 #include "GeodesicHelper.h"
 #include "TopologyHelper.h"
-#include <iostream>
 #include "CaretMutex.h"
+#include "CaretHeap.h"
+#include <iostream>
 #include <stdint.h>
 
 using namespace caret;
@@ -160,6 +161,7 @@ GeodesicHelper::GeodesicHelper(const CaretPointer<GeodesicHelperBase>& baseIn)
     nodeNeighbors = m_myBase->nodeNeighbors;
     nodeNeighbors2 = m_myBase->nodeNeighbors2;
     //allocate private scratch space
+    m_heapIdent = CaretArray<int64_t>(numNodes);
     output = new float[numNodes];
     marked = new int32_t[numNodes];
     changed = new int32_t[numNodes];
@@ -201,14 +203,14 @@ void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vect
     float tempf;
     output[root] = 0.0f;
     marked[root] |= 4;
-    parent[root] = root;//idiom for end of path
+    parent[root] = -1;//idiom for end of path
     changed[numChanged++] = root;
-    myheap active;
-    active.push(root, 0.0f);
+    m_active.clear();
+    m_heapIdent[root] = m_active.push(root, 0.0f);
     //we keep values greater than maxdist off the stack, so anything pulled from the stack which is unmarked belongs in the list
-    while (!active.isEmpty())
+    while (!m_active.isEmpty())
     {
-        whichnode = active.pop();
+        whichnode = m_active.pop();
         if (!(marked[whichnode] & 1))
         {
             nodes.push_back(whichnode);
@@ -230,10 +232,10 @@ void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vect
                             marked[whichneigh] |= 4;
                             changed[numChanged++] = whichneigh;
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                         } else if (tempf < output[whichneigh]) {
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_active.changekey(m_heapIdent[whichneigh], tempf);
                         }
                     }
                 }
@@ -256,10 +258,10 @@ void GeodesicHelper::dijkstra(const int32_t root, const float maxdist, std::vect
                                 marked[whichneigh] |= 4;
                                 changed[numChanged++] = whichneigh;
                                 output[whichneigh] = tempf;
-                                active.push(whichneigh, tempf);
+                                m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                             } else if (tempf < output[whichneigh]) {
                                 output[whichneigh] = tempf;
-                                active.push(whichneigh, tempf);
+                                m_active.changekey(m_heapIdent[whichneigh], tempf);
                             }
                         }
                     }
@@ -279,12 +281,12 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
     int32_t* neighbors;
     float tempf;
     output[root] = 0.0f;
-    parent[root] = root;//idiom for end of path
-    myheap active;
-    active.push(root, 0.0f);
-    while (!active.isEmpty())
+    parent[root] = -1;//idiom for end of path
+    m_active.clear();
+    m_heapIdent[root] = m_active.push(root, 0.0f);
+    while (!m_active.isEmpty())
     {
-        whichnode = active.pop();
+        whichnode = m_active.pop();
         if (!(marked[whichnode] & 1))
         {
             marked[whichnode] |= 1;
@@ -301,10 +303,10 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
                         parent[whichneigh] = whichnode;
                         marked[whichneigh] |= 4;
                         output[whichneigh] = tempf;
-                        active.push(whichneigh, tempf);
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                     } else if (tempf < output[whichneigh]) {
                         output[whichneigh] = tempf;
-                        active.push(whichneigh, tempf);
+                        m_active.changekey(m_heapIdent[whichneigh], tempf);
                     }
                 }
             }
@@ -323,10 +325,10 @@ void GeodesicHelper::dijkstra(const int32_t root, bool smooth)
                             parent[whichneigh] = whichnode;
                             marked[whichneigh] |= 4;
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                         } else if (tempf < output[whichneigh]) {
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_active.changekey(m_heapIdent[whichneigh], tempf);
                         }
                     }
                 }
@@ -430,10 +432,9 @@ float** GeodesicHelper::getGeoAllToAll(const bool smooth)
 
 void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
 {//propagates info about shortest paths not containing root to other roots, hopefully making the problem tractable
-    int32_t root, i, j, whichnode, whichneigh, numNeigh, remain, myparent, myparent2, myparent3, prevdots = 0, dots;
+    int32_t root, i, j, whichnode, whichneigh, numNeigh, remain, midpoint, midrevparent, endparent, prevdots = 0, dots;
     int32_t* neighbors;
     float tempf, tempf2;
-    myheap active;
     for (i = 0; i < numNodes; ++i)
     {
         for (j = 0; j < numNodes; ++j)
@@ -467,14 +468,14 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
                     ++remain;//count how many more we need to compute so we can stop early
                 }
             }
-            active.clear();
         }//marking done, dijkstra time
+        m_active.clear();
         out[root][root] = 0.0f;
-        parents[root][root] = root;//idiom for end of path
-        active.push(root, 0.0f);
-        while (remain && !active.isEmpty())
+        parents[root][root] = -1;//idiom for end of path
+        m_heapIdent[root] = m_active.push(root, 0.0f);
+        while (remain && !m_active.isEmpty())
         {
-            whichnode = active.pop();
+            whichnode = m_active.pop();
             if (!(marked[whichnode] & 1))
             {
                 if (!(marked[whichnode] & 2)) --remain;
@@ -488,7 +489,7 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
                     {//already has a value and parent for this root
                         if (!(marked[whichneigh] & 8))
                         {//not yet in active list
-                            active.push(whichneigh, out[root][whichneigh]);
+                            m_heapIdent[whichneigh] = m_active.push(whichneigh, out[root][whichneigh]);
                             marked[whichneigh] |= 8;
                         }
                     } else {
@@ -500,11 +501,11 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
                                 out[root][whichneigh] = tempf;
                                 parents[root][whichneigh] = whichnode;
                                 marked[whichneigh] |= 4;
-                                active.push(whichneigh, tempf);
+                                m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                             } else if (tempf < out[root][whichneigh]) {
                                 out[root][whichneigh] = tempf;
                                 parents[root][whichneigh] = whichnode;
-                                active.push(whichneigh, tempf);
+                                m_active.changekey(m_heapIdent[whichneigh], tempf);
                             }
                         }
                     }
@@ -520,7 +521,7 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
                         {//already has a value and parent for this root
                             if (!(marked[whichneigh] & 8))
                             {//not yet in active list
-                                active.push(whichneigh, out[root][whichneigh]);
+                                m_heapIdent[whichneigh] = m_active.push(whichneigh, out[root][whichneigh]);
                                 marked[whichneigh] |= 8;
                             }
                         } else {
@@ -532,11 +533,11 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
                                     out[root][whichneigh] = tempf;
                                     parents[root][whichneigh] = whichnode;
                                     marked[whichneigh] |= 4;
-                                    active.push(whichneigh, tempf);
+                                    m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                                 } else if (tempf < out[root][whichneigh]) {
                                     out[root][whichneigh] = tempf;
                                     parents[root][whichneigh] = whichnode;
-                                    active.push(whichneigh, tempf);
+                                    m_active.changekey(m_heapIdent[whichneigh], tempf);
                                 }
                             }
                         }
@@ -548,25 +549,25 @@ void GeodesicHelper::alltoall(float** out, int32_t** parents, bool smooth)
         {//any node smaller than root already has all distances calculated for entire surface
             if (!(marked[i] & 2))
             {//if endpoint already had distance to root precomputed, all available info from this node has been propagated previously
-                myparent2 = i;
-                myparent = parents[root][i];
-                myparent3 = myparent;
+                midrevparent = i;
+                midpoint = parents[root][i];
+                endparent = midpoint;
                 tempf = out[root][i];
-                while (myparent != root)
+                while (midpoint != root)
                 {
-                    tempf2 = tempf - out[root][myparent];
-                    if (myparent > root)
+                    tempf2 = tempf - out[root][midpoint];
+                    if (midpoint > root)
                     {//try to be swap-friendly by not setting values in finished columns
-                        out[myparent][i] = tempf2;//use midpoint as root, parent of endpoint is myparent3
-                        parents[myparent][i] = myparent3;
+                        out[midpoint][i] = tempf2;//use midpoint as root, parent of endpoint is endparent
+                        parents[midpoint][i] = endparent;
                     }
-                    out[i][myparent] = tempf2;//use endpoint as root, parent of midpoint is myparent2
-                    parents[i][myparent] = myparent2;
-                    myparent2 = myparent;//step along path
-                    myparent = parents[root][myparent];
+                    out[i][midpoint] = tempf2;//use endpoint as root (so, reverse the path), parent of midpoint is midrevparent
+                    parents[i][midpoint] = midrevparent;
+                    midrevparent = midpoint;//step along path
+                    midpoint = parents[root][midpoint];
                 }
                 out[i][root] = out[root][i];//finally, fill the transpose
-                parents[i][root] = myparent2;
+                parents[i][root] = midrevparent;
             }
         }//propagation of best paths to other roots complete, dijkstra again
     }
@@ -618,12 +619,11 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valu
         return;
     }
     CaretMutexLocker locked(&inUse);
-    dijkstra(node, smoothflag);
+    float* temp = output;//swap the output pointer to avoid copy
     valuesOut.resize(numNodes);
-    for (int32_t i = 0; i < numNodes; ++i)
-    {
-        valuesOut[i] = output[i];
-    }
+    output = valuesOut.data();
+    dijkstra(node, smoothflag);
+    output = temp;//restore
 }
 
 void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag)
@@ -633,14 +633,15 @@ void GeodesicHelper::getGeoFromNode(const int32_t node, std::vector<float>& valu
         return;
     }
     CaretMutexLocker locked(&inUse);
-    dijkstra(node, smoothflag);
+    float* temp = output;//swap out the output pointer to avoid copying into the vector afterwards
+    int32_t* tempi = parent;
     valuesOut.resize(numNodes);
     parentsOut.resize(numNodes);
-    for (int32_t i = 0; i < numNodes; ++i)
-    {
-        valuesOut[i] = output[i];
-        parentsOut[i] = parent[i];
-    }
+    output = valuesOut.data();
+    parent = parentsOut.data();
+    dijkstra(node, smoothflag);
+    output = temp;//restore the pointers to the original memory
+    parent = tempi;
 }
 
 void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& interested, bool smooth)
@@ -665,12 +666,12 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
         changed[numChanged++] = root;
     }
     marked[root] |= 4;
-    parent[root] = root;//idiom for end of path
-    myheap active;
-    active.push(root, 0.0f);
-    while (remain && !active.isEmpty())
+    parent[root] = -1;//idiom for end of path
+    m_active.clear();
+    m_heapIdent[root] = m_active.push(root, 0.0f);
+    while (remain && !m_active.isEmpty())
     {
-        whichnode = active.pop();
+        whichnode = m_active.pop();
         if (!(marked[whichnode] & 1))
         {
             if (marked[whichnode] & 2)
@@ -695,10 +696,10 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
                         }
                         marked[whichneigh] |= 4;
                         output[whichneigh] = tempf;
-                        active.push(whichneigh, tempf);
+                        m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                     } else if (tempf < output[whichneigh]) {
                         output[whichneigh] = tempf;
-                        active.push(whichneigh, tempf);
+                        m_active.changekey(m_heapIdent[whichneigh], tempf);
                     }
                 }
             }
@@ -721,10 +722,10 @@ void GeodesicHelper::dijkstra(const int32_t root, const std::vector<int32_t>& in
                             }
                             marked[whichneigh] |= 4;
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_heapIdent[whichneigh] = m_active.push(whichneigh, tempf);
                         } else if (tempf < output[whichneigh]) {
                             output[whichneigh] = tempf;
-                            active.push(whichneigh, tempf);
+                            m_active.changekey(m_heapIdent[whichneigh], tempf);
                         }
                     }
                 }

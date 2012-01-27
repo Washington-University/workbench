@@ -58,7 +58,7 @@ namespace caret
         void heapify_down(const int64_t& start);
     public:
         ///this heap is special, save the return value of push() and you can modify the key/data later (constant time for data, log(heapsize) time to change key)
-        int64_t push(const K& key, const T& data);
+        int64_t push(const T& data, const K& key);
         
         ///look at the data of the top element
         T& top(K* key = NULL);
@@ -83,6 +83,9 @@ namespace caret
         
         ///get number of elements
         int64_t size() const;
+        
+        ///reset the heap
+        void clear();
     };
 
     ///simpler heap base for more basic (and not indirected) use, give it pointers if your data struct is nontrivial
@@ -105,7 +108,7 @@ namespace caret
         void heapify_down(const int64_t& start);
     public:
         
-        void push(const K& key, const T& data);
+        void push(const T& data, const K& key);
         
         ///look at the data of the top element
         T& top(K* key = NULL);
@@ -121,6 +124,9 @@ namespace caret
         
         ///get number of elements
         int64_t size() const;
+        
+        ///reset the heap
+        void clear();
     };
     
     ///minheap with advanced features
@@ -248,7 +254,7 @@ namespace caret
     }
 
     template <typename T, typename K, typename C>
-    int64_t CaretHeapBase<T, K, C>::push(const K& key, const T& data)
+    int64_t CaretHeapBase<T, K, C>::push(const T& data, const K& key)
     {
         int64_t dataLoc;
         if (m_unusedStore.size() > 0)
@@ -303,6 +309,14 @@ namespace caret
     int64_t CaretHeapBase<T, K, C>::size() const
     {
         return (int64_t)m_heap.size();
+    }
+
+    template <typename T, typename K, typename C>
+    void CaretHeapBase<T, K, C>::clear()
+    {
+        m_heap.clear();
+        m_datastore.clear();
+        m_unusedStore.clear();
     }
 
     template <typename T, typename K, typename C>
@@ -364,7 +378,7 @@ namespace caret
     }
 
     template <typename T, typename K, typename C>
-    void CaretSimpleHeapBase<T, K, C>::push(const K& key, const T& data)
+    void CaretSimpleHeapBase<T, K, C>::push(const T& data, const K& key)
     {
         m_heap.push_back(DataStruct(key, data));
         heapify_up(m_heap.size() - 1);
@@ -395,6 +409,12 @@ namespace caret
     int64_t CaretSimpleHeapBase<T, K, C>::size() const
     {
         return (int64_t)m_heap.size();
+    }
+
+    template <typename T, typename K, typename C>
+    void CaretSimpleHeapBase<T, K, C>::clear()
+    {
+        m_heap.clear();
     }
 
 }

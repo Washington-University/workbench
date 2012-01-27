@@ -34,6 +34,7 @@
 
 #include "CaretMutex.h"
 #include "CaretPointer.h"
+#include "CaretHeap.h"
 
 namespace caret {
 
@@ -81,59 +82,11 @@ namespace caret {
 
     class GeodesicHelper
     {
-        class myheap
-        {//yes, I know its in the stl algorithms, sue me
-            struct data
-            {
-                int32_t node;
-                float dist;
-            };
-            std::vector<data> store;
-        public:
-            inline bool isEmpty() {
-                return store.empty();
-            }
-            inline int32_t pop()
-            {
-                int32_t ret = store[0].node;
-                int32_t prev = 0, next = 1, next1 = 2, size = store.size();
-                int32_t last = size - 1;
-                if (next1 < size && store[next].dist > store[next1].dist) next = next1;
-                while (next < size && store[last].dist > store[next].dist)
-                {
-                    store[prev] = store[next];
-                    prev = next;
-                    next = (prev << 1) + 1;
-                    next1 = next + 1;
-                    if (next1 < size && store[next].dist > store[next1].dist) next = next1;
-                }
-                store[prev] = store[last];
-                store.pop_back();
-                return ret;
-            }
-            inline void push(int32_t node, float dist)
-            {
-                int32_t prev = store.size();
-                data mydata;
-                mydata.node = node;
-                mydata.dist = dist;
-                store.push_back(mydata);//placeholder
-                int32_t next = (prev - 1) >> 1;
-                while (prev > 0 && store[next].dist > dist)
-                {
-                    store[prev] = store[next];
-                    prev = next;
-                    next = (prev - 1) >> 1;
-                }
-                store[prev] = mydata;
-            }
-            inline void clear() {
-                store.clear();
-            }
-        };
+        CaretMinHeap<int32_t, float> m_active;//save and reuse the allocated space
         float* output, **distances, **distances2;//use primitives for speed, and they don't need to change size
         int32_t** nodeNeighbors, **nodeNeighbors2;//copy neighbors at constructor, because I don't want to mess with inheritance, and I want speed of repeated calls
         int32_t* numNeighbors, *numNeighbors2, *marked, *changed, *parent;
+        CaretArray<int64_t> m_heapIdent;
         int32_t numNodes;
         GeodesicHelper();//Don't allow construction without arguments
         GeodesicHelper& operator=(const GeodesicHelper& right);//can't assign
@@ -157,19 +110,19 @@ namespace caret {
         /// Get distances from root node, up to a geodesic distance cutoff (stops computing when no more nodes are within that distance)
         void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, const bool smoothflag = true);
 
-        /// Get distances from root node, up to a geodesic distance cutoff, and also return their parents (root node has itself as parent)
+        /// Get distances from root node, up to a geodesic distance cutoff, and also return their parents (root node has -1 as parent)
         void getNodesToGeoDist(const int32_t node, const float maxdist, std::vector<int32_t>& neighborsOut, std::vector<float>& distsOut, std::vector<int32_t>& parentsOut, const bool smoothflag = true);
 
-        /// Get distances from root node to entire surface - fastest method for full surface for only one node, but allocate the array first
+        /// Get distances from root node to entire surface - allocate the array first
         void getGeoFromNode(const int32_t node, float* valuesOut, const bool smoothflag = true);//MUST be already allocated to number of nodes
 
-        /// Get distances from root node to entire surface, vector method (not as fast)
+        /// Get distances from root node to entire surface, vector method
         void getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, const bool smoothflag = true);
 
-        /// Get distances from root node to entire surface and parents - fastest method with parents for full surface, single node, allocate both arrays first (root node has self as parent)
+        /// Get distances from root node to entire surface and parents - allocate both arrays first (root node has -1 as parent)
         void getGeoFromNode(const int32_t node, float* valuesOut, int32_t* parentsOut, const bool smoothflag = true);
 
-        /// Get distances from root node to entire surface, and their parents, vector method (not as fast, root node has self as parent)
+        /// Get distances from root node to entire surface, and their parents, vector method (root node has -1 as parent)
         void getGeoFromNode(const int32_t node, std::vector<float>& valuesOut, std::vector<int32_t>& parentsOut, const bool smoothflag = true);
 
         /// Get distances from all nodes to all nodes, passes back NULL if cannot allocate, if successful you must eventually delete the memory

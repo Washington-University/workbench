@@ -137,7 +137,7 @@ namespace caret {
         TopologyHelper& operator=(const TopologyHelper& right);
     public:
         /// Constructor for use with a TopologyHelperBase (the only way, for now)
-        TopologyHelper(const CaretPointer<TopologyHelperBase> myBase);
+        TopologyHelper(CaretPointer<TopologyHelperBase> myBase);
 
         /// Get the number of nodes
         int getNumberOfNodes() const {

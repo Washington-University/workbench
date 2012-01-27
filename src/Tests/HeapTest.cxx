@@ -46,7 +46,7 @@ void HeapTest::execute()
         testarray[i][0] = i + 5;//data
         testarray[i][1] = rand() % 1000;//key
         markarray[i] = false;
-        indexes[i] = myHeap.push(testarray[i][1], testarray[i][0]);
+        indexes[i] = myHeap.push(testarray[i][0], testarray[i][1]);
     }
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
@@ -80,10 +80,9 @@ void HeapTest::execute()
     CaretSimpleMinHeap<int, int> mySimpleHeap;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
-        testarray[i][0] = i + 5;//data
         testarray[i][1] = rand() % 1000;//key
         markarray[i] = false;
-        mySimpleHeap.push(testarray[i][1], testarray[i][0]);
+        mySimpleHeap.push(testarray[i][0], testarray[i][1]);
     }
     thiskey = 0;
     for (int i = 0; i < NUM_ELEMS; ++i)
@@ -112,10 +111,9 @@ void HeapTest::execute()
     CaretMaxHeap<int, int> myMaxHeap;
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
-        testarray[i][0] = i + 5;//data
         testarray[i][1] = rand() % 1000;//key
         markarray[i] = false;
-        indexes[i] = myMaxHeap.push(testarray[i][1], testarray[i][0]);
+        indexes[i] = myMaxHeap.push(testarray[i][0], testarray[i][1]);
     }
     for (int i = 0; i < NUM_ELEMS; ++i)
     {
@@ -127,6 +125,37 @@ void HeapTest::execute()
     {
         prevkey = thiskey;
         thisdata = myMaxHeap.pop(&thiskey);
+        if (i != 0 && thiskey > prevkey)
+        {
+            setFailed("key ordering failed at " + AString::number(i));
+        }
+        if (thisdata < 5 || thisdata > NUM_ELEMS + 4)
+        {
+            setFailed("data DESTROYED at " + AString::number(i));
+            continue;//don't let it segfault trying to mark it
+        }
+        if (testarray[thisdata - 5][1] != thiskey)
+        {
+            setFailed("data scrambled at " + AString::number(i));
+        }
+        if (markarray[thisdata - 5])
+        {
+            setFailed("element duplicated at " + AString::number(i));
+        }
+        markarray[thisdata - 5] = true;
+    }
+    CaretSimpleMaxHeap<int, int> mySimpleMaxHeap;
+    for (int i = 0; i < NUM_ELEMS; ++i)
+    {
+        testarray[i][1] = rand() % 1000;//key
+        markarray[i] = false;
+        mySimpleMaxHeap.push(testarray[i][0], testarray[i][1]);
+    }
+    thiskey = 0;
+    for (int i = 0; i < NUM_ELEMS; ++i)
+    {
+        prevkey = thiskey;
+        thisdata = mySimpleMaxHeap.pop(&thiskey);
         if (i != 0 && thiskey > prevkey)
         {
             setFailed("key ordering failed at " + AString::number(i));

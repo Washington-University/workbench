@@ -359,7 +359,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                         int64_t tempIndex = myVolOut->getIndex(tempijk);
                         if ((volMarked[tempIndex] & 1) == 0)
                         {//only add this to the heap if it has unmarked face neighbors
-                            posHeap.push(tempf, VoxelIndex(thisVoxel));//don't need to store the index to change the key, value is frozen
+                            posHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
                             break;
                         }
                     }
@@ -395,7 +395,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     }
                     if ((tempmark & 12) == 0 && (tempmark & 2) != 0 && neighborhood[neigh].m_dist <= maxFaceDist)
                     {//this neatly handles both face neighbors and any other needed neighbors to maintain dijkstra correctness under extreme scenarios
-                        heapIndexes[tempindex] = posHeap.push(myVolOut->getValue(tempijk), VoxelIndex(tempijk));
+                        heapIndexes[tempindex] = posHeap.push(VoxelIndex(tempijk), myVolOut->getValue(tempijk));
                         volMarked[tempindex] |= 8;//has a heap index
                     }
                 }
@@ -438,7 +438,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                         int64_t tempIndex = myVolOut->getIndex(tempijk);
                         if ((volMarked[tempIndex] & 1) == 0)
                         {//only add this to the heap if it has unmarked face neighbors
-                            negHeap.push(tempf, VoxelIndex(thisVoxel));//don't need to store the index to change the key, value is frozen
+                            negHeap.push(VoxelIndex(thisVoxel), tempf);//don't need to store the index to change the key, value is frozen
                             break;
                         }
                     }
@@ -474,7 +474,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
                     }
                     if ((tempmark & 12) == 0 && (tempmark & 16) != 0 && neighborhood[neigh].m_dist <= maxFaceDist)
                     {//this neatly handles both face neighbors and any other needed neighbors to maintain dijkstra correctness under extreme scenarios
-                        heapIndexes[tempindex] = negHeap.push(myVolOut->getValue(tempijk), VoxelIndex(tempijk));
+                        heapIndexes[tempindex] = negHeap.push(VoxelIndex(tempijk), myVolOut->getValue(tempijk));
                         volMarked[tempindex] |= 8;//has a heap index
                     }
                 }
@@ -486,7 +486,7 @@ AlgorithmCreateSignedDistanceVolume::AlgorithmCreateSignedDistanceVolume(Progres
 float SignedDistToSurfIndexed::dist(float coord[3], AlgorithmCreateSignedDistanceVolume::WindingLogic myWinding)
 {
     CaretSimpleMinHeap<Oct<SignedDistToSurfIndexedBase::TriVector>*, float> myHeap;
-    myHeap.push(m_base->m_indexRoot->distToPoint(coord), m_base->m_indexRoot);
+    myHeap.push(m_base->m_indexRoot, m_base->m_indexRoot->distToPoint(coord));
     ClosestPointInfo tempInfo, bestInfo;
     float tempf = -1.0f, bestTriDist = -1.0f;
     bool first = true;
@@ -523,7 +523,7 @@ float SignedDistToSurfIndexed::dist(float coord[3], AlgorithmCreateSignedDistanc
                         tempf = curOct->m_children[ci][cj][ck]->distToPoint(coord);
                         if (first || tempf < bestTriDist)
                         {
-                            myHeap.push(tempf, curOct->m_children[ci][cj][ck]);
+                            myHeap.push(curOct->m_children[ci][cj][ck], tempf);
                         }
                     }
                 }
