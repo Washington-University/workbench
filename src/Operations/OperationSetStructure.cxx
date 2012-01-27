@@ -53,6 +53,9 @@ OperationParameters* OperationSetStructure::getParameters()
     OptionalParameter* surfType = ret->createOptionalParameter(3, "-surface-type", "set the type of a surface (only used if file is a surface file)");
     surfType->addStringParameter(1, "type", "name of surface type");
     
+    OptionalParameter* secondaryType = ret->createOptionalParameter(4, "-surface-secondary-type", "set the secondary type of a surface (only used if file is a surface file)");
+    secondaryType->addStringParameter(1, "secondary type", "name of surface secondary type");
+    
     AString myText = AString("The existing file is modified and rewritten to the same filename.  Valid values for the structure name are:\n\n");
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
@@ -67,6 +70,14 @@ OperationParameters* OperationSetStructure::getParameters()
     for (int i = 0; i < (int)mySurfTypeEnums.size(); ++i)
     {
         myText += SurfaceTypeEnum::toName(mySurfTypeEnums[i]) + "\n";
+    }
+    
+    myText += "\nValid names for the surface secondary type are:\n\n";
+    vector<SecondarySurfaceTypeEnum::Enum> mySecondaryTypeEnums;
+    SecondarySurfaceTypeEnum::getAllEnums(mySecondaryTypeEnums);
+    for (int i = 0; i < (int)mySecondaryTypeEnums.size(); ++i)
+    {
+        myText += SecondarySurfaceTypeEnum::toName(mySecondaryTypeEnums[i]) + "\n";
     }
     
     ret->setHelpText(myText);
@@ -94,7 +105,7 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
         case DataFileTypeEnum::SURFACE:
             {
                 OptionalParameter* surfType = myParams->getOptionalParameter(3);
-                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::ANATOMICAL;//so compilers won't complain about uninitialized
+                SurfaceTypeEnum::Enum mySurfType = SurfaceTypeEnum::UNKNOWN;//so compilers won't complain about uninitialized
                 if (surfType->m_present)
                 {
                     AString mySurfTypeName = surfType->getString(1);
@@ -104,12 +115,27 @@ void OperationSetStructure::useParameters(OperationParameters* myParams, Progres
                         throw OperationException("unrecognized surface type");
                     }
                 }
+                OptionalParameter* secondaryType = myParams->getOptionalParameter(4);
+                SecondarySurfaceTypeEnum::Enum mySecondType = SecondarySurfaceTypeEnum::INVALID;
+                if (secondaryType->m_present)
+                {
+                    AString mySecondaryName = secondaryType->getString(1);
+                    mySecondType = SecondarySurfaceTypeEnum::fromName(mySecondaryName, &ok);
+                    if (!ok)
+                    {
+                        throw OperationException("unrecognized secondary surface type");
+                    }
+                }
                 SurfaceFile mySurf;
                 mySurf.readFile(fileName);
                 mySurf.setStructure(myStrucure);
                 if (surfType->m_present)
                 {
                     mySurf.setSurfaceType(mySurfType);
+                }
+                if (secondaryType->m_present)
+                {
+                    mySurf.setSecondaryType(mySecondType);
                 }
                 mySurf.writeFile(fileName);
             }

@@ -85,6 +85,10 @@ namespace caret {
         
         void setSurfaceType(const SurfaceTypeEnum::Enum surfaceType);
         
+        SecondarySurfaceTypeEnum::Enum getSecondaryType() const;
+        
+        void setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType);
+        
         CaretPointer<TopologyHelper> getTopologyHelper(bool infoSorted = false) const;
         
         void getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool infoSorted = false) const;

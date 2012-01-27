@@ -112,10 +112,69 @@ private:
     AString giftiName;
 };
 
+class SecondarySurfaceTypeEnum
+{
+public:
+    enum Enum {
+        INVALID,
+        GRAY_WHITE,
+        MIDTHICKNESS,
+        PIAL
+    };
+
+    static AString toName(Enum e);
+    
+    static Enum fromName(const AString& s, bool* isValidOut);
+    
+    static AString toGuiName(Enum e);
+    
+    static Enum fromGuiName(const AString& s, bool* isValidOut);
+    
+    static AString toGiftiName(Enum e);
+    
+    static Enum fromGiftiName(const AString& s, bool* isValidOut);
+    
+    static int32_t toIntegerCode(Enum e);
+    
+    static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
+
+    static void getAllEnums(std::vector<Enum>& allEnums);
+    
+private:
+    SecondarySurfaceTypeEnum(const Enum e, 
+                    const AString& name,
+                    const AString& guiName,
+                    const AString& giftiName);
+
+    static const SecondarySurfaceTypeEnum* findData(const Enum e);
+
+    static std::vector<SecondarySurfaceTypeEnum> enumData;
+
+    static void initialize();
+
+    static bool initializedFlag;
+
+    static int32_t integerCodeGenerator;
+    
+    Enum e;
+
+    int32_t integerCode;
+
+    AString name;
+    
+    AString guiName;
+    
+    AString giftiName;
+};
+
 #ifdef __SURFACE_TYPE_ENUM_DECLARE__
     std::vector<SurfaceTypeEnum> SurfaceTypeEnum::enumData;
     bool SurfaceTypeEnum::initializedFlag = false;
     int32_t SurfaceTypeEnum::integerCodeGenerator = 0;
+
+    std::vector<SecondarySurfaceTypeEnum> SecondarySurfaceTypeEnum::enumData;
+    bool SecondarySurfaceTypeEnum::initializedFlag = false;
+    int32_t SecondarySurfaceTypeEnum::integerCodeGenerator = 0;
 #endif // __SURFACE_TYPE_ENUM_DECLARE__
 
 } // namespace

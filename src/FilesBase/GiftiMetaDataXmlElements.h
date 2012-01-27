@@ -80,7 +80,7 @@ namespace GiftiMetaDataXmlElements {
     /** metadata value for NIFTI_INTENT_POINTSET secondary anatomical structure
  representing the pial (gray/CSF boundary).
 */
-     static const AString METADATA_NAME_ANATOMICAL_STRUCTURE_SECONDARY_VALUE_PIAL = "Pia";
+     static const AString METADATA_NAME_ANATOMICAL_STRUCTURE_SECONDARY_VALUE_PIAL = "Pial";
 
     /** metadata value for NIFTI_INTENT_POINTSET secondary anatomical structure
  representing the mid thickness (layer 4).

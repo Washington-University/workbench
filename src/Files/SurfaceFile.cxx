@@ -541,6 +541,38 @@ SurfaceFile::setSurfaceType(const SurfaceTypeEnum::Enum surfaceType)
                                         geometricTypeName);
 }
 
+/**
+ * @return The secondary type of this surface.
+ */
+SecondarySurfaceTypeEnum::Enum 
+SurfaceFile::getSecondaryType() const
+{
+    if (this->coordinateDataArray == NULL) {
+        return SecondarySurfaceTypeEnum::INVALID;
+    }
+    
+    const AString secondaryTypeName = 
+        this->coordinateDataArray->getMetaData()->get(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_SECONDARY);
+    SecondarySurfaceTypeEnum::Enum surfaceType = SecondarySurfaceTypeEnum::fromGiftiName(secondaryTypeName, NULL);
+    return surfaceType;
+}
+
+/**
+ * Sets the type of this surface.
+ * @param surfaceType 
+ *    New type for surface.
+ */
+void 
+SurfaceFile::setSecondaryType(const SecondarySurfaceTypeEnum::Enum secondaryType)
+{
+    if (this->coordinateDataArray == NULL) {
+        return;
+    }
+    const AString secondaryTypeName = SecondarySurfaceTypeEnum::toGiftiName(secondaryType);
+    this->coordinateDataArray->getMetaData()->set(GiftiMetaDataXmlElements::METADATA_NAME_ANATOMICAL_STRUCTURE_SECONDARY,
+                                        secondaryTypeName);
+}
+
 void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
 {
     {//lock before modifying member (base)

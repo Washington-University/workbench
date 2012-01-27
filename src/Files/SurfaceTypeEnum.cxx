@@ -353,3 +353,295 @@ SurfaceTypeEnum::getAllEnums(std::vector<SurfaceTypeEnum::Enum>& allEnums)
     }
 }
 
+/**
+ * Constructor.
+ *
+ * @param e
+ *    An enumerated value.
+ * @param name
+ *    Name of enumberated value.
+ */
+SecondarySurfaceTypeEnum::SecondarySurfaceTypeEnum(const Enum e,
+                                 const AString& name,
+                                 const AString& guiName,
+                                 const AString& giftiName)
+{
+    this->e = e;
+    this->integerCode = SecondarySurfaceTypeEnum::integerCodeGenerator++;
+    this->name = name;
+    this->guiName = guiName;
+    this->giftiName = giftiName;
+}
+
+/**
+ * Initialize the enumerated metadata.
+ */
+void
+SecondarySurfaceTypeEnum::initialize()
+{
+    if (initializedFlag) {
+        return;
+    }
+    initializedFlag = true;
+
+    enumData.push_back(SecondarySurfaceTypeEnum(INVALID, 
+                                       "INVALID", 
+                                       "Invalid",
+                                       "Invalid"));
+    enumData.push_back(SecondarySurfaceTypeEnum(GRAY_WHITE, 
+                                       "GRAY_WHITE", 
+                                       "GrayWhite",
+                                       "GrayWhite"));
+    enumData.push_back(SecondarySurfaceTypeEnum(MIDTHICKNESS, 
+                                       "MIDTHICKNESS", 
+                                       "Midthickness",//I'm assuming that middle capital T is not desired in the gui
+                                       "MidThickness"));//but it is used in the data format for caret6
+    enumData.push_back(SecondarySurfaceTypeEnum(PIAL, 
+                                       "PIAL", 
+                                       "Pial",
+                                       "Pial"));
+}
+
+/**
+ * Find the data for and enumerated value.
+ * @param e
+ *     The enumerated value.
+ * @return Pointer to data for this enumerated type
+ * or NULL if no data for type or if type is invalid.
+ */
+const SecondarySurfaceTypeEnum*
+SecondarySurfaceTypeEnum::findData(const Enum e)
+{
+    initialize();
+
+    size_t num = enumData.size();
+    for (size_t i = 0; i < num; i++) {
+        const SecondarySurfaceTypeEnum* d = &enumData[i];
+        if (d->e == e) {
+            return d;
+        }
+    }
+
+    return NULL;
+}
+
+/**
+ * Get a string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+SecondarySurfaceTypeEnum::toName(Enum e) {
+    initialize();
+    
+    const SecondarySurfaceTypeEnum* st = findData(e);
+    return st->name;
+}
+
+/**
+ * Get an enumerated value corresponding to its name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+SecondarySurfaceTypeEnum::Enum 
+SecondarySurfaceTypeEnum::fromName(const AString& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e = INVALID;
+    
+    for (std::vector<SecondarySurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SecondarySurfaceTypeEnum& d = *iter;
+        if (d.name == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a GUI string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+SecondarySurfaceTypeEnum::toGuiName(Enum e) {
+    initialize();
+    
+    const SecondarySurfaceTypeEnum* st = findData(e);
+    return st->guiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its GUI name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+SecondarySurfaceTypeEnum::Enum 
+SecondarySurfaceTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e = INVALID;
+    
+    for (std::vector<SecondarySurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SecondarySurfaceTypeEnum& d = *iter;
+        if (d.guiName == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get the integer code for a data type.
+ *
+ * @return
+ *    Integer code for data type.
+ */
+int32_t
+SecondarySurfaceTypeEnum::toIntegerCode(Enum e)
+{
+    initialize();
+    const SecondarySurfaceTypeEnum* ndt = findData(e);
+    return ndt->integerCode;
+}
+
+/**
+ * Find the data type corresponding to an integer code.
+ *
+ * @param integerCode
+ *     Integer code for enum.
+ * @param isValidOut
+ *     If not NULL, on exit isValidOut will indicate if
+ *     integer code is valid.
+ * @return
+ *     Enum for integer code.
+ */
+SecondarySurfaceTypeEnum::Enum
+SecondarySurfaceTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e = INVALID;
+    
+    for (std::vector<SecondarySurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SecondarySurfaceTypeEnum& ndt = *iter;
+        if (ndt.integerCode == integerCode) {
+            e = ndt.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get a GIFTI Name string representation of the enumerated type.
+ * @param e 
+ *     Enumerated value.
+ * @return 
+ *     String representing enumerated value.
+ */
+AString 
+SecondarySurfaceTypeEnum::toGiftiName(Enum e) {
+    initialize();
+    
+    const SecondarySurfaceTypeEnum* st = findData(e);
+    return st->giftiName;
+}
+
+/**
+ * Get an enumerated value corresponding to its GIFTI name.
+ * @param s 
+ *     Name of enumerated value.
+ * @param isValidOut 
+ *     If not NULL, it is set indicating that a
+ *     enum value exists for the input name.
+ * @return 
+ *     Enumerated value.
+ */
+SecondarySurfaceTypeEnum::Enum 
+SecondarySurfaceTypeEnum::fromGiftiName(const AString& s, bool* isValidOut)
+{
+    initialize();
+    
+    bool validFlag = false;
+    Enum e = INVALID;
+    
+    for (std::vector<SecondarySurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        const SecondarySurfaceTypeEnum& d = *iter;
+        if (d.giftiName == s) {
+            e = d.e;
+            validFlag = true;
+            break;
+        }
+    }
+    
+    if (isValidOut != 0) {
+        *isValidOut = validFlag;
+    }
+    return e;
+}
+
+/**
+ * Get all of the enumerated type values.  The values can be used
+ * as parameters to toXXX() methods to get associated metadata.
+ *
+ * @param allEnums
+ *     A vector that is OUTPUT containing all of the enumerated values.
+ */
+void
+SecondarySurfaceTypeEnum::getAllEnums(std::vector<SecondarySurfaceTypeEnum::Enum>& allEnums)
+{
+    if (initializedFlag == false) initialize();
+    
+    allEnums.clear();
+    
+    for (std::vector<SecondarySurfaceTypeEnum>::iterator iter = enumData.begin();
+         iter != enumData.end();
+         iter++) {
+        allEnums.push_back(iter->e);
+    }
+}
