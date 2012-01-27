@@ -58,6 +58,9 @@ void PointerTest::execute()
     int deltrack1, deltrack2, deltrack3;
     {//scope to control when things get destroyed
         CaretPointer<DelTestObj> myobj1(new DelTestObj(&deltrack1)), myobj2(new DelTestObj(&deltrack2)), myobj3(new DelTestObj(&deltrack3));
+        {
+            CaretPointer<const DelTestObj> myconstobj = myobj1;//check that pointer to const works, too
+        }
         //cout << "pointers: " << myobj1.getPointer() << "\t" << myobj2.getPointer() << "\t" << myobj3.getPointer() << endl;
 #pragma omp CARET_PAR
         {
