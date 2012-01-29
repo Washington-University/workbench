@@ -699,11 +699,11 @@ ConnectivityLoaderFile::allocateData(const int32_t numberOfDataElements)
 {
     if (numberOfDataElements != this->numberOfDataElements) {
         if (data != NULL) {
-            delete data;
+            delete [] data;
             this->data = NULL;
         }
         if (dataRGBA != NULL) {
-            delete this->dataRGBA;
+            delete [] this->dataRGBA;
             this->dataRGBA = NULL;
         }
         

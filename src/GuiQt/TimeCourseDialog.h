@@ -46,6 +46,7 @@
 #include "TimeLine.h"
 #include "ColorManager.h"
 #include "QList"
+#include <stdio.h>
 
 
 namespace Ui {
@@ -65,6 +66,9 @@ public:
     void updateDialog(bool forceUpdate = false);
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
+
+    public slots:
+        void test() { printf("woohooh\n"); }
 
 private slots:
     void on_TDClose_clicked();

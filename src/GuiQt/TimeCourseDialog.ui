@@ -383,5 +383,25 @@
   </customwidget>
  </customwidgets>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>TDClose</sender>
+   <signal>clicked()</signal>
+   <receiver>TimeCourseDialog</receiver>
+   <slot>test()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>339</x>
+     <y>269</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>1205</x>
+     <y>824</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>test()</slot>
+ </slots>
 </ui>

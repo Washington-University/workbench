@@ -36,8 +36,9 @@
 #include "EventListenerInterface.h"
 #include "TimeCourseDialog.h"
 
-class QDialog;
-class QWidget;
+#include "qdialog.h"
+#include "qwidget.h"
+//class QWidget;
 
 namespace caret {
     
