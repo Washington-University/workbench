@@ -1000,7 +1000,6 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         
         float z = 0.0;
         float maxDataFrequency = 0.0;
-        
         const int numBars = numHistogramValues - 1;
         for (int64_t ix = 0; ix < numBars; ix++) {
             QColor color;
@@ -1149,43 +1148,46 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             
             z = z - 1;
             
-            /*
-             * Line for high threshold
-             */
-            QVector<QPointF> minSamples;
-            minSamples.push_back(QPointF(threshMinValue, 0));
-            minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
-            
-            QwtPlotCurve* minLine = new QwtPlotCurve();
-            minLine->setRenderHint(QwtPlotItem::RenderAntialiased);
-            minLine->setVisible(true);
-            minLine->setStyle(QwtPlotCurve::Lines);
-            
-            QColor minColor(0.0, 0.0, 1.0);
-            minLine->setPen(QPen(minColor));
-            minLine->setSamples(minSamples);
-            
-            minLine->setZ(1.0);
-            //minLine->attach(this->thresholdPlot);
-            
-            /*
-             * Line for high threshold
-             */
-            QVector<QPointF> maxSamples;
-            maxSamples.push_back(QPointF(threshMaxValue, 0));
-            maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
-            
-            QwtPlotCurve* maxLine = new QwtPlotCurve();
-            maxLine->setRenderHint(QwtPlotItem::RenderAntialiased);
-            maxLine->setVisible(true);
-            maxLine->setStyle(QwtPlotCurve::Lines);
-            
-            QColor maxColor(1.0, 0.0, 0.0);
-            maxLine->setPen(QPen(maxColor));
-            maxLine->setSamples(maxSamples);
-            
-            maxLine->setZ(1.0);
-            //maxLine->attach(this->thresholdPlot);
+            const bool showLinesFlag = false;
+            if (showLinesFlag) {
+                /*
+                 * Line for high threshold
+                 */
+                QVector<QPointF> minSamples;
+                minSamples.push_back(QPointF(threshMinValue, 0));
+                minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
+                
+                QwtPlotCurve* minLine = new QwtPlotCurve();
+                minLine->setRenderHint(QwtPlotItem::RenderAntialiased);
+                minLine->setVisible(true);
+                minLine->setStyle(QwtPlotCurve::Lines);
+                
+                QColor minColor(0.0, 0.0, 1.0);
+                minLine->setPen(QPen(minColor));
+                minLine->setSamples(minSamples);
+                
+                minLine->setZ(1.0);
+                minLine->attach(this->thresholdPlot);
+                
+                /*
+                 * Line for high threshold
+                 */
+                QVector<QPointF> maxSamples;
+                maxSamples.push_back(QPointF(threshMaxValue, 0));
+                maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
+                
+                QwtPlotCurve* maxLine = new QwtPlotCurve();
+                maxLine->setRenderHint(QwtPlotItem::RenderAntialiased);
+                maxLine->setVisible(true);
+                maxLine->setStyle(QwtPlotCurve::Lines);
+                
+                QColor maxColor(1.0, 0.0, 0.0);
+                maxLine->setPen(QPen(maxColor));
+                maxLine->setSamples(maxSamples);
+                
+                maxLine->setZ(1.0);
+                maxLine->attach(this->thresholdPlot);
+            }
         }
         
         if (dataValues != NULL) {
