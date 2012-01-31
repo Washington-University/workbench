@@ -113,6 +113,12 @@ namespace caret {
         
         void createOperationReset();
         
+        void reviseOperationAccept();
+        
+        void reviseOperationUndo();
+        
+        void reviseOperationReset();
+        
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;

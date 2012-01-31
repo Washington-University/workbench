@@ -25,13 +25,14 @@
  * 
  */ 
 
-
+#include "BorderException.h"
 #include "CaretObjectTracksModification.h"
 
 #include "XmlException.h"
 
 namespace caret {
 
+    class SurfaceFile;
     class SurfaceProjectedItem;
     class XmlWriter;
     
@@ -64,13 +65,35 @@ namespace caret {
         
         SurfaceProjectedItem* getPoint(const int32_t indx);
         
+        int32_t findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
+                                        const float xyz[3],
+                                        const float maximumDistance,
+                                        float& distanceToNearestPointOut) const;
+        
         void addPoint(SurfaceProjectedItem* point);
+        
+        void addPoints(const Border* border,
+                       const int32_t startPointIndex = -1,
+                       const int32_t pointCount = -1);
+        
+        void removeAllPoints();
         
         void removePoint(const int32_t indx);
         
         void removeLastPoint();
         
+        void replacePoints(const Border* border);
+        
         void reverse();
+        
+        void reviseExtendFromEnd(SurfaceFile* surfaceFile,
+                                 const Border* segment) throw (BorderException);
+        
+        void reviseEraseFromEnd(SurfaceFile* surfaceFile,
+                                const Border* segment) throw (BorderException);
+        
+        void reviseReplaceSegment(SurfaceFile* surfaceFile,
+                                  const Border* segment) throw (BorderException);
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         

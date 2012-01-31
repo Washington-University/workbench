@@ -32,6 +32,8 @@ namespace caret {
 
     class Border;
     class GiftiLabelTable;
+    class SurfaceFile;
+    class SurfaceProjectedItem;
     
     class BorderFile : public CaretDataFile {
         
@@ -65,6 +67,15 @@ namespace caret {
         Border* getBorder(const int32_t indx);
         
         const Border* getBorder(const int32_t indx) const;
+        
+        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+                                 const float xyz[3],
+                                 const float maximumDistance,
+                                 Border*& borderOut,
+                                 int32_t& borderIndexOut,
+                                 SurfaceProjectedItem*& borderPointOut,
+                                 int32_t& borderPointIndexOut,
+                                 float& distanceToNearestPointOut) const;
         
         void addBorder(Border* border);
         

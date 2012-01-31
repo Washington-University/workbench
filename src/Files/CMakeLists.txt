@@ -20,6 +20,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Files
 BinaryFileReader.h
 Border.h
+BorderException.h
 BorderFile.h
 BorderFileSaxReader.h
 CaretDataFile.h
@@ -51,6 +52,7 @@ VolumeFile.h
 
 BinaryFileReader.cxx
 Border.cxx
+BorderException.cxx
 BorderFile.cxx
 BorderFileSaxReader.cxx
 DataFileTypeEnum.cxx

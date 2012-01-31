@@ -60,6 +60,10 @@ namespace caret {
         void createUndoButtonClicked();
         void createFinishButtonClicked();
         
+        void reviseResetButtonClicked();
+        void reviseUndoButtonClicked();
+        void reviseAcceptButtonClicked();
+        
     private:
         UserInputModeBordersWidget(const UserInputModeBordersWidget&);
 

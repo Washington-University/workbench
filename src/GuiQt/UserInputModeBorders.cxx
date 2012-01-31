@@ -30,6 +30,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
@@ -40,11 +41,14 @@
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationManager.h"
 #include "ModelDisplayController.h"
+#include "ModelDisplayControllerSurface.h"
 #include "MouseEvent.h"
+#include "Surface.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "UserInputModeBordersWidget.h"
 #include "UserInputModeView.h"
+#include "WuQMessageBox.h"
 
 using namespace caret;
     
@@ -173,14 +177,14 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
+        const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
         
         switch (this->mode) {
             case MODE_CREATE:
             {
                 switch (this->createOperation) {
                     case CREATE_OPERATION_DRAW:
-                        if (isLeftClick 
-                            || isLeftDrag) {
+                        if (isLeftClickOrDrag) {
                             this->drawPointAtMouseXY(openGLWidget,
                                                      mouseX,
                                                      mouseY);
@@ -188,44 +192,27 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         }
                         break;
                     case CREATE_OPERATION_TRANSFORM:
-                        if (isLeftDrag
-                            || isWheel) {
+                        if (isLeftClickOrDrag) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                           browserTabContent, 
                                                                           openGLWidget);
                         }
                         break;
                 }
-                /*
-                switch (mouseEvent->getMouseEventType()) {
-                    case MouseEventTypeEnum::INVALID:
-                        break;
-                    case MouseEventTypeEnum::LEFT_CLICKED:
-                        this->drawPointAtMouseXY(openGLWidget,
-                                                 mouseX,
-                                                 mouseY);        
-                        mouseEvent->setGraphicsUpdateOneWindowRequested();
-                        break;
-                    case MouseEventTypeEnum::LEFT_DRAGGED:
-                        break;
-                    case MouseEventTypeEnum::LEFT_PRESSED:
-                        break;
-                    case MouseEventTypeEnum::LEFT_RELEASED:
-                        break;
-                    case MouseEventTypeEnum::WHEEL_MOVED:
-                        break;
-                }
-                 */
             }
                 break;
             case MODE_REVISE:
             {
                 switch (this->reviseOperation) {
                     case REVISE_OPERATION_ERASE:
-                        break;
                     case REVISE_OPERATION_EXTEND:
-                        break;
                     case REVISE_OPERATION_REPLACE:
+                        if (isLeftClickOrDrag) {
+                            this->drawPointAtMouseXY(openGLWidget,
+                                                     mouseX,
+                                                     mouseY);
+                            mouseEvent->setGraphicsUpdateOneWindowRequested();
+                        }
                         break;
                     case REVISE_OPERATION_DELETE:  
                         if (isLeftClick) {
@@ -329,6 +316,10 @@ UserInputModeBorders::getMode() const
 void 
 UserInputModeBorders::setMode(const Mode mode)
 {
+    if (this->mode != mode) {
+        this->borderBeingDrawnByOpenGL->clear();
+        EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+    }
     this->mode = mode;
     this->borderToolsWidget->updateWidget();
 }
@@ -392,6 +383,93 @@ UserInputModeBorders::ReviseOperation
 UserInputModeBorders::getReviseOperation() const
 {
     return this->reviseOperation;
+}
+
+/**
+ * Accept the border reivision that the user was drawing.
+ */
+void 
+UserInputModeBorders::reviseOperationAccept()
+{
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
+    if (browserWindow == NULL) {
+        return;
+    }
+    BrowserTabContent* btc = browserWindow->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
+    if (surfaceController == NULL) {
+        return;
+    }
+    
+    Surface* surface = surfaceController->getSurface();
+    Brain* brain = surfaceController->getBrain();
+    
+    float nearestTolerance = 15;
+    BorderFile* borderFile;
+    int32_t borderFileIndex; 
+    Border* border;
+    int32_t borderIndex;
+    SurfaceProjectedItem* borderPoint;
+    int32_t borderPointIndex;
+    float distanceToNearestBorder;
+    if (brain->findBorderNearestBorder(surface, 
+                                       this->borderBeingDrawnByOpenGL,
+                                       Brain::NEAREST_BORDER_TEST_MODE_ENDPOINTS, 
+                                       nearestTolerance,
+                                       borderFile,
+                                       borderFileIndex,
+                                       border, 
+                                       borderIndex,
+                                       borderPoint,
+                                       borderPointIndex,
+                                       distanceToNearestBorder)) {
+        try {
+            switch (this->reviseOperation) {
+                case REVISE_OPERATION_ERASE:
+                    border->reviseEraseFromEnd(surface,
+                                               this->borderBeingDrawnByOpenGL);
+                    break;
+                case REVISE_OPERATION_EXTEND:
+                    break;
+                case REVISE_OPERATION_REPLACE:
+                    break;
+                case REVISE_OPERATION_DELETE: 
+                    break;
+                case REVISE_OPERATION_REVERSE:
+                    break;
+            }
+        }
+        catch (BorderException& e) {
+            WuQMessageBox::errorOk(this->borderToolsWidget,
+                                   e.whatString());
+        }
+    }
+    this->borderBeingDrawnByOpenGL->clear();
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
+/**
+ * Undo (remove last point) from border being revised.
+ */
+void 
+UserInputModeBorders::reviseOperationUndo()
+{
+    this->borderBeingDrawnByOpenGL->removeLastPoint();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+}
+
+/**
+ * Reset the border revision.
+ */
+void 
+UserInputModeBorders::reviseOperationReset()
+{
+    this->borderBeingDrawnByOpenGL->clear();
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
 }
 
 /**

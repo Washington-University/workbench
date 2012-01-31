@@ -37,6 +37,7 @@
 
 namespace caret {
     
+    class Border;
     class BorderFile;
     class BrainStructure;
     class CaretDataFile;
@@ -48,6 +49,7 @@ namespace caret {
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
     class PaletteFile;
+    class SurfaceProjectedItem;
     class SpecFile;
     class VolumeFile;
     
@@ -79,6 +81,33 @@ namespace caret {
         const BorderFile* getBorderFile(const int32_t indx) const;
         
         BorderFile* getFirstBorderFile();
+        
+        enum NearestBorderTestMode {
+            NEAREST_BORDER_TEST_MODE_ALL_POINTS,
+            NEAREST_BORDER_TEST_MODE_ENDPOINTS
+        };
+        bool findBorderNearestBorder(const SurfaceFile* surfaceFile,
+                                    const Border* border,
+                                    const NearestBorderTestMode borderTestMode,
+                                    const float maximumDistance,
+                                    BorderFile*& borderFileOut,
+                                    int32_t& borderFileIndexOut,
+                                    Border*& borderOut,
+                                    int32_t& borderIndexOut,
+                                    SurfaceProjectedItem*& borderPointOut,
+                                    int32_t& borderPointIndexOut,
+                                    float& distanceToBorderPointOut) const;
+                                    
+        bool findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+                                 const float xyz[3],
+                                 const float maximumDistance,
+                                 BorderFile*& borderFileOut,
+                                 int32_t& borderFileIndexOut,
+                                 Border*& borderOut,
+                                 int32_t& borderIndexOut,
+                                 SurfaceProjectedItem*& borderPointOut,
+                                 int32_t& borderPointIndexOut,
+                                 float& distanceToBorderPointOut) const;
         
         PaletteFile* getPaletteFile();
         

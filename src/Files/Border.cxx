@@ -28,7 +28,10 @@
 #undef __BORDER_DECLARE__
 
 #include <algorithm>
+#include <cmath>
+
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 #include "SurfaceProjectedItem.h"
 #include "XmlWriter.h"
 
@@ -108,18 +111,28 @@ Border::copyHelperBorder(const Border& obj)
 
 /**
  * Clear the border.
+ * Removes all points, resets names, etc.
  */
 void 
 Border::clear()
+{
+    this->removeAllPoints();
+    
+    this->name = "";
+    this->className = "";
+}
+
+/**
+ * Remove all points in this border.
+ */
+void 
+Border::removeAllPoints()
 {
     const int32_t numPoints = this->getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {
         delete this->points[i];
     }
     this->points.clear();
-    
-    this->name = "";
-    this->className = "";
     
     this->setModified();
 }
@@ -204,6 +217,61 @@ Border::getPoint(const int32_t indx)
 }
 
 /**
+ * Returns the index of the border point nearest
+ * the given XYZ coordinate and within the 
+ * given maximum distance.
+ * 
+ * @param surfaceFile
+ *    Surface file used for unprojecting border points
+ *    and producing XYZ coordinates.
+ * @param xyz
+ *    The XYZ coordinates for which nearest border
+ *    point is desired.
+ * @param maximumDistance
+ *    Border points searched are limited to those
+ *    within this distance from the XYZ coordinate.
+ * @param distanceToNearestPointOut
+ *    If a point is found within the maximum distance
+ * @return
+ *    Index of nearest border point or negative if
+ *    no border points is within the maximum distance.
+ */
+int32_t 
+Border::findPointIndexNearestXYZ(const SurfaceFile* surfaceFile,
+                                const float xyz[3],
+                                const float maximumDistance,
+                                float& distanceToNearestPointOut) const
+{
+    CaretAssert(surfaceFile);
+    const int32_t numPoints = this->getNumberOfPoints();
+    if (numPoints <= 0) {
+        return -1;
+    }
+
+    int32_t nearestIndex = -1;
+    float nearestDistanceSQ = maximumDistance * maximumDistance;
+    
+    float pointXYZ[3];
+    for (int32_t i = 0; i < numPoints; i++) {
+        if (this->points[i]->getProjectedPosition(*surfaceFile, 
+                                              pointXYZ, 
+                                                  true)) {
+            const float distSQ = MathFunctions::distanceSquared3D(xyz, 
+                                                                  pointXYZ);
+            if (distSQ <= nearestDistanceSQ) {
+                nearestDistanceSQ = distSQ;
+                nearestIndex = i;
+            }
+        }
+    }
+    
+    if (nearestIndex >= 0) {
+        distanceToNearestPointOut = std::sqrt(nearestDistanceSQ);
+    }
+    return nearestIndex;
+}
+
+/**
  * Add a point to the border.  NOTE: the border
  * takes ownership of the point and will delete
  * it.  After calling this method DO NOT ever
@@ -217,6 +285,37 @@ Border::addPoint(SurfaceProjectedItem* point)
 {
     this->points.push_back(point);
     this->setModified();
+}
+
+/**
+ * Add copies of points from the given border starting
+ * at startPointIndex and adding a total of pointCount
+ * points.
+ *
+ * @param border
+ *    Border from which points are copied.
+ * @param startPointIndex
+ *    Index of first point that is copied from border.
+ *    If this value is negative, points will be copied
+ *    starting from the first point in the border.
+ * @param pointCount
+ *    Number of points that are copied.  If this value
+ *    is negative all of the remaining points in the
+ *    border are copied.  If zero, none are copied.
+ */
+void 
+Border::addPoints(const Border* border,
+               const int32_t startPointIndex,
+               const int32_t pointCount)
+{
+    CaretAssert(border);
+    const int32_t startIndex = (startPointIndex >= 0) ? startPointIndex : 0;
+    const int32_t endIndex   = (pointCount >= 0) ? (startIndex + pointCount) : border->getNumberOfPoints();
+    
+    for (int32_t i = startIndex; i < endIndex; i++) {
+        SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
+        this->addPoint(spi);
+    }
 }
 
 /**
@@ -257,13 +356,193 @@ Border::reverse()
 }
 
 /**
+ * Revise a border by extending from the end of a border.
+ *
+ * @param surfaceFile
+ *    Surface on which border extension is performed.
+ * @param segment
+ *    A border segment containing the extension.
+ * @throws BorderException
+ *    If there is an error revising the border.
+ */
+void 
+Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
+                            const Border* segment) throw (BorderException)
+{
+    
+}
+
+/**
+ * Revise a border by erasing from the end of a border.
+ *
+ * @param surfaceFile
+ *    Surface on which border erasing is performed.
+ * @param segment
+ *    A border segment containing the erasing.
+ * @throws BorderException
+ *    If there is an error revising the border.
+ */
+void 
+Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
+                           const Border* segment) throw (BorderException)
+{
+    /*
+     * Get coordinate of first and last points in the segment
+     */
+    const int numberOfSegmentPoints = segment->getNumberOfPoints();
+    if (numberOfSegmentPoints <= 0) {
+        throw new BorderException("Border segment for erasing contains no points");
+    }
+    float segmentStartXYZ[3];
+    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
+                                                   segmentStartXYZ, 
+                                                   true) == false) {
+        throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
+    }
+    
+    float segmentEndXYZ[3];
+    if (segment->getPoint(numberOfSegmentPoints - 1)->getProjectedPosition(*surfaceFile, 
+                                                                           segmentEndXYZ, 
+                                                                           true) == false) {
+        throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
+    }
+
+    const float tolerance = 10.0;
+    
+    /*
+     * Find points in this border nearest the first and
+     * last points in the erase segment
+     */
+    float distanceToStartPoint = 0.0;
+    int32_t startPointIndex = this->findPointIndexNearestXYZ(surfaceFile, 
+                                                            segmentStartXYZ, 
+                                                            tolerance,
+                                                            distanceToStartPoint);
+    if (startPointIndex < 0) {
+        throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
+    }
+    float distanceToEndPoint = 0.0;
+    int32_t endPointIndex   = this->findPointIndexNearestXYZ(surfaceFile, 
+                                                            segmentEndXYZ, 
+                                                            tolerance,
+                                                            distanceToEndPoint);
+    if (endPointIndex < 0) {
+        throw BorderException("End of segment drawn for erasing is not close enough to existing border");
+    }
+    
+    
+    /*
+     * If needed, swap point indices
+     */
+    const bool reverseOrderFlag = (startPointIndex > endPointIndex);
+    if (reverseOrderFlag) {
+        std::swap(startPointIndex, endPointIndex);
+    }
+
+
+
+    /*
+     * Create a temporary border
+     */
+    Border tempBorder;
+    
+    /*
+     * Add in points prior to updated links
+     */
+    if (startPointIndex >= 0) {
+        tempBorder.addPoints(this,
+                             0,
+                             startPointIndex);
+        /*
+        for (int32_t i = 0; i < (startPointIndex - 1); i++) {
+            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*this->getPoint(i));
+            tempBorder.addPoint(spi);
+        }
+        */
+    }
+    
+    //
+    // If not erasing
+    //
+    const bool eraseModeFlag = true;
+    if (eraseModeFlag == false) {
+        /*
+         * Add new links
+         */
+        Border segmentCopy = *segment;
+        if (reverseOrderFlag) {
+            segmentCopy.reverse();
+        }
+        tempBorder.addPoints(&segmentCopy);
+        /*
+        for (int i = 0; i < numberOfSegmentPoints; i++) {
+            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*segmentCopy.getPoint(i));
+            tempBorder.addPoint(spi);
+        }
+         */
+    }
+    
+    /*
+     * Add in links after updated links
+     */
+    if (endPointIndex >= 0) {
+        const int32_t numPoints = this->getNumberOfPoints();
+        tempBorder.addPoints(this,
+                             (endPointIndex + 1));
+        /*
+        for (int i = (endPointIndex + 1); i < numPoints; i++) {
+            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*this->getPoint(i));
+            tempBorder.addPoint(spi);
+        }
+         */
+    }
+    
+    this->replacePoints(&tempBorder);
+}
+
+/**
+ * Revise a border by replacing a segment in a border.
+ *
+ * @param surfaceFile
+ *    Surface on which border segment replacement is performed.
+ * @param segment
+ *    A border containing the new segment.
+ * @throws BorderException
+ *    If there is an error replacing the segment in the border.
+ */
+void 
+Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
+                             const Border* segment) throw (BorderException)
+{
+    
+}
+
+/**
+ * Replace the points in this border with
+ * the given border.
+ * @param border Border whose points are copied
+ *    into this border.
+ */
+void 
+Border::replacePoints(const Border* border)
+{
+    this->removeAllPoints();
+    
+    const int32_t numPoints = border->getNumberOfPoints();
+    for (int i = 0; i < numPoints; i++) {
+        SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
+        this->addPoint(spi);
+    } 
+}
+
+/**
  * Get a description of this object's content.
  * @return String describing this object's content.
  */
 AString 
 Border::toString() const
 {
-    return "Border";
+    return "Border " + this->name;
 }
 
 /**

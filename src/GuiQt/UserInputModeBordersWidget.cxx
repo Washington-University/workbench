@@ -294,7 +294,7 @@ UserInputModeBordersWidget::createCreateOperationWidget()
     
     QAction* undoAction = WuQtUtilities::createAction("Undo", 
                                                       "Remove (undo) the last border point\n"
-                                                      "the unfinished border",
+                                                      "in the unfinished border",
                                                       this,
                                                       this,
                                                       SLOT(createUndoButtonClicked()));
@@ -377,11 +377,6 @@ UserInputModeBordersWidget::createOperationActionTriggered(QAction* action)
 
 /**
  * @return The revise widget.
- REVISE_OPERATION_ERASE,
- REVISE_OPERATION_EXTEND,
- REVISE_OPERATION_REPLACE,
- REVISE_OPERATION_DELETE,  
- REVISE_OPERATION_REVERSE
  */
 QWidget* 
 UserInputModeBordersWidget::createReviseOperationWidget()
@@ -407,15 +402,41 @@ UserInputModeBordersWidget::createReviseOperationWidget()
     extendToolButton->setDefaultAction(extendAction);
     
     QAction* replaceAction = WuQtUtilities::createAction("Replace", 
-                                                      "Replace a section of a border by placing\n"
-                                                      "the mouse over a point on the border where\n"
-                                                      "and dragging the mouse to the end of the \n"
-                                                      "section that is to be replaced.", 
-                                                      this);
+                                                         "Replace a section of a border by placing\n"
+                                                         "the mouse over a point on the border where\n"
+                                                         "the new segment begins and dragging the \n"
+                                                         "mouse to the end of the section that is\n"
+                                                         "being replaced.", 
+                                                          this);
     replaceAction->setCheckable(true);
     replaceAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_REPLACE));
     QToolButton* replaceToolButton = new QToolButton();
     replaceToolButton->setDefaultAction(replaceAction);
+    
+    QAction* acceptAction = WuQtUtilities::createAction("Accept", 
+                                                        "Accept revisons made to a border.",
+                                                        this,
+                                                        this,
+                                                        SLOT(reviseAcceptButtonClicked()));
+    QToolButton* acceptToolButton = new QToolButton();
+    acceptToolButton->setDefaultAction(acceptAction);
+    
+    QAction* undoAction = WuQtUtilities::createAction("Undo", 
+                                                      "Remove (undo) the last point\n"
+                                                      "in the border revision.",
+                                                      this,
+                                                      this,
+                                                      SLOT(reviseUndoButtonClicked()));
+    QToolButton* undoToolButton = new QToolButton();
+    undoToolButton->setDefaultAction(undoAction);
+    
+    QAction* resetAction = WuQtUtilities::createAction("Reset", 
+                                                       "Remove all points in the border revision.", 
+                                                       this,
+                                                       this,
+                                                       SLOT(reviseResetButtonClicked()));
+    QToolButton* resetToolButton = new QToolButton();
+    resetToolButton->setDefaultAction(resetAction);
     
     QAction* deleteAction = WuQtUtilities::createAction("Delete", 
                                                         "Delete a border by clicking\n"
@@ -451,11 +472,43 @@ UserInputModeBordersWidget::createReviseOperationWidget()
     layout->addWidget(eraseToolButton);
     layout->addWidget(extendToolButton);
     layout->addWidget(replaceToolButton);
+    layout->addSpacing(20);
+    layout->addWidget(acceptToolButton);
+    layout->addWidget(undoToolButton);
+    layout->addWidget(resetToolButton);
+    layout->addSpacing(20);
     layout->addWidget(deleteToolButton);
     layout->addWidget(reverseToolButton);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
+}
+
+/**
+ * Called when revise border reset button clicked.
+ */
+void 
+UserInputModeBordersWidget::reviseResetButtonClicked()
+{
+    this->inputModeBorders->reviseOperationReset();
+}
+
+/**
+ * Called when revise border undo button clicked.
+ */
+void 
+UserInputModeBordersWidget::reviseUndoButtonClicked()
+{
+    this->inputModeBorders->reviseOperationUndo();
+}
+
+/**
+ * Called when revise border accept button clicked.
+ */
+void 
+UserInputModeBordersWidget::reviseAcceptButtonClicked()
+{
+    this->inputModeBorders->reviseOperationAccept();
 }
 
 /**

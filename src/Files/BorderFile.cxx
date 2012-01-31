@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <fstream>
+#include <limits>
 #include <memory>
 #define __BORDER_FILE_DECLARE__
 #include "BorderFile.h"
@@ -36,6 +37,8 @@
 #include "CaretLogger.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "SurfaceFile.h"
+#include "SurfaceProjectedItem.h"
 #include "XmlAttributes.h"
 #include "XmlSaxParser.h"
 #include "XmlWriter.h"
@@ -237,6 +240,76 @@ BorderFile::getBorder(const int32_t indx) const
 {
     CaretAssertVectorIndex(this->borders, indx);
     return this->borders[indx];
+}
+
+/**
+ * Find the border nearest the given coordinate within
+ * the given tolerance.
+ *
+ * @param surfaceFile
+ *    Surface file used for unprojection of border points.
+ * @param xyz
+ *    Coordinate for nearest border.
+ * @param maximumDistance
+ *    Maximum distance coordinate can be from a border point.
+ * @param borderOut
+ *    Border containing the point nearest the coordinate.
+ * @param borderIndexOut
+ *    Index of border in the border file containing the point nearest the coordinate.
+ * @param borderPointIndexOut
+ *    Index of border point nearest the coordinate, in the border.
+ * @param borderPointOut
+ *    Point in border nearest the coordinate.
+ * @param distanceToNearestPointOut
+ *    Distance to the nearest border point.
+ * @return
+ *    Returns true if a border point was found that was within
+ *    tolerance distance of the coordinate in which case ALL of
+ *    the output parameters will be valid.  Otherwise, false
+ *    will be returned.
+ */
+bool 
+BorderFile::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
+                                const float xyz[3],
+                                const float maximumDistance,
+                                Border*& borderOut,
+                                int32_t& borderIndexOut,
+                                SurfaceProjectedItem*& borderPointOut,
+                                int32_t& borderPointIndexOut,
+                                float& distanceToNearestPointOut) const
+{
+    CaretAssert(surfaceFile);
+    
+    borderOut = NULL;
+    borderIndexOut = -1;
+    borderPointOut = NULL;
+    borderPointIndexOut = -1;
+    distanceToNearestPointOut = std::numeric_limits<float>::max();
+    
+    float nearestDistance = std::numeric_limits<float>::max();
+    
+    const int32_t numBorders = this->getNumberOfBorders();
+    for (int32_t i = 0; i < numBorders; i++) {
+        Border* border = this->borders[i];
+        float distanceToPoint = 0.0;
+        const int32_t pointIndex = border->findPointIndexNearestXYZ(surfaceFile, 
+                                                              xyz,
+                                                              maximumDistance,
+                                                              distanceToPoint);
+        if (pointIndex >= 0) {
+            SurfaceProjectedItem* borderPoint = border->getPoint(pointIndex);
+            if (distanceToPoint < nearestDistance) {
+                borderOut = border;
+                borderIndexOut = i;
+                borderPointOut = borderPoint;
+                borderPointIndexOut = pointIndex;
+                distanceToNearestPointOut = distanceToPoint;
+            }
+        }
+    }
+    
+    const bool valid = (borderOut != NULL);
+    return valid;
 }
 
 /**
