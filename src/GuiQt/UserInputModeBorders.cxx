@@ -433,6 +433,8 @@ UserInputModeBorders::reviseOperationAccept()
                                                this->borderBeingDrawnByOpenGL);
                     break;
                 case REVISE_OPERATION_EXTEND:
+                    border->reviseExtendFromEnd(surface,
+                                                this->borderBeingDrawnByOpenGL);
                     break;
                 case REVISE_OPERATION_REPLACE:
                     border->reviseReplaceSegment(surface, 

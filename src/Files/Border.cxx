@@ -369,7 +369,117 @@ void
 Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
                             const Border* segment) throw (BorderException)
 {
+    const int32_t numPoints = this->getNumberOfPoints();
+    if (numPoints <= 0) {
+        throw BorderException("Border being update contains no points");
+    }
     
+    const int numberOfSegmentPoints = segment->getNumberOfPoints();
+    if (numberOfSegmentPoints <= 0) {
+        throw new BorderException("Border segment for erasing contains no points");
+    }
+    
+    /*
+     * Get coordinate of first point in new segment
+     */
+    float segmentStartXYZ[3];
+    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
+                                                   segmentStartXYZ, 
+                                                   true) == false) {
+        throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
+    }
+    
+    /*
+     * Find point in this border nearest start of new segment
+     */
+    const float distanceTolerance = 5.0;
+    float distanceToStartOfNewSegment = 0.0;
+    const int32_t borderPointNearestNewSegmentStart =
+        this->findPointIndexNearestXYZ(surfaceFile, 
+                                       segmentStartXYZ, 
+                                       distanceTolerance, 
+                                       distanceToStartOfNewSegment);
+    if (borderPointNearestNewSegmentStart < 0) {
+        throw BorderException("New segment does not start near an existing border");
+    }
+
+    /*
+     * Get distance from both ends of existing border to first
+     * point in new segment
+     */
+    float borderStartXYZ[3];
+    this->getPoint(0)->getProjectedPosition(*surfaceFile, 
+                                            borderStartXYZ, 
+                                            true);
+    const float distToStart = MathFunctions::distance3D(borderStartXYZ, 
+                                                        segmentStartXYZ);
+    
+    float borderEndXYZ[3]; 
+    this->getPoint(numPoints - 1)->getProjectedPosition(*surfaceFile, 
+                                                        borderEndXYZ, 
+                                                        true);
+    const float distToEnd = MathFunctions::distance3D(borderEndXYZ, 
+                                                      segmentStartXYZ);
+    
+    /*
+     * Add on to start or ending end of border
+     */
+    int32_t startPointIndex = -1;
+    int32_t endPointIndex   = -1;
+    bool reverseOrderFlag;
+    if (distToStart < distToEnd) {
+        if (distToStart > distanceTolerance) {
+            throw BorderException("New segment does not start near a border.");
+        }
+        endPointIndex = borderPointNearestNewSegmentStart;
+        reverseOrderFlag = true;
+    }
+    else {
+        if (distToEnd > distanceTolerance) {
+            throw BorderException("New segment does not start near a border.");
+        }
+        startPointIndex = borderPointNearestNewSegmentStart;
+    }
+    /*
+     * If needed, swap point indices
+     *
+    if (reverseOrderFlag) {
+        std::swap(startPointIndex, endPointIndex);
+    }
+    */
+    
+    /*
+     * Create a temporary border
+     */
+    Border tempBorder;
+    
+    /*
+     * Add in points prior to updated points
+     */
+    if (startPointIndex >= 0) {
+        tempBorder.addPoints(this,
+                             0,
+                             startPointIndex);
+    }
+    
+    /*
+     * Add new points
+     */
+    Border segmentCopy = *segment;
+    if (reverseOrderFlag) {
+        segmentCopy.reverse();
+    }
+    tempBorder.addPoints(&segmentCopy);
+    
+    /*
+     * Add in points after updated points
+     */
+    if (endPointIndex >= 0) {
+        tempBorder.addPoints(this,
+                             (endPointIndex + 1));
+    }
+    
+    this->replacePoints(&tempBorder);
 }
 
 /**
