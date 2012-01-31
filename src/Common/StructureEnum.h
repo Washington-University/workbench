@@ -111,6 +111,10 @@ public:
     
     static Enum fromGuiName(const AString& guiName, bool* isValidOut);
     
+    static AString toCiftiName(Enum enumValue);
+
+    static Enum fromCiftiName(const AString& ciftiName, bool* isValidOut);
+
     static int32_t toIntegerCode(Enum enumValue);
     
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
