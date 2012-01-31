@@ -114,6 +114,8 @@ UserInputModeBordersWidget::updateWidget()
             break;
         case UserInputModeBorders::MODE_REVISE:
             this->operationStackedWidget->setCurrentWidget(this->widgetReviseOperation);
+            this->setActionGroupByActionData(this->reviseOperationActionGroup, 
+                                             inputModeBorders->getReviseOperation());
             break;
         case UserInputModeBorders::MODE_SELECT:
             this->operationStackedWidget->setCurrentWidget(this->widgetSelectOperation);

@@ -407,7 +407,7 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
     }
 
-    const float tolerance = 10.0;
+    const float tolerance = 5.0;
     
     /*
      * Find points in this border nearest the first and
@@ -430,7 +430,6 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         throw BorderException("End of segment drawn for erasing is not close enough to existing border");
     }
     
-    
     /*
      * If needed, swap point indices
      */
@@ -439,62 +438,26 @@ Border::reviseEraseFromEnd(SurfaceFile* surfaceFile,
         std::swap(startPointIndex, endPointIndex);
     }
 
-
-
     /*
      * Create a temporary border
      */
     Border tempBorder;
     
     /*
-     * Add in points prior to updated links
+     * Add in points prior to updated points
      */
     if (startPointIndex >= 0) {
         tempBorder.addPoints(this,
                              0,
                              startPointIndex);
-        /*
-        for (int32_t i = 0; i < (startPointIndex - 1); i++) {
-            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*this->getPoint(i));
-            tempBorder.addPoint(spi);
-        }
-        */
-    }
-    
-    //
-    // If not erasing
-    //
-    const bool eraseModeFlag = true;
-    if (eraseModeFlag == false) {
-        /*
-         * Add new links
-         */
-        Border segmentCopy = *segment;
-        if (reverseOrderFlag) {
-            segmentCopy.reverse();
-        }
-        tempBorder.addPoints(&segmentCopy);
-        /*
-        for (int i = 0; i < numberOfSegmentPoints; i++) {
-            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*segmentCopy.getPoint(i));
-            tempBorder.addPoint(spi);
-        }
-         */
     }
     
     /*
-     * Add in links after updated links
+     * Add in points after updated points
      */
     if (endPointIndex >= 0) {
-        const int32_t numPoints = this->getNumberOfPoints();
         tempBorder.addPoints(this,
                              (endPointIndex + 1));
-        /*
-        for (int i = (endPointIndex + 1); i < numPoints; i++) {
-            SurfaceProjectedItem* spi = new SurfaceProjectedItem(*this->getPoint(i));
-            tempBorder.addPoint(spi);
-        }
-         */
     }
     
     this->replacePoints(&tempBorder);
@@ -514,7 +477,90 @@ void
 Border::reviseReplaceSegment(SurfaceFile* surfaceFile,
                              const Border* segment) throw (BorderException)
 {
+    /*
+     * Get coordinate of first and last points in the segment
+     */
+    const int numberOfSegmentPoints = segment->getNumberOfPoints();
+    if (numberOfSegmentPoints <= 0) {
+        throw new BorderException("Border segment for erasing contains no points");
+    }
+    float segmentStartXYZ[3];
+    if (segment->getPoint(0)->getProjectedPosition(*surfaceFile, 
+                                                   segmentStartXYZ, 
+                                                   true) == false) {
+        throw BorderException("First point in erase segment has invalid coordinate.  Redraw.");
+    }
     
+    float segmentEndXYZ[3];
+    if (segment->getPoint(numberOfSegmentPoints - 1)->getProjectedPosition(*surfaceFile, 
+                                                                           segmentEndXYZ, 
+                                                                           true) == false) {
+        throw BorderException("End point in erase segment has invalid coordinate.  Redraw.");
+    }
+    
+    const float tolerance = 5.0;
+    
+    /*
+     * Find points in this border nearest the first and
+     * last points in the erase segment
+     */
+    float distanceToStartPoint = 0.0;
+    int32_t startPointIndex = this->findPointIndexNearestXYZ(surfaceFile, 
+                                                             segmentStartXYZ, 
+                                                             tolerance,
+                                                             distanceToStartPoint);
+    if (startPointIndex < 0) {
+        throw BorderException("Start of segment drawn for erasing is not close enough to existing border");
+    }
+    float distanceToEndPoint = 0.0;
+    int32_t endPointIndex   = this->findPointIndexNearestXYZ(surfaceFile, 
+                                                             segmentEndXYZ, 
+                                                             tolerance,
+                                                             distanceToEndPoint);
+    if (endPointIndex < 0) {
+        throw BorderException("End of segment drawn for erasing is not close enough to existing border");
+    }
+    
+    /*
+     * If needed, swap point indices
+     */
+    const bool reverseOrderFlag = (startPointIndex > endPointIndex);
+    if (reverseOrderFlag) {
+        std::swap(startPointIndex, endPointIndex);
+    }
+    
+    /*
+     * Create a temporary border
+     */
+    Border tempBorder;
+    
+    /*
+     * Add in points prior to updated points
+     */
+    if (startPointIndex >= 0) {
+        tempBorder.addPoints(this,
+                             0,
+                             startPointIndex);
+    }
+    
+    /*
+     * Add new points
+     */
+    Border segmentCopy = *segment;
+    if (reverseOrderFlag) {
+        segmentCopy.reverse();
+    }
+    tempBorder.addPoints(&segmentCopy);
+    
+    /*
+     * Add in points after updated points
+     */
+    if (endPointIndex >= 0) {
+        tempBorder.addPoints(this,
+                             (endPointIndex + 1));
+    }
+    
+    this->replacePoints(&tempBorder);
 }
 
 /**
