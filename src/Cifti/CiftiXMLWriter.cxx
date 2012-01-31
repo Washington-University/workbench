@@ -169,7 +169,7 @@ void caret::writeBrainModel(QXmlStreamWriter &xml, CiftiBrainModelElement &brain
     QString modelType, brainStructure;
     getModelTypeString(brainModel.m_modelType,modelType);
     xml.writeAttribute("ModelType",modelType);
-    xml.writeAttribute("BrainStructure", brainModel.m_brainStructure);
+    xml.writeAttribute("BrainStructure", StructureEnum::toCiftiName(brainModel.m_brainStructure));
     if(brainModel.m_modelType == CIFTI_MODEL_TYPE_SURFACE) xml.writeAttribute("SurfaceNumberOfNodes",QString::number(brainModel.m_surfaceNumberOfNodes));
 
 

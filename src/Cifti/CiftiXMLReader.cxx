@@ -295,7 +295,12 @@ void caret::parseBrainModel(QXmlStreamReader &xml, CiftiBrainModelElement &brain
     if(attributes.hasAttribute("BrainStructure"))
     {
         QString brainStructure = attributes.value("BrainStructure").toString();
-        brainModel.m_brainStructure = attributes.value("BrainStructure").toString();
+        bool ok = false;
+        brainModel.m_brainStructure = StructureEnum::fromCiftiName(attributes.value("BrainStructure").toString(), &ok);
+        if (!ok)
+        {
+            xml.raiseError("BrainStructure contains unrecognized value \"" + attributes.value("BrainStructure").toString() + "\"");
+        }
     }
 
     if(attributes.hasAttribute("SurfaceNumberOfNodes")) brainModel.m_surfaceNumberOfNodes = attributes.value("SurfaceNumberOfNodes").toString().toULongLong();

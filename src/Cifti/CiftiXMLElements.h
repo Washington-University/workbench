@@ -27,6 +27,7 @@
 #include <QtCore>
 #include <vector>
 #include "nifti2.h"
+#include "StructureEnum.h"
 /* Cifti Defines */
 
 namespace caret {
@@ -55,7 +56,7 @@ public:
     unsigned long long m_indexOffset; /*!< Index of first element in dimension of the matrix for this brain structure. The value is the number of elements, NOT the number of bytes. */
     unsigned long long m_indexCount; /*!< Number of elements in this brain model. */
     ModelType m_modelType; /*!< Type of model representing the brain structure. */
-    QString m_brainStructure; /*!<  Identifies the brain structure. Valid values are contained in nifti2.h */
+    StructureEnum::Enum m_brainStructure; /*!<  Identifies the brain structure. Valid values are contained in nifti2.h */
     unsigned long long m_surfaceNumberOfNodes; /*!< This attribute contains the actual (or true) number of nodes in the surface that is associated with this BrainModel.*/
     //children
     std::vector<unsigned long long> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/

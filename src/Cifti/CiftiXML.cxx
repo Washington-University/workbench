@@ -293,7 +293,7 @@ void CiftiXML::rootChanged()
                                     break;
                                 }
                             }
-                            if (myMap.m_brainModels[k].m_brainStructure.endsWith("_LEFT"))
+                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_LEFT)
                             {
                                 if (m_rowLeftSurfModel != NULL)
                                 {
@@ -303,7 +303,7 @@ void CiftiXML::rootChanged()
                                 m_rowLeftSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
                                 m_rowLeftSurfContig = thisContig;
                             }
-                            if (myMap.m_brainModels[k].m_brainStructure.endsWith("_RIGHT"))
+                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_RIGHT)
                             {
                                 if (m_rowRightSurfModel != NULL)
                                 {
@@ -344,7 +344,7 @@ void CiftiXML::rootChanged()
                                     break;
                                 }
                             }
-                            if (myMap.m_brainModels[k].m_brainStructure.endsWith("_LEFT"))
+                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_LEFT)
                             {
                                 if (m_colLeftSurfModel != NULL)
                                 {
@@ -354,7 +354,7 @@ void CiftiXML::rootChanged()
                                 m_colLeftSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
                                 m_colLeftSurfContig = thisContig;
                             }
-                            if (myMap.m_brainModels[k].m_brainStructure.endsWith("_RIGHT"))
+                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_RIGHT)
                             {
                                 if (m_colRightSurfModel != NULL)
                                 {
