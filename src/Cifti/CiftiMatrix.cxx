@@ -76,6 +76,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
     }
     else m_dimensions = dimensions;
 
+    while (m_dimensions.size() < 2) m_dimensions.push_back(1);//HACK: prevent crash on 1 column
     m_matrixOffset = offsetIn;
     m_caching = e;
     m_beenInitialized = true;    
