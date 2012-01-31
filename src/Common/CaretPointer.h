@@ -80,7 +80,7 @@ namespace caret {
     template <typename T>
     class CaretArray
     {
-        mutable int64_t m_size;
+        int64_t m_size;
         T* m_pointer;
         CaretPointerShare* m_share;//same share because it doesn't contain any specific information about what it is counting
         mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
@@ -277,12 +277,12 @@ namespace caret {
     template <typename T>
     int64_t CaretPointer<T>::getReferenceCount() const
     {
-        CaretPointerShare* temp = m_share;//use a local copy instead of locking to make sure it doesn't change after the if
-        if (temp == NULL)
+        CaretMutexLocker locked(&m_mutex);//lock so that m_share can't be deleted in the middle
+        if (m_share == NULL)
         {
             return 0;
         }
-        return temp->m_refCount;
+        return m_share->m_refCount;
     }
 
     template <typename T>
@@ -493,12 +493,12 @@ namespace caret {
     template <typename T>
     int64_t CaretArray<T>::getReferenceCount() const
     {
-        CaretPointerShare* temp = m_share;//local copy prevents modification after sanity check
-        if (temp == NULL)
+        CaretMutexLocker locked(&m_mutex);//lock to keep m_share from being deleted
+        if (m_share == NULL)
         {
             return 0;
         }
-        return temp->m_refCount;
+        return m_share->m_refCount;
     }
 
     template <typename T>
