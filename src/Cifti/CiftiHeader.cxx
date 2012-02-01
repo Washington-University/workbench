@@ -112,3 +112,25 @@ void CiftiHeader::initDenseConnectivity()
     memcpy(m_header.intent_name,"ConnDense",sizeof("ConnDense"));
     m_header.dim[0]=6;
 }
+
+void CiftiHeader::getDimensions(std::vector <int64_t> &dimensionsOut) const
+{
+    dimensionsOut.clear();
+    dimensionsOut.resize(m_header.dim[0]);
+    for(uint i = 4;i<dimensionsOut.size();i++)
+    {
+        dimensionsOut[i]=m_header.dim[i+1];
+    }
+}
+
+void CiftiHeader::setDimensions(const std::vector < int64_t > &dimensionsIn) throw (NiftiException)
+{
+    if(dimensionsIn.size()>3) throw NiftiException("Number of dimensions exceeds currently allowed cifti dimension number.");
+    m_header.dim[0] = 4+dimensionsIn.size();
+    for(int i = 1;i<5;i++) m_header.dim[i] = 1;
+
+    for(uint i =5;i<5+dimensionsIn.size();i++)
+    {
+        m_header.dim[i+1]=dimensionsIn[i];
+    }
+}

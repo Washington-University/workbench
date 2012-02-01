@@ -35,6 +35,8 @@ public:
     virtual void initHeaderStruct(nifti_2_header &header);
     void initDenseTimeSeries();
     void initDenseConnectivity();
+    void getDimensions(std::vector <int64_t> &dimensionsOut) const;
+    void setDimensions(const std::vector < int64_t > &dimensionsIn) throw (NiftiException);
 };
 
 }

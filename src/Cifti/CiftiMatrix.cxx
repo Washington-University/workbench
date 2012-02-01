@@ -89,7 +89,19 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
         if(file) delete file;
         file = new QFile();
         file->setFileName(m_fileName);
-        file->open(QIODevice::ReadWrite);
+        if(file->isWritable())
+        {
+            file->open(QIODevice::ReadWrite);
+        }
+        else
+        {
+            file->open(QIODevice::ReadOnly);
+            if(e==ON_DISK)
+            {
+                warn("ON_DISK read/write support will throw errors if used on readonly files!");
+            }
+        }
+
 #if 0        
         file->seek(m_matrixOffset);//TODO, see if QT has fixed reading large files
         //otherwise use stdio for this read...
