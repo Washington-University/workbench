@@ -186,6 +186,12 @@ main(int argc, char* argv[])
         SessionManager::createSessionManager();
         caretLoggerIsValid = true;
 
+#ifdef NDEBUG
+        CaretLogConfig("Compiled with debugging OFF");
+#else
+        CaretLogConfig("Compiled with debugging ON");
+#endif // NDEBUG
+        
         /*
         * Parameters for the program.
         */
