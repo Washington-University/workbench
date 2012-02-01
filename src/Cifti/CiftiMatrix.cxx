@@ -98,7 +98,7 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
             file->open(QIODevice::ReadOnly);
             if(e==ON_DISK)
             {
-                warn("ON_DISK read/write support will throw errors if used on readonly files!");
+                std::cerr << "ON_DISK read/write support will throw errors if used on readonly files!" << std::endl;
             }
         }
 

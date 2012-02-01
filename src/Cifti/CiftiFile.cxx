@@ -94,7 +94,14 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
         {
             QFile inputFile(fileName);
             inputFile.setFileName(fileName);
-            inputFile.open(QIODevice::ReadWrite);
+            if(inputFile.isWritable())
+            {
+                inputFile.open(QIODevice::ReadWrite);
+            }
+            else
+            {
+                inputFile.open(QIODevice::ReadOnly);
+            }
             if (!inputFile.isOpen())
             {
                 throw CiftiFile("unable to open cifti file");//so permissions problems result in an exception, not an abort later
@@ -226,7 +233,14 @@ void CiftiFile::writeFile(const AString &fileName)
     //write out the xml extension
     QFile file;
     file.setFileName(fileName);
-    file.open(QIODevice::ReadWrite);
+    if(file.isWritable())
+    {
+        file.open(QIODevice::ReadWrite);
+    }
+    else
+    {
+        file.open(QIODevice::ReadOnly);
+    }
     file.seek(540);
     char eflags[4] = {1,0x00,0x00,0x00};
     int32_t ecode = NIFTI_ECODE_CIFTI;
