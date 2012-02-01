@@ -998,6 +998,8 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             }
         }
         
+        const bool displayZeros = paletteColorMapping->isDisplayZeroDataFlag();
+        
         float z = 0.0;
         float maxDataFrequency = 0.0;
         const int numBars = numHistogramValues - 1;
@@ -1012,9 +1014,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             const float startValue = dataValues[ix];
             const float stopValue  = dataValues[ix + 1];
             float dataFrequency = histogram[ix];
-            if (dataFrequency > maxDataFrequency) {
-                maxDataFrequency = dataFrequency;
-            }
+            
             bool displayIt = true;
             if (startValue > displayedMaxValue) {
                 dataFrequency = 0.0;
@@ -1023,6 +1023,17 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             else if (stopValue < displayedMinValue) {
                 dataFrequency = 0.0;
                 displayIt = false;
+            }
+            
+            if (displayZeros == false) {
+                if ((startValue <= 0.0) && (stopValue >= 0.0)) {
+                    dataFrequency = 0.0;
+                    displayIt = false;
+                }
+            }
+            
+            if (dataFrequency > maxDataFrequency) {
+                maxDataFrequency = dataFrequency;
             }
             
             /*
