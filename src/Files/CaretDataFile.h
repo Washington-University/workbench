@@ -76,10 +76,13 @@ namespace caret {
         void copyDataCaretDataFile(const CaretDataFile& cdf);
         
         DataFileTypeEnum::Enum dataFileType;
+        
+        /** A counter that is used when creating default file names */
+        static int64_t defaultFileNameCounter;
     };
     
 #ifdef __CARET_DATA_FILE_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    int64_t CaretDataFile::defaultFileNameCounter = 1;
 #endif // __CARET_DATA_FILE_DECLARE__
 
 } // namespace

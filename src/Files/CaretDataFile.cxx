@@ -47,8 +47,12 @@ CaretDataFile::CaretDataFile(const DataFileTypeEnum::Enum dataFileType)
     this->dataFileType = dataFileType;
     
     AString name = (DataFileTypeEnum::toName(this->dataFileType).toLower()
-                    + "_file."
+                    + "_file_"
+                    + AString::number( CaretDataFile::defaultFileNameCounter)
+                    + "."
                     + DataFileTypeEnum::toFileExtension(this->dataFileType));
+    CaretDataFile::defaultFileNameCounter++;
+    
     this->setFileName(name);
 }
 

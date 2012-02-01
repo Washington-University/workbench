@@ -626,18 +626,14 @@ Brain::getNumberOfBorderFiles() const
 }
 
 /**
- * @return The first border file.  If there are no
- * border files, one will be created.
+ * @return Return a new BorderFile that has been added to the brain.
  */
 BorderFile* 
-Brain::getFirstBorderFile()
+Brain::addBorderFile()
 {
-    if (this->borderFiles.empty()) {
-        BorderFile* bf = new BorderFile();
-        this->borderFiles.push_back(bf);
-    }
-    
-    return this->borderFiles[0];
+    BorderFile* bf = new BorderFile();
+    this->borderFiles.push_back(bf);
+    return bf;
 }
 
 /**

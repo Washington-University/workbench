@@ -68,10 +68,29 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     this->border = border;
     
     /*
-     * File
+     * Get border files
      */
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+    
+    /*
+     * File selection combo box
+     */
+    int defaultFileComboIndex = 0;
     QLabel* borderFileLabel = new QLabel("Border File");
     this->borderFileSelectionComboBox = new QComboBox();
+    this->borderFileSelectionComboBox->addItem("New File",
+                                               qVariantFromValue((void*)NULL));
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        BorderFile* borderFile = brain->getBorderFile(i);
+        const AString name = borderFile->getFileNameNoPath();
+        this->borderFileSelectionComboBox->addItem(name,
+                                                   qVariantFromValue((void*)borderFile));
+        if (BorderDrawFinishDialog::previousBorderFile == borderFile) {
+            defaultFileComboIndex = this->borderFileSelectionComboBox->count() - 1;
+        }
+    }
+    this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
     
     /*
      * Name
@@ -168,44 +187,64 @@ void
 BorderDrawFinishDialog::okButtonPressed()
 {
     AString errorMessage;
-    
+
     /*
-     * Make a copy of the border being drawn.
+     * Get data entered by the user.
      */
-    Border* borderBeingCreated = new Border(*this->border);
-    
     const AString name = this->nameLineEdit->text();
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    else {
-        borderBeingCreated->setName(name);
-        BorderDrawFinishDialog::previousName = name;
-    }
     
     const QString className = this->classNameLabel->text().trimmed();
-    borderBeingCreated->setClassName(className);
-    BorderDrawFinishDialog::previousClassName = className;
     
     const float sampling = this->samplingDoubleSpinBox->value();
-    BorderDrawFinishDialog::previousSampling = sampling;
     
-    BorderDrawFinishDialog::previousOpenTypeSelected = this->openRadioButton->isChecked();
+    /*
+     * Error?
+     */
+    if (errorMessage.isEmpty() == false) {
+            WuQMessageBox::errorOk(this, 
+                                   errorMessage);
+    }
     
-    BorderFile* borderFile = GuiManager::get()->getBrain()->getFirstBorderFile();
+    /*
+     * Get/Create border file.
+     */
+    const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
+    void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
+    BorderFile* borderFile = (BorderFile*)filePointer;
     if (borderFile == NULL) {
-        errorMessage += ("Border file is invalid.\n");
+        borderFile = GuiManager::get()->getBrain()->addBorderFile();
     }
     
-    if (errorMessage.isEmpty()) {
-        CaretAssert(borderFile);
-        borderFile->addBorder(borderBeingCreated);
-        WuQDialogModal::okButtonPressed();
-    }
-    else {
-        delete borderBeingCreated;
-        WuQMessageBox::errorOk(this, 
-                               errorMessage);
-    }
+    /*
+     * Make a copy of the border being drawn
+     */
+    Border* borderBeingCreated = new Border(*this->border);
+    borderBeingCreated->setName(name);
+    borderBeingCreated->setClassName(className);
+    
+    /*
+     * Add border to border file
+     */
+    CaretAssert(borderFile);
+    borderFile->addBorder(borderBeingCreated);
+    
+    /*
+     * Save values entered by the user and
+     * use them to initialize the dialog next
+     * time it is displayed.
+     */
+    BorderDrawFinishDialog::previousName = name;
+    BorderDrawFinishDialog::previousClassName = className;
+    BorderDrawFinishDialog::previousSampling = sampling;
+    BorderDrawFinishDialog::previousOpenTypeSelected = this->openRadioButton->isChecked();
+    BorderDrawFinishDialog::previousBorderFile = borderFile;
+    
+    /*
+     * continue with OK button processing
+     */
+    WuQDialogModal::okButtonPressed();
 }
 

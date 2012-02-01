@@ -80,7 +80,7 @@ namespace caret {
         
         const BorderFile* getBorderFile(const int32_t indx) const;
         
-        BorderFile* getFirstBorderFile();
+        BorderFile* addBorderFile();
         
         enum NearestBorderTestMode {
             NEAREST_BORDER_TEST_MODE_ALL_POINTS,
