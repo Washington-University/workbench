@@ -185,6 +185,12 @@ namespace caret {
         ///get the timestep for columns, returns false if not timeseries
         bool getColumnTimestep(float& seconds) const;
         
+        ///set the timestep for rows, returns false if not timeseries
+        bool setRowTimestep(float& seconds);
+        
+        ///set the timestep for columns, returns false if not timeseries
+        bool setColumnTimestep(float& seconds);
+        
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
         
@@ -213,6 +219,7 @@ namespace caret {
         int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
+        bool setTimestep(float& seconds, CiftiMatrixIndicesMapElement* myMap);
         
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;

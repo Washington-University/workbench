@@ -85,6 +85,10 @@ public:
     /// setup Matrix
     void setupMatrix() throw(CiftiFileException);
     
+    /// set timestep
+    bool setRowTimestep(float& seconds) { return m_xml.setRowTimestep(seconds); }
+    bool setColumnTimestep(float& seconds) { return m_xml.setColumnTimestep(seconds); }
+    
     ///get row size
     int64_t getNumberOfColumns() const;
     

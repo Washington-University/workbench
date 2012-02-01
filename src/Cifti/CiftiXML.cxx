@@ -369,6 +369,31 @@ bool CiftiXML::getRowTimestep(float& seconds) const
     return getTimestep(seconds, m_rowMap);
 }
 
+bool CiftiXML::setTimestep(float& seconds, caret::CiftiMatrixIndicesMapElement* myMap)
+{
+    if (myMap == NULL)
+    {
+        return false;
+    }
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    myMap->m_timeStepUnits = NIFTI_UNITS_SEC;
+    myMap->m_timeStep = seconds;
+    return true;
+}
+
+bool CiftiXML::setColumnTimestep(float& seconds)
+{
+    return setTimestep(seconds, m_colMap);
+}
+
+bool CiftiXML::setRowTimestep(float& seconds)
+{
+    return setTimestep(seconds, m_rowMap);
+}
+
 bool CiftiXML::getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const
 {
     if (m_root.m_matrices.size() == 0)

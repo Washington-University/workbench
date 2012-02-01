@@ -19,6 +19,7 @@ INCLUDE (${QT_USE_FILE})
 ADD_LIBRARY(Operations
 AbstractOperation.h
 OperationAddToSpecFile.h
+OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
 OperationException.h
 OperationMetricMask.h
@@ -28,6 +29,7 @@ OperationVolumePalette.h
 
 AbstractOperation.cxx
 OperationAddToSpecFile.cxx
+OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
 OperationException.cxx
 OperationMetricMask.cxx
