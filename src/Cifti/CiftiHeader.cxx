@@ -25,10 +25,10 @@
 #include "CiftiHeader.h"
 
 using namespace caret;
+
 CiftiHeader::CiftiHeader()
 {
 }
-
 
 void CiftiHeader::initHeaderStruct()
 {
@@ -116,21 +116,33 @@ void CiftiHeader::initDenseConnectivity()
 void CiftiHeader::getDimensions(std::vector <int64_t> &dimensionsOut) const
 {
     dimensionsOut.clear();
-    dimensionsOut.resize(m_header.dim[0]);
-    for(uint i = 4;i<dimensionsOut.size();i++)
+    if (m_header.dim[0] < 5)//HACK: support old cifti written when the dimensions didn't get padded - REMOVE ME
     {
-        dimensionsOut[i]=m_header.dim[i+1];
+        for (int i = 0; i < m_header.dim[0]; ++i)
+        {
+            dimensionsOut.push_back(m_header.dim[i + 1]);
+        }
+    } else {
+        for(uint i = 4; i < m_header.dim[0]; i++)
+        {
+            dimensionsOut.push_back(m_header.dim[i + 1]);
+        }
     }
 }
 
-void CiftiHeader::setDimensions(const std::vector < int64_t > &dimensionsIn) throw (NiftiException)
+void CiftiHeader::setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException)
 {
-    if(dimensionsIn.size()>3) throw NiftiException("Number of dimensions exceeds currently allowed cifti dimension number.");
-    m_header.dim[0] = 4+dimensionsIn.size();
-    for(int i = 1;i<5;i++) m_header.dim[i] = 1;
-
-    for(uint i =5;i<5+dimensionsIn.size();i++)
+    if ((int)dimensionsIn.size() > 3)
     {
-        m_header.dim[i+1]=dimensionsIn[i];
+        throw NiftiException("Number of dimensions exceeds currently allowed cifti dimension number.");
+    }
+    m_header.dim[0] = dimensionsIn.size() + 4;
+    for(int i = 1; i < 5; i++)
+    {
+        m_header.dim[i] = 1;
+    }
+    for(int i = 0; i < (int)dimensionsIn.size(); i++)
+    {
+        m_header.dim[i + 5] = dimensionsIn[i];
     }
 }

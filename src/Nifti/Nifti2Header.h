@@ -47,10 +47,10 @@ public:
     void getHeaderStruct(nifti_2_header &header) const throw (NiftiException);
     void setHeaderStuct(const nifti_2_header &header) throw (NiftiException);
     void getHeaderAsString(QString &string);
-    virtual void initHeaderStruct(nifti_2_header &header);
-    virtual void initHeaderStruct();
-    virtual void getDimensions(std::vector <int64_t> &dimensionsOut) const;
-    virtual void setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException) ;
+    void initHeaderStruct(nifti_2_header &header);
+    void initHeaderStruct();
+    void getDimensions(std::vector <int64_t> &dimensionsOut) const;
+    void setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException);
     void getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const;
     void setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn);
     void getComponentDimensions(int32_t &componentDimensionsOut) const;

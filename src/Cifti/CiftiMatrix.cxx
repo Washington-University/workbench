@@ -65,18 +65,12 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
 {
     m_needsSwapping = needsSwapping;
     
-    if(dimensions.size() >2)
+    if(dimensions.size() != 2)
     {
-        m_dimensions.clear();
-        for(int64_t i = 0; i < (int64_t)dimensions.size(); i++)
-        {
-            if(dimensions[i]>1) m_dimensions.push_back(dimensions[i]);
-        }
-        if(m_dimensions.size()>2) throw CiftiFileException ("Cifti currently only supports 2 dimensional matrices");
+        throw CiftiFileException("Cifti only supports 2 dimensional matrices currently");
     }
-    else m_dimensions = dimensions;
+    m_dimensions = dimensions;
 
-    while (m_dimensions.size() < 2) m_dimensions.push_back(1);//HACK: prevent crash on 1 column
     m_matrixOffset = offsetIn;
     m_caching = e;
     m_beenInitialized = true;    
