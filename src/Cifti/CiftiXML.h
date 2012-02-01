@@ -193,34 +193,33 @@ namespace caret {
         bool hasColumnVolumeData() const;
         bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
-        bool hasRowTimeData(const StructureEnum::Enum structure) const;
         
         CiftiXML& operator=(const CiftiXML& right);
     protected:
         CiftiRootElement m_root;
         CiftiMatrixIndicesMapElement* m_rowMap, *m_colMap;//assumes only one matrix
-        CiftiBrainModelElement* m_rowLeftSurfModel, *m_rowRightSurfModel, *m_colLeftSurfModel, *m_colRightSurfModel;
-        int64_t m_rowLeftSurfContig, m_rowRightSurfContig, m_colLeftSurfContig, m_colRightSurfContig;//shortcut for surface mappings that are trivial (or partly trivial)
         int64_t m_rowVoxels, m_colVoxels;
-        int64_t m_rowLeftSurfNodes, m_rowRightSurfNodes, m_colLeftSurfNodes, m_colRightSurfNodes;
         
         ///updates the member variables associated with our root
         void rootChanged();
         
+        ///convenience functions to grab the correct model out of the tree, to replace the rowLeft/rowRight stuff (since we might have other surfaces too)
+        const CiftiBrainModelElement* findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const;
+        const CiftiBrainModelElement* findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const;
+        
         ///some boilerplate to get the correct index in a particular mapping
-        int64_t getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myModel, const int64_t numContig) const;
+        int64_t getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myModel) const;
         int64_t getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         
         ///some boilerplate to build mappings
-        bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel, const int64_t numContig) const;
+        bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
         bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t myCount) const;
         
         ///boilerplate for has data
         bool hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const;
-        bool hasSurfaceData(const CiftiBrainModelElement* myModel) const;
     };
 
 }

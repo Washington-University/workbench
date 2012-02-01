@@ -23,80 +23,31 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
 #include "CiftiXML.h"
 #include "CiftiFileException.h"
 #include "FloatMatrix.h"
-#include <cmath>
+#include "CaretAssert.h"
 
 using namespace caret;
 using namespace std;
 
-int64_t CiftiXML::getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myElement, const int64_t numContig) const
+int64_t CiftiXML::getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myElement) const
 {
-    if (myElement == NULL) return -1;
-    if (node < numContig)//NOTE: this is how an unspecified node list of size of the entire surface gets mapped!
-    {
-        return myElement->m_indexOffset + node;
-    }
-    int64_t numIndices = (int64_t)myElement->m_nodeIndices.size();
-    for (int64_t i = numContig; i < numIndices; ++i)
-    {
-        if ((int64_t)myElement->m_nodeIndices[i] == node)
-        {
-            return myElement->m_indexOffset + i;
-        }
-    }
-    return -1;
+    if (myElement == NULL || myElement->m_modelType != CIFTI_MODEL_TYPE_SURFACE) return -1;
+    if (node < 0 || node > (int64_t)myElement->m_surfaceNumberOfNodes) return -1;
+    CaretAssertVectorIndex(myElement->m_nodeToIndexLookup, node);
+    return myElement->m_nodeToIndexLookup[node];
 }
 
 int64_t CiftiXML::getColumnIndexForNode(const int64_t node, const StructureEnum::Enum structure) const
 {
-    if (m_colMap == NULL || m_colMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
-    {
-        return -1;
-    }
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return -1;
-    };
-    if (left)
-    {
-        return getSurfaceIndex(node, m_colLeftSurfModel, m_colLeftSurfContig);
-    } else {
-        return getSurfaceIndex(node, m_colRightSurfModel, m_colRightSurfContig);
-    }
+    return getSurfaceIndex(node, findSurfaceModel(m_colMap, structure));
 }
 
 int64_t CiftiXML::getRowIndexForNode(const int64_t node, const StructureEnum::Enum structure) const
 {
-    if (m_rowMap == NULL || m_rowMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
-    {
-        return -1;
-    }
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return -1;
-    };
-    if (left)
-    {
-        return getSurfaceIndex(node, m_rowLeftSurfModel, m_rowLeftSurfContig);
-    } else {
-        return getSurfaceIndex(node, m_rowRightSurfModel, m_rowRightSurfContig);
-    }
+    return getSurfaceIndex(node, findSurfaceModel(m_rowMap, structure));
 }
 
 int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const
@@ -105,6 +56,10 @@ int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMap
     {
         return -1;
     }
+    const CiftiVolumeElement& myVol = m_root.m_matrices[0].m_volume[0];
+    if (ijk[0] < 0 || ijk[0] >= (int64_t)myVol.m_volumeDimensions[0]) return -1;//some shortcuts to not search all the voxels on invalid coords
+    if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;
+    if (ijk[2] < 0 || ijk[2] >= (int64_t)myVol.m_volumeDimensions[2]) return -1;
     for (int64_t i = 0; i < (int64_t)myMap->m_brainModels.size(); ++i)
     {
         if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
@@ -133,22 +88,26 @@ int64_t CiftiXML::getRowIndexForVoxel(const int64_t* ijk) const
     return getVolumeIndex(ijk, m_rowMap);
 }
 
-bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel, const int64_t numContig) const
+bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const
 {
-    if (myModel == NULL)
+    if (myModel == NULL || myModel->m_modelType != CIFTI_MODEL_TYPE_SURFACE)
     {
         mappingOut.clear();
         return false;
     }
     int64_t mappingSize = (int64_t)myModel->m_indexCount;
     mappingOut.resize(mappingSize);
-    for (int64_t i = 0; i < mappingSize; ++i)
+    if (myModel->m_nodeIndices.size() == 0)
     {
-        mappingOut[i].m_ciftiIndex = myModel->m_indexOffset + i;
-        if (i < numContig)//NOTE: this is how an unspecified node list of size of the entire surface gets mapped!
+        for (int i = 0; i < mappingSize; ++i)
         {
+            mappingOut[i].m_ciftiIndex = myModel->m_indexOffset + i;
             mappingOut[i].m_surfaceNode = i;
-        } else {
+        }
+    } else {
+        for (int i = 0; i < mappingSize; ++i)
+        {
+            mappingOut[i].m_ciftiIndex = myModel->m_indexOffset + i;
             mappingOut[i].m_surfaceNode = myModel->m_nodeIndices[i];
         }
     }
@@ -157,46 +116,12 @@ bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const Cift
 
 bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        mappingOut.clear();
-        return false;
-    };
-    if (left)
-    {
-        return getSurfaceMapping(mappingOut, m_colLeftSurfModel, m_colLeftSurfContig);
-    } else {
-        return getSurfaceMapping(mappingOut, m_colRightSurfModel, m_colRightSurfContig);
-    }
+    return getSurfaceMapping(mappingOut, findSurfaceModel(m_colMap, structure));
 }
 
 bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        mappingOut.clear();
-        return false;
-    };
-    if (left)
-    {
-        return getSurfaceMapping(mappingOut, m_rowLeftSurfModel, m_rowLeftSurfContig);
-    } else {
-        return getSurfaceMapping(mappingOut, m_rowRightSurfModel, m_rowRightSurfContig);
-    }
+    return getSurfaceMapping(mappingOut, findSurfaceModel(m_rowMap, structure));
 }
 
 bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, int64_t myCount) const
@@ -243,20 +168,8 @@ bool CiftiXML::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
 void CiftiXML::rootChanged()
 {//and here is where the real work is done
     m_colMap = NULL;//first, invalidate everything
-    m_colLeftSurfModel = NULL;
-    m_colRightSurfModel = NULL;
-    m_colLeftSurfNodes = -1;
-    m_colRightSurfNodes = -1;
-    m_colLeftSurfContig = 0;
-    m_colRightSurfContig = 0;
     m_colVoxels = 0;
     m_rowMap = NULL;
-    m_rowLeftSurfModel = NULL;
-    m_rowRightSurfModel = NULL;
-    m_rowLeftSurfNodes = -1;
-    m_rowRightSurfNodes = -1;
-    m_rowLeftSurfContig = 0;
-    m_rowRightSurfContig = 0;
     m_rowVoxels = 0;
     if (m_root.m_matrices.size() == 0)
     {
@@ -277,42 +190,14 @@ void CiftiXML::rootChanged()
                     throw CiftiFileException("Multiple mappings on the same dimension not supported");
                 }
                 m_rowMap = &myMap;
-                if (myMatrix.m_matrixIndicesMap[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+                if (myMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
                 {
                     int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
                     for (int k = 0; k < numModels; ++k)
                     {
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
-                            int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_nodeIndices.size(); ++m)//similarly, if the loop never encounters not equals, all are correct
-                            {
-                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
-                                {
-                                    thisContig = m;
-                                    break;
-                                }
-                            }
-                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_LEFT)
-                            {
-                                if (m_rowLeftSurfModel != NULL)
-                                {
-                                    throw CiftiFileException("Multiple surfaces of the same handedness not supported");
-                                }
-                                m_rowLeftSurfModel = &(myMap.m_brainModels[k]);
-                                m_rowLeftSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
-                                m_rowLeftSurfContig = thisContig;
-                            }
-                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_RIGHT)
-                            {
-                                if (m_rowRightSurfModel != NULL)
-                                {
-                                    throw CiftiFileException("Multiple surfaces of the same handedness not supported");
-                                }
-                                m_rowRightSurfModel = &(myMap.m_brainModels[k]);
-                                m_rowRightSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
-                                m_rowRightSurfContig = thisContig;
-                            }
+                            myMap.m_brainModels[k].setupLookup();
                         }
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
                         {
@@ -328,42 +213,14 @@ void CiftiXML::rootChanged()
                     throw CiftiFileException("Multiple mappings on the same dimension not supported");
                 }
                 m_colMap = &myMap;
-                if (myMatrix.m_matrixIndicesMap[i].m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
+                if (myMap.m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS)
                 {
                     int numModels = (int)myMap.m_brainModels.size();//over 2 billion models? unlikely
                     for (int k = 0; k < numModels; ++k)
                     {
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_SURFACE)
                         {
-                            int64_t thisContig = myMap.m_brainModels[k].m_indexCount;//if the loop interior never executes (empty list) it is a special case that all are contiguous
-                            for (int64_t m = 0; m < (int64_t)myMap.m_brainModels[k].m_nodeIndices.size(); ++m)//similarly, if the loop never encounters not equals, all are correct
-                            {
-                                if (m != (int64_t)myMap.m_brainModels[k].m_nodeIndices[m])
-                                {
-                                    thisContig = m;
-                                    break;
-                                }
-                            }
-                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_LEFT)
-                            {
-                                if (m_colLeftSurfModel != NULL)
-                                {
-                                    throw CiftiFileException("Multiple surfaces of the same handedness not supported");
-                                }
-                                m_colLeftSurfModel = &(myMap.m_brainModels[k]);
-                                m_colLeftSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
-                                m_colLeftSurfContig = thisContig;
-                            }
-                            if (myMap.m_brainModels[k].m_brainStructure == StructureEnum::CORTEX_RIGHT)
-                            {
-                                if (m_colRightSurfModel != NULL)
-                                {
-                                    throw CiftiFileException("Multiple surfaces of the same handedness not supported");
-                                }
-                                m_colRightSurfModel = &(myMap.m_brainModels[k]);
-                                m_colRightSurfNodes = myMap.m_brainModels[k].m_surfaceNumberOfNodes;
-                                m_colRightSurfContig = thisContig;
-                            }
+                            myMap.m_brainModels[k].setupLookup();
                         }
                         if (myMap.m_brainModels[k].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
                         {
@@ -378,44 +235,16 @@ void CiftiXML::rootChanged()
 
 int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return -1;
-    };
-    if (left)
-    {
-        return m_colLeftSurfNodes;
-    } else {
-        return m_colRightSurfNodes;
-    }
+    const CiftiBrainModelElement* myModel = findSurfaceModel(m_colMap, structure);
+    if (myModel == NULL) return -1;
+    return myModel->m_surfaceNumberOfNodes;
 }
 
 int64_t CiftiXML::getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return -1;
-    };
-    if (left)
-    {
-        return m_rowLeftSurfNodes;
-    } else {
-        return m_rowRightSurfNodes;
-    }
+    const CiftiBrainModelElement* myModel = findSurfaceModel(m_rowMap, structure);
+    if (myModel == NULL) return -1;
+    return myModel->m_surfaceNumberOfNodes;
 }
 
 int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const
@@ -467,9 +296,6 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
     ijk[0] = floor(myIndices[0][0] + 0.5f);
     ijk[1] = floor(myIndices[1][0] + 0.5f);
     ijk[2] = floor(myIndices[2][0] + 0.5f);
-    if (ijk[0] < 0 || ijk[0] >= (int64_t)myVol.m_volumeDimensions[0]) return -1;//some shortcuts to not search all the voxels on invalid coords
-    if (ijk[1] < 0 || ijk[1] >= (int64_t)myVol.m_volumeDimensions[1]) return -1;//should this be added to the other voxel index function?
-    if (ijk[2] < 0 || ijk[2] >= (int64_t)myVol.m_volumeDimensions[2]) return -1;
     return getVolumeIndex(ijk, myMap);
 }
 
@@ -675,53 +501,12 @@ bool CiftiXML::hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const
 
 bool CiftiXML::hasColumnSurfaceData(const caret::StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return false;
-    };
-    if (left)
-    {
-        return hasSurfaceData(m_colLeftSurfModel);
-    } else {
-        return hasSurfaceData(m_colRightSurfModel);
-    }
+    return (findSurfaceModel(m_colMap, structure) != NULL);
 }
 
 bool CiftiXML::hasRowSurfaceData(const caret::StructureEnum::Enum structure) const
 {
-    bool left = false;
-    switch (structure)
-    {
-    case StructureEnum::CORTEX_LEFT:
-        left = true;
-        break;
-    case StructureEnum::CORTEX_RIGHT:
-        break;
-    default:
-        return false;
-    };
-    if (left)
-    {
-        return hasSurfaceData(m_rowLeftSurfModel);
-    } else {
-        return hasSurfaceData(m_rowRightSurfModel);
-    }
-}
-
-bool CiftiXML::hasSurfaceData(const caret::CiftiBrainModelElement* myModel) const
-{
-    if (myModel == NULL)
-    {
-        return false;
-    }
-    return true;
+    return (findSurfaceModel(m_rowMap, structure) != NULL);
 }
 
 CiftiXML& CiftiXML::operator=(const CiftiXML& right)
@@ -730,4 +515,34 @@ CiftiXML& CiftiXML::operator=(const CiftiXML& right)
     m_root = right.m_root;
     rootChanged();
     return *this;
+}
+
+const CiftiBrainModelElement* CiftiXML::findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const
+{
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return NULL;
+    const vector<CiftiBrainModelElement>& myModels = myMap->m_brainModels;
+    int numModels = myModels.size();
+    for (int i = 0; i < numModels; ++i)
+    {
+        if (myModels[i].m_modelType == CIFTI_MODEL_TYPE_SURFACE && myModels[i].m_brainStructure == structure)
+        {
+            return &(myModels[i]);
+        }
+    }
+    return NULL;
+}
+
+const CiftiBrainModelElement* CiftiXML::findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const
+{
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return NULL;
+    const vector<CiftiBrainModelElement>& myModels = myMap->m_brainModels;
+    int numModels = myModels.size();
+    for (int i = 0; i < numModels; ++i)
+    {
+        if (myModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS && myModels[i].m_brainStructure == structure)
+        {
+            return &(myModels[i]);
+        }
+    }
+    return NULL;
 }

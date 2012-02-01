@@ -23,4 +23,39 @@
  */
 /*LICENSE_END*/
 #include "CiftiXMLElements.h"
+#include "CiftiFileException.h"
 
+using namespace caret;
+
+void CiftiBrainModelElement::setupLookup()
+{
+    if (m_modelType == CIFTI_MODEL_TYPE_SURFACE)
+    {
+        if (m_nodeIndices.size() == 0)
+        {
+            if (m_indexCount != m_surfaceNumberOfNodes)
+            {
+                throw CiftiFileException("empty index list found, but indexCount and surfaceNumberOfNodes don't match");
+            }
+            m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
+            for (int i = 0; i < m_surfaceNumberOfNodes; ++i)
+            {
+                m_nodeToIndexLookup[i] = i + m_indexOffset;
+            }
+        } else {
+            if (m_indexCount != m_nodeIndices.size())
+            {
+                throw CiftiFileException("indexCount and size of nodeIndices don't match");
+            }
+            m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
+            for (int i = 0; i < m_surfaceNumberOfNodes; ++i)
+            {
+                m_nodeToIndexLookup[i] = -1;
+            }
+            for (int i = 0; i < m_indexCount; ++i)
+            {
+                m_nodeToIndexLookup[m_nodeIndices[i]] = i + m_indexOffset;
+            }
+        }
+    }
+}

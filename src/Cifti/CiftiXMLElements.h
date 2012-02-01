@@ -61,6 +61,8 @@ public:
     //children
     std::vector<unsigned long long> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
     std::vector<voxelIndexType> m_voxelIndicesIJK; /*!<  Identifies the voxels that model a brain structure. */
+    std::vector<unsigned long long> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
+    void setupLookup();//convenience function to populate lookup
 };
 
 /// Cifti Matrix Indices Map XML Element

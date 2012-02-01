@@ -748,6 +748,7 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
     }
     
     this->zeroizeData();
+    this->selectedTimePoint = seconds;//TSC: update seconds any time you change data in any way, otherwise it may ignore a request while all you have is zeros from error
 
     try {
         switch (this->loaderType) {
@@ -762,7 +763,6 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
                 
                 if (this->ciftiInterface->getColumnFromTimepoint(this->data, seconds)) {
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
-                    this->selectedTimePoint = seconds;
                 }
                 else {
                     CaretLogSevere("FAILED to read column for seconds " + AString::number(seconds));
