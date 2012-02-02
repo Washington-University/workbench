@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "CaretColorEnum.h"
 #include "WuQDialogModal.h"
 
 class QComboBox;
@@ -38,6 +38,7 @@ namespace caret {
 
     class Border;
     class BorderFile;
+    class CaretColorEnumSelectionControl;
     
     class BorderDrawFinishDialog : public WuQDialogModal {
         Q_OBJECT
@@ -68,14 +69,15 @@ namespace caret {
         QDoubleSpinBox* samplingDoubleSpinBox;
         
         QLineEdit* classNameLineEdit;
-        
-        QWidget* colorWidget;
+
+        CaretColorEnumSelectionControl* colorSelectionControl;
         
         static AString previousName;
         static BorderFile* previousBorderFile;
         static bool previousOpenTypeSelected;
         static float previousSampling;
-        static AString previousClassName;        
+        static AString previousClassName;     
+        static CaretColorEnum::Enum previousCaretColor;
     };
     
 #ifdef __BORDER_DRAW_FINISH_DIALOG_DECLARE__
@@ -84,6 +86,7 @@ namespace caret {
     bool BorderDrawFinishDialog::previousOpenTypeSelected = true;
     float BorderDrawFinishDialog::previousSampling = 2.0;
     AString BorderDrawFinishDialog::previousClassName = "";
+    CaretColorEnum::Enum BorderDrawFinishDialog::previousCaretColor;
 #endif // __BORDER_DRAW_FINISH_DIALOG_DECLARE__
 
 } // namespace

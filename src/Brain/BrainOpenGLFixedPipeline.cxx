@@ -1186,6 +1186,9 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                                                    i);
                 glColor3ubv(idRGB);
             }
+            else {
+                glColor3fv(CaretColorEnum::toRGB(border->getColor()));
+            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             this->drawSphere(1.5);

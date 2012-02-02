@@ -48,7 +48,7 @@ using namespace caret;
 Border::Border()
 : CaretObjectTracksModification()
 {
-    
+    this->color = CaretColorEnum::BLACK;
 }
 
 /**
@@ -120,6 +120,7 @@ Border::clear()
     
     this->name = "";
     this->className = "";
+    this->color = CaretColorEnum::BLACK;
 }
 
 /**
@@ -177,6 +178,26 @@ Border::setClassName(const AString& className)
 {
     this->className = className;
     this->setModified();
+}
+
+/**
+ * @return Color of the border.
+ */
+CaretColorEnum::Enum 
+Border::getColor() const
+{
+    return this->color;
+}
+
+/**
+ * Set the color of the border.
+ * @param color
+ *    New color for border.
+ */
+void 
+Border::setColor(const CaretColorEnum::Enum color)
+{
+    this->color = color;
 }
 
 /**

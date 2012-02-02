@@ -38,6 +38,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
+#include "CaretColorEnumSelectionControl.h"
 #include "Brain.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
@@ -114,7 +115,8 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    this->colorWidget = new QWidget();
+    this->colorSelectionControl = new CaretColorEnumSelectionControl();
+    this->colorSelectionControl->setSelectedColor(CaretColorEnum::BLACK);
     
     /*
      * Class
@@ -153,7 +155,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     gridLayout->addWidget(this->nameLineEdit, row, 1);
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
-    gridLayout->addWidget(this->colorWidget, row, 1);
+    gridLayout->addWidget(this->colorSelectionControl->getWidget(), row, 1);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
     gridLayout->addWidget(this->classNameLineEdit, row, 1);
@@ -195,11 +197,9 @@ BorderDrawFinishDialog::okButtonPressed()
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    
     const QString className = this->classNameLineEdit->text().trimmed();
-    
     const float sampling = this->samplingDoubleSpinBox->value();
-    
+    const CaretColorEnum::Enum color = this->colorSelectionControl->getSelectedColor();
     /*
      * Error?
      */
@@ -224,6 +224,7 @@ BorderDrawFinishDialog::okButtonPressed()
     Border* borderBeingCreated = new Border(*this->border);
     borderBeingCreated->setName(name);
     borderBeingCreated->setClassName(className);
+    borderBeingCreated->setColor(color);
     
     /*
      * Add border to border file
@@ -241,6 +242,7 @@ BorderDrawFinishDialog::okButtonPressed()
     BorderDrawFinishDialog::previousSampling = sampling;
     BorderDrawFinishDialog::previousOpenTypeSelected = this->openRadioButton->isChecked();
     BorderDrawFinishDialog::previousBorderFile = borderFile;
+    BorderDrawFinishDialog::previousCaretColor = color;
     
     /*
      * continue with OK button processing

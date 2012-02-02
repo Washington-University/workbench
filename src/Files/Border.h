@@ -26,6 +26,7 @@
  */ 
 
 #include "BorderException.h"
+#include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
 
 #include "XmlException.h"
@@ -58,6 +59,10 @@ namespace caret {
         AString getClassName() const;
         
         void setClassName(const AString& name);
+        
+        CaretColorEnum::Enum getColor() const;
+        
+        void setColor(const CaretColorEnum::Enum color);
         
         int32_t getNumberOfPoints() const;
         
@@ -107,6 +112,8 @@ namespace caret {
         AString name;
         
         AString className;
+        
+        CaretColorEnum::Enum color;
         
         std::vector<SurfaceProjectedItem*> points;
     };
