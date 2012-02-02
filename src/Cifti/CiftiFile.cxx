@@ -31,6 +31,7 @@
 
 
 #include <iostream>
+#include <FileInformation.h>
 using namespace caret;
 
 /**
@@ -58,7 +59,7 @@ CiftiFile::CiftiFile(const CacheEnum &caching) throw (CiftiFileException)
  * @param fileName name and path of the Cifti File
  *
  */
-CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
+CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching)
 {
     init();
     this->m_caching = caching;
@@ -78,7 +79,7 @@ void CiftiFile::init()
  *
  * @param fileName name and path of the Cifti File
  */
-void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) throw (CiftiFileException)
+void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
 {
     if(!QFile::exists(fileName)) {
         throw CiftiFileException("Cifti File: " + fileName + " does not exist.");
@@ -94,17 +95,16 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching) thro
         {
             QFile inputFile(fileName);
             inputFile.setFileName(fileName);
-            if(inputFile.isWritable())
+            FileInformation myInfo(fileName);
+            if(myInfo.isWritable())//WARNING: QFile::isWritable does not check permissions, so use FileInformation
             {
                 inputFile.open(QIODevice::ReadWrite);
-            }
-            else
-            {
+            } else {
                 inputFile.open(QIODevice::ReadOnly);
             }
             if (!inputFile.isOpen())
             {
-                throw CiftiFile("unable to open cifti file");//so permissions problems result in an exception, not an abort later
+                throw CiftiFileException("unable to open cifti file");//so permissions problems result in an exception, not an abort later
             }
             inputFile.seek(NIFTI2_HEADER_SIZE);
             char extensions[4];
@@ -233,13 +233,10 @@ void CiftiFile::writeFile(const AString &fileName)
     //write out the xml extension
     QFile file;
     file.setFileName(fileName);
-    if(file.isWritable())
+    //isWritable DOES NOT CHECK PERMISSIONS
+    if (!file.open(QIODevice::ReadWrite))//this function is writeFile, try to open writable at all times
     {
-        file.open(QIODevice::ReadWrite);
-    }
-    else
-    {
-        file.open(QIODevice::ReadOnly);
+        throw CiftiFileException("encountered error reopening file as writable");
     }
     file.seek(540);
     char eflags[4] = {1,0x00,0x00,0x00};

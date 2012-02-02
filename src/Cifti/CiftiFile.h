@@ -44,9 +44,9 @@ public:
     /// Constructor
     CiftiFile(const CacheEnum &caching) throw (CiftiFileException);
     /// Constructor
-    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
+    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
     /// Open the Cifti File
-    virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY) throw (CiftiFileException);
+    virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
     /// Write the Cifti File
     virtual void writeFile(const AString &fileName);
 
