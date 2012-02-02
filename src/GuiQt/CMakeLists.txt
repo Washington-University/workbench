@@ -36,6 +36,7 @@ ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
+GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
@@ -94,6 +95,7 @@ EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
+GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
@@ -151,6 +153,7 @@ EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
+GiftiLabelTableEditor.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx

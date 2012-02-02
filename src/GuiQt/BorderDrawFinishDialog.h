@@ -52,6 +52,9 @@ namespace caret {
     protected:
         virtual void okButtonPressed();
         
+    private slots:
+        void displayColorEditor();
+    
     private:
         BorderDrawFinishDialog(const BorderDrawFinishDialog&);
 

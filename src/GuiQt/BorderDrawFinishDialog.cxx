@@ -30,6 +30,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QRadioButton>
+#include <QToolButton>
 
 #define __BORDER_DRAW_FINISH_DIALOG_DECLARE__
 #include "BorderDrawFinishDialog.h"
@@ -40,8 +41,10 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumSelectionControl.h"
 #include "Brain.h"
+#include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -118,6 +121,14 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     this->colorSelectionControl = new CaretColorEnumSelectionControl();
     this->colorSelectionControl->setSelectedColor(CaretColorEnum::BLACK);
     
+    QAction* displayColorEditorAction = WuQtUtilities::createAction("Edit...", 
+                                                                    "Add and/or edit colors", 
+                                                                    this, 
+                                                                    this, 
+                                                                    SLOT(displayColorEditor()));
+    QToolButton* displayColorEditorToolButton = new QToolButton();
+    displayColorEditorToolButton->setDefaultAction(displayColorEditorAction);
+    
     /*
      * Class
      */
@@ -156,6 +167,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
     gridLayout->addWidget(this->colorSelectionControl->getWidget(), row, 1);
+    gridLayout->addWidget(displayColorEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
     gridLayout->addWidget(this->classNameLineEdit, row, 1);
@@ -249,4 +261,14 @@ BorderDrawFinishDialog::okButtonPressed()
      */
     WuQDialogModal::okButtonPressed();
 }
+
+void 
+BorderDrawFinishDialog::displayColorEditor()
+{
+    GiftiLabelTableEditor editor(NULL,
+                                 "Edit Border Colors",
+                                 this);
+    editor.exec();
+}
+
 
