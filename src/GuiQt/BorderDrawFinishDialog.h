@@ -67,7 +67,7 @@ namespace caret {
         
         QDoubleSpinBox* samplingDoubleSpinBox;
         
-        QLabel* classNameLabel;
+        QLineEdit* classNameLineEdit;
         
         QWidget* colorWidget;
         

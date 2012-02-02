@@ -120,8 +120,8 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
-    this->classNameLabel = new QLabel("      ");
-    this->classNameLabel->setText(BorderDrawFinishDialog::previousClassName);
+    this->classNameLineEdit = new QLineEdit();
+    this->classNameLineEdit->setText(BorderDrawFinishDialog::previousClassName);
     
     /*
      * Open/Closed
@@ -156,7 +156,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     gridLayout->addWidget(this->colorWidget, row, 1);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
-    gridLayout->addWidget(this->classNameLabel, row, 1);
+    gridLayout->addWidget(this->classNameLineEdit, row, 1);
     row++;
     gridLayout->addWidget(samplingLabel, row, 0);
     gridLayout->addWidget(this->samplingDoubleSpinBox, row, 1);
@@ -196,7 +196,7 @@ BorderDrawFinishDialog::okButtonPressed()
         errorMessage += ("Name is invalid.\n");
     }
     
-    const QString className = this->classNameLabel->text().trimmed();
+    const QString className = this->classNameLineEdit->text().trimmed();
     
     const float sampling = this->samplingDoubleSpinBox->value();
     
