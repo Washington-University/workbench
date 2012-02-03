@@ -355,8 +355,10 @@ BorderFile::removeBorder(Border* border)
 {
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0;i < numBorders; i++) {
-        this->removeBorder(i);
-        return;
+        if (this->borders[i] == border) {
+            this->removeBorder(i);
+            return;
+        }
     }
     CaretLogWarning("Attempting to delete border not in border file with name: "
                         + border->getName());
