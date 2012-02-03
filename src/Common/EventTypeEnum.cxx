@@ -162,6 +162,10 @@ EventTypeEnum::initialize()
                                      "EVENT_SURFACES_GET", 
                                      "Get Surfaces"));
     
+    enumData.push_back(EventTypeEnum(EVENT_TOOLBOX_SELECTION_DISPLAY, 
+                                     "EVENT_TOOLBOX_SELECTION_DISPLAY", 
+                                     "Display or hide the selection toolbox"));
+    
     enumData.push_back(EventTypeEnum(EVENT_USER_INTERFACE_UPDATE, 
                                      "EVENT_USER_INTERFACE_UPDATE", 
                                      "Update the user-interface"));

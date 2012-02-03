@@ -41,6 +41,7 @@ class QActionGroup;
 class QMenu;
 
 namespace caret {
+    class BrainBrowserSelectionToolBox;
     class BrainBrowserWindowToolBar;
     class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
@@ -167,6 +168,8 @@ namespace caret {
         BrainOpenGLWidget* openGLWidget;
         
         BrainBrowserWindowToolBar* toolbar;
+        
+        BrainBrowserSelectionToolBox* selectionToolBox;
         
         QAction* newWindowAction;
         

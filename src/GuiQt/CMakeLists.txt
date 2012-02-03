@@ -26,6 +26,7 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 BorderDrawFinishDialog.h
+BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
@@ -75,6 +76,7 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 BorderDrawFinishDialog.h
+BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
@@ -93,6 +95,7 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
+EventToolBoxSelectionDisplay.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 GiftiLabelTableEditor.h
@@ -133,6 +136,7 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 BorderDrawFinishDialog.cxx
+BrainBrowserSelectionToolBox.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowToolBar.cxx
@@ -151,6 +155,7 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
+EventToolBoxSelectionDisplay.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 GiftiLabelTableEditor.cxx

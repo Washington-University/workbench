@@ -88,6 +88,8 @@ public:
         EVENT_SURFACE_COLORING_INVALIDATE,
         /** Get surfaces */
         EVENT_SURFACES_GET,
+        /** Display/Hide the selection toolbox */
+        EVENT_TOOLBOX_SELECTION_DISPLAY,
         /** Update the User-Interface */
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */
