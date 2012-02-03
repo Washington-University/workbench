@@ -65,10 +65,13 @@ void
 CommandNiftiConvert::executeOperation(ProgramParameters& parameters) throw (CommandException,
                                                                ProgramParametersException)
 {
-
-    const AString encodingName = parameters.nextString("NIFTI Encoding Name");
     const AString inputFileName = parameters.nextString("Input NIFTI File Name");
     const AString outputFileName = parameters.nextString("Output NIFTI File Name");
+    NiftiFile nf(inputFileName);
+    //NiftiFile nfOut;
+    Nifti2Header header;
+    nf.setHeader(header);
+    nf.writeFile(outputFileName);
     
 /*
     bool isValidEncoding = false;

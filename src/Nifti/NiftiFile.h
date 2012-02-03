@@ -191,7 +191,11 @@ public:
     /// returns the number of frames, or the 4th dimension, in the case of 3 dimensional volume files, returns 1
     int64_t getFrameCount() { return matrix.getFrameCount(); }
 
-    
+    /// Gets the Size in bytes of the nifti extension(s)
+    //int64_t getExensionSize();
+    /// Gets the extensions byte array
+    //int8_t * getExtensionBytes();
+    /// Sets the extensions byte array
 
     /// Destructor
     virtual ~NiftiFile();
