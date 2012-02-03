@@ -77,9 +77,7 @@ GeodesicHelperBase::GeodesicHelperBase(const SurfaceFile* surfaceIn)
         {
             continue;//skip edges that have only one triangle
         }
-        int32_t neigh1Node, neigh2Node, tile1, tile2, baseNode, farNode;
-        tile1 = myEdgeInfo[i].tiles[0].tile;
-        tile2 = myEdgeInfo[i].tiles[1].tile;
+        int32_t neigh1Node, neigh2Node, baseNode, farNode;
         neigh1Node = myEdgeInfo[i].node1;
         neigh2Node = myEdgeInfo[i].node2;
         baseNode = myEdgeInfo[i].tiles[0].node3;

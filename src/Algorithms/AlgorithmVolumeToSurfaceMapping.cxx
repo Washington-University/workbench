@@ -97,7 +97,6 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
     }
     bool haveMethod = false;
-    bool averageNormals = false;
     Method myMethod;
     if (trilinearOpt->m_present)
     {
@@ -121,10 +120,6 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         }
         haveMethod = true;
         myMethod = RIBBON_CONSTRAINED;
-        if (ribbonOpt->m_present)
-        {
-            averageNormals = true;
-        }
     }
     if (!haveMethod)
     {

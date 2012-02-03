@@ -489,6 +489,7 @@ VolumeBase::setValueAllVoxels(const float value)
     for (int64_t i = 0; i < m_dataSize; i++) {
         m_data[i] = value;
     }
+    setModified();
     //std::fill(m_data, (m_data + m_dataSize), value);
 }
 
@@ -614,6 +615,7 @@ VolumeBase::setMapName(const int32_t mapIndex,
 {
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
     m_brickAttributes[mapIndex]->m_metadata->set(GiftiXmlElements::TAG_METADATA_NAME, mapName);
+    setModified();
 }
 
 /**

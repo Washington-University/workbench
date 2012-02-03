@@ -222,6 +222,7 @@ namespace caret {
             } else {
                 m_data[getIndex(indexIn1, indexIn2, indexIn3, brickIndex, component)] = valueIn;
             }
+            setModified();
         }
         
         /// set every voxel to the given value

@@ -40,18 +40,20 @@ void VolumeFileTest::execute()
 {
     VolumeFile myTestVol;
     vector<int64_t> myDims;
-    myDims.push_back(20);//i
-    myDims.push_back(20);//j
-    myDims.push_back(20);//k
-    myDims.push_back(10);//time
-    const int64_t numComponents = 3;//simulate rgb
+    const int64_t xdim = 19, ydim = 17, zdim = 13, tdim = 11, numComponents = 3;//simulate rgb
+    float testvals[xdim][ydim][zdim][tdim][numComponents];
+    srand(time(NULL));//for generating our test values
+    myDims.push_back(xdim);//i
+    myDims.push_back(ydim);//j
+    myDims.push_back(zdim);//k
+    myDims.push_back(tdim);//time
     FloatMatrix indexSpace = FloatMatrix::zeros(4,4);//start with zeros as a 4x4 style matrix
     indexSpace[3][3] = 1.1f;//test a wrong element, because it SHOULD ignore it
     indexSpace[0][2] = 1.0f;//give it an odd orientation
     indexSpace[1][0] = 1.0f;//this is yzx, ie, PIL
     indexSpace[2][1] = 1.0f;
     myTestVol.reinitialize(myDims, indexSpace.getMatrix(), numComponents);
-    float outIndex1, outIndex2, outIndex3;
+    float outIndex1, outIndex2, outIndex3, tempf;
     const float testAllowance = 0.00001f;//allow it to be wrong by this much
     myTestVol.spaceToIndex(1.0f, 0.0f, 0.0f, outIndex1, outIndex2, outIndex3);
     if (outIndex1 < 0.0f - testAllowance || outIndex1 > 0.0f + testAllowance)
@@ -64,20 +66,18 @@ void VolumeFileTest::execute()
     }
     if (outIndex3 < 1.0f - testAllowance || outIndex3 > 1.0f + testAllowance)
     {
-        setFailed(AString("index 3 failed: needed 0.0, got ") + AString::number(outIndex3));
+        setFailed(AString("index 3 failed: needed 1.0, got ") + AString::number(outIndex3));
     }
-    time_t myseed = time(NULL);
-    srand(myseed);//initialize RNG to fill, so we can compare afterwards
     int64_t i, j, k, t, c, testIndex;
-    for (t = 0; t < myDims[3]; ++t)
+    for (c = 0; c < numComponents; ++c)
     {
-        for (k = 0; k < myDims[2]; ++k)
+        for (t = 0; t < myDims[3]; ++t)
         {
-            for (j = 0; j < myDims[1]; ++j)
+            for (k = 0; k < myDims[2]; ++k)
             {
-                for (i = 0; i < myDims[0]; ++i)
+                for (j = 0; j < myDims[1]; ++j)
                 {
-                    for (c = 0; c < numComponents; ++c)
+                    for (i = 0; i < myDims[0]; ++i)
                     {
                         testIndex = myTestVol.getIndex(i, j, k, t, c);
                         if (testIndex != i + myDims[0] * (j + myDims[1] * (k + myDims[2] * (t + myDims[3] * c))))
@@ -86,26 +86,29 @@ void VolumeFileTest::execute()
                                 AString::number(i + myDims[0] * (j + myDims[1] * (k + myDims[2] * (t + myDims[3] * c)))) + " but was " + AString::number(testIndex));
                             return;
                         }
-                        myTestVol.setValue((float)rand(), i, j, k, t, c);
+                        tempf = (float)rand();//generate some floats
+                        testvals[i][j][k][t][c] = tempf;//store them explicitly
+                        myTestVol.setValue(tempf, i, j, k, t, c);
                     }
                 }
             }
         }
     }
-    srand(myseed);//now we compare
-    for (t = 0; t < myDims[3]; ++t)
+    for (c = 0; c < numComponents; ++c)
     {
-        for (k = 0; k < myDims[2]; ++k)
+        for (t = 0; t < myDims[3]; ++t)
         {
-            for (j = 0; j < myDims[1]; ++j)
+            for (k = 0; k < myDims[2]; ++k)
             {
-                for (i = 0; i < myDims[0]; ++i)
+                for (j = 0; j < myDims[1]; ++j)
                 {
-                    for (c = 0; c < numComponents; ++c)
+                    for (i = 0; i < myDims[0]; ++i)
                     {
-                        if (myTestVol.getValue(i, j, k, t, c) != (float)rand())
+                        if (myTestVol.getValue(i, j, k, t, c) != testvals[i][j][k][t][c])
                         {
-                            setFailed(AString("data was not consistent starting at (") + AString::number(i) + ", " + AString::number(j) + ", " + AString::number(k) + ", " + AString::number(t) + ", " + AString::number(c) + ")");
+                            setFailed(AString("data was not consistent starting at (") + AString::number(i) + ", " + AString::number(j) +
+                                ", " + AString::number(k) + ", " + AString::number(t) + ", " + AString::number(c) + "), value should be " +
+                                AString::number(testvals[i][j][k][t][c]) + ", got " + AString::number(myTestVol.getValue(i, j, k, t, c)));
                             return;
                         }
                     }

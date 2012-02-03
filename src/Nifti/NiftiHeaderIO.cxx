@@ -192,7 +192,7 @@ void NiftiHeaderIO::readFile(gzFile file) throw (NiftiException)
     {
         niftiVersion=2;
         //read the rest of the bytes
-        gzread(file,(char *)bytes[NIFTI1_HEADER_SIZE],NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
+        gzread(file,(char *)(bytes + NIFTI1_HEADER_SIZE),NIFTI2_HEADER_SIZE-NIFTI1_HEADER_SIZE);
         memcpy((char *)&n2header,bytes,NIFTI2_HEADER_SIZE);
     }
     else throw NiftiException("Unrecognized Nifti Version.");

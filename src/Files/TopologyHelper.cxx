@@ -140,7 +140,6 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
     TopologyHelperBase::NodeInfo& myNodeInfo = m_nodeInfo[node];
     if (myNodeInfo.m_neighbors.size() == 0) return;
     int firstIndex = 0, numNeigh = myNodeInfo.m_neighbors.size();
-    bool found = false;
     for (int i = 0; i < numNeigh; ++i)
     {
         int thisEdge = myNodeInfo.m_edges[i];
@@ -149,7 +148,6 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
             firstIndex = i;
             if ((m_edgeInfo[thisEdge].node1 == node) != m_edgeInfo[thisEdge].tiles[0].edgeReversed)//this checks if the edge from center to neighbor is oriented with the tile
             {//since edge info is always node1 < node2, we have to xor (this center is node1) and (this edge is reversed compared to its only triangle)
-                found = true;
                 break;//found one
             }//the reason this is ONLY on the break, is so that if we don't find a correctly oriented edge, we still find an edge if one exists
         }

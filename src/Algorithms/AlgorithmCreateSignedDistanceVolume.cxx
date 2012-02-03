@@ -663,7 +663,6 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                         const vector<int>& myTiles = m_topoHelp->getNodeTiles(myInfo.node1);
                         bool first = true;
                         float bestNorm = 0;
-                        int bestTile = -1;
                         Vector3D tempvec, tempvec2, bestCent;
                         for (int i = 0; i < (int)myTiles.size(); ++i)//find the tile of the node with the normal most parallel to the line segment between centroid and point
                         {//should be least likely to have an intervening triangle
@@ -684,7 +683,6 @@ int SignedDistToSurfIndexed::computeSign(float coord[3], SignedDistToSurfIndexed
                                     } else {
                                         curSign = -1;
                                     }
-                                    bestTile = i;
                                     first = false;
                                     bestNorm = tempf;
                                     bestCent = centroid;
