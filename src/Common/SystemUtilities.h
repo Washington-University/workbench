@@ -98,6 +98,8 @@ public:
     static void setHandlersForUnexpected();
     
     static AString systemCurrentDirectory();
+    
+    static void sleepSeconds(const float numberOfSeconds);
 };
 
 } // namespace

@@ -28,7 +28,7 @@
 
 #include <QDateTime>
 #include <QDir>
-
+#include <QThread>
 #include <QUuid>
 
 #include "CaretOMP.h"
@@ -568,5 +568,31 @@ AString
 SystemUtilities::systemCurrentDirectory()
 {
     return QDir::currentPath(); 
+}
+
+/*
+ * From http://developer.qt.nokia.com/wiki/How_to_create_a_splash_screen_with_an_induced_delay
+ */ 
+class Sleeper : public QThread
+{
+public:
+    static void sleepSeconds(const float seconds) {
+        if (seconds > 0.0) {
+            const unsigned long milliseconds = seconds * 1000.0;
+            QThread::msleep(milliseconds);
+        }
+    }
+};
+
+/**
+ * Sleep for the specified number of seconds.  The minimum
+ * is one millisecond (0.001).
+ * @param numberOfSeconds
+ *    Number of seconds to sleep.
+ */
+void 
+SystemUtilities::sleepSeconds(const float numberOfSeconds)
+{
+    Sleeper::sleepSeconds(numberOfSeconds);
 }
 
