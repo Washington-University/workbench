@@ -566,7 +566,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMaximumSpinBox);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setMinimum(0);
-    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
+    this->scaleAutoPercentageNegativeMaximumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentageNegativeMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
@@ -577,7 +577,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleAutoPercentageNegativeMinimumSpinBox);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
+    this->scaleAutoPercentageNegativeMinimumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentageNegativeMinimumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentageNegativeMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
@@ -588,7 +588,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMinimumSpinBox);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(std::numeric_limits<float>::max());
+    this->scaleAutoPercentagePositiveMinimumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentagePositiveMinimumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentagePositiveMinimumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
@@ -599,7 +599,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     this->paletteWidgetGroup->add(this->scaleAutoPercentagePositiveMaximumSpinBox);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setFixedWidth(percentSpinBoxWidth);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setMinimum(0.0);
-    this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(std::numeric_limits<float>::max());
+    this->scaleAutoPercentagePositiveMaximumSpinBox->setMaximum(100.0);
     this->scaleAutoPercentagePositiveMaximumSpinBox->setSingleStep(1.0);
     QObject::connect(this->scaleAutoPercentagePositiveMaximumSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(apply()));
