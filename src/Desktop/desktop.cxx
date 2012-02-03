@@ -51,17 +51,6 @@ static bool caretLoggerIsValid = false;
 using namespace caret;
 using namespace std;
 
-/*
- * From http://developer.qt.nokia.com/wiki/How_to_create_a_splash_screen_with_an_induced_delay
- */ 
-class Sleeper : public QThread
-{
-public:
-    static void sleep(unsigned long secs) {
-        QThread::sleep(secs);
-    }
-};
-
 /**
  * Handles message produced by Qt.
  */
@@ -74,6 +63,7 @@ messageHandlerForQt(QtMsgType type, const char* msg)
     const char* messageChars = message.toCharArray();
     
     if (caretLoggerIsValid) {
+        bool abortFlag = false;
         switch (type) {
             case QtDebugMsg:
                 if (CaretLogger::getLogger()->isInfo()) {
@@ -106,8 +96,17 @@ messageHandlerForQt(QtMsgType type, const char* msg)
                 else {
                     std::cerr << "Qt Fatal: " << messageChars << std::endl;
                 }
-                std::abort();
+                abortFlag = true;
                 break;
+        }
+        
+        /*
+         * Beep to alert user about an error!!!
+         */
+        GuiManager::get()->beep(5);
+        
+        if (abortFlag) {
+            std::abort();
         }
     }
     else {
@@ -244,7 +243,7 @@ main(int argc, char* argv[])
             splashScreen.showMessage("Starting Workbench...");
             splashScreen.show();
             app.processEvents();
-            Sleeper::sleep(2);
+            SystemUtilities::sleepSeconds(2);
         }
         
         /*
