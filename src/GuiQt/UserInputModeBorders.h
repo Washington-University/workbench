@@ -52,13 +52,8 @@ namespace caret {
         };
         
         enum ReviseOperation {
-            REVISE_OPERATION_DELETE,  
-            REVISE_OPERATION_REVERSE
-        };
-        
-        enum SelectOperation {
-            SELECT_CLASS,
-            SELECT_NAME
+            REVISE_OPERATION_DELETE,
+            REVISE_OPERATION_PROPERTIES
         };
         
         UserInputModeBorders(Border* borderBeingDrawnByOpenGL,
@@ -90,10 +85,6 @@ namespace caret {
         
         void setReviseOperation(const ReviseOperation reviseOperation);
         
-        SelectOperation getSelectOperation() const;
-        
-        void setSelectOperation(const SelectOperation selectOperation);
-        
     private:
         UserInputModeBorders(const UserInputModeBorders&);
 
@@ -113,8 +104,6 @@ namespace caret {
         
         void drawOperationReset();
         
-        void reviseOperationAccept();
-        
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;
@@ -122,8 +111,6 @@ namespace caret {
         DrawOperation drawOperation;
         
         ReviseOperation reviseOperation;
-        
-        SelectOperation selectOperation;
         
         /** 
          * Pointer to border drawn by OpenGL.  Since owned

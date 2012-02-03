@@ -77,8 +77,7 @@ UserInputReceiverInterface()
     this->windowIndex = windowIndex;
     this->mode = MODE_DRAW;
     this->drawOperation = DRAW_OPERATION_CREATE;
-    this->reviseOperation = REVISE_OPERATION_DELETE;
-    this->selectOperation = SELECT_CLASS;
+    this->reviseOperation = REVISE_OPERATION_PROPERTIES;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
 
@@ -220,14 +219,13 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                             }
                         }
                         break;
-                    case REVISE_OPERATION_REVERSE:
+                    case REVISE_OPERATION_PROPERTIES:
                         if (isLeftClick) {
                             IdentificationManager* idManager =
                             openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
                             IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
                                 Border* border = idBorder->getBorder();
-                                border->reverse();
                                 mouseEvent->setGraphicsUpdateAllWindowsRequested();
                             }
                         }
@@ -237,12 +235,6 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 break;
             case MODE_SELECT:
             {
-                switch (this->selectOperation) {
-                    case SELECT_CLASS:
-                        break;
-                    case SELECT_NAME:
-                        break;
-                }
             }
                 break;
         }
@@ -379,79 +371,6 @@ UserInputModeBorders::getReviseOperation() const
 }
 
 /**
- * Accept the border reivision that the user was drawing.
- */
-void 
-UserInputModeBorders::reviseOperationAccept()
-{
-/*
-    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
-    if (browserWindow == NULL) {
-        return;
-    }
-    BrowserTabContent* btc = browserWindow->getBrowserTabContent();
-    if (btc == NULL) {
-        return;
-    }
-    ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
-    if (surfaceController == NULL) {
-        return;
-    }
-    
-    Surface* surface = surfaceController->getSurface();
-    Brain* brain = surfaceController->getBrain();
-    
-    float nearestTolerance = 15;
-    BorderFile* borderFile;
-    int32_t borderFileIndex; 
-    Border* border;
-    int32_t borderIndex;
-    SurfaceProjectedItem* borderPoint;
-    int32_t borderPointIndex;
-    float distanceToNearestBorder;
-    if (brain->findBorderNearestBorder(surface, 
-                                       this->borderBeingDrawnByOpenGL,
-                                       Brain::NEAREST_BORDER_TEST_MODE_ENDPOINTS, 
-                                       nearestTolerance,
-                                       borderFile,
-                                       borderFileIndex,
-                                       border, 
-                                       borderIndex,
-                                       borderPoint,
-                                       borderPointIndex,
-                                       distanceToNearestBorder)) {
-        try {
-            switch (this->reviseOperation) {
-                case REVISE_OPERATION_ERASE:
-                    border->reviseEraseFromEnd(surface,
-                                               this->borderBeingDrawnByOpenGL);
-                    break;
-                case REVISE_OPERATION_EXTEND:
-                    border->reviseExtendFromEnd(surface,
-                                                this->borderBeingDrawnByOpenGL);
-                    break;
-                case REVISE_OPERATION_REPLACE:
-                    border->reviseReplaceSegment(surface, 
-                                                 this->borderBeingDrawnByOpenGL);
-                    break;
-                case REVISE_OPERATION_DELETE: 
-                    break;
-                case REVISE_OPERATION_REVERSE:
-                    break;
-            }
-        }
-        catch (BorderException& e) {
-            WuQMessageBox::errorOk(this->borderToolsWidget,
-                                   e.whatString());
-        }
-    }
-    this->borderBeingDrawnByOpenGL->clear();
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-*/
-}
-
-/**
  * Set the revise operation.
  * @param reviseOperation
  *   New revise operation.
@@ -461,26 +380,4 @@ UserInputModeBorders::setReviseOperation(const ReviseOperation reviseOperation)
 {
     this->reviseOperation = reviseOperation;
 }
-
-/**
- * @return The select operation.
- */
-UserInputModeBorders::SelectOperation 
-UserInputModeBorders::getSelectOperation() const
-{
-    return this->selectOperation;
-}
-
-/**
- * Set the select operation.
- * @param selectOperation
- *   New select operation.
- */
-void 
-UserInputModeBorders::setSelectOperation(const SelectOperation selectOperation)
-{
-    this->selectOperation = selectOperation;
-}
-
-
 

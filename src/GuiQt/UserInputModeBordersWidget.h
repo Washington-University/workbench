@@ -52,15 +52,12 @@ namespace caret {
         void modeActionTriggered(QAction*);
         void drawOperationActionTriggered(QAction*);
         void reviseOperationActionTriggered(QAction*);
-        void selectOperationActionTriggered(QAction*);
         
         void modeComboBoxSelection(int);
         
         void drawResetButtonClicked();
         void drawUndoButtonClicked();
         void drawFinishButtonClicked();
-        
-        void reviseAcceptButtonClicked();
         
     private:
         UserInputModeBordersWidget(const UserInputModeBordersWidget&);
@@ -75,8 +72,6 @@ namespace caret {
         QActionGroup* drawOperationActionGroup;
         
         QActionGroup* reviseOperationActionGroup;
-        
-        QActionGroup* selectOperationActionGroup;
         
         QWidget* createModeWidget();
         
