@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
          */
         SessionManager::createSessionManager();
         
-        QApplication myApp(argc, argv, false);//if some commands need gui (dunno, but caret5 had some) this may need to be moved into CommandOperationManager
+        QCoreApplication myApp(argc, argv);//so that it doesn't need to link against gui
         
         runCommand(argc, argv);
         

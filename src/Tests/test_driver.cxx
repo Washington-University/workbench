@@ -59,7 +59,7 @@ void freeTestList(vector<TestInterface*>& mylist)
 int main(int argc, char** argv)
 {
     {
-        QApplication myApp(argc, argv, false);
+        QCoreApplication myApp(argc, argv);
         SessionManager::createSessionManager();
         vector<TestInterface*> mytests;
         mytests.push_back(new CiftiFileTest("ciftifile"));
