@@ -82,13 +82,13 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->widgetDrawOperation = this->createDrawOperationWidget();
     
-    this->widgetReviseOperation = this->createReviseOperationWidget();
+    this->widgetEditOperation = this->createEditOperationWidget();
     
     this->widgetSelectOperation = this->createSelectOperationWidget();
     
     this->operationStackedWidget = new QStackedWidget();
     this->operationStackedWidget->addWidget(this->widgetDrawOperation);
-    this->operationStackedWidget->addWidget(this->widgetReviseOperation);
+    this->operationStackedWidget->addWidget(this->widgetEditOperation);
     this->operationStackedWidget->addWidget(this->widgetSelectOperation);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -123,10 +123,10 @@ UserInputModeBordersWidget::updateWidget()
             this->setActionGroupByActionData(this->drawOperationActionGroup,
                                              inputModeBorders->getDrawOperation());
             break;
-        case UserInputModeBorders::MODE_REVISE:
-            this->operationStackedWidget->setCurrentWidget(this->widgetReviseOperation);
-            this->setActionGroupByActionData(this->reviseOperationActionGroup, 
-                                             inputModeBorders->getReviseOperation());
+        case UserInputModeBorders::MODE_EDIT:
+            this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
+            this->setActionGroupByActionData(this->editOperationActionGroup, 
+                                             inputModeBorders->getEditOperation());
             break;
         case UserInputModeBorders::MODE_SELECT:
             this->operationStackedWidget->setCurrentWidget(this->widgetSelectOperation);
@@ -191,7 +191,7 @@ UserInputModeBordersWidget::createModeWidget()
 {
     this->modeComboBox = new QComboBox();
     this->modeComboBox->addItem("Draw", (int)UserInputModeBorders::MODE_DRAW);
-    this->modeComboBox->addItem("Revise", (int)UserInputModeBorders::MODE_REVISE);
+    this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
     this->modeComboBox->addItem("Select", (int)UserInputModeBorders::MODE_SELECT);
     QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
@@ -202,11 +202,11 @@ UserInputModeBordersWidget::createModeWidget()
     QToolButton* drawToolButton = new QToolButton();
     drawToolButton->setDefaultAction(drawAction);
     
-    QAction* reviseAction = WuQtUtilities::createAction("Revise", "Revise Borders", this);
-    reviseAction->setCheckable(true);
-    reviseAction->setData((int)UserInputModeBorders::MODE_REVISE);
-    QToolButton* reviseToolButton = new QToolButton();
-    reviseToolButton->setDefaultAction(reviseAction);
+    QAction* editAction = WuQtUtilities::createAction("Edit", "Edit Borders", this);
+    editAction->setCheckable(true);
+    editAction->setData((int)UserInputModeBorders::MODE_EDIT);
+    QToolButton* editToolButton = new QToolButton();
+    editToolButton->setDefaultAction(editAction);
     
     QAction* selectAction = WuQtUtilities::createAction("Select", "Select Borders", this);
     selectAction->setCheckable(true);
@@ -216,7 +216,7 @@ UserInputModeBordersWidget::createModeWidget()
     
     this->modeActionGroup = new QActionGroup(this);
     this->modeActionGroup->addAction(drawAction);
-    this->modeActionGroup->addAction(reviseAction);
+    this->modeActionGroup->addAction(editAction);
     this->modeActionGroup->addAction(selectAction);
     this->modeActionGroup->setExclusive(true);
     QObject::connect(this->modeActionGroup, SIGNAL(triggered(QAction*)),
@@ -232,7 +232,7 @@ UserInputModeBordersWidget::createModeWidget()
     }
     else {
         layout->addWidget(drawToolButton);
-        layout->addWidget(reviseToolButton);
+        layout->addWidget(editToolButton);
         layout->addWidget(selectToolButton);
     }
     
@@ -508,17 +508,17 @@ UserInputModeBordersWidget::drawOperationActionTriggered(QAction* action)
 }
 
 /**
- * @return The revise widget.
+ * @return The edit widget.
  */
 QWidget* 
-UserInputModeBordersWidget::createReviseOperationWidget()
+UserInputModeBordersWidget::createEditOperationWidget()
 {
     QAction* deleteAction = WuQtUtilities::createAction("Delete", 
                                                         "Delete a border by clicking\n"
                                                         "the mouse over the border",
                                                         this);
     deleteAction->setCheckable(true);
-    deleteAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_DELETE));
+    deleteAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_DELETE));
     QToolButton* deleteToolButton = new QToolButton();
     deleteToolButton->setDefaultAction(deleteAction);
     
@@ -528,16 +528,16 @@ UserInputModeBordersWidget::createReviseOperationWidget()
                                                          "editor to appear", 
                                                          this);
     propertiesAction->setCheckable(true);
-    propertiesAction->setData(static_cast<int>(UserInputModeBorders::REVISE_OPERATION_PROPERTIES));
+    propertiesAction->setData(static_cast<int>(UserInputModeBorders::EDIT_OPERATION_PROPERTIES));
     QToolButton* propertiesToolButton = new QToolButton();
     propertiesToolButton->setDefaultAction(propertiesAction);
     
-    this->reviseOperationActionGroup = new QActionGroup(this);
-    this->reviseOperationActionGroup->addAction(deleteAction);
-    this->reviseOperationActionGroup->addAction(propertiesAction);
-    this->reviseOperationActionGroup->setExclusive(true);
-    QObject::connect(this->reviseOperationActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(reviseOperationActionTriggered(QAction*)));
+    this->editOperationActionGroup = new QActionGroup(this);
+    this->editOperationActionGroup->addAction(deleteAction);
+    this->editOperationActionGroup->addAction(propertiesAction);
+    this->editOperationActionGroup->setExclusive(true);
+    QObject::connect(this->editOperationActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(editOperationActionTriggered(QAction*)));
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
@@ -550,17 +550,17 @@ UserInputModeBordersWidget::createReviseOperationWidget()
 }
 
 /**
- * Called when a revise button is clicked.
+ * Called when a edit button is clicked.
  * @param action
  *    Action that was triggered.
  */
 void 
-UserInputModeBordersWidget::reviseOperationActionTriggered(QAction* action)
+UserInputModeBordersWidget::editOperationActionTriggered(QAction* action)
 {
-    const int reviseModeInteger = action->data().toInt();
-    const UserInputModeBorders::ReviseOperation reviseOperation = 
-    static_cast<UserInputModeBorders::ReviseOperation>(reviseModeInteger);
-    this->inputModeBorders->setReviseOperation(reviseOperation);
+    const int editModeInteger = action->data().toInt();
+    const UserInputModeBorders::EditOperation editOperation = 
+    static_cast<UserInputModeBorders::EditOperation>(editModeInteger);
+    this->inputModeBorders->setEditOperation(editOperation);
 }
 
 /**

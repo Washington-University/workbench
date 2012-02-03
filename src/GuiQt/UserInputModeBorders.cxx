@@ -77,7 +77,7 @@ UserInputReceiverInterface()
     this->windowIndex = windowIndex;
     this->mode = MODE_DRAW;
     this->drawOperation = DRAW_OPERATION_CREATE;
-    this->reviseOperation = REVISE_OPERATION_PROPERTIES;
+    this->editOperation = EDIT_OPERATION_PROPERTIES;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
 
@@ -203,10 +203,10 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 }
             }
                 break;
-            case MODE_REVISE:
+            case MODE_EDIT:
             {
-                switch (this->reviseOperation) {
-                    case REVISE_OPERATION_DELETE:  
+                switch (this->editOperation) {
+                    case EDIT_OPERATION_DELETE:  
                         if (isLeftClick) {
                             IdentificationManager* idManager =
                             openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
@@ -219,7 +219,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                             }
                         }
                         break;
-                    case REVISE_OPERATION_PROPERTIES:
+                    case EDIT_OPERATION_PROPERTIES:
                         if (isLeftClick) {
                             IdentificationManager* idManager =
                             openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
@@ -362,22 +362,22 @@ UserInputModeBorders::drawOperationReset()
 }
 
 /**
- * @return The revise operation.
+ * @return The edit operation.
  */
-UserInputModeBorders::ReviseOperation 
-UserInputModeBorders::getReviseOperation() const
+UserInputModeBorders::EditOperation 
+UserInputModeBorders::getEditOperation() const
 {
-    return this->reviseOperation;
+    return this->editOperation;
 }
 
 /**
- * Set the revise operation.
- * @param reviseOperation
- *   New revise operation.
+ * Set the edit operation.
+ * @param editOperation
+ *   New edit operation.
  */
 void 
-UserInputModeBorders::setReviseOperation(const ReviseOperation reviseOperation)
+UserInputModeBorders::setEditOperation(const EditOperation editOperation)
 {
-    this->reviseOperation = reviseOperation;
+    this->editOperation = editOperation;
 }
 
