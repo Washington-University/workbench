@@ -53,7 +53,7 @@
 using namespace caret;
     
 /**
- * \class UserInputModeBorders 
+ * \class caret::UserInputModeBorders 
  * \brief Processing user input for Borders mode.
  *
  * Processes user input in Border mode which includes
@@ -75,9 +75,9 @@ UserInputReceiverInterface()
 {
     this->borderBeingDrawnByOpenGL = borderBeingDrawnByOpenGL;
     this->windowIndex = windowIndex;
-    this->mode = MODE_CREATE;
-    this->createOperation = CREATE_OPERATION_DRAW;
-    this->reviseOperation = REVISE_OPERATION_ERASE;
+    this->mode = MODE_DRAW;
+    this->drawOperation = DRAW_OPERATION_CREATE;
+    this->reviseOperation = REVISE_OPERATION_DELETE;
     this->selectOperation = SELECT_CLASS;
     this->borderToolsWidget = new UserInputModeBordersWidget(this);
 }
@@ -180,10 +180,13 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
         
         switch (this->mode) {
-            case MODE_CREATE:
+            case MODE_DRAW:
             {
-                switch (this->createOperation) {
-                    case CREATE_OPERATION_DRAW:
+                switch (this->drawOperation) {
+                    case DRAW_OPERATION_CREATE:
+                    case DRAW_OPERATION_ERASE:
+                    case DRAW_OPERATION_EXTEND:
+                    case DRAW_OPERATION_REPLACE:
                         if (isLeftClickOrDrag) {
                             this->drawPointAtMouseXY(openGLWidget,
                                                      mouseX,
@@ -191,7 +194,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                             mouseEvent->setGraphicsUpdateOneWindowRequested();
                         }
                         break;
-                    case CREATE_OPERATION_TRANSFORM:
+                    case DRAW_OPERATION_TRANSFORM:
                         if (isLeftClickOrDrag) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                           browserTabContent, 
@@ -204,16 +207,6 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
             case MODE_REVISE:
             {
                 switch (this->reviseOperation) {
-                    case REVISE_OPERATION_ERASE:
-                    case REVISE_OPERATION_EXTEND:
-                    case REVISE_OPERATION_REPLACE:
-                        if (isLeftClickOrDrag) {
-                            this->drawPointAtMouseXY(openGLWidget,
-                                                     mouseX,
-                                                     mouseY);
-                            mouseEvent->setGraphicsUpdateOneWindowRequested();
-                        }
-                        break;
                     case REVISE_OPERATION_DELETE:  
                         if (isLeftClick) {
                             IdentificationManager* idManager =
@@ -327,10 +320,10 @@ UserInputModeBorders::setMode(const Mode mode)
 /**
  * @return the create operation.
  */
-UserInputModeBorders::CreateOperation 
-UserInputModeBorders::getCreateOperation() const
+UserInputModeBorders::DrawOperation 
+UserInputModeBorders::getDrawOperation() const
 {
-    return this->createOperation;
+    return this->drawOperation;
 }
 
 /**
@@ -339,9 +332,9 @@ UserInputModeBorders::getCreateOperation() const
  *    New value for create operation.
  */
 void 
-UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
+UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 {
-    this->createOperation = createOperation;
+    this->drawOperation = drawOperation;
     this->borderToolsWidget->updateWidget();
 }
 
@@ -349,7 +342,7 @@ UserInputModeBorders::setCreateOperation(const CreateOperation createOperation)
  * Finish the border that the user was drawing.
  */
 void 
-UserInputModeBorders::createOperationFinish()
+UserInputModeBorders::drawOperationFinish()
 {
     this->borderBeingDrawnByOpenGL->clear();
 
@@ -360,7 +353,7 @@ UserInputModeBorders::createOperationFinish()
  * Undo (remove last point) from border being drawn.
  */
 void 
-UserInputModeBorders::createOperationUndo()
+UserInputModeBorders::drawOperationUndo()
 {
     this->borderBeingDrawnByOpenGL->removeLastPoint();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
@@ -370,7 +363,7 @@ UserInputModeBorders::createOperationUndo()
  * Reset the border being drawn.
  */
 void 
-UserInputModeBorders::createOperationReset()
+UserInputModeBorders::drawOperationReset()
 {
     this->borderBeingDrawnByOpenGL->clear();
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
@@ -391,6 +384,7 @@ UserInputModeBorders::getReviseOperation() const
 void 
 UserInputModeBorders::reviseOperationAccept()
 {
+/*
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->windowIndex);
     if (browserWindow == NULL) {
         return;
@@ -454,26 +448,7 @@ UserInputModeBorders::reviseOperationAccept()
     this->borderBeingDrawnByOpenGL->clear();
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
-}
-
-/**
- * Undo (remove last point) from border being revised.
- */
-void 
-UserInputModeBorders::reviseOperationUndo()
-{
-    this->borderBeingDrawnByOpenGL->removeLastPoint();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
-}
-
-/**
- * Reset the border revision.
- */
-void 
-UserInputModeBorders::reviseOperationReset()
-{
-    this->borderBeingDrawnByOpenGL->clear();
-    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
+*/
 }
 
 /**

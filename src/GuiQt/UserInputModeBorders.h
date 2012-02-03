@@ -38,20 +38,20 @@ namespace caret {
         
     public:
         enum Mode {
-            MODE_CREATE,
+            MODE_DRAW,
             MODE_REVISE,
             MODE_SELECT
         };
         
-        enum CreateOperation {
-            CREATE_OPERATION_DRAW,
-            CREATE_OPERATION_TRANSFORM
+        enum DrawOperation {
+            DRAW_OPERATION_TRANSFORM,
+            DRAW_OPERATION_CREATE,
+            DRAW_OPERATION_ERASE,
+            DRAW_OPERATION_EXTEND,
+            DRAW_OPERATION_REPLACE
         };
         
         enum ReviseOperation {
-            REVISE_OPERATION_ERASE,
-            REVISE_OPERATION_EXTEND,
-            REVISE_OPERATION_REPLACE,
             REVISE_OPERATION_DELETE,  
             REVISE_OPERATION_REVERSE
         };
@@ -82,9 +82,9 @@ namespace caret {
         
         void setMode(const Mode mode);
         
-        CreateOperation getCreateOperation() const;
+        DrawOperation getDrawOperation() const;
         
-        void setCreateOperation(const CreateOperation createOperation);
+        void setDrawOperation(const DrawOperation drawOperation);
         
         ReviseOperation getReviseOperation() const;
         
@@ -107,23 +107,19 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void createOperationFinish();
+        void drawOperationFinish();
         
-        void createOperationUndo();
+        void drawOperationUndo();
         
-        void createOperationReset();
+        void drawOperationReset();
         
         void reviseOperationAccept();
-        
-        void reviseOperationUndo();
-        
-        void reviseOperationReset();
         
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;
         
-        CreateOperation createOperation;
+        DrawOperation drawOperation;
         
         ReviseOperation reviseOperation;
         

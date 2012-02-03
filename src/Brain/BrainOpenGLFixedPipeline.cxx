@@ -1287,6 +1287,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
     glColor3f(1.0, 0.0, 0.0);
     
     if (this->borderBeingDrawn != NULL) {
+        this->borderBeingDrawn->setColor(CaretColorEnum::RED);
         this->drawBorder(surface, 
                          this->borderBeingDrawn,
                          -1,

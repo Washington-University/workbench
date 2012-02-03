@@ -95,8 +95,6 @@ ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
 ModelDisplayControllerWholeBrain.h
 ModelDisplayControllerYokingGroup.h
-NameSelection.h
-NameSelectionGroup.h
 NodeAndVoxelColoring.h
 NodeIdentificationTypeEnum.h
 Overlay.h
@@ -159,8 +157,6 @@ ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx
 ModelDisplayControllerWholeBrain.cxx
 ModelDisplayControllerYokingGroup.cxx
-NameSelection.cxx
-NameSelectionGroup.cxx
 NodeAndVoxelColoring.cxx
 NodeIdentificationTypeEnum.cxx
 Overlay.cxx
