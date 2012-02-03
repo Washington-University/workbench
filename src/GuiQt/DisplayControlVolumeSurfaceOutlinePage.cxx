@@ -176,7 +176,7 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->selectionCheckBox, 
                           true);
     
-    this->colorSelectionControl = new CaretColorEnumSelectionControl(true);
+    this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_SURFACE);
     parentPage->addWidget(this->colorSelectionControl, 
                           true);
     

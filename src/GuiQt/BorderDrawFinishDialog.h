@@ -69,8 +69,6 @@ namespace caret {
         QRadioButton* openRadioButton;
         QRadioButton* closedRadioButton;
         
-        QDoubleSpinBox* samplingDoubleSpinBox;
-        
         QLineEdit* classNameLineEdit;
 
         CaretColorEnumSelectionControl* colorSelectionControl;
@@ -78,7 +76,6 @@ namespace caret {
         static AString previousName;
         static BorderFile* previousBorderFile;
         static bool previousOpenTypeSelected;
-        static float previousSampling;
         static AString previousClassName;     
         static CaretColorEnum::Enum previousCaretColor;
     };
@@ -87,8 +84,7 @@ namespace caret {
     AString BorderDrawFinishDialog::previousName = "Name";
     BorderFile* BorderDrawFinishDialog::previousBorderFile = NULL;
     bool BorderDrawFinishDialog::previousOpenTypeSelected = true;
-    float BorderDrawFinishDialog::previousSampling = 2.0;
-    AString BorderDrawFinishDialog::previousClassName = "";
+    AString BorderDrawFinishDialog::previousClassName = "None";
     CaretColorEnum::Enum BorderDrawFinishDialog::previousCaretColor;
 #endif // __BORDER_DRAW_FINISH_DIALOG_DECLARE__
 

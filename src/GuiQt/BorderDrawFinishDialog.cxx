@@ -57,7 +57,7 @@ using namespace caret;
  * This dialog is displayed when the user finishes drawing a 
  * border.  It allows the user to select the border file, 
  * enter the border name, select the color, enter the class,
- * set the type of border (open/closed), set the sampling, and
+ * set the type of border (open/closed), and
  * possibly other attributes of the border.
  */
 /**
@@ -104,22 +104,11 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     this->nameLineEdit->setText(BorderDrawFinishDialog::previousName);
     
     /*
-     * Sampling
-     */
-    QLabel* samplingLabel = new QLabel("Sampling (mm)");
-    this->samplingDoubleSpinBox = new QDoubleSpinBox();
-    this->samplingDoubleSpinBox->setRange(0.1, 100000.0);
-    this->samplingDoubleSpinBox->setSingleStep(0.1);
-    this->samplingDoubleSpinBox->setDecimals(1);
-    this->samplingDoubleSpinBox->setValue(2.0);
-    this->samplingDoubleSpinBox->setValue(BorderDrawFinishDialog::previousSampling);
-    
-    /*
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    this->colorSelectionControl = new CaretColorEnumSelectionControl();
-    this->colorSelectionControl->setSelectedColor(CaretColorEnum::BLACK);
+    this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_CLASS);
+    this->colorSelectionControl->setSelectedColor(CaretColorEnum::CLASS);
     
     QAction* displayColorEditorAction = WuQtUtilities::createAction("Edit...", 
                                                                     "Add and/or edit colors", 
@@ -172,9 +161,6 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     gridLayout->addWidget(classLabel, row, 0);
     gridLayout->addWidget(this->classNameLineEdit, row, 1);
     row++;
-    gridLayout->addWidget(samplingLabel, row, 0);
-    gridLayout->addWidget(this->samplingDoubleSpinBox, row, 1);
-    row++;
     gridLayout->addWidget(typeLabel, row, 0);
     gridLayout->addWidget(this->closedRadioButton, row, 1);
     row++;
@@ -210,7 +196,6 @@ BorderDrawFinishDialog::okButtonPressed()
         errorMessage += ("Name is invalid.\n");
     }
     const QString className = this->classNameLineEdit->text().trimmed();
-    const float sampling = this->samplingDoubleSpinBox->value();
     const CaretColorEnum::Enum color = this->colorSelectionControl->getSelectedColor();
     /*
      * Error?
@@ -251,7 +236,6 @@ BorderDrawFinishDialog::okButtonPressed()
      */
     BorderDrawFinishDialog::previousName = name;
     BorderDrawFinishDialog::previousClassName = className;
-    BorderDrawFinishDialog::previousSampling = sampling;
     BorderDrawFinishDialog::previousOpenTypeSelected = this->openRadioButton->isChecked();
     BorderDrawFinishDialog::previousBorderFile = borderFile;
     BorderDrawFinishDialog::previousCaretColor = color;

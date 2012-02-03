@@ -91,6 +91,13 @@ CaretColorEnum::initialize()
     }
     initializedFlag = true;
 
+    enumData.push_back(CaretColorEnum(CLASS, 
+                                      "CLASS", 
+                                      "Class",
+                                      0,
+                                      0,
+                                      0));
+      
     enumData.push_back(CaretColorEnum(SURFACE, 
                                       "SURFACE", 
                                       "Suface",
@@ -414,14 +421,13 @@ CaretColorEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
  *
  * @param allEnums
  *     A vector that is OUTPUT containing all of the enumerated values.
- * @param includeSurfaceColor
- *     If true, the special color 'Surface' is included.  This color is
- *     used for special cases, such as volume surface outline, indicating
- *     that the surface is drawn using the surface's assigned coloring.
+ * @param options
+ *     Controls inclusion of special colors by bitwise or'ing the 
+ *     Options enumerated type values.
  */
 void
 CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
-                            const bool includeSurfaceColor)
+                            const uint64_t options)
 {
     if (initializedFlag == false) initialize();
     
@@ -430,8 +436,13 @@ CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
     for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        if (iter->enumValue == SURFACE) {
-            if (includeSurfaceColor == false) {
+        if (iter->enumValue == CLASS) {
+            if ((options & OPTION_INCLUDE_CLASS) == 0) {
+                continue;
+            }
+        }
+        else if (iter->enumValue == SURFACE) {
+            if ((options & OPTION_INCLUDE_SURFACE) == 0) {
                 continue;
             }
         }
@@ -446,29 +457,25 @@ CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
  *     A vector that is OUTPUT containing all of the names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.
- * @param includeSurfaceColor
- *     If true, the special color 'Surface' is included.  This color is
- *     used for special cases, such as volume surface outline, indicating
- *     that the surface is drawn using the surface's assigned coloring.
+ * @param options
+ *     Controls inclusion of special colors by bitwise or'ing the 
+ *     Options enumerated type values.
  */
 void
 CaretColorEnum::getAllNames(std::vector<AString>& allNames, 
                             const bool isSorted,
-                            const bool includeSurfaceColor)
+                            const uint64_t options)
 {
     if (initializedFlag == false) initialize();
     
     allNames.clear();
     
-    for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
-         iter != enumData.end();
+    std::vector<CaretColorEnum::Enum> allEnums;
+    CaretColorEnum::getAllEnums(allEnums, options);
+    for (std::vector<CaretColorEnum::Enum>::iterator iter = allEnums.begin();
+         iter != allEnums.end();
          iter++) {
-        if (iter->enumValue == SURFACE) {
-            if (includeSurfaceColor == false) {
-                continue;
-            }
-        }
-        allNames.push_back(CaretColorEnum::toName(iter->enumValue));
+        allNames.push_back(CaretColorEnum::toName(*iter));
     }
     
     if (isSorted) {
@@ -483,29 +490,25 @@ CaretColorEnum::getAllNames(std::vector<AString>& allNames,
  *     A vector that is OUTPUT containing all of the GUI names of the enumerated values.
  * @param isSorted
  *     If true, the names are sorted in alphabetical order.
- * @param includeSurfaceColor
- *     If true, the special color 'Surface' is included.  This color is
- *     used for special cases, such as volume surface outline, indicating
- *     that the surface is drawn using the surface's assigned coloring.
+ * @param options
+ *     Controls inclusion of special colors by bitwise or'ing the 
+ *     Options enumerated type values.
  */
 void
 CaretColorEnum::getAllGuiNames(std::vector<AString>& allGuiNames, 
                                const bool isSorted,
-                               const bool includeSurfaceColor)
+                               const uint64_t options)
 {
     if (initializedFlag == false) initialize();
     
     allGuiNames.clear();
     
-    for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
-         iter != enumData.end();
+    std::vector<CaretColorEnum::Enum> allEnums;
+    CaretColorEnum::getAllEnums(allEnums, options);
+    for (std::vector<CaretColorEnum::Enum>::iterator iter = allEnums.begin();
+         iter != allEnums.end();
          iter++) {
-        if (iter->enumValue == SURFACE) {
-            if (includeSurfaceColor == false) {
-                continue;
-            }
-        }
-        allGuiNames.push_back(CaretColorEnum::toGuiName(iter->enumValue));
+        allGuiNames.push_back(CaretColorEnum::toGuiName(*iter));
     }
     
     if (isSorted) {

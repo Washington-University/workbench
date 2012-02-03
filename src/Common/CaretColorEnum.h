@@ -39,6 +39,8 @@ public:
      * Enumerated values.
      */
     enum Enum {
+        /** Special case for using class coloring (borders). */
+        CLASS,
         /** Special case for using surface colooring */
         SURFACE,
         /** AQUA */
@@ -75,6 +77,17 @@ public:
         YELLOW
     };
 
+    /**
+     * Options for 'special' colors that are not usually a color
+     * but indicate coloring other than CaretColorEnum is to be
+     * used.
+     */
+    enum Options {
+        /** Include the CLASS color */
+        OPTION_INCLUDE_CLASS = 1,
+        /** Include the SURFACE color */
+        OPTION_INCLUDE_SURFACE = 2
+    };
 
     ~CaretColorEnum();
 
@@ -91,13 +104,13 @@ public:
     static Enum fromIntegerCode(const int32_t integerCode, bool* isValidOut);
 
     static void getAllEnums(std::vector<Enum>& allEnums,
-                            const bool includeSurfaceColor = false);
+                            const uint64_t options = 0);
 
     static void getAllNames(std::vector<AString>& allNames, const bool isSorted,
-                            const bool includeSurfaceColor = false);
+                            const uint64_t options = 0);
 
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted,
-                               const bool includeSurfaceColor = false);
+                               const uint64_t options = 0);
 
     static const float* toRGB(Enum enumValue);
     

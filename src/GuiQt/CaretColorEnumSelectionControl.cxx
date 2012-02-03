@@ -41,18 +41,18 @@ using namespace caret;
  */
 /**
  * Constructor.
- * @param includeSurfaceColor
- *   If true, the special color that indicates surface coloring is to
- *   be used is included in the color selections.
+ * @param options
+ *     Controls inclusion of special colors by bitwise or'ing the 
+ *     CaretColorEnum::Options enumerated type values.
  */
-CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(const bool includeSurfaceColor)
+CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(const uint64_t options)
 : QObject()
 {
     this->colorComboBox = new QComboBox();
     
     std::vector<CaretColorEnum::Enum> colors;
     CaretColorEnum::getAllEnums(colors,
-                                includeSurfaceColor);
+                                options);
     
     const int32_t numColors = static_cast<int32_t>(colors.size());
     for (int32_t i = 0; i < numColors; i++) {
