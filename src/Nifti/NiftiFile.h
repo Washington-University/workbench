@@ -165,6 +165,34 @@ public:
         }
     }
 
+
+    // For reading the entire Matrix
+    /// Gets the Size in bytes of the entire volume matrix
+    int64_t getMatrixSize() { return matrix.getMatrixSize();}
+    /// Gets the number of individual elements (array size) of the entire volume matrix
+    int64_t getMatrixLength() { return matrix.getMatrixLength(); }
+    /// sets the entire volume file Matrix
+    void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException) { matrix.setMatrix(matrixIn, matrixLengthIn); }
+    /// gets the entire volume file Matrix
+    void getMatrix(float *matrixOut) throw (NiftiException) { matrix.getMatrix(matrixOut); }
+
+    // For reading a frame at a time from previously loaded matrix
+    /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
+    void setFrame(const float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException)
+    { matrix.setFrame(matrixIn, matrixLengthIn, timeSlice, componentIndex); }
+    /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
+    void getFrame(float *frame, const int64_t &timeSlice = 0L,const int64_t &componentIndex=0L) throw (NiftiException)
+    { matrix.getFrame(frame, timeSlice, componentIndex); }
+
+    /// Gets the Size in bytes of the current frame
+    int64_t getFrameSize() { return matrix.getFrameSize(); }
+    /// Gets the number of individual elements (array size) of the current frame
+    int64_t getFrameLength() { return matrix.getFrameLength(); }
+    /// returns the number of frames, or the 4th dimension, in the case of 3 dimensional volume files, returns 1
+    int64_t getFrameCount() { return matrix.getFrameCount(); }
+
+    
+
     /// Destructor
     virtual ~NiftiFile();
 protected:

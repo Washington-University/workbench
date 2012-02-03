@@ -21,6 +21,7 @@ CommandClassCreate.h
 CommandClassCreateBase.h
 CommandClassCreateEnum.h
 CommandGiftiConvert.h
+CommandNiftiConvert.h
 CommandNiftiInformation.h
 CommandOperation.h
 CommandOperationManager.h
@@ -32,6 +33,7 @@ CommandClassCreate.cxx
 CommandClassCreateBase.cxx
 CommandClassCreateEnum.cxx
 CommandGiftiConvert.cxx
+CommandNiftiConvert.cxx
 CommandNiftiInformation.cxx
 CommandOperation.cxx
 CommandOperationManager.cxx

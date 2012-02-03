@@ -79,14 +79,14 @@ public:
     void writeFile(gzFile fileOut) throw (NiftiException);
 
     // For reading the entire Matrix
-    /// sets the entire volume file Matrix
+    /// sets the entire volume file Matrix, be sure to set the matrix layout before calling this function
     void setMatrix(float *matrixIn, const int64_t &matrixLengthIn) throw (NiftiException);
     /// gets the entire volume file Matrix
-    void getMatrix(float *matrixOut, const int64_t &matrixLengthOut) throw (NiftiException);
+    void getMatrix(float *matrixOut) throw (NiftiException);
 
     // For reading a frame at a time from previously loaded matrix
     /// Sets the current frame for writing, doesn't load any data from disk, can hand in a frame pointer for speed, writes out previous frame to disk if needed
-    void setFrame(const float *matrixIn, const int64_t &matrixLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException);
+    void setFrame(const float *matrixIn, const int64_t &frameLengthIn, const int64_t &timeSlice = 0L, const int64_t &componentIndex=0L)  throw(NiftiException);
     /// Sets the current frame (for writing), doesn't load any data from disk, writes out previous frame to disk if needed
     void getFrame(float *frame, const int64_t &timeSlice = 0L,const int64_t &componentIndex=0L) throw (NiftiException);
     
@@ -100,6 +100,13 @@ public:
     int64_t getFrameSize() { return frameSize;}
     /// Gets the number of individual elements (array size) of the current frame
     int64_t getFrameLength() { return frameLength; }
+    /// returns the number of frames
+    int64_t getFrameCount() { return timeLength;/*time is the 4th dimension or number of frames*/ }
+
+    /// Gets the Size in bytes of the entire volume matrix
+    int64_t getMatrixSize() { return matrixLength*(this->valueByteSize());}
+    /// Gets the number of individual elements (array size) of the entire volume matrix
+    int64_t getMatrixLength() { return matrixLength; }
 
    
 
