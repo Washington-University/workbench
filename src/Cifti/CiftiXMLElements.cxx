@@ -38,7 +38,7 @@ void CiftiBrainModelElement::setupLookup()
                 throw CiftiFileException("empty index list found, but indexCount and surfaceNumberOfNodes don't match");
             }
             m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
-            for (int i = 0; i < m_surfaceNumberOfNodes; ++i)
+            for (int i = 0; i < (int)m_surfaceNumberOfNodes; ++i)
             {
                 m_nodeToIndexLookup[i] = i + m_indexOffset;
             }
@@ -48,11 +48,11 @@ void CiftiBrainModelElement::setupLookup()
                 throw CiftiFileException("indexCount and size of nodeIndices don't match");
             }
             m_nodeToIndexLookup.resize(m_surfaceNumberOfNodes);
-            for (int i = 0; i < m_surfaceNumberOfNodes; ++i)
+            for (int i = 0; i < (int)m_surfaceNumberOfNodes; ++i)
             {
                 m_nodeToIndexLookup[i] = -1;
             }
-            for (int i = 0; i < m_indexCount; ++i)
+            for (int i = 0; i < (int)m_indexCount; ++i)
             {
                 m_nodeToIndexLookup[m_nodeIndices[i]] = i + m_indexOffset;
             }
