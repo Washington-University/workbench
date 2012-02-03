@@ -24,12 +24,12 @@
  */ 
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QRadioButton>
 #include <QToolButton>
 
 #define __BORDER_DRAW_FINISH_DIALOG_DECLARE__
@@ -129,17 +129,15 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
      * Open/Closed
      */
     QLabel* typeLabel = new QLabel("Type");
-    this->closedRadioButton = new QRadioButton("Closed");
-    this->openRadioButton = new QRadioButton("Open");
+    this->closedCheckBox = new QCheckBox("Closed");
     
     QButtonGroup* openClosedButtonGroup = new QButtonGroup(this);
-    openClosedButtonGroup->addButton(this->closedRadioButton);
-    openClosedButtonGroup->addButton(this->openRadioButton);
-    if (BorderDrawFinishDialog::previousOpenTypeSelected) {
-        this->openRadioButton->setChecked(true);
+    openClosedButtonGroup->addButton(this->closedCheckBox);
+    if (BorderDrawFinishDialog::previousClosedSelected) {
+        this->closedCheckBox->setChecked(true);
     }
     else {
-        this->closedRadioButton->setChecked(true);
+        this->closedCheckBox->setChecked(false);
     }
     
     /*
@@ -162,9 +160,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     gridLayout->addWidget(this->classNameLineEdit, row, 1);
     row++;
     gridLayout->addWidget(typeLabel, row, 0);
-    gridLayout->addWidget(this->closedRadioButton, row, 1);
-    row++;
-    gridLayout->addWidget(this->openRadioButton, row, 1);
+    gridLayout->addWidget(this->closedCheckBox, row, 1);
     
     /*
      * Set the widget for the dialog.
@@ -236,7 +232,7 @@ BorderDrawFinishDialog::okButtonPressed()
      */
     BorderDrawFinishDialog::previousName = name;
     BorderDrawFinishDialog::previousClassName = className;
-    BorderDrawFinishDialog::previousOpenTypeSelected = this->openRadioButton->isChecked();
+    BorderDrawFinishDialog::previousClosedSelected = this->closedCheckBox->isChecked();
     BorderDrawFinishDialog::previousBorderFile = borderFile;
     BorderDrawFinishDialog::previousCaretColor = color;
     

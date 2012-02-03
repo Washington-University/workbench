@@ -28,10 +28,10 @@
 #include "CaretColorEnum.h"
 #include "WuQDialogModal.h"
 
+class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
 class QLabel;
-class QRadioButton;
 class QLineEdit;
 
 namespace caret {
@@ -66,8 +66,7 @@ namespace caret {
         
         QLineEdit* nameLineEdit;
         
-        QRadioButton* openRadioButton;
-        QRadioButton* closedRadioButton;
+        QCheckBox* closedCheckBox;
         
         QLineEdit* classNameLineEdit;
 
@@ -75,7 +74,7 @@ namespace caret {
         
         static AString previousName;
         static BorderFile* previousBorderFile;
-        static bool previousOpenTypeSelected;
+        static bool previousClosedSelected;
         static AString previousClassName;     
         static CaretColorEnum::Enum previousCaretColor;
     };
@@ -83,7 +82,7 @@ namespace caret {
 #ifdef __BORDER_DRAW_FINISH_DIALOG_DECLARE__
     AString BorderDrawFinishDialog::previousName = "Name";
     BorderFile* BorderDrawFinishDialog::previousBorderFile = NULL;
-    bool BorderDrawFinishDialog::previousOpenTypeSelected = true;
+    bool BorderDrawFinishDialog::previousClosedSelected = false;
     AString BorderDrawFinishDialog::previousClassName = "None";
     CaretColorEnum::Enum BorderDrawFinishDialog::previousCaretColor;
 #endif // __BORDER_DRAW_FINISH_DIALOG_DECLARE__
