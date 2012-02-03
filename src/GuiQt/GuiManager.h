@@ -64,6 +64,8 @@ namespace caret {
         
         static void deleteGuiManager();
         
+        void beep(const int32_t numTimesToBeep = 1);
+        
         Brain* getBrain();
         
         int32_t getNumberOfOpenBrainBrowserWindows() const;
