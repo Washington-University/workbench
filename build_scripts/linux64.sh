@@ -77,7 +77,7 @@ cat ${ERROR_FILE}
 #
 DIST_DIR=/miniserver/caret7_distribution/caret/bin_linux64
 /bin/cp -v Desktop/workbench ${DIST_DIR} >> ${ERROR_FILE} 2>&1
-/bin/cp -v CommandLine/caret_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
+/bin/cp -v CommandLine/wb_command ${DIST_DIR} >> ${ERROR_FILE} 2>&1
 
 #
 # Send output as email

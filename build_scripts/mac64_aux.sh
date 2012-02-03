@@ -80,7 +80,7 @@ macdeployqt Desktop/workbench.app
 echo "COPYING PROGRAMS"
 DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
 /bin/cp -rv Desktop/workbench.app ${DIST_DIR}
-/bin/cp -v CommandLine/caret_command ${DIST_DIR}
+/bin/cp -v CommandLine/wb_command ${DIST_DIR}
 
 touch ${DIST_DIR}/workbench.app
 
