@@ -447,7 +447,7 @@ Border::reviseExtendFromEnd(SurfaceFile* surfaceFile,
      */
     int32_t startPointIndex = -1;
     int32_t endPointIndex   = -1;
-    bool reverseOrderFlag;
+    bool reverseOrderFlag = false;
     if (distToStart < distToEnd) {
         if (distToStart > distanceTolerance) {
             throw BorderException("New segment does not start near the end of a border.");
