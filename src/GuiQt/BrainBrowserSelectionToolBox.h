@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 #include <set>
 
 #include <QDockWidget>
