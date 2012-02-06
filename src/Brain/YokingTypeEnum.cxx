@@ -75,15 +75,19 @@ YokingTypeEnum::initialize()
                                     "OFF", 
                                     "Off"));
     
-    enumData.push_back(YokingTypeEnum(ON, 
-                                    1, 
-                                    "ON", 
-                                    "On"));
+    //enumData.push_back(YokingTypeEnum(ON, 
+    //                                1, 
+    //                                "ON", 
+    //                                "On"));
     
+    //enumData.push_back(YokingTypeEnum(ON_LATERAL_MEDIAL, 
+    //                                2, 
+    //                                "ON_LATERAL_MEDIAL", 
+    //                                "On L/M"));
     enumData.push_back(YokingTypeEnum(ON_LATERAL_MEDIAL, 
-                                    2, 
-                                    "ON_LATERAL_MEDIAL", 
-                                    "On L/M"));
+                                      2, 
+                                      "ON", 
+                                      "On"));
     
 }
 

@@ -43,7 +43,7 @@ public:
         /** Off */
         OFF,
         /** On */
-        ON,
+        //ON,
         /** On Lateral/Medial */
         ON_LATERAL_MEDIAL
     };
