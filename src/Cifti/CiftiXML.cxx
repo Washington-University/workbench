@@ -32,7 +32,7 @@
 using namespace caret;
 using namespace std;
 
-int64_t CiftiXML::getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myElement) const
+int64_t CiftiXML::getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myElement) const
 {
     if (myElement == NULL || myElement->m_modelType != CIFTI_MODEL_TYPE_SURFACE) return -1;
     if (node < 0 || node > (int64_t)myElement->m_surfaceNumberOfNodes) return -1;
@@ -40,12 +40,12 @@ int64_t CiftiXML::getSurfaceIndex(const int64_t node, const CiftiBrainModelEleme
     return myElement->m_nodeToIndexLookup[node];
 }
 
-int64_t CiftiXML::getColumnIndexForNode(const int64_t node, const StructureEnum::Enum structure) const
+int64_t CiftiXML::getColumnIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const
 {
     return getSurfaceIndex(node, findSurfaceModel(m_colMap, structure));
 }
 
-int64_t CiftiXML::getRowIndexForNode(const int64_t node, const StructureEnum::Enum structure) const
+int64_t CiftiXML::getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const
 {
     return getSurfaceIndex(node, findSurfaceModel(m_rowMap, structure));
 }
@@ -114,17 +114,17 @@ bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const Cift
     return true;
 }
 
-bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
+bool CiftiXML::getSurfaceMapForColumns(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const
 {
     return getSurfaceMapping(mappingOut, findSurfaceModel(m_colMap, structure));
 }
 
-bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const
+bool CiftiXML::getSurfaceMapForRows(vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const
 {
     return getSurfaceMapping(mappingOut, findSurfaceModel(m_rowMap, structure));
 }
 
-bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, int64_t myCount) const
+bool CiftiXML::getVolumeMapping(vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t& myCount) const
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -233,14 +233,14 @@ void CiftiXML::rootChanged()
     }
 }
 
-int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+int64_t CiftiXML::getColumnSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const
 {
     const CiftiBrainModelElement* myModel = findSurfaceModel(m_colMap, structure);
     if (myModel == NULL) return -1;
     return myModel->m_surfaceNumberOfNodes;
 }
 
-int64_t CiftiXML::getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+int64_t CiftiXML::getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const
 {
     const CiftiBrainModelElement* myModel = findSurfaceModel(m_rowMap, structure);
     if (myModel == NULL) return -1;
@@ -309,7 +309,7 @@ int64_t CiftiXML::getRowIndexForVoxelCoordinate(const float* xyz) const
     return getVolumeIndex(xyz, m_rowMap);
 }
 
-int64_t CiftiXML::getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const
+int64_t CiftiXML::getTimestepIndex(const float& seconds, const CiftiMatrixIndicesMapElement* myMap) const
 {
     float myStep;
     if (!getTimestep(myStep, myMap))
@@ -322,12 +322,12 @@ int64_t CiftiXML::getTimestepIndex(const float seconds, const CiftiMatrixIndices
     return ret;
 }
 
-int64_t CiftiXML::getColumnIndexForTimepoint(const float seconds) const
+int64_t CiftiXML::getColumnIndexForTimepoint(const float& seconds) const
 {
     return getTimestepIndex(seconds, m_colMap);
 }
 
-int64_t CiftiXML::getRowIndexForTimepoint(const float seconds) const
+int64_t CiftiXML::getRowIndexForTimepoint(const float& seconds) const
 {
     return getTimestepIndex(seconds, m_rowMap);
 }
@@ -369,7 +369,47 @@ bool CiftiXML::getRowTimestep(float& seconds) const
     return getTimestep(seconds, m_rowMap);
 }
 
-bool CiftiXML::setTimestep(float& seconds, caret::CiftiMatrixIndicesMapElement* myMap)
+bool CiftiXML::getColumnNumberOfTimepoints(int& numTimepoints) const
+{
+    if (m_colMap == NULL || m_colMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    numTimepoints = m_colMap->m_numTimeSteps;
+    return true;
+}
+
+bool CiftiXML::getRowNumberOfTimepoints(int& numTimepoints) const
+{
+    if (m_rowMap == NULL || m_rowMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    numTimepoints = m_rowMap->m_numTimeSteps;
+    return true;
+}
+
+bool CiftiXML::setColumnNumberOfTimepoints(const int& numTimepoints)
+{
+    if (m_colMap == NULL || m_colMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    m_colMap->m_numTimeSteps = numTimepoints;
+    return true;
+}
+
+bool CiftiXML::setRowNumberOfTimepoints(const int& numTimepoints)
+{
+    if (m_rowMap == NULL || m_rowMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        return false;
+    }
+    m_rowMap->m_numTimeSteps = numTimepoints;
+    return true;
+}
+
+bool CiftiXML::setTimestep(const float& seconds, caret::CiftiMatrixIndicesMapElement* myMap)
 {
     if (myMap == NULL)
     {
@@ -384,12 +424,12 @@ bool CiftiXML::setTimestep(float& seconds, caret::CiftiMatrixIndicesMapElement* 
     return true;
 }
 
-bool CiftiXML::setColumnTimestep(float& seconds)
+bool CiftiXML::setColumnTimestep(const float& seconds)
 {
     return setTimestep(seconds, m_colMap);
 }
 
-bool CiftiXML::setRowTimestep(float& seconds)
+bool CiftiXML::setRowTimestep(const float& seconds)
 {
     return setTimestep(seconds, m_rowMap);
 }
@@ -524,12 +564,12 @@ bool CiftiXML::hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const
     return false;
 }
 
-bool CiftiXML::hasColumnSurfaceData(const caret::StructureEnum::Enum structure) const
+bool CiftiXML::hasColumnSurfaceData(const caret::StructureEnum::Enum& structure) const
 {
     return (findSurfaceModel(m_colMap, structure) != NULL);
 }
 
-bool CiftiXML::hasRowSurfaceData(const caret::StructureEnum::Enum structure) const
+bool CiftiXML::hasRowSurfaceData(const caret::StructureEnum::Enum& structure) const
 {
     return (findSurfaceModel(m_rowMap, structure) != NULL);
 }
@@ -542,7 +582,279 @@ CiftiXML& CiftiXML::operator=(const CiftiXML& right)
     return *this;
 }
 
-const CiftiBrainModelElement* CiftiXML::findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const
+bool CiftiXML::addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
+{
+    separateMaps();
+    return addSurfaceModel(m_colMap, numberOfNodes, structure, roi);
+}
+
+bool CiftiXML::addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
+{
+    separateMaps();
+    return addSurfaceModel(m_rowMap, numberOfNodes, structure, roi);
+}
+
+bool CiftiXML::addSurfaceModel(CiftiMatrixIndicesMapElement* myMap, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi)
+{
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    CiftiBrainModelElement tempModel;
+    tempModel.m_brainStructure = structure;
+    tempModel.m_modelType = CIFTI_MODEL_TYPE_SURFACE;
+    tempModel.m_indexOffset = getNewRangeStart(myMap);
+    if (roi == NULL)
+    {
+        tempModel.m_indexCount = numberOfNodes;
+    } else {
+        tempModel.m_indexCount = 0;
+        tempModel.m_nodeIndices.reserve(numberOfNodes);
+        bool allNodes = true;
+        for (int i = 0; i < numberOfNodes; ++i)
+        {
+            if (roi[i] > 0.0f)
+            {
+                tempModel.m_nodeIndices.push_back(i);
+            } else {
+                allNodes = false;
+            }
+        }
+        if (allNodes)
+        {
+            tempModel.m_nodeIndices.clear();
+        }
+    }
+    myMap->m_brainModels.push_back(tempModel);
+    myMap->m_brainModels[myMap->m_brainModels.size() - 1].setupLookup();
+    return true;
+}
+
+bool CiftiXML::addVolumeModelToColumns(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
+{
+    separateMaps();
+    return addVolumeModel(m_colMap, ijkList, structure);
+}
+
+bool CiftiXML::addVolumeModelToRows(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
+{
+    separateMaps();
+    return addVolumeModel(m_rowMap, ijkList, structure);
+}
+
+bool CiftiXML::addVolumeModel(CiftiMatrixIndicesMapElement* myMap, const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
+{
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    CaretAssert(ijkList.size() % 3 == 0);
+    CiftiBrainModelElement tempModel;
+    tempModel.m_brainStructure = structure;
+    tempModel.m_modelType = CIFTI_MODEL_TYPE_VOXELS;
+    tempModel.m_indexOffset = getNewRangeStart(myMap);
+    tempModel.m_indexCount = ijkList.size() / 3;
+    tempModel.m_voxelIndicesIJK = ijkList;
+    return true;
+}
+
+void CiftiXML::applyColumnMapToRows()
+{
+    if (m_rowMap == m_colMap) return;
+    applyDimensionHelper(0, 1);
+    m_rowMap = m_colMap;
+}
+
+void CiftiXML::applyRowMapToColumns()
+{
+    if (m_rowMap == m_colMap) return;
+    applyDimensionHelper(1, 0);
+    m_colMap = m_rowMap;
+}
+
+void CiftiXML::applyDimensionHelper(const int& from, const int& to)
+{
+    if (m_root.m_matrices.size() == 0) return;
+    CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
+    int numMaps = (int)myMatrix.m_matrixIndicesMap.size();
+    for (int i = 0; i < numMaps; ++i)
+    {
+        CiftiMatrixIndicesMapElement& myMap = myMatrix.m_matrixIndicesMap[i];
+        int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
+        for (int j = 0; j < numDimensions; ++j)
+        {
+            if (myMap.m_appliesToMatrixDimension[j] == to)
+            {
+                myMap.m_appliesToMatrixDimension.erase(myMap.m_appliesToMatrixDimension.begin() + j);
+                break;
+            }
+        }
+        for (int j = 0; j < numDimensions; ++j)
+        {
+            if (myMap.m_appliesToMatrixDimension[j] == from)
+            {
+                myMap.m_appliesToMatrixDimension.push_back(to);
+                break;
+            }
+        }
+        if (myMap.m_appliesToMatrixDimension.size() == 0)
+        {
+            myMatrix.m_matrixIndicesMap.erase(myMatrix.m_matrixIndicesMap.begin() + i);
+            --i;//make sure we don't skip a map due to an erase
+        }
+    }
+}
+
+void CiftiXML::resetColumnsToBrainModels()
+{
+    if (m_colMap == NULL)
+    {
+        m_colMap = createMap(1);
+    } else {
+        separateMaps();
+    }
+    m_colMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
+    m_colMap->m_brainModels.clear();
+}
+
+void CiftiXML::resetRowsToBrainModels()
+{
+    if (m_rowMap == NULL)
+    {
+        m_rowMap = createMap(0);
+    } else {
+        separateMaps();
+    }
+    m_rowMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
+    m_rowMap->m_brainModels.clear();
+}
+
+void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepoints)
+{
+    if (m_colMap == NULL)
+    {
+        m_colMap = createMap(1);
+    } else {
+        separateMaps();
+    }
+    m_colMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_TIME_POINTS;
+    m_colMap->m_timeStepUnits = NIFTI_UNITS_SEC;
+    m_colMap->m_timeStep = timestep;
+    m_colMap->m_numTimeSteps = timepoints;
+}
+
+void CiftiXML::resetRowsToTimepoints(const float& timestep, const int& timepoints)
+{
+    if (m_rowMap == NULL)
+    {
+        m_rowMap = createMap(0);
+    } else {
+        separateMaps();
+    }
+    m_rowMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_TIME_POINTS;
+    m_rowMap->m_timeStepUnits = NIFTI_UNITS_SEC;
+    m_rowMap->m_timeStep = timestep;
+    m_rowMap->m_numTimeSteps = timepoints;
+}
+
+CiftiMatrixIndicesMapElement* CiftiXML::createMap(int dimension)
+{
+    CiftiMatrixIndicesMapElement tempMap;
+    tempMap.m_appliesToMatrixDimension.push_back(dimension);
+    if (m_root.m_matrices.size() == 0)
+    {
+        m_root.m_matrices.resize(1);
+    }
+    CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
+    myMatrix.m_matrixIndicesMap.push_back(tempMap);
+    return &(myMatrix.m_matrixIndicesMap[myMatrix.m_matrixIndicesMap.size()]);
+}
+
+void CiftiXML::separateMaps()
+{
+    if (m_root.m_matrices.size() == 0) return;
+    CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
+    int numMaps = (int)myMatrix.m_matrixIndicesMap.size();
+    for (int i = 0; i < numMaps; ++i)//don't need to loop over newly created maps
+    {
+        CiftiMatrixIndicesMapElement& myMap = myMatrix.m_matrixIndicesMap[i];
+        int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
+        for (int j = 1; j < numDimensions; ++j)//leave the first in place
+        {
+            int whichDim = myMap.m_appliesToMatrixDimension[j];
+            myMatrix.m_matrixIndicesMap.push_back(myMap);
+            myMatrix.m_matrixIndicesMap.back().m_appliesToMatrixDimension.resize(1);
+            myMatrix.m_matrixIndicesMap.back().m_appliesToMatrixDimension[0] = whichDim;
+            if (whichDim == 0)
+            {
+                m_rowMap = &(myMatrix.m_matrixIndicesMap.back());//because iterators aren't quite pointers
+            }
+            if (whichDim == 1)
+            {
+                m_colMap = &(myMatrix.m_matrixIndicesMap.back());
+            }
+        }
+        myMap.m_appliesToMatrixDimension.resize(1);//ditch all but the first, they have their own maps
+    }
+}
+
+int CiftiXML::getNewRangeStart(const caret::CiftiMatrixIndicesMapElement* myMap) const
+{
+    CaretAssert(myMap != NULL && myMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS);
+    int numModels = (int)myMap->m_brainModels.size();
+    int curRet = 0;
+    for (int i = 0; i < numModels; ++i)
+    {
+        int thisEnd = myMap->m_brainModels[i].m_indexOffset + myMap->m_brainModels[i].m_indexCount;
+        if (thisEnd > curRet)
+        {
+            curRet = thisEnd;
+        }
+    }
+    return curRet;
+}
+
+int CiftiXML::getNumberOfColumns() const
+{//number of columns is LENGTH OF A ROW
+    if (m_rowMap == NULL)
+    {
+        return 1;//unspecified should be an error, probably, but be permissive
+    } else if (m_rowMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS) {
+        return m_rowMap->m_numTimeSteps;
+    } else if (m_rowMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS) {
+        return getNewRangeStart(m_rowMap);
+    } else {
+        throw CiftiFileException("unknown cifti mapping type");
+    }
+}
+
+int CiftiXML::getNumberOfRows() const
+{
+    if (m_colMap == NULL)
+    {
+        return 1;//unspecified should be an error, probably, but be permissive
+    } else if (m_colMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_TIME_POINTS) {
+        return m_colMap->m_numTimeSteps;
+    } else if (m_colMap->m_indicesMapToDataType == CIFTI_INDEX_TYPE_BRAIN_MODELS) {
+        return getNewRangeStart(m_colMap);
+    } else {
+        throw CiftiFileException("unknown cifti mapping type");
+    }
+}
+
+IndicesMapToDataType CiftiXML::getColumnMappingType() const
+{
+    if (m_colMap == NULL)
+    {
+        return CIFTI_INDEX_TYPE_INVALID;
+    }
+    return m_colMap->m_indicesMapToDataType;
+}
+
+IndicesMapToDataType CiftiXML::getRowMappingType() const
+{
+    if (m_rowMap == NULL)
+    {
+        return CIFTI_INDEX_TYPE_INVALID;
+    }
+    return m_rowMap->m_indicesMapToDataType;
+}
+
+const CiftiBrainModelElement* CiftiXML::findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return NULL;
     const vector<CiftiBrainModelElement>& myModels = myMap->m_brainModels;
@@ -557,7 +869,7 @@ const CiftiBrainModelElement* CiftiXML::findSurfaceModel(const CiftiMatrixIndice
     return NULL;
 }
 
-const CiftiBrainModelElement* CiftiXML::findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const
+const CiftiBrainModelElement* CiftiXML::findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const
 {
     if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return NULL;
     const vector<CiftiBrainModelElement>& myModels = myMap->m_brainModels;

@@ -75,7 +75,7 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
     m_xml.getXMLRoot(myRoot);
     vector<CiftiMatrixIndicesMapElement>& myMaps = myRoot.m_matrices[0].m_matrixIndicesMap;
     int64_t numMaps = (int64_t)myMaps.size();
-    for (int64_t i = 0; i < numMaps; ++i)
+    for (int64_t i = 0; i < numMaps; ++i)//TODO: let CiftiXML do this for us
     {
         vector<int>& myDimList = myMaps[i].m_appliesToMatrixDimension;
         for (int64_t j = 0; j < (int64_t)myDimList.size(); ++j)
@@ -103,6 +103,7 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         rowRequest.m_queries.push_back(make_pair(AString("row-index"), AString("0")));
         rowRequest.m_arguments.push_back(make_pair(AString("row-index"), AString("0")));
         m_numberOfColumns = getSizeFromReq(rowRequest);
+        m_xml.setRowNumberOfTimepoints(m_numberOfColumns);//number of timepoints along a row is the number of columns
     }
     if (m_numberOfRows == 0)
     {
@@ -110,6 +111,7 @@ void CiftiXnat::openURL(const AString& url) throw (CiftiFileException)
         columnRequest.m_queries.push_back(make_pair(AString("column-index"), AString("0")));
         columnRequest.m_arguments.push_back(make_pair(AString("column-index"), AString("0")));
         m_numberOfRows = getSizeFromReq(columnRequest);
+        m_xml.setColumnNumberOfTimepoints(m_numberOfRows);//see above
     }
 }
 

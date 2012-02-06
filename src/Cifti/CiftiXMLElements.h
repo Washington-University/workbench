@@ -40,13 +40,14 @@ enum ModelType {
 
 /*! IndicesMapToDataType*/
 enum IndicesMapToDataType {
+    CIFTI_INDEX_TYPE_INVALID,
     CIFTI_INDEX_TYPE_BRAIN_MODELS=1,/*!< CIFTI_INDEX_TYPE_BRAIN_MODELS*/
     CIFTI_INDEX_TYPE_FIBERS=2,/*!< CIFTI_INDEX_TYPE_FIBERS*/
     CIFTI_INDEX_TYPE_PARCELS=3,/*!< CIFTI_INDEX_TYPE_PARCELS*/
     CIFTI_INDEX_TYPE_TIME_POINTS=4/*!< CIFTI_INDEX_TYPE_TIME_POINTS*/
 };
 
-typedef unsigned long long voxelIndexType;
+typedef int voxelIndexType;
 
 /// Cifti Brain Model XML Element
 class CiftiBrainModelElement {
@@ -73,12 +74,14 @@ public:
     {
         m_timeStep = -1.0;
         m_timeStepUnits = -1;
+        m_numTimeSteps = -1;
     }
 
     std::vector<int> m_appliesToMatrixDimension; /*!< Lists the dimension(s) of the matrix to which this MatrixIndicesMap applies. */
     IndicesMapToDataType m_indicesMapToDataType; /*!< Type of data to which the MatrixIndicesMap applies.  */
     double m_timeStep; /*!< Indicates amount of time between each timepoint. */
-    int m_timeStepUnits;/*!<Indicates units of TimeStep. */
+    int m_timeStepUnits;/*!< Indicates units of TimeStep. */
+    int m_numTimeSteps;//used by CiftiXML to store the information that is critically lacking in the XML extension
     std::vector<CiftiBrainModelElement> m_brainModels;/*!< A vector array of Brain Models */
 };
 

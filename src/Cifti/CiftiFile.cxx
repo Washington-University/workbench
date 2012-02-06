@@ -129,6 +129,14 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         std::vector <int64_t> vec;
         
         header.getDimensions(vec);
+        if (vec.size() > 0 && m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
+            m_xml.setColumnNumberOfTimepoints(vec[0]);
+        }
+        if (vec.size() > 1 && m_xml.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
+            m_xml.setRowNumberOfTimepoints(vec[1]);//vec[1] is number of rows, so length of column
+        }
         int64_t offset = header.getVolumeOffset();
         m_matrix.setup(vec,offset,m_caching,m_swapNeeded);
     }

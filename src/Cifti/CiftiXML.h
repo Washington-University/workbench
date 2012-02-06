@@ -30,6 +30,7 @@
 #include "CiftiXMLWriter.h"
 #include "VolumeFile.h"
 #include <QtCore>
+#include <vector>
 
 namespace caret {
 /// Simple Container class for storing Cifti XML meta data
@@ -138,10 +139,10 @@ namespace caret {
         void getXMLRoot (CiftiRootElement &xml_root) { xml_root = m_root; }
         
         ///get the row index for a node, returns -1 if it doesn't find a matching mapping
-        int64_t getRowIndexForNode(const int64_t node, const StructureEnum::Enum structure) const;
+        int64_t getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         
         ///get the column index for a node, returns -1 if it doesn't find a matching mapping
-        int64_t getColumnIndexForNode(const int64_t node, const StructureEnum::Enum structure) const;
+        int64_t getColumnIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
         
         ///SLOW! - get the row index for a voxel, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForVoxel(const int64_t* ijk) const;
@@ -156,16 +157,16 @@ namespace caret {
         int64_t getColumnIndexForVoxelCoordinate(const float* xyz) const;
         
         ///get row index for a timepoint
-        int64_t getRowIndexForTimepoint(const float seconds) const;
+        int64_t getRowIndexForTimepoint(const float& seconds) const;
         
         ///get row index for a timepoint
-        int64_t getColumnIndexForTimepoint(const float seconds) const;
+        int64_t getColumnIndexForTimepoint(const float& seconds) const;
         
         ///get the mapping for a surface in rows, returns false and empty vector if not found
-        bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
+        bool getSurfaceMapForRows(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const;
         
         ///get the mapping for a surface in columns, returns false and empty vector if not found
-        bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum structure) const;
+        bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const;
             
         ///get the mapping for a surface in rows, returns false and empty vector if not found
         bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut) const;
@@ -174,10 +175,10 @@ namespace caret {
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
             
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
-        int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+        int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
         
         ///get the original number of nodes of the surfaces used to make this cifti, for columns
-        int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+        int64_t getColumnSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
         
         ///get the timestep for rows, returns false if not timeseries
         bool getRowTimestep(float& seconds) const;
@@ -185,11 +186,65 @@ namespace caret {
         ///get the timestep for columns, returns false if not timeseries
         bool getColumnTimestep(float& seconds) const;
         
+        ///get the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        bool getRowNumberOfTimepoints(int& numTimepoints) const;
+        
+        ///get the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        bool getColumnNumberOfTimepoints(int& numTimepoints) const;
+        
         ///set the timestep for rows, returns false if not timeseries
-        bool setRowTimestep(float& seconds);
+        bool setRowTimestep(const float& seconds);
         
         ///set the timestep for columns, returns false if not timeseries
-        bool setColumnTimestep(float& seconds);
+        bool setColumnTimestep(const float& seconds);
+        
+        ///set the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        bool setRowNumberOfTimepoints(const int& numTimepoints);
+        
+        ///set the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        bool setColumnNumberOfTimepoints(const int& numTimepoints);
+        
+        ///set rows to be brain models, and clear the list of brain models for rows
+        void resetRowsToBrainModels();
+        
+        ///set columns to be brain models, and clear the list of brain models for columns
+        void resetColumnsToBrainModels();
+        
+        ///add a surface brain model to the list of brain models for rows
+        bool addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
+        
+        ///add a surface brain model to the list of brain models for columns
+        bool addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
+        
+        ///add a volume brain model to the list of brain models for rows
+        bool addVolumeModelToRows(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        
+        ///add a volume brain model to the list of brain models for columns
+        bool addVolumeModelToColumns(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        
+        ///set rows to be of type timepoints
+        void resetRowsToTimepoints(const float& timestep, const int& timepoints);
+        
+        ///set columns to be of type timepoints
+        void resetColumnsToTimepoints(const float& timestep, const int& timepoints);
+        
+        ///set the column map to also apply to rows
+        void applyColumnMapToRows();
+        
+        ///set the row map to also apply to columns
+        void applyRowMapToColumns();
+        
+        ///get the number of rows (column length)
+        int getNumberOfRows() const;
+        
+        ///get the number of columns (row length)
+        int getNumberOfColumns() const;
+        
+        ///get what mapping type the rows use
+        IndicesMapToDataType getRowMappingType() const;
+        
+        ///get what mapping type the columns use
+        IndicesMapToDataType getColumnMappingType() const;
         
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
@@ -197,8 +252,8 @@ namespace caret {
         ///check what types of data it has
         bool hasRowVolumeData() const;
         bool hasColumnVolumeData() const;
-        bool hasRowSurfaceData(const StructureEnum::Enum structure) const;
-        bool hasColumnSurfaceData(const StructureEnum::Enum structure) const;
+        bool hasRowSurfaceData(const StructureEnum::Enum& structure) const;
+        bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
         
         CiftiXML& operator=(const CiftiXML& right);
     protected:
@@ -210,23 +265,30 @@ namespace caret {
         void rootChanged();
         
         ///convenience functions to grab the correct model out of the tree, to replace the rowLeft/rowRight stuff (since we might have other surfaces too)
-        const CiftiBrainModelElement* findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const;
-        const CiftiBrainModelElement* findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, StructureEnum::Enum structure) const;
+        const CiftiBrainModelElement* findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const;
+        const CiftiBrainModelElement* findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const;
         
         ///some boilerplate to get the correct index in a particular mapping
-        int64_t getSurfaceIndex(const int64_t node, const CiftiBrainModelElement* myModel) const;
+        int64_t getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myModel) const;
         int64_t getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const;
         int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
-        int64_t getTimestepIndex(const float seconds, const CiftiMatrixIndicesMapElement* myMap) const;
+        int64_t getTimestepIndex(const float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
         bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
-        bool setTimestep(float& seconds, CiftiMatrixIndicesMapElement* myMap);
+        bool setTimestep(const float& seconds, CiftiMatrixIndicesMapElement* myMap);
         
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
-        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t myCount) const;
+        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t& myCount) const;
         
         ///boilerplate for has data
         bool hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const;
+        
+        bool addSurfaceModel(CiftiMatrixIndicesMapElement* myMap, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
+        bool addVolumeModel(CiftiMatrixIndicesMapElement* myMap, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        void applyDimensionHelper(const int& from, const int& to);
+        int getNewRangeStart(const CiftiMatrixIndicesMapElement* myMap) const;
+        void separateMaps();
+        CiftiMatrixIndicesMapElement* createMap(int dimension);
     };
 
 }
