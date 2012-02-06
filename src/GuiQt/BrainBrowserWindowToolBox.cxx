@@ -60,7 +60,9 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     this->browserWindowIndex = browserWindowIndex;
     
-    this->setAllowedAreas(Qt::AllDockWidgetAreas);
+    this->setAllowedAreas(Qt::LeftDockWidgetArea
+                          | Qt::TopDockWidgetArea
+                          | Qt::BottomDockWidgetArea);
 //    OverlaySelectionControl::Orientation overlayControlOrientation;
 //    switch (location) {
 //        case TOP_OR_BOTTOM:

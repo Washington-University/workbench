@@ -60,6 +60,9 @@ BrainBrowserSelectionToolBox::BrainBrowserSelectionToolBox(const int32_t browser
                                                            QWidget* parent)
 : QDockWidget(parent)
 {
+    this->setAllowedAreas(Qt::RightDockWidgetArea);
+    this->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    
     this->browserWindowIndex = browserWindowIndex;
     
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.insert(this);
