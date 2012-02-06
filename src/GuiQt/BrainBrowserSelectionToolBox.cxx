@@ -35,6 +35,8 @@
 #include <QAction>
 #include <QLabel>
 #include <QStackedWidget>
+#include <QTreeWidget>
+#include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
 #define __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
@@ -107,6 +109,16 @@ BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.erase(this);
 }
 
+QTreeWidgetItem*
+createItem(const QString& name)
+{
+    QTreeWidgetItem* twi = new QTreeWidgetItem();
+    twi->setText(0, name);
+    twi->setFlags(Qt::ItemIsUserCheckable
+                  | Qt::ItemIsEnabled);
+    twi->setCheckState(0, Qt::Checked);
+    return twi;
+}
 /**
  * Create the border selection widget.
  * @return The border selection widget.
@@ -114,10 +126,23 @@ BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
 QWidget* 
 BrainBrowserSelectionToolBox::createBorderSelectionWidget()
 {
-    QLabel* label = new QLabel("Borders");
+    QTreeWidgetItem* nameATW  = createItem("Name A");
+    QTreeWidgetItem* nameBTW  = createItem("Name B");
+    QTreeWidgetItem* class1TW = createItem("Class 1");
+    class1TW->addChild(nameATW);
+    class1TW->addChild(nameBTW);
+    
+    QTreeWidgetItem* fileTW = createItem("file");
+    fileTW->addChild(class1TW);
+    
+    QTreeWidget* tw = new QTreeWidget();
+    tw->addTopLevelItem(fileTW);
+    
+    tw->expandAll();
+    
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(label);  
+    layout->addWidget(tw);  
     
     return w;
 }

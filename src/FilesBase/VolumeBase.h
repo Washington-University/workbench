@@ -29,7 +29,6 @@
 #include "stdint.h"
 #include <vector>
 #include "CaretAssert.h"
-#include "TracksModificationInterface.h"
 #include "NiftiEnums.h"
 #include "StructureEnum.h"
 #include "CaretPointer.h"
@@ -68,7 +67,7 @@ namespace caret {
         virtual ~AbstractHeader();
     };
     
-    class VolumeBase : public TracksModification
+    class VolumeBase 
     {
     protected:
         std::vector<std::vector<float> > m_indexToSpace;
@@ -105,6 +104,8 @@ namespace caret {
         NiftiIntentEnum::Enum m_niftiIntent;
         std::vector<BrickAttributes*> m_brickAttributes;
         
+        bool m_ModifiedFlag;
+        
     public:
         enum OrientTypes
         {
@@ -115,6 +116,7 @@ namespace caret {
             INFERIOR_TO_SUPERIOR,
             SUPERIOR_TO_INFERIOR
         };
+        
         VolumeBase();
         VolumeBase(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
         //convenience method for unsigned
@@ -270,6 +272,10 @@ namespace caret {
             return true;
         }
 
+        void setModified() { m_ModifiedFlag = true; }
+        void clearModified() { m_ModifiedFlag = false;}
+        bool isModified() { return m_ModifiedFlag; }
+        
         bool isEmpty() const;
         
         

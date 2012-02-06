@@ -125,6 +125,7 @@ VolumeBase::VolumeBase()
     m_paletteColorMapping = NULL;
     createAttributes();
     m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
+    m_ModifiedFlag = false;
 }
 
 VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
@@ -141,6 +142,7 @@ VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_paletteColorMapping = NULL;
     m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
+    m_ModifiedFlag = false;
 }
 
 VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
@@ -157,6 +159,7 @@ VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_paletteColorMapping = NULL;
     m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);
+    m_ModifiedFlag = false;
 }
 
 void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const
