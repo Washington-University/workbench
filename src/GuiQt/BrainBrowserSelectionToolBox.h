@@ -40,6 +40,8 @@
 
 #include "EventListenerInterface.h"
 
+class QStackedWidget;
+
 namespace caret {
 
     class BrainBrowserSelectionToolBox : public QDockWidget, public EventListenerInterface {
@@ -61,6 +63,10 @@ namespace caret {
         
     private:
         
+        QWidget* createBorderSelectionWidget();
+        
+        void updateBorderSelectionWidget();
+        
         void updateSelectionToolBox();
         
         void updateOtherSelectionToolBoxes();
@@ -68,6 +74,10 @@ namespace caret {
         int32_t browserWindowIndex;
 
         static std::set<BrainBrowserSelectionToolBox*> allSelectionToolBoxes;
+        
+        QStackedWidget* stackedWidget;
+        
+        QWidget* borderSelectionWidget;
     };
     
 #ifdef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__

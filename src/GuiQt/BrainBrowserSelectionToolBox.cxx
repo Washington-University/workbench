@@ -34,6 +34,7 @@
 
 #include <QAction>
 #include <QLabel>
+#include <QStackedWidget>
 #include <QVBoxLayout>
 
 #define __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
@@ -60,21 +61,40 @@ BrainBrowserSelectionToolBox::BrainBrowserSelectionToolBox(const int32_t browser
                                                            QWidget* parent)
 : QDockWidget(parent)
 {
-    this->setAllowedAreas(Qt::RightDockWidgetArea);
-    this->setFeatures(QDockWidget::NoDockWidgetFeatures);
-    
     this->browserWindowIndex = browserWindowIndex;
     
-    BrainBrowserSelectionToolBox::allSelectionToolBoxes.insert(this);
+    /*
+     * Right side only and do not float
+     */
+    this->setAllowedAreas(Qt::RightDockWidgetArea);
+    this->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
-    QLabel* label = new QLabel("Borders");
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(label);
+    /*
+     * Create the selection widgets
+     */
+    this->borderSelectionWidget = this->createBorderSelectionWidget();
     
-    this->setWidget(w);
+    /*
+     * Create stacked widget for selection tools
+     */
+    this->stackedWidget = new QStackedWidget();
+    this->stackedWidget->addWidget(this->borderSelectionWidget);
+    this->setWidget(this->stackedWidget);
 
+    /*
+     * No title bar widget
+     */
+    //this->setTitleBarWidget(NULL);
+    
+    /*
+     * Listen for events sent to this selection toolbox
+     */
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY);    
+
+    /*
+     * Track each toolbox created
+     */
+    BrainBrowserSelectionToolBox::allSelectionToolBoxes.insert(this);    
 }
 
 /**
@@ -87,13 +107,43 @@ BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.erase(this);
 }
 
+/**
+ * Create the border selection widget.
+ * @return The border selection widget.
+ */
+QWidget* 
+BrainBrowserSelectionToolBox::createBorderSelectionWidget()
+{
+    QLabel* label = new QLabel("Borders");
+    QWidget* w = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(w);
+    layout->addWidget(label);  
+    
+    return w;
+}
+
+/**
+ * Update the border selection widget.
+ */
+void 
+BrainBrowserSelectionToolBox::updateBorderSelectionWidget()
+{
+    this->setWindowTitle("Borders");
+}
+
 /*
  * Update this selection toolbox.
  */
 void 
 BrainBrowserSelectionToolBox::updateSelectionToolBox()
 {
-    
+    QWidget* w = this->stackedWidget->currentWidget();
+    if (w == this->borderSelectionWidget) {
+        this->updateBorderSelectionWidget();
+    }
+    else {
+        CaretAssertMessage(0, "Invalid widget displayed in Selection Tool Box");
+    }
 }
 
 /**
@@ -136,6 +186,7 @@ BrainBrowserSelectionToolBox::receiveEvent(Event* event)
                     if (isVisible == false) {
                         viewAction->trigger();
                     }
+                    this->updateSelectionToolBox();
                     break;
                 case EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE:
                     if (isVisible) {
