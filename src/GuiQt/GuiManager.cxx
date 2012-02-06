@@ -38,6 +38,7 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "PreferencesDialog.h"
@@ -312,7 +313,10 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
         WuQtUtilities::moveWindowToOffset(parent, bbw, 20, 20);
     }
     
-    bbw->show(); 
+    bbw->show();
+    
+    EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(windowIndex,
+                                                                EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
     
     return bbw;
 }

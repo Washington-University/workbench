@@ -36,6 +36,7 @@
 #include "CaretLogger.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventToolBoxSelectionDisplay.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemBorderSurface.h"
@@ -249,6 +250,23 @@ void
 UserInputModeBorders::initialize()
 {
     this->borderToolsWidget->updateWidget();
+    this->showHideBorderSelectionToolBox();
+}
+
+void 
+UserInputModeBorders::showHideBorderSelectionToolBox()
+{
+    switch (this->mode) {
+        case MODE_DRAW:
+        case MODE_EDIT:
+            EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
+                                                                        EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
+            break;
+        case MODE_SELECT:
+            EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
+                                                                        EventToolBoxSelectionDisplay::DISPLAY_MODE_DISPLAY_BORDERS).getPointer());
+            break;
+    }
 }
 
 /**
@@ -258,7 +276,8 @@ UserInputModeBorders::initialize()
 void 
 UserInputModeBorders::finish()
 {
-    
+    EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
+                                                                EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
 }
 
 /**
@@ -307,6 +326,7 @@ UserInputModeBorders::setMode(const Mode mode)
     }
     this->mode = mode;
     this->borderToolsWidget->updateWidget();
+    this->showHideBorderSelectionToolBox();
 }
 
 /**

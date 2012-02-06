@@ -32,9 +32,17 @@
  */
 /*LICENSE_END*/
 
+#include <QAction>
+#include <QLabel>
+#include <QVBoxLayout>
+
 #define __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
 #include "BrainBrowserSelectionToolBox.h"
 #undef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
+
+#include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventToolBoxSelectionDisplay.h"
 
 using namespace caret;
 
@@ -55,6 +63,15 @@ BrainBrowserSelectionToolBox::BrainBrowserSelectionToolBox(const int32_t browser
     this->browserWindowIndex = browserWindowIndex;
     
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.insert(this);
+
+    QLabel* label = new QLabel("Borders");
+    QWidget* w = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(w);
+    layout->addWidget(label);
+    
+    this->setWidget(w);
+
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY);    
 }
 
 /**
@@ -62,6 +79,8 @@ BrainBrowserSelectionToolBox::BrainBrowserSelectionToolBox(const int32_t browser
  */
 BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.erase(this);
 }
 
@@ -99,37 +118,30 @@ BrainBrowserSelectionToolBox::updateOtherSelectionToolBoxes()
 void 
 BrainBrowserSelectionToolBox::receiveEvent(Event* event)
 {
-/*
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent =
-        dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
+   if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY) {
+        EventToolBoxSelectionDisplay* tbEvent =
+        dynamic_cast<EventToolBoxSelectionDisplay*>(event);
+        CaretAssert(tbEvent);
         
-        uiEvent->setEventProcessed();
-        
-        this->updateDisplayedPanel();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
-        EventInformationTextDisplay* textEvent =
-        dynamic_cast<EventInformationTextDisplay*>(event);
-        CaretAssert(textEvent);
-        
-        textEvent->setEventProcessed();
-        
-        const AString text = textEvent->getText();
-        if (text.isEmpty() == false) {
-            if (textEvent->isImportant()) {
-                this->tabWidget->setCurrentWidget(this->informationWidget);
+       QAction* viewAction = this->toggleViewAction();
+        const int32_t browserWindowIndex = tbEvent->getBrowserWindowIndex();
+        if (browserWindowIndex == this->browserWindowIndex) {
+            const bool isVisible = viewAction->isChecked();
+            switch (tbEvent->getDisplayMode()) {
+                case EventToolBoxSelectionDisplay::DISPLAY_MODE_DISPLAY_BORDERS:
+                    this->updateSelectionToolBox();
+                    if (isVisible == false) {
+                        viewAction->trigger();
+                    }
+                    break;
+                case EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE:
+                    if (isVisible) {
+                        viewAction->trigger();
+                    }
+                    break;
             }
-            this->informationWidget->processTextEvent(textEvent);
-            textEvent->setEventProcessed();
+            
+            tbEvent->setEventProcessed();
         }
     }
-    else if ((event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES)
-             || (event->getEventType() == EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES)) {
-        this->tabWidget->setCurrentWidget(this->overlayWidget);
-    }
-    else {
-    }
- */
 }

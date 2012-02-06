@@ -121,12 +121,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
                      this, SLOT(shrinkToolbox()));
     
-/*
     this->selectionToolBox = new BrainBrowserSelectionToolBox(this->browserWindowIndex);
     this->selectionToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
     this->addDockWidget(Qt::RightDockWidgetArea,
                         this->selectionToolBox);
- */
 
     this->createActionsUsedByToolBar();
     
@@ -1655,18 +1653,6 @@ BrainBrowserWindow::receiveEvent(Event* event)
             if (this->scalarDataColorMappingEditor != NULL) {
                 this->scalarDataColorMappingEditor->hide();
             }
-        }
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY) {
-        EventToolBoxSelectionDisplay* tbEvent =
-            dynamic_cast<EventToolBoxSelectionDisplay*>(event);
-        CaretAssert(tbEvent);
-        
-        const int32_t browserWindowIndex = tbEvent->getBrowserWindowIndex();
-        if (browserWindowIndex == this->browserWindowIndex) {
-            
-            
-            tbEvent->setEventProcessed();
         }
     }
     else {
