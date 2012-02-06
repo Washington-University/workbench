@@ -35,6 +35,7 @@
 #include <iostream>
 
 #include <QFileSystemModel>
+#include <QUrl>
 
 #define __CARET_FILE_DIALOG_DECLARE__
 #include "CaretFileDialog.h"
@@ -159,6 +160,18 @@ CaretFileDialog::initializeCaretFileDialog()
      model->setNameFilterDisables(false);
      this->setProxyModel(proxyModel);
      */
+#endif
+
+#ifdef USE_QT_FILE_DIALOG
+#ifdef Q_OS_MACX
+    /*
+     * On Macs, add /Volumes to the sidebar URLs 
+     * so that mounted disks can be accessed.
+     */
+    QList<QUrl> urls = this->sidebarUrls();
+    urls.append(QUrl::fromLocalFile("/Volumes"));
+    this->setSidebarUrls(urls);
+#endif // Q_OS_MACX
 #endif
 }
 
