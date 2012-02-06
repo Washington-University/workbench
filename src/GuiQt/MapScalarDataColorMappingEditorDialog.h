@@ -74,7 +74,7 @@ namespace caret {
         void thresholdTypeChanged(int);
         
         void histogramControlChanged();
-        
+        void histogramResetViewButtonClicked();
         void applyAndUpdate();
         
     private:

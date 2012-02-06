@@ -36,6 +36,7 @@
 #include <QLabel>
 #include <QRadioButton>
 #include <QSlider>
+#include <QToolButton>
 
 #define __MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_DIALOG_DECLARE__
 #include "MapScalarDataColorMappingEditorDialog.h"
@@ -62,6 +63,8 @@
 #include "qwt_plot_histogram.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_plot_layout.h"
+#include "qwt_plot_magnifier.h"
+#include "qwt_plot_panner.h"
 
 using namespace caret;
 
@@ -85,6 +88,11 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
 : WuQDialogNonModal("Scalar Data Color Mapping Editor",
                     parent)
 {
+    /*
+     * No context menu, it screws things up
+     */
+    this->setContextMenuPolicy(Qt::NoContextMenu);
+    
     this->setDeleteWhenClosed(false);
 
     this->isHistogramColored = true;
@@ -491,9 +499,56 @@ MapScalarDataColorMappingEditorDialog::createHistogramSection()
 {
     this->thresholdPlot = new QwtPlot();
     this->thresholdPlot->plotLayout()->setAlignCanvasToScales(true);
-    //this->thresholdPlot->setAutoReplot(true);
     
-    return this->thresholdPlot;
+    /*
+     * Allow zooming
+     */
+    QwtPlotMagnifier* magnifier = new QwtPlotMagnifier(this->thresholdPlot->canvas());
+    magnifier->setAxisEnabled(QwtPlot::yLeft, true);
+    magnifier->setAxisEnabled(QwtPlot::yRight, true);
+    
+    /*
+     * Allow panning
+     */
+    (void)new QwtPlotPanner(this->thresholdPlot->canvas());
+    
+    /*
+     * Auto scaling
+     */
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom);
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::yLeft);
+
+    /*
+     * Reset View tool button
+     */
+    QAction* resetViewAction = WuQtUtilities::createAction("Reset View", 
+                                                           "Remove any zooming/panning from histogram chart", 
+                                                           this, 
+                                                           this, 
+                                                           SLOT(histogramResetViewButtonClicked()));
+
+    QToolButton* resetViewToolButton = new QToolButton();
+    resetViewToolButton->setDefaultAction(resetViewAction);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(this->thresholdPlot);
+    layout->addWidget(resetViewToolButton, 0, Qt::AlignHCenter);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2, 0);
+    return  widget;
+}
+
+/**
+ * Called to reset the view of the histogram chart.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::histogramResetViewButtonClicked()
+{
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom,true);
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::yLeft,true);
+    this->updateHistogramPlot();
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::xBottom,false);
+    this->thresholdPlot->setAxisAutoScale(QwtPlot::yLeft,false);
 }
 
 /**
