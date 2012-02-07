@@ -648,6 +648,12 @@ bool CiftiXML::addVolumeModel(CiftiMatrixIndicesMapElement* myMap, const vector<
     tempModel.m_modelType = CIFTI_MODEL_TYPE_VOXELS;
     tempModel.m_indexOffset = getNewRangeStart(myMap);
     tempModel.m_indexCount = ijkList.size() / 3;
+    if (myMap == m_rowMap)
+    {
+        m_rowVoxels += tempModel.m_indexCount;
+    } else {
+        m_colVoxels += tempModel.m_indexCount;
+    }
     tempModel.m_voxelIndicesIJK = ijkList;
     return true;
 }
