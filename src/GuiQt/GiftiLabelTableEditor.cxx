@@ -37,12 +37,17 @@
 #undef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
 
 #include <QAction>
+#include <QColorDialog>
+#include <QInputDialog>
 #include <QListWidget>
+#include <QListWidgetItem>
 #include <QVBoxLayout>
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -63,7 +68,7 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
 : WuQDialogModal(dialogTitle,
                  parent)
 {
-    //CaretAssert(giftiLableTable);
+    CaretAssert(giftiLableTable);
     this->giftiLableTable = giftiLableTable;
     
     /*
@@ -74,45 +79,58 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     /*
      * New color button.
      */
-    this->newLabelAction = WuQtUtilities::createAction("New...",
-                                                       "Create a new label",
+    this->newAction = WuQtUtilities::createAction("New...",
+                                                       "Create a new entry",
                                                        this,
                                                        this,
-                                                       SLOT(newLabelButtonClicked()));
-    QToolButton* newLabelToolButton = new QToolButton();
-    newLabelToolButton->setDefaultAction(this->newLabelAction);
+                                                       SLOT(newButtonClicked()));
+    QToolButton* newToolButton = new QToolButton();
+    newToolButton->setDefaultAction(this->newAction);
+    
+    /*
+     * Edit name button.
+     */
+    this->editNameAction = WuQtUtilities::createAction("Edit Name...",
+                                                       "Edit the selected name",
+                                                       this,
+                                                       this,
+                                                       SLOT(editNameButtonClicked()));
+    QToolButton* editNameToolButton = new QToolButton();
+    editNameToolButton->setDefaultAction(this->editNameAction);
     
     /*
      * Edit color button.
      */
-    this->editLabelAction = WuQtUtilities::createAction("Edit...",
-                                                       "Edit the selected label",
+    this->editColorAction = WuQtUtilities::createAction("Edit Color...",
+                                                       "Edit the selected color",
                                                        this,
                                                        this,
-                                                       SLOT(editLabelButtonClicked()));
-    QToolButton* editLabelToolButton = new QToolButton();
-    editLabelToolButton->setDefaultAction(this->editLabelAction);
+                                                       SLOT(editColorButtonClicked()));
+    QToolButton* editColorToolButton = new QToolButton();
+    editColorToolButton->setDefaultAction(this->editColorAction);
     
     /*
      * Delete color button.
      */
-    this->deleteLabelAction = WuQtUtilities::createAction("Delete...",
-                                                       "Delete the selected label",
+    this->deleteAction = WuQtUtilities::createAction("Delete...",
+                                                       "Delete the selected entry",
                                                        this,
                                                        this,
-                                                       SLOT(deleteLabelButtonClicked()));
-    QToolButton* deleteLabelToolButton = new QToolButton();
-    deleteLabelToolButton->setDefaultAction(this->deleteLabelAction);
+                                                       SLOT(deleteButtonClicked()));
+    QToolButton* deleteToolButton = new QToolButton();
+    deleteToolButton->setDefaultAction(this->deleteAction);
     
     /*
      * Layout for buttons
      */
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
-    buttonsLayout->addWidget(newLabelToolButton);
+    buttonsLayout->addWidget(newToolButton);
     buttonsLayout->addStretch();
-    buttonsLayout->addWidget(editLabelToolButton);
+    buttonsLayout->addWidget(editNameToolButton);
     buttonsLayout->addStretch();
-    buttonsLayout->addWidget(deleteLabelToolButton);
+    buttonsLayout->addWidget(editColorToolButton);
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(deleteToolButton);
     
     /*
      * Layout items in dialog
@@ -123,6 +141,8 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     layout->addLayout(buttonsLayout);
     
     this->setCentralWidget(widget);
+    
+    this->loadLabels();
 }
 
 /**
@@ -139,19 +159,64 @@ GiftiLabelTableEditor::~GiftiLabelTableEditor()
 void 
 GiftiLabelTableEditor::loadLabels()
 {
+    int32_t selectedKey = -1;
+    GiftiLabel* selectedLabel = this->getSelectedLabel();
+    if (selectedLabel != NULL) {
+        selectedKey = selectedLabel->getKey();
+    }
     
-    QPixmap pixmap(12, 12);
-    pixmap.fill(Qt::red);
-    QIcon colorIcon(pixmap);
-    QListWidgetItem* colorItem = new QListWidgetItem(colorIcon,
-                                                     "red");
-    this->labelSelectionListWidget->addItem(colorItem);
+    this->labelSelectionListWidget->clear();
+    int defaultIndex = -1;
     
-    pixmap.fill(Qt::blue);
-    QIcon colorIcon2(pixmap);
-    QListWidgetItem* colorItem2 = new QListWidgetItem(colorIcon2,
-                                                      "blue");
-    this->labelSelectionListWidget->addItem(colorItem2);
+    std::set<int32_t> keys = this->giftiLableTable->getKeys();
+    for (std::set<int32_t>::iterator keyIterator = keys.begin();
+         keyIterator != keys.end();
+         keyIterator++) {
+        const int32_t key = *keyIterator;
+        const GiftiLabel* gl = this->giftiLableTable->getLabel(key);
+        float rgba[4];
+        gl->getColor(rgba);
+        
+        QColor color;
+        color.setRedF(rgba[0]);
+        color.setGreenF(rgba[1]);
+        color.setBlueF(rgba[2]);
+        color.setAlphaF(1.0);
+        QPixmap pixmap(12, 12);
+        pixmap.fill(color);
+        QIcon colorIcon(pixmap);
+        QListWidgetItem* colorItem = new QListWidgetItem(colorIcon,
+                                                         gl->getName());
+        colorItem->setData(Qt::UserRole, 
+                           qVariantFromValue((void*)gl));
+        this->labelSelectionListWidget->addItem(colorItem);
+        
+        if (selectedKey == key) {
+            defaultIndex = this->labelSelectionListWidget->count() - 1;
+        }
+    }
+    
+    if (defaultIndex >= 0) {
+        this->labelSelectionListWidget->setCurrentRow(defaultIndex);
+    }
+}
+
+/**
+ * @return The selected label or NULL if
+ * no label is selected.
+ */
+GiftiLabel* 
+GiftiLabelTableEditor::getSelectedLabel()
+{
+    GiftiLabel* gl = NULL;
+    
+    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    if (selectedItem != NULL) {
+        void* pointer = selectedItem->data(Qt::UserRole).value<void*>();
+        gl = (GiftiLabel*)pointer;
+    }
+    
+    return gl;
 }
 
 
@@ -159,26 +224,101 @@ GiftiLabelTableEditor::loadLabels()
  * Called to create a new label.
  */
 void 
-GiftiLabelTableEditor::newLabelButtonClicked()
+GiftiLabelTableEditor::newButtonClicked()
 {
-    
+    bool ok = false;
+    const AString name = QInputDialog::getText(this, 
+                                               "New Name", 
+                                               "New Name",
+                                               QLineEdit::Normal,
+                                               "",
+                                               &ok);
+    if (ok && 
+        (name.isEmpty() == false)) {
+        float red   = 0.0;
+        float green = 0.0;
+        float blue  = 0.0;
+        float alpha = 1.0;
+        this->giftiLableTable->addLabel(name.trimmed(),
+                                        red,
+                                        green,
+                                        blue,
+                                        alpha);
+        
+        this->loadLabels();
+    }
 }
 
 /**
  * Called to delete the label.
  */
 void 
-GiftiLabelTableEditor::deleteLabelButtonClicked()
+GiftiLabelTableEditor::deleteButtonClicked()
 {
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        if (WuQMessageBox::warningOkCancel(this,
+                                           "Delete " + gl->getName())) {
+            this->giftiLableTable->deleteLabel(gl);
+            this->loadLabels();
+        }
+    }
     
 }
 
 /** 
- * Called to edit the lablel.
+ * Called to edit the lablel name.
  */
 void 
-GiftiLabelTableEditor::editLabelButtonClicked()
+GiftiLabelTableEditor::editNameButtonClicked()
 {
-    
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        bool ok = false;
+        const AString name = QInputDialog::getText(this, 
+                                                   "New Name", 
+                                                   "New Name",
+                                                   QLineEdit::Normal,
+                                                   gl->getName(),
+                                                   &ok);
+        if (ok && 
+            (name.isEmpty() == false)) {
+            gl->setName(name);
+            this->loadLabels();
+        }
+    }
+}
+
+/** 
+ * Called to edit the lablel color.
+ */
+void 
+GiftiLabelTableEditor::editColorButtonClicked()
+{
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        QColor inputColor;
+        inputColor.setRedF(gl->getRed());
+        inputColor.setGreenF(gl->getGreen());
+        inputColor.setBlueF(gl->getBlue());
+        inputColor.setAlphaF(gl->getAlpha());
+        
+        QColor color = QColorDialog::getColor(inputColor, 
+                                              this, 
+                                              gl->getName(),
+                                              (QColorDialog::DontUseNativeDialog
+                                               | QColorDialog::ShowAlphaChannel));
+        if (color.isValid()) {
+            float rgba[4] = {
+                color.redF(),
+                color.greenF(),
+                color.blueF(),
+                color.alphaF()
+            };
+            gl->setColor(rgba);
+            
+            this->loadLabels();
+        }
+    }
 }
 

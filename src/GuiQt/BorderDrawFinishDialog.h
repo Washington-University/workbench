@@ -53,12 +53,16 @@ namespace caret {
         virtual void okButtonPressed();
         
     private slots:
-        void displayColorEditor();
+        void displayClassEditor();
     
     private:
         BorderDrawFinishDialog(const BorderDrawFinishDialog&);
 
         BorderDrawFinishDialog& operator=(const BorderDrawFinishDialog&);
+        
+        BorderFile* getSelectedBorderFile();
+        
+        void loadBorderFileComboBox();
         
         Border* border;
         
@@ -68,7 +72,7 @@ namespace caret {
         
         QCheckBox* closedCheckBox;
         
-        QLineEdit* classNameLineEdit;
+        QComboBox* classNameComboBox;
 
         CaretColorEnumSelectionControl* colorSelectionControl;
         

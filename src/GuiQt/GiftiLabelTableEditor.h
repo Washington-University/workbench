@@ -42,6 +42,7 @@ class QListWidget;
 
 namespace caret {
 
+    class GiftiLabel;
     class GiftiLabelTable;
     
     class GiftiLabelTableEditor : public WuQDialogModal {
@@ -60,20 +61,24 @@ namespace caret {
         GiftiLabelTableEditor& operator=(const GiftiLabelTableEditor&);
         
     private slots:
-        void newLabelButtonClicked();
-        void deleteLabelButtonClicked();
-        void editLabelButtonClicked();
+        void newButtonClicked();
+        void deleteButtonClicked();
+        void editNameButtonClicked();
+        void editColorButtonClicked();
         
     private:
         void loadLabels();
+        
+        GiftiLabel* getSelectedLabel();
         
         QListWidget* labelSelectionListWidget;
         
         GiftiLabelTable* giftiLableTable;
         
-        QAction* newLabelAction;
-        QAction* editLabelAction;
-        QAction* deleteLabelAction;
+        QAction* newAction;
+        QAction* editNameAction;
+        QAction* editColorAction;
+        QAction* deleteAction;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__

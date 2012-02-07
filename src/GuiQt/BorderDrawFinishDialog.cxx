@@ -72,29 +72,11 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     this->border = border;
     
     /*
-     * Get border files
-     */
-    Brain* brain = GuiManager::get()->getBrain();
-    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
-    
-    /*
      * File selection combo box
      */
-    int defaultFileComboIndex = 0;
     QLabel* borderFileLabel = new QLabel("Border File");
     this->borderFileSelectionComboBox = new QComboBox();
-    this->borderFileSelectionComboBox->addItem("New File",
-                                               qVariantFromValue((void*)NULL));
-    for (int32_t i = 0; i < numBorderFiles; i++) {
-        BorderFile* borderFile = brain->getBorderFile(i);
-        const AString name = borderFile->getFileNameNoPath();
-        this->borderFileSelectionComboBox->addItem(name,
-                                                   qVariantFromValue((void*)borderFile));
-        if (BorderDrawFinishDialog::previousBorderFile == borderFile) {
-            defaultFileComboIndex = this->borderFileSelectionComboBox->count() - 1;
-        }
-    }
-    this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+    this->loadBorderFileComboBox();
     
     /*
      * Name
@@ -109,27 +91,31 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     QLabel* colorLabel = new QLabel("Color");
     this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_CLASS);
     this->colorSelectionControl->setSelectedColor(CaretColorEnum::CLASS);
-    
-    QAction* displayColorEditorAction = WuQtUtilities::createAction("Edit...", 
-                                                                    "Add and/or edit colors", 
-                                                                    this, 
-                                                                    this, 
-                                                                    SLOT(displayColorEditor()));
-    QToolButton* displayColorEditorToolButton = new QToolButton();
-    displayColorEditorToolButton->setDefaultAction(displayColorEditorAction);
-    
+
     /*
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
-    this->classNameLineEdit = new QLineEdit();
-    this->classNameLineEdit->setText(BorderDrawFinishDialog::previousClassName);
+    this->classNameComboBox = new QComboBox();
+    this->classNameComboBox->addItem("Class 1");
+    this->classNameComboBox->addItem("Class 2");
+    QAction* displayClassEditorAction = WuQtUtilities::createAction("Edit...", 
+                                                                    "Add and/or edit classes", 
+                                                                    this, 
+                                                                    this, 
+                                                                    SLOT(displayClassEditor()));
+    QToolButton* displayClassEditorToolButton = new QToolButton();
+    displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
+    
+    const int previousClassIndex = this->classNameComboBox->findText(BorderDrawFinishDialog::previousClassName);
+    if (previousClassIndex >= 0) {
+        this->classNameComboBox->setCurrentIndex(previousClassIndex);
+    }
     
     /*
      * Open/Closed
      */
-    QLabel* typeLabel = new QLabel("Type");
-    this->closedCheckBox = new QCheckBox("Closed");
+    this->closedCheckBox = new QCheckBox("Closed Border");
     
     QButtonGroup* openClosedButtonGroup = new QButtonGroup(this);
     openClosedButtonGroup->addButton(this->closedCheckBox);
@@ -154,13 +140,14 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
     gridLayout->addWidget(this->colorSelectionControl->getWidget(), row, 1);
-    gridLayout->addWidget(displayColorEditorToolButton, row, 2);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
-    gridLayout->addWidget(this->classNameLineEdit, row, 1);
+    gridLayout->addWidget(this->classNameComboBox, row, 1);
+    gridLayout->addWidget(displayClassEditorToolButton, row, 2);
     row++;
-    gridLayout->addWidget(typeLabel, row, 0);
-    gridLayout->addWidget(this->closedCheckBox, row, 1);
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(this->closedCheckBox, row, 0, 1, 3, Qt::AlignLeft);
     
     /*
      * Set the widget for the dialog.
@@ -177,6 +164,53 @@ BorderDrawFinishDialog::~BorderDrawFinishDialog()
 }
 
 /**
+ * @return Get the selected border file.  If New Border
+ * File is selected, create a border file and update
+ * the border file combo box.
+ */
+BorderFile* 
+BorderDrawFinishDialog::getSelectedBorderFile()
+{
+    const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
+    void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
+    BorderFile* borderFile = (BorderFile*)filePointer;
+    if (borderFile == NULL) {
+        borderFile = GuiManager::get()->getBrain()->addBorderFile();
+    }
+    BorderDrawFinishDialog::previousBorderFile = borderFile;
+    
+    this->loadBorderFileComboBox();
+    
+    return borderFile;
+}
+
+/**
+ * Load the border files into the border file combo box.
+ */
+void 
+BorderDrawFinishDialog::loadBorderFileComboBox()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
+    this->borderFileSelectionComboBox->clear();
+    
+    int defaultFileComboIndex = 0;
+    this->borderFileSelectionComboBox->addItem("New File",
+                                               qVariantFromValue((void*)NULL));
+    for (int32_t i = 0; i < numBorderFiles; i++) {
+        BorderFile* borderFile = brain->getBorderFile(i);
+        const AString name = borderFile->getFileNameNoPath();
+        this->borderFileSelectionComboBox->addItem(name,
+                                                   qVariantFromValue((void*)borderFile));
+        if (BorderDrawFinishDialog::previousBorderFile == borderFile) {
+            defaultFileComboIndex = this->borderFileSelectionComboBox->count() - 1;
+        }
+    }
+    this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
+}
+
+
+/**
  * Called when the OK button is pressed.
  */
 void 
@@ -191,8 +225,9 @@ BorderDrawFinishDialog::okButtonPressed()
     if (name.isEmpty()) {
         errorMessage += ("Name is invalid.\n");
     }
-    const QString className = this->classNameLineEdit->text().trimmed();
+    const QString className = this->classNameComboBox->currentText().trimmed();
     const CaretColorEnum::Enum color = this->colorSelectionControl->getSelectedColor();
+    
     /*
      * Error?
      */
@@ -204,12 +239,7 @@ BorderDrawFinishDialog::okButtonPressed()
     /*
      * Get/Create border file.
      */
-    const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
-    void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
-    BorderFile* borderFile = (BorderFile*)filePointer;
-    if (borderFile == NULL) {
-        borderFile = GuiManager::get()->getBrain()->addBorderFile();
-    }
+    BorderFile* borderFile = this->getSelectedBorderFile();
     
     /*
      * Make a copy of the border being drawn
@@ -242,11 +272,15 @@ BorderDrawFinishDialog::okButtonPressed()
     WuQDialogModal::okButtonPressed();
 }
 
+/**
+ * Display the class editor
+ */
 void 
-BorderDrawFinishDialog::displayColorEditor()
+BorderDrawFinishDialog::displayClassEditor()
 {
-    GiftiLabelTableEditor editor(NULL,
-                                 "Edit Border Colors",
+    BorderFile* borderFile = this->getSelectedBorderFile();
+    GiftiLabelTableEditor editor(borderFile->getClassNamesTable(),
+                                 "Edit Class Attributes",
                                  this);
     editor.exec();
 }

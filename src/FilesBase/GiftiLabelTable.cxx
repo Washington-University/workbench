@@ -257,7 +257,10 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
     int32_t key = glIn->getKey();
     if (key < 0) {
         key = this->generateUnusedKey();
-        this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
+        
+        GiftiLabel* gl = new GiftiLabel(*glIn);
+        gl->setKey(key);
+        this->labelsMap.insert(std::make_pair(key, gl));
         return key;
     }
     if (key == 0)
