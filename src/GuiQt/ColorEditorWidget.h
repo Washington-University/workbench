@@ -1,5 +1,5 @@
-#ifndef __GIFTI_LABEL_TABLE_EDITOR__H_
-#define __GIFTI_LABEL_TABLE_EDITOR__H_
+#ifndef __COLOR_EDITOR_WIDGET__H_
+#define __COLOR_EDITOR_WIDGET__H_
 
 /*LICENSE_START*/
 /*
@@ -35,71 +35,63 @@
 /*LICENSE_END*/
 
 
-#include "WuQDialogModal.h"
+#include <QWidget>
 
-class QAction;
-class QListWidget;
-class QListWidgetItem;
+class QSlider;
+class QSpinBox;
 
 namespace caret {
 
-    class ColorEditorWidget;
-    class GiftiLabel;
-    class GiftiLabelTable;
+    class WuQWidgetObjectGroup;
     
-    class GiftiLabelTableEditor : public WuQDialogModal {
+    class ColorEditorWidget : public QWidget {
+        
         Q_OBJECT
-        
-    public:
-        GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
-                              const AString& dialogTitle,
-                              QWidget* parent);
-        
-        virtual ~GiftiLabelTableEditor();
-        
-        AString getLastSelectedLabelName() const;
-        
-        void selectLabelWithName(const AString& labelName);
-        
-    private:
-        GiftiLabelTableEditor(const GiftiLabelTableEditor&);
 
-        GiftiLabelTableEditor& operator=(const GiftiLabelTableEditor&);
+    public:
+        ColorEditorWidget(const bool alphaControlEnabled = false,
+                          QWidget* parent = 0);
         
-    private slots:
-        void newButtonClicked();
-        void deleteButtonClicked();
-        void editNameButtonClicked();
+        virtual ~ColorEditorWidget();
+
+        void setColor(const float rgba[4]);
         
-        void listWidgetLabelSelected(int row);
+        void getColor(float rgba[4]) const;
+
+        void setColor(const int rgba[4]);
         
-        void colorEditorColorChanged(const float*);
+        void getColor(int rgba[4]) const;
+        
+    signals:
+        void colorChanged(const float*);
+        void colorChanged(const int*);
+        
+    public slots:
+        void redValueChanged(int);
+        void blueValueChanged(int);
+        void greenValueChanged(int);
+        void alphaValueChanged(int);
+        
+        void emitColorChangedSignal();
         
     private:
-        void loadLabels(const AString& selectedName = "",
-                        const bool usePreviouslySelectedIndex = false);
+        ColorEditorWidget(const ColorEditorWidget&);
+
+        ColorEditorWidget& operator=(const ColorEditorWidget&);
         
-        GiftiLabel* getSelectedLabel();
+    private:
+        WuQWidgetObjectGroup* controlsWidgetGroup;
         
-        void setWidgetItemIconColor(QListWidgetItem* item,
-                                    const float rgba[4]);
+        QSpinBox* redSpinBox;
+        QSpinBox* greenSpinBox;
+        QSpinBox* blueSpinBox;
+        QSpinBox* alphaSpinBox;
         
-        QListWidget* labelSelectionListWidget;
-        
-        GiftiLabelTable* giftiLableTable;
-        
-        ColorEditorWidget* colorEditorWidget;
-        
-        QAction* newAction;
-        QAction* editNameAction;
-        QAction* deleteAction;
-        
-        AString lastSelectedLabelName;
     };
     
-#ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
+#ifdef __COLOR_EDITOR_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
+#endif // __COLOR_EDITOR_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__GIFTI_LABEL_TABLE_EDITOR__H_
+#endif  //__COLOR_EDITOR_WIDGET__H_

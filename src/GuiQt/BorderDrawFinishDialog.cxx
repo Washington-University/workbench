@@ -41,6 +41,8 @@
 #include "CaretAssert.h"
 #include "CaretColorEnumSelectionControl.h"
 #include "Brain.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
 #include "WuQMessageBox.h"
@@ -97,8 +99,6 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
      */
     QLabel* classLabel = new QLabel("Class");
     this->classNameComboBox = new QComboBox();
-    this->classNameComboBox->addItem("Class 1");
-    this->classNameComboBox->addItem("Class 2");
     QAction* displayClassEditorAction = WuQtUtilities::createAction("Edit...", 
                                                                     "Add and/or edit classes", 
                                                                     this, 
@@ -106,11 +106,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
                                                                     SLOT(displayClassEditor()));
     QToolButton* displayClassEditorToolButton = new QToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
-    
-    const int previousClassIndex = this->classNameComboBox->findText(BorderDrawFinishDialog::previousClassName);
-    if (previousClassIndex >= 0) {
-        this->classNameComboBox->setCurrentIndex(previousClassIndex);
-    }
+    this->loadClassNameComboBox();
     
     /*
      * Open/Closed
@@ -164,18 +160,23 @@ BorderDrawFinishDialog::~BorderDrawFinishDialog()
 }
 
 /**
- * @return Get the selected border file.  If New Border
+ * Get the selected border file.  If New Border
  * File is selected, create a border file and update
  * the border file combo box.
+ * @param createIfNoValidBorderFiles
+ *    If there are no valid border files, create one.
+ * @return BorderFile or NULL if no border file.
  */
 BorderFile* 
-BorderDrawFinishDialog::getSelectedBorderFile()
+BorderDrawFinishDialog::getSelectedBorderFile(bool createIfNoValidBorderFiles)
 {
     const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
     void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
     BorderFile* borderFile = (BorderFile*)filePointer;
     if (borderFile == NULL) {
-        borderFile = GuiManager::get()->getBrain()->addBorderFile();
+        if (createIfNoValidBorderFiles) {
+            borderFile = GuiManager::get()->getBrain()->addBorderFile();
+        }
     }
     BorderDrawFinishDialog::previousBorderFile = borderFile;
     
@@ -209,6 +210,37 @@ BorderDrawFinishDialog::loadBorderFileComboBox()
     this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
 }
 
+/**
+ * Load the class name combo box.
+ */
+void 
+BorderDrawFinishDialog::loadClassNameComboBox()
+{
+    AString selectedClassName = this->classNameComboBox->currentText();
+    if (selectedClassName.isEmpty()) {
+        selectedClassName = BorderDrawFinishDialog::previousClassName;
+    }
+    
+    this->classNameComboBox->clear();
+    
+    BorderFile* borderFile = this->getSelectedBorderFile(false);
+    if (borderFile != NULL) {
+        GiftiLabelTable* glt = borderFile->getClassNamesTable();
+        std::set<int32_t> keys = glt->getKeys();
+        for (std::set<int32_t>::iterator keyIterator = keys.begin();
+             keyIterator != keys.end();
+             keyIterator++) {
+            const int32_t key = *keyIterator;
+            const GiftiLabel* gl = glt->getLabel(key);
+            
+            this->classNameComboBox->addItem(gl->getName());
+        }
+    }
+    const int previousClassIndex = this->classNameComboBox->findText(selectedClassName);
+    if (previousClassIndex >= 0) {
+        this->classNameComboBox->setCurrentIndex(previousClassIndex);
+    }
+}
 
 /**
  * Called when the OK button is pressed.
@@ -239,7 +271,7 @@ BorderDrawFinishDialog::okButtonPressed()
     /*
      * Get/Create border file.
      */
-    BorderFile* borderFile = this->getSelectedBorderFile();
+    BorderFile* borderFile = this->getSelectedBorderFile(true);
     
     /*
      * Make a copy of the border being drawn
@@ -278,11 +310,25 @@ BorderDrawFinishDialog::okButtonPressed()
 void 
 BorderDrawFinishDialog::displayClassEditor()
 {
-    BorderFile* borderFile = this->getSelectedBorderFile();
+    BorderFile* borderFile = this->getSelectedBorderFile(true);
     GiftiLabelTableEditor editor(borderFile->getClassNamesTable(),
                                  "Edit Class Attributes",
                                  this);
+    const QString className = this->classNameComboBox->currentText();
+    if (className.isEmpty() == false) {
+        editor.selectLabelWithName(className);
+    }
     editor.exec();
+    
+    this->loadClassNameComboBox();
+
+    const QString selectedClassName = editor.getLastSelectedLabelName();
+    if (selectedClassName.isEmpty() == false) {
+        const int indx = this->classNameComboBox->findText(selectedClassName);
+        if (indx >= 0) {
+            this->classNameComboBox->setCurrentIndex(indx);
+        }
+    }
 }
 
 

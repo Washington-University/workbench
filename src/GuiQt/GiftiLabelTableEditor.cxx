@@ -37,7 +37,6 @@
 #undef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
 
 #include <QAction>
-#include <QColorDialog>
 #include <QInputDialog>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -45,6 +44,7 @@
 #include <QToolButton>
 
 #include "CaretAssert.h"
+#include "ColorEditorWidget.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "WuQMessageBox.h"
@@ -75,6 +75,8 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
      * List widget for editing labels.
      */
     this->labelSelectionListWidget = new QListWidget();
+    QObject::connect(this->labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
+                     this, SLOT(listWidgetLabelSelected(int)));
     
     /*
      * New color button.
@@ -99,17 +101,6 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     editNameToolButton->setDefaultAction(this->editNameAction);
     
     /*
-     * Edit color button.
-     */
-    this->editColorAction = WuQtUtilities::createAction("Edit Color...",
-                                                       "Edit the selected color",
-                                                       this,
-                                                       this,
-                                                       SLOT(editColorButtonClicked()));
-    QToolButton* editColorToolButton = new QToolButton();
-    editColorToolButton->setDefaultAction(this->editColorAction);
-    
-    /*
      * Delete color button.
      */
     this->deleteAction = WuQtUtilities::createAction("Delete...",
@@ -121,14 +112,19 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     deleteToolButton->setDefaultAction(this->deleteAction);
     
     /*
+     * Color editor widget
+     */
+    this->colorEditorWidget = new ColorEditorWidget();
+    QObject::connect(this->colorEditorWidget, SIGNAL(colorChanged(const float*)),
+                     this, SLOT(colorEditorColorChanged(const float*)));
+    
+    /*
      * Layout for buttons
      */
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     buttonsLayout->addWidget(newToolButton);
     buttonsLayout->addStretch();
     buttonsLayout->addWidget(editNameToolButton);
-    buttonsLayout->addStretch();
-    buttonsLayout->addWidget(editColorToolButton);
     buttonsLayout->addStretch();
     buttonsLayout->addWidget(deleteToolButton);
     
@@ -139,6 +135,7 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(this->labelSelectionListWidget);
     layout->addLayout(buttonsLayout);
+    layout->addWidget(this->colorEditorWidget);
     
     this->setCentralWidget(widget);
     
@@ -154,15 +151,94 @@ GiftiLabelTableEditor::~GiftiLabelTableEditor()
 }
 
 /**
- * Load labels into the list widget.
+ * @return
+ *   The last name that was selected.
+ */
+AString 
+GiftiLabelTableEditor::getLastSelectedLabelName() const
+{
+    return this->lastSelectedLabelName;
+}
+
+/**
+ * Select the label with the given name.
+ * @param labelName
+ *   Name of label that is to be selected.
  */
 void 
-GiftiLabelTableEditor::loadLabels()
+GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
 {
+    QList<QListWidgetItem*> itemsWithLabelName = this->labelSelectionListWidget->findItems(labelName,
+                                                                                           Qt::MatchExactly);
+    if (itemsWithLabelName.empty() == false) {
+        this->labelSelectionListWidget->setCurrentItem(itemsWithLabelName.at(0));
+    }
+}
+
+/**
+ * Called when a label in the list widget is selected.
+ * @param row
+ *    Row of label selected.
+ */
+void 
+GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
+{
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        float rgba[4];
+        gl->getColor(rgba);
+        this->colorEditorWidget->setColor(rgba);
+        
+        this->lastSelectedLabelName = gl->getName();
+    }
+    else {
+        this->lastSelectedLabelName = "";
+    }
+}
+
+/**
+ * Called when a change is made in the color editor.
+ * @param rgba
+ *    New RGBA values.
+ */
+void 
+GiftiLabelTableEditor::colorEditorColorChanged(const float* rgba)
+{
+    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    if (selectedItem != NULL) {
+        this->setWidgetItemIconColor(selectedItem, rgba);
+    }
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        gl->setColor(rgba);
+    }
+}
+
+/**
+ * Load labels into the list widget.
+ * 
+ * @param selectedName
+ *    If not empty, select the label with this name
+ * @param usePreviouslySelectedIndex
+ *    If true, use selected index prior to reloading list widget.
+ */
+void 
+GiftiLabelTableEditor::loadLabels(const AString& selectedName,
+                                  const bool usePreviouslySelectedIndex)
+{
+    this->labelSelectionListWidget->blockSignals(true);
+    
+    int32_t previousSelectedIndex = -1;
+    if (usePreviouslySelectedIndex) {
+        previousSelectedIndex = this->labelSelectionListWidget->currentRow();
+    }
     int32_t selectedKey = -1;
     GiftiLabel* selectedLabel = this->getSelectedLabel();
     if (selectedLabel != NULL) {
         selectedKey = selectedLabel->getKey();
+    }
+    if (selectedName.isEmpty() == false) {
+        selectedKey = this->giftiLableTable->getLabelKeyFromName(selectedName);
     }
     
     this->labelSelectionListWidget->clear();
@@ -177,16 +253,9 @@ GiftiLabelTableEditor::loadLabels()
         float rgba[4];
         gl->getColor(rgba);
         
-        QColor color;
-        color.setRedF(rgba[0]);
-        color.setGreenF(rgba[1]);
-        color.setBlueF(rgba[2]);
-        color.setAlphaF(1.0);
-        QPixmap pixmap(12, 12);
-        pixmap.fill(color);
-        QIcon colorIcon(pixmap);
-        QListWidgetItem* colorItem = new QListWidgetItem(colorIcon,
-                                                         gl->getName());
+        QListWidgetItem* colorItem = new QListWidgetItem(gl->getName());
+        this->setWidgetItemIconColor(colorItem, rgba);
+        
         colorItem->setData(Qt::UserRole, 
                            qVariantFromValue((void*)gl));
         this->labelSelectionListWidget->addItem(colorItem);
@@ -196,9 +265,47 @@ GiftiLabelTableEditor::loadLabels()
         }
     }
     
+    if (usePreviouslySelectedIndex) {
+        defaultIndex = previousSelectedIndex;
+        if (defaultIndex >= this->labelSelectionListWidget->count()) {
+            defaultIndex--;
+        }
+    }
+    
+    if (defaultIndex < 0) {
+        if (this->labelSelectionListWidget->count() > 0) {
+            defaultIndex = 0;
+        }
+    }
+    
+    this->labelSelectionListWidget->blockSignals(false);
+    
     if (defaultIndex >= 0) {
         this->labelSelectionListWidget->setCurrentRow(defaultIndex);
     }
+}
+
+/**
+ * Set the Icon color for the item.
+ * @param item
+ *    The list widget item.
+ * @param rgba
+ *    RGBA values.
+ */
+void 
+GiftiLabelTableEditor::setWidgetItemIconColor(QListWidgetItem* item,
+                                              const float rgba[4])
+{
+    QColor color;
+    color.setRedF(rgba[0]);
+    color.setGreenF(rgba[1]);
+    color.setBlueF(rgba[2]);
+    color.setAlphaF(1.0);
+    QPixmap pixmap(12, 12);
+    pixmap.fill(color);
+    QIcon colorIcon(pixmap);
+    
+    item->setIcon(colorIcon);
 }
 
 /**
@@ -227,25 +334,26 @@ void
 GiftiLabelTableEditor::newButtonClicked()
 {
     bool ok = false;
-    const AString name = QInputDialog::getText(this, 
+    const AString nameEntered = QInputDialog::getText(this, 
                                                "New Name", 
                                                "New Name",
                                                QLineEdit::Normal,
                                                "",
                                                &ok);
     if (ok && 
-        (name.isEmpty() == false)) {
+        (nameEntered.isEmpty() == false)) {
         float red   = 0.0;
         float green = 0.0;
         float blue  = 0.0;
         float alpha = 1.0;
-        this->giftiLableTable->addLabel(name.trimmed(),
+        const AString& name = nameEntered.trimmed();
+        this->giftiLableTable->addLabel(name,
                                         red,
                                         green,
                                         blue,
                                         alpha);
         
-        this->loadLabels();
+        this->loadLabels(name);
     }
 }
 
@@ -260,7 +368,7 @@ GiftiLabelTableEditor::deleteButtonClicked()
         if (WuQMessageBox::warningOkCancel(this,
                                            "Delete " + gl->getName())) {
             this->giftiLableTable->deleteLabel(gl);
-            this->loadLabels();
+            this->loadLabels("", true);
         }
     }
     
@@ -275,49 +383,17 @@ GiftiLabelTableEditor::editNameButtonClicked()
     GiftiLabel* gl = this->getSelectedLabel();
     if (gl != NULL) {
         bool ok = false;
-        const AString name = QInputDialog::getText(this, 
+        const AString nameEntered = QInputDialog::getText(this, 
                                                    "New Name", 
                                                    "New Name",
                                                    QLineEdit::Normal,
                                                    gl->getName(),
                                                    &ok);
         if (ok && 
-            (name.isEmpty() == false)) {
+            (nameEntered.isEmpty() == false)) {
+            const AString name = nameEntered.trimmed();
             gl->setName(name);
-            this->loadLabels();
-        }
-    }
-}
-
-/** 
- * Called to edit the lablel color.
- */
-void 
-GiftiLabelTableEditor::editColorButtonClicked()
-{
-    GiftiLabel* gl = this->getSelectedLabel();
-    if (gl != NULL) {
-        QColor inputColor;
-        inputColor.setRedF(gl->getRed());
-        inputColor.setGreenF(gl->getGreen());
-        inputColor.setBlueF(gl->getBlue());
-        inputColor.setAlphaF(gl->getAlpha());
-        
-        QColor color = QColorDialog::getColor(inputColor, 
-                                              this, 
-                                              gl->getName(),
-                                              (QColorDialog::DontUseNativeDialog
-                                               | QColorDialog::ShowAlphaChannel));
-        if (color.isValid()) {
-            float rgba[4] = {
-                color.redF(),
-                color.greenF(),
-                color.blueF(),
-                color.alphaF()
-            };
-            gl->setColor(rgba);
-            
-            this->loadLabels();
+            this->loadLabels(name);
         }
     }
 }

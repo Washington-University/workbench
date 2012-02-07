@@ -60,9 +60,11 @@ namespace caret {
 
         BorderDrawFinishDialog& operator=(const BorderDrawFinishDialog&);
         
-        BorderFile* getSelectedBorderFile();
+        BorderFile* getSelectedBorderFile(bool createIfNoValidBorderFiles);
         
         void loadBorderFileComboBox();
+        
+        void loadClassNameComboBox();
         
         Border* border;
         

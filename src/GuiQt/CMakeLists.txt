@@ -33,6 +33,7 @@ BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 CaretColorEnumSelectionControl.h
 CaretFileDialog.h
+ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
@@ -85,6 +86,7 @@ BrainOpenGLWidget.h
 BrainOpenGLWidgetTextRenderer.h
 CaretColorEnumSelectionControl.h
 CaretFileDialog.h
+ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
@@ -145,6 +147,7 @@ BrainOpenGLWidget.cxx
 BrainOpenGLWidgetTextRenderer.cxx
 CaretColorEnumSelectionControl.cxx
 CaretFileDialog.cxx
+ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
 ConnectomeDBBrowserWindow.cxx
 DisplayControlDialog.cxx
