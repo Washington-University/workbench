@@ -42,12 +42,12 @@ int64_t CiftiXML::getSurfaceIndex(const int64_t& node, const CiftiBrainModelElem
 
 int64_t CiftiXML::getColumnIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const
 {
-    return getSurfaceIndex(node, findSurfaceModel(m_colMap, structure));
+    return getSurfaceIndex(node, findSurfaceModel(m_rowMap, structure));//a column index is an index to get an entire column, so index ALONG a row
 }
 
 int64_t CiftiXML::getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const
 {
-    return getSurfaceIndex(node, findSurfaceModel(m_rowMap, structure));
+    return getSurfaceIndex(node, findSurfaceModel(m_colMap, structure));
 }
 
 int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const
@@ -80,12 +80,12 @@ int64_t CiftiXML::getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMap
 
 int64_t CiftiXML::getColumnIndexForVoxel(const int64_t* ijk) const
 {
-    return getVolumeIndex(ijk, m_colMap);
+    return getVolumeIndex(ijk, m_rowMap);
 }
 
 int64_t CiftiXML::getRowIndexForVoxel(const int64_t* ijk) const
 {
-    return getVolumeIndex(ijk, m_rowMap);
+    return getVolumeIndex(ijk, m_colMap);
 }
 
 bool CiftiXML::getSurfaceMapping(vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const
@@ -183,9 +183,9 @@ void CiftiXML::rootChanged()
         int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
         for (int j = 0; j < numDimensions; ++j)
         {
-            if (myMap.m_appliesToMatrixDimension[j] == 0)
+            if (myMap.m_appliesToMatrixDimension[j] == 1)//QUIRK: "applies to dimension" means the opposite of what it sounds like - "applies to rows" means a SINGLE row matches a SINGLE element in the "applies to rows" map
             {
-                if (m_rowMap != NULL)
+                if (m_rowMap != NULL)//I am deliberately using the opposite convention, that "applies to rows" means "applies to the full length of a row", because otherwise I will go insane
                 {
                     throw CiftiFileException("Multiple mappings on the same dimension not supported");
                 }
@@ -206,7 +206,7 @@ void CiftiXML::rootChanged()
                     }
                 }
             }
-            if (myMap.m_appliesToMatrixDimension[j] == 1)
+            if (myMap.m_appliesToMatrixDimension[j] == 0)
             {
                 if (m_colMap != NULL)
                 {
@@ -301,12 +301,12 @@ int64_t CiftiXML::getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapEl
 
 int64_t CiftiXML::getColumnIndexForVoxelCoordinate(const float* xyz) const
 {
-    return getVolumeIndex(xyz, m_colMap);
+    return getVolumeIndex(xyz, m_rowMap);
 }
 
 int64_t CiftiXML::getRowIndexForVoxelCoordinate(const float* xyz) const
 {
-    return getVolumeIndex(xyz, m_rowMap);
+    return getVolumeIndex(xyz, m_colMap);
 }
 
 int64_t CiftiXML::getTimestepIndex(const float& seconds, const CiftiMatrixIndicesMapElement* myMap) const
@@ -324,12 +324,12 @@ int64_t CiftiXML::getTimestepIndex(const float& seconds, const CiftiMatrixIndice
 
 int64_t CiftiXML::getColumnIndexForTimepoint(const float& seconds) const
 {
-    return getTimestepIndex(seconds, m_colMap);
+    return getTimestepIndex(seconds, m_rowMap);
 }
 
 int64_t CiftiXML::getRowIndexForTimepoint(const float& seconds) const
 {
-    return getTimestepIndex(seconds, m_rowMap);
+    return getTimestepIndex(seconds, m_colMap);
 }
 
 bool CiftiXML::getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const

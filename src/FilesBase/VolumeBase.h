@@ -154,11 +154,11 @@ namespace caret {
         ///returns coordinate triplet of an index triplet
         void indexToSpace(const int64_t* indexIn, float* coordOut) const;
         ///returns coordinate triplet of three indexes
-        void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut) const;
+        //void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float* coordOut) const;
         ///returns three coordinates of an index triplet
         void indexToSpace(const int64_t* indexIn, float& coordOut1, float& coordOut2, float& coordOut3) const;
         ///returns three coordinates of three indexes
-        void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const;
+        //void indexToSpace(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, float& coordOut1, float& coordOut2, float& coordOut3) const;
 
         ///returns coordinate triplet of a floating point index triplet
         void indexToSpace(const float* indexIn, float* coordOut) const;

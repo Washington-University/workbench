@@ -1112,10 +1112,10 @@ ConnectivityLoaderFile::getSurfaceNodeValue(const StructureEnum::Enum structure,
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            useColumnsFlag = true;
+            useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
-            useRowsFlag = true;
+            useColumnsFlag = true;
             break;
     }
     
@@ -1194,10 +1194,10 @@ ConnectivityLoaderFile::getSurfaceNodeColoring(const StructureEnum::Enum structu
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            useColumnsFlag = true;
+            useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
-            useRowsFlag = true;
+            useColumnsFlag = true;
             break;
     }
     
@@ -1313,11 +1313,9 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
             createVolumeFlag = true;
         }
         else {
-            const int64_t zero = 0;
-            const int64_t one  = 1;
             float x0, y0, z0, x1, y1, z1;
-            this->connectivityVolumeFile->indexToSpace(zero, zero, zero, x0, y0, z0);
-            this->connectivityVolumeFile->indexToSpace(one, one, one, x1, y1, z1);
+            this->connectivityVolumeFile->indexToSpace(0, 0, 0, x0, y0, z0);
+            this->connectivityVolumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
             const float dx = x1 - x0;
             const float dy = y1 - y0;
             const float dz = z1 - z0;
@@ -1466,7 +1464,7 @@ ConnectivityLoaderFile::getTimeStep() const
     if (this->isDenseTimeSeries()) {
         if (this->ciftiInterface != NULL) {
             float timeStep = 0.0;
-            if (this->ciftiInterface->getColumnTimestep(timeStep)) {
+            if (this->ciftiInterface->getRowTimestep(timeStep)) {
                 return timeStep;
             }
         }
@@ -1513,19 +1511,19 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
-                break;     
+                break;
             case LOADER_TYPE_DENSE:
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
-                const int32_t num = this->ciftiInterface->getNumberOfColumns();                
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 float *data = new float [num];
                 
-                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
                     if (this->ciftiInterface->getRowFromNode(data,
                                                              nodeIndex,
                                                              structure)) {
-                        CaretLogFine("Read row for node " + AString::number(nodeIndex));                        
+                        CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         if(this->timeSeriesGraphEnabled)
                         {
                             tl.x.clear();
@@ -1577,10 +1575,10 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
-                const int32_t num = this->ciftiInterface->getNumberOfColumns();                
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 float *data = new float [num];
-                if (this->ciftiInterface->hasRowVolumeData()) {
-                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))                                                             
+                if (this->ciftiInterface->hasColumnVolumeData()) {
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))
                     {
                         CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
                         //this->mapToType = MAP_TO_TYPE_TIMEPOINTS;

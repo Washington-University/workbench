@@ -40,7 +40,7 @@ namespace caret {
 /// Class for determining Nifti Header version and return correct (nifti 1 or 2) Header version
 class NiftiHeaderIO {
 public:
-    NiftiHeaderIO() throw (NiftiException) { }
+    NiftiHeaderIO() throw (NiftiException) { niftiVersion = 2; m_swapNeeded = false; }//TSC: default to the default constructed nifti 2 header
     NiftiHeaderIO(const AString &inputFile) throw (NiftiException);
     ~NiftiHeaderIO() { }
 

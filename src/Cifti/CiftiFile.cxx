@@ -131,11 +131,11 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         header.getDimensions(vec);
         if (vec.size() > 0 && m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
         {
-            m_xml.setColumnNumberOfTimepoints(vec[0]);
+            m_xml.setColumnNumberOfTimepoints(vec[0]);//vec[0] is number of rows, so length of column
         }
         if (vec.size() > 1 && m_xml.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
         {
-            m_xml.setRowNumberOfTimepoints(vec[1]);//vec[1] is number of rows, so length of column
+            m_xml.setRowNumberOfTimepoints(vec[1]);
         }
         int64_t offset = header.getVolumeOffset();
         m_matrix.setup(vec,offset,m_caching,m_swapNeeded);
@@ -159,14 +159,23 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
 
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
     QByteArray xmlBytes;
-    CiftiXML xml = m_xml;
-    xml.writeXML(xmlBytes);
+    m_xml.writeXML(xmlBytes);
     int length = 8 + xmlBytes.length();
 
 
     // update header struct dimensions and vox_offset
     CiftiHeader ciftiHeader;
-    this->m_headerIO.getHeader(ciftiHeader);
+    if (m_xml.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS || m_xml.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+    {
+        ciftiHeader.initDenseTimeSeries();
+    } else {
+        ciftiHeader.initDenseConnectivity();
+    }
+    //populate header dimensions from the layout
+    std::vector<int64_t> dim;
+    dim.push_back(m_xml.getNumberOfRows());//rows/columns get put in nifti header backwards, but CiftiHeader doesn't contain handling for this quirk
+    dim.push_back(m_xml.getNumberOfColumns());
+    ciftiHeader.setDimensions(dim);
 
     int64_t vox_offset = 544 + length;
     int remainder = vox_offset % 8;
@@ -176,8 +185,6 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
     length += padding;
 
 
-    std::vector <int64_t> dim;
-    ciftiHeader.getDimensions(dim);
     ciftiHeader.setVolumeOffset(vox_offset);
     m_headerIO.setHeader(ciftiHeader);
     
@@ -274,7 +281,7 @@ CiftiFile::~CiftiFile()
 
 }
 
-/**
+/*
  *
  *
  * set the CiftiHeader
@@ -282,11 +289,11 @@ CiftiFile::~CiftiFile()
  * @param header
  */
 // Header IO
-void CiftiFile::setHeader(const CiftiHeader &header) throw (CiftiFileException)
+/*void CiftiFile::setHeader(const CiftiHeader &header) throw (CiftiFileException)
 {   
     m_headerIO.setHeader(header);
     setupMatrix();
-}
+}//*/
 
 /**
  *
@@ -311,7 +318,7 @@ void CiftiFile::getHeader(CiftiHeader &header) throw (CiftiFileException)
 void CiftiFile::setCiftiXML(const CiftiXML & xml) throw (CiftiFileException)
 {
     this->m_xml = xml;
-    setupMatrix();
+    setupMatrix();//this also populates the header with the dimensions from the CiftiXML object
 }
 
 int64_t CiftiFile::getNumberOfColumns() const

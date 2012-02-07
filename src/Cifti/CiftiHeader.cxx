@@ -28,6 +28,7 @@ using namespace caret;
 
 CiftiHeader::CiftiHeader()
 {
+    initHeaderStruct();
 }
 
 void CiftiHeader::initHeaderStruct()
@@ -113,7 +114,7 @@ void CiftiHeader::initDenseConnectivity()
     m_header.dim[0]=6;
 }
 
-void CiftiHeader::getDimensions(std::vector <int64_t> &dimensionsOut) const
+void CiftiHeader::getDimensions(std::vector<int64_t> &dimensionsOut) const
 {
     dimensionsOut.clear();
     if (m_header.dim[0] < 5)//HACK: support old cifti written when the dimensions didn't get padded - REMOVE ME
@@ -130,9 +131,13 @@ void CiftiHeader::getDimensions(std::vector <int64_t> &dimensionsOut) const
     }
 }
 
-void CiftiHeader::setDimensions(const std::vector <int64_t> &dimensionsIn) throw (NiftiException)
+void CiftiHeader::setDimensions(const std::vector<int64_t> &dimensionsIn) throw (NiftiException)
 {
-    if ((int)dimensionsIn.size() > 3)
+    if (dimensionsIn.size() == 0)
+    {
+        throw NiftiException("No dimensions specified for cifti");
+    }
+    if (dimensionsIn.size() > 3)
     {
         throw NiftiException("Number of dimensions exceeds currently allowed cifti dimension number.");
     }

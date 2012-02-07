@@ -1827,8 +1827,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
         float originX, originY, originZ;
         float x1, y1, z1;
         float lastX, lastY, lastZ;
-        volumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
-        volumeFile->indexToSpace((int64_t)1, (int64_t)1, (int64_t)1, x1, y1, z1);
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
         volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
         const float voxelStepX = x1 - originX;
         const float voxelStepY = y1 - originY;
@@ -2380,8 +2380,8 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
         float originX, originY, originZ;
         float x1, y1, z1;
         float lastX, lastY, lastZ;
-        volumeFile->indexToSpace((int64_t)0, (int64_t)0, (int64_t)0, originX, originY, originZ);
-        volumeFile->indexToSpace((int64_t)1, (int64_t)1, (int64_t)1, x1, y1, z1);
+        volumeFile->indexToSpace(0, 0, 0, originX, originY, originZ);
+        volumeFile->indexToSpace(1, 1, 1, x1, y1, z1);
         volumeFile->indexToSpace(dimI - 1, dimJ - 1, dimK - 1, lastX, lastY, lastZ);
         const float dx = x1 - originX;
         const float dy = y1 - originY;

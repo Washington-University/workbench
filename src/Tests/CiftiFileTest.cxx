@@ -121,7 +121,6 @@ void CiftiFileTest::testCiftiReadWriteInMemory()
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
     CiftiFile writer;
-    writer.setHeader(header);
     writer.setCiftiXML(root);
 
     std::vector <int64_t> dim;
@@ -175,7 +174,6 @@ void CiftiFileTest::testCiftiReadWriteOnDisk()
     AString outFile = this->m_default_path + "/cifti/testOut.dtseries.nii";
     if(QFile::exists(outFile)) QFile::remove(outFile);
     CiftiFile writer(ON_DISK);
-    writer.setHeader(header);
     writer.setCiftiXML(root);
 
     std::vector <int64_t> dim;

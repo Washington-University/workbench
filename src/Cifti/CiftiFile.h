@@ -52,7 +52,7 @@ public:
 
     //get/set Nifti2/CiftiHeader
     /// set CiftiHeader
-    virtual void setHeader(const CiftiHeader &header) throw (CiftiFileException);
+    //virtual void setHeader(const CiftiHeader &header) throw (CiftiFileException);
     /// get CiftiHeader
     virtual void getHeader(CiftiHeader &header) throw (CiftiFileException);
 

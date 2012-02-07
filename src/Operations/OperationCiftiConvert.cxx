@@ -85,10 +85,11 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         myDims.push_back(myInFile->getNumberOfRows());
         myDims.push_back(myInFile->getNumberOfColumns());
         NiftiIntentEnum::Enum myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE;
-        if (myDims[0] != myDims[1] ||
-            myInFile->hasRowSurfaceData(StructureEnum::CORTEX_LEFT) != myInFile->hasColumnSurfaceData(StructureEnum::CORTEX_LEFT) ||
-            myInFile->hasRowSurfaceData(StructureEnum::CORTEX_RIGHT) != myInFile->hasColumnSurfaceData(StructureEnum::CORTEX_RIGHT))
-        {//HACK: guess at the right intent type, because it isn't in the nifti header, or in the cifti XML
+        CiftiXML myXML;
+        myInFile->getCiftiXML(myXML);
+        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS ||
+            myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
             myIntent = NiftiIntentEnum::NIFTI_INTENT_CONNECTIVITY_DENSE_TIME;
         }
         GiftiDataArray* myArray = new GiftiDataArray(myIntent, NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32, myDims, GiftiEncodingEnum::EXTERNAL_FILE_BINARY);
@@ -97,8 +98,6 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
         {
             myInFile->getRow(myOutData + i * myInFile->getNumberOfColumns(), i);
         }
-        CiftiXML myXML;
-        myInFile->getCiftiXML(myXML);
         AString myCiftiXML;
         myXML.writeXML(myCiftiXML);
         myArray->getMetaData()->set("CiftiXML", myCiftiXML);
@@ -134,28 +133,27 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             default:
                 throw OperationException("incorrect intent code in input gifti");
         };
-        vector<int64_t> myDims = dataArrayRef->getDimensions();
-        vector<int64_t> myCiftiDims;
-        myCiftiDims.push_back(1);
-        myCiftiDims.push_back(1);
-        myCiftiDims.push_back(1);
-        myCiftiDims.push_back(1);
-        myCiftiDims.push_back(myDims[1]);
-        myCiftiDims.push_back(myDims[0]);
-        myHeader.setDimensions(myDims);
-        myOutFile->setHeader(myHeader);
-        myOutFile->setCiftiXML(CiftiXML(dataArrayRef->getMetaData()->get("CiftiXML")));
-        int64_t rowSize = dataArrayRef->getNumberOfComponents();
-        int64_t colSize = dataArrayRef->getNumberOfRows();
+        CiftiXML myXML(dataArrayRef->getMetaData()->get("CiftiXML"));
+        int64_t numCols = dataArrayRef->getNumberOfComponents();
+        int64_t numRows = dataArrayRef->getNumberOfRows();
+        if (myXML.getRowMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
+            myXML.setRowNumberOfTimepoints(numCols);
+        }
+        if (myXML.getColumnMappingType() == CIFTI_INDEX_TYPE_TIME_POINTS)
+        {
+            myXML.setColumnNumberOfTimepoints(numRows);
+        }
+        myOutFile->setCiftiXML(myXML);
         OptionalParameter* fromGiftiReplace = fromGiftiExt->getOptionalParameter(1);
         float* inputArray = dataArrayRef->getDataPointerFloat();
         if (fromGiftiReplace->m_present)
         {
             AString replaceFileName = fromGiftiReplace->getString(1);
             QFile replaceFile(replaceFileName);
-            if (replaceFile.size() != (int64_t)(sizeof(float) * rowSize * colSize))
+            if (replaceFile.size() != (int64_t)(sizeof(float) * numCols * numRows))
             {
-                throw OperationException("replacement file is the wrong size, size is " + AString::number(replaceFile.size()) + ", needed " + AString::number(sizeof(float) * rowSize * colSize));
+                throw OperationException("replacement file is the wrong size, size is " + AString::number(replaceFile.size()) + ", needed " + AString::number(sizeof(float) * numCols * numRows));
             }
             if (!replaceFile.open(QIODevice::ReadOnly))
             {
@@ -163,11 +161,11 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
             }
             OptionalParameter* swapBytes = fromGiftiReplace->getOptionalParameter(2);
             OptionalParameter* transpose = fromGiftiReplace->getOptionalParameter(3);
-            int64_t readSize = rowSize, numReads = colSize;
+            int64_t readSize = numCols, numReads = numRows;
             if (transpose->m_present)
             {
-                readSize = colSize;
-                numReads = rowSize;
+                readSize = numRows;
+                numReads = numCols;
             }
             CaretArray<float> myScratch(readSize);
             for (int i = 0; i < numReads; ++i)
@@ -192,16 +190,16 @@ void OperationCiftiConvert::useParameters(OperationParameters* myParams, Progres
                     }
                     if (transpose->m_present)
                     {
-                        inputArray[i + j * rowSize] = tempVal;
+                        inputArray[i + j * numCols] = tempVal;
                     } else {
-                        inputArray[i * rowSize + j] = tempVal;
+                        inputArray[i * numCols + j] = tempVal;
                     }
                 }
             }
         }
-        for (int i = 0; i < colSize; ++i)
+        for (int i = 0; i < numRows; ++i)
         {
-            myOutFile->setRow(inputArray + (i * rowSize), i);
+            myOutFile->setRow(inputArray + (i * numCols), i);
         }
     }
 }
