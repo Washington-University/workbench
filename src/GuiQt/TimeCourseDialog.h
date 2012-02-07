@@ -66,9 +66,7 @@ public:
     void updateDialog(bool forceUpdate = false);
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
-
-    public slots:
-        void test() { printf("woohooh\n"); }
+    void setTimeSeriesGraphEnabled(bool enabled);
 
 private slots:
     void on_TDClose_clicked();
@@ -85,8 +83,6 @@ private slots:
 
     void on_TDShowAverage_toggled(bool checked);
 
-
-
     void on_TDKeepLast_valueChanged(int arg1);
 
     void on_zoomXCheckBox_toggled(bool checked);
@@ -94,8 +90,6 @@ private slots:
     void on_zoomYCheckBox_toggled(bool checked);    
 
     void on_lineWidthSpinBox_valueChanged(int arg1);
-
-
 
     void on_autoFitTimeLinesCheckBox_toggled(bool checked);
 
@@ -106,6 +100,7 @@ private:
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
     AString filename;
+    bool isEnabled;
 
 };
 

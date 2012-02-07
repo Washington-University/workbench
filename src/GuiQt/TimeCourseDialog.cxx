@@ -53,6 +53,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     this->setWindowFlags(windowFlags() | Qt::CustomizeWindowHint | Qt::WindowMinimizeButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowCloseButtonHint);
 #endif
     this->plot = new caret::PlotTC();
+    isEnabled = true;
 
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
@@ -80,6 +81,7 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
 void TimeCourseDialog::updateDialog(bool forceUpdate)
 {
     if(tlV.isEmpty() && !forceUpdate) return;
+    if(!this->isEnabled) return;
     if(!(this->filename.length())) 
     {   
         this->filename = tlV[0].filename;
@@ -138,6 +140,10 @@ void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
     this->updateDialog();
 }
 
+void TimeCourseDialog::setTimeSeriesGraphEnabled(bool enabled)
+{
+    this->isEnabled = enabled;
+}
 
 
 

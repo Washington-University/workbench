@@ -741,6 +741,7 @@ ConnectivityLoaderControl::showTimeGraphCheckBoxesStateChanged(int /*state*/)
         ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
         if (clf->isDenseTimeSeries()) {
             clf->setTimeSeriesGraphEnabled(this->showTimeGraphCheckBoxes[i]->isChecked());
+            GuiManager::get()->getTimeCourseDialog((void *)clf)->setTimeSeriesGraphEnabled(this->showTimeGraphCheckBoxes[i]->isChecked());
         }
     }
     this->updateOtherConnectivityLoaderControls();
