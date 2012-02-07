@@ -80,12 +80,21 @@ namespace caret {
         ColorEditorWidget& operator=(const ColorEditorWidget&);
         
     private:
+        void updateColorSwatch();
+        
         WuQWidgetObjectGroup* controlsWidgetGroup;
+        
+        QWidget* colorSwatchWidget;
         
         QSpinBox* redSpinBox;
         QSpinBox* greenSpinBox;
         QSpinBox* blueSpinBox;
         QSpinBox* alphaSpinBox;
+        
+        QSlider* redSlider;
+        QSlider* greenSlider;
+        QSlider* blueSlider;
+        QSlider* alphaSlider;
         
     };
     

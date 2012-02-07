@@ -301,7 +301,7 @@ GiftiLabelTableEditor::setWidgetItemIconColor(QListWidgetItem* item,
     color.setGreenF(rgba[1]);
     color.setBlueF(rgba[2]);
     color.setAlphaF(1.0);
-    QPixmap pixmap(12, 12);
+    QPixmap pixmap(14, 14);
     pixmap.fill(color);
     QIcon colorIcon(pixmap);
     

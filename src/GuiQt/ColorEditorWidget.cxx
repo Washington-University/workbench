@@ -36,6 +36,8 @@
 
 #include <QGridLayout>
 #include <QLabel>
+#include <QPalette>
+#include <QSlider>
 #include <QSpinBox>
 
 #define __COLOR_EDITOR_WIDGET_DECLARE__
@@ -60,12 +62,20 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
                                      QWidget* parent)
 : QWidget(parent)
 {
+    this->colorSwatchWidget = new QWidget();
+    this->colorSwatchWidget->setFixedHeight(25);
     
     QLabel* redLabel = new QLabel("Red");
     this->redSpinBox = new QSpinBox();
     this->redSpinBox->setRange(0, 255);
     this->redSpinBox->setSingleStep(1);
     QObject::connect(this->redSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(redValueChanged(int)));
+    
+    this->redSlider = new QSlider();
+    this->redSlider->setRange(0, 255);
+    this->redSlider->setOrientation(Qt::Horizontal);
+    QObject::connect(this->redSlider, SIGNAL(valueChanged(int)),
                      this, SLOT(redValueChanged(int)));
     
     QLabel* greenLabel = new QLabel("Green");
@@ -75,11 +85,23 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
     QObject::connect(this->greenSpinBox, SIGNAL(valueChanged(int)),
                      this, SLOT(greenValueChanged(int)));
     
+    this->greenSlider = new QSlider();
+    this->greenSlider->setRange(0, 255);
+    this->greenSlider->setOrientation(Qt::Horizontal);
+    QObject::connect(this->greenSlider, SIGNAL(valueChanged(int)),
+                     this, SLOT(greenValueChanged(int)));
+    
     QLabel* blueLabel = new QLabel("Blue");
     this->blueSpinBox = new QSpinBox();
     this->blueSpinBox->setRange(0, 255);
     this->blueSpinBox->setSingleStep(1);
     QObject::connect(this->blueSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(blueValueChanged(int)));
+    
+    this->blueSlider = new QSlider();
+    this->blueSlider->setRange(0, 255);
+    this->blueSlider->setOrientation(Qt::Horizontal);
+    QObject::connect(this->blueSlider, SIGNAL(valueChanged(int)),
                      this, SLOT(blueValueChanged(int)));
     
     QLabel* alphaLabel = NULL;
@@ -91,35 +113,54 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
         this->alphaSpinBox->setSingleStep(1);
         QObject::connect(this->alphaSpinBox, SIGNAL(valueChanged(int)),
                          this, SLOT(alphaValueChanged(int)));
+        
+        this->alphaSlider = new QSlider();
+        this->alphaSlider->setRange(0, 255);
+        this->alphaSlider->setOrientation(Qt::Horizontal);
+        QObject::connect(this->alphaSlider, SIGNAL(valueChanged(int)),
+                         this, SLOT(alphaValueChanged(int)));
+        
     }
     
     int columnCount = 0;
-    const int COLUMN_NAME = columnCount++;
+    const int COLUMN_NAME     = columnCount++;
+    const int COLUMN_SLIDER  = columnCount++;
     const int COLUMN_SPINBOX = columnCount++;
+    const int COLUMN_LAST    = columnCount;
     
     int row = 0;
     QGridLayout* gridLayout = new QGridLayout(this);
+    gridLayout->addWidget(this->colorSwatchWidget, row, 0, 1, COLUMN_LAST);
+    row++;
     gridLayout->addWidget(redLabel, row, COLUMN_NAME);
+    gridLayout->addWidget(this->redSlider, row, COLUMN_SLIDER);
     gridLayout->addWidget(this->redSpinBox, row, COLUMN_SPINBOX);
     row++;
     gridLayout->addWidget(greenLabel, row, COLUMN_NAME);
+    gridLayout->addWidget(this->greenSlider, row, COLUMN_SLIDER);
     gridLayout->addWidget(this->greenSpinBox, row, COLUMN_SPINBOX);
     row++;
     gridLayout->addWidget(blueLabel, row, COLUMN_NAME);
+    gridLayout->addWidget(this->blueSlider, row, COLUMN_SLIDER);
     gridLayout->addWidget(this->blueSpinBox, row, COLUMN_SPINBOX);
     row++;
     if (this->alphaSpinBox != NULL) {
         gridLayout->addWidget(alphaLabel, row, COLUMN_NAME);
+        gridLayout->addWidget(this->alphaSlider, row, COLUMN_SLIDER);
         gridLayout->addWidget(this->alphaSpinBox, row, COLUMN_SPINBOX);
         row++;
     }
     
     this->controlsWidgetGroup = new WuQWidgetObjectGroup(this);
     this->controlsWidgetGroup->add(this->redSpinBox);
+    this->controlsWidgetGroup->add(this->redSlider);
     this->controlsWidgetGroup->add(this->greenSpinBox);
+    this->controlsWidgetGroup->add(this->greenSlider);
     this->controlsWidgetGroup->add(this->blueSpinBox);
+    this->controlsWidgetGroup->add(this->blueSlider);
     if (this->alphaSpinBox != NULL) {
         this->controlsWidgetGroup->add(this->alphaSpinBox);
+        this->controlsWidgetGroup->add(this->alphaSlider);
     }
 }
 
@@ -180,12 +221,20 @@ ColorEditorWidget::setColor(const int rgba[4])
     this->controlsWidgetGroup->blockAllSignals(true);
     
     this->redSpinBox->setValue(rgba[0]);
+    this->redSlider->setValue(rgba[0]);
+    
     this->greenSpinBox->setValue(rgba[1]);
+    this->greenSlider->setValue(rgba[1]);
+    
     this->blueSpinBox->setValue(rgba[2]);
+    this->blueSlider->setValue(rgba[2]);
+    
     if (this->alphaSpinBox != NULL) {
         this->alphaSpinBox->setValue(rgba[3]);
+        this->alphaSlider->setValue(rgba[3]);
     }
     
+    this->updateColorSwatch();
     this->controlsWidgetGroup->blockAllSignals(false);
 }
 
@@ -215,7 +264,11 @@ ColorEditorWidget::getColor(int rgba[4]) const
 void 
 ColorEditorWidget::redValueChanged(int value)
 {
+    this->controlsWidgetGroup->blockAllSignals(true);
+    this->redSlider->setValue(value);
+    this->redSpinBox->setValue(value);
     this->emitColorChangedSignal();
+    this->controlsWidgetGroup->blockAllSignals(false);
 }
 
 /**
@@ -224,7 +277,11 @@ ColorEditorWidget::redValueChanged(int value)
 void 
 ColorEditorWidget::greenValueChanged(int value)
 {
+    this->controlsWidgetGroup->blockAllSignals(true);
+    this->greenSlider->setValue(value);
+    this->greenSpinBox->setValue(value);
     this->emitColorChangedSignal();
+    this->controlsWidgetGroup->blockAllSignals(false);
 }
 
 /**
@@ -233,7 +290,11 @@ ColorEditorWidget::greenValueChanged(int value)
 void 
 ColorEditorWidget::blueValueChanged(int value)
 {
+    this->controlsWidgetGroup->blockAllSignals(true);
+    this->blueSlider->setValue(value);
+    this->blueSpinBox->setValue(value);
     this->emitColorChangedSignal();
+    this->controlsWidgetGroup->blockAllSignals(false);
 }
 
 /**
@@ -242,8 +303,26 @@ ColorEditorWidget::blueValueChanged(int value)
 void 
 ColorEditorWidget::alphaValueChanged(int value)
 {
+    this->controlsWidgetGroup->blockAllSignals(true);
+    this->alphaSlider->setValue(value);
+    this->alphaSpinBox->setValue(value);
     this->emitColorChangedSignal();
+    this->controlsWidgetGroup->blockAllSignals(false);
 }
+
+void 
+ColorEditorWidget::updateColorSwatch()
+{
+    int rgb[4];
+    this->getColor(rgb);
+    
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor(rgb[0], rgb[1], rgb[2]));
+    this->colorSwatchWidget->setAutoFillBackground(true);
+    this->colorSwatchWidget->setBackgroundRole(QPalette::Window);
+    this->colorSwatchWidget->setPalette(pal);    
+}
+
 
 /**
  * Call to emit the color changed signals.
@@ -251,6 +330,8 @@ ColorEditorWidget::alphaValueChanged(int value)
 void 
 ColorEditorWidget::emitColorChangedSignal()
 {
+    this->updateColorSwatch();
+    
     float rgba[4];
     this->getColor(rgba);
     emit colorChanged(rgba);
