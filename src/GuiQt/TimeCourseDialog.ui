@@ -384,11 +384,7 @@
  </customwidgets>
  <resources/>
  <connections>
-  <connection>
-   <sender>TDClose</sender>
-   <signal>clicked()</signal>
-   <receiver>TimeCourseDialog</receiver>
-   <slot>test()</slot>
+  <connection>   
    <hints>
     <hint type="sourcelabel">
      <x>339</x>
@@ -401,7 +397,6 @@
    </hints>
   </connection>
  </connections>
- <slots>
-  <slot>test()</slot>
+ <slots>  
  </slots>
 </ui>
