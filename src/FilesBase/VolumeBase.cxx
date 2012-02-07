@@ -37,7 +37,7 @@
 using namespace caret;
 using namespace std;
 
-void VolumeBase::reinitialize(const vector< uint64_t >& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
 {
     vector<int64_t> dimensionCast;
     int32_t dimSize = (int32_t)dimensionsIn.size();
@@ -484,6 +484,7 @@ void VolumeBase::setFrame(const float* frameIn, const int64_t brickIndex, const 
         m_data[myIndex] = frameIn[inIndex];
         ++inIndex;
     }
+    setModified();
 }
 
 void 
