@@ -192,7 +192,7 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
     m_matrix.setup(dim, vox_offset, this->m_caching, this->m_swapNeeded);
 }
 
-/**
+/*
  *
  * setup the Cifti Matrix
  * @param dimensions the dimensions of the cifti matrix
@@ -200,10 +200,10 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
  * @param e the caching type of the matrix (ON_DISK or IN_MEMORY)
  * @param needsSwapping the byte order of the matrix (native or swapped)
  */
-void CiftiFile::setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn, const CacheEnum &e, const bool &needsSwapping) throw (CiftiFileException)
+/*void CiftiFile::setupMatrix(vector<int64_t> &dimensions, const int64_t &offsetIn, const CacheEnum &e, const bool &needsSwapping) throw (CiftiFileException)
 {
     m_matrix.setup(dimensions, offsetIn, e, needsSwapping);
-}
+}//*/
 
 /** 
  *

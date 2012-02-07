@@ -44,13 +44,14 @@ OperationParameters* OperationCiftiChangeTimestep::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "cifti", "the cifti file to modify");
-    OptionalParameter* columnTimestep = ret->createOptionalParameter(2, "-column-timestep", "set the column timestep");
-    columnTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
-    OptionalParameter* rowTimestep = ret->createOptionalParameter(3, "-row-timestep", "set the row timestep");
+    OptionalParameter* rowTimestep = ret->createOptionalParameter(2, "-row-timestep", "set the row timestep");
     rowTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
+    OptionalParameter* columnTimestep = ret->createOptionalParameter(3, "-column-timestep", "set the column timestep");
+    columnTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
     ret->setHelpText(
         AString("Warns if a dimension specified is not timepoints, otherwise modifies the timestep, and finally writes the result to ") +
-        "the same filename if any dimensions were modified."
+        "the same filename if any dimensions were modified.\nNOTE: you probably want -row-timestep, as that matches the .dtseries.nii specification.  " +
+        "The other option is available just for completeness."
     );
     return ret;
 }
@@ -59,8 +60,8 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
 {
     LevelProgress myProgress(myProgObj);
     AString ciftiName = myParams->getString(1);
-    OptionalParameter* columnTimestep = myParams->getOptionalParameter(2);
-    OptionalParameter* rowTimestep = myParams->getOptionalParameter(3);
+    OptionalParameter* rowTimestep = myParams->getOptionalParameter(2);
+    OptionalParameter* columnTimestep = myParams->getOptionalParameter(3);
     if (!columnTimestep->m_present && !rowTimestep->m_present)
     {
         return;
@@ -68,16 +69,6 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
     CiftiFile myCifti;
     myCifti.openFile(ciftiName);
     bool modified = false;
-    if (columnTimestep->m_present)
-    {
-        float step = (float)columnTimestep->getDouble(1);
-        if (myCifti.setColumnTimestep(step))
-        {
-            modified = true;
-        } else {
-            CaretLogWarning("could not set column timestep");
-        }
-    }
     if (rowTimestep->m_present)
     {
         float step = (float)rowTimestep->getDouble(1);
@@ -86,6 +77,16 @@ void OperationCiftiChangeTimestep::useParameters(OperationParameters* myParams, 
             modified = true;
         } else {
             CaretLogWarning("could not set row timestep");
+        }
+    }
+    if (columnTimestep->m_present)
+    {
+        float step = (float)columnTimestep->getDouble(1);
+        if (myCifti.setColumnTimestep(step))
+        {
+            modified = true;
+        } else {
+            CaretLogWarning("could not set column timestep");
         }
     }
     if (modified)
