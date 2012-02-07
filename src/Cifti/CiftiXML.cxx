@@ -715,6 +715,7 @@ void CiftiXML::resetColumnsToBrainModels()
     }
     m_colMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
     m_colMap->m_brainModels.clear();
+    m_colVoxels = 0;
 }
 
 void CiftiXML::resetRowsToBrainModels()
@@ -727,6 +728,7 @@ void CiftiXML::resetRowsToBrainModels()
     }
     m_rowMap->m_indicesMapToDataType = CIFTI_INDEX_TYPE_BRAIN_MODELS;
     m_rowMap->m_brainModels.clear();
+    m_rowVoxels = 0;
 }
 
 void CiftiXML::resetColumnsToTimepoints(const float& timestep, const int& timepoints)
