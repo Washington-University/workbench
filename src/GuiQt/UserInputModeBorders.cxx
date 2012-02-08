@@ -23,12 +23,15 @@
  * 
  */ 
 
+#include <memory.h>
+
 #define __USER_INPUT_MODE_BORDERS_DECLARE__
 #include "UserInputModeBorders.h"
 #undef __USER_INPUT_MODE_BORDERS_DECLARE__
 
 #include "Border.h"
 #include "BorderFile.h"
+#include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGLWidget.h"
@@ -226,8 +229,16 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                             openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
                             IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                             if (idBorder->isValid()) {
+                                BorderFile* borderFile = idBorder->getBorderFile();
                                 Border* border = idBorder->getBorder();
                                 mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                std::auto_ptr<BorderPropertiesEditorDialog> editBorderDialog(
+                                            BorderPropertiesEditorDialog::newInstanceEditBorder(borderFile,
+                                                                                                border,
+                                                                                                openGLWidget));
+                                if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
+                                    mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                }
                             }
                         }
                         break;

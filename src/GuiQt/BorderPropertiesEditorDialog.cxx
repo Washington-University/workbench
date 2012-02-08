@@ -62,17 +62,92 @@ using namespace caret;
  * set the type of border (open/closed), and
  * possibly other attributes of the border.
  */
+
+/**
+ * Create a new instance of the border properties editor for finishing
+ * a border using a drawing mode.
+ *
+ * @param border
+ *    Border that was drawn.
+ * @param parent
+ *    Parent on which this dialog is shown.
+ * @return
+ *    Dialog that will finish the border.
+ *    Users MUST DELETE the returned dialog.
+ */
+BorderPropertiesEditorDialog*
+BorderPropertiesEditorDialog::newInstanceFinishBorder(Border* border,
+                                                      QWidget* parent)
+{
+    BorderPropertiesEditorDialog* dialog =
+    new BorderPropertiesEditorDialog("Finish Border",
+                                     BorderPropertiesEditorDialog::MODE_FINISH_DRAWING,
+                                     NULL,
+                                     border,
+                                     parent);
+    return dialog;
+}
+
+/**
+ * Create a new instance of the border properties editor for editing
+ * a border properties.
+ *
+ * @param editModeBorderFile
+ *    Border file containing the border that is being edited.
+ * @param border
+ *    Border that is to be edited.
+ * @param parent
+ *    Parent on which this dialog is shown.
+ * @return
+ *    Dialog that will finish the border.
+ *    Users MUST DELETE the returned dialog.
+ */
+BorderPropertiesEditorDialog*
+BorderPropertiesEditorDialog::newInstanceEditBorder(BorderFile* editModeBorderFile,
+                                                    Border* border,
+                                                    QWidget* parent)
+{
+    BorderPropertiesEditorDialog* dialog =
+    new BorderPropertiesEditorDialog("Edit Border Properties",
+                                     BorderPropertiesEditorDialog::MODE_EDIT,
+                                     editModeBorderFile,
+                                     border,
+                                     parent);
+    return dialog;
+}
+
 /**
  * Constructor.
  */
-BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(Border* border,
-                                               QWidget* parent)
-: WuQDialogModal("Finish Border",
+BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
+                                                           Mode mode,
+                                                           BorderFile* editModeBorderFile,
+                                                           Border* border,
+                                                           QWidget* parent)
+: WuQDialogModal(title,
                  parent)
 {
     CaretAssert(border);
+    this->editModeBorderFile = editModeBorderFile;
+    this->mode   = mode;
     this->border = border;
     this->classNameComboBox = NULL;
+    
+    QString borderName = "";
+    CaretColorEnum::Enum borderColor = CaretColorEnum::BLACK;
+    QString className = "";
+    switch (this->mode) {
+        case MODE_EDIT:
+            borderName = border->getName();
+            borderColor = border->getColor();
+            className = border->getClassName();
+            break;
+        case MODE_FINISH_DRAWING:
+            borderName = BorderPropertiesEditorDialog::previousName;
+            borderColor = BorderPropertiesEditorDialog::previousCaretColor;
+            className = BorderPropertiesEditorDialog::previousClassName;
+            break;
+    }
     
     /*
      * File selection combo box
@@ -91,14 +166,14 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(Border* border,
      */
     QLabel* nameLabel = new QLabel("Name");
     this->nameLineEdit = new QLineEdit();
-    this->nameLineEdit->setText(BorderPropertiesEditorDialog::previousName);
+    this->nameLineEdit->setText(borderName);
     
     /*
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
     this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_CLASS);
-    this->colorSelectionControl->setSelectedColor(CaretColorEnum::CLASS);
+    this->colorSelectionControl->setSelectedColor(borderColor);
     WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionControl->getWidget(), 
                                           "If the color is set to \"CLASS\", the border is colored\n"
                                           "using the color associated with the border's class.\n"
@@ -121,7 +196,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(Border* border,
                                                                     SLOT(displayClassEditor()));
     QToolButton* displayClassEditorToolButton = new QToolButton();
     displayClassEditorToolButton->setDefaultAction(displayClassEditorAction);
-    this->loadClassNameComboBox();
+    this->loadClassNameComboBox(className);
     
     /*
      * Open/Closed
@@ -140,6 +215,14 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(Border* border,
     else {
         this->closedCheckBox->setChecked(false);
     }
+    
+    /*
+     * Reverse point order
+     */
+    this->reversePointOrderCheckBox = new QCheckBox("Reverse Point Order");
+    WuQtUtilities::setToolTipAndStatusTip(this->reversePointOrderCheckBox, 
+                                          "If checked, the order of the points in the \n"
+                                          "border are reversed when the OK button is pressed.");
     
     /*
      * Layout widgets
@@ -163,6 +246,29 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(Border* border,
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 3, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(this->closedCheckBox, row, 0, 1, 3, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(this->reversePointOrderCheckBox, row, 0, 1, 3, Qt::AlignLeft);
+    
+    /*
+     * Show/Hide options based upon mode
+     */
+    bool showFileOptionFlag   = false;
+    bool showClosedOptionFlag = false;
+    bool showReverseOptionFlag = false;
+    switch (this->mode) {
+        case MODE_EDIT:
+            showReverseOptionFlag = true;
+            break;
+        case MODE_FINISH_DRAWING:
+            showFileOptionFlag = true;
+            showClosedOptionFlag = true;
+            break;
+    }
+    
+    borderFileLabel->setVisible(showClosedOptionFlag);
+    this->borderFileSelectionComboBox->setVisible(showFileOptionFlag);
+    this->closedCheckBox->setVisible(showClosedOptionFlag);
+    this->reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
     
     /*
      * Set the widget for the dialog.
@@ -189,6 +295,9 @@ BorderPropertiesEditorDialog::~BorderPropertiesEditorDialog()
 BorderFile* 
 BorderPropertiesEditorDialog::getSelectedBorderFile(bool createIfNoValidBorderFiles)
 {
+    if (this->editModeBorderFile != NULL) {
+        return this->editModeBorderFile;
+    }
     const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
     void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
     BorderFile* borderFile = (BorderFile*)filePointer;
@@ -244,9 +353,12 @@ BorderPropertiesEditorDialog::borderFileSelected()
  * Load the class name combo box.
  */
 void 
-BorderPropertiesEditorDialog::loadClassNameComboBox()
+BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
 {
     AString selectedClassName = this->classNameComboBox->currentText();
+    if (className.isEmpty() == false) {
+        selectedClassName = className;
+    }
     if (selectedClassName.isEmpty()) {
         selectedClassName = BorderPropertiesEditorDialog::previousClassName;
     }
@@ -312,30 +424,48 @@ BorderPropertiesEditorDialog::okButtonPressed()
      */
     BorderFile* borderFile = this->getSelectedBorderFile(true);
     
+    Border* borderBeingEdited = NULL;
+    bool finishModeFlag = false;
+    switch (this->mode) {
+        case MODE_EDIT:
+            borderBeingEdited = this->border;
+            break;
+        case MODE_FINISH_DRAWING:
+            borderBeingEdited = new Border(*this->border);
+            finishModeFlag = true;
+            break;
+    }
+    
     /*
      * Make a copy of the border being drawn
      */
-    Border* borderBeingCreated = new Border(*this->border);
-    borderBeingCreated->setName(name);
-    borderBeingCreated->setClassName(className);
-    borderBeingCreated->setColor(color);
+    borderBeingEdited->setName(name);
+    borderBeingEdited->setClassName(className);
+    borderBeingEdited->setColor(color);
     
-    /*
-     * Add border to border file
-     */
-    CaretAssert(borderFile);
-    borderFile->addBorder(borderBeingCreated);
-    
-    /*
-     * Save values entered by the user and
-     * use them to initialize the dialog next
-     * time it is displayed.
-     */
-    BorderPropertiesEditorDialog::previousName = name;
-    BorderPropertiesEditorDialog::previousClassName = className;
-    BorderPropertiesEditorDialog::previousClosedSelected = this->closedCheckBox->isChecked();
-    BorderPropertiesEditorDialog::previousBorderFile = borderFile;
-    BorderPropertiesEditorDialog::previousCaretColor = color;
+    if (finishModeFlag) {
+        /*
+         * Add border to border file
+         */
+        CaretAssert(borderFile);
+        borderFile->addBorder(borderBeingEdited);
+        
+        /*
+         * Save values entered by the user and
+         * use them to initialize the dialog next
+         * time it is displayed.
+         */
+        BorderPropertiesEditorDialog::previousName = name;
+        BorderPropertiesEditorDialog::previousClassName = className;
+        BorderPropertiesEditorDialog::previousClosedSelected = this->closedCheckBox->isChecked();
+        BorderPropertiesEditorDialog::previousBorderFile = borderFile;
+        BorderPropertiesEditorDialog::previousCaretColor = color;
+    }
+    else {
+        if (this->reversePointOrderCheckBox->isChecked()) {
+            this->border->reverse();
+        }
+    }
     
     /*
      * continue with OK button processing
@@ -369,5 +499,6 @@ BorderPropertiesEditorDialog::displayClassEditor()
         }
     }
 }
+
 
 

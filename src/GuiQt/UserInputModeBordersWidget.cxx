@@ -23,6 +23,8 @@
  * 
  */ 
 
+#include <memory.h>
+
 #include <QAction>
 #include <QActionGroup>
 #include <QBoxLayout>
@@ -38,10 +40,10 @@
 #undef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__
 
 #include "Border.h"
+#include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrowserTabContent.h"
-#include "BorderDrawFinishDialog.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -410,9 +412,10 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
         {
-            BorderDrawFinishDialog finishBorderDialog(this->inputModeBorders->borderBeingDrawnByOpenGL,
-                                                      this);
-            if (finishBorderDialog.exec() == BorderDrawFinishDialog::Accepted) {
+            std::auto_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
+                    BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawnByOpenGL,
+                                                                  this));
+            if (finishBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
                 this->inputModeBorders->drawOperationFinish();
             }
         }

@@ -44,8 +44,14 @@ namespace caret {
         Q_OBJECT
         
     public:
-        BorderPropertiesEditorDialog(Border* border,
-                               QWidget* parent = 0);
+        static BorderPropertiesEditorDialog*
+            newInstanceFinishBorder(Border* border,
+                                    QWidget* parent = 0);
+        
+        static BorderPropertiesEditorDialog*
+            newInstanceEditBorder(BorderFile* editModeBorderFile,
+                                  Border* border,
+                                  QWidget* parent = 0);
         
         virtual ~BorderPropertiesEditorDialog();
         
@@ -58,6 +64,17 @@ namespace caret {
         void borderFileSelected();
         
     private:
+        enum Mode {
+            MODE_EDIT,
+            MODE_FINISH_DRAWING
+        };
+        
+        BorderPropertiesEditorDialog(const QString& title,
+                                     const Mode mode,
+                                     BorderFile* editModeBorderFile,
+                                     Border* border,
+                                     QWidget* parent = 0);
+        
         BorderPropertiesEditorDialog(const BorderPropertiesEditorDialog&);
 
         BorderPropertiesEditorDialog& operator=(const BorderPropertiesEditorDialog&);
@@ -66,8 +83,11 @@ namespace caret {
         
         void loadBorderFileComboBox();
         
-        void loadClassNameComboBox();
+        void loadClassNameComboBox(const QString& className = "");
         
+        Mode mode;
+        
+        BorderFile* editModeBorderFile;
         Border* border;
         
         QComboBox* borderFileSelectionComboBox;
@@ -78,6 +98,8 @@ namespace caret {
         
         QComboBox* classNameComboBox;
 
+        QCheckBox* reversePointOrderCheckBox;
+        
         CaretColorEnumSelectionControl* colorSelectionControl;
         
         static AString previousName;
