@@ -1379,10 +1379,10 @@ ConnectivityLoaderFile::getConnectivityVolumeFile()
         case LOADER_TYPE_INVALID:
             break;
         case LOADER_TYPE_DENSE:
-            useColumnsFlag = true;
+            useRowsFlag = true;
             break;
         case LOADER_TYPE_DENSE_TIME_SERIES:
-            useRowsFlag = true;
+            useColumnsFlag = true;
             break;
     }
     

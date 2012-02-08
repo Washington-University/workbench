@@ -44,9 +44,9 @@ OperationParameters* OperationCiftiChangeTimestep::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addStringParameter(1, "cifti", "the cifti file to modify");
-    OptionalParameter* rowTimestep = ret->createOptionalParameter(2, "-row-timestep", "set the row timestep");
+    OptionalParameter* rowTimestep = ret->createOptionalParameter(2, "-row-timestep", "set the timestep along rows");
     rowTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
-    OptionalParameter* columnTimestep = ret->createOptionalParameter(3, "-column-timestep", "set the column timestep");
+    OptionalParameter* columnTimestep = ret->createOptionalParameter(3, "-column-timestep", "set the timestep along columns");
     columnTimestep->addDoubleParameter(1, "seconds", "seconds per timestep");
     ret->setHelpText(
         AString("Warns if a dimension specified is not timepoints, otherwise modifies the timestep, and finally writes the result to ") +
