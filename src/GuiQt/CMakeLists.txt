@@ -26,6 +26,7 @@ INCLUDE(${QT_USE_FILE})
 #
 SET(MOC_INPUT_HEADER_FILES
 BorderDrawFinishDialog.h
+BorderPropertiesEditorDialog.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowToolBar.h
@@ -77,6 +78,7 @@ WuQWidgetObjectGroup.h
 #
 SET(SOURCE_FILES
 BorderDrawFinishDialog.h
+BorderPropertiesEditorDialog.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowScreenModeEnum.h
@@ -138,6 +140,7 @@ WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 BorderDrawFinishDialog.cxx
+BorderPropertiesEditorDialog.cxx
 BrainBrowserSelectionToolBox.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
