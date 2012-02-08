@@ -38,6 +38,7 @@
 
 #include <QAction>
 #include <QInputDialog>
+#include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
@@ -111,11 +112,16 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     /*
      * Label name line edit
      */
+    QLabel* nameLabel = new QLabel("Name: ");
     this->labelNameLineEdit = new QLineEdit();
     QObject::connect(this->labelNameLineEdit, SIGNAL(textEdited(const QString&)),
                      this, SLOT(labelNameLineEditTextEdited(const QString&)));
     WuQtUtilities::setToolTipAndStatusTip(this->labelNameLineEdit, 
                                           "Edit the name");
+    QHBoxLayout* nameLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutMargins(nameLayout, 2, 2, 2);
+    nameLayout->addWidget(nameLabel, 0);
+    nameLayout->addWidget(this->labelNameLineEdit, 100);
     
     /*
      * Layout for buttons
@@ -130,11 +136,11 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
      */
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 4, 2, 2);
     layout->addWidget(this->labelSelectionListWidget);
     layout->addLayout(buttonsLayout);
     layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
-    layout->addWidget(this->labelNameLineEdit);
+    layout->addLayout(nameLayout);
     layout->addWidget(this->colorEditorWidget);
     
     this->setCentralWidget(widget);
