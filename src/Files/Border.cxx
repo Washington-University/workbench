@@ -737,6 +737,7 @@ Border::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
     if (this->className.isEmpty() == false) {
         xmlWriter.writeElementCharacters(XML_TAG_CLASS_NAME, this->className);
     }
+    xmlWriter.writeElementCharacters(XML_TAG_COLOR_NAME, CaretColorEnum::toName(this->color));
     
     const int32_t numPoints = this->getNumberOfPoints();
     for (int32_t i = 0; i < numPoints; i++) {

@@ -87,10 +87,6 @@ namespace caret {
         
         const GiftiLabelTable* getClassNamesTable() const;
         
-        GiftiLabelTable* getColorTable();
-        
-        const GiftiLabelTable* getColorTable() const;
-        
         static float getFileVersion();
         
         static AString getFileVersionAsString();
@@ -118,9 +114,6 @@ namespace caret {
         static const float borderFileVersion;
         
         GiftiLabelTable* classNamesTable;
-        
-        GiftiLabelTable* colorTable;
-        
     };
     
 #ifdef __BORDER_FILE_DECLARE__

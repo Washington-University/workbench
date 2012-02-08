@@ -31,6 +31,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderFileSaxReader.h"
+#include "GiftiLabelTableSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectedItemSaxReader.h"
@@ -57,6 +58,7 @@ BorderFileSaxReader::BorderFileSaxReader(BorderFile* borderFile)
    this->stateStack.push(this->state);
    this->elementText = "";
    this->metaDataSaxReader = NULL;
+    this->classTableSaxReader = NULL;
     this->surfaceProjectedItemSaxReader = NULL;
     this->border = NULL;
     this->surfaceProjectedItem = NULL;
@@ -72,6 +74,9 @@ BorderFileSaxReader::~BorderFileSaxReader()
      */
     if (this->metaDataSaxReader != NULL) {
         delete this->metaDataSaxReader;
+    }
+    if (this->classTableSaxReader != NULL) {
+        delete this->classTableSaxReader;
     }
     if (this->surfaceProjectedItemSaxReader != NULL) {
         delete this->surfaceProjectedItemSaxReader;
@@ -128,7 +133,8 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
                this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }
            else if ((qName != Border::XML_TAG_NAME) 
-                    && (qName != Border::XML_TAG_CLASS_NAME)) {
+                    && (qName != Border::XML_TAG_CLASS_NAME)
+                    && (qName != Border::XML_TAG_COLOR_NAME)) {
                const AString msg = XmlUtilities::createInvalidChildElementMessage(Border::XML_TAG_BORDER, 
                                                                                   qName);
                XmlSaxParserException e(msg);
@@ -137,7 +143,12 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
            }
            break;
       case STATE_BORDER_FILE:
-         if (qName == GiftiXmlElements::TAG_METADATA) {
+         if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+             this->state = STATE_CLASSES;
+             this->classTableSaxReader = new GiftiLabelTableSaxReader(this->borderFile->getClassNamesTable());
+             this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+         }
+         else if (qName == GiftiXmlElements::TAG_METADATA) {
              this->state = STATE_METADATA;
              this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->borderFile->getFileMetaData());
              this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
@@ -157,6 +168,9 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_METADATA:
            this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
+      case STATE_CLASSES:
+           this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           break;
       case STATE_SURFACE_PROJECTED_ITEM:
            this->surfaceProjectedItemSaxReader->startElement(namespaceURI, localName, qName, attributes);
            break;
@@ -189,6 +203,9 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
            else if (qName == Border::XML_TAG_CLASS_NAME) {
                this->border->setClassName(this->elementText.trimmed());
            }
+           else if (qName == Border::XML_TAG_COLOR_NAME) {
+               this->border->setColor(CaretColorEnum::fromName(this->elementText.trimmed(), NULL));
+           }
            else if (qName == Border::XML_TAG_BORDER) {
                this->borderFile->addBorder(this->border);
                this->border = NULL;  // do not delete since added to border file
@@ -206,6 +223,14 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
                this->metaDataSaxReader = NULL;
            }
          break;
+      case STATE_CLASSES:
+           CaretAssert(this->classTableSaxReader);
+           this->classTableSaxReader->endElement(namespaceURI, localName, qName);
+           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+               delete this->classTableSaxReader;
+               this->classTableSaxReader = NULL;
+           }
+           break;
       case STATE_SURFACE_PROJECTED_ITEM:
            CaretAssert(this->surfaceProjectedItemSaxReader);
            this->surfaceProjectedItemSaxReader->endElement(namespaceURI, localName, qName);
@@ -241,6 +266,9 @@ BorderFileSaxReader::characters(const char* ch) throw (XmlSaxParserException)
 {
     if (this->metaDataSaxReader != NULL) {
         this->metaDataSaxReader->characters(ch);
+    }
+    else if (this->classTableSaxReader != NULL) {
+        this->classTableSaxReader->characters(ch);
     }
     else if (this->surfaceProjectedItemSaxReader != NULL) {
         this->surfaceProjectedItemSaxReader->characters(ch);

@@ -76,7 +76,6 @@ BorderFile::~BorderFile()
     this->borders.clear();
 
     delete this->classNamesTable;
-    delete this->colorTable;
 }
 
 /**
@@ -86,7 +85,6 @@ void
 BorderFile::initializeBorderFile()
 {
     this->classNamesTable = new GiftiLabelTable();
-    this->colorTable = new GiftiLabelTable();
     this->metadata = new GiftiMetaData();
 }
 
@@ -130,7 +128,6 @@ void
 BorderFile::copyHelperBorderFile(const BorderFile& obj)
 {
     *this->classNamesTable = *obj.classNamesTable;
-    *this->colorTable = *obj.colorTable;
     *this->metadata = *obj.metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
@@ -196,7 +193,6 @@ BorderFile::clear()
 {
     CaretDataFile::clear();
     this->classNamesTable->clear();
-    this->colorTable->clear();
     this->metadata->clear();
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
@@ -383,24 +379,6 @@ BorderFile::getClassNamesTable() const
 }
 
 /**
- * @return The color table.
- */
-GiftiLabelTable* 
-BorderFile::getColorTable()
-{
-    return this->colorTable;
-}
-
-/**
- * @return The color table.
- */
-const GiftiLabelTable* 
-BorderFile::getColorTable() const
-{
-    return this->colorTable;
-}
-
-/**
  * @return The version of the file as a number.
  */
 float 
@@ -523,7 +501,12 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         if (metadata != NULL) {
             metadata->writeAsXML(xmlWriter);
         }
-                
+            
+        //
+        // Write the classes
+        //
+        this->classNamesTable->writeAsXML(xmlWriter);
+        
         //
         // Write borders
         //
@@ -562,9 +545,6 @@ BorderFile::isModified() const
     if (this->classNamesTable->isModified()) {
         return true;
     }
-    if (this->colorTable->isModified()) {
-        return true;
-    }
     
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
@@ -586,7 +566,6 @@ BorderFile::clearModified()
     
     this->metadata->clearModified();
     this->classNamesTable->clearModified();
-    this->colorTable->clearModified();
     
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {

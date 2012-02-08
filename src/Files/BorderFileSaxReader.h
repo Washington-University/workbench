@@ -39,6 +39,7 @@ namespace caret {
 
     class Border;
     class BorderFile;
+    class GiftiLabelTableSaxReader;
     class GiftiMetaDataSaxReader;
     class SurfaceProjectedItem;
     class SurfaceProjectedItemSaxReader;
@@ -82,6 +83,8 @@ namespace caret {
             STATE_BORDER_FILE,
             /// processing MetaData tag
             STATE_METADATA,
+            /// processing Classes (GiftiLabelTable) tag
+            STATE_CLASSES,
             /// processing Border
             STATE_BORDER,
             /// processing SurfaceProjectedItem tag
@@ -113,7 +116,10 @@ namespace caret {
         AString elementText;
         
         /// GIFTI meta data sax reader
-        GiftiMetaDataSaxReader* metaDataSaxReader;        
+        GiftiMetaDataSaxReader* metaDataSaxReader;       
+        
+        /// GIFTI Label Table (Classes) SAX Reader;
+        GiftiLabelTableSaxReader* classTableSaxReader;
     };
 
 } // namespace

@@ -105,6 +105,7 @@ namespace caret {
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
+        static const AString XML_TAG_COLOR_NAME;
         
     private:
         void copyHelperBorder(const Border& obj);
@@ -121,6 +122,7 @@ namespace caret {
 #ifdef __BORDER_DECLARE__
     const AString Border::XML_TAG_BORDER = "Border";
     const AString Border::XML_TAG_CLASS_NAME   = "ClassName";
+    const AString Border::XML_TAG_COLOR_NAME   = "ColorName";
     const AString Border::XML_TAG_NAME   = "Name";
 #endif // __BORDER_DECLARE__
 
