@@ -1082,6 +1082,12 @@ void
 GiftiLabelTable::clearModified()
 {
     this->modifiedFlag = false;
+
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        iter->second->clearModified();
+    }
 }
 
 /**
