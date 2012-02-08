@@ -62,6 +62,8 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
@@ -1141,7 +1143,9 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 }
 
 /**
- * Draw a border on a surface.
+ * Draw a border on a surface.  The color must be set prior
+ * to calling this method.
+ *
  * @param surface
  *   Surface on which borders are drawn.
  * @param border
@@ -1186,9 +1190,6 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                                                    i);
                 glColor3ubv(idRGB);
             }
-            else {
-                glColor3fv(CaretColorEnum::toRGB(border->getColor()));
-            }
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
             this->drawSphere(1.5);
@@ -1227,17 +1228,34 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             break;
     }
     
-    
-    glColor3f(0.0, 0.0, 1.0);
-    
+
     Brain* brain = surface->getBrainStructure()->getBrain();
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
+
+        const GiftiLabelTable* classNameTable = borderFile->getClassNamesTable();
+
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
             Border* border = borderFile->getBorder(j);
+            const CaretColorEnum::Enum colorEnum = border->getColor();
+            if (colorEnum == CaretColorEnum::CLASS) {
+                const int32_t key = classNameTable->getLabelKeyFromName(border->getClassName());
+                const GiftiLabel* classLabel = classNameTable->getLabel(key);
+                if (classLabel != NULL) {
+                    float rgba[4];
+                    classLabel->getColor(rgba);
+                    glColor3fv(rgba);
+                }
+                else {
+                    glColor3f(0.0, 0.0, 0.0);
+                }
+            }
+            else {
+                glColor3fv(CaretColorEnum::toRGB(border->getColor()));
+            }
             this->drawBorder(surface, 
                              border,
                              i,
@@ -1287,7 +1305,6 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
     glColor3f(1.0, 0.0, 0.0);
     
     if (this->borderBeingDrawn != NULL) {
-        this->borderBeingDrawn->setColor(CaretColorEnum::RED);
         this->drawBorder(surface, 
                          this->borderBeingDrawn,
                          -1,
