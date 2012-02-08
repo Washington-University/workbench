@@ -72,6 +72,7 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
 {
     CaretAssert(border);
     this->border = border;
+    this->classNameComboBox = NULL;
     
     /*
      * File selection combo box
@@ -79,6 +80,11 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     QLabel* borderFileLabel = new QLabel("Border File");
     this->borderFileSelectionComboBox = new QComboBox();
     this->loadBorderFileComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->borderFileSelectionComboBox, 
+                                          "Selects a new or existing border file\n"
+                                          "to which new borders are added.");
+    QObject::connect(this->borderFileSelectionComboBox, SIGNAL(activated(int)),
+                     this, SLOT(borderFileSelected()));
     
     /*
      * Name
@@ -93,12 +99,21 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
     QLabel* colorLabel = new QLabel("Color");
     this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_CLASS);
     this->colorSelectionControl->setSelectedColor(CaretColorEnum::CLASS);
+    WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionControl->getWidget(), 
+                                          "If the color is set to \"CLASS\", the border is colored\n"
+                                          "using the color associated with the border's class.\n"
+                                          "Otherwise, if a color name is selected, it is used\n"
+                                          "to color the border.");
 
     /*
      * Class
      */
     QLabel* classLabel = new QLabel("Class");
     this->classNameComboBox = new QComboBox();
+    WuQtUtilities::setToolTipAndStatusTip(this->classNameComboBox, 
+                                          "The class is used to group borders with similar\n"
+                                          "characteristics.  Controls are available to\n"
+                                          "display borders by their class attributes.");
     QAction* displayClassEditorAction = WuQtUtilities::createAction("Edit...", 
                                                                     "Add and/or edit classes", 
                                                                     this, 
@@ -112,6 +127,10 @@ BorderDrawFinishDialog::BorderDrawFinishDialog(Border* border,
      * Open/Closed
      */
     this->closedCheckBox = new QCheckBox("Closed Border");
+    WuQtUtilities::setToolTipAndStatusTip(this->closedCheckBox, 
+                                          "If checked, additional points will be added\n"
+                                          "to the border so that the border forms a loop\n"
+                                          "with the last point adjacent to the first point.");
     
     QButtonGroup* openClosedButtonGroup = new QButtonGroup(this);
     openClosedButtonGroup->addButton(this->closedCheckBox);
@@ -211,6 +230,17 @@ BorderDrawFinishDialog::loadBorderFileComboBox()
 }
 
 /**
+ * Called when a border file is selected.
+ */
+void 
+BorderDrawFinishDialog::borderFileSelected()
+{
+    if (this->classNameComboBox != NULL) {
+        this->loadClassNameComboBox();
+    }
+}
+
+/**
  * Load the class name combo box.
  */
 void 
@@ -260,12 +290,21 @@ BorderDrawFinishDialog::okButtonPressed()
     const QString className = this->classNameComboBox->currentText().trimmed();
     const CaretColorEnum::Enum color = this->colorSelectionControl->getSelectedColor();
     
+    if (color == CaretColorEnum::CLASS) {
+        if (className.isEmpty()) {
+            errorMessage += ("Color is set to class but no class is selected.  "
+                             "Either change the color or add a class using "
+                             "the Edit button to the right of the class control.\n");
+        }
+    }
+    
     /*
      * Error?
      */
     if (errorMessage.isEmpty() == false) {
             WuQMessageBox::errorOk(this, 
                                    errorMessage);
+        return;
     }
     
     /*

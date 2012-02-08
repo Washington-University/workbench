@@ -55,6 +55,8 @@ namespace caret {
     private slots:
         void displayClassEditor();
     
+        void borderFileSelected();
+        
     private:
         BorderDrawFinishDialog(const BorderDrawFinishDialog&);
 
