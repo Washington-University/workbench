@@ -274,8 +274,8 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
     this->labelSelectionListWidget->clear();
     int defaultIndex = -1;
     
-    std::set<int32_t> keys = this->giftiLableTable->getKeys();
-    for (std::set<int32_t>::iterator keyIterator = keys.begin();
+    std::vector<int32_t> keys = this->giftiLableTable->getLabelKeysSortedByName();
+    for (std::vector<int32_t>::iterator keyIterator = keys.begin();
          keyIterator != keys.end();
          keyIterator++) {
         const int32_t key = *keyIterator;

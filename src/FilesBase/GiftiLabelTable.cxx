@@ -22,6 +22,7 @@
  * 
  */ 
 
+#include <algorithm>
 #include <sstream>
 
 #include "CaretAssert.h"
@@ -29,7 +30,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiXmlElements.h"
-#include <algorithm>
+#include "NameIndexSort.h"
 
 #include "XmlWriter.h"
 
@@ -800,14 +801,34 @@ GiftiLabelTable::setLabelColor(
 /**
  * Get the label keys sorted by label name.
  *
- * @return  int array containing label keys sorted by name.
+ * @return  Vector containing label keys sorted by name.
  *
  */
-int32_t
+std::vector<int32_t>
 GiftiLabelTable::getLabelKeysSortedByName() const
 {
-    CaretAssertMessage(0, "NEEDS TO BE IMPLEMENTED");
-    return 0;
+    NameIndexSort nameIndexSort;
+    
+    std::set<int32_t> keys = this->getKeys();
+    for (std::set<int32_t>::iterator iter = keys.begin();
+         iter != keys.end();
+         iter++) {
+        const int32_t key = *iter;
+        const GiftiLabel* gl = this->getLabel(key);
+        if (gl != NULL) {
+            nameIndexSort.add(key,
+                              gl->getName());
+        }
+    }
+    
+    nameIndexSort.sortByNameCaseSensitive();
+    
+    std::vector<int32_t> sortedKeys;
+    const int64_t numItems = nameIndexSort.getNumberOfItems();
+    for (int64_t i = 0; i < numItems; i++) {
+        sortedKeys.push_back(nameIndexSort.getSortedIndex(i));
+    }
+    return sortedKeys;
 }
 
 /**

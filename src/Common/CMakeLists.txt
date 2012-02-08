@@ -70,6 +70,7 @@ LogManager.h
 LogRecord.h
 MathFunctions.h
 MatrixFunctions.h
+NameIndexSort.h
 NetworkException.h
 OctTree.h
 Plane.h
@@ -123,6 +124,7 @@ LogLevelEnum.cxx
 LogManager.cxx
 LogRecord.cxx
 MathFunctions.cxx
+NameIndexSort.cxx
 NetworkException.cxx
 Plane.cxx
 ProgramParameters.cxx

@@ -155,7 +155,7 @@ public:
                     const int32_t key,
                     const float color[4]);
 
-    int32_t getLabelKeysSortedByName() const;
+    std::vector<int32_t> getLabelKeysSortedByName() const;
 
     void resetLabelCounts();
 

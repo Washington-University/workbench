@@ -368,8 +368,8 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     BorderFile* borderFile = this->getSelectedBorderFile(false);
     if (borderFile != NULL) {
         GiftiLabelTable* glt = borderFile->getClassNamesTable();
-        std::set<int32_t> keys = glt->getKeys();
-        for (std::set<int32_t>::iterator keyIterator = keys.begin();
+        std::vector<int32_t> keys = glt->getLabelKeysSortedByName();
+        for (std::vector<int32_t>::iterator keyIterator = keys.begin();
              keyIterator != keys.end();
              keyIterator++) {
             const int32_t key = *keyIterator;
