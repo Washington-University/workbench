@@ -38,6 +38,7 @@
 #include "WuQDialogModal.h"
 
 class QAction;
+class QLineEdit;
 class QListWidget;
 class QListWidgetItem;
 
@@ -69,11 +70,12 @@ namespace caret {
     private slots:
         void newButtonClicked();
         void deleteButtonClicked();
-        void editNameButtonClicked();
         
         void listWidgetLabelSelected(int row);
         
         void colorEditorColorChanged(const float*);
+        
+        void labelNameLineEditTextEdited(const QString&);
         
     private:
         void loadLabels(const AString& selectedName = "",
@@ -90,8 +92,9 @@ namespace caret {
         
         ColorEditorWidget* colorEditorWidget;
         
+        QLineEdit* labelNameLineEdit;
+        
         QAction* newAction;
-        QAction* editNameAction;
         QAction* deleteAction;
         
         AString lastSelectedLabelName;

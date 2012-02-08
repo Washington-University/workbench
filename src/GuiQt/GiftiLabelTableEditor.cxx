@@ -38,6 +38,7 @@
 
 #include <QAction>
 #include <QInputDialog>
+#include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
 #include <QVBoxLayout>
@@ -90,17 +91,6 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     newToolButton->setDefaultAction(this->newAction);
     
     /*
-     * Edit name button.
-     */
-    this->editNameAction = WuQtUtilities::createAction("Edit Name...",
-                                                       "Edit the selected name",
-                                                       this,
-                                                       this,
-                                                       SLOT(editNameButtonClicked()));
-    QToolButton* editNameToolButton = new QToolButton();
-    editNameToolButton->setDefaultAction(this->editNameAction);
-    
-    /*
      * Delete color button.
      */
     this->deleteAction = WuQtUtilities::createAction("Delete...",
@@ -119,12 +109,19 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
                      this, SLOT(colorEditorColorChanged(const float*)));
     
     /*
+     * Label name line edit
+     */
+    this->labelNameLineEdit = new QLineEdit();
+    QObject::connect(this->labelNameLineEdit, SIGNAL(textEdited(const QString&)),
+                     this, SLOT(labelNameLineEditTextEdited(const QString&)));
+    WuQtUtilities::setToolTipAndStatusTip(this->labelNameLineEdit, 
+                                          "Edit the name");
+    
+    /*
      * Layout for buttons
      */
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     buttonsLayout->addWidget(newToolButton);
-    buttonsLayout->addStretch();
-    buttonsLayout->addWidget(editNameToolButton);
     buttonsLayout->addStretch();
     buttonsLayout->addWidget(deleteToolButton);
     
@@ -133,14 +130,18 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
      */
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
     layout->addWidget(this->labelSelectionListWidget);
     layout->addLayout(buttonsLayout);
+    layout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    layout->addWidget(this->labelNameLineEdit);
     layout->addWidget(this->colorEditorWidget);
     
     this->setCentralWidget(widget);
     
     this->loadLabels();
     
+    this->setOkButtonText("Close");
     this->setCancelButtonText("");
     this->setAutoDefaultButtonProcessing(false);
 }
@@ -151,6 +152,25 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
 GiftiLabelTableEditor::~GiftiLabelTableEditor()
 {
     
+}
+
+/**
+ * Called when name line edit text is changed.
+ * @param text
+ *    Text currently in the line edit.
+ */
+void 
+GiftiLabelTableEditor::labelNameLineEditTextEdited(const QString& text)
+{
+    QListWidgetItem* selectedItem = this->labelSelectionListWidget->currentItem();
+    if (selectedItem != NULL) {
+        selectedItem->setText(text);
+    }
+    GiftiLabel* gl = this->getSelectedLabel();
+    if (gl != NULL) {
+        gl->setName(text);
+    }
+    this->lastSelectedLabelName = text;
 }
 
 /**
@@ -191,6 +211,7 @@ GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
         float rgba[4];
         gl->getColor(rgba);
         this->colorEditorWidget->setColor(rgba);
+        this->labelNameLineEdit->setText(gl->getName());
         
         this->lastSelectedLabelName = gl->getName();
     }
@@ -336,28 +357,29 @@ GiftiLabelTableEditor::getSelectedLabel()
 void 
 GiftiLabelTableEditor::newButtonClicked()
 {
-    bool ok = false;
-    const AString nameEntered = QInputDialog::getText(this, 
-                                               "New Name", 
-                                               "New Name",
-                                               QLineEdit::Normal,
-                                               "",
-                                               &ok);
-    if (ok && 
-        (nameEntered.isEmpty() == false)) {
-        float red   = 0.0;
-        float green = 0.0;
-        float blue  = 0.0;
-        float alpha = 1.0;
-        const AString& name = nameEntered.trimmed();
-        this->giftiLableTable->addLabel(name,
-                                        red,
-                                        green,
-                                        blue,
-                                        alpha);
-        
-        this->loadLabels(name);
+    /*
+     * Make sure default name does not already exist
+     */
+    AString name = "NewName_";
+    for (int i = 1; i < 10000; i++) {
+        const AString testName = name + QString::number(i);
+        if (this->giftiLableTable->getLabel(testName) == NULL) {
+            name = testName;
+            break;
+        }
     }
+    
+    float red   = 0.0;
+    float green = 0.0;
+    float blue  = 0.0;
+    float alpha = 1.0;
+    this->giftiLableTable->addLabel(name,
+                                    red,
+                                    green,
+                                    blue,
+                                    alpha);
+    
+    this->loadLabels(name);
 }
 
 /**
@@ -376,28 +398,3 @@ GiftiLabelTableEditor::deleteButtonClicked()
     }
     
 }
-
-/** 
- * Called to edit the lablel name.
- */
-void 
-GiftiLabelTableEditor::editNameButtonClicked()
-{
-    GiftiLabel* gl = this->getSelectedLabel();
-    if (gl != NULL) {
-        bool ok = false;
-        const AString nameEntered = QInputDialog::getText(this, 
-                                                   "Edit Name", 
-                                                   "Edit Name",
-                                                   QLineEdit::Normal,
-                                                   gl->getName(),
-                                                   &ok);
-        if (ok && 
-            (nameEntered.isEmpty() == false)) {
-            const AString name = nameEntered.trimmed();
-            gl->setName(name);
-            this->loadLabels(name);
-        }
-    }
-}
-
