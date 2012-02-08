@@ -55,6 +55,8 @@ namespace caret  {
         
         void setDeleteWhenClosed(bool deleteFlag);
         
+        void setAutoDefaultButtonProcessing(bool enabled);
+        
         static void beep();
         
         static void showWaitCursor();
@@ -76,6 +78,8 @@ namespace caret  {
         
         void addImageCaptureToMenu(QMenu* menu);
         
+        virtual void keyPressEvent(QKeyEvent* e);
+        
         virtual void contextMenuEvent(QContextMenuEvent*);
         
         virtual void userButtonPressed(QPushButton* userPushButton);        
@@ -84,6 +88,8 @@ namespace caret  {
         QVBoxLayout* userWidgetLayout;
         
         QDialogButtonBox* buttonBox;
+        
+        bool autoDefaultProcessingEnabledFlag;
     };
 
 }

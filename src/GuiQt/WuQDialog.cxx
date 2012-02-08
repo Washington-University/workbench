@@ -61,6 +61,8 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
                      Qt::WindowFlags f)
    : QDialog(parent, f)
 {
+    this->autoDefaultProcessingEnabledFlag = true;
+    
     this->setAttribute(Qt::WA_DeleteOnClose, false);
     
     this->setWindowTitle(dialogTitle);
@@ -200,6 +202,54 @@ WuQDialog::contextMenuEvent(QContextMenuEvent* cme)
 }
 
 /**
+ * Called by parent when a key press event occurs
+ *
+ * This code is taken from QDialog::keyPressEvent.
+ * so it may need to be updated with new version of 
+ * Qt.
+ *
+ * It is used to disable the AutoDault button 
+ * property which triggers a button click when
+ * the return key is pressed on a dialog.
+ */ 
+void 
+WuQDialog::keyPressEvent(QKeyEvent* e)
+{
+    if (autoDefaultProcessingEnabledFlag) {
+        QDialog::keyPressEvent(e);
+        return;
+    }
+    
+    bool acceptedEvent = false;
+    
+    //   Calls reject() if Escape is pressed. Simulates a button
+    //   click for the default button if Enter is pressed. Move focus
+    //   for the arrow keys. Ignore the rest.
+#ifdef Q_WS_MAC
+    if(e->modifiers() == Qt::ControlModifier && e->key() == Qt::Key_Period) {
+    } else 
+#endif
+        if (!e->modifiers() || (e->modifiers() & Qt::KeypadModifier && e->key() == Qt::Key_Enter)) {
+            switch (e->key()) {
+                case Qt::Key_Enter:
+                case Qt::Key_Return:
+                    e->accept();
+                    acceptedEvent = true;
+                    break;
+                case Qt::Key_Escape:
+                    break;
+                default:
+                    return;
+            }
+        }
+    
+    if (acceptedEvent == false) {
+        QDialog::keyPressEvent(e);
+    }
+}
+
+
+/**
  * ring the bell.
  */
 void 
@@ -294,4 +344,19 @@ WuQDialog::userButtonPressed(QPushButton* userPushButton)
                 + userPushButton->text()
                 + "\"");
 }
+
+/**
+ * Enable auto default button processing. 
+ * Often it is very annoying so use this method
+ * withe enable == false, to disable it.
+ * 
+ * @param enabled
+ *   New status for auto default processing.
+ */
+void 
+WuQDialog::setAutoDefaultButtonProcessing(bool enabled)
+{
+    this->autoDefaultProcessingEnabledFlag = enabled;
+}
+
 

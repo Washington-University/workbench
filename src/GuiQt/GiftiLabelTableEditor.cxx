@@ -140,6 +140,9 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     this->setCentralWidget(widget);
     
     this->loadLabels();
+    
+    this->setCancelButtonText("");
+    this->setAutoDefaultButtonProcessing(false);
 }
 
 /**
@@ -384,8 +387,8 @@ GiftiLabelTableEditor::editNameButtonClicked()
     if (gl != NULL) {
         bool ok = false;
         const AString nameEntered = QInputDialog::getText(this, 
-                                                   "New Name", 
-                                                   "New Name",
+                                                   "Edit Name", 
+                                                   "Edit Name",
                                                    QLineEdit::Normal,
                                                    gl->getName(),
                                                    &ok);
