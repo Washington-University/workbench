@@ -30,6 +30,7 @@
 #include <QFileInfo>
 #include <QFrame>
 #include <QIcon>
+#include <QPushButton>
 
 #include "CaretLogger.h"
 #include "WuQtUtilities.h"
@@ -168,6 +169,40 @@ WuQtUtilities::createAction(const QString& text,
                      receiver,
                      method);
     return action;
+}
+
+/**
+ * Create a pushbutton.
+ * 
+ * @param text
+ *    Text for the pushbutton.
+ * @param toolAndStatusTipText
+ *    Text for both tool and status tips.
+ * @param receiver
+ *    Owner of method that is called when button is clicked.
+ * @param method
+ *    method in receiver that is called when button is clicked.
+ * @return
+ *    Pushbutton that was created.
+ */
+QPushButton* 
+WuQtUtilities::createPushButton(const QString& text,
+                                const QString& toolAndStatusTipText,
+                                QObject* receiver,
+                                const char* method)
+{
+    QPushButton* pb = new QPushButton(text);
+    if (toolAndStatusTipText.isEmpty() == false) {
+        pb->setStatusTip(toolAndStatusTipText);
+        pb->setToolTip(toolAndStatusTipText);
+    }
+    
+    QObject::connect(pb,
+                     SIGNAL(clicked()),
+                     receiver,
+                     method);
+
+    return pb;
 }
 
 /**

@@ -33,6 +33,7 @@ class QDialog;
 class QIcon;
 class QKeySequence;
 class QObject;
+class QPushButton;
 class QString;
 class QWidget;
 
@@ -66,6 +67,11 @@ namespace caret {
                                      const QKeySequence& shortcut,
                                      QObject* parent);
         
+        static QPushButton* createPushButton(const QString& text,
+                                             const QString& toolAndStatusTipText,
+                                             QObject* receiver,
+                                             const char* method);
+                                             
         static QWidget* createVerticalLineWidget();
         
         static QWidget* createHorizontalLineWidget();

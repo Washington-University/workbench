@@ -70,6 +70,7 @@ namespace caret {
     private slots:
         void newButtonClicked();
         void deleteButtonClicked();
+        void undoButtonClicked();
         
         void listWidgetLabelSelected(int row);
         
@@ -94,10 +95,9 @@ namespace caret {
         
         QLineEdit* labelNameLineEdit;
         
-        QAction* newAction;
-        QAction* deleteAction;
-        
         AString lastSelectedLabelName;
+        
+        GiftiLabel* undoGiftiLabel;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__

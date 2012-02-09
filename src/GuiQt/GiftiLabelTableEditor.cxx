@@ -42,6 +42,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QListWidgetItem>
+#include <QPushButton>
 #include <QVBoxLayout>
 #include <QToolButton>
 
@@ -72,6 +73,7 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
 {
     CaretAssert(giftiLableTable);
     this->giftiLableTable = giftiLableTable;
+    this->undoGiftiLabel = NULL;
     
     /*
      * List widget for editing labels.
@@ -83,24 +85,26 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     /*
      * New color button.
      */
-    this->newAction = WuQtUtilities::createAction("New...",
+    QPushButton* newPushButton = WuQtUtilities::createPushButton("New",
                                                        "Create a new entry",
                                                        this,
-                                                       this,
                                                        SLOT(newButtonClicked()));
-    QToolButton* newToolButton = new QToolButton();
-    newToolButton->setDefaultAction(this->newAction);
     
     /*
-     * Delete color button.
+     * Undo Edit button.
      */
-    this->deleteAction = WuQtUtilities::createAction("Delete...",
+    QPushButton* undoPushButton = WuQtUtilities::createPushButton("Undo Edit",
+                                                  "Create a new entry",
+                                                  this,
+                                                  SLOT(undoButtonClicked()));
+    
+    /*
+     * Delete button.
+     */
+    QPushButton* deletePushButton = WuQtUtilities::createPushButton("Delete",
                                                        "Delete the selected entry",
                                                        this,
-                                                       this,
                                                        SLOT(deleteButtonClicked()));
-    QToolButton* deleteToolButton = new QToolButton();
-    deleteToolButton->setDefaultAction(this->deleteAction);
     
     /*
      * Color editor widget
@@ -127,9 +131,11 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
      * Layout for buttons
      */
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
-    buttonsLayout->addWidget(newToolButton);
+    buttonsLayout->addWidget(newPushButton);
     buttonsLayout->addStretch();
-    buttonsLayout->addWidget(deleteToolButton);
+    buttonsLayout->addWidget(undoPushButton);
+    buttonsLayout->addStretch();
+    buttonsLayout->addWidget(deletePushButton);
     
     /*
      * Layout items in dialog
@@ -157,7 +163,10 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
  */
 GiftiLabelTableEditor::~GiftiLabelTableEditor()
 {
-    
+    if (this->undoGiftiLabel != NULL) {
+        delete this->undoGiftiLabel;
+        this->undoGiftiLabel = NULL;
+    }
 }
 
 /**
@@ -212,6 +221,11 @@ GiftiLabelTableEditor::selectLabelWithName(const AString& labelName)
 void 
 GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
 {
+    if (this->undoGiftiLabel != NULL) {
+        delete this->undoGiftiLabel;
+        this->undoGiftiLabel = NULL;
+    }
+    
     GiftiLabel* gl = this->getSelectedLabel();
     if (gl != NULL) {
         float rgba[4];
@@ -220,6 +234,8 @@ GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
         this->labelNameLineEdit->setText(gl->getName());
         
         this->lastSelectedLabelName = gl->getName();
+        
+        this->undoGiftiLabel = new GiftiLabel(*gl);
     }
     else {
         this->lastSelectedLabelName = "";
@@ -386,6 +402,26 @@ GiftiLabelTableEditor::newButtonClicked()
                                     alpha);
     
     this->loadLabels(name);
+    
+    this->labelNameLineEdit->selectAll();
+//    this->labelNameLineEdit->grabKeyboard();
+//    this->labelNameLineEdit->grabMouse();
+    this->labelNameLineEdit->setFocus();
+}
+
+/**
+ * Called to undo changes to selected label.
+ */
+void 
+GiftiLabelTableEditor::undoButtonClicked()
+{
+    if (this->undoGiftiLabel != NULL) {
+        labelNameLineEditTextEdited(this->undoGiftiLabel->getName());
+        float rgba[4];
+        this->undoGiftiLabel->getColor(rgba);
+        this->colorEditorColorChanged(rgba);
+        this->listWidgetLabelSelected(-1);
+    }
 }
 
 /**
