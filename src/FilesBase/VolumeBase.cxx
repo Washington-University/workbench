@@ -242,6 +242,40 @@ void VolumeBase::getDimensions(int64_t& dimOut1, int64_t& dimOut2, int64_t& dimO
     numComponents = m_dimensions[4];
 }
 
+int64_t VolumeBase::getBrickIndexFromNonSpatialIndexes(const vector<int64_t>& extraInds) const
+{
+    CaretAssert(extraInds.size() == m_origDims.size() - 3);
+    int extraDims = (int)extraInds.size();
+    if (extraDims == 0) return 0;
+    CaretAssert(extraInds[extraDims - 1] >= 0 && extraInds[extraDims - 1] < m_origDims[extraDims + 2]);
+    int64_t ret = extraInds[extraDims - 1];
+    for (int i = extraDims - 2; i >= 0; --i)//yes, its supposed to loop starting with the second highest dimension
+    {
+        CaretAssert(extraInds[i] >= 0 && extraInds[i] < m_origDims[i + 3]);
+        ret = ret * m_origDims[i + 3] + extraInds[i];//factored polynomial form
+    }
+    CaretAssert(ret < m_dimensions[3]);//otherwise, m_dimensions[3] and m_origDims don't match
+    return ret;
+}
+
+vector<int64_t> VolumeBase::getNonSpatialIndexesFromBrickIndex(const int64_t& brickIndex) const
+{
+    CaretAssert(brickIndex >= 0 && brickIndex < m_dimensions[3]);
+    vector<int64_t> ret;
+    int extraDims = (int)m_origDims.size() - 3;
+    if (extraDims <= 0) return ret;//empty vector if there are no extra-spatial dimensions, so we don't call resize(0), even though it should be safe
+    ret.resize(extraDims);
+    int64_t myRemaining = brickIndex, temp;
+    for (int i = 0; i < extraDims; ++i)
+    {
+        temp = myRemaining % m_origDims[i + 3];//modulus
+        myRemaining = (myRemaining - temp) / m_origDims[i + 3];//subtract the remainder even though int divide should truncate correctly, just to make it obvious
+        ret[i] = temp;
+    }
+    CaretAssert(myRemaining == 0);//otherwise, m_dimensions[3] and m_origDims don't match
+    return ret;
+}
+
 void VolumeBase::indexToSpace(const int64_t* indexIn, float* coordOut) const
 {
     indexToSpace(indexIn[0], indexIn[1], indexIn[2], coordOut[0], coordOut[1], coordOut[2]);

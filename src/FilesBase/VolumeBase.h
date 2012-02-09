@@ -122,7 +122,7 @@ namespace caret {
         ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public
         std::vector<CaretPointer<AbstractVolumeExtension> > m_extensions;
         
-        ///ditto for header, but make it self-deleting
+        ///ditto for header
         CaretPointer<AbstractHeader> m_header;
         
         ///recreates the volume file storage with new size and spacing
@@ -138,6 +138,12 @@ namespace caret {
         inline const std::vector<int64_t>& getOriginalDimensions() const {
             return m_origDims;
         }
+        
+        ///translates extraspatial indices into a (flat) brick index
+        int64_t getBrickIndexFromNonSpatialIndexes(const std::vector<int64_t>& extraInds) const;
+        
+        ///translates a (flat) brick index into the original extraspatial indices
+        std::vector<int64_t> getNonSpatialIndexesFromBrickIndex(const int64_t& brickIndex) const;
         
         ///returns true if volume space is not skew, and each axis and index is separate
         bool isPlumb() const;
