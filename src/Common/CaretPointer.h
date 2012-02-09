@@ -68,8 +68,10 @@ namespace caret {
         T* operator->();
         const T* operator->() const;
         T* getPointer();
-        operator T*();
-        operator const T*() const;
+        template <typename T2>
+        operator T2*();
+        template <typename T2>
+        operator const T2*() const;
         int64_t getReferenceCount() const;
         ///breaks the hold on the pointer that is currently held by this, NO instances will delete it (setting is per-pointer, not per-instance)
         T* releasePointer();
@@ -175,16 +177,16 @@ namespace caret {
         return m_pointer;
     }
 
-    template <typename T>
-    CaretPointer<T>::operator T*()
+    template <typename T> template <typename T2>
+    CaretPointer<T>::operator T2*()
     {
-        return m_pointer;
+        return (T2*)m_pointer;
     }
 
-    template <typename T>
-    CaretPointer<T>::operator const T*() const
+    template <typename T> template <typename T2>
+    CaretPointer<T>::operator const T2*() const
     {
-        return m_pointer;
+        return (T2*)m_pointer;
     }
 
     template <typename T>

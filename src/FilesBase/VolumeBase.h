@@ -48,11 +48,8 @@ namespace caret {
             NIFTI2
         };
         ExtensionType type;
-        uint8_t* m_bytes;
-        int64_t m_numBytes;
-        AbstractVolumeExtension() { m_bytes = NULL; }
+        CaretArray<char> m_bytes;
         virtual ExtensionType getType() = 0;
-        virtual ~AbstractVolumeExtension();
     };
     
     struct AbstractHeader
@@ -64,7 +61,6 @@ namespace caret {
         };
         HeaderType type;
         virtual HeaderType getType() = 0;
-        virtual ~AbstractHeader();
     };
     
     class VolumeBase 
@@ -123,8 +119,8 @@ namespace caret {
         VolumeBase(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         virtual ~VolumeBase();
 
-        ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public - USE delete ON EXTENSIONS THAT YOU ERASE!
-        std::vector<AbstractVolumeExtension*> m_extensions;
+        ///there isn't much VolumeFile can do to restrict access to extensions, so just have them public
+        std::vector<CaretPointer<AbstractVolumeExtension> > m_extensions;
         
         ///ditto for header, but make it self-deleting
         CaretPointer<AbstractHeader> m_header;

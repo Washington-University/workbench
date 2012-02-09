@@ -358,11 +358,6 @@ void VolumeBase::freeMemory()
     m_bMult = NULL;
     m_cMult = NULL;
     
-    int numExtensions = (int)m_extensions.size();
-    for (int i = 0; i < numExtensions; ++i)
-    {
-        delete m_extensions[i];
-    }
     m_extensions.clear();
     freeAttributes();
 }
@@ -820,17 +815,4 @@ VolumeBase::BrickAttributes::~BrickAttributes()
     if (m_statistics != NULL) {
         delete m_statistics;
     }
-}
-
-AbstractVolumeExtension::~AbstractVolumeExtension()
-{
-    if (m_bytes != NULL)
-    {
-        delete m_bytes;
-    }
-}
-
-AbstractHeader::~AbstractHeader()
-{//here simply because inlining virtual destructors is supposedly bad for some reason
-
 }

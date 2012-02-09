@@ -136,9 +136,8 @@ public:
             int64_t vOffset = headerIO.getVolumeOffset();
             int64_t eOffset = headerIO.getExtensionsOffset();
             int64_t eLength = vOffset-eOffset;
-            volumeExtension.m_bytes = new uint8_t[eLength];
-            volumeExtension.m_numBytes = eLength;
-            memcpy(volumeExtension.m_bytes,this->extension_bytes,volumeExtension.m_numBytes);
+            volumeExtension.m_bytes = CaretArray<char>(eLength);
+            memcpy(volumeExtension.m_bytes,this->extension_bytes,eLength);
         }
         else if(headerIO.getNiftiVersion() == 2)
         {
@@ -146,9 +145,8 @@ public:
             int64_t vOffset = headerIO.getVolumeOffset();
             int64_t eOffset = headerIO.getExtensionsOffset();
             int64_t eLength = vOffset-eOffset;
-            volumeExtension.m_numBytes = eLength;
-            volumeExtension.m_bytes = new uint8_t[eLength];
-            memcpy(volumeExtension.m_bytes,this->extension_bytes,volumeExtension.m_numBytes);
+            volumeExtension.m_bytes = CaretArray<char>(eLength);
+            memcpy(volumeExtension.m_bytes,this->extension_bytes,eLength);
         }
     }
     void setAbstractVolumeExtension(NiftiAbstractVolumeExtension &volumeExtension)
@@ -156,12 +154,12 @@ public:
         if(volumeExtension.type == volumeExtension.NIFTI1)
         {
             if(extension_bytes) 
-                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_bytes.size());
         }
         else if(volumeExtension.type == volumeExtension.NIFTI2)
         {
             if(extension_bytes) 
-                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_numBytes);
+                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_bytes.size());
         }
     }
 

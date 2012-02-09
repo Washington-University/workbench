@@ -322,7 +322,7 @@ int NiftiFile::getNiftiVersion()
 void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
     NiftiAbstractHeader *aHeader = new NiftiAbstractHeader();
-    NiftiAbstractVolumeExtension *aVolumeExtension = new NiftiAbstractVolumeExtension;
+    CaretPointer<NiftiAbstractVolumeExtension> aVolumeExtension(new NiftiAbstractVolumeExtension);
 
 	this->m_fileName = filename;
     QDir fpath(this->m_fileName);
@@ -353,12 +353,24 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
 {
     if (vol.m_header != NULL)
     {
-        headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header.getPointer());
+        switch (vol.m_header->getType())
+        {
+            case AbstractHeader::NIFTI1:
+            case AbstractHeader::NIFTI2:
+                headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header);
+                break;
+        };
     }
     int numExtensions = (int)vol.m_extensions.size();
     if (numExtensions > 0)//FIXME: do all extensions
     {
-        this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
+        switch (vol.m_extensions[0]->getType())
+        {
+            case AbstractVolumeExtension::NIFTI1:
+            case AbstractVolumeExtension::NIFTI2:
+                this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
+                break;
+        }
     }
 
     if (vol.m_header == NULL)
