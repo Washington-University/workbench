@@ -23,7 +23,7 @@
  * 
  */ 
 
-#include <memory.h>
+#include <memory>
 
 #include <QAction>
 #include <QActionGroup>

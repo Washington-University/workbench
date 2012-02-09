@@ -23,7 +23,7 @@
  * 
  */ 
 
-#include <memory.h>
+#include <memory>
 
 #define __USER_INPUT_MODE_BORDERS_DECLARE__
 #include "UserInputModeBorders.h"
