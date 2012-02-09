@@ -102,6 +102,10 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
+        bool isDisplayed() const;
+        
+        void setDisplayed(const bool displayed);
+        
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
@@ -117,6 +121,9 @@ namespace caret {
         CaretColorEnum::Enum color;
         
         std::vector<SurfaceProjectedItem*> points;
+        
+        /** display status: not saved to file and does not affect modification status */
+        bool displayFlag;
     };
     
 #ifdef __BORDER_DECLARE__

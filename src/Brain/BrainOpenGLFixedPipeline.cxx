@@ -1240,6 +1240,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         
         for (int32_t j = 0; j < numBorders; j++) {
             Border* border = borderFile->getBorder(j);
+            if (border->isDisplayed() == false) {
+                continue;
+            }
+            
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
                 const int32_t key = classNameTable->getLabelKeyFromName(border->getClassName());
