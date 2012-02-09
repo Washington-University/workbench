@@ -28,6 +28,7 @@
 
 #include <QWidget>
 
+class QAction;
 class QActionGroup;
 class QComboBox;
 class QStackedWidget;
@@ -47,6 +48,8 @@ namespace caret {
         virtual ~UserInputModeBordersWidget();
         
         void updateWidget();
+        
+        bool isDrawModeTransformSelected() const;
         
     private slots:
         void modeActionTriggered(QAction*);
@@ -94,6 +97,8 @@ namespace caret {
         QStackedWidget* operationStackedWidget;
         
         UserInputModeBorders* inputModeBorders;
+        
+        QAction* drawModeTransformAction;
     };
     
 #ifdef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__

@@ -185,25 +185,27 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         switch (this->mode) {
             case MODE_DRAW:
             {
-                switch (this->drawOperation) {
-                    case DRAW_OPERATION_CREATE:
-                    case DRAW_OPERATION_ERASE:
-                    case DRAW_OPERATION_EXTEND:
-                    case DRAW_OPERATION_REPLACE:
-                        if (isLeftClickOrDrag) {
-                            this->drawPointAtMouseXY(openGLWidget,
-                                                     mouseX,
-                                                     mouseY);
-                            mouseEvent->setGraphicsUpdateOneWindowRequested();
-                        }
-                        break;
-                    case DRAW_OPERATION_TRANSFORM:
-                        if (isLeftClickOrDrag) {
-                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                if (this->borderToolsWidget->isDrawModeTransformSelected()) {
+                    if (isLeftDrag || isWheel) {
+                        UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                           browserTabContent, 
                                                                           openGLWidget);
-                        }
-                        break;
+                    }
+                }
+                else {
+                    switch (this->drawOperation) {
+                        case DRAW_OPERATION_CREATE:
+                        case DRAW_OPERATION_ERASE:
+                        case DRAW_OPERATION_EXTEND:
+                        case DRAW_OPERATION_REPLACE:
+                            if (isLeftClickOrDrag) {
+                                this->drawPointAtMouseXY(openGLWidget,
+                                                         mouseX,
+                                                         mouseY);
+                                mouseEvent->setGraphicsUpdateOneWindowRequested();
+                            }
+                            break;
+                    }
                 }
             }
                 break;

@@ -44,7 +44,6 @@ namespace caret {
         };
         
         enum DrawOperation {
-            DRAW_OPERATION_TRANSFORM,
             DRAW_OPERATION_CREATE,
             DRAW_OPERATION_ERASE,
             DRAW_OPERATION_EXTEND,

@@ -244,6 +244,17 @@ UserInputModeBordersWidget::createModeWidget()
 }
 
 /**
+ * @return Is the transform button selected in draw mode?
+ */
+bool 
+UserInputModeBordersWidget::isDrawModeTransformSelected() const
+{
+    return this->drawModeTransformAction->isChecked();
+    
+}
+
+
+/**
  * Called when a mode is selected from the mode combo box.
  * @param indx
  *   Index of item selected.
@@ -276,14 +287,13 @@ UserInputModeBordersWidget::modeActionTriggered(QAction* action)
 QWidget* 
 UserInputModeBordersWidget::createDrawOperationWidget()
 {
-    QAction* transformAction = WuQtUtilities::createAction("Adjust View", 
+    this->drawModeTransformAction = WuQtUtilities::createAction("Adjust View", 
                                                         "Pause border drawing and allow the mouse to\n"
                                                         "adjust view (pan/zoom/rotate) of the surface", 
                                                         this);
-    transformAction->setCheckable(true);
-    transformAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_TRANSFORM));
+    this->drawModeTransformAction->setCheckable(true);
     QToolButton* transformToolButton = new QToolButton();
-    transformToolButton->setDefaultAction(transformAction);
+    transformToolButton->setDefaultAction(this->drawModeTransformAction);
     
     QAction* drawAction = WuQtUtilities::createAction("Draw", 
                                                       "Draw a border  by either clicking the\n"
@@ -357,7 +367,6 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     resetToolButton->setDefaultAction(resetAction);
     
     this->drawOperationActionGroup = new QActionGroup(this);
-    this->drawOperationActionGroup->addAction(transformAction);
     this->drawOperationActionGroup->addAction(drawAction);
     this->drawOperationActionGroup->addAction(eraseAction);
     this->drawOperationActionGroup->addAction(extendAction);
@@ -476,8 +485,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
                             border->reviseReplaceSegment(surface, 
                                                          this->inputModeBorders->borderBeingDrawnByOpenGL);
                             break;
-                        case UserInputModeBorders::DRAW_OPERATION_TRANSFORM:
-                            break;
                     }
                 }
                 catch (BorderException& e) {
@@ -490,8 +497,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
             EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
             
         }
-            break;
-        case UserInputModeBorders::DRAW_OPERATION_TRANSFORM:
             break;
     }
 }
