@@ -255,7 +255,22 @@ GiftiLabelTable::addLabel(
 int32_t
 GiftiLabelTable::addLabel(const GiftiLabel* glIn)
 {
-    int32_t key = glIn->getKey();
+    /*
+     * First see if a label with the same name already exists
+     */
+    int32_t key = this->getLabelKeyFromName(glIn->getName());
+    
+    /*
+     * If no label with the name exists, get the key
+     * (which may be invalid) from the input label
+     */
+    if (key < 0) {
+        key = glIn->getKey();
+    }
+    
+    /*
+     * Still need a key, find an unused key
+     */
     if (key < 0) {
         key = this->generateUnusedKey();
         
@@ -264,14 +279,19 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
         this->labelsMap.insert(std::make_pair(key, gl));
         return key;
     }
+    
     if (key == 0)
     {
         if (glIn->getName() != "???") {
             CaretLogWarning("Label 0 overridden!");
         }
     }
+    
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
+        /*
+         * Update existing label
+         */
         GiftiLabel* gl = iter->second;
         gl->setName(glIn->getName());
         float rgba[4];
@@ -280,6 +300,9 @@ GiftiLabelTable::addLabel(const GiftiLabel* glIn)
         key = iter->first;
     }
     else {
+        /*
+         * Insert a new label
+         */
         this->labelsMap.insert(std::make_pair(key, new GiftiLabel(*glIn)));
     }
     return key;

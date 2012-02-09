@@ -773,19 +773,45 @@ Border::isNameOrClassModified() const
 }
 
 /**
- * Set modification status of name/class to unmodified.
+ * Set the keys for the border's name and class
+ * used in the class and name hierarchy.
  * 
  * Name/Class modification status is used
  * by the selection controls that display
  * borders based upon selected classes and
  * names.
+ *
+ * @param nameKey
+ *     Key for the border name.
+ * @param classKey
+ *     Key for the border class.
  */
 void 
-Border::clearNameOfClassModified()
+Border::setNameAndClassKeys(const int32_t nameKey,
+                            const int32_t classKey)
 {
+    this->nameKey = nameKey;
+    this->classKey = classKey;
     this->nameClassModificationStatus = false;
 }
 
+/**
+ * @return The key for the border's name in the class and name hierarchy.
+ */
+int32_t 
+Border::getNameKey() const
+{
+    return this->nameKey;
+}
+
+/**
+ * @return The key for the border's class in the class and name hierarchy.
+ */
+int32_t 
+Border::getClassKey() const
+{
+    return this->classKey;
+}
 
 /**
  * Get a description of this object's content.

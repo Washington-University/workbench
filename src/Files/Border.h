@@ -108,7 +108,12 @@ namespace caret {
         
         bool isNameOrClassModified() const;
         
-        void clearNameOfClassModified();
+        void setNameAndClassKeys(const int32_t nameKey,
+                                 const int32_t classKey);
+        
+        int32_t getNameKey() const;
+        
+        int32_t getClassKey() const;
         
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
@@ -130,6 +135,12 @@ namespace caret {
         
         /** display status: not saved to file and does not affect modification status */
         bool displayFlag;
+        
+        /** Used for determining display status: not saved to file and does not affect modification status */
+        int32_t nameKey;
+        
+        /** Used for determining display status: not saved to file and does not affect modification status */
+        int32_t classKey;
         
         /** 
          * Name/Class modification status, not saved to file. 

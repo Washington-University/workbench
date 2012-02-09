@@ -35,6 +35,7 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "ClassAndNameHierarchySelection.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
@@ -75,7 +76,7 @@ BorderFile::~BorderFile()
     }
     this->borders.clear();
 
-    delete this->classNamesTable;
+    delete this->classNameHierarchy;
 }
 
 /**
@@ -84,7 +85,7 @@ BorderFile::~BorderFile()
 void 
 BorderFile::initializeBorderFile()
 {
-    this->classNamesTable = new GiftiLabelTable();
+    this->classNameHierarchy = new ClassAndNameHierarchySelection();
     this->metadata = new GiftiMetaData();
 }
 
@@ -127,7 +128,10 @@ BorderFile::operator=(const BorderFile& obj)
 void 
 BorderFile::copyHelperBorderFile(const BorderFile& obj)
 {
-    *this->classNamesTable = *obj.classNamesTable;
+    if (this->classNameHierarchy != NULL) {
+        delete this->classNameHierarchy;
+    }
+    this->classNameHierarchy = new ClassAndNameHierarchySelection();
     *this->metadata = *obj.metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
@@ -192,7 +196,7 @@ void
 BorderFile::clear()
 {
     CaretDataFile::clear();
-    this->classNamesTable->clear();
+    this->classNameHierarchy->clear();
     this->metadata->clear();
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
@@ -366,7 +370,7 @@ BorderFile::removeBorder(Border* border)
 GiftiLabelTable* 
 BorderFile::getClassNamesTable()
 {
-    return this->classNamesTable;
+    return this->classNameHierarchy->getClassLabelTable();
 }
 
 /**
@@ -375,7 +379,7 @@ BorderFile::getClassNamesTable()
 const GiftiLabelTable* 
 BorderFile::getClassNamesTable() const
 {
-    return this->classNamesTable;
+    return this->classNameHierarchy->getClassLabelTable();
 }
 
 /**
@@ -438,6 +442,10 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     }
     
     this->setFileName(filename);
+    
+    this->classNameHierarchy->update(this);
+    std::cout << "Class Table: " << this->classNameHierarchy->getClassLabelTable()->toString() << std::endl;
+    std::cout << "Name Table:  " << this->classNameHierarchy->getNameLabelTable()->toString() << std::endl;
     
     this->clearModified();
 }
@@ -505,7 +513,7 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write the classes
         //
-        this->classNamesTable->writeAsXML(xmlWriter);
+        this->classNameHierarchy->getClassLabelTable()->writeAsXML(xmlWriter);
         
         //
         // Write borders
@@ -542,7 +550,7 @@ BorderFile::isModified() const
     if (this->metadata->isModified()) {
         return true;
     }
-    if (this->classNamesTable->isModified()) {
+    if (this->classNameHierarchy->getClassLabelTable()->isModified()) {
         return true;
     }
     
@@ -565,7 +573,7 @@ BorderFile::clearModified()
     CaretDataFile::clearModified();
     
     this->metadata->clearModified();
-    this->classNamesTable->clearModified();
+    this->getClassNamesTable()->clearModified();
     
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
