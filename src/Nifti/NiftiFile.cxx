@@ -357,7 +357,7 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         {
             case AbstractHeader::NIFTI1:
             case AbstractHeader::NIFTI2:
-                headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header);
+                headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header.getPointer());
                 break;
         };
     }
@@ -368,7 +368,7 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         {
             case AbstractVolumeExtension::NIFTI1:
             case AbstractVolumeExtension::NIFTI2:
-                this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0]));
+                this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0].getPointer()));
                 break;
         }
     }
