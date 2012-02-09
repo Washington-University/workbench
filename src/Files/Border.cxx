@@ -50,6 +50,7 @@ Border::Border()
 {
     this->color = CaretColorEnum::BLACK;
     this->displayFlag = true;
+    this->nameClassModificationStatus = true; // name/class is new!!
 }
 
 /**
@@ -109,6 +110,7 @@ Border::copyHelperBorder(const Border& obj)
     this->displayFlag = obj.displayFlag;
     
     this->clearModified();
+    this->setNameOrClassModified(); // new name/class so modified
 }
 
 /**
@@ -124,6 +126,7 @@ Border::clear()
     this->className = "";
     this->color = CaretColorEnum::BLACK;
     this->displayFlag = true;
+    this->setNameOrClassModified(); // new name/class so modified
 }
 
 /**
@@ -158,8 +161,11 @@ Border::getName() const
 void 
 Border::setName(const AString& name)
 {
-    this->name = name;
-    this->setModified();
+    if (this->name != name) {
+        this->name = name;
+        this->setModified();
+        this->setNameOrClassModified();
+    }
 }
 
 /**
@@ -179,8 +185,11 @@ Border::getClassName() const
 void 
 Border::setClassName(const AString& className)
 {
-    this->className = className;
-    this->setModified();
+    if (this->className != className) {
+        this->className = className;
+        this->setModified();
+        this->setNameOrClassModified();
+    }
 }
 
 /**
@@ -733,6 +742,48 @@ void
 Border::setDisplayed(const bool displayed)
 {
     this->displayFlag = displayed;
+}
+
+/**
+ * Set modification status of name/class to modified.
+ * 
+ * Name/Class modification status is used
+ * by the selection controls that display
+ * borders based upon selected classes and
+ * names.
+ */
+void 
+Border::setNameOrClassModified()
+{
+    this->nameClassModificationStatus = true;
+}
+
+/**
+ * @return Is name/class modified?
+ * 
+ * Name/Class modification status is used
+ * by the selection controls that display
+ * borders based upon selected classes and
+ * names.
+ */
+bool 
+Border::isNameOrClassModified() const
+{
+    return this->nameClassModificationStatus;
+}
+
+/**
+ * Set modification status of name/class to unmodified.
+ * 
+ * Name/Class modification status is used
+ * by the selection controls that display
+ * borders based upon selected classes and
+ * names.
+ */
+void 
+Border::clearNameOfClassModified()
+{
+    this->nameClassModificationStatus = false;
 }
 
 

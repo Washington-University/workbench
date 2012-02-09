@@ -106,6 +106,10 @@ namespace caret {
         
         void setDisplayed(const bool displayed);
         
+        bool isNameOrClassModified() const;
+        
+        void clearNameOfClassModified();
+        
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
@@ -113,6 +117,8 @@ namespace caret {
         
     private:
         void copyHelperBorder(const Border& obj);
+        
+        void setNameOrClassModified();
         
         AString name;
         
@@ -124,6 +130,13 @@ namespace caret {
         
         /** display status: not saved to file and does not affect modification status */
         bool displayFlag;
+        
+        /** 
+         * Name/Class modification status, not saved to file. 
+         * COMPLETELY separate from the modification status
+         * that tracks all modifications to a border.
+         */
+        bool nameClassModificationStatus;
     };
     
 #ifdef __BORDER_DECLARE__
