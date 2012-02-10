@@ -55,6 +55,7 @@ using namespace caret;
  * data type element to be displayed, both its name and its
  * class must be enabled for display.
  */
+
 /**
  * Constructor.
  */
@@ -70,7 +71,8 @@ ClassAndNameHierarchySelection::ClassAndNameHierarchySelection()
  */
 ClassAndNameHierarchySelection::~ClassAndNameHierarchySelection()
 {
-    
+    delete this->classLabelTable;
+    delete this->nameLableTable;
 }
 
 /**
