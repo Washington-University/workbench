@@ -33,6 +33,9 @@
 /*LICENSE_END*/
 
 #include <QAction>
+#include <QCheckBox>
+#include <QComboBox>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QStackedWidget>
 #include <QTreeWidget>
@@ -126,6 +129,20 @@ createItem(const QString& name)
 QWidget* 
 BrainBrowserSelectionToolBox::createBorderSelectionWidget()
 {
+    QLabel* yokeLabel = new QLabel("Yoking");
+    QComboBox* yokeComboBox = new QComboBox();
+    yokeComboBox->addItem("Group A");
+    yokeComboBox->addItem("Group B");
+    yokeComboBox->addItem("OFF");
+    QHBoxLayout* yokeLayout = new QHBoxLayout();
+    yokeLayout->addWidget(yokeLabel);
+    yokeLayout->addWidget(yokeComboBox);
+    yokeLayout->addStretch();
+    
+    QCheckBox* contralateralCheckBox = new QCheckBox("Contralateral");
+    
+    QCheckBox* displayCheckBox = new QCheckBox("Display Borders");
+    
     QTreeWidgetItem* nameATW  = createItem("Name A");
     QTreeWidgetItem* nameBTW  = createItem("Name B");
     QTreeWidgetItem* class1TW = createItem("Class 1");
@@ -142,6 +159,9 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
+    layout->addWidget(displayCheckBox);  
+    layout->addWidget(contralateralCheckBox);  
+    layout->addLayout(yokeLayout);  
     layout->addWidget(tw);  
     
     return w;
