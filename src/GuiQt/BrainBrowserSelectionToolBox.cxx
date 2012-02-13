@@ -137,7 +137,7 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     QHBoxLayout* yokeLayout = new QHBoxLayout();
     yokeLayout->addWidget(yokeLabel);
     yokeLayout->addWidget(yokeComboBox);
-    yokeLayout->addStretch();
+    yokeLayout->addStretch(); 
     
     QCheckBox* contralateralCheckBox = new QCheckBox("Contralateral");
     
