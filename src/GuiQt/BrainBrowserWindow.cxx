@@ -242,8 +242,8 @@ BrainBrowserWindow::createActions()
                                 "Create a new tab (window pane) in the window",
                                 Qt::CTRL + Qt::Key_T,
                                 this,
-                                this->toolbar,
-                                SLOT(addNewTab()));
+                                this,
+                                SLOT(processNewTab()));
     
     this->openFileAction =
     WuQtUtilities::createAction("Open File...", 
@@ -1322,6 +1322,20 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
     wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
     this->showToolBarAction->setEnabled(false);
     this->toolBox->toggleViewAction()->setEnabled(false);
+}
+
+/**
+ * Adds a new tab to the window.
+ */
+void 
+BrainBrowserWindow::processNewTab()
+{
+    this->toolbar->addNewTab();
+    this->toolbar->updateToolBar();
+
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 /**

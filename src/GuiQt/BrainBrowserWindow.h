@@ -94,6 +94,7 @@ namespace caret {
     private slots:        
         void processDisplayControl();        
         void processNewWindow();
+        void processNewTab();
         void processDataFileOpen();
         void processDataFileOpenFromSpecFile();
         void processManageSaveLoadedFiles();
