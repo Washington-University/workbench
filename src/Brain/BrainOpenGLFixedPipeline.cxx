@@ -3539,9 +3539,9 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
      */
     const GLint colorbarViewportWidth = 120;
     const GLint colorbarViewportHeight = 35;    
-    const GLint colorbarViewportX = 10;
+    const GLint colorbarViewportX = modelViewport[0] + 10;
     
-    GLint colorbarViewportY = (10 + (paletteDrawingIndex * colorbarViewportHeight));
+    GLint colorbarViewportY = (modelViewport[1] + 10 + (paletteDrawingIndex * colorbarViewportHeight));
     if (paletteDrawingIndex > 0) {
 //        colorbarViewportY += 5;
     }
@@ -3835,12 +3835,12 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     /*
      * Account for margin around colorbar when calculating text locations
      */
-    const int textCenterX = colorbarViewportX + (colorbarViewportWidth / 2);
+    const int textCenterX = /*colorbarViewportX +*/ (colorbarViewportWidth / 2);
     const int textHalfX   = colorbarViewportWidth / (margin * 2);
     const int textLeftX   = textCenterX - textHalfX;
     const int textRightX  = textCenterX + textHalfX;
     
-    const int textY = 2 + colorbarViewportY + (colorbarViewportHeight / 2);
+    const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
     if (isNegativeDisplayed) {
         this->drawTextWindowCoords(textLeftX, 
                                    textY, 
