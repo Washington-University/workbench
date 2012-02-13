@@ -67,7 +67,7 @@ namespace caret {
         
         virtual void clearModified() { CaretMappableDataFile::clearModified(); VolumeBase::clearModified(); }
         
-        virtual bool isModified() { return (CaretMappableDataFile::isModified() || VolumeBase::isModified()); }
+        virtual bool isModified() const { return (CaretMappableDataFile::isModified() || VolumeBase::isModified()); }
         
         /**
          * @return The structure for this file.

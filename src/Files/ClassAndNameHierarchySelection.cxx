@@ -128,18 +128,18 @@ ClassAndNameHierarchySelection::update(BorderFile* borderFile)
             AString className = border->getClassName();
             if (className.isEmpty()) {
                 className = "???";
-                const GiftiLabel* classLabel = this->classLabelTable->getLabel(className);
-                if (classLabel != NULL) {
-                    classKey = classLabel->getKey();
-                }
-                else {
-                    classKey = this->classLabelTable->addLabel("???",
-                                                    1.0f, 1.0f, 1.0f);
-                }
+            }
+            const GiftiLabel* classLabel = this->classLabelTable->getLabel(className);
+            if (classLabel != NULL) {
+                classKey = classLabel->getKey();
+            }
+            else {
+                classKey = this->classLabelTable->addLabel(className,
+                                                           1.0f, 1.0f, 1.0f);
             }
             
-            CaretAssert(nameKey);
-            CaretAssert(classKey);
+            CaretAssert(nameKey >= 0);
+            CaretAssert(classKey >= 0);
             
             border->setNameAndClassKeys(nameKey,
                                         classKey);
