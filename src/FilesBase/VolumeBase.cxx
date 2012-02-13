@@ -37,6 +37,14 @@
 using namespace caret;
 using namespace std;
 
+AbstractHeader::~AbstractHeader()
+{
+}
+
+AbstractVolumeExtension::~AbstractVolumeExtension()
+{
+}
+
 void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
 {
     vector<int64_t> dimensionCast;

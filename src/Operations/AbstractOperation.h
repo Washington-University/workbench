@@ -63,6 +63,7 @@ namespace caret {
         virtual const AString& getCommandSwitch() = 0;
         virtual const AString& getShortDescription() = 0;
         virtual bool takesParameters() = 0;
+        virtual ~AutoOperationInterface();
     };
 
     ///templated interface class to pass through to something that inherits from AbstractOperation (or implements equivalent functions)

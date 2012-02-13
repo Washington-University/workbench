@@ -125,6 +125,8 @@ namespace caret
         
         bool hasColumnSurfaceData(const StructureEnum::Enum structure) const
         { return m_xml.hasColumnSurfaceData(structure); }
+        
+        virtual ~CiftiInterface();
 
     };
 }

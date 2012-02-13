@@ -133,3 +133,7 @@ bool CiftiInterface::getRowFromTimepoint(float* rowOut, const float seconds) con
     getRow(rowOut, myIndex);
     return true;
 }
+
+CiftiInterface::~CiftiInterface()
+{
+}

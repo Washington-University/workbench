@@ -50,6 +50,7 @@ namespace caret {
         ExtensionType type;
         CaretArray<char> m_bytes;
         virtual ExtensionType getType() = 0;
+        virtual ~AbstractVolumeExtension();
     };
     
     struct AbstractHeader
@@ -61,6 +62,7 @@ namespace caret {
         };
         HeaderType type;
         virtual HeaderType getType() = 0;
+        virtual ~AbstractHeader();
     };
     
     class VolumeBase 
