@@ -276,7 +276,7 @@ namespace caret {
 
         void setModified() { m_ModifiedFlag = true; }
         void clearModified() { m_ModifiedFlag = false;}
-        bool isModified() { return m_ModifiedFlag; }
+        bool isModified() const { return m_ModifiedFlag; }
         
         bool isEmpty() const;
         
