@@ -142,39 +142,50 @@ MultiPageDialogPage::addWidget(QObject* widget,
 {
     if (dynamic_cast<QCheckBox*>(widget) != NULL) {
         QCheckBox* cb = dynamic_cast<QCheckBox*>(widget);
-        QObject::connect(cb, SIGNAL(toggled(bool)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(cb, SIGNAL(toggled(bool)),
+                             this, SLOT(applyPage()));
+        }
     }
     else if (dynamic_cast<QComboBox*>(widget) != NULL) {
         QComboBox* cb = dynamic_cast<QComboBox*>(widget);
-        QObject::connect(cb, SIGNAL(currentIndexChanged(int)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(cb, SIGNAL(currentIndexChanged(int)),
+                             this, SLOT(applyPage()));
+        }
     }
     else if (dynamic_cast<QDoubleSpinBox*>(widget) != NULL) {
         QDoubleSpinBox* dsb = dynamic_cast<QDoubleSpinBox*>(widget);
-        QObject::connect(dsb, SIGNAL(valueChanged(double)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(dsb, SIGNAL(valueChanged(double)),
+                             this, SLOT(applyPage()));
+        }
     }
     else if (dynamic_cast<QSpinBox*>(widget) != NULL) {
         QSpinBox* sb = dynamic_cast<QSpinBox*>(widget);
-        QObject::connect(sb, SIGNAL(valueChanged(int)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(sb, SIGNAL(valueChanged(int)),
+                             this, SLOT(applyPage()));
+        }
     }
     else if (dynamic_cast<CaretColorEnumSelectionControl*>(widget) != NULL) {
         CaretColorEnumSelectionControl* cc = dynamic_cast<CaretColorEnumSelectionControl*>(widget);
-        QObject::connect(cc, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(cc, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
+                             this, SLOT(applyPage()));
+        }
     }
     else if (dynamic_cast<SurfaceSelectionControl*>(widget) != NULL) {
         SurfaceSelectionControl* ss = dynamic_cast<SurfaceSelectionControl*>(widget);
-        QObject::connect(ss, SIGNAL(surfaceSelected(Surface*)),
-                         this, SLOT(applyPage()));
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(ss, SIGNAL(surfaceSelected(Surface*)),
+                             this, SLOT(applyPage()));
+        }
     }
     else {
         CaretAssertMessage(0, ("Unrecognized widget type \""
                                + widget->objectName()));
-    }
-    
+    }    
 }
 
 /**
