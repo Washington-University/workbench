@@ -179,7 +179,13 @@ namespace caret {
         
         ///get the mapping for a volume in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
-            
+
+        ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
+        bool getVolumeParcelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut);
+
+        ///get the list of volume parcels and their maps in columns, returns false and empty vector if not found
+        bool getVolumeParcelMapsForColumns(std::vector<CiftiVolumeStructureMap>& mappingsOut);
+
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
         int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
         
@@ -285,6 +291,7 @@ namespace caret {
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
         bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t& myCount) const;
+        bool getVolumeParcelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const CiftiMatrixIndicesMapElement* myMap) const;
         
         ///boilerplate for has data
         bool hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const;

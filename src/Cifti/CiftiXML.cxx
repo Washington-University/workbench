@@ -165,6 +165,47 @@ bool CiftiXML::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
     return getVolumeMapping(mappingOut, m_rowMap, m_rowVoxels);
 }
 
+bool CiftiXML::getVolumeParcelMappings(vector<CiftiVolumeStructureMap>& mappingsOut, const CiftiMatrixIndicesMapElement* myMap) const
+{
+    mappingsOut.clear();
+    if (myMap == NULL || myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return false;
+    }
+    int numModels = (int)myMap->m_brainModels.size();
+    mappingsOut.reserve(numModels);
+    for (int i = 0; i < numModels; ++i)
+    {
+        if (myMap->m_brainModels[i].m_modelType == CIFTI_MODEL_TYPE_VOXELS)
+        {
+            mappingsOut.push_back(CiftiVolumeStructureMap());
+            int whichMap = (int)mappingsOut.size() - 1;
+            mappingsOut[whichMap].m_structure = myMap->m_brainModels[i].m_brainStructure;
+            int numIndices = (int)myMap->m_brainModels[i].m_indexCount;
+            mappingsOut[whichMap].m_map.resize(numIndices);
+            for (int index = 0; index < numIndices; ++index)
+            {
+                mappingsOut[whichMap].m_map[index].m_ciftiIndex = myMap->m_brainModels[i].m_indexOffset + index;
+                int64_t i3 = index * 3;
+                mappingsOut[whichMap].m_map[index].m_ijk[0] = myMap->m_brainModels[i].m_voxelIndicesIJK[i3];
+                mappingsOut[whichMap].m_map[index].m_ijk[1] = myMap->m_brainModels[i].m_voxelIndicesIJK[i3 + 1];
+                mappingsOut[whichMap].m_map[index].m_ijk[2] = myMap->m_brainModels[i].m_voxelIndicesIJK[i3 + 2];
+            }
+        }
+    }
+    return true;
+}
+
+bool CiftiXML::getVolumeParcelMapsForColumns(vector<CiftiVolumeStructureMap>& mappingsOut)
+{
+    return getVolumeParcelMappings(mappingsOut, m_colMap);
+}
+
+bool CiftiXML::getVolumeParcelMapsForRows(vector<CiftiVolumeStructureMap>& mappingsOut)
+{
+    return getVolumeParcelMappings(mappingsOut, m_rowMap);
+}
+
 void CiftiXML::rootChanged()
 {//and here is where the real work is done
     m_colMap = NULL;//first, invalidate everything
