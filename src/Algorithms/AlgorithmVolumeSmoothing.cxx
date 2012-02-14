@@ -27,6 +27,7 @@
 #include "VolumeFile.h"
 #include "Vector3D.h"
 #include "CaretLogger.h"
+#include "CaretOMP.h"
 #include <cmath>
 
 using namespace caret;
@@ -54,13 +55,18 @@ OperationParameters* AlgorithmVolumeSmoothing::getParameters()
     OptionalParameter* roiVolOpt = ret->createOptionalParameter(4, "-roi", "smooth only from data within an ROI");
     roiVolOpt->addVolumeParameter(1, "roivol", "the volume to use as an ROI");
     
-    OptionalParameter* subvolSelect = ret->createOptionalParameter(5, "-subvolume", "select a single subvolume to smooth");
+    ret->createOptionalParameter(5, "-fix-zeros", "treat zero values as not being data");
+    
+    OptionalParameter* subvolSelect = ret->createOptionalParameter(6, "-subvolume", "select a single subvolume to smooth");
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
         AString("Gaussian smoothing for volumes.  By default, smooths all subvolumes with no ROI, if ROI is given, only ") +
         "positive voxels in the ROI volume have their values used, and all other voxels are set to zero.  Smoothing a non-orthogonal volume will " +
-        "be significantly slower, because the operation cannot be separated into 1-dimensional smoothings without distorting the kernel shape."
+        "be significantly slower, because the operation cannot be separated into 1-dimensional smoothings without distorting the kernel shape.\n\n" +
+        "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the voxel.  " +
+        "This is useful for zeros that indicate lack of information, preventing them from pulling down the intensity of nearby voxels, while " +
+        "giving the zero an extrapolated value."
     );
     return ret;
 }
@@ -76,7 +82,9 @@ void AlgorithmVolumeSmoothing::useParameters(OperationParameters* myParams, Prog
     {
         roiVol = roiVolOpt->getVolume(1);
     }
-    OptionalParameter* subvolSelect = myParams->getOptionalParameter(5);
+    OptionalParameter* fixZerosOpt = myParams->getOptionalParameter(5);
+    bool fixZeros = fixZerosOpt->m_present;
+    OptionalParameter* subvolSelect = myParams->getOptionalParameter(6);
     int subvolNum = -1;
     if (subvolSelect->m_present)
     {
@@ -86,10 +94,10 @@ void AlgorithmVolumeSmoothing::useParameters(OperationParameters* myParams, Prog
             throw AlgorithmException("invalid subvolume specified");
         }
     }
-    AlgorithmVolumeSmoothing(myProgObj, myVol, myKernel, myOutVol, roiVol, subvolNum);
+    AlgorithmVolumeSmoothing(myProgObj, myVol, myKernel, myOutVol, roiVol, fixZeros, subvolNum);
 }
 
-AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, const VolumeFile* inVol, const float& kernel, VolumeFile* outVol, const VolumeFile* roiVol, const int& subvol) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, const VolumeFile* inVol, const float& kernel, VolumeFile* outVol, const VolumeFile* roiVol, const bool& fixZeros, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
     if (roiVol != NULL && !inVol->matchesVolumeSpace(roiVol))
@@ -149,7 +157,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
-                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange);
+                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
                     outVol->setFrame(scratchFrame, s, c);
                 }
             }
@@ -164,7 +172,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             for (int c = 0; c < myDims[4]; ++c)
             {
                 const float* inFrame = inVol->getFrame(subvol, c);
-                smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange);
+                smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
                 outVol->setFrame(scratchFrame, 0, c);
             }
         }
@@ -217,7 +225,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
-                    smoothFrameNonOrth(inFrame, myDims, scratchFrame, inVol, roiVol, weights, irange, jrange, krange);
+                    smoothFrameNonOrth(inFrame, myDims, scratchFrame, inVol, roiVol, weights, irange, jrange, krange, fixZeros);
                     outVol->setFrame(scratchFrame, s, c);
                 }
             }
@@ -232,20 +240,21 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             for (int c = 0; c < myDims[4]; ++c)
             {
                 const float* inFrame = inVol->getFrame(subvol, c);
-                smoothFrameNonOrth(inFrame, myDims, scratchFrame, inVol, roiVol, weights, irange, jrange, krange);
+                smoothFrameNonOrth(inFrame, myDims, scratchFrame, inVol, roiVol, weights, irange, jrange, krange, fixZeros);
                 outVol->setFrame(scratchFrame, 0, c);
             }
         }
     }
 }
 
-void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange)
+void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros)
 {//this function should ONLY get invoked when the volume is orthogonal (axes are perpendicular, not necessarily aligned with x, y, z, and not necessarily equal spacing)
     const float* roiFrame = NULL;//it separates the 3-d smoothing into 3 successive 1-d smoothings to avoid looping over a box for each voxel (instead, loops over 3 lines)
-    if (roiVol != NULL)
+    if (roiVol != NULL)//if this function ever needs more speed (unlikely), try having the j and k smoothings copy a line to thread private scratch so threads don't contend for scattered memory access
     {
         roiFrame = roiVol->getFrame();
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int k = 0; k < myDims[2]; ++k)//smooth along i axis
     {
         for (int j = 0; j < myDims[1]; ++j)
@@ -262,7 +271,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                     for (int ikern = imin; ikern < imax; ++ikern)
                     {
                         int64_t thisIndex = baseInd + ikern;
-                        if (roiVol == NULL || roiFrame[thisIndex] > 0.0f)
+                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || inFrame[thisIndex] != 0.0f))
                         {
                             float weight = iweights[ikern - i + irange];
                             weightsum += weight;
@@ -281,6 +290,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
             }
         }
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int k = 0; k < myDims[2]; ++k)//now j
     {
         for (int i = 0; i < myDims[0]; ++i)
@@ -297,7 +307,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                     for (int jkern = jmin; jkern < jmax; ++jkern)
                     {
                         int64_t thisIndex = baseInd + jkern * myDims[0];
-                        if (roiVol == NULL || roiFrame[thisIndex] > 0.0f)
+                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || scratchFrame[thisIndex] != 0.0f))
                         {
                             float weight = jweights[jkern - j + jrange];
                             weightsum += weight;
@@ -316,6 +326,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
             }
         }
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int j = 0; j < myDims[1]; ++j)//and finally k
     {
         for (int i = 0; i < myDims[0]; ++i)
@@ -332,7 +343,7 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                     for (int kkern = kmin; kkern < kmax; ++kkern)
                     {
                         int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];
-                        if (roiVol == NULL || roiFrame[thisIndex] > 0.0f)
+                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || scratchFrame2[thisIndex] != 0.0f))
                         {
                             float weight = kweights[kkern - k + krange];
                             weightsum += weight;
@@ -353,13 +364,14 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
     }
 }
 
-void AlgorithmVolumeSmoothing::smoothFrameNonOrth(const float* inFrame, const vector<int64_t>& myDims, CaretArray<float>& scratchFrame, const VolumeFile* inVol, const VolumeFile* roiVol, const CaretArray<float**>& weights, const int& irange, const int& jrange, const int& krange)
+void AlgorithmVolumeSmoothing::smoothFrameNonOrth(const float* inFrame, const vector<int64_t>& myDims, CaretArray<float>& scratchFrame, const VolumeFile* inVol, const VolumeFile* roiVol, const CaretArray<float**>& weights, const int& irange, const int& jrange, const int& krange, const bool& fixZeros)
 {
     const float* roiFrame = NULL;
     if (roiVol != NULL)
     {
         roiFrame = roiVol->getFrame();
     }
+#pragma omp CARET_PARFOR schedule(dynamic)
     for (int k = 0; k < myDims[2]; ++k)
     {
         for (int j = 0; j < myDims[1]; ++j)
@@ -390,7 +402,7 @@ void AlgorithmVolumeSmoothing::smoothFrameNonOrth(const float* inFrame, const ve
                             {
                                 int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
                                 float weight = weights[kkernpart][jkernpart][ikern - i + irange];
-                                if (weight != 0.0f && (roiVol == NULL || roiFrame[thisIndex] > 0.0f))
+                                if (weight != 0.0f && (roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || inFrame[thisIndex] != 0.0f))
                                 {
                                     weightsum += weight;
                                     sum += weight * inFrame[thisIndex];

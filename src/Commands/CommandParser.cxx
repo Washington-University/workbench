@@ -326,9 +326,9 @@ void CommandParser::writeOutput(const vector<OutputAssoc>& outAssociation)
 
 AString CommandParser::getHelpInformation(const AString& programName)
 {
-    m_minIndent = 3;
+    m_minIndent = 0;
     m_indentIncrement = 3;
-    m_maxWidth = 80;
+    m_maxWidth = 79;//leave a space on the right edge of an 80-wide terminal so that it looks better - TODO: get the terminal width from some system call
     m_maxIndent = 31;//don't let indenting take up more than this
     int curIndent = m_minIndent;
     AString ret;
@@ -450,11 +450,11 @@ void CommandParser::addComponentDescriptions(AString& info, ParameterComponent* 
 {
     for (int i = 0; i < (int)myComponent->m_paramList.size(); ++i)
     {
-        info += formatString("<" + myComponent->m_paramList[i]->m_shortName + "> - " + myComponent->m_paramList[i]->m_description, curIndent, true) + "\n";
+        info += formatString("<" + myComponent->m_paramList[i]->m_shortName + "> - " + myComponent->m_paramList[i]->m_description, curIndent, true);
     }
     for (int i = 0; i < (int)myComponent->m_outputList.size(); ++i)
     {
-        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - output - " + myComponent->m_outputList[i]->m_description, curIndent, true) + "\n";
+        info += formatString("<" + myComponent->m_outputList[i]->m_shortName + "> - output - " + myComponent->m_outputList[i]->m_description, curIndent, true);
     }
     addOptionDescriptions(info, myComponent, curIndent);
 }
@@ -463,7 +463,7 @@ void CommandParser::addOptionDescriptions(AString& info, ParameterComponent* myC
 {
     for (int i = 0; i < (int)myComponent->m_optionList.size(); ++i)
     {
-        info += formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "] - " + myComponent->m_optionList[i]->m_description, curIndent, true);
+        info += "\n" + formatString("[" + myComponent->m_optionList[i]->m_optionSwitch + "] - " + myComponent->m_optionList[i]->m_description, curIndent, true);
         addComponentDescriptions(info, myComponent->m_optionList[i], curIndent + m_indentIncrement);//indent arguments to options
     }
 }
