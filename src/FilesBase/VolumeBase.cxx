@@ -82,9 +82,13 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_dimensions[1] = dimensionsIn[1];
     m_dimensions[2] = dimensionsIn[2];
     m_dimensions[3] = 1;
-    for (int i = 3; i < (int)dimensionsIn.size(); ++i)
+    for (int i = 0; i < (int)dimensionsIn.size(); ++i)
     {
-        if (dimensionsIn[i] != 0)
+        if (m_dimensions[i] < 1)
+        {
+            throw DataFileException("invalid dimensions specified");
+        }
+        if (i > 2)
         {
             m_dimensions[3] *= dimensionsIn[i];
         }
@@ -835,26 +839,18 @@ BoundingBox
 VolumeBase::getSpaceBoundingBox() const
 {
     BoundingBox bb;
-    
-    if ((m_dimensions[0] > 0)
-        && (m_dimensions[1] > 0) 
-        && (m_dimensions[2] > 0)) {
-        int64_t indx[3];
-        float   coordinates[3];
-        
-        indx[0] = 0;
-        indx[1] = 0;
-        indx[2] = 0;
-        this->indexToSpace(indx, coordinates);
-        bb.update(coordinates);
-        
-        indx[0] = m_dimensions[0];
-        indx[1] = m_dimensions[1];
-        indx[2] = m_dimensions[2];
-        this->indexToSpace(indx, coordinates);
-        bb.update(coordinates);
+    float coordinates[3];
+    for (int i = 0; i < 2; ++i)//if the volume isn't plumb, we need to test all corners, so just always test all corners
+    {
+        for (int j = 0; j < 2; ++j)
+        {
+            for (int k = 0; k < 2; ++k)
+            {
+                this->indexToSpace(i * m_dimensions[0] - 0.5f, j * m_dimensions[1] - 0.5f, k * m_dimensions[2] - 0.5f, coordinates);//accounts for extra half voxel on each side of each center
+                bb.update(coordinates);
+            }
+        }
     }
-    
     return bb;
 }
 
