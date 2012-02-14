@@ -28,6 +28,7 @@
 
 #include "stdint.h"
 #include <vector>
+#include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "NiftiEnums.h"
 #include "StructureEnum.h"
@@ -272,6 +273,8 @@ namespace caret {
             return true;
         }
 
+        BoundingBox getSpaceBoundingBox() const;
+        
         void setModified() { m_ModifiedFlag = true; }
         void clearModified() { m_ModifiedFlag = false;}
         bool isModified() const { return m_ModifiedFlag; }

@@ -828,6 +828,36 @@ VolumeBase::getMapIndexFromUniqueID(const AString& uniqueID) const
     return -1;
 }
 
+/**
+ * @return Bounding box of the volumes spatial coordinates.
+ */
+BoundingBox 
+VolumeBase::getSpaceBoundingBox() const
+{
+    BoundingBox bb;
+    
+    if ((m_dimensions[0] > 0)
+        && (m_dimensions[1] > 0) 
+        && (m_dimensions[2] > 0)) {
+        int64_t indx[3];
+        float   coordinates[3];
+        
+        indx[0] = 0;
+        indx[1] = 0;
+        indx[2] = 0;
+        this->indexToSpace(indx, coordinates);
+        bb.update(coordinates);
+        
+        indx[0] = m_dimensions[0];
+        indx[1] = m_dimensions[1];
+        indx[2] = m_dimensions[2];
+        this->indexToSpace(indx, coordinates);
+        bb.update(coordinates);
+    }
+    
+    return bb;
+}
+
 
 
 

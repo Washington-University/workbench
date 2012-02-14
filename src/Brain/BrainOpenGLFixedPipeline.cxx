@@ -383,9 +383,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisp
 {
     VolumeFile* vf = modelDisplayControllerVolume->getUnderlayVolumeFile(tabIndex);
     if (vf != NULL) {
-        vf->getB
-        std::vector<int64_t> dimensions[3];
-        vf->getD
+        //BoundingBox boundingBox = vf->getSpaceBoundingBox();
     }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
