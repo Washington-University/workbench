@@ -44,6 +44,7 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QScrollArea>
 #include <QToolButton>
 
 
@@ -149,13 +150,10 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                               gridRow,
                               COLUMN_FILE_NAME);
     }
-    
-    QWidget* fw = WuQtUtilities::insertIntoScrollAreaIfNeeded(this,
-                                                              filesWidget);
-    
+
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(fw);
+    layout->addWidget(filesWidget);
 
     this->setCentralWidget(w);
 }

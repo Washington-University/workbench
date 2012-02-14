@@ -27,6 +27,8 @@
 
 #include <iosfwd>
 
+#include <QSize>
+
 class QAction;
 class QBoxLayout;
 class QDialog;
@@ -117,8 +119,7 @@ namespace caret {
                                      const int margin,
                                      const int contentsMargin);
         
-        static QWidget* insertIntoScrollAreaIfNeeded(QWidget* parentWindowOrDialog,
-                                                     QWidget* widget);
+        static QSize getMinimumScreenSize();
         
     private:
         WuQtUtilities();

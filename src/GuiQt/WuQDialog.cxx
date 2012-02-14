@@ -31,6 +31,7 @@
 #include <QMessageBox>
 #include <QPixmap>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QTimer>
 
 #include "CaretAssert.h"
@@ -301,13 +302,62 @@ WuQDialog::getDialogButtonBox()
  *
  * This should be called ONE and ONLY one time.
  *
- * @param w
+ * Unless prohibited by the second parameter, the widget
+ * will be automatically placed into a scroll area if the
+ * widget makes the dialog too big for the screen.
+ *
+ * @param widget
  *    The central widget.
  */
 void 
-WuQDialog::setCentralWidget(QWidget* w)
+WuQDialog::setCentralWidget(QWidget* widget,
+                            const bool allowInsertingIntoScrollArea)
 {
-    this->userWidgetLayout->addWidget(w);
+    if (allowInsertingIntoScrollArea == false) {
+        this->userWidgetLayout->addWidget(widget);
+        return;
+    }
+    
+    const QSize maxSize = WuQtUtilities::getMinimumScreenSize();
+    const int margin = 100;
+    const int maxWidth = maxSize.width() - margin;
+    const int maxHeight = maxSize.height() - margin;
+    
+    const int widgetWidth = widget->sizeHint().width() + 20;
+    const int widgetHeight = widget->sizeHint().height() + 20;
+    
+    /**
+     * Are contents too big for window?
+     */
+    if ((widgetWidth > maxWidth)
+        || (widgetHeight > maxHeight)) {
+        /*
+         * Put contents in a scroll area
+         */
+        QScrollArea* scrollArea = new QScrollArea();
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setWidget(widget);
+
+        /*
+         * Make scroll area the dialog's widget
+         */
+        this->userWidgetLayout->addWidget(scrollArea);
+
+        /*
+         * Estimate size for dialog
+         */
+        const int width = std::min(widgetWidth, maxWidth);
+        const int height = std::min(widgetHeight, maxHeight);
+        
+        /*
+         * Resize the dialog.
+         */
+        this->resize(width, 
+                     height);
+    }
+    else {        
+        this->userWidgetLayout->addWidget(widget);
+    }
 }
 
 /**

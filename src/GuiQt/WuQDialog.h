@@ -46,7 +46,8 @@ namespace caret  {
     public:
         virtual ~WuQDialog();
         
-        void setCentralWidget(QWidget* w);
+        void setCentralWidget(QWidget* w,
+                              const bool allowInsertingIntoScrollArea = true);
         
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
                                    const AString& text);

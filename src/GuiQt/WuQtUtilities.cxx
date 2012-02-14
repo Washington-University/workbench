@@ -21,6 +21,8 @@
 **
 ****************************************************************************/
 
+#include <limits>
+
 #include <QAction>
 #include <QApplication>
 #include <QBoxLayout>
@@ -480,6 +482,17 @@ WuQtUtilities::matchWidgetHeights(QWidget* w1,
     }
 }
 
+/**
+ * Set the margins and spacing for a layout.
+ * @param layout
+ *     Layout that has margins and spacings set.
+ * @param spacing
+ *     Spacing between widgets in layout.
+ * @param margin
+ *     Margin around the layout.
+ * @param contentsMargin
+ *     
+ */
 void 
 WuQtUtilities::setLayoutMargins(QLayout* layout,
                                 const int spacing,
@@ -494,27 +507,27 @@ WuQtUtilities::setLayoutMargins(QLayout* layout,
                                contentsMargin);
 }
 
-QWidget* 
-WuQtUtilities::insertIntoScrollAreaIfNeeded(QWidget* parentWindowOrDialog,
-                                            QWidget* widget)
+/**
+ * @return The minimum size (width/height) of all screens.
+ */
+QSize 
+WuQtUtilities::getMinimumScreenSize()
 {
+    int minWidth  = std::numeric_limits<int>::max();
+    int minHeight = std::numeric_limits<int>::max();
+    
     QDesktopWidget* dw = QApplication::desktop();
-    const QRect geometry = dw->availableGeometry(parentWindowOrDialog);
-    const int windowWidth = geometry.width() - 100;
-    const int windowHeight = geometry.height() - 100;
-    
-    const int sizeX = widget->sizeHint().width();
-    const int sizeY = widget->sizeHint().height();
-    
-    if ((sizeX > windowWidth)
-        || (sizeY > windowHeight)) {
-        QScrollArea* scrollArea = new QScrollArea();
-        scrollArea->setWidgetResizable(true);
-        scrollArea->setWidget(widget);
-        return scrollArea;
+    const int numScreens = dw->screenCount();
+    for (int i = 0; i < numScreens; i++) {
+        const QRect rect = dw->availableGeometry(i);
+        const int w = rect.width();
+        const int h = rect.height();
+        
+        minWidth = std::min(minWidth, w);
+        minHeight = std::min(minHeight, h);
     }
     
-    return widget;
+    const QSize size(minWidth, minHeight);
+    return size;
 }
-
 
