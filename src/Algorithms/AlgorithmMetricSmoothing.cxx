@@ -56,18 +56,24 @@ OperationParameters* AlgorithmMetricSmoothing::getParameters()
     ret->addMetricOutputParameter(4, "metric-out", "the output metric");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(5, "-roi", "select a region of interest to smooth");
-    roiOption->addMetricParameter(6, "roi-metric", "the roi to smooth within, as a metric");
+    roiOption->addMetricParameter(1, "roi-metric", "the roi to smooth within, as a metric");
+    
+    ret->createOptionalParameter(6, "-fix-zeros", "treat zero values as not being data");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(7, "-column", "select a single column to smooth");
     columnSelect->addStringParameter(1, "column", "the column number or name");
     
-    OptionalParameter* methodSelect = ret->createOptionalParameter(9, "-method", "select smoothing method, default GEO_GAUSS_AREA");
-    methodSelect->addStringParameter(10, "method", "the name of the smoothing method");
+    OptionalParameter* methodSelect = ret->createOptionalParameter(8, "-method", "select smoothing method, default GEO_GAUSS_AREA");
+    methodSelect->addStringParameter(1, "method", "the name of the smoothing method");
     
     ret->setHelpText(
         AString("Smooth a metric file on a surface.  By default, smooths all input columns on the entire surface, specify -column to smooth ") +
         "only one column, and -roi to smooth only one region, outputting zeros elsewhere.  When using -roi, input data outside the ROI is not used " +
-        "to compute the smoothed values.  Valid values for <method> are:\n\nGEO_GAUSS_AREA - uses a geodesic gaussian kernel, and normalizes based " +
+        "to compute the smoothed values.\n\n" + 
+        "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the node.  " +
+        "This is useful for zeros that indicate lack of information, preventing them from pulling down the intensity of nearby nodes, while " +
+        "giving the zero an extrapolated value.\n\n" +
+        "Valid values for <method> are:\n\nGEO_GAUSS_AREA - uses a geodesic gaussian kernel, and normalizes based " +
         "on node area in order to work more reliably on irregular surfaces\n\nGEO_GAUSS - matches geodesic gaussian smoothing from caret5, but does " +
         "not take node areas into account"
     );
@@ -84,8 +90,10 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
     OptionalParameter* roiOption = myParams->getOptionalParameter(5);
     if (roiOption->m_present)
     {
-        myRoi = roiOption->getMetric(6);
+        myRoi = roiOption->getMetric(1);
     }
+    OptionalParameter* fixZerosOpt = myParams->getOptionalParameter(6);
+    bool fixZeros = fixZerosOpt->m_present;
     int64_t columnNum = -1;
     OptionalParameter* columnSelect = myParams->getOptionalParameter(7);
     if (columnSelect->m_present)
@@ -97,10 +105,10 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
         }
     }
     Method myMethod = GEO_GAUSS_AREA;
-    OptionalParameter* methodSelect = myParams->getOptionalParameter(9);
+    OptionalParameter* methodSelect = myParams->getOptionalParameter(8);
     if (methodSelect->m_present)
     {
-        AString methodName = methodSelect->getString(10);
+        AString methodName = methodSelect->getString(1);
         if (methodName == "GEO_GAUSS_AREA")
         {
             myMethod = GEO_GAUSS_AREA;
@@ -110,10 +118,10 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
             throw AlgorithmException("unknown smoothing method name");
         }
     }
-    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, columnNum, myMethod);
+    AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, fixZeros, columnNum, myMethod);
 }
 
-AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, MetricFile* myRoi, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, MetricFile* myRoi, bool fixZeros, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
 {
     const float precomputeWeightWork = 5.0f;//maybe should be a member variable?
     LevelProgress myProgress(myProgObj, 1.0f + precomputeWeightWork);
@@ -156,14 +164,35 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
             {
                 if (myRoi == NULL || myRoiColumn[i] > 0.0f)
                 {
-                    float sum = 0.0f;
-                    WeightList& myWeightRef = m_weightLists[i];
-                    int32_t numWeights = myWeightRef.m_nodes.size();
-                    for (int32_t j = 0; j < numWeights; ++j)
+                    if (fixZeros)
                     {
-                        sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                        float weightSum = 0.0f, sum = 0.0f;
+                        WeightList& myWeightRef = m_weightLists[i];
+                        int32_t numWeights = myWeightRef.m_nodes.size();
+                        for (int32_t j = 0; j < numWeights; ++j)
+                        {
+                            if (myColumn[myWeightRef.m_nodes[j]] != 0.0f)
+                            {
+                                sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                                weightSum += myWeightRef.m_weights[j];
+                            }
+                        }
+                        if (weightSum != 0.0f)
+                        {
+                            myScratch[i] = sum / weightSum;
+                        } else {
+                            myScratch[i] = 0.0f;
+                        }
+                    } else {
+                        float sum = 0.0f;
+                        WeightList& myWeightRef = m_weightLists[i];
+                        int32_t numWeights = myWeightRef.m_nodes.size();
+                        for (int32_t j = 0; j < numWeights; ++j)
+                        {
+                            sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                        }
+                        myScratch[i] = sum / myWeightRef.m_weightSum;
                     }
-                    myScratch[i] = sum / myWeightRef.m_weightSum;
                 } else {
                     myScratch[i] = 0.0f;//zero other stuff
                 }
@@ -191,14 +220,35 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
         {
             if (myRoi == NULL || myRoiColumn[i] > 0.0f)
             {
-                float sum = 0.0f;
-                WeightList& myWeightRef = m_weightLists[i];
-                int32_t numWeights = myWeightRef.m_nodes.size();
-                for (int32_t j = 0; j < numWeights; ++j)
+                if (fixZeros)
                 {
-                    sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                    float weightSum = 0.0f, sum = 0.0f;
+                    WeightList& myWeightRef = m_weightLists[i];
+                    int32_t numWeights = myWeightRef.m_nodes.size();
+                    for (int32_t j = 0; j < numWeights; ++j)
+                    {
+                        if (myColumn[myWeightRef.m_nodes[j]] != 0.0f)
+                        {
+                            sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                            weightSum += myWeightRef.m_weights[j];
+                        }
+                    }
+                    if (weightSum != 0.0f)
+                    {
+                        myScratch[i] = sum / weightSum;
+                    } else {
+                        myScratch[i] = 0.0f;
+                    }
+                } else {
+                    float sum = 0.0f;
+                    WeightList& myWeightRef = m_weightLists[i];
+                    int32_t numWeights = myWeightRef.m_nodes.size();
+                    for (int32_t j = 0; j < numWeights; ++j)
+                    {
+                        sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                    }
+                    myScratch[i] = sum / myWeightRef.m_weightSum;
                 }
-                myScratch[i] = sum / myWeightRef.m_weightSum;
             } else {
                 myScratch[i] = 0.0f;//zero other stuff
             }
