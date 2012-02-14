@@ -73,7 +73,6 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
     this->userWidgetLayout = new QVBoxLayout();
     WuQtUtilities::setLayoutMargins(this->userWidgetLayout,
                                     0,
-                                    0,
                                     0);
     
     this->buttonBox = new QDialogButtonBox(Qt::Horizontal,
@@ -81,7 +80,6 @@ WuQDialog::WuQDialog(const AString& dialogTitle,
     
     QVBoxLayout* dialogLayout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(dialogLayout,
-                                    0,
                                     0,
                                     0);
     dialogLayout->addLayout(this->userWidgetLayout);

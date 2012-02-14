@@ -131,7 +131,7 @@ ColorEditorWidget::ColorEditorWidget(const bool alphaControlEnabled,
     
     int row = 0;
     QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2, 2);
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
     gridLayout->addWidget(this->colorSwatchWidget, row, 0, 1, COLUMN_LAST);
     row++;
     gridLayout->addWidget(redLabel, row, COLUMN_NAME);

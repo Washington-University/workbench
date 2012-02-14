@@ -110,7 +110,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(this->tabWidget);
     layout->addStretch();
     
@@ -217,7 +217,7 @@ BrainBrowserWindowToolBox::createConnectivityWidget(const Qt::Orientation orient
 /*
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(this->connectivityLoaderControl);
     return w;
 */

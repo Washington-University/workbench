@@ -223,7 +223,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->tabBarWidget = new QWidget();
     QHBoxLayout* tabBarLayout = new QHBoxLayout(this->tabBarWidget);
-    WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1, 1);
+    WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1);
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
     tabBarLayout->addWidget(displayControlToolButton);
@@ -249,7 +249,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->toolbarWidget = new QWidget();
     this->toolbarWidgetLayout = new QHBoxLayout(this->toolbarWidget);
-    WuQtUtilities::setLayoutMargins(this->toolbarWidgetLayout, 2, 1, 1);
+    WuQtUtilities::setLayoutMargins(this->toolbarWidgetLayout, 2, 1);
     //this->toolbarWidgetLayout->setSpacing(2);
     
     this->toolbarWidgetLayout->addWidget(this->viewWidget, 0, Qt::AlignLeft);
@@ -279,10 +279,10 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     this->userInputControlsWidgetLayout = new QHBoxLayout();
     this->userInputControlsWidgetLayout->addSpacing(5);
-    WuQtUtilities::setLayoutMargins(this->userInputControlsWidgetLayout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(this->userInputControlsWidgetLayout, 0, 0);
     this->userInputControlsWidget = new QWidget();
     QVBoxLayout* userInputLayout = new QVBoxLayout(this->userInputControlsWidget);
-    WuQtUtilities::setLayoutMargins(userInputLayout, 2, 1, 0);
+    WuQtUtilities::setLayoutMargins(userInputLayout, 2, 0);
     userInputLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
     userInputLayout->addLayout(this->userInputControlsWidgetLayout);
     userInputControlsWidgetActiveInputWidget = NULL;
@@ -292,7 +292,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 1, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 1, 0);
     layout->addWidget(this->tabBarWidget);
     layout->addWidget(this->toolbarWidget);
     layout->addWidget(this->userInputControlsWidget);
@@ -1039,7 +1039,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addWidget(this->viewModeSurfaceRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
@@ -1279,7 +1279,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     userViewAndResetLayout->addStretch();
     
     QGridLayout* buttonGridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(buttonGridLayout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(buttonGridLayout, 0, 0);
     buttonGridLayout->addWidget(orientationLeftToolButton,      0, 0);
     buttonGridLayout->addWidget(orientationRightToolButton,     0, 1);
     buttonGridLayout->addWidget(orientationDorsalToolButton,    1, 0);
@@ -1289,7 +1289,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     buttonGridLayout->addLayout(userViewAndResetLayout, 0, 2, 3, 1);
     
 //    QHBoxLayout* userOrientLayout = new QHBoxLayout();
-//    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 2, 0);
+//    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 0);
 //    userOrientLayout->addWidget(userViewOneToolButton);
 //    userOrientLayout->addWidget(userViewTwoToolButton);
 //    userOrientLayout->addWidget(this->orientationUserViewSelectToolButton);
@@ -1297,7 +1297,7 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addLayout(buttonGridLayout);
     
     this->orientationWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -1565,7 +1565,7 @@ BrainBrowserWindowToolBar::createWholeBrainSurfaceOptionsWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addLayout(gridLayout);
     
     this->wholeBrainSurfaceOptionsWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -1751,7 +1751,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addLayout(gridLayout);
     layout->addStretch();
     
@@ -2005,7 +2005,7 @@ BrainBrowserWindowToolBar::createToolsWidget()
      */
     QWidget* inputModeWidget = new QWidget();
     QGridLayout* inputModeLayout = new QGridLayout(inputModeWidget);
-    WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 0, 0);
+    WuQtUtilities::setLayoutMargins(inputModeLayout, 2, 0);
     inputModeLayout->addWidget(inputModeBordersToolButton, 0, 0);
     inputModeLayout->addWidget(inputModeViewToolButton, 0, 1);
     
@@ -2018,7 +2018,7 @@ BrainBrowserWindowToolBar::createToolsWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(connectToDatabaseToolButton, 0, Qt::AlignHCenter);
     layout->addStretch();
     layout->addWidget(inputModeWidget, 0, Qt::AlignHCenter);
@@ -2184,7 +2184,7 @@ BrainBrowserWindowToolBar::createWindowWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 4, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 4, 0);
     layout->addWidget(yokeToLabel);
     layout->addWidget(this->windowYokeGroupComboBox);
     
@@ -2251,7 +2251,7 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addWidget(structureSurfaceLabel);
     layout->addWidget(this->surfaceSurfaceSelectionControl);
     layout->addStretch();
@@ -2341,7 +2341,7 @@ BrainBrowserWindowToolBar::createVolumeMontageWidget()
 
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addLayout(gridLayout);
     
     this->volumeMontageWidgetGroup = new WuQWidgetObjectGroup(this);
@@ -2515,7 +2515,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     
     
     QHBoxLayout* planeLayout1 = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(planeLayout1, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(planeLayout1, 0, 0);
     planeLayout1->addStretch();
     planeLayout1->addWidget(volumePlaneParasagittalToolButton);
     planeLayout1->addWidget(volumePlaneCoronalToolButton);
@@ -2524,7 +2524,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     planeLayout1->addStretch();
 
     QHBoxLayout* planeLayout2 = new QHBoxLayout();
-    WuQtUtilities::setLayoutMargins(planeLayout2, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(planeLayout2, 0, 0);
     planeLayout2->addStretch();
     planeLayout2->addWidget(volumePlaneViewOrthogonalToolButton);
     planeLayout2->addWidget(volumePlaneViewMontageToolButton);
@@ -2533,7 +2533,7 @@ BrainBrowserWindowToolBar::createVolumePlaneWidget()
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addLayout(planeLayout1);
     layout->addLayout(planeLayout2);
     layout->addWidget(volumePlaneResetToolButton, 0, Qt::AlignHCenter);
@@ -2636,7 +2636,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
     QGridLayout* layout = new QGridLayout(w);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);    
-    WuQtUtilities::setLayoutMargins(layout, 2, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     switch (contentPlacement) {
         case WIDGET_PLACEMENT_BOTTOM:
             //layout->addStretch();
@@ -2666,7 +2666,7 @@ BrainBrowserWindowToolBar::createToolWidget(const QString& name,
         || addVerticalBarOnRightSide) {
         QWidget* w2 = new QWidget();
         QHBoxLayout* horizLayout = new QHBoxLayout(w2);
-        WuQtUtilities::setLayoutMargins(horizLayout, 0, 0, 0);
+        WuQtUtilities::setLayoutMargins(horizLayout, 0, 0);
         if (addVerticalBarOnLeftSide) {
             horizLayout->addWidget(WuQtUtilities::createVerticalLineWidget());
             horizLayout->addSpacing(3);

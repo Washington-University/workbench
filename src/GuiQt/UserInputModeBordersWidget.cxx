@@ -94,7 +94,7 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     this->operationStackedWidget->addWidget(this->widgetSelectOperation);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(nameLabel);
     layout->addWidget(this->widgetMode);
     layout->addSpacing(10);
@@ -228,7 +228,7 @@ UserInputModeBordersWidget::createModeWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     if (useComboBoxFlag) {
         layout->addWidget(this->modeComboBox);
     }
@@ -377,7 +377,7 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     layout->addWidget(transformToolButton);
     layout->addSpacing(10);
     layout->addWidget(drawToolButton);
@@ -549,7 +549,7 @@ UserInputModeBordersWidget::createEditOperationWidget()
     
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     layout->addWidget(deleteToolButton);
     layout->addWidget(propertiesToolButton);
     
@@ -579,7 +579,7 @@ UserInputModeBordersWidget::createSelectOperationWidget()
 {
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;

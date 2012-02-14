@@ -534,7 +534,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramSection()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(this->thresholdPlot);
     layout->addWidget(resetViewToolButton, 0, Qt::AlignHCenter);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2, 0);
+    WuQtUtilities::setLayoutMargins(layout, 2, 0);
     return  widget;
 }
 
@@ -761,7 +761,7 @@ MapScalarDataColorMappingEditorDialog::createPaletteSection()
     
     QWidget* displayModeWidget = new QWidget();
     QHBoxLayout* displayModeLayout = new QHBoxLayout(displayModeWidget);
-    WuQtUtilities::setLayoutMargins(displayModeLayout, 10, 3, 3);
+    WuQtUtilities::setLayoutMargins(displayModeLayout, 10, 3);
     displayModeLayout->addWidget(this->displayModeNegativeCheckBox);
     displayModeLayout->addStretch();
     displayModeLayout->addWidget(this->displayModeZeroCheckBox);
@@ -1350,7 +1350,7 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
 void 
 MapScalarDataColorMappingEditorDialog::setLayoutMargins(QLayout* layout)
 {
-    WuQtUtilities::setLayoutMargins(layout, 5, 3, 3);
+    WuQtUtilities::setLayoutMargins(layout, 5, 3);
 }
 
 

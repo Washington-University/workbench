@@ -115,7 +115,6 @@ namespace caret {
         
         static void setLayoutMargins(QLayout* layout,
                                      const int spacing,
-                                     const int margin,
                                      const int contentsMargin);
         
         static QSize getMinimumScreenSize();

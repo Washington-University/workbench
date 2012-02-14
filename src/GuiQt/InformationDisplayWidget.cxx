@@ -106,7 +106,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->addSeparator();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(idToolBarLeft);
     layout->addWidget(this->informationTextBrowser);
     layout->addWidget(idToolBarRight);

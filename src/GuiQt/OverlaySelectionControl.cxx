@@ -85,7 +85,7 @@ OverlaySelectionControl::OverlaySelectionControl(const int32_t browserWindowInde
     this->updateLayersGridWidgetSize();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0, 1);
+    WuQtUtilities::setLayoutMargins(layout, 0, 1);
     layout->addWidget(this->layersGridWidget);  //, 0, Qt::AlignLeft | Qt::AlignTop);
     layout->addWidget(this->addLayerPushButton); //, Qt::AlignHCenter | Qt::AlignTop);
     layout->addStretch();
@@ -213,7 +213,7 @@ OverlaySelectionControl::createLayers()
                 gridLayout->addWidget(layer->opacityDoubleSpinBox, row, 6, Qt::AlignCenter);
                 
                 QVBoxLayout* arrowLayout = new QVBoxLayout();
-                WuQtUtilities::setLayoutMargins(arrowLayout, 0, 0, 0);
+                WuQtUtilities::setLayoutMargins(arrowLayout, 0, 0);
                 arrowLayout->addWidget(layer->upArrowToolButton);
                 arrowLayout->addWidget(layer->downArrowToolButton);
                 gridLayout->addLayout(arrowLayout, row, 7, Qt::AlignCenter);

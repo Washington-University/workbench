@@ -244,7 +244,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
      */ 
     QWidget* toolbarWidget = new QWidget();
     QVBoxLayout* toolbarWidgetLayout = new QVBoxLayout(toolbarWidget);
-    WuQtUtilities::setLayoutMargins(toolbarWidgetLayout, 0, 0, 0);
+    WuQtUtilities::setLayoutMargins(toolbarWidgetLayout, 0, 0);
     toolbarWidgetLayout->addWidget(fileGroupToolBar);
     toolbarWidgetLayout->addWidget(selectToolBar);
     
@@ -260,7 +260,7 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
                                               "immediately after loading a file.");
         optionsWidget = new QWidget();
         QHBoxLayout* optionsLayout = new QHBoxLayout(optionsWidget);
-        WuQtUtilities::setLayoutMargins(optionsLayout, 0, 0, 0);
+        WuQtUtilities::setLayoutMargins(optionsLayout, 0, 0);
 #ifdef CARET_OS_MACOSX
         optionsLayout->addStretch();
 #endif

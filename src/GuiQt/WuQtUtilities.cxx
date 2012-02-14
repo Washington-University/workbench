@@ -531,17 +531,13 @@ WuQtUtilities::matchWidgetHeights(QWidget* w1,
  *     Spacing between widgets in layout.
  * @param margin
  *     Margin around the layout.
- * @param contentsMargin
- *     
  */
 void 
 WuQtUtilities::setLayoutMargins(QLayout* layout,
                                 const int spacing,
-                                const int margin,
                                 const int contentsMargin)
 {
     layout->setSpacing(spacing);
-    layout->setMargin(margin);
     layout->setContentsMargins(contentsMargin,
                                contentsMargin,
                                contentsMargin,
