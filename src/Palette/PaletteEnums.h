@@ -181,6 +181,8 @@ private:
 
     static bool initializedFlag;
 
+    static void handleDisabledThresholdTypes(Enum& e);
+    
     Enum e;
 
     int32_t integerCode;
@@ -188,6 +190,8 @@ private:
     AString name;
     
     AString guiName;
+    
+    static const bool mappedThresholdsEnabled;
 };
 
 #ifdef __PALETTE_ENUMS_DECLARE__
@@ -197,6 +201,7 @@ private:
     bool PaletteThresholdTestEnum::initializedFlag = false;
     std::vector<PaletteThresholdTypeEnum> PaletteThresholdTypeEnum::enumData;
     bool PaletteThresholdTypeEnum::initializedFlag = false;
+    const bool PaletteThresholdTypeEnum::mappedThresholdsEnabled = false;
 #endif // __PALETTE_ENUMS_DECLARE__
 
 } // namespace

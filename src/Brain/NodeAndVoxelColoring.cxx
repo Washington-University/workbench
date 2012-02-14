@@ -122,26 +122,9 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     /*
      * Range of values allowed by thresholding
      */
-    float thresholdMinimum = -std::numeric_limits<float>::max();
-    float thresholdMaximum =  std::numeric_limits<float>::max();
     const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
-    switch (thresholdType) {
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF:
-            showOutsideFlag = false;
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_NORMAL:
-                thresholdMinimum = paletteColorMapping->getThresholdNormalMinimum();
-                thresholdMaximum = paletteColorMapping->getThresholdNormalMaximum();
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED:
-                thresholdMinimum = paletteColorMapping->getThresholdMappedMinimum();
-                thresholdMaximum = paletteColorMapping->getThresholdMappedMaximum();
-            break;
-        case PaletteThresholdTypeEnum::THRESHOLD_TYPE_MAPPED_AVERAGE_AREA:
-                thresholdMinimum = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
-                thresholdMaximum = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
-            break;
-    }
+    const float thresholdMinimum = paletteColorMapping->getThresholdMinimum(thresholdType);
+    const float thresholdMaximum = paletteColorMapping->getThresholdMaximum(thresholdType);
     const float thresholdMappedPositive = paletteColorMapping->getThresholdMappedMaximum();
     const float thresholdMappedPositiveAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMaximum();
     const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();

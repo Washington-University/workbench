@@ -1020,15 +1020,24 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         float* dataRGBA = NULL;
         if (numHistogramValues > 0) {
             /*
-             * Compute color for 'bar' in the histogram
+             * Compute color for 'bar' in the histogram.
+             * Note that number of data values is one more
+             * than the number of histogram values due to that
+             * a data value is needed on the right of the last
+             * histogram bar.  Otherwise, if there is an outlier
+             * value, the histogram will not be drawn
+             * correctly.
              */
-            dataValues = new float[numHistogramValues];
-            dataRGBA   = new float[numHistogramValues * 4];
-            for (int64_t ix = 0; ix < numHistogramValues; ix++) {
+            const int64_t numDataValues = numHistogramValues + 1;
+            dataValues = new float[numDataValues];
+            dataRGBA   = new float[numDataValues * 4];
+            for (int64_t ix = 0; ix < numDataValues; ix++) {
                 const float value = (minValue
                                      + (ix * step));
                 dataValues[ix] = value;
             }
+            dataValues[0] = minValue;
+            dataValues[numDataValues - 1] = maxValue;
             
             const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
             if (this->histogramUsePaletteColors->isChecked()
@@ -1038,12 +1047,12 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
                                                               palette, 
                                                               dataValues, 
                                                               dataValues, 
-                                                              numHistogramValues, 
+                                                              numDataValues, 
                                                               dataRGBA,
                                                               true); // ignore thresholding
             }
             else {
-                for (int64_t i = 0; i < numHistogramValues; i++) {
+                for (int64_t i = 0; i < numDataValues; i++) {
                     const int64_t i4 = i * 4;
                     dataRGBA[i4]   = 1.0;
                     dataRGBA[i4+1] = 0.0;
@@ -1057,8 +1066,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         
         float z = 0.0;
         float maxDataFrequency = 0.0;
-        const int numBars = numHistogramValues - 1;
-        for (int64_t ix = 0; ix < numBars; ix++) {
+        for (int64_t ix = 0; ix < numHistogramValues; ix++) {
             QColor color;
             const int64_t ix4 = ix * 4;
             color.setRedF(dataRGBA[ix4]);

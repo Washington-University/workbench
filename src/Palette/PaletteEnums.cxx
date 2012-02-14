@@ -534,9 +534,14 @@ PaletteThresholdTypeEnum::initialize()
     initializedFlag = true;
 
     enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_OFF, 0, "THRESHOLD_TYPE_OFF", "Off"));
-    enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "Normal"));
-    enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_MAPPED, 2, "THRESHOLD_TYPE_MAPPED", "Mapped"));
-    enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_MAPPED_AVERAGE_AREA, 3, "THRESHOLD_TYPE_MAPPED_AVERAGE_AREA", "Mapped Average Area"));
+    if (PaletteThresholdTypeEnum::mappedThresholdsEnabled) {
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "Normal"));
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_MAPPED, 2, "THRESHOLD_TYPE_MAPPED", "Mapped"));
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_MAPPED_AVERAGE_AREA, 3, "THRESHOLD_TYPE_MAPPED_AVERAGE_AREA", "Mapped Average Area"));
+    }
+    else {
+        enumData.push_back(PaletteThresholdTypeEnum(THRESHOLD_TYPE_NORMAL, 1, "THRESHOLD_TYPE_NORMAL", "On"));
+    }
 }
 
 /**
@@ -606,6 +611,8 @@ PaletteThresholdTypeEnum::fromName(const AString& s, bool* isValidOut)
         }
     }
     
+    PaletteThresholdTypeEnum::handleDisabledThresholdTypes(e);
+    
     if (isValidOut != 0) {
         *isValidOut = validFlag;
     }
@@ -613,6 +620,23 @@ PaletteThresholdTypeEnum::fromName(const AString& s, bool* isValidOut)
         CaretAssertMessage(0, AString("name \"" + s + " \"failed to match enumerated value for type PaletteThresholdTypeEnum"));
     }
     return e;
+}
+
+/**
+ * If the mapped threshold types are disabled, convert
+ * them to normal thresholding.
+ * @param e
+ *    Thresholding type that may be changed.
+ */
+void 
+PaletteThresholdTypeEnum::handleDisabledThresholdTypes(Enum& e)
+{
+    if (PaletteThresholdTypeEnum::mappedThresholdsEnabled == false) {
+        if ((e == THRESHOLD_TYPE_MAPPED)
+            || (e == THRESHOLD_TYPE_MAPPED_AVERAGE_AREA)) {
+            e = THRESHOLD_TYPE_NORMAL;
+        }
+    }
 }
 
 /**
@@ -658,6 +682,8 @@ PaletteThresholdTypeEnum::fromGuiName(const AString& s, bool* isValidOut)
             break;
         }
     }
+    
+    PaletteThresholdTypeEnum::handleDisabledThresholdTypes(e);
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
@@ -710,6 +736,8 @@ PaletteThresholdTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isVal
             break;
         }
     }
+    
+    PaletteThresholdTypeEnum::handleDisabledThresholdTypes(e);
     
     if (isValidOut != 0) {
         *isValidOut = validFlag;
