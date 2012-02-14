@@ -60,8 +60,7 @@ void AlgorithmName::useParameters(OperationParameters* myParams, ProgressObject*
 {
     //SurfaceFile* mySurf = myParams->getSurface(1);//gets the surface with key 1
     //MetricFile* myMetricOut = myParams->getOutputMetric(2);//gets the output metric with key 2
-    //OptionalParameter* columnSelect = myParams->getOptionalParameter(3);//gets optional parameter with key 3
-    /*OptionalParameter* columnSelect = myParams->getOptionalParameter(5);
+    /*OptionalParameter* columnSelect = myParams->getOptionalParameter(3);//gets optional parameter with key 3
     int columnNum = -1;
     if (columnSelect->m_present)
     {//set up to use the single column

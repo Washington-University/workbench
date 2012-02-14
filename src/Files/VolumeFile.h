@@ -55,7 +55,7 @@ namespace caret {
         float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
 
         ///returns true if volume space matches in spatial dimensions and sform
-        bool matchesVolumeSpace(const VolumeFile* right);
+        bool matchesVolumeSpace(const VolumeFile* right) const;
         
         void readFile(const AString& filename) throw (DataFileException);
 
