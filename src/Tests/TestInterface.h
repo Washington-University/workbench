@@ -60,6 +60,7 @@ namespace caret {
          return m_failMessage;
       }
       virtual void execute() = 0;//override this
+      virtual ~TestInterface() { };
       AString m_default_path;
    };
 
