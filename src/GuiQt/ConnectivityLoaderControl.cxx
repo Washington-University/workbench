@@ -162,6 +162,8 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(const Qt::Orientation orien
     layout->addLayout(this->loaderLayout);
     layout->addWidget(addPushButton);
     layout->addStretch();
+    //TODO Be sure to get animation start time from saved preferences
+    animationStartTime = 0.0f;
 }
 
 /**
@@ -205,7 +207,7 @@ ConnectivityLoaderControl::updateControl()
             QToolButton* animateButton = new QToolButton();
             animateButton->setText("Start");
             WuQtUtilities::setToolTipAndStatusTip(animateButton,
-                                                  "Animate throught timepoints");
+                                                  "Animate through timepoints");
             
             QToolButton* fileButton = new QToolButton();
             fileButton->setText("File");
@@ -795,6 +797,12 @@ ConnectivityLoaderControl::updateOtherConnectivityLoaderControls()
             clc->updateControl();
         }
     }
+}
+
+void
+ConnectivityLoaderControl::setAnimationStartTime(double value)
+{
+    animationStartTime = value;
 }
 
 

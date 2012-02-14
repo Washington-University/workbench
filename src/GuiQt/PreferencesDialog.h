@@ -30,6 +30,7 @@
 
 class QCheckBox;
 class QComboBox;
+class QDoubleSpinBox;
 
 namespace caret {
     
@@ -57,12 +58,15 @@ namespace caret {
         void volumeAxesLabelsCheckBoxToggled(bool value);
         
         void identificationContralateralCheckBoxToggled(bool value);
+
+        void animationStartChanged(double value);
         
     private:
         QWidget* createColorsWidget();
         QWidget* createIdentificationWidget();
         QWidget* createLoggingWidget();
         QWidget* createVolumeWidget();
+        QWidget* createTimeCourseWidget();
         
         PreferencesDialog(const PreferencesDialog&);
 
@@ -77,6 +81,8 @@ namespace caret {
         QCheckBox* volumeAxesLabelsCheckBox;
         
         QCheckBox* identificationContralateralCheckBox;
+
+        QDoubleSpinBox* animationStartDoubleSpinBox;
         
         WuQWidgetObjectGroup* allWidgets;
     };

@@ -70,30 +70,7 @@ CommandNiftiConvert::executeOperation(ProgramParameters& parameters) throw (Comm
     NiftiFile nf(inputFileName);
     //NiftiFile nfOut;
     Nifti2Header header;
+    nf.getHeader(header);
     nf.setHeader(header);
     nf.writeFile(outputFileName);
-    
-/*
-    bool isValidEncoding = false;
-    GiftiEncodingEnum::Enum encoding = GiftiEncodingEnum::fromName(encodingName, &isValidEncoding);
-    if (isValidEncoding == false) {
-        throw CommandException("NIFTI Encoding is invalid.");
-    }
-    if (inputFileName.isEmpty()) {
-        throw CommandException("Input NIFTI file name is empty.");
-    }
-    if (outputFileName.isEmpty()) {
-        throw CommandException("Input NIFTI file name is empty.");
-    }
-
-    try {
-        GiftiFile gf;
-        gf.readFile(inputFileName);
-        gf.setEncodingForWriting(encoding);
-        gf.writeFile(outputFileName);
-    }
-    catch (const NIFTIException& e) {
-        throw CommandException(e);
-    }
-    */
 }

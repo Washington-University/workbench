@@ -666,6 +666,20 @@ void GuiManager::removeTimeCourseDialog(void *id)
 }
 
 /**
+ * sets animation start time for Time Course Dialogs
+ */
+void GuiManager::updateAnimationStartTime(double value)
+{
+    QMap <void *, TimeCourseDialog *>::const_iterator i = this->timeCourseDialogs.constBegin();
+    while(i != timeCourseDialogs.constEnd())
+    {
+        
+        ++i;
+    }
+    //this->timeCourseDialogs
+}
+
+/**
  * Capture an image of the browser window's graphics area.
  * If either of the image dimensions
  * is zero, the image will be the size of the graphcis 

@@ -64,6 +64,7 @@ namespace caret {
         void updateControl();
         QDoubleSpinBox *getTimeSpinBox(int32_t &index);
         void getTimeLines(std::vector<TimeLine> &tl);
+        void setAnimationStartTime(double value);
         
     private:
         ConnectivityLoaderControl(const ConnectivityLoaderControl&);
@@ -120,6 +121,7 @@ namespace caret {
         AString previousNetworkPassword;
         
         static std::set<ConnectivityLoaderControl*> allConnectivityLoaderControls;
+        double animationStartTime;
     };
     
 #ifdef __CONNECTIVITY_LOADER_CONTROL_DECLARE__

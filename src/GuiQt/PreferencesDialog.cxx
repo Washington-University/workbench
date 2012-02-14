@@ -29,6 +29,7 @@
 #include <QColorDialog>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QLabel>
 #include <QPushButton>
@@ -87,6 +88,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
 //    tabWidget->addTab(this->createIdentificationWidget(), "ID");
     tabWidget->addTab(this->createLoggingWidget(), "Logging");
     tabWidget->addTab(this->createVolumeWidget(), "Volume");
+    tabWidget->addTab(this->createTimeCourseWidget(), "TimeCourse");
     this->setCentralWidget(tabWidget);
 }
 
@@ -234,6 +236,42 @@ PreferencesDialog::createColorsWidget()
     return w;
 }
 
+/**
+ * Creates time course widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createTimeCourseWidget()
+{
+    QLabel* animationStartLabel = new QLabel("Animation Starts at: ");
+    this->animationStartDoubleSpinBox = new QDoubleSpinBox();
+    
+    
+   
+    
+    QObject::connect(this->animationStartDoubleSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(animationStartChanged(double)));
+    
+    this->allWidgets->add(this->animationStartDoubleSpinBox);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(animationStartLabel, 0, 0);
+    gridLayout->addWidget(this->animationStartDoubleSpinBox, 0, 1);
+    return w;
+}
+
+/**
+ * Slot for animationStartDoubleSpinBox valueChanged
+ */
+void
+PreferencesDialog::animationStartChanged(double value)
+{
+    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+
+
+}
 /**
  * Creates logging widget.
  * @return

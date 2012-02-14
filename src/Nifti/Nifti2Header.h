@@ -76,6 +76,8 @@ public:
         if (ok) return ret;
         return NiftiIntentEnum::NIFTI_INTENT_NONE;
     }
+    void operator=(const Nifti2Header &n2header);
+    void operator=(const Nifti1Header &n1header);
 protected:
     nifti_2_header m_header;
     //this hack was added in so that Nifti matrix could get all the information it needed for reading/writing matrix with just the header, otherwise the user

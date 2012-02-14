@@ -55,7 +55,7 @@ Nifti2Header::Nifti2Header(const Nifti1Header &n1header) throw (NiftiException)
 {
     nifti_1_header header;
     n1header.getHeaderStruct(header);
-    m_header.sizeof_hdr = header.sizeof_hdr;
+    m_header.sizeof_hdr = NIFTI2_HEADER_SIZE;
     //m_header magic?
     m_header.datatype = header.datatype;
     m_header.bitpix = header.bitpix;
@@ -104,6 +104,64 @@ Nifti2Header::Nifti2Header(const Nifti1Header &n1header) throw (NiftiException)
     n1header.getNeedsSwapping(needsSwapping);
 }
 
+void Nifti2Header::operator=(const Nifti1Header &n1header) throw (NiftiException)
+{
+    nifti_1_header header;
+    n1header.getHeaderStruct(header);
+    m_header.sizeof_hdr = NIFTI2_HEADER_SIZE;
+    //m_header magic?
+    m_header.datatype = header.datatype;
+    m_header.bitpix = header.bitpix;
+    for(int i =0;i<8;i++)
+    {
+        m_header.dim[i]=header.dim[i];
+    }
+    m_header.intent_p1 = header.intent_p1;
+    m_header.intent_p2 = header.intent_p2;
+    m_header.intent_p3 = header.intent_p3;
+    for(int i =0;i<8;i++)
+    {
+        m_header.pixdim[i]=header.pixdim[i];
+    }
+    m_header.vox_offset = header.vox_offset;
+    m_header.scl_slope = header.scl_slope;
+    m_header.scl_inter = header.scl_inter;
+    m_header.cal_max = header.cal_max;
+    m_header.cal_min = header.cal_min;
+    m_header.slice_duration = header.slice_duration;
+    m_header.toffset = header.toffset;
+    m_header.slice_start = header.slice_start;
+    m_header.slice_end = header.slice_end;
+    memcpy(m_header.descrip,header.descrip,80);
+    memcpy(m_header.aux_file,header.aux_file,24);
+    m_header.qform_code = header.qform_code;
+    m_header.sform_code = header.sform_code;
+    m_header.quatern_b = header.quatern_b;
+    m_header.quatern_c = header.quatern_c;
+    m_header.quatern_d = header.quatern_d;
+    m_header.qoffset_x = header.qoffset_x;
+    m_header.qoffset_y = header.qoffset_y;
+    m_header.qoffset_z = header.qoffset_z;
+    for(int i =0;i<4;i++)
+    {
+        m_header.srow_x[i] = header.srow_x[i];
+        m_header.srow_y[i] = header.srow_y[i];
+        m_header.srow_z[i] = header.srow_z[i];
+    }
+    m_header.slice_code = header.slice_code;
+    m_header.xyzt_units = header.xyzt_units;
+    m_header.intent_code = header.intent_code;
+    memcpy(m_header.intent_name, header.intent_name,16);
+    m_header.dim_info = header.dim_info;
+    memset(m_header.unused_str,0x00,15);
+    n1header.getNeedsSwapping(needsSwapping);
+}
+
+void Nifti2Header::operator=(const Nifti2Header &n2header) throw (NiftiException)
+{
+    memcpy(&(this->m_header),&n2header,NIFTI2_HEADER_SIZE);    
+    n2header.getNeedsSwapping(needsSwapping);
+}
 
 /**
  * Default Constructor

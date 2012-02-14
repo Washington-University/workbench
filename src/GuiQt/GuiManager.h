@@ -103,6 +103,7 @@ namespace caret {
         TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);
         void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
+        void updateAnimationStartTime(double value);
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();

@@ -241,14 +241,6 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
 }
 
 /**
-  * updateTimeCourseDialog
-  */
-
-/**
- * addTimeCourse
- */
-
-/**
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
