@@ -1,0 +1,104 @@
+#ifndef __CARET_VOLUME_EXTENSION__
+#define __CARET_VOLUME_EXTENSION__
+
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "GiftiLabelTable.h"
+#include "PaletteColorMapping.h"
+#include "CaretPointer.h"
+#include <vector>
+#include "XmlSaxParserHandlerInterface.h"
+#include "PaletteColorMappingSaxReader.h"
+#include "GiftiLabelTableSaxReader.h"
+
+namespace caret
+{
+
+    struct StudyMetadataLinkSet
+    {
+        void writeAsXML(XmlWriter& xmlWriter);
+    };//TODO: make this do something useful
+    
+    struct SubvolumeAttributes
+    {
+        enum VolumeType
+        {
+            UNKNOWN,
+            ANATOMY,
+            FUNCTIONAL,
+            LABEL,
+            RGB,
+            SEGMENTATION,
+            VECTOR
+        };//TODO: make this into a caret enum class?
+        AString m_comment;
+        AString m_guiLabel;
+        CaretPointer<GiftiLabelTable> m_labelTable;
+        StudyMetadataLinkSet m_studyMetadata;
+        CaretPointer<PaletteColorMapping> m_palette;
+        VolumeType m_type;
+        SubvolumeAttributes() { m_type = UNKNOWN; }
+        void writeAsXML(XmlWriter& xmlWriter, int index);
+    };
+    
+    struct CaretVolumeExtension
+    {
+        AString m_comment;
+        AString m_date;//TODO: make a class to handle ISO-8601 dates
+        vector<SubvolumeAttributes> m_attributes;
+        void writeAsXML(XmlWriter& xmlWriter);
+        void readFromXmlString(const AString& s);
+    };
+    
+    class CaretVolumeExtensionXMLReader : XmlSaxParserHandlerInterface
+    {
+        CaretVolumeExtension* m_toFill;
+        AString m_charAcum;
+        CaretPointer<PaletteColorMappingSaxReader> m_paletteReader;
+        CaretPointer<GiftiLabelTableSaxReader> m_labelReader;
+        CaretVolumeExtensionXMLReader();//disallow default construction
+        CaretVolumeExtensionXMLReader(const CaretVolumeExtensionXMLReader&);//disallow copy
+        CaretVolumeExtensionXMLReader& operator=(const CaretVolumeExtensionXMLReader&);//disallow assignment
+    public:
+        CaretVolumeExtensionXMLReader(CaretVolumeExtension* toFill);
+        virtual void startElement(const AString& uri,
+                                  const AString& localName,
+                                  const AString& qName,
+                                  const XmlAttributes& atts) 
+                      throw (XmlSaxParserException);
+        virtual void endElement(const AString& namespaceURI,
+                                       const AString& localName,
+                                       const AString& qualifiedName) 
+                      throw (XmlSaxParserException);
+        virtual void characters(const char* ch) throw (XmlSaxParserException);
+        virtual void warning(const XmlSaxParserException& exception) throw (XmlSaxParserException);
+        virtual void error(const XmlSaxParserException& exception) throw (XmlSaxParserException);
+        virtual void fatalError(const XmlSaxParserException& exception) throw (XmlSaxParserException);
+        virtual void startDocument() throw (XmlSaxParserException);
+        virtual void endDocument() throw (XmlSaxParserException);
+    };
+
+}
+#endif //__CARET_VOLUME_EXTENSION__

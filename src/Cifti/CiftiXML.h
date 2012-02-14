@@ -39,13 +39,19 @@ namespace caret {
         int64_t m_ciftiIndex;
         int64_t m_surfaceNode;
     };
-    
+
     struct CiftiVolumeMap
     {
         int64_t m_ciftiIndex;
         int64_t m_ijk[3];
     };
-    
+
+    struct CiftiVolumeStructureMap
+    {
+        std::vector<CiftiVolumeMap> m_map;
+        StructureEnum::Enum m_structure;
+    };
+
     class CiftiXML {
     public:
         //TODO create initializers for various types of XML meta data (Dense Connectivity, Dense Time Series, etc)
@@ -168,10 +174,10 @@ namespace caret {
         ///get the mapping for a surface in columns, returns false and empty vector if not found
         bool getSurfaceMapForColumns(std::vector<CiftiSurfaceMap>& mappingOut, const StructureEnum::Enum& structure) const;
             
-        ///get the mapping for a surface in rows, returns false and empty vector if not found
+        ///get the mapping for a volume in rows, returns false and empty vector if not found
         bool getVolumeMapForRows(std::vector<CiftiVolumeMap>& mappingOut) const;
         
-        ///get the mapping for a surface in columns, returns false and empty vector if not found
+        ///get the mapping for a volume in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
             
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
