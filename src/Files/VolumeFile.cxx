@@ -126,10 +126,10 @@ float VolumeFile::interpolateValue(const float coordIn1, const float coordIn2, c
             return ret;
         }
         break;
-        case NEAREST_NEIGHBOR:
+        case ENCLOSING_VOXEL:
         {
             int64_t index1, index2, index3;
-            closestVoxel(coordIn1, coordIn2, coordIn3, index1, index2, index3);
+            enclosingVoxel(coordIn1, coordIn2, coordIn3, index1, index2, index3);
             if (indexValid(index1, index2, index3, brickIndex, component))
             {
                 if (validOut != NULL) *validOut = true;

@@ -164,7 +164,7 @@ VolumeSliceCoordinateSelection::getSliceIndexAxial(const VolumeFile* volumeFile)
     
     if (dimensions[2] >= 0) {
         int64_t paragittalSlice, coronalSlice;
-        volumeFile->closestVoxel(this->sliceCoordinateParasagittal,
+        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
                                  this->sliceCoordinateCoronal,
                                  this->sliceCoordinateAxial,
                                  paragittalSlice, 
@@ -221,7 +221,7 @@ VolumeSliceCoordinateSelection::getSliceIndexCoronal(const VolumeFile* volumeFil
     
     if (dimensions[1] >= 0) {
         int64_t paragittalSlice, axialSlice;
-        volumeFile->closestVoxel(this->sliceCoordinateParasagittal,
+        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
                                  this->sliceCoordinateCoronal,
                                  this->sliceCoordinateAxial,
                                  paragittalSlice, 
@@ -277,7 +277,7 @@ VolumeSliceCoordinateSelection::getSliceIndexParasagittal(const VolumeFile* volu
     
     if (dimensions[0] >= 0) {
         int64_t coronalSlice, axialSlice;
-        volumeFile->closestVoxel(this->sliceCoordinateParasagittal,
+        volumeFile->enclosingVoxel(this->sliceCoordinateParasagittal,
                                  this->sliceCoordinateCoronal,
                                  this->sliceCoordinateAxial,
                                  parasagittalSliceOut, 

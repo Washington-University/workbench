@@ -56,24 +56,28 @@ OperationParameters* AlgorithmVolumeToSurfaceMapping::getParameters()
     
     ret->createOptionalParameter(4, "-trilinear", "use trilinear volume interpolation");
     
-    ret->createOptionalParameter(5, "-nearest", "use nearest neighbor volume interpolation");
+    ret->createOptionalParameter(5, "-enclosing", "use value of the enclosing voxel");
     
     OptionalParameter* ribbonOpt = ret->createOptionalParameter(6, "-ribbon-constrained", "use ribbon constrained mapping algorithm");
     ribbonOpt->addSurfaceParameter(1, "inner-surf", "the inner surface of the ribbon");
     ribbonOpt->addSurfaceParameter(2, "outer-surf", "the outer surface of the ribbon");
-    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(4, "-volume-roi", "use an roi volume with positive values for all valid voxels");
+    OptionalParameter* roiVol = ribbonOpt->createOptionalParameter(4, "-volume-roi", "use a volume roi");
     roiVol->addVolumeParameter(1, "roi-volume", "the volume file");
-    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "number of subdivisions of each voxel edge when estimating partial voluming");
+    OptionalParameter* ribbonSubdiv = ribbonOpt->createOptionalParameter(3, "-voxel-subdiv", "voxel divisions while estimating voxel weights");
     ribbonSubdiv->addIntegerParameter(1, "subdiv-num", "number of subdivisions, default 3");
     
     OptionalParameter* subvolumeSelect = ret->createOptionalParameter(7, "-subvol-select", "select a single subvolume to map");
     subvolumeSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("You must specify exactly one mapping method.  The ribbon mapping method only takes data from within regions where ") +
-        "the ribbon volume is equal to <ribbon-val> and weights them according to how far they are within the ribbon mask from " +
-        "the surface normal of the node, extended outwards half the value of thickness.  This restricts the method from grabbing " +
-        "data from a different part of the ribbon because the distance is calculated by only walking through connected voxels in the mask."
+        AString("You must specify exactly one mapping method.  Enclosing voxel uses the value from the voxel the node lies inside, while trilinear does a 3D ") + 
+        "linear interpolation based on the voxels immediately on each side of the node's position." +
+        "\n\nThe ribbon mapping method constructs a polyhedron from the node's neighbors on each " +
+        "surface, and estimates the amount of this polyhedron's volume that falls inside any nearby voxels, to use as the weights for sampling.  " +
+        "The volume ROI is useful to exclude partial volume effects of voxels the surfaces pass through, and will cause the mapping to ignore " +
+        "voxels that don't have a positive value in the mask.  The subdivision number specifies how it approximates the amount of the volume the polyhedron " +
+        "intersects, by splitting each voxel into NxNxN pieces, and checking whether the center of each piece is inside the polyhedron.  If you have very large " +
+        "voxels, consider increasing this if you get zeros in your output."
     );
     return ret;
 }
@@ -84,7 +88,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     SurfaceFile* mySurface = myParams->getSurface(2);
     MetricFile* myMetricOut = myParams->getOutputMetric(3);
     OptionalParameter* trilinearOpt = myParams->getOptionalParameter(4);
-    OptionalParameter* nearestOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* enclosingOpt = myParams->getOptionalParameter(5);
     OptionalParameter* ribbonOpt = myParams->getOptionalParameter(6);
     int64_t mySubVol = -1;
     OptionalParameter* subvolumeSelect = myParams->getOptionalParameter(7);
@@ -103,14 +107,14 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
         haveMethod = true;
         myMethod = TRILINEAR;
     }
-    if (nearestOpt->m_present)
+    if (enclosingOpt->m_present)
     {
         if (haveMethod)
         {
             throw AlgorithmException("more than one mapping method specified");
         }
         haveMethod = true;
-        myMethod = NEAREST_NEIGHBOR;
+        myMethod = ENCLOSING_VOXEL;
     }
     if (ribbonOpt->m_present)
     {
@@ -128,7 +132,7 @@ void AlgorithmVolumeToSurfaceMapping::useParameters(OperationParameters* myParam
     switch (myMethod)
     {
         case TRILINEAR:
-        case NEAREST_NEIGHBOR:
+        case ENCLOSING_VOXEL:
             AlgorithmVolumeToSurfaceMapping(myProgObj, myVolume, mySurface, myMetricOut, myMethod, mySubVol);//in case we want to separate constructors rather than just having defaults
             break;
         case RIBBON_CONSTRAINED:
@@ -227,7 +231,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
                 }
             }
             break;
-        case NEAREST_NEIGHBOR:
+        case ENCLOSING_VOXEL:
             {
                 CaretArray<float> myCaretArray(numNodes);
                 float* myArray = myCaretArray.getArray();
@@ -248,7 +252,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 #pragma omp CARET_PARFOR
                             for (int64_t node = 0; node < numNodes; ++node)
                             {
-                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::NEAREST_NEIGHBOR, NULL, i, j);
+                                myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, i, j);
                             }
                             myMetricOut->setValuesForColumn(thisCol, myArray);
                         }
@@ -267,7 +271,7 @@ AlgorithmVolumeToSurfaceMapping::AlgorithmVolumeToSurfaceMapping(ProgressObject*
 #pragma omp CARET_PARFOR
                         for (int64_t node = 0; node < numNodes; ++node)
                         {
-                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::NEAREST_NEIGHBOR, NULL, mySubVol, j);
+                            myArray[node] = myVolume->interpolateValue(mySurface->getCoordinate(node), VolumeFile::ENCLOSING_VOXEL, NULL, mySubVol, j);
                         }
                         myMetricOut->setValuesForColumn(thisCol, myArray);
                     }

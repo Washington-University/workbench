@@ -83,7 +83,7 @@ namespace caret {
         enum Method
         {
             TRILINEAR,
-            NEAREST_NEIGHBOR,
+            ENCLOSING_VOXEL,
             RIBBON_CONSTRAINED
         };
         AlgorithmVolumeToSurfaceMapping(ProgressObject* myProgObj, VolumeFile* myVolume, SurfaceFile* mySurface, MetricFile* myMetricOut, Method myMethod, int64_t mySubVol = -1, SurfaceFile* innerSurf = NULL, SurfaceFile* outerSurf = NULL, VolumeFile* roiVol = NULL, int32_t subdivisions = 3);

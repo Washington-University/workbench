@@ -1004,7 +1004,7 @@ ConnectivityLoaderFile::getVolumeVoxelValue(const float xyz[3],
     
     if (this->connectivityVolumeFile != NULL) {
         int64_t vfIJK[3];
-        this->connectivityVolumeFile->closestVoxel(xyz, 
+        this->connectivityVolumeFile->enclosingVoxel(xyz, 
                          vfIJK);
         
         if (this->connectivityVolumeFile->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {

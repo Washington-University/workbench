@@ -180,13 +180,13 @@ namespace caret {
         void spaceToIndex(const float& coordIn1, const float& coordIn2, const float& coordIn3, float& indexOut1, float& indexOut2, float& indexOut3) const;
 
         ///returns integer index triplet of voxel whose center is closest to the coordinate triplet
-        void closestVoxel(const float* coordIn, int64_t* indexOut) const;
+        void enclosingVoxel(const float* coordIn, int64_t* indexOut) const;
         ///returns integer index triplet of voxel whose center is closest to the three coordinates
-        void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut) const;
+        void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t* indexOut) const;
         ///returns integer indexes of voxel whose center is closest to the coordinate triplet
-        void closestVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
+        void enclosingVoxel(const float* coordIn, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
         ///returns integer indexes of voxel whose center is closest to the three coordinates
-        void closestVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
+        void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
 
         ///get a value at an index triplet and optionally timepoint
         inline float getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const

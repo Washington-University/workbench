@@ -139,7 +139,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                 }
                 
                 int64_t vfIJK[3];
-                vf->closestVoxel(xyz, 
+                vf->enclosingVoxel(xyz, 
                                  vfIJK);
                 
                 if (vf->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {

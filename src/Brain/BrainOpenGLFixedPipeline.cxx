@@ -1916,7 +1916,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             }
             
             int64_t voxelIndices[3];
-            volumeFile->closestVoxel(midPoint, voxelIndices);
+            volumeFile->enclosingVoxel(midPoint, voxelIndices);
             if (volumeFile->indexValid(voxelIndices)) {
                 switch (slicePlane) {
                     case VolumeSliceViewPlaneEnum::ALL:
@@ -2307,7 +2307,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                         for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                             VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
                             int64_t voxelIndices[3];
-                            vf->closestVoxel(voxelCoordinates,
+                            vf->enclosingVoxel(voxelCoordinates,
                                              voxelIndices);
                             if (vf->indexValid(voxelIndices)) {
                                 voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);
@@ -2528,7 +2528,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                     float voxel = 0;
                     {
                         int64_t iVoxel, jVoxel, kVoxel;
-                        vf->closestVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
+                        vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
                         if (vf->indexValid(iVoxel, jVoxel, kVoxel, brickIndex)) {
                             voxel = vf->getValue(iVoxel, jVoxel, kVoxel, brickIndex);
                             valid = true;
@@ -2816,7 +2816,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeFile* vf = volumeDrawInfo[iVol].volumeFile;
                     int64_t voxelIndices[3];
-                    vf->closestVoxel(voxelCoordinates,
+                    vf->enclosingVoxel(voxelCoordinates,
                                      voxelIndices);
                     if (vf->indexValid(voxelIndices)) {
                         voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);

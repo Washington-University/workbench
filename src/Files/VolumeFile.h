@@ -38,7 +38,7 @@ namespace caret {
         
         enum InterpType
         {
-            NEAREST_NEIGHBOR,
+            ENCLOSING_VOXEL,
             TRILINEAR
         };
         
