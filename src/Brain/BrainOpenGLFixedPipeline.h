@@ -205,7 +205,7 @@ namespace caret {
                                          const float objectCenterXYZ[3],
                                          const bool isRightSurfaceLateralMedialYoked);
         
-        void applyViewingTransformationsVolumeSlice(const ModelDisplayController* modelDisplayController,
+        void applyViewingTransformationsVolumeSlice(const ModelDisplayControllerVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,
                                          const VolumeSliceViewPlaneEnum::Enum viewPlane);
         

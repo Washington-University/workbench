@@ -647,7 +647,7 @@ BrainBrowserWindow::createMenuViewMoveToolBox()
     menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
     menu->addSeparator();
     menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
-    menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
+    //menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
     //menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
     menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
     

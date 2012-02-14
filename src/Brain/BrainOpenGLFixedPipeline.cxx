@@ -369,22 +369,28 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const ModelDisplayControll
  * Apply the viewing transformations for the model controller 
  * in the given tab for viewing a volume slice in a plane.
  *
- * @param modelDisplayController
- *    Model controller being viewed.
+ * @param ModelDisplayControllerVolume
+ *    Volume model controller being viewed.
  * @param tabIndex
  *    Index of tab containing the controller.
  * @param viewPlane
  *    View plane of slice.
  */
 void 
-BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisplayController* modelDisplayController,
+BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisplayControllerVolume* modelDisplayControllerVolume,
                                             const int32_t tabIndex,
                                             const VolumeSliceViewPlaneEnum::Enum viewPlane)
 {
+    VolumeFile* vf = modelDisplayControllerVolume->getUnderlayVolumeFile(tabIndex);
+    if (vf != NULL) {
+        vf->getB
+        std::vector<int64_t> dimensions[3];
+        vf->getD
+    }
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
-    const float* translation = modelDisplayController->getTranslation(tabIndex);
+    const float* translation = modelDisplayControllerVolume->getTranslation(tabIndex);
     glTranslatef(translation[0], 
                  translation[1], 
                  translation[2]);
@@ -409,7 +415,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisp
     rotationMatrix.getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
     
-    const float scale = modelDisplayController->getScaling(tabIndex);
+    const float scale = modelDisplayControllerVolume->getScaling(tabIndex);
     glScalef(scale, 
              scale, 
              scale);        

@@ -106,7 +106,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     this->settingsToolButton  = new QToolButton();
     this->settingsToolButton->setDefaultAction(this->settingsAction);
     if (verticalFlag) {
-        this->settingsAction->setText("Settings");
+        //this->settingsAction->setText("Settings");
     }
     
     this->metadataAction = WuQtUtilities::createAction("M",
@@ -117,7 +117,7 @@ OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browser
     this->metadataToolButton  = new QToolButton();
     this->metadataToolButton->setDefaultAction(this->metadataAction);
     if (verticalFlag) {
-        this->metadataAction->setText("Metadata");
+        //this->metadataAction->setText("Metadata");
     }
     
     this->opacityDoubleSpinBox = new QDoubleSpinBox();

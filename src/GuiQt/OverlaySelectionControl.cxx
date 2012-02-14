@@ -174,7 +174,7 @@ OverlaySelectionControl::createLayers()
             row++;                
 */            
             gridLayout->setColumnStretch(0, 0);
-            gridLayout->setColumnStretch(1, 100);
+            gridLayout->setColumnStretch(1, 0); //100);
         };
             break;
     }
@@ -239,37 +239,42 @@ OverlaySelectionControl::createLayers()
                 break;
             case Qt::Vertical:
             {
-                    int row = gridLayout->rowCount();
-                    
-                    const int row1 = row;
-                    const int row2 = row1 + 1;
-                    const int row3 = row2 + 1;
-                    const int row4 = row3 + 1;
-                    
-                    QFrame* horizLine = new QFrame();
-                    horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
-                    horizLine->setLineWidth(1);
-                    horizLine->setMidLineWidth(1);
-                    gridLayout->addWidget(horizLine, row1, 0, 1, 2);  
-                    layer->addWidget(horizLine);
-                    
-                    gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 3, 1);
-                    gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
-                    gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
-                    
-                    QHBoxLayout* buttLayout = new QHBoxLayout();
-                    buttLayout->addWidget(layer->paletteDisplayCheckBox);
-                    buttLayout->addStretch();
-                    buttLayout->addWidget(layer->settingsToolButton);
-                    buttLayout->addWidget(layer->metadataToolButton);
-                    buttLayout->addStretch();
-                    buttLayout->addWidget(layer->opacityDoubleSpinBox);
-                    buttLayout->addStretch();
-                    buttLayout->addWidget(layer->upArrowToolButton);
-                    buttLayout->addWidget(layer->downArrowToolButton);
-                    buttLayout->addWidget(layer->deleteToolButton);
-                    
-                    gridLayout->addLayout(buttLayout, row4, 1);
+                int row = gridLayout->rowCount();
+                
+                const int row1 = row;
+                const int row2 = row1 + 1;
+                const int row3 = row2 + 1;
+                const int row4 = row3 + 1;
+                
+                QFrame* horizLine = new QFrame();
+                horizLine->setFrameStyle(QFrame::HLine | QFrame::Plain);
+                horizLine->setLineWidth(1);
+                horizLine->setMidLineWidth(1);
+                gridLayout->addWidget(horizLine, row1, 0, 1, 2);  
+                layer->addWidget(horizLine);
+                
+                gridLayout->addWidget(layer->enabledCheckBox, row2, 0, 3, 1);
+                gridLayout->addWidget(layer->fileSelectionComboBox, row2, 1);
+                gridLayout->addWidget(layer->columnSelectionComboBox, row3, 1);
+                
+                QWidget* buttWidget = new QWidget();
+                QHBoxLayout* buttLayout = new QHBoxLayout(buttWidget);
+                buttLayout->addWidget(layer->paletteDisplayCheckBox);
+                //                    buttLayout->addStretch();
+                buttLayout->addWidget(layer->settingsToolButton);
+                buttLayout->addWidget(layer->metadataToolButton);
+                //                    buttLayout->addStretch();
+                buttLayout->addWidget(layer->opacityDoubleSpinBox);
+                //                    buttLayout->addStretch();
+                buttLayout->addWidget(layer->upArrowToolButton);
+                buttLayout->addWidget(layer->downArrowToolButton);
+                buttLayout->addWidget(layer->deleteToolButton);
+                gridLayout->addWidget(buttWidget, row4, 1);
+                
+                const int buttWidth = buttWidget->sizeHint().width();
+                buttWidget->setFixedWidth(buttWidth);
+                layer->fileSelectionComboBox->setFixedWidth(buttWidth);
+                layer->columnSelectionComboBox->setFixedWidth(buttWidth);
             };
                 break;
         }

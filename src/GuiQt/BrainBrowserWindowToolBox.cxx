@@ -60,8 +60,7 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     
     this->browserWindowIndex = browserWindowIndex;
     
-    this->setAllowedAreas(Qt::LeftDockWidgetArea
-                          | Qt::TopDockWidgetArea
+    this->setAllowedAreas(Qt::TopDockWidgetArea
                           | Qt::BottomDockWidgetArea);
 //    OverlaySelectionControl::Orientation overlayControlOrientation;
 //    switch (location) {
@@ -107,6 +106,13 @@ BrainBrowserWindowToolBox::BrainBrowserWindowToolBox(const int32_t browserWindow
     this->tabWidget->addTab(this->connectivityWidget, "Connectivity");
     //this->tabWidget->addTab(this->labelWidget, "Label");
     //this->tabWidget->addTab(this->metricWidget, "Metric");
+    
+    if (defaultOrientation == Qt::Vertical) {
+        const int width = this->overlayWidget->maximumWidth();
+        this->tabWidget->setFixedWidth(width);
+        this->informationWidget->setFixedWidth(width);
+        this->connectivityWidget->setFixedWidth(width);
+    }
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
