@@ -33,7 +33,6 @@
 #include <QFrame>
 #include <QIcon>
 #include <QPushButton>
-#include <QScrollArea>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"

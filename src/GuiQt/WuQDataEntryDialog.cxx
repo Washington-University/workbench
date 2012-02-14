@@ -35,7 +35,6 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QRadioButton>
-#include <QScrollArea>
 #include <QSpinBox>
 #include <QTextEdit>
 #include "StructureSelectionControl.h"
@@ -71,28 +70,15 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
    radioButtonGroup = new QButtonGroup(this);
    
    //
-   // May use scrolling
-   //
-   QScrollArea* scrollArea = NULL;
-   if (addScrollBarsFlag) {
-      scrollArea = new QScrollArea;
-      scrollArea->setWidget(widgetForGridLayout);
-      scrollArea->setWidgetResizable(true);
-   }
-   
-   //
    // Layout for dialog
    //
-    QWidget* widget = new QWidget();
+   QWidget* widget = new QWidget();
    QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
    dialogLayout->addWidget(textAtTopLabel);
-   if (scrollArea != NULL) {
-      dialogLayout->addWidget(scrollArea);
-   }
-   else {
-      dialogLayout->addWidget(widgetForGridLayout);
-   }
-    this->setCentralWidget(widget);
+   dialogLayout->addWidget(widgetForGridLayout);
+
+   this->setCentralWidget(widget,
+                          addScrollBarsFlag);
 }
                    
 /**

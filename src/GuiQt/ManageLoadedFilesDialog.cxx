@@ -44,7 +44,6 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QScrollArea>
 #include <QToolButton>
 
 

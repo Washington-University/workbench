@@ -36,7 +36,6 @@ class QIcon;
 class QKeySequence;
 class QObject;
 class QPushButton;
-class QScrollArea;
 class QString;
 class QWidget;
 

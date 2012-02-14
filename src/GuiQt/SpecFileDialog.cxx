@@ -34,7 +34,6 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QMessageBox>
-#include <QScrollArea>
 #include <QToolBar>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -236,21 +235,6 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     allToolButtonAction->trigger();
     
     /*
-     * Place all file groups in a scrollable widget.
-     */
-    QScrollArea* scrollArea = new QScrollArea();
-    scrollArea->setWidget(fileGroupWidget);
-    scrollArea->setWidgetResizable(true);
-    
-    /*
-     * Attempt size scroll area
-     */
-    const QSize fgSize = fileGroupWidget->sizeHint();
-    const int sizeX = std::min(fgSize.width(), 650);
-    const int sizeY = std::min(fgSize.height(), 700);
-    scrollArea->ensureVisible(0, 0, sizeX, sizeY);
-    
-    /*
      * Select toolbar
      */
     QToolBar* selectToolBar = this->createSelectToolBar();
@@ -287,20 +271,11 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
     }
     
     /*
-     * Widget for dialog
-     */
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(toolbarWidget);
-    layout->addWidget(scrollArea);
-    if (optionsWidget != NULL) {
-        layout->addWidget(optionsWidget);
-    }
-
-    /*
      * Add contents to the dialog
      */
-    this->setCentralWidget(w);
+    this->setTopBottomAndCentralWidgets(toolbarWidget,
+                                        fileGroupWidget,
+                                        optionsWidget);
     
     switch (this->mode) {
         case MODE_FAST_OPEN:

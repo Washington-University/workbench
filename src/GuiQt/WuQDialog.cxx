@@ -296,37 +296,144 @@ WuQDialog::getDialogButtonBox()
 }
 
 /**
+ * Sets the given widgets to be the window's top and central widget.
+ * Note: WuQDialog takes ownership of the widget pointer
+ * and deletes it at the appropriate time.
+ *
+ * This should be called ONE and ONLY one time.
+ *
+ * Unless prohibited by the second parameter, the central widget
+ * will be automatically placed into a scroll area if the
+ * widget makes the dialog too big for the screen.
+ *
+ * @param topWidget
+ *    The optional widget displayed at top (may be NULL).
+ * @param centralWidget
+ *    The central widget.
+ * @param bottomWidget
+ *    The optional widget displayed at bottom (may be NULL).
+ * @param allowInsertingIntoScrollArea
+ *    If true, a scroll area may be added around the central widget.
+ */
+void 
+WuQDialog::setTopBottomAndCentralWidgets(QWidget* topWidget,
+                                         QWidget* centralWidget,
+                                         QWidget* bottomWidget,
+                                         const bool allowInsertingIntoScrollArea)
+{
+    CaretAssert(centralWidget);
+    this->setTopBottomAndCentralWidgetsInternal(topWidget,
+                                                centralWidget,
+                                                bottomWidget,
+                                                allowInsertingIntoScrollArea);
+    
+}
+
+/**
  * Sets the give widget to be the window's central widget.
  * Note: WuQDialog takes ownership of the widget pointer
  * and deletes it at the appropriate time.
  *
  * This should be called ONE and ONLY one time.
  *
- * Unless prohibited by the second parameter, the widget
+ * Unless prohibited by the second parameter, the central widget
  * will be automatically placed into a scroll area if the
  * widget makes the dialog too big for the screen.
  *
- * @param widget
+ * @param centralWidget
  *    The central widget.
+ * @param allowInsertingIntoScrollArea
+ *    If true, a scroll area may be added around the central widget.
  */
 void 
-WuQDialog::setCentralWidget(QWidget* widget,
+WuQDialog::setCentralWidget(QWidget* centralWidget,
                             const bool allowInsertingIntoScrollArea)
 {
+    CaretAssert(centralWidget);
+    this->setTopBottomAndCentralWidgetsInternal(NULL,
+                                                centralWidget,
+                                                NULL,
+                                                allowInsertingIntoScrollArea);    
+}
+
+/**
+ * Sets the given widgets to be the window's top and central widget.
+ * Note: WuQDialog takes ownership of the widget pointer
+ * and deletes it at the appropriate time.
+ *
+ * This should be called ONE and ONLY one time.
+ *
+ * Unless prohibited by the second parameter, the central widget
+ * will be automatically placed into a scroll area if the
+ * widget makes the dialog too big for the screen.
+ *
+ * @param topWidget
+ *    The widget display at top.
+ * @param centralWidget
+ *    The central widget.
+ * @param topWidget
+ *    The widget display at top.
+ * @param allowInsertingIntoScrollArea
+ *    If true, a scroll area may be added around the central widget.
+ */
+void 
+WuQDialog::setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
+                                                 QWidget* centralWidget,
+                                                 QWidget* bottomWidget,
+                                                 const bool allowInsertingIntoScrollArea)
+{
     if (allowInsertingIntoScrollArea == false) {
-        this->userWidgetLayout->addWidget(widget);
+        if (topWidget != NULL) {
+            this->userWidgetLayout->addWidget(topWidget);
+        }
+        this->userWidgetLayout->addWidget(centralWidget);
+        if (bottomWidget != NULL) {
+            this->userWidgetLayout->addWidget(bottomWidget);
+        }
+        
         return;
     }
     
+    /*
+     * Maximum size is the size of the smallest screen.
+     */
     const QSize maxSize = WuQtUtilities::getMinimumScreenSize();
     const int margin = 100;
     const int maxWidth = maxSize.width() - margin;
-    const int maxHeight = maxSize.height() - margin;
+    int maxHeight = maxSize.height() - margin;
     
-    const int widgetWidth = widget->sizeHint().width() + 20;
-    const int widgetHeight = widget->sizeHint().height() + 20;
+    /*
+     * If there is a top/bottom widget, decrease maxmimum height by
+     * height of top/bottom widget.
+     */
+    if (topWidget != NULL) {
+        const int topHeight = topWidget->sizeHint().height();
+        maxHeight -= topHeight;
+    }
+    if (bottomWidget != NULL) {
+        const int bottomHeight = bottomWidget->sizeHint().height();
+        maxHeight -= bottomHeight;
+    }
     
-    /**
+    /*
+     * Get size of central widget with a little padding.
+     */
+    int widgetWidth = centralWidget->sizeHint().width() + 20;
+    const int widgetHeight = centralWidget->sizeHint().height() + 20;
+    
+    /*
+     * Adjust for width of top/bottom widget.
+     */
+    if (topWidget != NULL) {
+        const int topWidth = topWidget->sizeHint().width() + 20;
+        widgetWidth = std::max(widgetWidth, topWidth);
+    }
+    if (bottomWidget != NULL) {
+        const int bottomWidth = bottomWidget->sizeHint().width() + 20;
+        widgetWidth = std::max(widgetWidth, bottomWidth);
+    }
+    
+    /*
      * Are contents too big for window?
      */
     if ((widgetWidth > maxWidth)
@@ -336,13 +443,19 @@ WuQDialog::setCentralWidget(QWidget* widget,
          */
         QScrollArea* scrollArea = new QScrollArea();
         scrollArea->setWidgetResizable(true);
-        scrollArea->setWidget(widget);
-
+        scrollArea->setWidget(centralWidget);
+        
         /*
          * Make scroll area the dialog's widget
          */
+        if (topWidget != NULL) {
+            this->userWidgetLayout->addWidget(topWidget);
+        }
         this->userWidgetLayout->addWidget(scrollArea);
-
+        if (bottomWidget != NULL) {
+            this->userWidgetLayout->addWidget(bottomWidget);
+        }
+        
         /*
          * Estimate size for dialog
          */
@@ -356,8 +469,14 @@ WuQDialog::setCentralWidget(QWidget* widget,
                      height);
     }
     else {        
-        this->userWidgetLayout->addWidget(widget);
-    }
+        if (topWidget != NULL) {
+            this->userWidgetLayout->addWidget(topWidget);
+        }
+        this->userWidgetLayout->addWidget(centralWidget);
+        if (bottomWidget != NULL) {
+            this->userWidgetLayout->addWidget(bottomWidget);
+        }
+    }    
 }
 
 /**

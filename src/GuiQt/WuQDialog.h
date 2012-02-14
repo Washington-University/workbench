@@ -46,7 +46,12 @@ namespace caret  {
     public:
         virtual ~WuQDialog();
         
-        void setCentralWidget(QWidget* w,
+        void setCentralWidget(QWidget* centralWidget,
+                              const bool allowInsertingIntoScrollArea = true);
+        
+        void setTopBottomAndCentralWidgets(QWidget* topWidget,
+                              QWidget* centralWidget,
+                                           QWidget* bottomWidget,
                               const bool allowInsertingIntoScrollArea = true);
         
         void setStandardButtonText(QDialogButtonBox::StandardButton button,
@@ -86,6 +91,11 @@ namespace caret  {
         virtual void userButtonPressed(QPushButton* userPushButton);        
         
     private:
+        void setTopBottomAndCentralWidgetsInternal(QWidget* topWidget,
+                                                   QWidget* centralWidget,
+                                                   QWidget* bottomWidget,
+                                                   const bool allowInsertingIntoScrollArea);
+        
         QVBoxLayout* userWidgetLayout;
         
         QDialogButtonBox* buttonBox;
