@@ -277,28 +277,70 @@ WuQtUtilities::moveWindowToOffset(QWidget* parentWindow,
 }
 
 /**
- * Place a dialog next to its parent.
+ * Place a dialog next to its parent.  May not work correctly with
+ * multi-screen systems.
+ *
+ * It will stop after the first one of these actions that is successful:
+ *   1) Put window on right of parent if all of window will be visible.
+ *   2) Put window on left of parent if all of window will be visible.
+ *   3) Put window on right of parent if more space to right of window.
+ *   4) Put window on left of parent.
  * @param parent
- *    The parnet.
- * @param dialog
- *    The dialog.
+ *    The parent.
+ * @param window
+ *    The window.
  */
 void 
 WuQtUtilities::moveWindowToSideOfParent(QWidget* parent,
                                         QWidget* window)
 {
-    const int px = parent->x();
-    const int py = parent->y();
-    const int pw = parent->width();
-    const int ph = parent->height();
+    const QRect parentGeometry = parent->geometry();
+    const int px = parentGeometry.x();
+    const int py = parentGeometry.y();
+    const int pw = parentGeometry.width();
+    const int ph = parentGeometry.height();
+    const int parentMaxX = px + pw;
     
     int x = px + pw + 1;
-    int y = py + ph - window->height();
+    int y = py + ph - window->height() - 20;
+    const int windowWidth = window->width();
 
     QDesktopWidget* dw = QApplication::desktop();
     const QRect geometry = dw->availableGeometry(parent);
-    if (x > geometry.width()) {
-        x = geometry.width() - window->width();
+    const int screenMinX = geometry.x();
+    const int screenWidth = geometry.width();
+    const int screenMaxX = screenMinX + screenWidth;
+    const int screenMaxY = geometry.x() + geometry.height();
+    
+    const int spaceOnLeft = px -screenMinX;
+    const int spaceOnRight = screenMaxX - parentMaxX;
+    
+    if (spaceOnRight > windowWidth) {
+        x = parentMaxX;
+    }
+    else if (spaceOnLeft > windowWidth) {
+        x = px - windowWidth;
+    }
+    else if (spaceOnRight > spaceOnLeft) {
+        x = screenMaxX - windowWidth;
+    }
+    else {
+        x = screenMinX;
+    }
+    
+    if ((x + windowWidth) > screenMaxX) {
+        x = screenMaxX - windowWidth;
+    }
+    if (x < screenMinX) {
+        x = screenMinX;   
+    }
+    
+    const int maxY = screenMaxY - window->height() - 50;
+    if (y > maxY) {
+        y = maxY;
+    }
+    if (y < 50) {
+        y = 50;
     }
     
     window->move(x, y);
