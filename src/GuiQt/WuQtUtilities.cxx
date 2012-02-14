@@ -31,7 +31,9 @@
 #include <QFrame>
 #include <QIcon>
 #include <QPushButton>
+#include <QScrollArea>
 
+#include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "WuQtUtilities.h"
 
@@ -491,4 +493,28 @@ WuQtUtilities::setLayoutMargins(QLayout* layout,
                                contentsMargin,
                                contentsMargin);
 }
+
+QWidget* 
+WuQtUtilities::insertIntoScrollAreaIfNeeded(QWidget* parentWindowOrDialog,
+                                            QWidget* widget)
+{
+    QDesktopWidget* dw = QApplication::desktop();
+    const QRect geometry = dw->availableGeometry(parentWindowOrDialog);
+    const int windowWidth = geometry.width() - 100;
+    const int windowHeight = geometry.height() - 100;
+    
+    const int sizeX = widget->sizeHint().width();
+    const int sizeY = widget->sizeHint().height();
+    
+    if ((sizeX > windowWidth)
+        || (sizeY > windowHeight)) {
+        QScrollArea* scrollArea = new QScrollArea();
+        scrollArea->setWidgetResizable(true);
+        scrollArea->setWidget(widget);
+        return scrollArea;
+    }
+    
+    return widget;
+}
+
 

@@ -34,6 +34,7 @@ class QIcon;
 class QKeySequence;
 class QObject;
 class QPushButton;
+class QScrollArea;
 class QString;
 class QWidget;
 
@@ -115,6 +116,9 @@ namespace caret {
                                      const int spacing,
                                      const int margin,
                                      const int contentsMargin);
+        
+        static QWidget* insertIntoScrollAreaIfNeeded(QWidget* parentWindowOrDialog,
+                                                     QWidget* widget);
         
     private:
         WuQtUtilities();

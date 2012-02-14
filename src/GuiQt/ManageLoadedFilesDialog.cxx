@@ -73,7 +73,8 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
     this->setCancelButtonText("Close");
     this->saveCheckedFilesPushButton = this->addUserPushButton("Save Checked Files");
     
-    QGridLayout* gridLayout = new QGridLayout();
+    QWidget* filesWidget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(filesWidget);
     int gridRow = gridLayout->rowCount();
     
     gridLayout->addWidget(new QLabel("Save"),
@@ -149,9 +150,12 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                               COLUMN_FILE_NAME);
     }
     
+    QWidget* fw = WuQtUtilities::insertIntoScrollAreaIfNeeded(this,
+                                                              filesWidget);
+    
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addLayout(gridLayout);
+    layout->addWidget(fw);
 
     this->setCentralWidget(w);
 }
