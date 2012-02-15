@@ -18,6 +18,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmCiftiSmoothing.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
 AlgorithmLabelDilate.h
@@ -28,6 +29,7 @@ AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 
 AbstractAlgorithm.cxx
+AlgorithmCiftiSmoothing.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
 AlgorithmLabelDilate.cxx

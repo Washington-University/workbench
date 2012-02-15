@@ -121,7 +121,7 @@ void AlgorithmMetricSmoothing::useParameters(OperationParameters* myParams, Prog
     AlgorithmMetricSmoothing(myProgObj, mySurf, myMetric, myKernel, myMetricOut, myRoi, fixZeros, columnNum, myMethod);
 }
 
-AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, SurfaceFile* mySurf, MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, MetricFile* myRoi, bool fixZeros, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
+AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, const SurfaceFile* mySurf, const MetricFile* myMetric, double myKernel, MetricFile* myMetricOut, const MetricFile* myRoi, bool fixZeros, int64_t columnNum, Method myMethod) : AbstractAlgorithm(myProgObj)
 {
     const float precomputeWeightWork = 5.0f;//maybe should be a member variable?
     LevelProgress myProgress(myProgObj, 1.0f + precomputeWeightWork);
@@ -258,7 +258,7 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, Su
     }
 }
 
-void AlgorithmMetricSmoothing::precomputeWeightsGeoGauss(SurfaceFile* mySurf, double myKernel)
+void AlgorithmMetricSmoothing::precomputeWeightsGeoGauss(const SurfaceFile* mySurf, double myKernel)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
@@ -293,7 +293,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsGeoGauss(SurfaceFile* mySurf, do
     }
 }
 
-void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGauss(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi)
+void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
@@ -338,7 +338,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGauss(SurfaceFile* mySurf,
     }
 }
 
-void AlgorithmMetricSmoothing::precomputeWeightsGeoGaussArea(SurfaceFile* mySurf, double myKernel)
+void AlgorithmMetricSmoothing::precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, double myKernel)
 {//this method is normalized in two ways to provide evenly diffusing smoothing with equivalent sum of areas * values as input
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
@@ -399,7 +399,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsGeoGaussArea(SurfaceFile* mySurf
     }
 }
 
-void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi)
+void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi)
 {
     int32_t numNodes = mySurf->getNumberOfNodes();
     float myKernelF = myKernel;
@@ -469,7 +469,7 @@ void AlgorithmMetricSmoothing::precomputeWeightsROIGeoGaussArea(SurfaceFile* myS
     }
 }
 
-void AlgorithmMetricSmoothing::precomputeWeights(SurfaceFile* mySurf, double myKernel, MetricFile* theRoi, Method myMethod)
+void AlgorithmMetricSmoothing::precomputeWeights(const SurfaceFile* mySurf, double myKernel, const MetricFile* theRoi, Method myMethod)
 {
     if (theRoi != NULL)
     {
