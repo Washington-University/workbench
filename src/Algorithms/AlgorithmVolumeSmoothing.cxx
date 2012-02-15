@@ -123,8 +123,8 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
         CaretArray<float> scratchFrame2(myDims[0] * myDims[1] * myDims[2]);
         float ispace = ivec.length(), jspace = jvec.length(), kspace = kvec.length();
         int irange = (int)floor(kernBox / ispace);
-        int jrange = (int)floor(kernBox / ispace);
-        int krange = (int)floor(kernBox / ispace);
+        int jrange = (int)floor(kernBox / jspace);
+        int krange = (int)floor(kernBox / kspace);
         if (irange < 1) irange = 1;//don't underflow
         if (jrange < 1) jrange = 1;
         if (krange < 1) krange = 1;
