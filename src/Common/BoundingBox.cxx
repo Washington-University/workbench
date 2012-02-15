@@ -239,6 +239,22 @@ BoundingBox::getBounds() const
 }
 
 /**
+ * Get the bounds in an array.
+ * @param Output array of six containing minX, maxX, minY, maxY, minZ, maxZ.
+ *
+ */
+void 
+BoundingBox::getBounds(float bounds[6]) const
+{
+    bounds[0] = this->boundingBox[0];
+    bounds[1] = this->boundingBox[1];
+    bounds[2] = this->boundingBox[2];
+    bounds[3] = this->boundingBox[3];
+    bounds[4] = this->boundingBox[4];
+    bounds[5] = this->boundingBox[5];
+}
+
+/**
  * Get the X-Coordinate difference.
  * @return X-Coordinate difference.
  *

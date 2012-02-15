@@ -72,6 +72,8 @@ public:
 
     const float* getBounds() const;
 
+    void getBounds(float bounds[6]) const;
+    
     float getDifferenceX() const;
 
     float getDifferenceY() const;

@@ -382,17 +382,104 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisp
                                             const VolumeSliceViewPlaneEnum::Enum viewPlane)
 {
     VolumeFile* vf = modelDisplayControllerVolume->getUnderlayVolumeFile(tabIndex);
-    if (vf != NULL) {
-        //BoundingBox boundingBox = vf->getSpaceBoundingBox();
+
+    /*
+     * Apply some scaling and translation so that the volume slice, by default
+     * is not larger than the window in which it is being viewed.
+     */
+    float fitToWindowScaling = -1.0;
+    float fitToWindowTranslation[3] = { 0.0, 0.0, 0.0 };
+    
+    if (vf != NULL) {        
+        BoundingBox boundingBox = vf->getSpaceBoundingBox();
+        
+        std::vector<int64_t> dimensions;
+        vf->getDimensions(dimensions);
+        if ((dimensions[0] > 2) 
+            && (dimensions[1] > 2)
+            && (dimensions[2] > 2)) {
+            int64_t centerVoxel[3] = {
+                dimensions[0] / 2,
+                dimensions[1] / 2,
+                dimensions[2] / 2
+            };
+            
+            float volumeCenter[3];
+            vf->indexToSpace(centerVoxel, volumeCenter);
+            
+            /*
+             * Translate so that the center voxel (by dimenisons)
+             * is at the center of the screen.
+             */
+            fitToWindowTranslation[0] = -volumeCenter[0];
+            fitToWindowTranslation[1] = -volumeCenter[1];
+            fitToWindowTranslation[2] = -volumeCenter[2];
+            switch (viewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    fitToWindowTranslation[2] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    fitToWindowTranslation[1] = 0.0;
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    fitToWindowTranslation[0] = 0.0;
+                    break;
+            }
+            
+            
+            /*
+             * Scale so volume fills, but does not extend out of window.
+             */
+            const float xExtent = (boundingBox.getMaxX() - boundingBox.getMinX()) / 2;
+            const float yExtent = (boundingBox.getMaxY() - boundingBox.getMinY()) / 2;
+            const float zExtent = (boundingBox.getMaxZ() - boundingBox.getMinZ()) / 2;
+
+            const float orthoExtentX = std::min(std::fabs(this->orthographicRight),
+                                                std::fabs(this->orthographicLeft));
+            const float orthoExtentY = std::min(std::fabs(this->orthographicTop),
+                                                std::fabs(this->orthographicBottom));
+
+            float scaleWindowX = 1.0;
+            float scaleWindowY = 1.0;
+            switch (viewPlane) {
+                case VolumeSliceViewPlaneEnum::ALL:
+                    break;
+                case VolumeSliceViewPlaneEnum::AXIAL:
+                    scaleWindowX = (orthoExtentX / xExtent);
+                    scaleWindowY = (orthoExtentY / yExtent);
+                    break;
+                case VolumeSliceViewPlaneEnum::CORONAL:
+                    scaleWindowX = (orthoExtentX / xExtent);
+                    scaleWindowY = (orthoExtentY / zExtent);
+                    break;
+                case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                    scaleWindowX = (orthoExtentX / yExtent);
+                    scaleWindowY = (orthoExtentY / zExtent);
+                    break;
+            }
+            
+            fitToWindowScaling = std::min(scaleWindowX,
+                                          scaleWindowY);
+            fitToWindowScaling *= 0.98;
+        }        
     }
+    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     
+    /*
+     * User's translation.
+     */
     const float* translation = modelDisplayControllerVolume->getTranslation(tabIndex);
     glTranslatef(translation[0], 
                  translation[1], 
                  translation[2]);
     
+    /*
+     * User's rotation.
+     */
     Matrix4x4 rotationMatrix;
     switch (viewPlane) {
         case VolumeSliceViewPlaneEnum::ALL:
@@ -413,24 +500,35 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisp
     rotationMatrix.getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
     
+    /*
+     * Scaling to fit window.
+     */
+    if (fitToWindowScaling > 0.0) {
+        glScalef(fitToWindowScaling,
+                 fitToWindowScaling,
+                 fitToWindowScaling);
+    }
+    
+    /*
+     * Users scaling.
+     */
     const float scale = modelDisplayControllerVolume->getScaling(tabIndex);
     glScalef(scale, 
              scale, 
              scale);        
+
+    /*
+     * Translate so that center of volume is at center
+     * of window
+     */
+    glTranslatef(fitToWindowTranslation[0],
+                 fitToWindowTranslation[1],
+                 fitToWindowTranslation[2]);
 }
 
 void 
 BrainOpenGLFixedPipeline::initializeMembersBrainOpenGL()
 {
-    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        orthographicLeft[i] = -1.0f;
-        orthographicRight[i] = -1.0f;
-        orthographicBottom[i] = -1.0f;
-        orthographicTop[i] = -1.0f;
-        orthographicFar[i] = -1.0f;
-        orthographicNear[i] = -1.0f;
-    }
-    
     this->initializedOpenGLFlag = false;
     this->modeProjectionData = NULL;
 }
@@ -525,24 +623,6 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
     glGetFloatv(GL_LINE_WIDTH_RANGE, sizes);
     BrainOpenGL::minLineWidth = sizes[0];
     BrainOpenGL::maxLineWidth = sizes[1];
-}
-
-/**
- *
- */
-void 
-BrainOpenGLFixedPipeline::updateOrthoSize(const int32_t windowIndex, 
-                             const int32_t width,
-                             const int32_t height)
-{
-    const double aspectRatio = (static_cast<double>(width)) /
-                               (static_cast<double>(height));
-    orthographicRight[windowIndex]  =    getModelViewingHalfWindowHeight() * aspectRatio;
-    orthographicLeft[windowIndex]   =   -getModelViewingHalfWindowHeight() * aspectRatio;
-    orthographicTop[windowIndex]    =    getModelViewingHalfWindowHeight();
-    orthographicBottom[windowIndex] =   -getModelViewingHalfWindowHeight();
-    orthographicNear[windowIndex]   = -5000.0; //-500.0; //-10000.0;
-    orthographicFar[windowIndex]    =  5000.0; //500.0; // 10000.0;
 }
 
 /**
@@ -3111,22 +3191,22 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     double width = viewport[2];
     double height = viewport[3];
     double aspectRatio = (width / height);
-    double orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
-    double orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
-    double orthographicTop    =    defaultOrthoWindowSize;
-    double orthographicBottom =   -defaultOrthoWindowSize;
-    double orthographicNear   = -1000.0; //-500.0; //-10000.0;
-    double orthographicFar    =  1000.0; //500.0; // 10000.0;
+    this->orthographicRight  =    defaultOrthoWindowSize * aspectRatio;
+    this->orthographicLeft   =   -defaultOrthoWindowSize * aspectRatio;
+    this->orthographicTop    =    defaultOrthoWindowSize;
+    this->orthographicBottom =   -defaultOrthoWindowSize;
+    this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
+    this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
     if (isRightSurfaceLateralMedialYoked) {
-        glOrtho(orthographicRight, orthographicLeft, 
-                orthographicBottom, orthographicTop, 
-                orthographicFar, orthographicNear);    
+        glOrtho(this->orthographicRight, this->orthographicLeft, 
+                this->orthographicBottom, this->orthographicTop, 
+                this->orthographicFar, this->orthographicNear);    
     }
     else {
-        glOrtho(orthographicLeft, orthographicRight, 
-                orthographicBottom, orthographicTop, 
-                orthographicNear, orthographicFar);            
+        glOrtho(this->orthographicLeft, this->orthographicRight, 
+                this->orthographicBottom, this->orthographicTop, 
+                this->orthographicNear, this->orthographicFar);            
     }
 }
 

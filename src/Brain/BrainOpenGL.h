@@ -95,19 +95,6 @@ namespace caret {
                                     SurfaceProjectedItem& projectionOut) = 0;
         
         /**
-         * Initializle the orthographic viewport.
-         * @param windowIndex
-         *    Index of the window.
-         * @param width
-         *    Width of the window.
-         * @param height
-         *    Height of the window.
-         */
-        virtual void updateOrthoSize(const int32_t windowIndex, 
-                             const int32_t width, 
-                             const int32_t height) = 0;
-
-        /**
          * @return Half-size of the model window height.
          */
         static float getModelViewingHalfWindowHeight() { return 90.0f; }

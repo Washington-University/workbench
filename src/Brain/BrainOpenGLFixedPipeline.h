@@ -89,9 +89,6 @@ namespace caret {
         
         void initializeOpenGL();
         
-        void updateOrthoSize(const int32_t windowIndex, 
-                             const int32_t width, 
-                             const int32_t height);
     private:
         class VolumeDrawInfo {
         public:
@@ -258,12 +255,12 @@ namespace caret {
         
         SphereOpenGL* sphereOpenGL;
         
-        double orthographicLeft[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        double orthographicRight[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        double orthographicBottom[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        double orthographicTop[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        double orthographicFar[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        double orthographicNear[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        double orthographicLeft; 
+        double orthographicRight;
+        double orthographicBottom;
+        double orthographicTop;
+        double orthographicFar; 
+        double orthographicNear; 
     };
 
 #ifdef __BRAIN_OPENGL_FIXED_PIPELINE_DEFINE_H

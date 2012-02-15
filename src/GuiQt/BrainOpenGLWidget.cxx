@@ -156,7 +156,6 @@ BrainOpenGLWidget::initializeGL()
 void 
 BrainOpenGLWidget::resizeGL(int w, int h)
 {
-    this->openGL->updateOrthoSize(0, w, h);
     this->windowWidth[this->windowIndex] = w;
     this->windowHeight[this->windowIndex] = h;
 }
