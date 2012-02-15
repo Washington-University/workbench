@@ -251,3 +251,15 @@ void MetricFile::setValuesForColumn(const int32_t columnIndex, const float* valu
     }
     setModified();
 }
+
+void MetricFile::initializeColumn(const int32_t columnIndex, const float& value)
+{
+    CaretAssertVectorIndex(this->columnDataPointers, columnIndex);
+    float* myColumn = columnDataPointers[columnIndex];
+    int numNodes = (int)getNumberOfNodes();
+    for (int i = 0; i < numNodes; ++i)
+    {
+        myColumn[i] = value;
+    }
+    setModified();
+}

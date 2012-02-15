@@ -68,6 +68,8 @@ namespace caret {
         
         void setValuesForColumn(const int32_t columnIndex, const float* valuesIn);
         
+        void initializeColumn(const int32_t columnIndex, const float& value = 0.0f);
+        
     protected:
         /**
          * Validate the contents of the file after it

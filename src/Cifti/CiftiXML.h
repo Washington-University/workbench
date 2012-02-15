@@ -142,7 +142,7 @@ namespace caret {
         * get a copy of the Cifti XML Root
         * @param xml_root
         */
-        void getXMLRoot (CiftiRootElement &xml_root) { xml_root = m_root; }
+        void getXMLRoot (CiftiRootElement &xml_root) const { xml_root = m_root; }
         
         ///get the row index for a node, returns -1 if it doesn't find a matching mapping
         int64_t getRowIndexForNode(const int64_t& node, const StructureEnum::Enum& structure) const;
@@ -181,10 +181,10 @@ namespace caret {
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
 
         ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
-        bool getVolumeParcelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut);
+        bool getVolumeParcelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
 
         ///get the list of volume parcels and their maps in columns, returns false and empty vector if not found
-        bool getVolumeParcelMapsForColumns(std::vector<CiftiVolumeStructureMap>& mappingsOut);
+        bool getVolumeParcelMapsForColumns(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
 
         ///get the original number of nodes of the surfaces used to make this cifti, for rows
         int64_t getRowSurfaceNumberOfNodes(const StructureEnum::Enum& structure) const;
@@ -260,6 +260,9 @@ namespace caret {
         
         ///get dimensions, spacing, origin for the volume attribute - returns false if not plumb
         bool getVolumeAttributesForPlumb(VolumeFile::OrientTypes orientOut[3], int64_t dimensionsOut[3], float originOut[3], float spacingOut[3]) const;
+        
+        ///get dimensions and sform, useful for making a volume
+        bool getVolumeDimsAndSForm(int64_t dimsOut[3], std::vector<std::vector<float> >& sformOut) const;
         
         ///check what types of data it has
         bool hasRowVolumeData() const;

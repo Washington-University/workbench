@@ -52,7 +52,10 @@ namespace caret
         virtual int64_t getNumberOfRows() const = 0;
 
         ///get the XML data
-        void getCiftiXML(CiftiXML &xml) { xml = m_xml; }
+        void getCiftiXML(CiftiXML &xml) const { xml = m_xml; }
+        
+        ///get a reference to the XML data
+        const CiftiXML& getCiftiXML() const { return m_xml; }
         
         ///get a row by surface and node - returns false if not found in mapping
         bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure) const;

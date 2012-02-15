@@ -38,6 +38,7 @@ HttpTest.cxx
 HeapTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx
+TestInterface.cxx
 TimerTest.cxx
 TopologyHelperOld.cxx
 TopologyHelperTest.cxx
