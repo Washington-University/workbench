@@ -254,7 +254,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                     myCiftiOut->getRow(rowScratch, subvol);
                     for (int i = 0; i < numVoxels; ++i)
                     {
-                        rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex] = input.getValue(myVolMaps[map].m_map[i].m_ijk, subvol);
+                        rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex] = output.getValue(myVolMaps[map].m_map[i].m_ijk, subvol);
                     }
                     myCiftiOut->setRow(rowScratch, subvol);
                 }
@@ -354,7 +354,7 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                 {
                     for (int subvol = 0; subvol < rowSize; ++subvol)
                     {
-                        rowScratch[subvol] = input.getValue(myVolMaps[map].m_map[index].m_ijk, subvol);
+                        rowScratch[subvol] = output.getValue(myVolMaps[map].m_map[index].m_ijk, subvol);
                     }
                     myCiftiOut->setRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
                 }
