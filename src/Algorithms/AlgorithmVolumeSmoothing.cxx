@@ -120,7 +120,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     const float ORTH_TOLERANCE = 0.001f;//tolerate this much deviation from orthogonal (dot product divided by product of lengths) to use orthogonal assumptions to smooth
     if (abs(ivec.dot(jvec.normal())) / ivec.length() < ORTH_TOLERANCE && abs(jvec.dot(kvec.normal())) / jvec.length() < ORTH_TOLERANCE && abs(kvec.dot(ivec.normal())) / kvec.length() < ORTH_TOLERANCE)
     {//if our axes are orthogonal, optimize by doing three 1-dimensional smoothings for O(voxels * (ki + kj + kk)) instead of O(voxels * (ki * kj * kk))
-        CaretArray<float> scratchFrame2(myDims[0] * myDims[1] * myDims[2]);
+        CaretArray<float> scratchFrame2(myDims[0] * myDims[1] * myDims[2]), scratchWeights(myDims[0] * myDims[1] * myDims[2]), scratchWeights2(myDims[0] * myDims[1] * myDims[2]);
         float ispace = ivec.length(), jspace = jvec.length(), kspace = kvec.length();
         int irange = (int)floor(kernBox / ispace);
         int jrange = (int)floor(kernBox / jspace);
@@ -157,7 +157,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
-                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
                     outVol->setFrame(scratchFrame, s, c);
                 }
             }
@@ -172,7 +172,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             for (int c = 0; c < myDims[4]; ++c)
             {
                 const float* inFrame = inVol->getFrame(subvol, c);
-                smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
                 outVol->setFrame(scratchFrame, 0, c);
             }
         }
@@ -247,7 +247,7 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     }
 }
 
-void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros)
+void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros)
 {//this function should ONLY get invoked when the volume is orthogonal (axes are perpendicular, not necessarily aligned with x, y, z, and not necessarily equal spacing)
     const float* roiFrame = NULL;//it separates the 3-d smoothing into 3 successive 1-d smoothings to avoid looping over a box for each voxel (instead, loops over 3 lines)
     if (roiVol != NULL)//if this function ever needs more speed (unlikely), try having the j and k smoothings copy a line to thread private scratch so threads don't contend for scattered memory access
@@ -278,12 +278,8 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                             sum += weight * inFrame[thisIndex];
                         }
                     }
-                    if (weightsum != 0.0f)
-                    {
-                        scratchFrame[inVol->getIndex(i, j, k)] = sum / weightsum;
-                    } else {
-                        scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
-                    }
+                    scratchWeights[inVol->getIndex(i, j, k)] = weightsum;
+                    scratchFrame[inVol->getIndex(i, j, k)] = sum;//don't divide yet, we will divide later after we gather the weighted sums of the weighted sums of the weight sums (yes, that repetition is right)
                 } else {
                     scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
                 }
@@ -306,20 +302,13 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                     int64_t baseInd = inVol->getIndex(i, 0, k);
                     for (int jkern = jmin; jkern < jmax; ++jkern)
                     {
-                        int64_t thisIndex = baseInd + jkern * myDims[0];
-                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || scratchFrame[thisIndex] != 0.0f))
-                        {
-                            float weight = jweights[jkern - j + jrange];
-                            weightsum += weight;
-                            sum += weight * scratchFrame[thisIndex];
-                        }
+                        int64_t thisIndex = baseInd + jkern * myDims[0];//DO NOT test for this source voxel being outside ROI or having a value of zero, or you will skip good data
+                        float weight = jweights[jkern - j + jrange];
+                        weightsum += weight * scratchWeights[thisIndex];
+                        sum += weight * scratchFrame[thisIndex];
                     }
-                    if (weightsum != 0.0f)
-                    {
-                        scratchFrame2[inVol->getIndex(i, j, k)] = sum / weightsum;
-                    } else {
-                        scratchFrame2[inVol->getIndex(i, j, k)] = 0.0f;
-                    }
+                    scratchWeights2[inVol->getIndex(i, j, k)] = weightsum;
+                    scratchFrame2[inVol->getIndex(i, j, k)] = sum;//we now have the weighted sum of the weight sums
                 } else {
                     scratchFrame2[inVol->getIndex(i, j, k)] = 0.0f;
                 }
@@ -342,17 +331,14 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
                     int64_t baseInd = inVol->getIndex(i, j, 0);
                     for (int kkern = kmin; kkern < kmax; ++kkern)
                     {
-                        int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];
-                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || scratchFrame2[thisIndex] != 0.0f))
-                        {
-                            float weight = kweights[kkern - k + krange];
-                            weightsum += weight;
-                            sum += weight * scratchFrame2[thisIndex];
-                        }
+                        int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];//ditto
+                        float weight = kweights[kkern - k + krange];
+                        weightsum += weight * scratchWeights2[thisIndex];
+                        sum += weight * scratchFrame2[thisIndex];
                     }
                     if (weightsum != 0.0f)
                     {
-                        scratchFrame[inVol->getIndex(i, j, k)] = sum / weightsum;
+                        scratchFrame[inVol->getIndex(i, j, k)] = sum / weightsum;//NOW we can divide
                     } else {
                         scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
                     }
