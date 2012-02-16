@@ -539,6 +539,10 @@ void
 BrainOpenGLFixedPipeline::initializeOpenGL()
 {
     if (BrainOpenGLFixedPipeline::versionOfOpenGL == 0.0) {
+     
+        AString lineInfo;
+        
+#ifdef GL_VERSION_2_0
         GLfloat values[2];
         glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
         const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
@@ -552,6 +556,22 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
                                                + AString::number(values[0]));
         
+        lineInfo = ("\n" + aliasedLineWidthRange
+                    + "\n" + smoothLineWidthRange
+                    + "\n" + smoothLineWidthGranularity);
+#else  // GL_VERSION_2_0
+        GLfloat values[2];
+        glGetFloatv (GL_LINE_WIDTH_RANGE, values);
+        const AString lineWidthRange = ("GL_LINE_WIDTH_RANGE value is "
+                                              + AString::fromNumbers(values, 2, ", "));
+        
+        glGetFloatv (GL_LINE_WIDTH_GRANULARITY, values);
+        const AString lineWidthGranularity = ("GL_LINE_WIDTH_GRANULARITY value is "
+                                                    + AString::number(values[0]));
+        lineInfo = ("\n" + lineWidthRange
+                    + "\n" + lineWidthGranularity);
+#endif // GL_VERSION_2_0
+        
         //
         // Note: The version string might be something like 1.2.4.  std::atof()
         // will get just the 1.2 which is okay.
@@ -563,9 +583,7 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         CaretLogConfig("OpenGL version: " + AString(versionStr)
                        + "\nOpenGL vendor: " + AString(vendorStr)
                        + "\nOpenGL renderer: " + AString(renderStr)
-                       + "\n" + aliasedLineWidthRange
-                       + "\n" + smoothLineWidthRange
-                       + "\n" + smoothLineWidthGranularity);
+                       + lineInfo);
     }
     
     glEnable(GL_DEPTH_TEST);
