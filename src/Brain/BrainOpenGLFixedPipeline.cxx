@@ -670,6 +670,27 @@ BrainOpenGLFixedPipeline::disableLighting()
 }
 
 /**
+ * Enable line anti-aliasing (line smoothing) which also required blending.
+ */
+void 
+BrainOpenGLFixedPipeline::enableLineAntiAliasing()
+{
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_DONT_CARE);}
+
+/**
+ * Disable line anti-aliasing (line smoothing) which also required blending.
+ */
+void 
+BrainOpenGLFixedPipeline::disableLineAntiAliasing()
+{
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
+/**
  * Draw contents of a surface controller.
  * @param surfaceController
  *    Controller that is drawn.
@@ -706,7 +727,6 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
     const float bigNumber = 1000000.0;
     glPushMatrix();
     glColor3f(1.0, 0.0, 0.0);
-    glDisable(GL_LINE_SMOOTH);
     glBegin(GL_LINES);
     glVertex3f(-bigNumber, 0.0, 0.0);
     glVertex3f( bigNumber, 0.0, 0.0);
@@ -1751,7 +1771,6 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
             const float bigNumber = 10000;
             glLineWidth(1.0);
             glColor3ubv(green);
-            glDisable(GL_LINE_SMOOTH);
             glBegin(GL_LINES);
             glVertex3f(voxelXYZ[0], -bigNumber, voxelXYZ[2]);
             glVertex3f(voxelXYZ[0],  bigNumber, voxelXYZ[2]);
@@ -2975,6 +2994,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     float intersectionPoint1[3];
     float intersectionPoint2[3];
     
+    this->enableLineAntiAliasing();
+    
     /*
      * Process each surface outline
      */
@@ -2995,7 +3016,6 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 glLineWidth(thickness);
-                glEnable(GL_LINE_SMOOTH);
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -3030,7 +3050,6 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                          */
                         switch(slicePlane) {
                             case VolumeSliceViewPlaneEnum::ALL:
-                                return;
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                 glVertex3f(p1[0], intersectionPoint1[1], intersectionPoint1[2]);
@@ -3051,6 +3070,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
             }
         }
     }
+    
+    this->disableLineAntiAliasing();
 }
 
 /**
@@ -3856,7 +3877,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     if (isZeroDisplayed == false) {
         glLineWidth(1.0);
         glColor3ubv(backgroundRGB);
-        glDisable(GL_LINE_SMOOTH);
         glBegin(GL_LINES);
         glVertex2f(0.0, -halfHeight);
         glVertex2f(0.0, 0.0);

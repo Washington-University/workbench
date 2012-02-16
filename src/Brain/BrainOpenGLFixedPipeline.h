@@ -177,6 +177,9 @@ namespace caret {
         
         void disableLighting();
         
+        void enableLineAntiAliasing();
+        void disableLineAntiAliasing();
+        
         void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
                                            const int32_t y,
