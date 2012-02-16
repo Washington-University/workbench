@@ -1946,7 +1946,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
         const VolumeFile* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        
+        const int64_t mapIndex = volInfo.brickIndex;        
         
         float originX, originY, originZ;
         float x1, y1, z1;
@@ -2094,7 +2094,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 break;
                         }
                         
-                        const float voxel = volumeFile->getValue(i, j, k);
+                        const float voxel = volumeFile->getValue(i, j, k, mapIndex);
                         CaretAssertVectorIndex(sliceVoxelsValuesVector, voxelOffset);
                         sliceVoxelValues[voxelOffset] = voxel;
                     }
