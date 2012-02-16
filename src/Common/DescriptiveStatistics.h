@@ -42,7 +42,22 @@ namespace caret {
         void update(const float* values,
                     const int64_t numberOfValues);
         
+        void update(const float* values,
+                    const int64_t numberOfValues,
+                    const float mostPositiveValueInclusive,
+                    const float leastPositiveValueInclusive,
+                    const float leastNegativeValueInclusive,
+                    const float mostNegativeValueInclusive,
+                    const bool includeZeroValues);
+        
         void update(const std::vector<float>& values);
+        
+        void update(const std::vector<float>& values,
+                    const float mostPositiveValueInclusive,
+                    const float leastPositiveValueInclusive,
+                    const float leastNegativeValueInclusive,
+                    const float mostNegativeValueInclusive,
+                    const bool includeZeroValues);
         
         float getPositivePercentile(const float percent) const;
         

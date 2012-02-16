@@ -1521,3 +1521,18 @@ bool MathFunctions::isPosInf(const float number)
 {
     return (number > 1.0f && number * 2.0f == number);
 }
+
+/**
+ * Is the value very, very close to zero?
+ * @param value
+ *    Value to test.
+ * @return true if approximately zero, else false.
+ */
+bool 
+MathFunctions::isZero(const float value)
+{
+    if (value >  0.00001) return false;
+    if (value < -0.00001) return false;
+    return true;
+}
+
