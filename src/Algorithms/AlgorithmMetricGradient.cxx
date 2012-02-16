@@ -69,11 +69,11 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     ret->createOptionalParameter(10, "-average-normals", "average the normals of each node with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
-        AString("Takes the gradient of a metric file.  At each node, the immediate neighbors are unfolded onto a plane tangent to the surface at the node.  ") +
+        AString("At each node, the immediate neighbors are unfolded onto a plane tangent to the surface at the node.  ") +
         "The gradient is computed by a regression between the unfolded positions of the nodes and their values.  " +
         "The gradient is then given by the slopes of the regression, and reconstructed as a 3d gradient vector.  " +
-        "Currently, only the magnitude of the resulting vector is output.  " +
         "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.  " +
+        "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.  " +
         "The vector output metric is organized such that the X, Y, and Z components from a single input column are consecutive."
     );
     return ret;
