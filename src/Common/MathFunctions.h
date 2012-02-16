@@ -316,7 +316,18 @@ public:
     ///greatest common divisor
     static uint32_t gcd(uint32_t num1, uint32_t num2);
     
-    static inline bool isZero(const float value);
+    /**
+     * Is the value very, very close to zero?
+     * @param value
+     *    Value to test.
+     * @return true if approximately zero, else false.
+     */
+    static inline bool isZero(const float value) {
+        if (value >  0.00001) return false;
+        if (value < -0.00001) return false;
+        return true;
+    }
+
 };
 
 } // namespace

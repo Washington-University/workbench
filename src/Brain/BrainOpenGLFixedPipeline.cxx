@@ -1479,7 +1479,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
                                     if ((vdi.volumeFile == vf) 
                                         && (opacity >= 1.0)
-                                        && (mapIndex == vdi.brickIndex)
+                                        && (mapIndex == vdi.mapIndex)
                                         && (palette == vdi.palette)) {
                                         useIt = false;
                                     }
@@ -1946,7 +1946,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
         const VolumeFile* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        const int64_t mapIndex = volInfo.brickIndex;        
+        const int64_t mapIndex = volInfo.mapIndex;        
         
         float originX, originY, originZ;
         float x1, y1, z1;
@@ -2622,14 +2622,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
                     VolumeFile* vf = volInfo.volumeFile;
-                    const int64_t brickIndex = volInfo.brickIndex;
+                    const int64_t mapIndex = volInfo.mapIndex;
                     bool valid = false;
                     float voxel = 0;
                     {
                         int64_t iVoxel, jVoxel, kVoxel;
                         vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
-                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, brickIndex)) {
-                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, brickIndex);
+                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
+                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
                             valid = true;
                         }
                     }
@@ -3980,12 +3980,12 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                    Palette* palette,
                                                    PaletteColorMapping* paletteColorMapping,
                                                    const DescriptiveStatistics* statistics,
-                                                   const int32_t brickIndex,
+                                                   const int32_t mapIndex,
                                                    const float opacity) 
 : statistics(statistics) {
     this->volumeFile = volumeFile;
     this->palette = palette;
     this->paletteColorMapping = paletteColorMapping;
-    this->brickIndex = brickIndex;
+    this->mapIndex = mapIndex;
     this->opacity    = opacity;
 }

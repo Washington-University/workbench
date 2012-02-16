@@ -96,14 +96,14 @@ namespace caret {
                            Palette* palette,
                            PaletteColorMapping* paletteColorMapping,
                            const DescriptiveStatistics* statistics,
-                           const int32_t brickIndex,
+                           const int32_t mapIndex,
                            const float opacity);
             
             VolumeFile* volumeFile;
             Palette* palette;
             PaletteColorMapping* paletteColorMapping;
             const DescriptiveStatistics* statistics;
-            int32_t brickIndex;
+            int32_t mapIndex;
             float opacity;
         };
         
