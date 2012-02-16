@@ -120,7 +120,11 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     const float ORTH_TOLERANCE = 0.001f;//tolerate this much deviation from orthogonal (dot product divided by product of lengths) to use orthogonal assumptions to smooth
     if (abs(ivec.dot(jvec.normal())) / ivec.length() < ORTH_TOLERANCE && abs(jvec.dot(kvec.normal())) / jvec.length() < ORTH_TOLERANCE && abs(kvec.dot(ivec.normal())) / kvec.length() < ORTH_TOLERANCE)
     {//if our axes are orthogonal, optimize by doing three 1-dimensional smoothings for O(voxels * (ki + kj + kk)) instead of O(voxels * (ki * kj * kk))
-        CaretArray<float> scratchFrame2(myDims[0] * myDims[1] * myDims[2]), scratchWeights(myDims[0] * myDims[1] * myDims[2]), scratchWeights2(myDims[0] * myDims[1] * myDims[2]);
+        CaretArray<float> scratchFrame2(myDims[0] * myDims[1] * myDims[2]), scratchWeights(myDims[0] * myDims[1] * myDims[2]), scratchWeights2(myDims[0] * myDims[1] * myDims[2]), scratchFrame3;
+        if (roiVol != NULL)
+        {
+            scratchFrame3 = CaretArray<float> (myDims[0] * myDims[1] * myDims[2]);
+        }
         float ispace = ivec.length(), jspace = jvec.length(), kspace = kvec.length();
         int irange = (int)floor(kernBox / ispace);
         int jrange = (int)floor(kernBox / jspace);
@@ -151,13 +155,19 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
         {
             vector<int64_t> origDims = inVol->getOriginalDimensions();
             outVol->reinitialize(origDims, volSpace, myDims[4]);
+            vector<int> lists[3];
             for (int s = 0; s < myDims[3]; ++s)
             {
                 outVol->setMapName(s, inVol->getMapName(s) + ", smooth " + AString::number(kernel));
                 for (int c = 0; c < myDims[4]; ++c)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
-                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                    if (roiVol == NULL)
+                    {
+                        smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                    } else {
+                        smoothFrameROI(inFrame, myDims, scratchFrame, scratchFrame2, scratchFrame3, scratchWeights, scratchWeights2, lists, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                    }
                     outVol->setFrame(scratchFrame, s, c);
                 }
             }
@@ -168,11 +178,17 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             newDims[1] = origDims[1];
             newDims[2] = origDims[2];
             outVol->reinitialize(newDims, volSpace, myDims[4]);
+            vector<int> lists[3];
             outVol->setMapName(0, inVol->getMapName(subvol) + ", smooth " + AString::number(kernel));
             for (int c = 0; c < myDims[4]; ++c)
             {
                 const float* inFrame = inVol->getFrame(subvol, c);
-                smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                if (roiVol == NULL)
+                {
+                    smoothFrame(inFrame, myDims, scratchFrame, scratchFrame2, scratchWeights, scratchWeights2, inVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                } else {
+                    smoothFrameROI(inFrame, myDims, scratchFrame, scratchFrame2, scratchFrame3, scratchWeights, scratchWeights2, lists, inVol, roiVol, iweights, jweights, kweights, irange, jrange, krange, fixZeros);
+                }
                 outVol->setFrame(scratchFrame, 0, c);
             }
         }
@@ -247,13 +263,8 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     }
 }
 
-void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros)
+void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, const VolumeFile* inVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros)
 {//this function should ONLY get invoked when the volume is orthogonal (axes are perpendicular, not necessarily aligned with x, y, z, and not necessarily equal spacing)
-    const float* roiFrame = NULL;//it separates the 3-d smoothing into 3 successive 1-d smoothings to avoid looping over a box for each voxel (instead, loops over 3 lines)
-    if (roiVol != NULL)//if this function ever needs more speed (unlikely), try having the j and k smoothings copy a line to thread private scratch so threads don't contend for scattered memory access
-    {
-        roiFrame = roiVol->getFrame();
-    }
 #pragma omp CARET_PARFOR schedule(dynamic)
     for (int k = 0; k < myDims[2]; ++k)//smooth along i axis
     {
@@ -261,28 +272,24 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
         {
             for (int i = 0; i < myDims[0]; ++i)
             {
-                if (roiVol == NULL || roiVol->getValue(i, j, k) > 0.0f)
+                int imin = i - irange, imax = i + irange + 1;//one-after array size convention
+                if (imin < 0) imin = 0;
+                if (imax > myDims[0]) imax = myDims[0];
+                float sum = 0.0f, weightsum = 0.0f;
+                int64_t baseInd = inVol->getIndex(0, j, k);
+                int64_t curInd = baseInd + i;
+                for (int ikern = imin; ikern < imax; ++ikern)
                 {
-                    int imin = i - irange, imax = i + irange + 1;//one-after array size convention
-                    if (imin < 0) imin = 0;
-                    if (imax > myDims[0]) imax = myDims[0];
-                    float sum = 0.0f, weightsum = 0.0f;
-                    int64_t baseInd = inVol->getIndex(0, j, k);
-                    for (int ikern = imin; ikern < imax; ++ikern)
+                    int64_t thisIndex = baseInd + ikern;
+                    if ((!fixZeros || inFrame[thisIndex] != 0.0f))
                     {
-                        int64_t thisIndex = baseInd + ikern;
-                        if ((roiVol == NULL || roiFrame[thisIndex] > 0.0f) && (!fixZeros || inFrame[thisIndex] != 0.0f))
-                        {
-                            float weight = iweights[ikern - i + irange];
-                            weightsum += weight;
-                            sum += weight * inFrame[thisIndex];
-                        }
+                        float weight = iweights[ikern - i + irange];
+                        weightsum += weight;
+                        sum += weight * inFrame[thisIndex];
                     }
-                    scratchWeights[inVol->getIndex(i, j, k)] = weightsum;
-                    scratchFrame[inVol->getIndex(i, j, k)] = sum;//don't divide yet, we will divide later after we gather the weighted sums of the weighted sums of the weight sums (yes, that repetition is right)
-                } else {
-                    scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
                 }
+                scratchWeights[curInd] = weightsum;
+                scratchFrame[curInd] = sum;//don't divide yet, we will divide later after we gather the weighted sums of the weighted sums of the weight sums (yes, that repetition is right)
             }
         }
     }
@@ -293,25 +300,21 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
         {
             for (int j = 0; j < myDims[1]; ++j)//step along the dimension being smoothed last for best cache coherence
             {
-                if (roiVol == NULL || roiVol->getValue(i, j, k) > 0.0f)
+                int jmin = j - jrange, jmax = j + jrange + 1;//one-after array size convention
+                if (jmin < 0) jmin = 0;
+                if (jmax > myDims[1]) jmax = myDims[1];
+                float sum = 0.0f, weightsum = 0.0f;
+                int64_t baseInd = inVol->getIndex(i, 0, k);
+                int64_t curInd = baseInd + j * myDims[0];
+                for (int jkern = jmin; jkern < jmax; ++jkern)
                 {
-                    int jmin = j - jrange, jmax = j + jrange + 1;//one-after array size convention
-                    if (jmin < 0) jmin = 0;
-                    if (jmax > myDims[1]) jmax = myDims[1];
-                    float sum = 0.0f, weightsum = 0.0f;
-                    int64_t baseInd = inVol->getIndex(i, 0, k);
-                    for (int jkern = jmin; jkern < jmax; ++jkern)
-                    {
-                        int64_t thisIndex = baseInd + jkern * myDims[0];//DO NOT test for this source voxel being outside ROI or having a value of zero, or you will skip good data
-                        float weight = jweights[jkern - j + jrange];
-                        weightsum += weight * scratchWeights[thisIndex];
-                        sum += weight * scratchFrame[thisIndex];
-                    }
-                    scratchWeights2[inVol->getIndex(i, j, k)] = weightsum;
-                    scratchFrame2[inVol->getIndex(i, j, k)] = sum;//we now have the weighted sum of the weight sums
-                } else {
-                    scratchFrame2[inVol->getIndex(i, j, k)] = 0.0f;
+                    int64_t thisIndex = baseInd + jkern * myDims[0];
+                    float weight = jweights[jkern - j + jrange];
+                    weightsum += weight * scratchWeights[thisIndex];
+                    sum += weight * scratchFrame[thisIndex];
                 }
+                scratchWeights2[curInd] = weightsum;
+                scratchFrame2[curInd] = sum;//we now have the weighted sum of the weight sums
             }
         }
     }
@@ -322,31 +325,240 @@ void AlgorithmVolumeSmoothing::smoothFrame(const float* inFrame, vector<int64_t>
         {
             for (int k = 0; k < myDims[2]; ++k)//ditto
             {
-                if (roiVol == NULL || roiVol->getValue(i, j, k) > 0.0f)
+                int64_t baseInd = inVol->getIndex(i, j, 0);
+                int64_t curInd = baseInd + k * myDims[0] * myDims[1];
+                int kmin = k - krange, kmax = k + krange + 1;//one-after array size convention
+                if (kmin < 0) kmin = 0;
+                if (kmax > myDims[2]) kmax = myDims[2];
+                float sum = 0.0f, weightsum = 0.0f;
+                for (int kkern = kmin; kkern < kmax; ++kkern)
                 {
-                    int kmin = k - krange, kmax = k + krange + 1;//one-after array size convention
-                    if (kmin < 0) kmin = 0;
-                    if (kmax > myDims[2]) kmax = myDims[2];
-                    float sum = 0.0f, weightsum = 0.0f;
-                    int64_t baseInd = inVol->getIndex(i, j, 0);
-                    for (int kkern = kmin; kkern < kmax; ++kkern)
-                    {
-                        int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];//ditto
-                        float weight = kweights[kkern - k + krange];
-                        weightsum += weight * scratchWeights2[thisIndex];
-                        sum += weight * scratchFrame2[thisIndex];
-                    }
-                    if (weightsum != 0.0f)
-                    {
-                        scratchFrame[inVol->getIndex(i, j, k)] = sum / weightsum;//NOW we can divide
-                    } else {
-                        scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
-                    }
+                    int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];
+                    float weight = kweights[kkern - k + krange];
+                    weightsum += weight * scratchWeights2[thisIndex];
+                    sum += weight * scratchFrame2[thisIndex];
+                }
+                if (weightsum != 0.0f)
+                {
+                    scratchFrame[curInd] = sum / weightsum;//NOW we can divide
                 } else {
-                    scratchFrame[inVol->getIndex(i, j, k)] = 0.0f;
+                    scratchFrame[curInd] = 0.0f;
                 }
             }
         }
+    }
+}
+
+void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchFrame3,
+                                              CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, vector<int> lists[3],
+                                              const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights,
+                                              int irange, int jrange, int krange, const bool& fixZeros)
+{//optimized for orthogonal, plus lists of voxels for ROI smoothing
+    if (lists[0].size() == 0)
+    {//this is our first time into this function, we must populate the lists
+        const float* roiFrame = roiVol->getFrame();
+        CaretArray<int> markROI(myDims[0] * myDims[1] * myDims[2], 0);//need a temporary array to sort out ROI zeros from -fix-zeros zeros
+#pragma omp CARET_PARFOR
+        for (int k = 0; k < myDims[2]; ++k)//smooth along i axis
+        {
+            for (int j = 0; j < myDims[1]; ++j)
+            {
+                for (int i = 0; i < myDims[0]; ++i)//don't test whether intermediate voxel is insode ROI, or we lose some data
+                {
+                    int imin = i - irange, imax = i + irange + 1;//one-after array size convention
+                    if (imin < 0) imin = 0;
+                    if (imax > myDims[0]) imax = myDims[0];
+                    float sum = 0.0f, weightsum = 0.0f;
+                    int64_t baseInd = inVol->getIndex(0, j, k);
+                    int64_t curInd = baseInd + i;
+                    bool used = false;
+                    for (int ikern = imin; ikern < imax; ++ikern)
+                    {
+                        int64_t thisIndex = baseInd + ikern;
+                        if (roiFrame[thisIndex] > 0.0f)//only test source and final voxels for being in ROI
+                        {
+                            if (!used)//keep a list of voxels whose i-kernel intersects the ROI
+                            {
+                                used = true;
+                                markROI[curInd] = 1;
+#pragma omp critical
+                                {
+                                    lists[0].push_back(i);
+                                    lists[0].push_back(j);
+                                    lists[0].push_back(k);
+                                }
+                            }
+                            if (!fixZeros || inFrame[thisIndex] != 0.0f)
+                            {
+                                float weight = iweights[ikern - i + irange];
+                                weightsum += weight;
+                                sum += weight * inFrame[thisIndex];
+                            }
+                        }
+                    }
+                    scratchWeights[curInd] = weightsum;
+                    scratchFrame3[curInd] = sum;//don't divide yet, we will divide later after we gather the weighted sums of the weighted sums of the weight sums (yes, that repetition is right)
+                }
+            }
+        }
+#pragma omp CARET_PARFOR
+        for (int k = 0; k < myDims[2]; ++k)//now j
+        {
+            for (int i = 0; i < myDims[0]; ++i)
+            {
+                for (int j = 0; j < myDims[1]; ++j)//step along the dimension being smoothed last for best cache coherence
+                {
+                    int jmin = j - jrange, jmax = j + jrange + 1;//one-after array size convention
+                    if (jmin < 0) jmin = 0;
+                    if (jmax > myDims[1]) jmax = myDims[1];
+                    float sum = 0.0f, weightsum = 0.0f;
+                    int64_t baseInd = inVol->getIndex(i, 0, k);
+                    int64_t curInd = baseInd + j * myDims[0];
+                    bool used = false;
+                    for (int jkern = jmin; jkern < jmax; ++jkern)
+                    {
+                        int64_t thisIndex = baseInd + jkern * myDims[0];//DO NOT test for this source voxel being outside ROI, or you will skip good data
+                        if ((markROI[thisIndex] & 1) == 1)
+                        {//skip voxels whose i-kernels don't touch the ROI, they will always have 0/0
+                            if (!used)
+                            {
+                                used = true;
+                                markROI[curInd] |= 2;//bitwise so i can track all 3 lists separately in one array
+#pragma omp critical
+                                {
+                                    lists[1].push_back(i);
+                                    lists[1].push_back(j);
+                                    lists[1].push_back(k);
+                                }
+                            }
+                            float weight = jweights[jkern - j + jrange];
+                            weightsum += weight * scratchWeights[thisIndex];
+                            sum += weight * scratchFrame3[thisIndex];
+                        }
+                    }
+                    scratchWeights2[curInd] = weightsum;
+                    scratchFrame2[curInd] = sum;//we now have the weighted sum of the weight sums
+                }
+            }
+        }
+#pragma omp CARET_PARFOR
+        for (int j = 0; j < myDims[1]; ++j)//and finally k
+        {
+            for (int i = 0; i < myDims[0]; ++i)
+            {
+                for (int k = 0; k < myDims[2]; ++k)//ditto
+                {
+                    int64_t baseInd = inVol->getIndex(i, j, 0);
+                    int64_t curInd = baseInd + k * myDims[0] * myDims[1];
+                    if (roiFrame[curInd] > 0.0f)
+                    {
+#pragma omp critical
+                        {
+                            lists[2].push_back(i);//third list is a little different, since we don't output stuff outside the ROI, we can drop the voxels that "grew" from the ROI
+                            lists[2].push_back(j);//we do need to calculate those grown voxels, though, since we use some of them within the k-kernel
+                            lists[2].push_back(k);
+                        }
+                        int kmin = k - krange, kmax = k + krange + 1;//one-after array size convention
+                        if (kmin < 0) kmin = 0;
+                        if (kmax > myDims[2]) kmax = myDims[2];
+                        float sum = 0.0f, weightsum = 0.0f;
+                        for (int kkern = kmin; kkern < kmax; ++kkern)
+                        {
+                            int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];//ditto
+                            float weight = kweights[kkern - k + krange];
+                            weightsum += weight * scratchWeights2[thisIndex];
+                            sum += weight * scratchFrame2[thisIndex];
+                        }
+                        if (weightsum != 0.0f)
+                        {
+                            scratchFrame[curInd] = sum / weightsum;//NOW we can divide
+                        } else {
+                            scratchFrame[curInd] = 0.0f;
+                        }
+                    } else {
+                        scratchFrame[curInd] = 0.0f;
+                    }
+                }
+            }
+        }
+    } else {//lists already made, use them
+        const float* roiFrame = roiVol->getFrame();
+        int64_t ibasesize = (int64_t)lists[0].size();
+        int64_t jbasesize = (int64_t)lists[1].size();
+        int64_t kbasesize = (int64_t)lists[2].size();
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int ibase = 0; ibase < ibasesize; ibase += 3)
+        {
+            int i = lists[0][ibase];
+            int j = lists[0][ibase + 1];
+            int k = lists[0][ibase + 2];
+            int imin = i - irange, imax = i + irange + 1;//one-after array size convention
+            if (imin < 0) imin = 0;
+            if (imax > myDims[0]) imax = myDims[0];
+            float sum = 0.0f, weightsum = 0.0f;
+            int64_t baseInd = inVol->getIndex(0, j, k);
+            int64_t curInd = baseInd + i;
+            for (int ikern = imin; ikern < imax; ++ikern)
+            {
+                int64_t thisIndex = baseInd + ikern;
+                if (roiFrame[thisIndex] > 0.0f && (!fixZeros || inFrame[thisIndex] != 0.0f))
+                {
+                    float weight = iweights[ikern - i + irange];
+                    weightsum += weight;
+                    sum += weight * inFrame[thisIndex];
+                }
+            }
+            scratchWeights[curInd] = weightsum;
+            scratchFrame3[curInd] = sum;//don't divide yet, we will divide later after we gather the weighted sums of the weighted sums of the weight sums (yes, that repetition is right)
+        }
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int jbase = 0; jbase < jbasesize; jbase += 3)
+        {
+            int i = lists[1][jbase];
+            int j = lists[1][jbase + 1];
+            int k = lists[1][jbase + 2];
+            int jmin = j - jrange, jmax = j + jrange + 1;//one-after array size convention
+            if (jmin < 0) jmin = 0;
+            if (jmax > myDims[1]) jmax = myDims[1];
+            float sum = 0.0f, weightsum = 0.0f;
+            int64_t baseInd = inVol->getIndex(i, 0, k);
+            int64_t curInd = baseInd + j * myDims[0];
+            for (int jkern = jmin; jkern < jmax; ++jkern)
+            {
+                int64_t thisIndex = baseInd + jkern * myDims[0];//DO NOT test for this source voxel having zero data, or it will skip good data
+                float weight = jweights[jkern - j + jrange];
+                weightsum += weight * scratchWeights[thisIndex];
+                sum += weight * scratchFrame3[thisIndex];
+            }
+            scratchWeights2[curInd] = weightsum;
+            scratchFrame2[curInd] = sum;//we now have the weighted sum of the weight sums
+        }
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int kbase = 0; kbase < kbasesize; kbase += 3)
+        {
+            int i = lists[2][kbase];
+            int j = lists[2][kbase + 1];
+            int k = lists[2][kbase + 2];
+            int64_t baseInd = inVol->getIndex(i, j, 0);
+            int64_t curInd = baseInd + k * myDims[0] * myDims[1];
+            int kmin = k - krange, kmax = k + krange + 1;//one-after array size convention
+            if (kmin < 0) kmin = 0;
+            if (kmax > myDims[2]) kmax = myDims[2];
+            float sum = 0.0f, weightsum = 0.0f;
+            for (int kkern = kmin; kkern < kmax; ++kkern)
+            {
+                int64_t thisIndex = baseInd + kkern * myDims[0] * myDims[1];//ditto
+                float weight = kweights[kkern - k + krange];
+                weightsum += weight * scratchWeights2[thisIndex];
+                sum += weight * scratchFrame2[thisIndex];
+            }
+            if (weightsum != 0.0f)
+            {
+                scratchFrame[curInd] = sum / weightsum;//NOW we can divide
+            } else {
+                scratchFrame[curInd] = 0.0f;
+            }
+        }//the frame should be zeroed outside the ROI already due to the first time through
     }
 }
 

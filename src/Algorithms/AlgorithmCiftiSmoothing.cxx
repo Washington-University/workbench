@@ -225,38 +225,57 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         vector<vector<float> > mySForm;
         if (myXML.getVolumeDimsAndSForm(myDims, mySForm))
         {
-            vector<int64_t> volDims, volDims2;
-            volDims.push_back(myDims[0]);
-            volDims.push_back(myDims[1]);
-            volDims.push_back(myDims[2]);
-            volDims2 = volDims;
-            volDims.push_back(numToSmooth);
-            VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
             for (int map = 0; map < numVolMaps; ++map)
             {
-                roi.setValueAllVoxels(0.0f);
                 int numVoxels = (int)myVolMaps[map].m_map.size();
-                for (int i = 0; i < numVoxels; ++i)
-                {
-                    roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk);
-                }
-                for (int subvol = 0; subvol < numToSmooth; ++subvol)
-                {
-                    myCifti->getRow(rowScratch, subvol);
+                if (numVoxels > 0)
+                {//make a voxel bounding box to minimize memory usage
+                    int extrema[6] = { myVolMaps[map].m_map[0].m_ijk[0],
+                        myVolMaps[map].m_map[0].m_ijk[0],
+                        myVolMaps[map].m_map[0].m_ijk[1],
+                        myVolMaps[map].m_map[0].m_ijk[1],
+                        myVolMaps[map].m_map[0].m_ijk[2],
+                        myVolMaps[map].m_map[0].m_ijk[2]
+                    };
+                    for (int i = 1; i < numVoxels; ++i)
+                    {
+                        if (myVolMaps[map].m_map[i].m_ijk[0] < extrema[0]) extrema[0] = myVolMaps[map].m_map[i].m_ijk[0];
+                        if (myVolMaps[map].m_map[i].m_ijk[0] > extrema[1]) extrema[1] = myVolMaps[map].m_map[i].m_ijk[0];
+                        if (myVolMaps[map].m_map[i].m_ijk[1] < extrema[2]) extrema[2] = myVolMaps[map].m_map[i].m_ijk[1];
+                        if (myVolMaps[map].m_map[i].m_ijk[1] > extrema[3]) extrema[3] = myVolMaps[map].m_map[i].m_ijk[1];
+                        if (myVolMaps[map].m_map[i].m_ijk[2] < extrema[4]) extrema[4] = myVolMaps[map].m_map[i].m_ijk[2];
+                        if (myVolMaps[map].m_map[i].m_ijk[2] > extrema[5]) extrema[5] = myVolMaps[map].m_map[i].m_ijk[2];
+                    }
+                    vector<int64_t> volDims, volDims2;
+                    volDims.push_back(extrema[1] - extrema[0] + 1);
+                    volDims.push_back(extrema[3] - extrema[2] + 1);
+                    volDims.push_back(extrema[5] - extrema[4] + 1);
+                    volDims2 = volDims;
+                    volDims.push_back(rowSize);
+                    VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
+                    roi.setValueAllVoxels(0.0f);
                     for (int i = 0; i < numVoxels; ++i)
                     {
-                        input.setValue(rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex], myVolMaps[map].m_map[i].m_ijk, subvol);
+                        roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4]);
                     }
-                }
-                AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
-                for (int subvol = 0; subvol < numToSmooth; ++subvol)
-                {
-                    myCiftiOut->getRow(rowScratch, subvol);
-                    for (int i = 0; i < numVoxels; ++i)
+                    for (int subvol = 0; subvol < numToSmooth; ++subvol)
                     {
-                        rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex] = output.getValue(myVolMaps[map].m_map[i].m_ijk, subvol);
+                        myCifti->getRow(rowScratch, subvol);
+                        for (int i = 0; i < numVoxels; ++i)
+                        {
+                            input.setValue(rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex], myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4], subvol);
+                        }
                     }
-                    myCiftiOut->setRow(rowScratch, subvol);
+                    AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
+                    for (int subvol = 0; subvol < numToSmooth; ++subvol)
+                    {
+                        myCiftiOut->getRow(rowScratch, subvol);
+                        for (int i = 0; i < numVoxels; ++i)
+                        {
+                            rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex] = output.getValue(myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4], subvol);
+                        }
+                        myCiftiOut->setRow(rowScratch, subvol);
+                    }
                 }
             }
         }
@@ -326,37 +345,56 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         vector<vector<float> > mySForm;
         if (myXML.getVolumeDimsAndSForm(myDims, mySForm))
         {
-            vector<int64_t> volDims, volDims2;
-            volDims.push_back(myDims[0]);
-            volDims.push_back(myDims[1]);
-            volDims.push_back(myDims[2]);
-            volDims2 = volDims;
-            volDims.push_back(rowSize);
-            VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
             for (int map = 0; map < numVolMaps; ++map)
             {
-                roi.setValueAllVoxels(0.0f);
                 int numVoxels = (int)myVolMaps[map].m_map.size();
-                for (int i = 0; i < numVoxels; ++i)
-                {
-                    roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk);
-                }
-                for (int index = 0; index < numVoxels; ++index)
-                {
-                    myCifti->getRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
-                    for (int subvol = 0; subvol < rowSize; ++subvol)
+                if (numVoxels > 0)
+                {//make a voxel bounding box to minimize memory usage
+                    int extrema[6] = { myVolMaps[map].m_map[0].m_ijk[0],
+                        myVolMaps[map].m_map[0].m_ijk[0],
+                        myVolMaps[map].m_map[0].m_ijk[1],
+                        myVolMaps[map].m_map[0].m_ijk[1],
+                        myVolMaps[map].m_map[0].m_ijk[2],
+                        myVolMaps[map].m_map[0].m_ijk[2]
+                    };
+                    for (int i = 1; i < numVoxels; ++i)
                     {
-                        input.setValue(rowScratch[subvol], myVolMaps[map].m_map[index].m_ijk, subvol);
+                        if (myVolMaps[map].m_map[i].m_ijk[0] < extrema[0]) extrema[0] = myVolMaps[map].m_map[i].m_ijk[0];
+                        if (myVolMaps[map].m_map[i].m_ijk[0] > extrema[1]) extrema[1] = myVolMaps[map].m_map[i].m_ijk[0];
+                        if (myVolMaps[map].m_map[i].m_ijk[1] < extrema[2]) extrema[2] = myVolMaps[map].m_map[i].m_ijk[1];
+                        if (myVolMaps[map].m_map[i].m_ijk[1] > extrema[3]) extrema[3] = myVolMaps[map].m_map[i].m_ijk[1];
+                        if (myVolMaps[map].m_map[i].m_ijk[2] < extrema[4]) extrema[4] = myVolMaps[map].m_map[i].m_ijk[2];
+                        if (myVolMaps[map].m_map[i].m_ijk[2] > extrema[5]) extrema[5] = myVolMaps[map].m_map[i].m_ijk[2];
                     }
-                }
-                AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
-                for (int index = 0; index < numVoxels; ++index)
-                {
-                    for (int subvol = 0; subvol < rowSize; ++subvol)
+                    vector<int64_t> volDims, volDims2;
+                    volDims.push_back(extrema[1] - extrema[0] + 1);
+                    volDims.push_back(extrema[3] - extrema[2] + 1);
+                    volDims.push_back(extrema[5] - extrema[4] + 1);
+                    volDims2 = volDims;
+                    volDims.push_back(rowSize);
+                    VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
+                    roi.setValueAllVoxels(0.0f);
+                    for (int i = 0; i < numVoxels; ++i)
                     {
-                        rowScratch[subvol] = output.getValue(myVolMaps[map].m_map[index].m_ijk, subvol);
+                        roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4]);
                     }
-                    myCiftiOut->setRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
+                    for (int index = 0; index < numVoxels; ++index)
+                    {
+                        myCifti->getRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
+                        for (int subvol = 0; subvol < rowSize; ++subvol)
+                        {
+                            input.setValue(rowScratch[subvol], myVolMaps[map].m_map[index].m_ijk[0] - extrema[0], myVolMaps[map].m_map[index].m_ijk[1] - extrema[2], myVolMaps[map].m_map[index].m_ijk[2] - extrema[4], subvol);
+                        }
+                    }
+                    AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
+                    for (int index = 0; index < numVoxels; ++index)
+                    {
+                        for (int subvol = 0; subvol < rowSize; ++subvol)
+                        {
+                            rowScratch[subvol] = output.getValue(myVolMaps[map].m_map[index].m_ijk[0] - extrema[0], myVolMaps[map].m_map[index].m_ijk[1] - extrema[2], myVolMaps[map].m_map[index].m_ijk[2] - extrema[4], subvol);
+                        }
+                        myCiftiOut->setRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
+                    }
                 }
             }
         }
