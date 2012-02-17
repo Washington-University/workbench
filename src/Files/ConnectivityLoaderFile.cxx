@@ -1602,7 +1602,7 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
     }
     
     /*
-     * Allow loading of data disable test?
+     * Allow loading of data disabled?
      */
     if (this->dataLoadingEnabled == false) {
         return;
