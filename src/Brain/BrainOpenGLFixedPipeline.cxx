@@ -2444,7 +2444,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                             vf->enclosingVoxel(voxelCoordinates,
                                              voxelIndices);
                             if (vf->indexValid(voxelIndices)) {
-                                voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);
+                                voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                                 voxelID->setVoxelIJK(voxelIndices);
                                 voxelID->setScreenDepth(depth);
                                 this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
@@ -2953,7 +2953,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                     vf->enclosingVoxel(voxelCoordinates,
                                      voxelIndices);
                     if (vf->indexValid(voxelIndices)) {
-                        voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);
+                        voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                         voxelID->setVoxelIJK(voxelIndices);
                         voxelID->setScreenDepth(depth);
                         this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
