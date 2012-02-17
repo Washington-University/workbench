@@ -65,12 +65,9 @@ DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElem
     m_nanCount = 0;
     m_minimumValue = 0.0;
     m_maximumValue = 0.0;
-    m_minimumValue96 = 0.0;
-    m_maximumValue96 = 0.0;
     CaretAssert(m_histogramNumberOfElements > 2);
     CaretAssert(m_percentileDivisions > 2);
     m_histogram = new int64_t[m_histogramNumberOfElements];
-    m_histogram96 = new int64_t[m_histogramNumberOfElements];
     m_positivePercentiles = new float[m_percentileDivisions];
     m_negativePercentiles = new float[m_percentileDivisions];
 }
@@ -83,10 +80,6 @@ DescriptiveStatistics::~DescriptiveStatistics()
     if (m_histogram != NULL)
     {
         delete[] m_histogram;
-    }
-    if (m_histogram96 != NULL)
-    {
-        delete[] m_histogram96;
     }
     if (m_positivePercentiles != NULL)
     {
@@ -434,16 +427,8 @@ DescriptiveStatistics::update(const float* values,
     m_standardDeviationPopulation = 0.0;
     m_standardDeviationSample = 0.0;
     
-    m_mean96 = 0.0;
-    m_median96 = 0.0;
-    m_standardDeviationPopulation96 = 0.0;
-    m_standardDeviationSample96 = 0.0;
-    
     std::fill(m_histogram,
               m_histogram + m_histogramNumberOfElements,
-              0.0);
-    std::fill(m_histogram96,
-              m_histogram96 + m_histogramNumberOfElements,
               0.0);
     std::fill(m_positivePercentiles,
               m_positivePercentiles + m_percentileDivisions,
@@ -461,7 +446,6 @@ DescriptiveStatistics::update(const float* values,
         m_mean = v;
         m_median = v;
         m_histogram[m_histogramNumberOfElements / 2] = v;
-        m_histogram96[m_histogramNumberOfElements / 2] = v;
         fill(m_positivePercentiles,
                   m_positivePercentiles + m_percentileDivisions,
                   v);
@@ -470,8 +454,6 @@ DescriptiveStatistics::update(const float* values,
                   v);
         m_minimumValue = v;
         m_maximumValue = v;
-        m_minimumValue96 = v;
-        m_maximumValue96 = v;
         return;
     }
     
@@ -621,27 +603,10 @@ DescriptiveStatistics::update(const float* values,
     const float bucketSize = (maxValue - minValue) / m_histogramNumberOfElements;
 
     /*
-     * Prepare for histogram of middle 96%
-     */
-    CaretAssertArrayIndex(sortedValues, m_validCount, twoPercentIndex);
-    const float minValue96 = sortedValues[twoPercentIndex];
-    CaretAssertArrayIndex(sortedValues, m_validCount, ninetyEightPercentIndex);
-    const float maxValue96 = sortedValues[ninetyEightPercentIndex];
-    const float bucketSize96 = (maxValue96 - minValue96) / m_histogramNumberOfElements;
-    
-    /*
-     * Min/max of the middle 96% of values
-     */
-    m_minimumValue96 = sortedValues[twoPercentIndex];
-    m_maximumValue96 = sortedValues[ninetyEightPercentIndex];
-    
-    /*
      * Prepare for statistics
      */
     double sum = 0.0;
     double sumSQ = 0.0;
-    double sum96 = 0.0;
-    double sumSQ96 = 0.0;
     
     /*
      * Create histogram and statistics.
@@ -657,17 +622,6 @@ DescriptiveStatistics::update(const float* values,
         sum += v;
         const float v2 = v * v;
         sumSQ += v2;
-        
-        if ((i >= twoPercentIndex) && (i <= ninetyEightPercentIndex)) {
-            int64_t indx96 = (v - minValue96) / bucketSize96;
-            if (indx96 >= m_histogramNumberOfElements) indx96 = m_histogramNumberOfElements - 1;
-            if (indx96 < 0) indx96 = 0;
-            CaretAssertArrayIndex(m_histogram, m_histogramNumberOfElements, indx96);
-            m_histogram96[indx96]++;
-            
-            sum96 += v;
-            sumSQ96 += v2;
-        }
     }    
 
     /*
@@ -686,24 +640,7 @@ DescriptiveStatistics::update(const float* values,
         {
             m_standardDeviationSample = sqrt(numerator / (m_validCount - 1));
         }
-    }
-    
-    /*
-     * Compute statistics of middle 96%
-     */
-    const int64_t numberOfValues96 = ninetyEightPercentIndex - twoPercentIndex;
-    m_mean96 = sum96 / numberOfValues96;
-    m_median96 = sortedValues[(numberOfValues96 / 2) + twoPercentIndex];
-    const double numerator96 = (sumSQ96 - ((sum96*sum96) / numberOfValues96));
-    m_standardDeviationPopulation96 = -1.0;
-    m_standardDeviationSample96 = -1.0;
-    if (numberOfValues96 > 0)
-    {
-        m_standardDeviationPopulation96 = sqrt(numerator96 / numberOfValues96);
-        if (numberOfValues96 > 1) {
-            m_standardDeviationSample96 = sqrt(numerator96 / (numberOfValues96 - 1));
-        }
-    }
+    }    
 }
 
 /**
