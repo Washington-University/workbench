@@ -559,6 +559,45 @@ ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/)
 }
 
 /**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index for
+ * data within the specified ranges.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const DescriptiveStatistics* 
+ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/,
+                                         const float mostPositiveValueInclusive,
+                                         const float leastPositiveValueInclusive,
+                                         const float leastNegativeValueInclusive,
+                                         const float mostNegativeValueInclusive,
+                                         const bool includeZeroValues)
+{
+    this->descriptiveStatistics->update(this->data, 
+                                        this->numberOfDataElements,
+                                        mostPositiveValueInclusive,
+                                        leastPositiveValueInclusive,
+                                        leastNegativeValueInclusive,
+                                        mostNegativeValueInclusive,
+                                        includeZeroValues);
+    return this->descriptiveStatistics;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * a palette.
  */

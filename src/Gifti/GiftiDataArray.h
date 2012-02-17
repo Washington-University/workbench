@@ -287,6 +287,12 @@ namespace caret {
         
         const DescriptiveStatistics* getDescriptiveStatistics() const;
         
+        const DescriptiveStatistics* getDescriptiveStatistics(const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues) const;
+        
     protected:
         // allocate data for this column
         virtual void allocateData();
@@ -386,6 +392,9 @@ namespace caret {
         
         /// statistics about data (DO NOT COPY)
         mutable DescriptiveStatistics* descriptiveStatistics;
+        
+        /// statistics about data (DO NOT COPY)
+        mutable DescriptiveStatistics* descriptiveStatisticsLimitedValues;
         
         bool modifiedFlag; // DO NOT COPY
         // ***** BE SURE TO UPDATE copyHelper() if elements are added ******

@@ -110,6 +110,20 @@ namespace caret {
         
         const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex) { return VolumeBase::getMapStatistics(mapIndex); }
         
+        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                      const float mostPositiveValueInclusive,
+                                                      const float leastPositiveValueInclusive,
+                                                      const float leastNegativeValueInclusive,
+                                                      const float mostNegativeValueInclusive,
+                                                      const bool includeZeroValues) {
+            return VolumeBase::getMapStatistics(mapIndex,
+                                                mostPositiveValueInclusive,
+                                                leastPositiveValueInclusive,
+                                                leastNegativeValueInclusive,
+                                                mostNegativeValueInclusive,
+                                                includeZeroValues);             
+        }
+        
         bool isMappedWithPalette() const { return VolumeBase::isMappedWithPalette(); }
         
         PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) { return VolumeBase::getMapPaletteColorMapping(mapIndex); }

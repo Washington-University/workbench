@@ -63,6 +63,7 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn,
    dataPointerUByte = NULL;    
    this->paletteColorMapping = NULL;
   this->descriptiveStatistics = NULL;
+    this->descriptiveStatisticsLimitedValues = NULL;
    clear();
    dataType = dataTypeIn;
    setDimensions(dimensionsIn);
@@ -95,6 +96,7 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn)
    dataPointerUByte = NULL;
    this->paletteColorMapping = NULL;
    this->descriptiveStatistics = NULL;
+    this->descriptiveStatisticsLimitedValues = NULL;
    clear();
    dimensions.clear();
    encoding = GiftiEncodingEnum::ASCII;
@@ -133,6 +135,7 @@ GiftiDataArray::GiftiDataArray(const GiftiDataArray& nda)
    dataPointerUByte = NULL;
    this->paletteColorMapping = NULL;
    this->descriptiveStatistics = NULL;
+    this->descriptiveStatisticsLimitedValues = NULL;
    copyHelperGiftiDataArray(nda);
 }
 
@@ -161,6 +164,10 @@ GiftiDataArray::copyHelperGiftiDataArray(const GiftiDataArray& nda)
     if (this->descriptiveStatistics != NULL) {
         delete this->descriptiveStatistics;
         this->descriptiveStatistics = NULL;
+    }
+    if (this->descriptiveStatisticsLimitedValues != NULL) {
+        delete this->descriptiveStatisticsLimitedValues;
+        this->descriptiveStatisticsLimitedValues = NULL;
     }
    intent = nda.intent;
    encoding = nda.encoding;
@@ -422,6 +429,10 @@ GiftiDataArray::clear()
     if (this->descriptiveStatistics != NULL) {
         delete this->descriptiveStatistics;
         this->descriptiveStatistics = NULL;
+    }
+    if (this->descriptiveStatisticsLimitedValues != NULL) {
+        delete this->descriptiveStatisticsLimitedValues;
+        this->descriptiveStatisticsLimitedValues = NULL;
     }
    // do not clear
    // parentGiftiDataFile;
@@ -1371,6 +1382,10 @@ GiftiDataArray::setModified()
         delete this->descriptiveStatistics;
         this->descriptiveStatistics = NULL;
     }
+    if (this->descriptiveStatisticsLimitedValues != NULL) {
+        delete this->descriptiveStatisticsLimitedValues;
+        this->descriptiveStatisticsLimitedValues = NULL;
+    }
 }
 
 /**
@@ -1641,6 +1656,11 @@ GiftiDataArray::getPaletteColorMapping() const
     return this->paletteColorMapping;
 }
 
+/**
+ * Get the descriptive statistics for this data array.
+ *
+ * @return Descriptive statistics.
+ */
 const DescriptiveStatistics* 
 GiftiDataArray::getDescriptiveStatistics() const
 {
@@ -1650,6 +1670,42 @@ GiftiDataArray::getDescriptiveStatistics() const
                                             this->getTotalNumberOfElements());
     }
     return this->descriptiveStatistics;
+}
+
+/**
+ * Get the descriptive statistics for this data array limited
+ * to values within the given ranges.
+ *
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return Descriptive statistics.
+ */
+const DescriptiveStatistics* 
+GiftiDataArray::getDescriptiveStatistics(const float mostPositiveValueInclusive,
+                                                      const float leastPositiveValueInclusive,
+                                                      const float leastNegativeValueInclusive,
+                                                      const float mostNegativeValueInclusive,
+                                                      const bool includeZeroValues) const
+{
+    if (this->descriptiveStatisticsLimitedValues == NULL) {
+        this->descriptiveStatisticsLimitedValues = new DescriptiveStatistics();
+    }
+    this->descriptiveStatisticsLimitedValues->update(this->dataPointerFloat, 
+                                                     this->getTotalNumberOfElements(),
+                                                     mostPositiveValueInclusive,
+                                                     leastPositiveValueInclusive,
+                                                     leastNegativeValueInclusive,
+                                                     mostNegativeValueInclusive,
+                                                     includeZeroValues);
+    return this->descriptiveStatisticsLimitedValues;    
 }
 
 AString 

@@ -516,14 +516,42 @@ GiftiTypeFile::getMapStatistics(const int32_t mapIndex)
 {
     const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
     return gda->getDescriptiveStatistics();
-/*
-    const float* data = gda->getDataPointerFloat();
-    DescriptiveStatistics* stats = new DescriptiveStatistics();
-    if (data != NULL) {
-        stats->update(data, this->getNumberOfNodes());
-    }
-    return stats;
-*/
+}
+
+/**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const DescriptiveStatistics* 
+GiftiTypeFile::getMapStatistics(const int32_t mapIndex,
+                                const float mostPositiveValueInclusive,
+                                const float leastPositiveValueInclusive,
+                                const float leastNegativeValueInclusive,
+                                const float mostNegativeValueInclusive,
+                                const bool includeZeroValues)
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getDescriptiveStatistics(mostPositiveValueInclusive,
+                                         leastPositiveValueInclusive,
+                                         leastNegativeValueInclusive,
+                                         mostNegativeValueInclusive,
+                                         includeZeroValues);
 }
 
 /**

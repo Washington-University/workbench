@@ -705,6 +705,51 @@ VolumeBase::getMapStatistics(const int32_t mapIndex)
 }
 
 /**
+ * Get statistics describing the distribution of data
+ * mapped with a color palette at the given index for 
+ * data within the given ranges.
+ *
+ * @param mapIndex
+ *    Index of the map.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ * @return
+ *    Descriptive statistics for data (will be NULL for data
+ *    not mapped using a palette).
+ */         
+const DescriptiveStatistics* 
+VolumeBase::getMapStatistics(const int32_t mapIndex,
+                             const float mostPositiveValueInclusive,
+                             const float leastPositiveValueInclusive,
+                             const float leastNegativeValueInclusive,
+                             const float mostNegativeValueInclusive,
+                             const bool includeZeroValues)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    
+    if (m_brickAttributes[mapIndex]->m_statisticsLimitedValues == NULL) {
+        m_brickAttributes[mapIndex]->m_statisticsLimitedValues = new DescriptiveStatistics();
+    }
+    m_brickAttributes[mapIndex]->m_statisticsLimitedValues->update(m_data, 
+                                                                   m_dataSize,
+                                                                   mostPositiveValueInclusive,
+                                                                   leastPositiveValueInclusive,
+                                                                   leastNegativeValueInclusive,
+                                                                   mostNegativeValueInclusive,
+                                                                   includeZeroValues);
+    
+    return m_brickAttributes[mapIndex]->m_statisticsLimitedValues;
+}
+
+/**
  * @return Is the data in the file mapped to colors using
  * a palette.
  */
@@ -862,6 +907,7 @@ VolumeBase::BrickAttributes::BrickAttributes()
 {
     m_metadata = new GiftiMetaData();
     m_statistics = NULL;
+    m_statisticsLimitedValues = NULL;
 }
 
 VolumeBase::BrickAttributes::~BrickAttributes()
@@ -869,5 +915,8 @@ VolumeBase::BrickAttributes::~BrickAttributes()
     delete m_metadata;
     if (m_statistics != NULL) {
         delete m_statistics;
+    }
+    if (m_statisticsLimitedValues != NULL) {
+        delete m_statisticsLimitedValues;
     }
 }
