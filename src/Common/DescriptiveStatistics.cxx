@@ -119,8 +119,11 @@ DescriptiveStatistics::update(const std::vector<float>& values,
                               const float mostNegativeValueInclusive,
                               const bool includeZeroValues)
 {
-    this->update(&values[0],
-                 values.size(),
+    const float* valuesArray = (values.empty() ? NULL : &values[0]);
+    const int64_t numberOfValues = (values.empty() ? 0 : values.size());
+    
+    this->update(valuesArray,
+                 numberOfValues,
                  mostPositiveValueInclusive,
                  leastPositiveValueInclusive,
                  leastNegativeValueInclusive,
@@ -419,228 +422,13 @@ void
 DescriptiveStatistics::update(const float* values,
                               const int64_t numberOfValues)
 {    
-    m_containsNegativeValues = false;
-    m_containsPositiveValues = false;
-    
-    m_mean = 0.0;
-    m_median = 0.0;
-    m_standardDeviationPopulation = 0.0;
-    m_standardDeviationSample = 0.0;
-    
-    std::fill(m_histogram,
-              m_histogram + m_histogramNumberOfElements,
-              0.0);
-    std::fill(m_positivePercentiles,
-              m_positivePercentiles + m_percentileDivisions,
-              0.0);
-    std::fill(m_negativePercentiles,
-              m_negativePercentiles + m_percentileDivisions,
-              0.0);
-    
-    if (numberOfValues <= 0) {
-        return;
-    }
-    
-    if (numberOfValues == 1) {
-        const float v = values[0];
-        m_mean = v;
-        m_median = v;
-        m_histogram[m_histogramNumberOfElements / 2] = v;
-        fill(m_positivePercentiles,
-                  m_positivePercentiles + m_percentileDivisions,
-                  v);
-        fill(m_negativePercentiles,
-                  m_negativePercentiles + m_percentileDivisions,
-                  v);
-        m_minimumValue = v;
-        m_maximumValue = v;
-        return;
-    }
-    
-
-    /*
-     * Copy and sort the input data.
-     */
-    float* sortedValues = new float[numberOfValues];
-    m_validCount = 0;
-    m_infCount = 0;
-    m_negInfCount = 0;
-    m_nanCount = 0;
-    for (int64_t i = 0; i < numberOfValues; ++i)
-    {//remove and count non-numerical values
-        if (values[i] != values[i])
-        {
-            ++m_nanCount;
-            continue;
-        }
-        if (values[i] < -1.0f && (values[i] * 2.0f == values[i]))
-        {
-            ++m_negInfCount;
-            continue;
-        }
-        if (values[i] > 1.0f && (values[i] * 2.0f == values[i]))
-        {
-            ++m_infCount;
-            continue;
-        }
-        sortedValues[m_validCount] = values[i];
-        ++m_validCount;
-    }
-    sort(sortedValues, sortedValues + m_validCount);
-    
-    /*
-     * Minimum and maximum values
-     */
-    this->m_minimumValue = sortedValues[0];
-    this->m_maximumValue = sortedValues[numberOfValues - 1];
-    
-    /*
-     * Find most/least negative/positive indices in sorted data.
-     */
-    int64_t mostNegativeIndex  = -1;
-    int64_t leastNegativeIndex = -1;
-    int64_t leastPositiveIndex = -1;
-    int64_t mostPositiveIndex  = -1;
-    if (sortedValues[0] < 0.0f)
-    {
-        mostNegativeIndex = 0;
-    }
-    if (sortedValues[0] > 0.0f)
-    {
-        leastPositiveIndex = 0;
-    }
-    if (sortedValues[m_validCount - 1] > 0.0f)
-    {
-        mostPositiveIndex = m_validCount - 1;
-    }
-    if (sortedValues[m_validCount - 1] < 0.0f)
-    {
-        leastNegativeIndex = m_validCount - 1;
-    }
-    if (leastNegativeIndex == -1 && leastPositiveIndex == -1)
-    {//need to find where the zeros start and end
-        int64_t start = -1, end = m_validCount, guess, nextEnd = m_validCount;
-        while (end - start > 1)
-        {//bisection search for last negative
-            guess = (start + end) / 2;
-            CaretAssertArrayIndex(sortedValues, m_validCount, guess);
-            if (sortedValues[guess] < 0.0f)
-            {
-                start = guess;
-            } else {
-                end = guess;
-                if (sortedValues[guess] > 0.0f)
-                {
-                    nextEnd = guess;//save some time on the next search
-                }
-            }
-        }
-        leastNegativeIndex = start;
-        end = nextEnd;//don't reinitialize start, it is just before the first nonnegative already
-        while (end - start > 1)
-        {//bisection search for first positive
-            guess = (start + end) / 2;
-            CaretAssertArrayIndex(sortedValues, m_validCount, guess);
-            if (sortedValues[guess] > 0.0f)
-            {
-                end = guess;
-            } else {
-                start = guess;
-            }
-        }
-        leastPositiveIndex = end;
-    }
-    
-    /*
-     * Determine negative percentiles
-     * Note: that index 0 is least negative, last index is most negative
-     */
-    const int64_t numNegativeValues = leastNegativeIndex - mostNegativeIndex + 1;
-    if (mostNegativeIndex != -1) {
-        m_containsNegativeValues = true;
-        
-        m_negativePercentiles[0] = sortedValues[leastNegativeIndex];
-        for (int64_t i = 1; i < m_percentileDivisions - 1; i++)
-        {
-            int64_t indx = leastNegativeIndex - (int64_t)(((double)i * (numNegativeValues - 1)) / m_percentileDivisions + 0.5);
-            CaretAssertArrayIndex(sortedValues, m_validCount, indx);
-            if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;
-            m_negativePercentiles[i] = sortedValues[indx];
-        }
-        m_negativePercentiles[m_percentileDivisions - 1] = sortedValues[mostNegativeIndex];
-    }
-    
-    /*
-     * Determine positive percentiles
-     */
-    const int64_t numPositiveValues = mostPositiveIndex - leastPositiveIndex + 1;
-    if (mostPositiveIndex != -1) {
-        this->m_containsPositiveValues = true;
-        
-        m_positivePercentiles[0] = sortedValues[leastPositiveIndex];
-        for (int64_t i = 1; i < m_percentileDivisions - 1; i++) {
-            int64_t indx = (int64_t)(((double)i * (numPositiveValues - 1)) / m_percentileDivisions + 0.5) + leastPositiveIndex;
-            CaretAssertArrayIndex(sortedValues, m_validCount, indx);
-            if (indx < 0) indx = 0;
-            if (indx >= m_validCount) indx = m_validCount - 1;
-            m_positivePercentiles[i] = sortedValues[indx];
-        }
-        m_positivePercentiles[m_percentileDivisions - 1] = sortedValues[mostPositiveIndex];
-    }
-    
-    /*
-     * Indices at 2% and 98%
-     */
-    const int64_t twoPercentIndex = (int64_t)(m_validCount * 0.02 + 0.5);
-    const int64_t ninetyEightPercentIndex = (int64_t)(m_validCount * 0.98 + 0.5);
-    
-    /*
-     * Prepare for histogram of all data
-     */
-    const float minValue = sortedValues[0];
-    const float maxValue = sortedValues[m_validCount - 1];
-    const float bucketSize = (maxValue - minValue) / m_histogramNumberOfElements;
-
-    /*
-     * Prepare for statistics
-     */
-    double sum = 0.0;
-    double sumSQ = 0.0;
-    
-    /*
-     * Create histogram and statistics.
-     */
-    for (int64_t i = 0; i < m_validCount; i++) {
-        const float v = sortedValues[i];
-        int64_t indx = (v - minValue) / bucketSize;
-        if (indx >= m_histogramNumberOfElements) indx = m_histogramNumberOfElements - 1;//NEVER trust floats to not have rounding errors when nonzero
-        if (indx < 0) indx = 0;//probably not needed, involves subtracting equals
-        CaretAssertArrayIndex(m_histogram, m_histogramNumberOfElements, indx);
-        m_histogram[indx]++;
-        
-        sum += v;
-        const float v2 = v * v;
-        sumSQ += v2;
-    }    
-
-    /*
-     * Compute statistics of all.
-     * Pop Variance = (sum(x^2) - [(sum(x))^2] / N) / N
-     */
-    m_mean = sum / m_validCount;
-    m_median = sortedValues[m_validCount / 2];
-    const double numerator = (sumSQ - ((sum*sum) / m_validCount));
-    m_standardDeviationPopulation = -1.0;
-    m_standardDeviationSample = -1.0;
-    if (m_validCount > 0)
-    {
-        m_standardDeviationPopulation = sqrt(numerator / m_validCount);
-        if (m_validCount > 1)
-        {
-            m_standardDeviationSample = sqrt(numerator / (m_validCount - 1));
-        }
-    }    
+    this->update(values,
+                 numberOfValues,
+                 std::numeric_limits<float>::max(),
+                 0.0,
+                 0.0,
+                 -std::numeric_limits<float>::max(),
+                 true);
 }
 
 /**
@@ -651,7 +439,12 @@ DescriptiveStatistics::update(const float* values,
 void 
 DescriptiveStatistics::update(const std::vector<float>& values)
 {
-    this->update(&values[0], values.size());
+    this->update(values,
+                 std::numeric_limits<float>::max(),
+                 0.0,
+                 0.0,
+                 -std::numeric_limits<float>::max(),
+                 true);
 }
 
 /**
