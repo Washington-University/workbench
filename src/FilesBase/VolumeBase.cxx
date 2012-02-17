@@ -899,6 +899,64 @@ VolumeBase::getSpaceBoundingBox() const
     return bb;
 }
 
+/**
+ * @return Is this instance modified?
+ */
+bool 
+VolumeBase::isModified() const 
+{ 
+    if (m_ModifiedFlag) {
+        return true;
+    }
+    if (m_metadata->isModified()) {
+        return true;
+    }
+    
+    const int32_t numBrickAtts = static_cast<int32_t>(m_brickAttributes.size());
+    for (int32_t i = 0; i < numBrickAtts; i++) {
+        if (m_brickAttributes[i]->m_metadata->isModified()) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+/**
+ * Clear this instance's modified status
+ */
+void 
+VolumeBase::clearModified() 
+{ 
+    m_ModifiedFlag = false;
+    m_metadata->clearModified();
+    
+    const int32_t numBrickAtts = static_cast<int32_t>(m_brickAttributes.size());
+    for (int32_t i = 0; i < numBrickAtts; i++) {
+        m_brickAttributes[i]->m_metadata->clearModified();
+    }
+}
+
+/**
+ * Set this instance's status to modified.
+ */
+void 
+VolumeBase::setModified() { 
+    m_ModifiedFlag = true; 
+    
+    /*
+     * Since data has changed, statistics become invalid
+     */
+    const int32_t numBrickAtts = static_cast<int32_t>(m_brickAttributes.size());
+    for (int32_t i = 0; i < numBrickAtts; i++) {
+        if (m_brickAttributes[i]->m_statistics != NULL) {
+            m_brickAttributes[i]->m_statistics->invalidateData();
+        }
+        if (m_brickAttributes[i]->m_statisticsLimitedValues != NULL) {
+            m_brickAttributes[i]->m_statisticsLimitedValues->invalidateData();
+        }
+    }
+}
 
 
 

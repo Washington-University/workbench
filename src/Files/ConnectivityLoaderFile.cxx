@@ -553,6 +553,7 @@ ConnectivityLoaderFile::getMapMetaData(const int32_t /*mapIndex*/)
 const DescriptiveStatistics* 
 ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/)
 {
+    this->descriptiveStatistics->invalidateData();
     this->descriptiveStatistics->update(this->data, 
                                         this->numberOfDataElements);
     return this->descriptiveStatistics;
@@ -587,6 +588,7 @@ ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/,
                                          const float mostNegativeValueInclusive,
                                          const bool includeZeroValues)
 {
+    this->descriptiveStatistics->invalidateData();
     this->descriptiveStatistics->update(this->data, 
                                         this->numberOfDataElements,
                                         mostPositiveValueInclusive,

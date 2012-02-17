@@ -58,18 +58,16 @@ DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElem
 : CaretObject()
 {
     m_histogramNumberOfElements = histogramNumberOfElements;
-    m_percentileDivisions = percentileDivisions;
-    m_validCount = 0;
-    m_infCount = 0;
-    m_negInfCount = 0;
-    m_nanCount = 0;
-    m_minimumValue = 0.0;
-    m_maximumValue = 0.0;
     CaretAssert(m_histogramNumberOfElements > 2);
+    m_percentileDivisions = percentileDivisions;
     CaretAssert(m_percentileDivisions > 2);
+    m_lastInputNumberOfValues = -1;
+    
     m_histogram = new int64_t[m_histogramNumberOfElements];
     m_positivePercentiles = new float[m_percentileDivisions];
     m_negativePercentiles = new float[m_percentileDivisions];
+
+    this->invalidateData();
 }
 
 /**
@@ -89,6 +87,31 @@ DescriptiveStatistics::~DescriptiveStatistics()
     {
         delete[] m_negativePercentiles;
     }
+    
+}
+
+/**
+ * Invalidate data so that next call to update()
+ * recreates the statistics.
+ */
+void 
+DescriptiveStatistics::invalidateData()
+{
+    m_validCount = 0;
+    m_infCount = 0;
+    m_negInfCount = 0;
+    m_nanCount = 0;
+    m_minimumValue = 0.0;
+    m_maximumValue = 0.0;
+
+    m_containsNegativeValues = false;
+    m_containsPositiveValues = false;
+    
+    m_mean = 0.0;
+    m_median = 0.0;
+    m_standardDeviationPopulation = 0.0;
+    m_standardDeviationSample = 0.0;
+
 }
 
 /**
@@ -160,6 +183,33 @@ DescriptiveStatistics::update(const float* valuesIn,
                               const float mostNegativeValueInclusive,
                               const bool includeZeroValues)
 {
+    bool needUpdate = false;
+    if (m_lastInputNumberOfValues <= 0) {
+        needUpdate = true;
+    }
+    else {
+        if ((numberOfValuesIn != m_lastInputNumberOfValues)
+            || (mostPositiveValueInclusive != m_lastInputMostPositiveValueInclusive) 
+            || (leastPositiveValueInclusive != m_lastInputLeastPositiveValueInclusive)
+            || (leastNegativeValueInclusive != m_lastInputLeastNegativeValueInclusive)
+            || (mostNegativeValueInclusive != m_lastInputMostNegativeValueInclusive)
+            || (includeZeroValues != m_lastInputIncludeZeroValues)) {
+            needUpdate = true;
+        }
+    }
+    
+    if (needUpdate == false) {
+        return;
+    }
+    this->invalidateData();
+    
+    m_lastInputNumberOfValues = numberOfValuesIn;
+    m_lastInputMostPositiveValueInclusive = mostPositiveValueInclusive;
+    m_lastInputLeastPositiveValueInclusive = leastPositiveValueInclusive;
+    m_lastInputLeastNegativeValueInclusive = leastNegativeValueInclusive;
+    m_lastInputMostNegativeValueInclusive = mostNegativeValueInclusive;
+    m_lastInputIncludeZeroValues = includeZeroValues;
+    
     std::vector<float> valuesVector;
     valuesVector.reserve(numberOfValuesIn);
     for (int64_t i = 0; i < numberOfValuesIn; i++) {
@@ -192,14 +242,6 @@ DescriptiveStatistics::update(const float* valuesIn,
     
     const float* values = (valuesVector.empty() ? NULL : &valuesVector[0]);
     const int64_t numberOfValues = static_cast<int64_t>(valuesVector.size());
-    
-    m_containsNegativeValues = false;
-    m_containsPositiveValues = false;
-    
-    m_mean = 0.0;
-    m_median = 0.0;
-    m_standardDeviationPopulation = 0.0;
-    m_standardDeviationSample = 0.0;
     
     std::fill(m_histogram,
               m_histogram + m_histogramNumberOfElements,
@@ -236,10 +278,6 @@ DescriptiveStatistics::update(const float* valuesIn,
      * Copy and sort the input data.
      */
     float* sortedValues = new float[numberOfValues];
-    m_validCount = 0;
-    m_infCount = 0;
-    m_negInfCount = 0;
-    m_nanCount = 0;
     for (int64_t i = 0; i < numberOfValues; ++i)
     {//remove and count non-numerical values
         if (values[i] != values[i])

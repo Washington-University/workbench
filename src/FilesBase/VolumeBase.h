@@ -276,9 +276,9 @@ namespace caret {
 
         BoundingBox getSpaceBoundingBox() const;
         
-        void setModified() { m_ModifiedFlag = true; }
-        void clearModified() { m_ModifiedFlag = false;}
-        bool isModified() const { return m_ModifiedFlag; }
+        void setModified();
+        void clearModified();
+        bool isModified() const;
         
         bool isEmpty() const;
         

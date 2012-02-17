@@ -63,6 +63,8 @@ namespace caret {
         
         float getNegativePercentile(const float percent) const;
         
+        void invalidateData();
+        
         /**
          * @return Does the data contains positive values.
          */
@@ -208,6 +210,25 @@ namespace caret {
         
         ///counts of each class of number
         int64_t m_validCount, m_infCount, m_negInfCount, m_nanCount;
+
+        /// last input value for number of (prevents unnecessary updates)
+        int64_t m_lastInputNumberOfValues;
+        
+        /// last input value for most positive (prevents unnecessary updates)
+        float m_lastInputMostPositiveValueInclusive;
+        
+        /// last input value for least positive (prevents unnecessary updates)
+        float m_lastInputLeastPositiveValueInclusive;
+        
+        /// last input value for least negative (prevents unnecessary updates)
+        float m_lastInputLeastNegativeValueInclusive;
+        
+        /// last input value for most negative (prevents unnecessary updates)
+        float m_lastInputMostNegativeValueInclusive;
+        
+        /// last input value for include zeros (prevents unnecessary updates)
+        bool m_lastInputIncludeZeroValues;
+
     };
     
 #ifdef __DESCRIPTIVE_STATISTICS_DECLARE__
