@@ -699,9 +699,9 @@ DescriptiveStatistics::update(const float* values,
     m_standardDeviationSample96 = -1.0;
     if (numberOfValues96 > 0)
     {
-        m_standardDeviationPopulation = sqrt(numerator96 / numberOfValues96);
+        m_standardDeviationPopulation96 = sqrt(numerator96 / numberOfValues96);
         if (numberOfValues96 > 1) {
-            m_standardDeviationSample = sqrt(numerator96 / (numberOfValues96 - 1));
+            m_standardDeviationSample96 = sqrt(numerator96 / (numberOfValues96 - 1));
         }
     }
 }
