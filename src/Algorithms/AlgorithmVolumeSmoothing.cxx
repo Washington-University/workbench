@@ -110,6 +110,10 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
     {
         throw AlgorithmException("invalid subvolume specified");
     }
+    if (kernel <= 0.0f)
+    {
+        throw AlgorithmException("kernel too small");
+    }
     CaretArray<float> scratchFrame(myDims[0] * myDims[1] * myDims[2]);//it could be faster to preinitialize with zeros, then generate a usable voxels list if there is a small ROI...
     float kernBox = kernel * 3.0f;
     vector<vector<float> > volSpace = inVol->getVolumeSpace();

@@ -24,6 +24,7 @@
 
 #include "CaretVolumeExtension.h"
 #include "XmlWriter.h"
+#include "XmlSaxParser.h"
 #include <ctime>
 
 using namespace caret;
@@ -39,8 +40,12 @@ static const AString CARET_VOL_EXT_VI_STUDY_META_SET = "StudyMetaDataLinkSet";
 static const AString CARET_VOL_EXT_VI_STUDY_META_LINK = "StudyMetaDataLink";
 static const AString CARET_VOL_EXT_VI_TYPE = "VolumeType";
 
-void CaretVolumeExtension::readFromXmlString(const caret::AString& s)
+void CaretVolumeExtension::readFromXmlString(const AString& s)
 {
+    CaretVolumeExtensionXMLReader myReader(this);
+    XmlSaxParser* myParser = XmlSaxParser::createXmlParser();
+    myParser->parseString(s, &myReader);
+    delete myParser;
 }
 
 void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)

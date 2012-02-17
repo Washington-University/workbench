@@ -139,6 +139,10 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
     {
         throw AlgorithmException("invalid column number");
     }
+    if (myKernel <= 0.0)
+    {
+        throw AlgorithmException("invalid kernel size");
+    }
     myProgress.setTask("Precomputing Smoothing Weights");
     precomputeWeights(mySurf, myKernel, myRoi, myMethod);
     myProgress.reportProgress(precomputeWeightWork);
