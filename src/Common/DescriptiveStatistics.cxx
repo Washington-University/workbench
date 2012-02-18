@@ -29,6 +29,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "CaretAssert.h"
 #include "MathFunctions.h"
