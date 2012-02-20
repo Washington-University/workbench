@@ -48,9 +48,11 @@ namespace caret {
     template <typename T>
     class CaretPointer
     {
-        T* m_pointer;//because less indirection should be more efficient
+        T* m_pointer;//to allow different templated CaretPointers to share the refcount, the share object can't contain the pointer
         CaretPointerShare* m_share;
         mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
+        template <typename T2>
+        CaretPointer& operator=(T2* right);//prevent assignment from ANY bare pointer via private, and not implemented
     public:
         CaretPointer();
         ~CaretPointer();
@@ -61,6 +63,7 @@ namespace caret {
         CaretPointer& operator=(const CaretPointer& right);//or default =
         template <typename T2>
         CaretPointer& operator=(const CaretPointer<T2>& right);
+        void grabNew(T* right);//substitute for operator= to bare pointer
         bool operator==(const T* right) const;
         bool operator!=(const T* right) const;
         T& operator*();
@@ -229,6 +232,19 @@ namespace caret {
         return *this;//temp destructor takes care of the rest
     }
 
+    template <typename T>
+    void CaretPointer<T>::grabNew(T* right)
+    {
+        CaretPointer<T> temp(right);//construct from the pointer
+        CaretPointerShare* tempShare = temp.m_share;//swap the members
+        T* tempPointer = temp.m_pointer;
+        temp.m_share = m_share;//don't need to lock temp before modifying it, it is local
+        temp.m_pointer = m_pointer;
+        CaretMutexLocker locked(&m_mutex);//lock myself before modifying
+        m_share = tempShare;
+        m_pointer = tempPointer;//destructor of temp takes care of the rest
+    }
+    
     template <typename T>
     CaretPointer<T>::~CaretPointer()
     {//access during destructor is programmer error, don't lock self

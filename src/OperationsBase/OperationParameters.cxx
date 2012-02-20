@@ -167,7 +167,7 @@ void OperationParameters::setHelpText(const AString& textIn)
 void ParameterComponent::addCiftiOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     CiftiParameter* myParam = new CiftiParameter(key, name, description);
-    myParam->m_parameter = new CiftiFile(ON_DISK);
+    myParam->m_parameter.grabNew(new CiftiFile(ON_DISK));
     m_outputList.push_back(myParam);
 }
 
@@ -179,7 +179,7 @@ void ParameterComponent::addDoubleOutputParameter(const int32_t key, const AStri
 void ParameterComponent::addMetricOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     MetricParameter* myParam = new MetricParameter(key, name, description);
-    myParam->m_parameter = new MetricFile();
+    myParam->m_parameter.grabNew(new MetricFile());
     m_outputList.push_back(myParam);
 }
 
@@ -191,7 +191,7 @@ void ParameterComponent::addIntegerOutputParameter(const int32_t key, const AStr
 void ParameterComponent::addLabelOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     LabelParameter* myParam = new LabelParameter(key, name, description);
-    myParam->m_parameter = new LabelFile();
+    myParam->m_parameter.grabNew(new LabelFile());
     m_outputList.push_back(myParam);
 }
 
@@ -203,14 +203,14 @@ void ParameterComponent::addStringOutputParameter(const int32_t key, const AStri
 void ParameterComponent::addSurfaceOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     SurfaceParameter* myParam = new SurfaceParameter(key, name, description);
-    myParam->m_parameter = new SurfaceFile();
+    myParam->m_parameter.grabNew(new SurfaceFile());
     m_outputList.push_back(myParam);
 }
 
 void ParameterComponent::addVolumeOutputParameter(const int32_t key, const AString& name, const AString& description)
 {
     VolumeParameter* myParam = new VolumeParameter(key, name, description);
-    myParam->m_parameter = new VolumeFile();
+    myParam->m_parameter.grabNew(new VolumeFile());
     m_outputList.push_back(myParam);
 }
 

@@ -223,8 +223,7 @@ namespace caret {
         virtual OperationParametersEnum::Enum getType() { return TYPE; }
         CaretPointer<T> m_parameter;//so the GUI parser and the commandline parser don't need to do different things to delete the parameter info
         PointerTemplateParameter(const int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
-        {
-            m_parameter = NULL;
+        {//CaretPointer self-initializes to NULL, so don't need to do anything
         }
     };
     
@@ -244,7 +243,7 @@ namespace caret {
         virtual OperationParametersEnum::Enum getType() { return OperationParametersEnum::STRING; }
         AString m_parameter;
         StringParameter(int32_t key, const AString& shortName, const AString& description) : AbstractParameter(key, shortName, description)
-        {//AString self-initializes, so don't need to do anything
+        {//AString self-initializes to "", so don't need to do anything
         }
     };
     

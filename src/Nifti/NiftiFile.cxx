@@ -321,7 +321,7 @@ int NiftiFile::getNiftiVersion()
 
 void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
-    NiftiAbstractHeader *aHeader = new NiftiAbstractHeader();
+    CaretPointer<NiftiAbstractHeader> aHeader(new NiftiAbstractHeader());
     CaretPointer<NiftiAbstractVolumeExtension> aVolumeExtension(new NiftiAbstractVolumeExtension);
 
 	this->m_fileName = filename;

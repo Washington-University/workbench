@@ -581,7 +581,7 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
         {
             m_geoHelpers.clear();//just to be sure
             m_geoHelperIndex = 0;
-            m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and is single threaded at the moment
+            m_geoBase.grabNew(new GeodesicHelperBase(this));//yes, this takes some time, and is single threaded at the moment
         }//keep locked while searching
         int32_t& myIndex = m_geoHelperIndex;
         int32_t myEnd = m_geoHelpers.size();
@@ -629,7 +629,7 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
         }
         if (m_topoBase == NULL || (infoSorted && !m_topoBase->isNodeInfoSorted()))
         {
-            m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
+            m_topoBase.grabNew(new TopologyHelperBase(this, infoSorted));
         }
     }
     CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));
@@ -727,7 +727,7 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
         CaretMutexLocker myLock(&m_locatorMutex);
         if (m_locator == NULL)//test again AFTER lock to avoid race conditions
         {
-            m_locator = CaretPointer<CaretPointLocator>(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
+            m_locator.grabNew(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
         }
     }
     if (maxDist > 0.0f)

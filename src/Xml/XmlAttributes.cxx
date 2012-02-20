@@ -23,6 +23,8 @@
  */ 
 
 #include "XmlAttributes.h"
+#include "XmlSaxParserException.h"
+#include "CaretAssert.h"
 
 using namespace caret;
     
@@ -180,6 +182,7 @@ XmlAttributes::getNumberOfAttributes() const {
  */
 AString 
 XmlAttributes::getName(const int index) const{
+    CaretAssertVectorIndex(this->names, index);
     return this->names.at(index);
 }
 
@@ -192,6 +195,7 @@ XmlAttributes::getName(const int index) const{
  */
 AString 
 XmlAttributes::getValue(const int index) const{
+    CaretAssertVectorIndex(this->values, index);
     return this->values.at(index);
 }
 
@@ -204,7 +208,16 @@ XmlAttributes::getValue(const int index) const{
  */
 int32_t
 XmlAttributes::getValueAsInt(const int index) const{
-    return this->values.at(index).toInt();
+    CaretAssertVectorIndex(this->values, index);
+    AString value = this->values.at(index);
+    bool ok = false;
+    int32_t ret = value.toInt(&ok);
+    if (!ok)
+    {
+        AString name = this->names[index];
+        throw XmlSaxParserException(AString("integer required for XML attribute ") + name + ", got '" + value + "' instead");
+    }
+    return ret;
 }
 /**
  * Get the value of an attribute as a float.
@@ -214,9 +227,18 @@ XmlAttributes::getValueAsInt(const int index) const{
  * @return Value of attribute at index.
  */
 float 
-XmlAttributes::getValueAsFloat(const int index) const{
-    
-    return this->values.at(index).toFloat();
+XmlAttributes::getValueAsFloat(const int index) const
+{
+    CaretAssertVectorIndex(this->values, index);
+    AString value = this->values.at(index);
+    bool ok = false;
+    float ret = value.toFloat(&ok);
+    if (!ok)
+    {
+        AString name = this->names[index];
+        throw XmlSaxParserException(AString("float required for XML attribute ") + name + ", got '" + value + "' instead");
+    }
+    return ret;
 }
 
 /**
@@ -247,7 +269,13 @@ XmlAttributes::getValue(const AString& name) const{
 int32_t
 XmlAttributes::getValueAsInt(const AString& name) const{
     AString value = this->getValue(name);
-    return value.toInt();
+    bool ok = false;
+    int32_t ret = value.toInt(&ok);
+    if (!ok)
+    {
+        throw XmlSaxParserException(AString("integer required for XML attribute ") + name + ", got '" + value + "' instead");
+    }
+    return ret;
 }
 /**
  * Get the value of an attribute as a float.
@@ -260,6 +288,12 @@ float
 XmlAttributes::getValueAsFloat(const AString& name) const
 {
     AString value = this->getValue(name);
-    return value.toFloat();
+    bool ok = false;
+    float ret = value.toFloat(&ok);
+    if (!ok)
+    {
+        throw XmlSaxParserException(AString("float required for XML attribute ") + name + ", got '" + value + "' instead");
+    }
+    return ret;
 }
 

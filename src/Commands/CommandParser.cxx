@@ -115,7 +115,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::CIFTI:
             {
-                CiftiFile* myFile = new CiftiFile();
+                CaretPointer<CiftiFile> myFile(new CiftiFile());
                 myFile->openFile(nextArg, ON_DISK);
                 ((CiftiParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
@@ -149,7 +149,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::LABEL:
             {
-                LabelFile* myFile = new LabelFile();
+                CaretPointer<LabelFile> myFile(new LabelFile());
                 myFile->readFile(nextArg);
                 ((LabelParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
@@ -161,7 +161,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::METRIC:
             {
-                MetricFile* myFile = new MetricFile();
+                CaretPointer<MetricFile> myFile(new MetricFile());
                 myFile->readFile(nextArg);
                 ((MetricParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
@@ -183,7 +183,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::SURFACE:
             {
-                SurfaceFile* myFile = new SurfaceFile();
+                CaretPointer<SurfaceFile> myFile(new SurfaceFile());
                 myFile->readFile(nextArg);
                 ((SurfaceParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
@@ -195,7 +195,7 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
             }
             case OperationParametersEnum::VOLUME:
             {
-                VolumeFile* myFile = new VolumeFile();
+                CaretPointer<VolumeFile> myFile(new VolumeFile());
                 myFile->readFile(nextArg);
                 ((VolumeParameter*)myComponent->m_paramList[i])->m_parameter = myFile;
                 if (debug)
