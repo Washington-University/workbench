@@ -64,7 +64,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->guiName = "";
     this->userName = "";
     this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
-    this->overlaySet = new OverlaySet();
     
     this->surfaceColoring = new SurfaceNodeColoring();
     
@@ -88,9 +87,6 @@ BrowserTabContent::~BrowserTabContent()
    
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
-    
-    delete this->overlaySet;
-    this->overlaySet = NULL;
 }
 
 /**
@@ -426,7 +422,8 @@ BrowserTabContent::getSurfaceModelSelector()
 OverlaySet* 
 BrowserTabContent::getOverlaySet()
 {
-    return this->overlaySet;
+    ModelDisplayController* modelDisplayController = this->getModelControllerForDisplay();
+    return modelDisplayController->getOverlaySet(this->tabNumber);
 }
 
 /**
@@ -628,9 +625,8 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
     /*
      * Color the surface nodes.
      */
-    this->surfaceColoring->colorSurfaceNodes(this,
-                                             surface,
-                                             overlaySet, 
+    this->surfaceColoring->colorSurfaceNodes(surface,
+                                             this->getOverlaySet(), 
                                              rgba);
     
     /*
@@ -712,14 +708,15 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
     mapFiles.clear();
     mapIndices.clear();
     
-    const int32_t numOverlays = this->overlaySet->getNumberOfDisplayedOverlays();
+    OverlaySet* overlaySet = this->getOverlaySet();
+    const int32_t numOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t i = (numOverlays - 1); i >= 0; i--) {
-        Overlay* overlay = this->overlaySet->getOverlay(i);
+        Overlay* overlay = overlaySet->getOverlay(i);
         if (overlay->isEnabled()) {
             if (overlay->isPaletteDisplayEnabled()) {
                 CaretMappableDataFile* mapFile;
                 int32_t mapFileIndex;
-                overlay->getSelectionData(this, mapFile, mapFileIndex);
+                overlay->getSelectionData(mapFile, mapFileIndex);
                 if (mapFile != NULL) {
                     if (mapFile->isMappedWithPalette()) {
                         if ((mapFileIndex >= 0) 

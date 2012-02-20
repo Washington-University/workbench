@@ -32,6 +32,7 @@
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
+#include "OverlaySet.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -52,6 +53,7 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
     this->initializeMembersModelDisplayControllerSurface();
     this->surface = surface;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i] = new OverlaySet(this);
         this->lateralView(i);
     }
 }

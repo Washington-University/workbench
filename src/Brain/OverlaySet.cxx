@@ -39,6 +39,7 @@
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
+#include "ModelDisplayControllerYokingGroup.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 
@@ -60,12 +61,63 @@ using namespace caret;
  */
 
 /**
- * Constructor.
+ * Constructor for surface controller.
+ * @param modelDisplayController
+ *     Surface controller that uses this overlay set.
  */
-OverlaySet::OverlaySet()
+OverlaySet::OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface)
 : CaretObject()
 {
-    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
+    this->initializeOverlaySet(modelDisplayControllerSurface);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i] = new Overlay(modelDisplayControllerSurface);
+    }
+}
+
+/**
+ * Constructor for volume controller.
+ * @param modelDisplayControllerVolume
+ *     Volume controller that uses this overlay set.
+ */
+OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume)
+: CaretObject()
+{
+    this->initializeOverlaySet(modelDisplayControllerVolume);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i] = new Overlay(modelDisplayControllerVolume);
+    }
+}
+
+/**
+ * Constructor for whole brain controller.
+ * @param modelDisplayControllerWholeBrain
+ *     Whole brain controller that uses this overlay set.
+ */
+OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
+: CaretObject()
+{
+    this->initializeOverlaySet(modelDisplayControllerWholeBrain);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i] = new Overlay(modelDisplayControllerWholeBrain);
+    }
+}
+
+/**
+ * Constructor for yoking controller.
+ * @param modelDisplayControllerYoking
+ *     Yoking controller that uses this overlay set.
+ */
+OverlaySet::OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking)
+: CaretObject()
+{
+    this->initializeOverlaySet(modelDisplayControllerYoking);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i] = NULL;
+    }
 }
 
 /**
@@ -73,7 +125,22 @@ OverlaySet::OverlaySet()
  */
 OverlaySet::~OverlaySet()
 {
-    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        delete this->overlays[i];
+    }
+}
+
+/**
+ * Initialize the overlay.
+ * @param modelDisplayController
+ *     Controller that uses this overlay set.
+ */
+void 
+OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController)
+{
+    CaretAssert(modelDisplayController);
+    this->modelDisplayController = modelDisplayController;
+    this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
 }
 
 /**
@@ -82,7 +149,7 @@ OverlaySet::~OverlaySet()
 Overlay* 
 OverlaySet::getPrimaryOverlay()
 {
-    return &this->overlays[0];
+    return this->overlays[0];
 }
 
 /**
@@ -92,7 +159,7 @@ OverlaySet::getPrimaryOverlay()
 Overlay* 
 OverlaySet::getUnderlay()
 {
-    return &this->overlays[this->getNumberOfDisplayedOverlays() - 1];
+    return this->overlays[this->getNumberOfDisplayedOverlays() - 1];
 }
 
 /*
@@ -104,19 +171,16 @@ OverlaySet::getUnderlay()
  * Will return NULL if no, enabled overlays are set to a volume file.
  */
 VolumeFile* 
-OverlaySet::getUnderlayVolume(BrowserTabContent* browserTabContent)
+OverlaySet::getUnderlayVolume()
 {
-    CaretAssert(browserTabContent);
-    
     VolumeFile* vf = NULL;
     
     for (int32_t i = (this->getNumberOfDisplayedOverlays() - 1); i >= 0; i--) {
-        if (this->overlays[i].isEnabled()) {
+        if (this->overlays[i]->isEnabled()) {
             CaretMappableDataFile* mapFile;
             int32_t mapIndex;
-            this->overlays[i].getSelectionData(browserTabContent,
-                                               mapFile,
-                                               mapIndex);
+            this->overlays[i]->getSelectionData(mapFile,
+                                                mapIndex);
             
             if (mapFile != NULL) {
                 vf = dynamic_cast<VolumeFile*>(mapFile);
@@ -132,15 +196,13 @@ OverlaySet::getUnderlayVolume(BrowserTabContent* browserTabContent)
 /**
  * If NO overlay (any overlay) is set to a volume, set the underlay to the first
  * volume that it finds.
- * @param browserTabContent
- *    Content of browser tab.
  * @return Returns the volume file that was selected or NULL if no
  *    volume file was found.
  */
 VolumeFile* 
-OverlaySet::setUnderlayToVolume(BrowserTabContent* browserTabContent)
+OverlaySet::setUnderlayToVolume()
 {
-    VolumeFile * vf = this->getUnderlayVolume(browserTabContent);
+    VolumeFile * vf = this->getUnderlayVolume();
     
     if (vf == NULL) {
         const int32_t overlayIndex = this->getNumberOfDisplayedOverlays() - 1;
@@ -149,8 +211,7 @@ OverlaySet::setUnderlayToVolume(BrowserTabContent* browserTabContent)
             CaretMappableDataFile* mapFile;
             AString mapUniqueID;
             int32_t mapIndex;
-            this->overlays[overlayIndex].getSelectionData(browserTabContent, 
-                                                          mapFiles, 
+            this->overlays[overlayIndex]->getSelectionData(mapFiles, 
                                                           mapFile, 
                                                           mapUniqueID, 
                                                           mapIndex);
@@ -159,7 +220,7 @@ OverlaySet::setUnderlayToVolume(BrowserTabContent* browserTabContent)
             for (int32_t i = 0; i < numMapFiles; i++) {
                 vf = dynamic_cast<VolumeFile*>(mapFiles[i]);
                 if (vf != NULL) {
-                    this->overlays[overlayIndex].setSelectionData(vf, 0);
+                    this->overlays[overlayIndex]->setSelectionData(vf, 0);
                     break;
                 }
             }
@@ -181,7 +242,7 @@ OverlaySet::getOverlay(const int32_t overlayNumber) const
     CaretAssertArrayIndex(this->overlays, 
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
-    return &this->overlays[overlayNumber];    
+    return this->overlays[overlayNumber];    
 }
 
 /**
@@ -196,7 +257,7 @@ OverlaySet::getOverlay(const int32_t overlayNumber)
     CaretAssertArrayIndex(this->overlays, 
                           BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS, 
                           overlayNumber);
-    return &this->overlays[overlayNumber];    
+    return this->overlays[overlayNumber];    
 }
 
 /**
@@ -246,7 +307,7 @@ OverlaySet::removeDisplayedOverlay(const int32_t overlayIndex)
     if (this->numberOfDisplayedOverlays > BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
         this->numberOfDisplayedOverlays--;
         for (int32_t i = overlayIndex; i < this->numberOfDisplayedOverlays; i++) {
-            this->overlays[i].copyData(&this->overlays[i+1]);
+            this->overlays[i]->copyData(this->overlays[i+1]);
         }
     }
 }
@@ -263,7 +324,7 @@ void
 OverlaySet::moveDisplayedOverlayUp(const int32_t overlayIndex)
 {
     if (overlayIndex > 0) {
-        this->overlays[overlayIndex].swapData(&this->overlays[overlayIndex - 1]);
+        this->overlays[overlayIndex]->swapData(this->overlays[overlayIndex - 1]);
     }
 }
 
@@ -280,7 +341,7 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 {
     const int32_t nextOverlayIndex = overlayIndex + 1;
     if (nextOverlayIndex < this->numberOfDisplayedOverlays) {
-        this->overlays[overlayIndex].swapData(&this->overlays[nextOverlayIndex]);
+        this->overlays[overlayIndex]->swapData(this->overlays[nextOverlayIndex]);
     }
 }
 
@@ -290,22 +351,18 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
  *    Model Display Controller.
  */
 void 
-OverlaySet::initializeOverlays(ModelDisplayController* mdc)
+OverlaySet::initializeOverlays()
 {
-    if (mdc == NULL) {
-        return;
-    }
-    
-    Brain* brain = mdc->getBrain();
+    Brain* brain = this->modelDisplayController->getBrain();
     if (brain == NULL) {
         return;
     }
     
     std::deque<CaretMappableDataFile*> mapFiles;
     std::deque<int32_t> mapFileIndices;
-    ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
-    ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
-    ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+    ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayController);
+    ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
+    ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
     
     if (mdcs != NULL) {
         Surface* surface = mdcs->getSurface();
@@ -362,7 +419,7 @@ OverlaySet::initializeOverlays(ModelDisplayController* mdc)
         }
     }
     else {
-        CaretAssert(0);
+        CaretAssertMessage(0, "Invalid model controller: " + this->modelDisplayController->getNameForGUI(false));
     }
 
     const int32_t numAvailableOverlays = 3 - mapFiles.size();

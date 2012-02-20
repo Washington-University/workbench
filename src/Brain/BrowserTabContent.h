@@ -153,9 +153,6 @@ namespace caret {
         /** Controls yoking */
         BrowserTabYoking* browserTabYoking;
         
-        /** The overlay assignments */
-        OverlaySet* overlaySet;
-        
         /** Last cerebellum surface that was colored for this browser tab */
         Surface* surfaceCerebellumLastColored;
         

@@ -38,7 +38,13 @@ namespace caret {
     class OverlaySet : public CaretObject {
         
     public:
-        OverlaySet();
+        OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        
+        OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume);
+        
+        OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
+        
+        OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
         
         virtual ~OverlaySet();
         
@@ -46,7 +52,7 @@ namespace caret {
         
         Overlay* getUnderlay();
         
-        VolumeFile* getUnderlayVolume(BrowserTabContent* browserTabContent);
+        VolumeFile* getUnderlayVolume();
         
         Overlay* getOverlay(const int32_t overlayNumber);
         
@@ -62,19 +68,23 @@ namespace caret {
         
         void moveDisplayedOverlayDown(const int32_t overlayIndex);
         
-        VolumeFile* setUnderlayToVolume(BrowserTabContent* browserTabContent);
+        VolumeFile* setUnderlayToVolume();
         
-        void initializeOverlays(ModelDisplayController* mdc);
+        void initializeOverlays();
         
     public:
         virtual AString toString() const;
         
     private:
+        void initializeOverlaySet(ModelDisplayController* modelDisplayController);
+
         OverlaySet(const OverlaySet&);
         
         OverlaySet& operator=(const OverlaySet&);
         
-        Overlay overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        Overlay* overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
+        
+        ModelDisplayController* modelDisplayController;
         
         int32_t numberOfDisplayedOverlays;
     };

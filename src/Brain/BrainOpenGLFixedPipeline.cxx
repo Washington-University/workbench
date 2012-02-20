@@ -1481,8 +1481,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
         if (overlay->isEnabled()) {
             CaretMappableDataFile* mapFile;
             int32_t mapIndex;
-            overlay->getSelectionData(browserTabContent,
-                                      mapFile,
+            overlay->getSelectionData(mapFile,
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {

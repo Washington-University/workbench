@@ -49,8 +49,7 @@ namespace caret {
         
         virtual ~SurfaceNodeColoring();
         
-        void colorSurfaceNodes(BrowserTabContent* browserTabContent,
-                               const Surface* surface,
+        void colorSurfaceNodes(const Surface* surface,
                                OverlaySet* overlaySet,
                                float* rgbaNodeColors);
     private:

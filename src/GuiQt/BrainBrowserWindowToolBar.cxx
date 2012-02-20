@@ -614,7 +614,7 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         }
         this->updateTabName(tabIndex);
         
-        btc->getOverlaySet()->initializeOverlays(controller);
+        controller->initializeOverlays();
         
         tabIndex++;
     }

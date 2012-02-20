@@ -80,8 +80,6 @@ SurfaceNodeColoring::toString() const
 /**
  * Assign color components to surface nodes. 
  *
- * @param browserTabContent
- *    Tab in which this coloring is applied.
  * @param surface
  *    Surface that has its nodes colored.
  * @param overlaySet
@@ -90,8 +88,7 @@ SurfaceNodeColoring::toString() const
  *    RGBA color components that are set by this method.
  */
 void 
-SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
-                                       const Surface* surface,
+SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
                                        OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
 {
@@ -123,8 +120,7 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
             AString selectedMapUniqueID;
             int32_t selectedMapIndex;
             
-            overlay->getSelectionData(browserTabContent,
-                                      mapFiles,
+            overlay->getSelectionData(mapFiles,
                                       selectedMapFile,
                                       selectedMapUniqueID,
                                       selectedMapIndex);

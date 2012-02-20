@@ -294,8 +294,7 @@ OverlaySelectionControlLayer::settingsToolButtonPressed()
     Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
     CaretMappableDataFile* mapFile;
     int32_t mapIndex = -1;
-    overlay->getSelectionData(browserTabContent, 
-                              mapFile, 
+    overlay->getSelectionData(mapFile, 
                               mapIndex);
     if (mapFile != NULL) {
         if (mapFile->isMappedWithPalette()) {
@@ -452,8 +451,7 @@ OverlaySelectionControlLayer::updateOverlayControl(BrowserTabContent* browserTab
     CaretMappableDataFile* selectedFile = NULL;
     AString selectedMapUniqueID = "";
     int32_t selectedMapIndex = -1;
-    so->getSelectionData(browserTabContent,
-                         dataFiles, 
+    so->getSelectionData(dataFiles, 
                          selectedFile, 
                          selectedMapUniqueID, 
                          selectedMapIndex);

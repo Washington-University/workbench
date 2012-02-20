@@ -33,6 +33,7 @@
 namespace caret {
     class Brain;
     class UserView;
+    class OverlaySet;
     
     /// Base class for controlling a model
     class ModelDisplayController : public CaretObject {
@@ -55,7 +56,6 @@ namespace caret {
         
         virtual ~ModelDisplayController();
         
-        
     private:        
         ModelDisplayController(const ModelDisplayController& o);
         ModelDisplayController& operator=(const ModelDisplayController& o);
@@ -63,6 +63,8 @@ namespace caret {
         void initializeMembersModelDisplayController();
         
     public:
+        void initializeOverlays();
+        
         Brain* getBrain();
         
         ModelDisplayControllerTypeEnum::Enum getControllerType() const;
@@ -124,6 +126,10 @@ namespace caret {
         
         virtual AString toDescriptiveString() const;
         
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
     private:
         void resetViewPrivate(const int windowTabNumber);
         
@@ -145,6 +151,9 @@ namespace caret {
         
         /**scaling. */
         float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** Overlays sets for this model and for each tab */
+        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
         ModelDisplayControllerTypeEnum::Enum controllerType;
