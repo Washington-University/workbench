@@ -1198,14 +1198,16 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             switch (this->paletteColorMapping->getThresholdTest()) {
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
                 {
+                    const float plotMinValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom)->lowerBound();
+                    const float plotMaxValue = this->thresholdPlot->axisScaleDiv(QwtPlot::xBottom)->upperBound();
+                    
                     /* 
                      * Draw shaded region to left of minimum threshold
                      */
                     QVector<QPointF> minSamples;
-                    minSamples.push_back(QPointF(dataValues[0], maxDataFrequency));
-                    //minSamples.push_back(QPointF(threshMinValue, 0));
+                    //minSamples.push_back(QPointF(dataValues[0], maxDataFrequency));
+                    minSamples.push_back(QPointF(plotMinValue, maxDataFrequency));
                     minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
-                    //minSamples.push_back(QPointF(dataValues[0], maxFrequency));
                     
                     QwtPlotCurve* minBox = new QwtPlotCurve();
                     minBox->setRenderHint(QwtPlotItem::RenderAntialiased);
@@ -1221,13 +1223,12 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
                     minBox->attach(this->thresholdPlot);
                     
                     /* 
-                     * Draw shaded region to left of minimum threshold
+                     * Draw shaded region to right of maximum threshold
                      */
                     QVector<QPointF> maxSamples;
-                    //maxSamples.push_back(QPointF(dataValues[0], 0));
-                    //maxSamples.push_back(QPointF(threshMinValue, 0));
                     maxSamples.push_back(QPointF(threshMaxValue, maxDataFrequency));
-                    maxSamples.push_back(QPointF(dataValues[numHistogramValues - 1], maxDataFrequency));
+                    maxSamples.push_back(QPointF(plotMaxValue, maxDataFrequency));
+                    //maxSamples.push_back(QPointF(dataValues[numHistogramValues - 1], maxDataFrequency));
                     
                     QwtPlotCurve* maxBox = new QwtPlotCurve();
                     maxBox->setRenderHint(QwtPlotItem::RenderAntialiased);
@@ -1246,7 +1247,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
                 case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
                 {
                     /* 
-                     * Draw shaded region to left of minimum threshold
+                     * Draw shaded region between minimum and maximum threshold
                      */
                     QVector<QPointF> minSamples;
                     minSamples.push_back(QPointF(threshMinValue, maxDataFrequency));
