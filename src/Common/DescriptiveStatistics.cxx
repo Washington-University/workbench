@@ -98,6 +98,8 @@ DescriptiveStatistics::~DescriptiveStatistics()
 void 
 DescriptiveStatistics::invalidateData()
 {
+    m_lastInputNumberOfValues = -1;
+    
     m_validCount = 0;
     m_infCount = 0;
     m_negInfCount = 0;

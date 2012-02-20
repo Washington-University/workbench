@@ -1094,7 +1094,7 @@ PaletteColorMapping::isModified() const
  *    The data values.
  * @param normalizedValuesOut
  *    Result of mapping data values to palette normalized 
- *    values which range [0.0, 1.0].  This array MUST contain
+ *    values which range [-1.0, 1.0].  This array MUST contain
  *    the same number of values as 'data'.
  * @param numberOfData  
  *    Number of values in both data and normalizedValuesOut.
@@ -1159,7 +1159,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
          */
         float normalized = 0.0f;
         if (scalar > 0.0) {
-            if (scalar >= mappingLeastPositive) {
+            if (scalar >= mappingMostPositive) {
+                normalized = 1.0;
+            }
+            else if (scalar >= mappingLeastPositive) {
                 float numerator = scalar - mappingLeastPositive;
                 normalized = numerator / mappingPositiveDenominator;
             }
@@ -1168,7 +1171,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
             }
         }
         else if (scalar < 0.0) {
-            if (scalar <= mappingLeastNegative) {
+            if (scalar <= mappingMostNegative) {
+                normalized = -1.0;
+            }
+            else if (scalar <= mappingLeastNegative) {
                 float numerator = scalar - mappingLeastNegative;
                 float denominator = mappingNegativeDenominator;
                 if (denominator == 0.0f) {

@@ -83,6 +83,8 @@ static const float negativeThresholdGreenColor[] = {
  *    value will be negative if the scalar does
  *    not receive any coloring.
  *    Number of elements is 'numberOfScalars' * 4.
+ * @param ignoreThresholding
+ *    If true, skip all threshold testing
  */
 void 
 NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* statistics,
@@ -130,6 +132,12 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
     const float thresholdMappedNegative = paletteColorMapping->getThresholdMappedMinimum();
     const float thresholdMappedNegativeAverageArea = paletteColorMapping->getThresholdMappedAverageAreaMinimum();
     const bool showMappedThresholdFailuresInGreen = paletteColorMapping->isShowThresholdFailureInGreen();
+    
+    /*
+     * Skip threshold testing?
+     */
+    const bool skipThresholdTesting = (ignoreThresholding
+                                       || (thresholdType == PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF));
     
     /*
      * Display of negative, zero, and positive values allowed.
@@ -205,7 +213,7 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const DescriptiveStatistics* stati
          * but if threshold test fails, alpha is set invalid.
          */
         bool thresholdPassedFlag = false;
-        if (ignoreThresholding) {
+        if (skipThresholdTesting) {
             thresholdPassedFlag = true;
         }
         else if (showOutsideFlag) {
