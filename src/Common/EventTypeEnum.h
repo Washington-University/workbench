@@ -80,6 +80,8 @@ public:
         EVENT_MODEL_DISPLAY_CONTROLLER_DELETE,
         /** model display controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL,
+        /** model display controller surface get */
+        EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET,
         /** model display yoking group controllers - get all*/
         EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL,
         /** Read the selected files in a spec file */

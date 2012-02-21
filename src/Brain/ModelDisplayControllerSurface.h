@@ -26,16 +26,15 @@
  */ 
 
 
+#include "EventListenerInterface.h"
 #include "ModelDisplayController.h"
-
-
 
 namespace caret {
 
     class Surface;
     
     /// Controls the display of a surface.
-    class ModelDisplayControllerSurface : public ModelDisplayController {
+    class ModelDisplayControllerSurface : public ModelDisplayController, public EventListenerInterface  {
         
     public:
         ModelDisplayControllerSurface(Brain* brain,
@@ -48,6 +47,8 @@ namespace caret {
         void lateralView(const int32_t windowTabNumber);
         
         void medialView(const int32_t windowTabNumber);
+        
+        virtual void receiveEvent(Event* event);
         
     private:
         ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);

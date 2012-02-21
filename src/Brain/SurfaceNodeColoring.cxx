@@ -33,6 +33,7 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventManager.h"
+#include "EventModelDisplayControllerSurfaceGet.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
@@ -104,6 +105,22 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
     
     OverlaySet* overlaySet = NULL;
     float* rgba = NULL;
+
+    /*
+     * For a volume controller, find and use the surface controller for the 
+     * surface and in the same tab as the volume controller.  This typically 
+     * occurs when the volume surface outline is drawn over a volume slice.
+     */
+    if (volumeController != NULL) {
+        EventModelDisplayControllerSurfaceGet surfaceGet(surface);
+        EventManager::get()->sendEvent(surfaceGet.getPointer());
+        surfaceController = surfaceGet.getModelDisplayControllerSurface();
+        CaretAssert(surfaceController);
+    }
+    
+    /*
+     * Get coloring and overlays for the valid controller.
+     */
     if (surfaceController != NULL) {
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
         overlaySet = surfaceController->getOverlaySet(browserTabIndex);
@@ -112,6 +129,14 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
         rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
         overlaySet = wholeBrainController->getOverlaySet(browserTabIndex);
     }
+    else if (volumeController != NULL) {
+        // nothing since surfaceController enabled above
+    }
+    else {
+        CaretAssertMessage(0, "Unknown controller type: " + modelDisplayController->getNameForGUI(false));
+    }
+    
+    CaretAssert(overlaySet);
     
     if (rgba != NULL) {
         return rgba;
@@ -121,26 +146,19 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
     const int numColorComponents = numNodes * 4;
     float rgbaColor[numColorComponents];
     
-    if (overlaySet != NULL) {
-        this->colorSurfaceNodes(surface, 
-                                overlaySet, 
-                                rgbaColor);
-        
-        if (surfaceController != NULL) {
-            surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
-                                                             rgbaColor);
-            rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
-        }
-        else if (wholeBrainController != NULL) {
-            surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 
-                                                                rgbaColor);
-            rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
-        }
-    }
-    else {
+    this->colorSurfaceNodes(surface, 
+                            overlaySet, 
+                            rgbaColor);
+    
+    if (surfaceController != NULL) {
         surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
                                                          rgbaColor);
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+    }
+    else if (wholeBrainController != NULL) {
+        surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                            rgbaColor);
+        rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
     }
     
     return rgba;

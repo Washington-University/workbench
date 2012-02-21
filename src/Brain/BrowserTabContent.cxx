@@ -551,7 +551,7 @@ BrowserTabContent::isWholeBrainModelValid() const
  *     The event that the receive can respond to.
  */
 void 
-BrowserTabContent::receiveEvent(Event* event)
+BrowserTabContent::receiveEvent(Event* /*event*/)
 {
 }
 

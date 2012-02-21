@@ -72,6 +72,7 @@ EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
+EventModelDisplayControllerSurfaceGet.h
 EventModelDisplayControllerYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
@@ -132,6 +133,7 @@ EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
+EventModelDisplayControllerSurfaceGet.cxx
 EventModelDisplayControllerYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx

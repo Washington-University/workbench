@@ -160,6 +160,7 @@ namespace caret {
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
         void drawVolumeSurfaceOutlines(Brain* brain,
+                                       ModelDisplayController* modelDisplayController,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        VolumeFile* underlayVolume);

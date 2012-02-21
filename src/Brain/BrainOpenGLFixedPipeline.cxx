@@ -1661,6 +1661,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                 sliceIndex, 
                                                                 volumeDrawInfo);
                                 this->drawVolumeSurfaceOutlines(brain, 
+                                                                volumeController,
                                                                 slicePlane, 
                                                                 sliceIndex, 
                                                                 underlayVolumeFile);
@@ -1700,6 +1701,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1717,6 +1719,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1734,6 +1737,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1753,6 +1757,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1770,6 +1775,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1787,6 +1793,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1799,7 +1806,6 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
             }
             break;
         }
-        
     }
 }
 
@@ -2994,9 +3000,21 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
 
 /**
  * Draw surface outlines on volume slices.
+ *
+ * @param brain
+ *    The brain.
+ * @param modelDisplayController
+ *    Model display controller in which surface outlines are drawn.
+ * @param slicePlane
+ *    Plane on which surface outlines are drawn.
+ * @param sliceIndex
+ *    Index of slice.
+ * @param underlayVolume
+ *    Bottom-most displayed volume.
  */
 void 
 BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
+                                                    ModelDisplayController* modelDisplayController,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     VolumeFile* underlayVolume)
@@ -3004,7 +3022,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     CaretAssert(brain);
     CaretAssert(underlayVolume);
     
-    const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
+    DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
     
     std::vector<int64_t> dim;
     underlayVolume->getDimensions(dim);
@@ -3059,9 +3077,9 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     for (int io = 0; 
          io < DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; 
          io++) {
-        const VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
+        VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
         if (outline->isDisplayed()) {
-            const Surface* surface = outline->getSurface();
+            Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
                 
@@ -3069,7 +3087,13 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                 
                 const CaretColorEnum::Enum outlineColor = outline->getColor();
                 const bool surfaceColorFlag = (outlineColor == CaretColorEnum::SURFACE);
-                const float* nodeColoringRGBA = NULL;
+
+                float* nodeColoringRGBA = NULL;
+                if (surfaceColorFlag) {
+                    nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(modelDisplayController, 
+                                                                                    surface, 
+                                                                                    this->windowTabIndex);
+                }
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 glLineWidth(thickness);
@@ -3232,6 +3256,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::AXIAL, 
                                                 slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
@@ -3241,6 +3266,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::CORONAL, 
                                                 slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
@@ -3250,6 +3276,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);

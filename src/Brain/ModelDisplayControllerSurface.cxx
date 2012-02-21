@@ -28,6 +28,8 @@
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventModelDisplayControllerSurfaceGet.h"
 #include "ModelDisplayControllerSurface.h"
 
 #include "Brain.h"
@@ -56,6 +58,9 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
         this->overlaySet[i] = new OverlaySet(this);
         this->lateralView(i);
     }
+    
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET);
 }
 
 /**
@@ -63,6 +68,35 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
  */
 ModelDisplayControllerSurface::~ModelDisplayControllerSurface()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Receive an event.
+ * 
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void 
+ModelDisplayControllerSurface::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET) {
+        EventModelDisplayControllerSurfaceGet* getSurfaceControllerEvent =
+        dynamic_cast<EventModelDisplayControllerSurfaceGet*>(event);
+        CaretAssert(getSurfaceControllerEvent);
+        
+        
+        /*
+         * Looking this controller?
+         */
+        if (getSurfaceControllerEvent->getSurface() == this->getSurface()) {
+            getSurfaceControllerEvent->setModelDisplayControllerSurface(this);
+            getSurfaceControllerEvent->setEventProcessed();
+        }
+    }
+    else {     
+        CaretAssertMessage(0, "Unexpected event: " + EventTypeEnum::toName(event->getEventType()));
+    }
 }
 
 void
