@@ -27,9 +27,13 @@
 #include "DisplayPropertiesVolume.h"
 #undef __DISPLAY_PROPERTIES_VOLUME_DECLARE__
 
+#include "Brain.h"
+#include "CaretAssert.h"
+#include "SurfaceSelection.h"
+#include "VolumeSurfaceOutlineSelection.h"
+#include "BrainStructure.h"
+
 using namespace caret;
-
-
     
 /**
  * \class DisplayPropertiesVolume 
@@ -38,8 +42,6 @@ using namespace caret;
  * Display properties for volume slices.
  */
 
-#include "CaretAssert.h"
-#include "VolumeSurfaceOutlineSelection.h"
 
 /**
  * Constructor.
@@ -120,4 +122,21 @@ DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx) const
     return this->volumeSurfaceOutlineSelections[indx];
 }
 
-
+/**
+ * Set the default selected surfaces after a spec file is loaded.
+ */ 
+void 
+DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded()
+{
+    const int32_t numBrainStructures = this->getBrain()->getNumberOfBrainStructures();
+    
+    const int32_t maxIndex = std::min(numBrainStructures,
+                                      MAXIMUM_NUMBER_OF_SURFACE_OUTLINES);
+    for (int32_t i = 0; i < maxIndex; i++) {
+        BrainStructure* brainStructure = this->getBrain()->getBrainStructure(i);
+        Surface* surface = brainStructure->getVolumeInteractionSurface();
+        if (surface != NULL) {
+            this->volumeSurfaceOutlineSelections[i]->getSurfaceSelection()->setSurface(surface);
+        }
+    }
+}

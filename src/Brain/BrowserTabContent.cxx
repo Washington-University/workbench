@@ -405,13 +405,16 @@ BrowserTabContent::getSurfaceModelSelector()
 /**
  * Get the overlay assignments for this tab.
  * 
- * @return  Overlay assignments for this tab.
+ * @return  Overlay assignments for this tab or NULL if no valid model.
  */
 OverlaySet* 
 BrowserTabContent::getOverlaySet()
 {
     ModelDisplayController* modelDisplayController = this->getModelControllerForDisplay();
-    return modelDisplayController->getOverlaySet(this->tabNumber);
+    if (modelDisplayController != NULL) {
+       return modelDisplayController->getOverlaySet(this->tabNumber);
+    }
+    return NULL;
 }
 
 /**

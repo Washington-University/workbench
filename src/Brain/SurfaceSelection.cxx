@@ -173,6 +173,14 @@ SurfaceSelection::updateSelection() const
     
     if (this->selectedSurface == NULL) {
         if (surfaces.empty() == false) {
+            switch (mode) {
+                case MODE_BRAIN_STRUCTURE:
+                    this->selectedSurface = this->brainStructure->getVolumeInteractionSurface();
+                    break;
+                case MODE_STRUCTURE:
+                    break;
+            }
+            
             this->selectedSurface = surfaces[0];
         }
     }

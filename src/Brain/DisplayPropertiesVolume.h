@@ -49,6 +49,8 @@ namespace caret {
         
         const VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx) const;
         
+        void selectSurfacesAfterSpecFileLoaded();
+        
     private:
         DisplayPropertiesVolume(const DisplayPropertiesVolume&);
 

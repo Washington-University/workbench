@@ -1119,6 +1119,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
     
+    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded();
+    
     CaretLogInfo("Time to read files from spec file (in Brain) \""
                  + sf->getFileNameNoPath()
                  + "\" was "
