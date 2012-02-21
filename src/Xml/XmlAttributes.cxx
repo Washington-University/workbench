@@ -210,7 +210,6 @@ int32_t
 XmlAttributes::getValueAsInt(const int index) const{
     CaretAssertVectorIndex(this->values, index);
     AString value = this->values.at(index);
-    if (value.isEmpty()) return 0;
     bool ok = false;
     int32_t ret = value.toInt(&ok);
     if (!ok)
@@ -232,7 +231,6 @@ XmlAttributes::getValueAsFloat(const int index) const
 {
     CaretAssertVectorIndex(this->values, index);
     AString value = this->values.at(index);
-    if (value.isEmpty()) return 0.0;
     bool ok = false;
     float ret = value.toFloat(&ok);
     if (!ok)
@@ -251,14 +249,11 @@ XmlAttributes::getValueAsFloat(const int index) const
  * @return Value of attribute at index.
  */
 AString 
-XmlAttributes::getValue(const AString& name) const{
-    uint64_t num = this->names.size();
-    for (uint64_t i = 0; i < num; i++) {
-        if (this->names[i] == name) {
-            return this->values[i];
-        }
-    }
-    return "";
+XmlAttributes::getValue(const AString& name, const AString& defaultValue) const
+{
+    int index = getIndex(name);
+    if (index == -1) return defaultValue;
+    return this->values[index];
 }
 
 /**
@@ -269,16 +264,10 @@ XmlAttributes::getValue(const AString& name) const{
  * @return Value of attribute at index.
  */
 int32_t
-XmlAttributes::getValueAsInt(const AString& name) const{
-    AString value = this->getValue(name);
-    if (value.isEmpty()) return 0;
-    bool ok = false;
-    int32_t ret = value.toInt(&ok);
-    if (!ok)
-    {
-        throw XmlSaxParserException(AString("integer required for XML attribute ") + name + ", got '" + value + "' instead");
-    }
-    return ret;
+XmlAttributes::getValueAsInt(const AString& name, const int32_t defaultValue) const{
+    int index = getIndex(name);
+    if (index == -1) return defaultValue;
+    return getValueAsInt(index);
 }
 /**
  * Get the value of an attribute as a float.
@@ -288,16 +277,41 @@ XmlAttributes::getValueAsInt(const AString& name) const{
  * @return Value of attribute at index.
  */
 float 
-XmlAttributes::getValueAsFloat(const AString& name) const
+XmlAttributes::getValueAsFloat(const AString& name, const float& defaultValue) const
 {
-    AString value = this->getValue(name);
-    if (value.isEmpty()) return 0.0;
-    bool ok = false;
-    float ret = value.toFloat(&ok);
-    if (!ok)
-    {
-        throw XmlSaxParserException(AString("float required for XML attribute ") + name + ", got '" + value + "' instead");
-    }
-    return ret;
+    int index = getIndex(name);
+    if (index == -1) return defaultValue;
+    return getValueAsFloat(index);
 }
 
+int XmlAttributes::getIndex(const AString& name) const
+{
+    int num = (int)this->names.size();
+    for (int i = 0; i < num; i++) {
+        if (this->names[i] == name) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+float XmlAttributes::getValueAsFloatRequired(const AString& name) const
+{
+    int index = getIndex(name);
+    if (index == -1) throw XmlSaxParserException(AString("required attribute ") + name + " missing");
+    return getValueAsFloat(index);
+}
+
+int32_t XmlAttributes::getValueAsIntRequired(const caret::AString& name) const
+{
+    int index = getIndex(name);
+    if (index == -1) throw XmlSaxParserException(AString("required attribute ") + name + " missing");
+    return getValueAsInt(index);
+}
+
+AString XmlAttributes::getValueRequired(const caret::AString& name) const
+{
+    int index = getIndex(name);
+    if (index == -1) throw XmlSaxParserException(AString("required attribute ") + name + " missing");
+    return getValue(index);
+}
