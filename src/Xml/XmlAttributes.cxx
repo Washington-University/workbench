@@ -210,6 +210,7 @@ int32_t
 XmlAttributes::getValueAsInt(const int index) const{
     CaretAssertVectorIndex(this->values, index);
     AString value = this->values.at(index);
+    if (value.isEmpty()) return 0;
     bool ok = false;
     int32_t ret = value.toInt(&ok);
     if (!ok)
@@ -231,6 +232,7 @@ XmlAttributes::getValueAsFloat(const int index) const
 {
     CaretAssertVectorIndex(this->values, index);
     AString value = this->values.at(index);
+    if (value.isEmpty()) return 0.0;
     bool ok = false;
     float ret = value.toFloat(&ok);
     if (!ok)
@@ -269,6 +271,7 @@ XmlAttributes::getValue(const AString& name) const{
 int32_t
 XmlAttributes::getValueAsInt(const AString& name) const{
     AString value = this->getValue(name);
+    if (value.isEmpty()) return 0;
     bool ok = false;
     int32_t ret = value.toInt(&ok);
     if (!ok)
@@ -288,6 +291,7 @@ float
 XmlAttributes::getValueAsFloat(const AString& name) const
 {
     AString value = this->getValue(name);
+    if (value.isEmpty()) return 0.0;
     bool ok = false;
     float ret = value.toFloat(&ok);
     if (!ok)
