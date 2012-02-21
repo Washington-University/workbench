@@ -86,6 +86,7 @@
 #include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
+#include "SurfaceNodeColoring.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "VolumeFile.h"
@@ -108,6 +109,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->colorIdentification   = new IdentificationWithColor();
     this->sphereDisplayList = 0;
     this->sphereOpenGL = NULL;
+    this->surfaceNodeColoring = new SurfaceNodeColoring();
 }
 
 /**
@@ -121,6 +123,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (this->sphereOpenGL != NULL) {
         delete this->sphereOpenGL;
         this->sphereOpenGL = NULL;
+    }
+    if (this->surfaceNodeColoring != NULL) {
+        delete this->surfaceNodeColoring;
+        this->surfaceNodeColoring = NULL;
     }
     delete this->colorIdentification;
     this->colorIdentification = NULL;
@@ -750,7 +756,12 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelDisplayControllerSurface* s
                                       center,
                                       isRightSurfaceLateralMedialYoked);
     
-    this->drawSurface(surface);
+    const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceController, 
+                                                                                 surface, 
+                                                                                 this->windowTabIndex);
+    
+    this->drawSurface(surface,
+                      nodeColoringRGBA);
 }
 
 /**
@@ -778,9 +789,12 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  * Draw a surface.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
+                                      const float* nodeColoringRGBA)
 {
     glMatrixMode(GL_MODELVIEW);
     
@@ -790,22 +804,26 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
     
     switch (this->mode)  {
         case MODE_DRAWING:
-            this->drawSurfaceTrianglesWithVertexArrays(surface);
+            this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                       nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
             break;
         case MODE_IDENTIFICATION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceNodes(surface);
-            this->drawSurfaceTriangles(surface);
+            this->drawSurfaceNodes(surface,
+                                   nodeColoringRGBA);
+            this->drawSurfaceTriangles(surface,
+                                       nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
         case MODE_PROJECTION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceTriangles(surface);
+            this->drawSurfaceTriangles(surface,
+                                       nodeColoringRGBA);
             glShadeModel(GL_SMOOTH);
             break;
     }
@@ -817,16 +835,18 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
  * Draw a surface as individual triangles.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
+                                               const float* nodeColoringRGBA)
 {
     const int numTriangles = surface->getNumberOfTriangles();
     
     const int32_t* triangles = surface->getTriangle(0);
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
 
     IdentificationItemSurfaceTriangle* triangleID = NULL;
     /*
@@ -876,13 +896,13 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
             glVertex3fv(&coordinates[n3*3]);
         }
         else {
-            glColor4fv(&rgbaColoring[n1*4]);
+            glColor4fv(&nodeColoringRGBA[n1*4]);
             glNormal3fv(&normals[n1*3]);
             glVertex3fv(&coordinates[n1*3]);
-            glColor4fv(&rgbaColoring[n2*4]);
+            glColor4fv(&nodeColoringRGBA[n2*4]);
             glNormal3fv(&normals[n2*3]);
             glVertex3fv(&coordinates[n2*3]);
-            glColor4fv(&rgbaColoring[n3*4]);
+            glColor4fv(&nodeColoringRGBA[n3*4]);
             glNormal3fv(&normals[n3*3]);
             glVertex3fv(&coordinates[n3*3]);
         }
@@ -1094,15 +1114,17 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
  * Draw a surface as individual nodes.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
+                                           const float* nodeColoringRGBA)
 {
     const int numNodes = surface->getNumberOfNodes();
     
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
     
     IdentificationItemSurfaceNode* nodeID = 
     this->getIdentificationManager()->getSurfaceNodeIdentification();
@@ -1140,7 +1162,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
             glVertex3fv(&coordinates[i3]);
         }
         else {
-            glColor4fv(&rgbaColoring[i*4]);
+            glColor4fv(&nodeColoringRGBA[i*4]);
             glNormal3fv(&normals[i3]);
             glVertex3fv(&coordinates[i3]);
         }
@@ -1170,12 +1192,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
  * Draw a surface triangles with vertex arrays.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                               const float* nodeColoringRGBA)
 {
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
-    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -1186,7 +1209,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
     glColorPointer(4, 
                    GL_FLOAT, 
                    0, 
-                   reinterpret_cast<const GLvoid*>(rgbaColoring));
+                   reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
     glNormalPointer(GL_FLOAT, 
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getNormalVector(0)));
@@ -3046,7 +3069,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                 
                 const CaretColorEnum::Enum outlineColor = outline->getColor();
                 const bool surfaceColorFlag = (outlineColor == CaretColorEnum::SURFACE);
-                const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+                const float* nodeColoringRGBA = NULL;
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
                 glLineWidth(thickness);
@@ -3071,8 +3094,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                              * but only if Alpha is valid (greater than zero).
                              */
                             const int64_t colorIndex = triangleNodes[0] * 4;
-                            if (rgbaColoring[colorIndex + 3] > 0.0) {
-                                glColor3fv(&rgbaColoring[triangleNodes[0] * 4]);
+                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
+                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
                             }
                             else {
                                 continue;
@@ -3173,10 +3196,15 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                     break;
             }
             
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainController, 
+                                                                                         surface, 
+                                                                                         this->windowTabIndex);
+            
             if (drawIt) {
                 glPushMatrix();
                 glTranslatef(dx, dy, dz);
-                this->drawSurface(surface);
+                this->drawSurface(surface,
+                                  nodeColoringRGBA);
                 glPopMatrix();
             }
         }

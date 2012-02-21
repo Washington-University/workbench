@@ -32,6 +32,7 @@
 #include "BrainOpenGL.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "IdentificationItemDataTypeEnum.h"
+#include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 class QGLWidget;
@@ -115,13 +116,17 @@ namespace caret {
         void drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
                                    const int32_t viewport[4]);
         
-        void drawSurface(Surface* surface);
+        void drawSurface(Surface* surface,
+                         const float* nodeColoringRGBA);
         
-        void drawSurfaceNodes(Surface* surface);
+        void drawSurfaceNodes(Surface* surface,
+                              const float* nodeColoringRGBA);
         
-        void drawSurfaceTrianglesWithVertexArrays(const Surface* surface);
+        void drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                  const float* nodeColoringRGBA);
         
-        void drawSurfaceTriangles(Surface* surface);
+        void drawSurfaceTriangles(Surface* surface,
+                                  const float* nodeColoringRGBA);
         
         void drawSurfaceNodeAttributes(Surface* surface);
         
@@ -254,6 +259,9 @@ namespace caret {
 
         SurfaceProjectedItem* modeProjectionData;
         
+        /** Performs node coloring */
+        SurfaceNodeColoring* surfaceNodeColoring;
+         
         uint32_t sphereDisplayList;
         
         SphereOpenGL* sphereOpenGL;

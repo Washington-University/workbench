@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <limits>
+
 #include <QThread>
 
 #include "BoundingBox.h"
@@ -29,6 +31,7 @@
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "EventSurfaceColoringInvalidate.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -43,6 +46,7 @@ SurfaceFile::SurfaceFile()
 : GiftiTypeFile(DataFileTypeEnum::SURFACE)
 {
     this->initializeMembersSurfaceFile();
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -54,7 +58,9 @@ SurfaceFile::SurfaceFile()
 SurfaceFile::SurfaceFile(const SurfaceFile& sf)
 : GiftiTypeFile(sf)
 {
+    this->initializeMembersSurfaceFile();
     this->copyHelperSurfaceFile(sf);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 
@@ -82,10 +88,14 @@ SurfaceFile::operator=(const SurfaceFile& sf)
  */
 SurfaceFile::~SurfaceFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     if (this->boundingBox != NULL) {
         delete this->boundingBox;
         this->boundingBox = NULL;
     }
+    
+    this->invalidateNodeColoringForBrowserTabs();
 }
 
 /**
@@ -96,6 +106,7 @@ SurfaceFile::clear()
 {
     GiftiTypeFile::clear();
     invalidateHelpers();
+    this->invalidateNodeColoringForBrowserTabs();
 }
 
 /**
@@ -763,6 +774,187 @@ SurfaceFile::getInformation() const
             + ")\n");
     
     return txt;
+}
+
+/**
+ * Invalidate surface coloring.
+ */
+void 
+SurfaceFile::invalidateNodeColoringForBrowserTabs()
+{
+    /*
+     * Free memory since could have many tabs and many surfaces equals lots of memory
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->surfaceNodeColoringForBrowserTabs[i].clear();
+        this->wholeBrainNodeColoringForBrowserTabs[i].clear();
+    }    
+}
+
+/**
+ * Allocate node coloring for a single surface in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                               const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->surfaceNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Allocate node coloring for a whole brain surface in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                      const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Get the RGBA color components for this single surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be 
+ *    set.
+ */
+float* 
+SurfaceFile::getSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->surfaceNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a single surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface in the given tab.
+ */
+void 
+SurfaceFile::setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                         const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateSurfaceNodeColoringForBrowserTab(browserTabIndex, 
+                                            false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->surfaceNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+/**
+ * Get the RGBA color components for this whole brain surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be set.
+ */
+float* 
+SurfaceFile::getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a whole brain surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface in the given tab.
+ */
+void 
+SurfaceFile::setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateWholeBrainNodeColoringForBrowserTab(browserTabIndex, 
+                                                   false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+/**
+ * Receive an event.
+ * 
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void 
+SurfaceFile::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* invalidateEvent =
+        dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(invalidateEvent);
+        
+        invalidateEvent->setEventProcessed();
+        
+        this->invalidateNodeColoringForBrowserTabs();
+    }    
 }
 
 

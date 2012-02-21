@@ -71,6 +71,7 @@
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventModelDisplayControllerYokingGroupGetAll.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
@@ -3653,7 +3654,7 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
         ModelDisplayControllerSurfaceSelector* surfaceModelSelector = btc->getSurfaceModelSelector();
         surfaceModelSelector->setSelectedStructure(structure);
         surfaceModelSelector->setSelectedSurfaceController(surfaceController);
-        btc->invalidateSurfaceColoring();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         this->updateUserInterface();
         this->updateGraphicsWindow();
     }

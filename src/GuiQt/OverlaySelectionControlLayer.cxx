@@ -40,6 +40,7 @@
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditor.h"
 #include "CaretMappableDataFile.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "Overlay.h"
@@ -209,7 +210,7 @@ OverlaySelectionControlLayer::enableCheckBoxToggled(bool toggled)
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
@@ -229,7 +230,7 @@ OverlaySelectionControlLayer::moveLayerUpToolButtonPressed()
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
     
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     overlaySet->moveDisplayedOverlayUp(this->layerIndex);
@@ -250,7 +251,7 @@ OverlaySelectionControlLayer::moveLayerDownToolButtonPressed()
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     overlaySet->moveDisplayedOverlayDown(this->layerIndex);
@@ -271,7 +272,7 @@ OverlaySelectionControlLayer::removeLayerToolButtonPressed()
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     overlaySet->removeDisplayedOverlay(this->layerIndex);
@@ -328,7 +329,7 @@ OverlaySelectionControlLayer::opacityValueChanged(double value)
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
@@ -351,7 +352,7 @@ OverlaySelectionControlLayer::fileSelected(int fileIndex)
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
 
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     Overlay* overlay = overlaySet->getOverlay(this->layerIndex);
@@ -384,7 +385,7 @@ OverlaySelectionControlLayer::columnSelected(int columnIndex)
     CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
     overlay->setSelectionData(file, columnIndex);
 
-    browserTabContent->invalidateSurfaceColoring();
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     
     
     this->updateControl(browserTabContent);

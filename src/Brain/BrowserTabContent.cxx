@@ -32,7 +32,6 @@
 #include "CaretLogger.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
-#include "EventSurfaceColoringInvalidate.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
@@ -41,7 +40,6 @@
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "Surface.h"
-#include "SurfaceNodeColoring.h"
 #include "StructureEnum.h"
 
 using namespace caret;
@@ -64,12 +62,6 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->guiName = "";
     this->userName = "";
     this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
-    
-    this->surfaceColoring = new SurfaceNodeColoring();
-    
-    this->invalidateSurfaceColoring();
-    
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -81,10 +73,7 @@ BrowserTabContent::~BrowserTabContent()
     
     delete this->browserTabYoking;
     this->browserTabYoking = NULL;
-    
-    delete this->surfaceColoring;
-    this->surfaceColoring = NULL;
-   
+
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
 }
@@ -184,7 +173,6 @@ void
 BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType)
 {
     this->selectedModelType = selectedModelType;
-    this->invalidateSurfaceColoring();    
 }
 
 /**
@@ -557,101 +545,6 @@ BrowserTabContent::isWholeBrainModelValid() const
 }
 
 /**
- * Invalidate surface coloring for this browser tab.
- */
-void 
-BrowserTabContent::invalidateSurfaceColoring()
-{
-    this->surfaceCerebellumLastColored = NULL;
-    this->surfaceLeftLastColored = NULL;
-    this->surfaceRightLastColored = NULL;
-}
-
-/**
- * Get the surface node coloring for a surface.
- * @param surface
- *    Surface for coloring.
- * @return Returns pointer to a float array with 
- * four elements per node containing the red, green,
- * blue, and alpha color components.
- */
-const float* 
-BrowserTabContent::getSurfaceColoring(const Surface* surface)
-{
-    CaretAssert(surface);
-    
-    Surface* lastSurface;
-    std::vector<float>* nodeColoring = NULL;
-    const StructureEnum::Enum structure = surface->getStructure();
-    switch (structure) {
-        case StructureEnum::CEREBELLUM:
-            nodeColoring = &this->surfaceCerebellumColoringRGBA;
-            lastSurface = this->surfaceCerebellumLastColored;
-            break;
-        case StructureEnum::CORTEX_LEFT:
-            nodeColoring = &this->surfaceLeftColoringRGBA;
-            lastSurface = this->surfaceLeftLastColored;
-            break;
-        case StructureEnum::CORTEX_RIGHT:
-            nodeColoring = &this->surfaceRightColoringRGBA;
-            lastSurface = this->surfaceRightLastColored;
-            break;
-        default:
-            CaretLogSevere("Unreconized structure: " + StructureEnum::toGuiName(structure));
-            return NULL;
-            break;
-    }
-    
-    /*
-     * Add nodes to coloring, if necessary, but due not
-     * shrink the size to avoid memory reallocation.
-     */
-    const int32_t numNodes = surface->getNumberOfNodes();
-    const int32_t numberOfColorComponents = numNodes * 4;
-    const int32_t coloringComponentCount = static_cast<int32_t>(nodeColoring->size());
-    if (coloringComponentCount < numberOfColorComponents) {
-        nodeColoring->resize(numberOfColorComponents);
-    }    
-    float* rgba = &(*nodeColoring)[0];
-    
-    /*
-     * If surface for structure has not changed,
-     * then the current coloring is valid.
-     */
-    if (surface == lastSurface) {
-        return rgba;
-    }
-    
-    /*
-     * Color the surface nodes.
-     */
-    this->surfaceColoring->colorSurfaceNodes(surface,
-                                             this->getOverlaySet(), 
-                                             rgba);
-    
-    /*
-     * Save surface that was colored.
-     */
-    switch (structure) {
-        case StructureEnum::CEREBELLUM:
-            this->surfaceCerebellumLastColored = (Surface*)surface;
-            break;
-        case StructureEnum::CORTEX_LEFT:
-            this->surfaceLeftLastColored = (Surface*)surface;
-            break;
-        case StructureEnum::CORTEX_RIGHT:
-            this->surfaceRightLastColored = (Surface*)surface;
-            break;
-        default:
-            CaretLogSevere("Unreconized structure: " + StructureEnum::toGuiName(structure));
-            return NULL;
-            break;
-    }
-
-    return rgba;
-}
-
-/**
  * Receive an event.
  * 
  * @param event
@@ -660,15 +553,6 @@ BrowserTabContent::getSurfaceColoring(const Surface* surface)
 void 
 BrowserTabContent::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
-        EventSurfaceColoringInvalidate* invalidateEvent =
-        dynamic_cast<EventSurfaceColoringInvalidate*>(event);
-        CaretAssert(invalidateEvent);
-        
-        invalidateEvent->setEventProcessed();
-        
-        this->invalidateSurfaceColoring();
-    }    
 }
 
 /**

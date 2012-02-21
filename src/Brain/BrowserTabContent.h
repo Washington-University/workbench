@@ -42,7 +42,6 @@ namespace caret {
     class OverlaySet;
     class Palette;
     class Surface;
-    class SurfaceNodeColoring;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject, public EventListenerInterface {
@@ -105,10 +104,6 @@ namespace caret {
         
         bool isWholeBrainModelValid() const;
 
-        void invalidateSurfaceColoring();
-        
-        const float* getSurfaceColoring(const Surface* surface);
-        
         void updateTransformationsForYoking();
         
         bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
@@ -151,28 +146,7 @@ namespace caret {
         AString userName;
         
         /** Controls yoking */
-        BrowserTabYoking* browserTabYoking;
-        
-        /** Last cerebellum surface that was colored for this browser tab */
-        Surface* surfaceCerebellumLastColored;
-        
-        /** Last cerebellum surface that was colored for this browser tab  */
-        Surface* surfaceLeftLastColored;
-        
-        /** Last cerebellum surface that was colored for this browser tab  */
-        Surface* surfaceRightLastColored;
-        
-        /** Node coloring for cerebellum surface in this browser tab */
-        std::vector<float> surfaceCerebellumColoringRGBA;
-        
-        /** Node coloring for left surface in this browser tab */
-        std::vector<float> surfaceLeftColoringRGBA;
-        
-        /** Node coloring for right surface in this browser tab */
-        std::vector<float> surfaceRightColoringRGBA;
-        
-        /** Performs surface node coloring */
-        SurfaceNodeColoring* surfaceColoring;
+        BrowserTabYoking* browserTabYoking;        
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

@@ -29,6 +29,7 @@ CaretVolumeExtension.h
 ClassAndNameHierarchySelection.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
+EventSurfaceColoringInvalidate.h
 GeodesicHelper.h
 GiftiTypeFile.h
 ImageFile.h
@@ -63,6 +64,7 @@ CaretMappableDataFile.cxx
 CaretVolumeExtension.cxx
 ClassAndNameHierarchySelection.cxx
 ConnectivityLoaderFile.cxx
+EventSurfaceColoringInvalidate.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
 ImageFile.cxx

@@ -37,6 +37,9 @@
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -75,6 +78,72 @@ AString
 SurfaceNodeColoring::toString() const
 {
     return "SurfaceNodeColoring";
+}
+
+/**
+ * Assign color components to surface nodes.
+ * If colors are currently valid, no changes are made to the surface coloring.
+ * @param modelDisplayController
+ *     Model controller that is displayed.
+ * @param surface
+ *     Surface that is displayed.
+ * @param browserTabIndex
+ *     Index of tab in which model is displayed.
+ */
+float* 
+SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayController,
+                                       Surface* surface,
+                                       const int32_t browserTabIndex)
+{
+    CaretAssert(modelDisplayController);
+    CaretAssert(surface);
+
+    ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
+    ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
+    ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
+    
+    OverlaySet* overlaySet = NULL;
+    float* rgba = NULL;
+    if (surfaceController != NULL) {
+        rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+        overlaySet = surfaceController->getOverlaySet(browserTabIndex);
+    }
+    else if (wholeBrainController != NULL) {
+        rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
+        overlaySet = wholeBrainController->getOverlaySet(browserTabIndex);
+    }
+    
+    if (rgba != NULL) {
+        return rgba;
+    }
+    
+    const int numNodes = surface->getNumberOfNodes();
+    const int numColorComponents = numNodes * 4;
+    float rgbaColor[numColorComponents];
+    
+    if (overlaySet != NULL) {
+        this->colorSurfaceNodes(surface, 
+                                overlaySet, 
+                                rgbaColor);
+        
+        if (surfaceController != NULL) {
+            surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                             rgbaColor);
+            rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+        }
+        else if (wholeBrainController != NULL) {
+            surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                                rgbaColor);
+            rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
+        }
+    }
+    else {
+        surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                         rgbaColor);
+        rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+    }
+    
+    return rgba;
 }
 
 /**
