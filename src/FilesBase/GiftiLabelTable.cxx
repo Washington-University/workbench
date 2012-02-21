@@ -656,7 +656,10 @@ GiftiLabelTable::setLabel(
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        if (name != "???")
+        {
+            CaretLogWarning("Label 0 modified!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -699,7 +702,10 @@ GiftiLabelTable::setLabel(const int32_t key,
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        if (name != "???")
+        {
+            CaretLogWarning("Label 0 modified!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -812,7 +818,7 @@ GiftiLabelTable::setLabelColor(
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        CaretLogFiner("Label 0 color changed");
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
