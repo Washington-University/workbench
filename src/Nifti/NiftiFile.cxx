@@ -161,6 +161,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
                 }
                 CaretPointer<NiftiAbstractVolumeExtension> tempExt(new NiftiAbstractVolumeExtension());
                 tempExt->m_niftiVersion = getNiftiVersion();
+                tempExt->m_ecode = ecode;
                 if (esize > 8)//don't try to read 0 bytes (CaretArray is smart enough to initialize to NULL with nonpositive size, though)
                 {
                     tempExt->m_bytes = CaretArray<char>(esize - 8);
@@ -392,12 +393,6 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
 
     headerIO.getAbstractHeader(*aHeader);
     vol.m_header = aHeader;
-    int numExtensions = (int)m_extensions.size();
-    for (int i = 0; i < numExtensions; ++i)
-    {
-        vol.m_extensions.push_back(m_extensions[i]);
-    }
-
     //get dimensions, sform and component size
     Nifti2Header header;
     headerIO.getHeader(header);
@@ -410,6 +405,12 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     header.getComponentDimensions(components);
 
     vol.reinitialize(dim,sForm,components);
+    int numExtensions = (int)m_extensions.size();
+    for (int i = 0; i < numExtensions; ++i)
+    {
+        vol.m_extensions.push_back(m_extensions[i]);
+    }
+
     matrix.getVolume(vol);
 }
 
