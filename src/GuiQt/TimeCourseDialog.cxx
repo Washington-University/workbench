@@ -91,12 +91,14 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     }
     plot->detachItems();
     plot->populate(tlV);
-
+    //this->ui->
     this->setVisible(true);
     this->show();
     this->activateWindow();
     plot->update();
     plot->replot();
+    plot->setFocus();
+    plot->setAttribute(Qt::WA_NoMousePropagation,true);
 }
 
 
