@@ -69,24 +69,24 @@ public:
     {
         if(getNiftiVersion() == 1)
         {
-            header.type = header.NIFTI1;
+            header.m_niftiVersion = 1;
             getHeader(header.n1header);
         }
-        else if(getNiftiVersion() ==2)
+        else if(getNiftiVersion() == 2)
         {
-            header.type = header.NIFTI2;
+            header.m_niftiVersion = 2;
             getHeader(header.n2header);
         }          
     }
 
     void setAbstractHeader(NiftiAbstractHeader &header)
     {
-        if(header.type == header.NIFTI1)
+        if(header.m_niftiVersion == 1)
         {
             this->niftiVersion = 1;
             setHeader(header.n1header);
         }
-        else if(header.type == header.NIFTI2)
+        else if(header.m_niftiVersion == 2)
         {
             this->niftiVersion = 2;
             setHeader(header.n2header);

@@ -33,18 +33,18 @@
 #include "VolumeBase.h"
 #include "zlib.h"
 #include "NiftiAbstractVolumeExtension.h"
-
+#include <vector>
 
 /** TODOS: there are a BUNCH...
 High priority:
-  * Get the following working NIFTI_TYPE_RGB24, and all integer types
+  * Support nifti extensions correctly
+Medium priority:
   * Get slope intercept scaling working
-  * Handle compressed Nifti files
-  * Add code to matrix reader to support loading the entire time series into memory
+  * Get the following working NIFTI_TYPE_RGB24, and all integer types
 
 For later:
   * 1.  create class for dealing with and parsing extensions, borrow as much as possible from caret5
-  * 2.  when an extension is added, update header to reflect new vox offset
+  * 2.  when an extension is added, update header to reflect new vox offset - no, regenerate vox offset at writing time
   * 3.  decide how to deal with in place read/write, for now one can edit the volume of a nifti in place, but
         how do we deal with extensions, which would shift the volume offset, simply not allow it for in-place
         edits?
@@ -109,9 +109,6 @@ public:
     /// get NiftiVersion
     int getNiftiVersion();
 
-    // TODO: This will eventually be handled by the extension reader/writer object
-    void swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength);
-
     /// volume file read/write Functions
 
     /// Read the entire nifti file into a volume file
@@ -127,42 +124,6 @@ public:
     void getLayout(LayoutType &layout) throw(NiftiException) {
         return matrix.getMatrixLayoutOnDisk(layout);
     }
-
-    void getAbstractVolumeExtension(NiftiAbstractVolumeExtension &volumeExtension)
-    {
-        if(headerIO.getNiftiVersion() == 1)
-        {
-            volumeExtension.type = volumeExtension.NIFTI1;
-            int64_t vOffset = headerIO.getVolumeOffset();
-            int64_t eOffset = headerIO.getExtensionsOffset();
-            int64_t eLength = vOffset-eOffset;
-            volumeExtension.m_bytes = CaretArray<char>(eLength);
-            memcpy(volumeExtension.m_bytes,this->extension_bytes,eLength);
-        }
-        else if(headerIO.getNiftiVersion() == 2)
-        {
-            volumeExtension.type = volumeExtension.NIFTI2;
-            int64_t vOffset = headerIO.getVolumeOffset();
-            int64_t eOffset = headerIO.getExtensionsOffset();
-            int64_t eLength = vOffset-eOffset;
-            volumeExtension.m_bytes = CaretArray<char>(eLength);
-            memcpy(volumeExtension.m_bytes,this->extension_bytes,eLength);
-        }
-    }
-    void setAbstractVolumeExtension(NiftiAbstractVolumeExtension &volumeExtension)
-    {
-        if(volumeExtension.type == volumeExtension.NIFTI1)
-        {
-            if(extension_bytes) 
-                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_bytes.size());
-        }
-        else if(volumeExtension.type == volumeExtension.NIFTI2)
-        {
-            if(extension_bytes) 
-                memcpy(this->extension_bytes,volumeExtension.m_bytes, volumeExtension.m_bytes.size());
-        }
-    }
-
 
     // For reading the entire Matrix
     /// Gets the Size in bytes of the entire volume matrix
@@ -203,7 +164,7 @@ protected:
     AString m_fileName;
     NiftiHeaderIO headerIO;
     NiftiMatrix matrix;
-    int8_t * extension_bytes;
+    std::vector<CaretPointer<NiftiAbstractVolumeExtension> > m_extensions;
     bool newFile;
 };
 

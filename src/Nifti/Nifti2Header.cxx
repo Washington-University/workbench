@@ -351,7 +351,7 @@ void Nifti2Header:: getDimensions(std::vector <int64_t> &dimensionsOut) const
 
 void Nifti2Header::setDimensions(const std::vector < int64_t > &dimensionsIn) throw (NiftiException)
 {
-    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
+    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nifti2 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
     for(uint i =0;i<dimensionsIn.size();i++)
     {

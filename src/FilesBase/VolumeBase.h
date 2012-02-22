@@ -48,7 +48,6 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
-        ExtensionType type;
         CaretArray<char> m_bytes;
         virtual ExtensionType getType() = 0;
         virtual ~AbstractVolumeExtension();
@@ -61,7 +60,6 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
-        HeaderType type;
         virtual HeaderType getType() = 0;
         virtual ~AbstractHeader();
     };
@@ -141,6 +139,10 @@ namespace caret {
         ///get the originally specified dimensions vector
         inline const std::vector<int64_t>& getOriginalDimensions() const {
             return m_origDims;
+        }
+        
+        inline const int64_t& getNumberOfComponents() const {
+            return m_dimensions[4];
         }
         
         ///translates extraspatial indices into a (flat) brick index

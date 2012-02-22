@@ -58,7 +58,7 @@ void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
     xmlWriter.writeStartElement(CARET_VOL_EXT_ROOT);
     if (!m_comment.isEmpty()) xmlWriter.writeElementCData(CARET_VOL_EXT_COMMENT, m_comment);
     time_t mytime = time(NULL);//we don't have a class to deal with ISO 8601 dates, so use some C
-    struct tm* timeinfo = localtime(mytime);//note: this is a pointer to a static global in C library code, don't try to delete
+    struct tm* timeinfo = localtime(&mytime);//note: this is a pointer to a static global in C library code, don't try to delete
     char buf[101];//we actually only need 20 bytes, but hey
     strftime(buf, 100, "%Y-%m-%dT%H:%M:%S", timeinfo);
     xmlWriter.writeElementCData(CARET_VOL_EXT_DATE, AString(buf));
@@ -159,7 +159,7 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
     switch (myState)
     {
         case INVALID:
-            throw XmlSaxParserException("encountered end element in INIT state");
+            throw XmlSaxParserException("encountered end element in INVALID state");
             break;
         case CARET_EXTENSION:
             break;
@@ -191,7 +191,12 @@ void CaretVolumeExtensionXMLReader::endElement(const AString& namespaceURI, cons
                 popState = false;
             }
             break;
-        case STUDY_META_DATA_LINK_SET://TODO: something
+        case STUDY_META_DATA_LINK_SET:
+            if (qualifiedName == CARET_VOL_EXT_VI_STUDY_META_SET)
+            {//TODO: something
+            } else {
+                popState = false;
+            }
             break;
         case PALETTE_COLOR_MAPPING:
             CaretAssert(m_paletteReader != NULL);
@@ -241,7 +246,7 @@ void CaretVolumeExtensionXMLReader::fatalError(const XmlSaxParserException& exce
     throw XmlSaxParserException(exception.whatString());
 }
 
-void CaretVolumeExtensionXMLReader::startDocument()
+void CaretVolumeExtensionXMLReader::startDocument() throw (XmlSaxParserException)
 {
 }
 
@@ -282,7 +287,7 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                     {
                         throw XmlSaxParserException("negative number encountered in VolumeInformation index");
                     }
-                    if (m_toFill->m_attributes.size() <= m_viIndex)
+                    if ((int)m_toFill->m_attributes.size() <= m_viIndex)
                     {
                         m_toFill->m_attributes.resize(m_viIndex + 1);//don't worry, CaretPointer copy is relatively cheap
                     }
@@ -303,12 +308,30 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
                     m_labelReader->startDocument();
                     m_labelReader->startElement(uri, localName, qName, atts);
                 } else if (qName == CARET_VOL_EXT_VI_STUDY_META_SET) {
-                    nextState = STUDY_META_DATA_LINK_SET;
+                    nextState = STUDY_META_DATA_LINK_SET;//TODO: something
                 } else if (qName == PaletteColorMappingXmlElements::XML_TAG_PALETTE_COLOR_MAPPING) {
                     nextState = PALETTE_COLOR_MAPPING;
+                    CaretAssertVectorIndex(m_toFill->m_attributes, m_viIndex);
+                    m_toFill->m_attributes[m_viIndex]->m_palette.grabNew(new PaletteColorMapping);
+                    m_paletteReader.grabNew(new PaletteColorMappingSaxReader(m_toFill->m_attributes[m_viIndex]->m_palette));
+                    m_paletteReader->startDocument();
+                    m_paletteReader->startElement(uri, localName, qName, atts);
                 } else if (qName == CARET_VOL_EXT_VI_TYPE) {
                     nextState = VOLUME_TYPE;
                 }
+                break;
+            case LABEL_TABLE:
+                addState = false;
+                CaretAssert(m_labelReader != NULL);
+                m_labelReader->startElement(uri, localName, qName, atts);
+                break;
+            case STUDY_META_DATA_LINK_SET:
+                addState = false;//TODO: something
+                break;
+            case PALETTE_COLOR_MAPPING:
+                addState = false;
+                CaretAssert(m_paletteReader != NULL);
+                m_paletteReader->startElement(uri, localName, qName, atts);
                 break;
         }
     }
@@ -321,4 +344,9 @@ void CaretVolumeExtensionXMLReader::startElement(const AString& uri, const AStri
         m_stateStack.push_back(nextState);
         m_charDataStack.push_back(AString());
     }
+}
+
+void CaretVolumeExtensionXMLReader::warning(const caret::XmlSaxParserException& exception) throw (XmlSaxParserException)
+{
+    CaretLogWarning(AString("encountered XML warning in CaretVolumeExtension: ") + exception.whatString());
 }

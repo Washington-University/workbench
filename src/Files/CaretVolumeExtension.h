@@ -72,7 +72,7 @@ namespace caret
         void readFromXmlString(const AString& s);
     };
     
-    class CaretVolumeExtensionXMLReader : XmlSaxParserHandlerInterface
+    class CaretVolumeExtensionXMLReader : public XmlSaxParserHandlerInterface
     {
         enum State
         {
@@ -117,4 +117,5 @@ namespace caret
     };
 
 }
+
 #endif //__CARET_VOLUME_EXTENSION__
