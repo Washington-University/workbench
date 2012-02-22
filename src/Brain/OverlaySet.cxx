@@ -32,6 +32,7 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "LabelFile.h"
@@ -358,24 +359,80 @@ OverlaySet::initializeOverlays()
         return;
     }
     
-    std::deque<CaretMappableDataFile*> mapFiles;
-    std::deque<int32_t> mapFileIndices;
+    /*
+     * Find connectivity files giving preferense to dense over dense time series
+     */
+    std::vector<CaretMappableDataFile*> denseConnectivityFiles;
+    std::vector<CaretMappableDataFile*> denseTimeSeriesConnectivityFiles;
+    if (brain != NULL) {
+        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        const int numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
+        for (int32_t i = 0; i < numConnFiles; i++) {
+            ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+            if (clf->isEmpty() == false) {
+                switch (clf->getDataFileType()) {
+                    case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                        denseConnectivityFiles.push_back(clf);
+                        break;
+                    case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                        denseTimeSeriesConnectivityFiles.push_back(clf);
+                        break;
+                    default:
+                        CaretLogWarning("Update this code for new connecivity files type: "
+                                        + DataFileTypeEnum::toName(clf->getDataFileType()));
+                        break;
+                }
+            }
+        }
+    }
+    std::vector<CaretMappableDataFile*> connFiles;
+    connFiles.insert(connFiles.end(),
+                     denseConnectivityFiles.begin(),
+                     denseConnectivityFiles.end());
+    connFiles.insert(connFiles.end(),
+                     denseTimeSeriesConnectivityFiles.begin(),
+                     denseTimeSeriesConnectivityFiles.end());
+    const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
+    
+    
+    std::deque<CaretMappableDataFile*> shapeMapFiles;
+    std::deque<int32_t> shapeMapFileIndices;
+    
+    std::deque<CaretMappableDataFile*> overlayMapFiles;
+    std::deque<int32_t> overlayMapFileIndices;
+    
     ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayController);
     ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
     ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
     
     if (mdcs != NULL) {
+        /*
+         * Surface
+         */
         Surface* surface = mdcs->getSurface();
         BrainStructure* brainStructure = surface->getBrainStructure();
+                
+        /*
+         * Look for a shape map in metric
+         */
+        MetricFile* shapeMetricFile = NULL;
+        int32_t     shapeMapIndex;
+        if (brainStructure->getMetricShapeMap(shapeMetricFile, shapeMapIndex)) {
+            shapeMapFiles.push_back(shapeMetricFile);
+            shapeMapFileIndices.push_back(shapeMapIndex);
+        }
         
         if (brainStructure->getNumberOfLabelFiles() > 0) {
-            mapFiles.push_back(brainStructure->getLabelFile(0));
-            mapFileIndices.push_back(0);
+            overlayMapFiles.push_back(brainStructure->getLabelFile(0));
+            overlayMapFileIndices.push_back(0);
         }
         int32_t numMetricFiles = brainStructure->getNumberOfMetricFiles();
         for (int32_t i = 0; i < numMetricFiles; i++) {
-            mapFiles.push_back(brainStructure->getMetricFile(i));
-            mapFileIndices.push_back(0);
+            MetricFile* mf = brainStructure->getMetricFile(i);
+            if (mf != shapeMetricFile) {
+                overlayMapFiles.push_back(mf);
+                overlayMapFileIndices.push_back(0);
+            }
         }
         
         
@@ -383,67 +440,148 @@ OverlaySet::initializeOverlays()
     else if (mdcv != NULL) {
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
         for (int32_t i = 0; i < numVolumes; i++) {
-            mapFiles.push_back(brain->getVolumeFile(i));
-            mapFileIndices.push_back(0);
+            shapeMapFiles.push_back(brain->getVolumeFile(i));
+            shapeMapFileIndices.push_back(0);
         }
     }
     else if (mdcwb != NULL) {
         BrainStructure* leftBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
+        BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
+        
+        /*
+         * Look for a shape map in metric for left and right
+         */
+        MetricFile* leftShapeMetricFile = NULL;
+        int32_t     leftShapeMapIndex;
         if (leftBrainStructure != NULL) {
-            if (leftBrainStructure->getNumberOfMetricFiles() > 0) {
-                mapFiles.push_front(leftBrainStructure->getMetricFile(0));
-                mapFileIndices.push_front(0);
+            if (leftBrainStructure->getMetricShapeMap(leftShapeMetricFile, leftShapeMapIndex)) {
+                shapeMapFiles.push_back(leftShapeMetricFile);
+                shapeMapFileIndices.push_back(leftShapeMapIndex);
             }
-            else if (leftBrainStructure->getNumberOfLabelFiles() > 0) {
-                mapFiles.push_front(leftBrainStructure->getLabelFile(0));
-                mapFileIndices.push_front(0);
+        }
+        MetricFile* rightShapeMetricFile = NULL;
+        int32_t     rightShapeMapIndex;
+        if (rightBrainStructure != NULL) {
+            if (rightBrainStructure->getMetricShapeMap(rightShapeMetricFile, rightShapeMapIndex)) {
+                shapeMapFiles.push_back(rightShapeMetricFile);
+                shapeMapFileIndices.push_back(rightShapeMapIndex);
+            }
+        }
+        
+        if (leftBrainStructure != NULL) {
+            const int numMetricFiles = leftBrainStructure->getNumberOfMetricFiles();
+            const int numLabelFiles  = leftBrainStructure->getNumberOfLabelFiles();
+            if (numLabelFiles > 0) {
+                overlayMapFiles.push_back(leftBrainStructure->getLabelFile(0));
+                overlayMapFileIndices.push_back(0);
+            }
+            if (numMetricFiles > 0) {
+                for (int32_t i = 0; i < numMetricFiles; i++) {
+                    MetricFile* mf = leftBrainStructure->getMetricFile(i);
+                    if (mf != leftShapeMetricFile) {
+                        if (leftShapeMetricFile != NULL) {
+                            overlayMapFiles.push_back(mf);
+                            overlayMapFileIndices.push_back(0);
+                        }
+                        else {
+                            overlayMapFiles.push_front(mf);
+                            overlayMapFileIndices.push_front(0);
+                        }
+                    }
+                }
             }
         }
 
-        BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
         if (rightBrainStructure != NULL) {
-            if (rightBrainStructure->getNumberOfMetricFiles() > 0) {
-                mapFiles.push_front(rightBrainStructure->getMetricFile(0));
-                mapFileIndices.push_front(0);
+            const int numMetricFiles = rightBrainStructure->getNumberOfMetricFiles();
+            const int numLabelFiles  = rightBrainStructure->getNumberOfLabelFiles();
+            if (numLabelFiles > 0) {
+                overlayMapFiles.push_back(rightBrainStructure->getLabelFile(0));
+                overlayMapFileIndices.push_back(0);
             }
-            else if (rightBrainStructure->getNumberOfLabelFiles() > 0) {
-                mapFiles.push_front(rightBrainStructure->getLabelFile(0));
-                mapFileIndices.push_front(0);
+            if (numMetricFiles > 0) {
+                for (int32_t i = 0; i < numMetricFiles; i++) {
+                    MetricFile* mf = rightBrainStructure->getMetricFile(i);
+                    if (mf != rightShapeMetricFile) {
+                        if (rightShapeMetricFile != NULL) {
+                            overlayMapFiles.push_back(mf);
+                            overlayMapFileIndices.push_back(0);
+                        }
+                        else {
+                            overlayMapFiles.push_front(mf);
+                            overlayMapFileIndices.push_front(0);
+                        }
+                    }
+                }
             }
         }
         
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
         if (numVolumes > 0) {
-            mapFiles.push_back(brain->getVolumeFile(0));
-            mapFileIndices.push_back(0);
+            shapeMapFiles.push_back(brain->getVolumeFile(0));
+            shapeMapFileIndices.push_back(0);
         }
     }
     else {
         CaretAssertMessage(0, "Invalid model controller: " + this->modelDisplayController->getNameForGUI(false));
     }
+    
+    /*
+     * Place shape at bottom, overlay files in middle, and connectivity on top
+     */
+    const int32_t numShapeFiles = static_cast<int32_t>(shapeMapFiles.size());
+    int32_t numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size());
+    
+    /*
+     * Limit to two connectivity files if there are overlay files
+     * and put them in the front of the overlay map files
+     */
+    int32_t maxConnFiles = numConnFiles;
+    if (numOverlayMapFiles > 0) {
+        maxConnFiles = std::min(maxConnFiles, 2);
+    }
+    for (int32_t i = (maxConnFiles - 1); i >= 0; i--) {
+        overlayMapFiles.push_front(connFiles[i]);
+        overlayMapFileIndices.push_front(0);
+    }
+    /* update count */
+    numOverlayMapFiles = static_cast<int32_t>(overlayMapFiles.size()); 
+    
+    /*
+     * Number of overlay that are displayed.
+     */
+    const int32_t numDisplayedOverlays = this->getNumberOfDisplayedOverlays();
+    
+    std::deque<CaretMappableDataFile*> mapFiles;
+    std::deque<int32_t> mapFileIndices;
 
-    const int32_t numAvailableOverlays = 3 - mapFiles.size();
-    if (numAvailableOverlays > 0) {
-        std::vector<ConnectivityLoaderFile*> connFiles;
-        if (brain != NULL) {
-            ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-            const int32_t numLoaders = clm->getNumberOfConnectivityLoaderFiles();
-            const int32_t numToPush = std::min(numAvailableOverlays,
-                                               numLoaders);
-            for (int32_t i = 0; i < numToPush; i++) {
-                ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-                if (clf->isEmpty() == false) {
-                    mapFiles.push_front(clf);
-                    mapFileIndices.push_front(0);
-                }
-            }
-        }
+    /*
+     * Find out how many overlay files may be used and add them
+     */
+    const int32_t maxOverlayFiles = std::min((numDisplayedOverlays - numShapeFiles),
+                                             numOverlayMapFiles);
+    for (int32_t i = 0; i < maxOverlayFiles; i++) {
+        mapFiles.push_back(overlayMapFiles[i]);
+        mapFileIndices.push_back(overlayMapFileIndices[i]);
     }
     
-    const int32_t numMaps     = static_cast<int32_t>(mapFiles.size());
-    const int32_t numOverlays = this->getNumberOfDisplayedOverlays();
-    const int32_t minItems = std::min(numMaps, numOverlays);
-    for (int32_t i = 0; i < minItems; i++) {
+    /*
+     * Put in the shape files
+     */
+    for (int32_t i = 0; i < numShapeFiles; i++) {
+        if (static_cast<int32_t>(mapFiles.size()) >= numDisplayedOverlays) {
+            break;
+        }
+        mapFiles.push_back(shapeMapFiles[i]);
+        mapFileIndices.push_back(shapeMapFileIndices[i]);
+    }
+    
+    /*
+     * Set the overlays
+     */
+    const int32_t numMapFiles = std::min(static_cast<int32_t>(mapFiles.size()), 
+                                         this->getNumberOfDisplayedOverlays());
+    for (int32_t i = 0; i < numMapFiles; i++) {
         this->getOverlay(i)->setSelectionData(mapFiles[i], mapFileIndices[i]);
     }
 }

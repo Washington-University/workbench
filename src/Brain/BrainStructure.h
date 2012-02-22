@@ -134,6 +134,9 @@ namespace caret {
         
         bool removeDataFile(CaretDataFile* caretDataFile);
         
+        bool getMetricShapeMap(MetricFile* &metricFileOut,
+                               int32_t& shapeMapIndexOut) const;
+        
     private:
         const Surface* getVolumeInteractionSurfacePrivate() const;
         

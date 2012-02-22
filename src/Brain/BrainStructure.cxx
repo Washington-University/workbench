@@ -1028,3 +1028,97 @@ BrainStructure::removeDataFile(CaretDataFile* caretDataFile)
     return false;
 }
 
+/**
+ * Find a map in a metric file that contains shape data.
+ * It first looks for a shape NIFTI intent code.  If that
+ * is not found it looks for curvature, shape, depth, etc.
+ * @param metricFileOut
+ *    Output metric file that contains the shape map.
+ * @param shapeMapIndexOut
+ *    Output containing index of shape map.
+ * @return
+ *    True if a shape map was found, else false.
+ */
+bool 
+BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
+                                  int32_t& shapeMapIndexOut) const
+{
+    shapeMetricFileOut = NULL;
+    shapeMapIndexOut   = -1;
+    
+    MetricFile* depthMetricFile = NULL;
+    int32_t     depthMapIndex = -1;
+    MetricFile* curvatureMetricFile = NULL;
+    int32_t     curvatureMapIndex = -1;
+    MetricFile* shapeNamedMetricFile = NULL;
+    MetricFile* curvatureNamedMetricFile = NULL;
+    MetricFile* depthNamedMetricFile = NULL;
+    
+    const int numFiles = this->metricFiles.size();
+    for (int32_t i = 0; i < numFiles; i++) {
+        MetricFile* mf = this->metricFiles[i];
+        const AString filename = mf->getFileNameNoPath().toLower();
+        const int32_t numMaps = mf->getNumberOfMaps();
+        for (int32_t j = 0; j < numMaps; j++) {
+            const AString mapName = mf->getMapName(j).toLower();
+            if (mapName.contains("depth")) {
+                if (depthMetricFile == NULL) {
+                    depthMetricFile = mf;
+                    depthMapIndex   = j;
+                }
+            }
+            else if (mapName.contains("curv")) {
+                if (curvatureMetricFile == NULL) {
+                    curvatureMetricFile = mf;
+                    curvatureMapIndex   = j;
+                }
+            }
+        }
+        
+        if (filename.contains("shape")) {
+            if (numMaps > 0) {
+                shapeNamedMetricFile = mf;
+            }
+        }
+        if (filename.contains("curv")) {
+            if (numMaps > 0) {
+                curvatureNamedMetricFile = mf;
+            }
+        }
+        if (filename.contains("depth")) {
+            if (numMaps > 0) {
+                depthNamedMetricFile = mf;
+            }
+        }
+    }
+    
+    if (depthMetricFile != NULL) {
+        shapeMetricFileOut = depthMetricFile;
+        shapeMapIndexOut   = depthMapIndex;
+    }
+    else if (curvatureMetricFile != NULL) {
+        shapeMetricFileOut = curvatureMetricFile;
+        shapeMapIndexOut   = curvatureMapIndex;
+    }
+    else if (depthNamedMetricFile != NULL) {
+        shapeMetricFileOut = depthNamedMetricFile;
+        shapeMapIndexOut   = 0;
+    }
+    else if (curvatureNamedMetricFile != NULL) {
+        shapeMetricFileOut = curvatureNamedMetricFile;
+        shapeMapIndexOut   = 0;
+    }
+    else if (shapeNamedMetricFile != NULL) {
+        shapeMetricFileOut = shapeNamedMetricFile;
+        shapeMapIndexOut   = 0;
+    }
+    
+    if ((shapeMetricFileOut != NULL) 
+        && (shapeMapIndexOut >= 0)) {
+        return true;
+    }
+    
+    return false;
+}
+
+
