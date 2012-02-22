@@ -32,6 +32,8 @@
 
 namespace caret {
 
+    class Surface;
+    
     class StructureSelectionControl : public QObject {
         
         Q_OBJECT
