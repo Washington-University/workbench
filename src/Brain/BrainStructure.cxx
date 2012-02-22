@@ -245,7 +245,8 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
  *    the number of nodes in this brain structure.
  */
 void 
-BrainStructure::addSurface(Surface* surface) throw (DataFileException)
+BrainStructure::addSurface(Surface* surface,
+                           const bool initilizeOverlaysFlag) throw (DataFileException)
 {
     CaretAssert(surface);
     
@@ -281,6 +282,10 @@ BrainStructure::addSurface(Surface* surface) throw (DataFileException)
     ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(this->brain,
                                                                             surface);
     this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
+    
+    if (initilizeOverlaysFlag) {
+        mdcs->initializeOverlays();
+    }
     
     /*
      * Send the controller added event.

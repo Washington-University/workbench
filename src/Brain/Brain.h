@@ -219,6 +219,9 @@ namespace caret {
          * is also in the displayProperties vector.
          */
         DisplayPropertiesInformation* displayPropertiesInformation;
+        
+        /** true when a spec file is being read */
+        bool isSpecFileBeingRead;
     };
 
 } // namespace

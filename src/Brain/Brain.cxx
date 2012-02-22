@@ -40,6 +40,7 @@
 #include "EventDataFileRead.h"
 #include "EventModelDisplayControllerAdd.h"
 #include "EventModelDisplayControllerDelete.h"
+#include "EventModelDisplayControllerGetAll.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FileInformation.h"
@@ -83,6 +84,8 @@ Brain::Brain()
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
+    
+    this->isSpecFileBeingRead = false;
 }
 
 /**
@@ -191,6 +194,8 @@ Brain::getBrainStructure(StructureEnum::Enum structure,
 void 
 Brain::resetBrain()
 {
+    this->isSpecFileBeingRead = false;
+
     int num = this->getNumberOfBrainStructures();
     for (int32_t i = 0; i < num; i++) {
         delete this->brainStructures[i];
@@ -264,7 +269,9 @@ Brain::readSurfaceFile(const AString& filename,
     
     BrainStructure* bs = this->getBrainStructure(structure, true);
     if (bs != NULL) {
-        bs->addSurface(surface);
+        const bool initializeOverlaysFlag = (this->isSpecFileBeingRead == false);
+        bs->addSurface(surface,
+                       initializeOverlaysFlag);
     }
     else {
         delete surface;
@@ -917,6 +924,10 @@ Brain::updateVolumeSliceController()
             this->volumeSliceController = new ModelDisplayControllerVolume(this);
             EventModelDisplayControllerAdd eventAddModel(this->volumeSliceController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
+
+            if (this->isSpecFileBeingRead == false) {
+                this->volumeSliceController->initializeOverlays();
+            }
         }
     }
     else {
@@ -946,6 +957,10 @@ Brain::updateWholeBrainController()
             this->wholeBrainController = new ModelDisplayControllerWholeBrain(this);
             EventModelDisplayControllerAdd eventAddModel(this->wholeBrainController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if (this->isSpecFileBeingRead == false) {
+                this->wholeBrainController->initializeOverlays();
+            }
         }
     }
     else {
@@ -1064,6 +1079,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void 
 Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent)
 {
+    this->isSpecFileBeingRead = true;
+    
     ElapsedTimer timer;
     timer.start();
     
@@ -1121,11 +1138,26 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     
     this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded();
     
+    /*
+     * Initialize the overlay for ALL models
+     */
+    EventModelDisplayControllerGetAll getAllModels;
+    EventManager::get()->sendEvent(getAllModels.getPointer());
+    std::vector<ModelDisplayController*> allModels = getAllModels.getModelDisplayControllers();
+    for (std::vector<ModelDisplayController*>::iterator iter = allModels.begin();
+         iter != allModels.end();
+         iter++) {
+        ModelDisplayController* mdc = *iter;
+        mdc->initializeOverlays();
+    }
+    
     CaretLogInfo("Time to read files from spec file (in Brain) \""
                  + sf->getFileNameNoPath()
                  + "\" was "
                  + AString::number(timer.getElapsedTimeSeconds())
                  + " seconds.");
+    
+    this->isSpecFileBeingRead = false;
 }
 
 /**

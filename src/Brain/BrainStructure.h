@@ -73,7 +73,8 @@ namespace caret {
         
         void addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException);
         
-        void addSurface(Surface* surface) throw (DataFileException);
+        void addSurface(Surface* surface,
+                        const bool initilizeOverlaysFlag) throw (DataFileException);
         
         void deleteSurface(Surface* surface);
         
