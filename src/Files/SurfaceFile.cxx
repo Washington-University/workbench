@@ -56,7 +56,7 @@ SurfaceFile::SurfaceFile()
  *     Surface file that is copied.
  */
 SurfaceFile::SurfaceFile(const SurfaceFile& sf)
-: GiftiTypeFile(sf)
+: GiftiTypeFile(sf), EventListenerInterface()
 {
     this->initializeMembersSurfaceFile();
     this->copyHelperSurfaceFile(sf);

@@ -101,3 +101,29 @@ int32_t CaretMappableDataFile::getMapIndexFromNameOrNumber(const AString& mapNam
     }
     return ret;
 }
+
+int32_t CaretMappableDataFile::getMapIndexFromName(const AString& mapName)
+{
+    int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; ++i)
+    {
+        if (mapName == getMapName(i))
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int32_t CaretMappableDataFile::getMapIndexFromUniqueID(const AString& uniqueID) const
+{
+    int32_t numMaps = getNumberOfMaps();
+    for (int32_t i = 0; i < numMaps; ++i)
+    {
+        if (uniqueID == getMapUniqueID(i))
+        {
+            return i;
+        }
+    }
+    return -1;
+}

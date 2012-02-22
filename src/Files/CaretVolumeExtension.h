@@ -29,6 +29,7 @@
 #include "PaletteColorMapping.h"
 #include "CaretPointer.h"
 #include <vector>
+#include "XmlWriter.h"
 #include "XmlSaxParserHandlerInterface.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "GiftiLabelTableSaxReader.h"

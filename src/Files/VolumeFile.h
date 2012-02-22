@@ -28,11 +28,34 @@
 
 #include "VolumeBase.h"
 #include "CaretMappableDataFile.h"
+#include "CaretVolumeExtension.h"
+#include "StructureEnum.h"
+#include "GiftiMetaData.h"
+#include "BoundingBox.h"
+#include "DescriptiveStatistics.h"
 
 namespace caret {
 
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
+        CaretVolumeExtension m_caretVolExt;
+        
+        void parseExtensions();//called after reading a file, in order to populate m_caretVolExt with best guesses
+        
+        void validateMembers();//called to ensure extension agrees with number of subvolumes
+        
+        void updateCaretExtension();//called before writing a file, erases all existing caret extensions from m_extensions, and rebuilds one from m_caretVolExt
+        
+        struct BrickAttributes//for storing ONLY stuff that doesn't get saved to the caret extension
+        {
+            CaretPointer<DescriptiveStatistics> m_statistics;
+            CaretPointer<DescriptiveStatistics> m_statisticsLimitedValues;
+            CaretPointer<GiftiMetaData> m_metadata;//NOTE: does not get saved currently!
+        };
+        
+        mutable std::vector<BrickAttributes> m_brickAttributes;//because statistics and metadata construct lazily
+        
+        bool m_brickStatisticsValid;//so that setModified() doesn't do something slow
         
     public:
         
@@ -50,6 +73,10 @@ namespace caret {
         VolumeFile(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
         ~VolumeFile();
         
+        ///recreates the volume file storage with new size and spacing
+        void reinitialize(const std::vector<int64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const int64_t numComponents = 1);
+        void reinitialize(const std::vector<uint64_t>& dimensionsIn, const std::vector<std::vector<float> >& indexToSpace, const uint64_t numComponents = 1);
+
         float interpolateValue(const float* coordIn, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
 
         float interpolateValue(const float coordIn1, const float coordIn2, const float coordIn3, InterpType interp = TRILINEAR, bool* validOut = NULL, const int64_t brickIndex = 0, const int64_t component = 0);
@@ -63,82 +90,73 @@ namespace caret {
 
         bool isEmpty() const { return VolumeBase::isEmpty(); }
         
-        virtual void setModified() { VolumeBase::setModified(); }
+        virtual void setModified();
         
         virtual void clearModified() { CaretMappableDataFile::clearModified(); VolumeBase::clearModified(); }
         
         virtual bool isModified() const { return (CaretMappableDataFile::isModified() || VolumeBase::isModified()); }
         
+        BoundingBox getSpaceBoundingBox() const;
+        
         /**
          * @return The structure for this file.
          */
-        StructureEnum::Enum getStructure() const { return VolumeBase::getStructure(); }
+        StructureEnum::Enum getStructure() const;
         
         /**
          * Set the structure for this file.
          * @param structure
          *   New structure for this file.
          */
-        void setStructure(const StructureEnum::Enum structure) { VolumeBase::setStructure(structure); }
+        void setStructure(const StructureEnum::Enum structure);
         
         /**
          * @return Get access to the file's metadata.
          */
-        GiftiMetaData* getFileMetaData() { return VolumeBase::getFileMetaData(); }
+        GiftiMetaData* getFileMetaData() { return NULL; }//doesn't seem to be a spot for generic metadata in the nifti caret extension
         
         /**
          * @return Get access to unmodifiable file's metadata.
          */
-        const GiftiMetaData* getFileMetaData() const { return VolumeBase::getFileMetaData(); }
+        const GiftiMetaData* getFileMetaData() const { return NULL; }
         
-        bool isSurfaceMappable() const { return VolumeBase::isSurfaceMappable(); }
+        bool isSurfaceMappable() const { return false; }
         
-        bool isVolumeMappable() const { return VolumeBase::isVolumeMappable(); }
+        bool isVolumeMappable() const { return true; }
         
-        int32_t getNumberOfMaps() const { return VolumeBase::getNumberOfMaps(); }
+        int32_t getNumberOfMaps() const { return m_dimensions[3]; }
         
-        AString getMapName(const int32_t mapIndex) const { return VolumeBase::getMapName(mapIndex); }
-        
-        int32_t getMapIndexFromName(const AString& mapName) { return VolumeBase::getMapIndexFromName(mapName); }
+        AString getMapName(const int32_t mapIndex) const;
         
         void setMapName(const int32_t mapIndex,
-                                const AString& mapName) { VolumeBase::setMapName(mapIndex, mapName); }
+                                const AString& mapName);
         
-        const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const { return VolumeBase::getMapMetaData(mapIndex); }
+        const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
         
-        GiftiMetaData* getMapMetaData(const int32_t mapIndex) { return VolumeBase::getMapMetaData(mapIndex); }
+        GiftiMetaData* getMapMetaData(const int32_t mapIndex);
         
-        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex) { return VolumeBase::getMapStatistics(mapIndex); }
+        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
         
         const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
                                                       const float mostPositiveValueInclusive,
                                                       const float leastPositiveValueInclusive,
                                                       const float leastNegativeValueInclusive,
                                                       const float mostNegativeValueInclusive,
-                                                      const bool includeZeroValues) {
-            return VolumeBase::getMapStatistics(mapIndex,
-                                                mostPositiveValueInclusive,
-                                                leastPositiveValueInclusive,
-                                                leastNegativeValueInclusive,
-                                                mostNegativeValueInclusive,
-                                                includeZeroValues);             
-        }
+                                                      const bool includeZeroValues);
         
-        bool isMappedWithPalette() const { return VolumeBase::isMappedWithPalette(); }
+        bool isMappedWithPalette() const;
         
-        PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) { return VolumeBase::getMapPaletteColorMapping(mapIndex); }
+        PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
         
-        const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const { return VolumeBase::getMapPaletteColorMapping(mapIndex); }
+        const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
         
-        bool isMappedWithLabelTable() const { return VolumeBase::isMappedWithLabelTable(); }
+        bool isMappedWithLabelTable() const;
         
-        GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) { return VolumeBase::getMapLabelTable(mapIndex); }
+        GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
         
-        const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const { return VolumeBase::getMapLabelTable(mapIndex); }
+        const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
 
-        AString getMapUniqueID(const int32_t mapIndex) const { return VolumeBase::getMapUniqueID(mapIndex); }
-        
-        int32_t getMapIndexFromUniqueID(const AString& uniqueID) const { return VolumeBase::getMapIndexFromUniqueID(uniqueID); }
+        AString getMapUniqueID(const int32_t mapIndex) const;
     };
 
 }

@@ -93,7 +93,7 @@ namespace caret {
          *    than one map with the given name, this method is likely
          *    to return the index of the first map with the name.
          */
-        virtual int32_t getMapIndexFromName(const AString& mapName) = 0;
+        virtual int32_t getMapIndexFromName(const AString& mapName);
         
         /**
          * Find the index of the map that uses the given name.
@@ -156,7 +156,7 @@ namespace caret {
          * @return
          *    Index of the map using the given UUID.
          */
-        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const = 0;
+        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
         
         /**
          * @return Is the data in the file mapped to colors using

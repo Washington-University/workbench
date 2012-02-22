@@ -127,7 +127,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         if (extender[0] != 0)
         {
             int64_t curOffset = eOffset + 4;
-            while (curOffset + 8 < vOffset)//ensure reading the elength, ecode doesn't go into the voxel data
+            while (curOffset + 8 <= vOffset)//ensure reading the elength, ecode doesn't go into the voxel data
             {
                 int32_t esize, ecode;
                 if (isCompressed())
@@ -155,7 +155,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
                     ByteSwapping::swapBytes(&esize, 1);
                     ByteSwapping::swapBytes(&ecode, 1);
                 }
-                if (esize < 8)//esize is signed according to spec, and should take into account the 8 bytes of esize, ecode
+                if (esize < 8 || curOffset + esize > vOffset)//esize is signed according to spec, and should take into account the 8 bytes of esize, ecode
                 {
                     break;//so, stop immediately if esize doesn't make sense, but allow an extension with no data bytes
                 }
@@ -436,7 +436,7 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
             case AbstractVolumeExtension::NIFTI2://inheritance works only one way, so we need to make a new CaretPointer to a new NiftiAbstractExtension and point its m_bytes to the same place
                 {
                     CaretPointer<NiftiAbstractVolumeExtension> tempExt(new NiftiAbstractVolumeExtension());
-                    NiftiAbstractVolumeExtension* toCopy = (NiftiAbstractVolumeExtension*)m_extensions[i].getPointer();
+                    NiftiAbstractVolumeExtension* toCopy = (NiftiAbstractVolumeExtension*)vol.m_extensions[i].getPointer();
                     tempExt->m_ecode = toCopy->m_ecode;
                     tempExt->m_niftiVersion = toCopy->m_niftiVersion;
                     tempExt->m_bytes = toCopy->m_bytes;//make a dumb shallow copy, thats okay because we don't modify it

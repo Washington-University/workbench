@@ -23,9 +23,10 @@
  */ 
 
 #include "CaretVolumeExtension.h"
-#include "XmlWriter.h"
 #include "XmlSaxParser.h"
 #include "GiftiXmlElements.h"
+#include "PaletteColorMapping.h"
+#include "PaletteColorMappingSaxReader.h"
 #include "PaletteColorMappingXmlElements.h"
 #include "CaretLogger.h"
 #include <ctime>
@@ -78,7 +79,7 @@ void SubvolumeAttributes::writeAsXML(XmlWriter& xmlWriter, int index)
     xmlWriter.writeStartElement(CARET_VOL_EXT_VOL_INFO, myattrs);
     if (!m_comment.isEmpty()) xmlWriter.writeElementCData(CARET_VOL_EXT_VI_COMMENT, m_comment);
     if (!m_guiLabel.isEmpty()) xmlWriter.writeElementCData(CARET_VOL_EXT_VI_GUI_LABEL, m_guiLabel);
-    if (m_type == LABEL && m_labelTable != NULL) m_labelTable->writeAsXML(xmlWriter);
+    if (m_labelTable != NULL) m_labelTable->writeAsXML(xmlWriter);//expect the extension to not have stuff it doesn't need, so just write everything it has
     m_studyMetadata.writeAsXML(xmlWriter);
     if (m_palette != NULL) m_palette->writeAsXML(xmlWriter);
     AString typeString;
