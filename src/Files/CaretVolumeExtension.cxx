@@ -48,9 +48,13 @@ static const AString CARET_VOL_EXT_VI_TYPE = "VolumeType";
 void CaretVolumeExtension::readFromXmlString(const AString& s)
 {
     CaretVolumeExtensionXMLReader myReader(this);
-    XmlSaxParser* myParser = XmlSaxParser::createXmlParser();
-    myParser->parseString(s, &myReader);
-    delete myParser;
+    CaretPointer<XmlSaxParser> myParser(XmlSaxParser::createXmlParser());
+    try
+    {
+        myParser->parseString(s, &myReader);
+    } catch (XmlSaxParserException& e) {
+        CaretLogWarning(AString("Failed to parse caret volume extension: ") + e.whatString());
+    }
 }
 
 void CaretVolumeExtension::writeAsXML(XmlWriter& xmlWriter)
@@ -244,7 +248,7 @@ void CaretVolumeExtensionXMLReader::error(const XmlSaxParserException& exception
 
 void CaretVolumeExtensionXMLReader::fatalError(const XmlSaxParserException& exception) throw (XmlSaxParserException)
 {//all of our members are self-deleting, no worries, just throw
-    throw XmlSaxParserException(exception.whatString());
+    throw XmlSaxParserException(exception);//throw a copy of it rather than the original reference, not sure if it matters
 }
 
 void CaretVolumeExtensionXMLReader::startDocument() throw (XmlSaxParserException)
