@@ -41,28 +41,65 @@ VolumeFile::VolumeFile()
     validateMembers();
 }
 
-VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+VolumeFile::VolumeFile(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     validateMembers();
+    setType(whatType);
 }
 
-VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
+VolumeFile::VolumeFile(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 : VolumeBase(dimensionsIn, indexToSpace, numComponents), CaretMappableDataFile(DataFileTypeEnum::VOLUME)
 {
     validateMembers();
+    setType(whatType);
 }
 
-void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
+void VolumeFile::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 {
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
     validateMembers();
+    setType(whatType);
 }
 
-void VolumeFile::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents)
+void VolumeFile::reinitialize(const vector<uint64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const uint64_t numComponents, SubvolumeAttributes::VolumeType whatType)
 {
     VolumeBase::reinitialize(dimensionsIn, indexToSpace, numComponents);
     validateMembers();
+    setType(whatType);
+}
+
+SubvolumeAttributes::VolumeType VolumeFile::getType() const
+{
+    CaretAssertVectorIndex(m_caretVolExt.m_attributes, 0);
+    CaretAssert(m_caretVolExt.m_attributes[0] != NULL);
+    return m_caretVolExt.m_attributes[0]->m_type;
+}
+
+void VolumeFile::setType(SubvolumeAttributes::VolumeType whatType)
+{
+    int numAttrs = (int)m_caretVolExt.m_attributes.size();
+    for (int i = 0; i < numAttrs; ++i)
+    {
+        CaretAssert(m_caretVolExt.m_attributes[i] != NULL);
+        if (m_caretVolExt.m_attributes[i]->m_type != whatType)
+        {
+            m_caretVolExt.m_attributes[i]->m_type = whatType;
+            if (whatType == SubvolumeAttributes::LABEL)
+            {
+                m_caretVolExt.m_attributes[i]->m_palette.grabNew(NULL);
+                m_caretVolExt.m_attributes[i]->m_labelTable.grabNew(new GiftiLabelTable());
+            } else {
+                m_caretVolExt.m_attributes[i]->m_palette.grabNew(new PaletteColorMapping());
+                m_caretVolExt.m_attributes[i]->m_labelTable.grabNew(NULL);
+                if (whatType == SubvolumeAttributes::ANATOMY)
+                {
+                    m_caretVolExt.m_attributes[i]->m_palette->setSelectedPaletteName(Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME);
+                    m_caretVolExt.m_attributes[i]->m_palette->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
+                }
+            }
+        }
+    }
 }
 
 VolumeFile::~VolumeFile()
@@ -498,14 +535,14 @@ VolumeFile::getMapStatistics(const int32_t mapIndex,
     
     if (m_brickAttributes[mapIndex].m_statisticsLimitedValues == NULL) {
         m_brickAttributes[mapIndex].m_statisticsLimitedValues.grabNew(new DescriptiveStatistics());
-        m_brickAttributes[mapIndex].m_statisticsLimitedValues->update(getFrame(mapIndex), 
-                                                                    m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
-                                                                    mostPositiveValueInclusive,
-                                                                    leastPositiveValueInclusive,
-                                                                    leastNegativeValueInclusive,
-                                                                    mostNegativeValueInclusive,
-                                                                    includeZeroValues);
     }
+    m_brickAttributes[mapIndex].m_statisticsLimitedValues->update(getFrame(mapIndex), 
+                                                                m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
+                                                                mostPositiveValueInclusive,
+                                                                leastPositiveValueInclusive,
+                                                                leastNegativeValueInclusive,
+                                                                mostNegativeValueInclusive,
+                                                                includeZeroValues);
     
     return m_brickAttributes[mapIndex].m_statisticsLimitedValues;
 }
