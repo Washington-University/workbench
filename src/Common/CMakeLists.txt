@@ -60,6 +60,7 @@ EventProgressUpdate.h
 EventTypeEnum.h
 FileInformation.h
 FloatMatrix.h
+Histogram.h
 HtmlStringBuilder.h
 Logger.h
 LogHandler.h
@@ -115,6 +116,7 @@ EventProgressUpdate.cxx
 EventTypeEnum.cxx
 FileInformation.cxx
 FloatMatrix.cxx
+Histogram.cxx
 HtmlStringBuilder.cxx
 Logger.cxx
 LogHandler.cxx
