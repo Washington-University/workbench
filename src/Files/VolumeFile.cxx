@@ -448,7 +448,7 @@ VolumeFile::getMapStatistics(const int32_t mapIndex)
     
     if (m_brickAttributes[mapIndex].m_statistics == NULL) {
         DescriptiveStatistics* ds = new DescriptiveStatistics();
-        ds->update(m_data, m_dataSize);
+        ds->update(getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]);
         m_brickAttributes[mapIndex].m_statistics.grabNew(ds);
     }
     
@@ -498,8 +498,8 @@ VolumeFile::getMapStatistics(const int32_t mapIndex,
     
     if (m_brickAttributes[mapIndex].m_statisticsLimitedValues == NULL) {
         m_brickAttributes[mapIndex].m_statisticsLimitedValues.grabNew(new DescriptiveStatistics());
-        m_brickAttributes[mapIndex].m_statisticsLimitedValues->update(m_data, 
-                                                                    m_dataSize,
+        m_brickAttributes[mapIndex].m_statisticsLimitedValues->update(getFrame(mapIndex), 
+                                                                    m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
                                                                     mostPositiveValueInclusive,
                                                                     leastPositiveValueInclusive,
                                                                     leastNegativeValueInclusive,
