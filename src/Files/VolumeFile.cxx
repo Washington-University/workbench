@@ -227,7 +227,12 @@ void VolumeFile::parseExtensions()
         switch (whichType)
         {
             case 100://caret extension
-                m_caretVolExt.readFromXmlString(AString(m_extensions[whichExt]->m_bytes));
+                {
+                    QByteArray myByteArray(m_extensions[whichExt]->m_bytes, m_extensions[whichExt]->m_bytes.size());
+                    myByteArray.append('\0');//give it a null byte to ensure it stops
+                    AString myString(myByteArray);
+                    m_caretVolExt.readFromXmlString(myString);
+                }
                 break;
             default:
                 break;
