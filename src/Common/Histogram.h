@@ -33,7 +33,7 @@ namespace caret
     
     class Histogram
     {
-        std::vector<int64_t> m_buckets;
+        std::vector<int64_t> m_buckets, m_cumulative;
         std::vector<float> m_display;
         float m_bucketMin, m_bucketMax;
         ///counts of each class of number
@@ -42,6 +42,8 @@ namespace caret
         void resize(int buckets);
         
         void reset();
+        
+        void computeCumulative();
         
     public:
         Histogram(int numBuckets = 100);
@@ -65,6 +67,8 @@ namespace caret
         ///get raw counts (useful mathematically)
         const std::vector<int64_t>& getHistogramCounts() const { return m_buckets; }
         
+        const std::vector<int64_t>& getHistogramCumulativeCounts() const { return m_cumulative; }
+        
         ///get display values - counts divided by bucket widths - will be consistent on the same data regardless of number of buckets or 
         const std::vector<float>& getHistogramDisplay() const { return m_display; }
         
@@ -81,7 +85,7 @@ namespace caret
         }
         
         ///returns the low edge of the low bucket, and the high edge of the high bucket
-        void getRange(float& histMin, float& histMax)
+        void getRange(float& histMin, float& histMax) const
         {
             histMin = m_bucketMin;
             histMax = m_bucketMax;

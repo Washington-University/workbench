@@ -58,6 +58,7 @@ void Histogram::resize(int buckets)
 {
     CaretAssert(buckets > 0);
     m_buckets.resize(buckets);
+    m_cumulative.resize(buckets);
     m_display.resize(buckets);
 }
 
@@ -73,6 +74,7 @@ void Histogram::reset()
     for (int i = 0; i < numBuckets; ++i)
     {
         m_buckets[i] = 0;
+        m_cumulative[i] = 0;
         m_display[i] = 0.0f;
     }
 }
@@ -139,10 +141,23 @@ void Histogram::update(float* data, int64_t dataCount)
     if (m_bucketMin == m_bucketMax)
     {
         int64_t totalValid = m_negCount + m_posCount + m_zeroCount;
-        for (int i = 0; i < numBuckets; ++i)
+        for (int i = 0; i < numBuckets - 1; ++i)
         {
-            m_buckets[i] = totalValid / numBuckets;//so, its not particularly useful if our range is zero, but split them evenly among buckets just for kicks
+            m_cumulative[i] = (i + 1) * totalValid / numBuckets;//so, its not particularly useful if our range is zero, but split them evenly among buckets just for kicks
+            if (i == 0)
+            {
+                m_buckets[i] = m_cumulative[i];
+            } else {
+                m_buckets[i] = m_cumulative[i] - m_cumulative[i - 1];
+            }
         }//display is already zeroed, so just return
+        m_cumulative[numBuckets - 1] = totalValid;//make sure the last one has all of them
+        if (numBuckets > 1)
+        {
+            m_buckets[numBuckets - 1] = m_cumulative[numBuckets - 1] - m_cumulative[numBuckets - 2];
+        } else {
+            m_buckets[numBuckets - 1] = m_cumulative[numBuckets - 1];
+        }
         return;
     }
     float bucketsize = (m_bucketMax - m_bucketMin) / numBuckets;
@@ -157,6 +172,7 @@ void Histogram::update(float* data, int64_t dataCount)
         CaretAssertVectorIndex(m_buckets, bucket);
         ++m_buckets[bucket];
     }
+    computeCumulative();
     for (int i = 0; i < numBuckets; ++i)
     {//compute display values by normalizing by bucket size
         m_display[i] = m_buckets[i] / bucketsize;
@@ -224,9 +240,22 @@ void Histogram::update(const float* data, const int64_t dataCount, float mostPos
                     m_posCount = equalCount;
                 }
             }
-            for (int i = 0; i < numBuckets; ++i)
+            for (int i = 0; i < numBuckets - 1; ++i)
             {
-                m_buckets[i] = equalCount / numBuckets;
+                m_cumulative[i] = (i + 1) * equalCount / numBuckets;//so, its not particularly useful if our range is zero, but split them evenly among buckets just for kicks
+                if (i == 0)
+                {
+                    m_buckets[i] = m_cumulative[i];
+                } else {
+                    m_buckets[i] = m_cumulative[i] - m_cumulative[i - 1];
+                }
+            }//display is already zeroed, so just return
+            m_cumulative[numBuckets - 1] = equalCount;//make sure the last one has all of them
+            if (numBuckets > 1)
+            {
+                m_buckets[numBuckets - 1] = m_cumulative[numBuckets - 1] - m_cumulative[numBuckets - 2];
+            } else {
+                m_buckets[numBuckets - 1] = m_cumulative[numBuckets - 1];
             }
         }
         return;
@@ -271,8 +300,20 @@ void Histogram::update(const float* data, const int64_t dataCount, float mostPos
         CaretAssertVectorIndex(m_buckets, bucket);
         ++m_buckets[bucket];
     }
+    computeCumulative();
     for (int i = 0; i < numBuckets; ++i)
     {//compute display values by normalizing by bucket size
         m_display[i] = m_buckets[i] / bucketsize;
+    }
+}
+
+void Histogram::computeCumulative()
+{
+    int numBuckets = (int)m_buckets.size();
+    int64_t accum = 0;
+    for (int i = 0; i < numBuckets; ++i)
+    {
+        accum += m_buckets[i];
+        m_cumulative[i] = accum;
     }
 }
