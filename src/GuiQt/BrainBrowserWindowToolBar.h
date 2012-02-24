@@ -374,6 +374,8 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
+        
+        int32_t indexOfNewestAddedOrInsertedTab;
     };
 }
 

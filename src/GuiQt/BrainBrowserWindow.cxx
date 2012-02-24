@@ -847,8 +847,13 @@ BrainBrowserWindow::processCloseSpecFile()
 {
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrain();
+    
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    GuiManager::get()->closeAllOtherWindows(this);
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
 }
 
 /**

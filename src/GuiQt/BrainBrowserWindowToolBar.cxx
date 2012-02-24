@@ -120,6 +120,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolBoxToolButtonAction = toolBox->toggleViewAction();
     this->updateCounter = 0;
     
+    this->indexOfNewestAddedOrInsertedTab = -1;
+    
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
 
@@ -439,6 +441,7 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     
     const int32_t tabContentIndex = tabContent->getTabNumber();
     
+    this->indexOfNewestAddedOrInsertedTab = -1;
     
     int32_t newTabIndex = -1;
     const int32_t numTabs = this->tabBar->count();
@@ -460,6 +463,9 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
             newTabIndex = insertIndex;
         }
     }
+    
+    this->indexOfNewestAddedOrInsertedTab = newTabIndex;
+    
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
     const int32_t numOpenTabs = this->tabBar->count();
@@ -557,8 +563,29 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         }
     }
     
-    int32_t tabIndex = 0;
+    int32_t numberOfTabsNeeded = 0;
+    if (leftSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (rightSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (cerebellumSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (volumeController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (wholeBrainController != NULL) {
+        numberOfTabsNeeded++;
+    }
     
+    const int32_t numberOfTabsToAdd = numberOfTabsNeeded - this->tabBar->count();
+    for (int32_t i = 0; i < numberOfTabsToAdd; i++) {
+        this->addNewTab();
+    }
+    
+    int32_t tabIndex = 0;
     tabIndex = loadIntoTab(tabIndex,
                            leftSurfaceController);
     tabIndex = loadIntoTab(tabIndex,
@@ -599,10 +626,18 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
     int32_t tabIndex = tabIndexIn;
     
     if (controller != NULL) {
+        this->indexOfNewestAddedOrInsertedTab = -1;
+        
         if (tabIndex >= this->tabBar->count()) {
             this->addNewTab();
-            tabIndex = this->tabBar->count() - 1;
+            if (this->indexOfNewestAddedOrInsertedTab >= 0) {
+                tabIndex = this->indexOfNewestAddedOrInsertedTab;
+            }
+            else {
+                tabIndex = this->tabBar->count() - 1;
+            }
         }
+        
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
         btc->setSelectedModelType(controller->getControllerType());
@@ -612,6 +647,7 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         if (surfaceController != NULL) {
             btc->getSurfaceModelSelector()->setSelectedStructure(surfaceController->getSurface()->getStructure());
             btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
+            btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE);
         }
         this->updateTabName(tabIndex);
         
@@ -678,7 +714,9 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
     for (int32_t i = (numTabs - 1); i >= 0; i--) {
         void* p = this->tabBar->tabData(i).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
-        allTabContent.push_back(btc);
+        if (btc != NULL) {
+            allTabContent.push_back(btc);
+        }
         this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
         this->tabClosed(i);
     }
@@ -787,13 +825,17 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
         tabIndexForUpdate = this->tabBar->currentIndex();
     }
     void* p = this->tabBar->tabData(tabIndexForUpdate).value<void*>();
-    BrowserTabContent* btc = (BrowserTabContent*)p;    
-    this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
+    AString newName = "";
+    BrowserTabContent* btc = (BrowserTabContent*)p;   
+    if (btc != NULL) {
+        newName = btc->getName();
+    }
+    this->tabBar->setTabText(tabIndexForUpdate, newName);
 
     /*
      * Set title of toolbox
      */
-    this->toolBox->setWindowTitle(btc->getName());
+    this->toolBox->setWindowTitle(newName);
     /*
     QIcon coronalIcon;
     const bool coronalIconValid =
