@@ -100,7 +100,7 @@ CaretColorEnum::initialize()
       
     enumData.push_back(CaretColorEnum(SURFACE, 
                                       "SURFACE", 
-                                      "Suface",
+                                      "Surface",
                                       0,
                                       0,
                                       0));
