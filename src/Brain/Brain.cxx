@@ -1338,10 +1338,12 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
 bool 
 Brain::removeDataFile(CaretDataFile* caretDataFile)
 {
+    bool wasRemoved = false;
+    
     const int32_t numBrainStructures = this->getNumberOfBrainStructures();
     for (int32_t i = 0; i < numBrainStructures; i++) {
         if (this->getBrainStructure(i)->removeDataFile(caretDataFile)) {
-            return true;
+            wasRemoved = true;
         }
     }
     
@@ -1352,7 +1354,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         if (bf == caretDataFile) {
             delete bf;
             this->borderFiles.erase(bfi);
-            return true;
+            wasRemoved = true;
         }
     }
     
@@ -1367,10 +1369,15 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (volumeIterator != this->volumeFiles.end()) {
         delete caretDataFile;
         this->volumeFiles.erase(volumeIterator);
-        return true;
+        wasRemoved = true;
     }
     
-    return false;
+    if (wasRemoved) {
+        this->updateVolumeSliceController();
+        this->updateWholeBrainController();
+    }
+
+    return wasRemoved;
 }
 
 /**
