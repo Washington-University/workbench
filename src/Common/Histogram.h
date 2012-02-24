@@ -50,7 +50,9 @@ namespace caret
         
         Histogram(int numBuckets, float* data, int64_t dataCount);
         
-        void update(float* data, int64_t dataCount);//does not change number of buckets from previous call
+        void update(float* data, int64_t dataCount);
+        
+        void update(int numBuckets, float* data, int64_t dataCount);
         
         void update(const float* data,
                     const int64_t dataCount,

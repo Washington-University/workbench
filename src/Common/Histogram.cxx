@@ -33,6 +33,7 @@ using namespace std;
 Histogram::Histogram(int numBuckets)
 {
     resize(numBuckets);
+    reset();
 }
 
 Histogram::Histogram(float* data, int64_t dataCount)
@@ -74,6 +75,12 @@ void Histogram::reset()
         m_buckets[i] = 0;
         m_display[i] = 0.0f;
     }
+}
+
+void Histogram::update(int numBuckets, float* data, int64_t dataCount)
+{
+    resize(numBuckets);
+    update(data, dataCount);
 }
 
 void Histogram::update(float* data, int64_t dataCount)
@@ -141,18 +148,9 @@ void Histogram::update(float* data, int64_t dataCount)
     float bucketsize = (m_bucketMax - m_bucketMin) / numBuckets;
     for (int64_t i = 0; i < dataCount; ++i)
     {//determine histogram
-        if (data[i] != data[i])
-        {
-            continue;//exclude NaN
-        }
-        if (data[i] < -1.0f && (data[i] * 2.0f == data[i]))
-        {
-            continue;//exclude -inf
-        }
-        if (data[i] > 1.0f && (data[i] * 2.0f == data[i]))
-        {
-            continue;//exclude inf
-        }
+        if (data[i] != data[i]) continue;//exclude NaN
+        if (data[i] < -1.0f && (data[i] * 2.0f == data[i])) continue;//exclude -inf
+        if (data[i] > 1.0f && (data[i] * 2.0f == data[i])) continue;//exclude inf
         int bucket = (int)((data[i] - m_bucketMin) / bucketsize);//doesn't really matter whether small negative floats truncate to a 0 integer
         if (bucket < 0) bucket = 0;//because of this
         if (bucket >= numBuckets) bucket = numBuckets - 1;
