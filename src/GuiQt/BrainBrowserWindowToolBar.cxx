@@ -962,6 +962,8 @@ BrainBrowserWindowToolBar::updateToolBar()
         CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
     }
     
+    this->updateTabName(-1);
+    
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
     if (browserWindow != NULL) {
         BrainBrowserWindowScreenModeEnum::Enum screenMode = browserWindow->getScreenMode();
