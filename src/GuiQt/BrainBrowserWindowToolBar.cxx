@@ -839,19 +839,7 @@ void
 BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 {
     CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
-    
-    void* p = this->tabBar->tabData(tabIndex).value<void*>();
-    if (p != NULL) {
-        BrowserTabContent* btc = (BrowserTabContent*)p;
-    
-        EventBrowserTabDelete deleteTabEvent(btc);
-        EventManager::get()->sendEvent(deleteTabEvent.getPointer());
-    }
-
     this->removeTab(tabIndex);
-    
-    const int numOpenTabs = this->tabBar->count();
-    this->tabBar->setTabsClosable(numOpenTabs > 1);
     
     this->updateToolBar();
     emit viewedModelChanged();
@@ -864,9 +852,22 @@ BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 void 
 BrainBrowserWindowToolBar::removeTab(int tabIndex)
 {
+    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
+    
+    void* p = this->tabBar->tabData(tabIndex).value<void*>();
+    if (p != NULL) {
+        BrowserTabContent* btc = (BrowserTabContent*)p;
+        
+        EventBrowserTabDelete deleteTabEvent(btc);
+        EventManager::get()->sendEvent(deleteTabEvent.getPointer());
+    }
+    
     this->tabBar->blockSignals(true);
     this->tabBar->removeTab(tabIndex);
     this->tabBar->blockSignals(false);
+
+    const int numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 1);    
 }
 
 /**
