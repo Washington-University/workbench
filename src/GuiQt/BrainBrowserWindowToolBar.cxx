@@ -836,30 +836,38 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 }
 
 void 
-BrainBrowserWindowToolBar::tabClosed(int indx)
+BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 {
-    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), indx);
+    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
     
-    void* p = this->tabBar->tabData(indx).value<void*>();
+    void* p = this->tabBar->tabData(tabIndex).value<void*>();
     if (p != NULL) {
         BrowserTabContent* btc = (BrowserTabContent*)p;
     
         EventBrowserTabDelete deleteTabEvent(btc);
         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
     }
-    
-    this->tabBar->blockSignals(true);
-    this->tabBar->removeTab(indx);
-    this->tabBar->blockSignals(false);
+
+    this->removeTab(tabIndex);
     
     const int numOpenTabs = this->tabBar->count();
     this->tabBar->setTabsClosable(numOpenTabs > 1);
     
-//    this->updateUserInterface();
     this->updateToolBar();
     emit viewedModelChanged();
 }
 
+/**
+ * Remove the tab at the given index.
+ * @param index
+ */
+void 
+BrainBrowserWindowToolBar::removeTab(int tabIndex)
+{
+    this->tabBar->blockSignals(true);
+    this->tabBar->removeTab(tabIndex);
+    this->tabBar->blockSignals(false);
+}
 
 /**
  * Update the toolbar.
@@ -869,6 +877,17 @@ BrainBrowserWindowToolBar::updateToolBar()
 {
     if (this->isDestructionInProgress) {
         return;
+    }
+    
+    /*
+     * If there are no models, close all but the first tab.
+     */
+    EventModelDisplayControllerGetAll getAllModelsEvent;
+    EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
+    if (getAllModelsEvent.getFirstModelDisplayController() == NULL) {
+        for (int i = (this->tabBar->count() - 1); i >= 1; i--) {
+            this->removeTab(i);
+        }
     }
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
