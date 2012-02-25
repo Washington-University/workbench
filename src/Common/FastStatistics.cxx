@@ -30,6 +30,8 @@
 using namespace caret;
 using namespace std;
 
+const int NUM_BUCKETS_PERCENTILE_HIST = 10000;//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory for each histogram
+
 FastStatistics::FastStatistics()
 {
     reset();
@@ -122,8 +124,8 @@ void FastStatistics::update(float* data, int64_t dataCount)
             m_stdDevSample = sqrt(sum2 / (totalGood - 1));
         }
     }
-    m_negPercentHist.update(10000, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
-    m_posPercentHist.update(10000, positives, m_posCount);
+    m_negPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, negatives, m_negCount);
+    m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
 }
 
 void FastStatistics::update(float* data, int64_t dataCount, float minThreshInclusive, float maxThreshInclusive)
@@ -193,8 +195,8 @@ void FastStatistics::update(float* data, int64_t dataCount, float minThreshInclu
             m_stdDevSample = sqrt(sum2 / (totalGood - 1));
         }
     }
-    m_negPercentHist.update(10000, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
-    m_posPercentHist.update(10000, positives, m_posCount);
+    m_negPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, negatives, m_negCount);//10,000 will probably allow us to approximate the percentiles pretty closely, and eats only 80K of memory each
+    m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
 }
 
 float FastStatistics::getApproxNegativePercentile(const float percent) const
