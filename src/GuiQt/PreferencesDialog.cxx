@@ -42,6 +42,7 @@
 #include "Brain.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "ConnectivityLoaderManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -268,9 +269,10 @@ PreferencesDialog::createTimeCourseWidget()
 void
 PreferencesDialog::animationStartChanged(double value)
 {
-    ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
-
-
+   CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+   prefs->setAnimationStartTime(value);   
+   ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+   manager->setAnimationStartTime(value);
 }
 /**
  * Creates logging widget.

@@ -89,8 +89,6 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
-        
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
         

@@ -144,7 +144,7 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
     
     const int numNodes = surface->getNumberOfNodes();
     const int numColorComponents = numNodes * 4;
-    float rgbaColor[numColorComponents];
+    float *rgbaColor = new float[numColorComponents];
     
     this->colorSurfaceNodes(surface, 
                             overlaySet, 
@@ -160,6 +160,8 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
                                                             rgbaColor);
         rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
     }
+
+    if(rgbaColor) delete [] rgbaColor;
     
     return rgba;
 }

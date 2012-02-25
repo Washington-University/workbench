@@ -57,7 +57,6 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);
-
 }
 
 TimeCourseDialog::~TimeCourseDialog()
@@ -76,6 +75,15 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
     {
         tlV.push_back(tlVIn[i]);
     }
+    //readjust x values to account for timestep
+    for(int i =0;i<tlV.size();i++)
+    {        
+        for(int j = 0;j<tlV[i].x.size();j++)
+        {
+            tlV.[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
+        }
+    }
+
 }
 
 void TimeCourseDialog::updateDialog(bool forceUpdate)
@@ -90,8 +98,7 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
         this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
     }
     plot->detachItems();
-    plot->populate(tlV);
-    //this->ui->
+    plot->populate(tlV);    
     this->setVisible(true);
     this->show();
     this->activateWindow();
@@ -99,6 +106,24 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     plot->replot();
     plot->setFocus();
     plot->setAttribute(Qt::WA_NoMousePropagation,true);
+}
+
+void TimeCourseDialog::setAnimationStartTime(const double &time)
+{
+    startOffset = time;
+    if(tlV.isEmpty()) return;
+    
+    for(int i =0;i<tlV.size();i++)
+    {        
+        for(int j = 0;j<tlV[i].x.size();j++)
+        {
+            tlV.[i].x[j] = startOffset + tlV.[i].timeStep*(double)j;
+        }
+    }
+    plot->detachItems();
+    plot->populate(tlV);
+    plot->update();
+    plot->replot();    
 }
 
 

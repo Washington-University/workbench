@@ -28,25 +28,31 @@
 #include "QTimer"
 namespace caret {
 
+/*void spinBoxChangeReceiver(QSpinBox* spinBox,
+                                 const int i);
+void setUpSignal(const char *object, const char *method);*/
 
-class AnimationHelper : public QThread {
-    Q_OBJECT
+class TimeSeriesManager : public QThread
+{
+   Q_OBJECT
 public:
-    AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc);
-    ~AnimationHelper();
+    TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc);
+    virtual ~TimeSeriesManager();
     void run();
-    void play();
-    void pause();
-    void stop();    
+    void play();    
+    void stop();
+    void toggleAnimation();
     void getCurrentTime();
-    void toggle();
+    void setAnimationStartTime(const double &time);   
+    
 public slots:
     void update();
 signals:
     void doubleSpinBoxValueChanged(double);
     void doubleSpinBoxValueChanged(QDoubleSpinBox*,const double);
-private:
-    int32_t m_index; //index for connectivity loader file
+private:    
+    bool m_isPlaying;
+    int32_t m_index;
     ConnectivityLoaderControl *m_clc;
     int64_t m_timeIndex;
     int64_t m_updateInterval;
@@ -55,26 +61,7 @@ private:
     int64_t m_timePoints;
     QTimer *m_timer;
     QDoubleSpinBox *m_spinBox;
-};
-
-/*void spinBoxChangeReceiver(QSpinBox* spinBox,
-                                 const int i);
-void setUpSignal(const char *object, const char *method);*/
-
-class TimeSeriesManager
-{
-public:
-    TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc);
-    virtual ~TimeSeriesManager();
-    void play();
-    void pause();
-    void stop();
-    void toggleAnimation();
-private:
-    AnimationHelper *m_helper;
-    bool m_isPlaying;
-    int32_t m_index;
-    ConnectivityLoaderControl *m_clc;
+    double m_startTime;
 };
 
 

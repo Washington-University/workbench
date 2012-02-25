@@ -36,45 +36,11 @@ using namespace caret;
 TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc)
 {
     m_index = index;
-    m_clc = clc;
-    m_helper = new AnimationHelper(index,clc);
+    m_clc = clc;    
     m_isPlaying = false;
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());
-}
-
-void TimeSeriesManager::toggleAnimation()
-{
-    m_helper->toggle();
-}
-
-TimeSeriesManager::~TimeSeriesManager()
-{
-    stop();    
-    delete m_helper;
-}
-
-void TimeSeriesManager::play()
-{
-    m_helper->play();
-    //m_helper->doAnimation();
-}
-void TimeSeriesManager::stop()
-{
-    m_helper->stop();
-}
-
-void TimeSeriesManager::pause()
-{
-    m_helper->pause();
-}
-
-
-
-AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
-{
-    m_index = index;
-    m_clc = clc;
+    
     m_timeIndex = 0;
     m_updateInterval = 500; //200;
     m_stopThread = false;
@@ -85,6 +51,7 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
     m_spinBox = clc->getTimeSpinBox(index);
+    m_startTime = 0.0;
 
 
 
@@ -95,13 +62,13 @@ AnimationHelper::AnimationHelper(int32_t &index, ConnectivityLoaderControl *clc)
     moveToThread(this);
 }
 
-AnimationHelper::~AnimationHelper()
+TimeSeriesManager::~TimeSeriesManager()
 {
     stop();
     delete m_timer;
 }
 
-void AnimationHelper::getCurrentTime()
+void TimeSeriesManager::getCurrentTime()
 {
     ConnectivityLoaderManager *clm = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
     ConnectivityLoaderFile *clf = clm->getConnectivityLoaderFile(m_index);
@@ -109,11 +76,11 @@ void AnimationHelper::getCurrentTime()
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
     QDoubleSpinBox* spinBox = m_clc->getTimeSpinBox(m_index);
-    m_timeIndex = spinBox->value()/m_timeStep;
+    m_timeIndex = (spinBox->value()+m_startTime)/m_timeStep;
     if(m_timePoints<=m_timeIndex) m_timeIndex = 0;
 }
 
-void AnimationHelper::run()
+void TimeSeriesManager::run()
 {
     getCurrentTime();
     m_timer->start(m_updateInterval);
@@ -121,11 +88,11 @@ void AnimationHelper::run()
 
 }
 
-void AnimationHelper::update()
+void TimeSeriesManager::update()
 {
     if(m_timeIndex<m_timePoints&&!(this->m_stopThread))
     {
-        emit doubleSpinBoxValueChanged((double)m_timeIndex*m_timeStep);
+        emit doubleSpinBoxValueChanged((double)(m_timeIndex*m_timeStep)+m_startTime);
         m_timeIndex++;
         //m_spinBox->thread()->wait(m_updateInterval-10);
     }
@@ -135,28 +102,44 @@ void AnimationHelper::update()
     }
 }
 
-void AnimationHelper::play()
+void TimeSeriesManager::play()
 {
     this->m_stopThread = false;
     this->start();
 }
 
-void AnimationHelper::pause()
+void TimeSeriesManager::stop()
 {
     if(m_timer->isActive()) {
         this->m_stopThread = true;
     }
 }
 
-void AnimationHelper::stop()
-{
-    pause();
-}
 
-void AnimationHelper::toggle()
+
+void TimeSeriesManager::toggleAnimation()
 {
     if(m_timer->isActive())
         stop();
     else play();
 }
+
+void TimeSeriesManager::setAnimationStartTime ( const double& time )
+{
+   this->m_startTime = time;
+   QDoubleSpinBox* spinBox = m_clc->getTimeSpinBox(m_index);
+   double currentTime = spinBox->value();
+   if(currentTime < m_startTime)
+   {
+      currentTime = time;
+      spinBox->setValue(currentTime);
+   }
+   //next, set qspinbox start and end extents
+   spinBox->setMinimum(time);
+   spinBox->setMaximum(time+m_startTime);
+   m_timeIndex = (currentTime-m_startTime)/m_timeStep;
+   
+   
+}
+
 

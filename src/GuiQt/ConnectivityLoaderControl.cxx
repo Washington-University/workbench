@@ -800,9 +800,31 @@ ConnectivityLoaderControl::updateOtherConnectivityLoaderControls()
 }
 
 void
-ConnectivityLoaderControl::setAnimationStartTime(double value)
-{
+ConnectivityLoaderControl::setAnimationStartTime(const double &value)
+{ 
+    ConnectivityLoaderManager *manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+    for (int32_t i = 0; i < static_cast<int32_t>(this->timeSpinBoxes.size()); i++) {
+        ConnectivityLoaderFile *clf = manager->getConnectivityLoaderFile(i);
+        if(clf && clf->isDenseTimeSeries())
+        {            
+            animators.at(i)->setAnimationStartTime(value);
+            TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(clf);
+            dialog->setAnimationStartTime(value);
+        }            
+    }    
     animationStartTime = value;
-}
 
+}
+void
+ConnectivityLoaderControl::updateOtherStartTime(const double &value)
+{
+    for (std::set<ConnectivityLoaderControl*>::iterator iter = ConnectivityLoaderControl::allConnectivityLoaderControls.begin();
+         iter != ConnectivityLoaderControl::allConnectivityLoaderControls.end();
+         iter++) {
+        ConnectivityLoaderControl* clc = *iter;
+        if (clc != this) {
+            clc->setAnimationStartTime(value);
+        }
+    }
+}
 

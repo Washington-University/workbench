@@ -41,7 +41,7 @@ Histogram::Histogram(const float* data, const int64_t& dataCount)
     CaretAssert(dataCount > 0);
     const int MIN_BUCKET_COUNT = 10;
     const int MAX_BUCKET_COUNT = 10000;//hits this max at 100 million
-    int numBuckets = (int)sqrt(dataCount);
+    int numBuckets = (int)sqrt((float)dataCount);
     if (numBuckets < MIN_BUCKET_COUNT) numBuckets = MIN_BUCKET_COUNT;
     if (numBuckets > MAX_BUCKET_COUNT) numBuckets = MAX_BUCKET_COUNT;
     resize(numBuckets);

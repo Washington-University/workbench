@@ -555,34 +555,6 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
     
 }
 
-/**
- * Close all but the first window.
- */
-void 
-GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
-{
-    const int32_t numWindows = this->brainBrowserWindows.size();
-    for (int32_t i = 0; i < numWindows; i++) {
-        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
-        if (bbw != browserWindow) {
-            this->allowBrowserWindowsToCloseWithoutConfirmation = true;
-            bbw->close();
-            
-            /*
-             * Should delete the windows that were closed!
-             * When a window is closed, Qt uses 'deleteLater'
-             * but we need them deleted now so that event listeners
-             * are shut down since the closed windows no longer
-             * have any content.
-             */
-            QCoreApplication::sendPostedEvents(0,  QEvent::DeferredDelete);
-            
-            this->allowBrowserWindowsToCloseWithoutConfirmation = false;
-        }
-    }
-}
-
-
 /** 
  * Reparent non-modal dialogs that may need to be reparented if the 
  * original parent, a BrainBrowserWindow is closed in which case the
@@ -697,7 +669,6 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
 
     if(browserWindow == NULL) return NULL;//not the best error checking but at least it
                                      //won't crash
-
     if (this->timeCourseDialogs[id] == NULL) {
         this->timeCourseDialogs.insert(id, new TimeCourseDialog(browserWindow));
         this->nonModalDialogs.push_back(this->timeCourseDialogs[id]);
@@ -730,13 +701,7 @@ void GuiManager::removeTimeCourseDialog(void *id)
  */
 void GuiManager::updateAnimationStartTime(double value)
 {
-    QMap <void *, TimeCourseDialog *>::const_iterator i = this->timeCourseDialogs.constBegin();
-    while(i != timeCourseDialogs.constEnd())
-    {
-        
-        ++i;
-    }
-    //this->timeCourseDialogs
+       
 }
 
 /**

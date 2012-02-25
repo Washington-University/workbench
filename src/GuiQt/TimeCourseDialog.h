@@ -67,6 +67,7 @@ public:
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
     void setTimeSeriesGraphEnabled(bool enabled);
+    void setAnimationStartTime(const double &time);
 
 private slots:
     void on_TDClose_clicked();
@@ -101,6 +102,7 @@ private:
     QList<TimeLine> tlV;
     AString filename;
     bool isEnabled;
+    double startOffset; 
 
 };
 
@@ -123,7 +125,7 @@ public:
      void setTimeLineWidth(int width);
      QwtPlotMagnifier * magnifier;
      void resetView();
-     bool getAutoScale();
+     bool getAutoScale();     
 protected:
     void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
     virtual void resizeEvent( QResizeEvent * );
