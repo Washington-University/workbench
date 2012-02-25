@@ -24,12 +24,13 @@ HttpTest.h
 HeapTest.h
 NiftiTest.h
 NiftiMatrixTest.h
+PointerTest.h
+ProgressTest.h
+StatisticsTest.h
 TestInterface.h
 TimerTest.h
 TopologyHelperOld.h
 TopologyHelperTest.h
-PointerTest.h
-ProgressTest.h
 VolumeFileTest.h
 XnatTest.h
 
@@ -38,12 +39,13 @@ HttpTest.cxx
 HeapTest.cxx
 NiftiTest.cxx
 NiftiMatrixTest.cxx
+PointerTest.cxx
+ProgressTest.cxx
+StatisticsTest.cxx
 TestInterface.cxx
 TimerTest.cxx
 TopologyHelperOld.cxx
 TopologyHelperTest.cxx
-PointerTest.cxx
-ProgressTest.cxx
 VolumeFileTest.cxx
 XnatTest.cxx
 )

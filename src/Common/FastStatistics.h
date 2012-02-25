@@ -79,6 +79,8 @@ namespace caret
         
         float getMean() const { return m_mean; }
         
+        float getApproximateMedian() const;
+        
         float getSampleStdDev() const { return m_stdDevSample; }
         
         float getPopulationStdDev() const { return m_stdDevPop; }

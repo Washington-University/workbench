@@ -122,6 +122,7 @@ void Histogram::update(float* data, int64_t dataCount)
         }
         if (first)
         {
+            first = false;
             m_bucketMin = data[i];
             m_bucketMax = data[i];
         } else {

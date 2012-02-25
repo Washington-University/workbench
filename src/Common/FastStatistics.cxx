@@ -199,7 +199,7 @@ void FastStatistics::update(float* data, int64_t dataCount, float minThreshInclu
 
 float FastStatistics::getApproxNegativePercentile(const float percent) const
 {
-    float rank = percent / 100 * m_negCount;//translate to rank
+    float rank = percent / 100.0f * m_negCount;//translate to rank
     rank = m_negCount - rank;//reverse it because negatives go the other direction, histogram is strictly directional towards positive
     if (rank <= 0) return m_mostNeg;
     if (rank >= m_negCount) return m_leastNeg;
@@ -253,14 +253,14 @@ float FastStatistics::getApproxNegativePercentile(const float percent) const
         }
     }
     float lowValue = histMin + (lowBound + 1) * bucketsize, highValue = histMin + (highBound + 1) * bucketsize;
-    return curLower + (curUpper - curLower) * (rank - lowValue) / (highValue - lowValue);
+    return lowValue + (highValue - lowValue) * (rank - curLower) / (curUpper - curLower);
 }
 
 float FastStatistics::getApproxPositivePercentile(const float percent) const
 {
-    float rank = percent / 100 * m_posCount;//translate to rank
+    float rank = percent / 100.0f * m_posCount;//translate to rank
     if (rank <= 0.0f) return m_leastPos;
-    if (rank >= m_negCount) return m_mostPos;
+    if (rank >= m_posCount) return m_mostPos;
     float histMin, histMax;
     m_posPercentHist.getRange(histMin, histMax);
     const vector<int64_t>& cumulative = m_posPercentHist.getHistogramCumulativeCounts();
@@ -311,5 +311,26 @@ float FastStatistics::getApproxPositivePercentile(const float percent) const
         }
     }
     float lowValue = histMin + (lowBound + 1) * bucketsize, highValue = histMin + (highBound + 1) * bucketsize;
-    return curLower + (curUpper - curLower) * (rank - lowValue) / (highValue - lowValue);
+    return lowValue + (highValue - lowValue) * (rank - curLower) / (curUpper - curLower);
+}
+
+float FastStatistics::getApproximateMedian() const
+{
+    int64_t totalGood = m_negCount + m_zeroCount + m_posCount;
+    if (m_negCount > m_posCount)
+    {
+        if (m_zeroCount > (m_negCount - m_posCount))
+        {
+            return 0.0f;
+        } else {
+            return getApproxNegativePercentile((m_negCount - m_posCount - m_zeroCount) * 50.0f / totalGood);
+        }
+    } else {
+        if (m_zeroCount > (m_posCount - m_negCount))
+        {
+            return 0.0f;
+        } else {
+            return getApproxNegativePercentile((m_posCount - m_negCount - m_zeroCount) * 50.0f / totalGood);
+        }
+    }
 }
