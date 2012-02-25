@@ -51,15 +51,13 @@ namespace caret {
         T* m_pointer;//to allow different templated CaretPointers to share the refcount, the share object can't contain the pointer
         CaretPointerShare* m_share;
         mutable CaretMutex m_mutex;//protects members from modification while reading, or from reading while modifying
-        template <typename T2>
-        CaretPointer& operator=(T2* right);//prevent assignment from ANY bare pointer via private, and not implemented
     public:
         CaretPointer();
         ~CaretPointer();
         CaretPointer(const CaretPointer& right);//because a templated function apparently can't override default copy
         template <typename T2>
         CaretPointer(const CaretPointer<T2>& right);
-        CaretPointer(T* right);
+        explicit CaretPointer(T* right);
         CaretPointer& operator=(const CaretPointer& right);//or default =
         template <typename T2>
         CaretPointer& operator=(const CaretPointer<T2>& right);
