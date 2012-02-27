@@ -237,6 +237,8 @@ namespace caret {
                          const DescriptiveStatistics* statistics,
                          const int paletteDrawingIndex);
         
+        float modelSizeToPixelSize(const float modelSize);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
