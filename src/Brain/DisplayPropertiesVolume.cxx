@@ -130,13 +130,20 @@ DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded()
 {
     const int32_t numBrainStructures = this->getBrain()->getNumberOfBrainStructures();
     
-    const int32_t maxIndex = std::min(numBrainStructures,
+    const int32_t maxStructureIndex = std::min(numBrainStructures,
                                       MAXIMUM_NUMBER_OF_SURFACE_OUTLINES);
-    for (int32_t i = 0; i < maxIndex; i++) {
+    for (int32_t i = 0; i < maxStructureIndex; i++) {
         BrainStructure* brainStructure = this->getBrain()->getBrainStructure(i);
         Surface* surface = brainStructure->getVolumeInteractionSurface();
         if (surface != NULL) {
             this->volumeSurfaceOutlineSelections[i]->getSurfaceSelection()->setSurface(surface);
+            this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::SURFACE);
+            this->volumeSurfaceOutlineSelections[i]->setThickness(5);
         }
+    }
+    
+    for (int32_t i = maxStructureIndex; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
+        this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::BLACK);
+        this->volumeSurfaceOutlineSelections[i]->setThickness(1);
     }
 }
