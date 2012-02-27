@@ -274,6 +274,27 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     bool valid = true;
     newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
     if(!valid) throw NiftiException("Nifti Enum bites it again.");
+    switch (headerIO.getNiftiVersion())
+    {
+        case 1:
+            {
+                Nifti1Header myheader;
+                headerIO.getHeader(myheader);
+                myheader.setNiftiDataTypeEnum(newLayout.niftiDataType);
+                headerIO.setHeader(myheader);
+            }
+            break;
+        case 2:
+            {
+                Nifti2Header myheader;
+                headerIO.getHeader(myheader);
+                myheader.setNiftiDataTypeEnum(newLayout.niftiDataType);
+                headerIO.setHeader(myheader);
+            }
+            break;
+        default:
+            throw NiftiException("error, header uninitialized in NiftiFile::writeFile");
+    }
     matrix.setMatrixLayoutOnDisk(newLayout);
     matrix.setMatrixOffset(headerIO.getVolumeOffset());
     //need better handling for different matrices, for later
