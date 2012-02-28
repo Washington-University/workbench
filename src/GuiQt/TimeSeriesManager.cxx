@@ -142,7 +142,7 @@ void TimeSeriesManager::setAnimationStartTime ( const double& time )
    }
    //next, set qspinbox start and end extents
    spinBox->setMinimum(time);
-   spinBox->setMaximum(time+m_timePoints);
+   spinBox->setMaximum(time+m_timePoints*this->m_timeStep);
    m_timeIndex = (currentTime-m_startTime)/m_timeStep;
    
    
