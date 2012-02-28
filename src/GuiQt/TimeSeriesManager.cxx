@@ -32,6 +32,8 @@
 #include "Brain.h"
 #include "GuiManager.h"
 #include "QSpinBox"
+#include "SessionManager.h"
+#include "CaretPreferences.h"
 using namespace caret;
 TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *clc)
 {
@@ -51,7 +53,11 @@ TimeSeriesManager::TimeSeriesManager(int32_t &index, ConnectivityLoaderControl *
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
     m_spinBox = clc->getTimeSpinBox(index);
-    m_startTime = 0.0;
+    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    
+    double time;
+    prefs->getAnimationStartTime( time );
+    this->setAnimationStartTime(time);
 
 
 
@@ -76,7 +82,7 @@ void TimeSeriesManager::getCurrentTime()
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
     QDoubleSpinBox* spinBox = m_clc->getTimeSpinBox(m_index);
-    m_timeIndex = (spinBox->value()+m_startTime)/m_timeStep;
+    m_timeIndex = (spinBox->value()-m_startTime)/m_timeStep;
     if(m_timePoints<=m_timeIndex) m_timeIndex = 0;
 }
 
@@ -136,7 +142,7 @@ void TimeSeriesManager::setAnimationStartTime ( const double& time )
    }
    //next, set qspinbox start and end extents
    spinBox->setMinimum(time);
-   spinBox->setMaximum(time+m_startTime);
+   spinBox->setMaximum(time+m_timePoints);
    m_timeIndex = (currentTime-m_startTime)/m_timeStep;
    
    

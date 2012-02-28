@@ -166,9 +166,10 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(const Qt::Orientation orien
     layout->addStretch();
     //TODO Be sure to get animation start time from saved preferences
     
-    animationStartTime = 0.0f;
+    double time = 0.0f;
     CaretPreferences *pref = SessionManager::get()->getCaretPreferences();
-    pref->getAnimationStartTime(animationStartTime);    
+    pref->getAnimationStartTime(time); 
+    this->setAnimationStartTime(time);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME);
 }
 
@@ -344,7 +345,8 @@ ConnectivityLoaderControl::updateControl()
                 this->showTimeGraphCheckBoxes[i]->setEnabled(true);
                 this->timeSpinBoxes[i]->setEnabled(true);
                 this->timeSpinBoxes[i]->setSingleStep(clf->getTimeStep());
-                this->timeSpinBoxes[i]->setValue(clf->getSelectedTimePoint());
+                this->timeSpinBoxes[i]->setValue(clf->getSelectedTimePoint()+animationStartTime);
+                this->setAnimationStartTime(animationStartTime);
                 this->animateButtons[i]->setEnabled(true);
             }
             else {
@@ -708,8 +710,10 @@ ConnectivityLoaderControl::timeSpinBoxesValueChanged(QDoubleSpinBox* doubleSpinB
 
     ElapsedTimer et;
     et.start();
-    
-    if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[fileIndex]->value())) {
+    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    double timeStepOffset;
+    prefs->getAnimationStartTime(timeStepOffset);
+    if (manager->loadTimePointAtTime(clf, this->timeSpinBoxes[fileIndex]->value()-timeStepOffset)) {
             dataLoadedFlag = true;
     }
     const float loadTime = et.getElapsedTimeSeconds();
@@ -819,6 +823,7 @@ ConnectivityLoaderControl::receiveEvent(Event* event)
         EventUpdateAnimationStartTime *e = (EventUpdateAnimationStartTime *)event->getPointer();
         double time = e->getStartTime();
         this->setAnimationStartTime(time);
+        e->setEventProcessed();
     }
 }
 
@@ -830,7 +835,7 @@ ConnectivityLoaderControl::setAnimationStartTime(const double &value)
         ConnectivityLoaderFile *clf = manager->getConnectivityLoaderFile(i);
         if(clf && clf->isDenseTimeSeries())
         {            
-            animators.at(i)->setAnimationStartTime(value);
+            if(animators.at(i)) animators.at(i)->setAnimationStartTime(value);
             TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(clf);
             dialog->setAnimationStartTime(value);
         }            

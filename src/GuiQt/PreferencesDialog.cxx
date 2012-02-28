@@ -248,6 +248,8 @@ PreferencesDialog::createTimeCourseWidget()
 {
     QLabel* animationStartLabel = new QLabel("Animation Starts at: ");
     this->animationStartDoubleSpinBox = new QDoubleSpinBox();
+
+    
     
     
    
@@ -256,11 +258,18 @@ PreferencesDialog::createTimeCourseWidget()
                      this, SLOT(animationStartChanged(double)));
     
     this->allWidgets->add(this->animationStartDoubleSpinBox);
-    
+
+    double time;
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getAnimationStartTime(time);
+    this->animationStartDoubleSpinBox->blockSignals(true);
+    this->animationStartDoubleSpinBox->setValue(time);    
+    this->animationStartDoubleSpinBox->blockSignals(false);
     QWidget* w = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(w);
     gridLayout->addWidget(animationStartLabel, 0, 0);
-    gridLayout->addWidget(this->animationStartDoubleSpinBox, 0, 1);
+    gridLayout->addWidget(this->animationStartDoubleSpinBox, 0, 1);   
+    
     return w;
 }
 
