@@ -29,6 +29,7 @@
 
 namespace caret {
     class DescriptiveStatistics;
+    class FastStatistics;
     class Palette;
     class PaletteColorMapping;
     
@@ -36,6 +37,15 @@ namespace caret {
         
     public:
         static void colorScalarsWithPalette(const DescriptiveStatistics* statistics,
+                                            const PaletteColorMapping* paletteColorMapping,
+                                            const Palette* palette,
+                                            const float* scalars,
+                                            const float* scalarThresholds,
+                                            const int32_t numberOfScalars,
+                                            float* rgbaOut,
+                                            const bool ignoreThresholding = false);
+        
+        static void colorScalarsWithPalette(const FastStatistics* statistics,
                                             const PaletteColorMapping* paletteColorMapping,
                                             const Palette* palette,
                                             const float* scalars,

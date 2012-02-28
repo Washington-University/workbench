@@ -62,6 +62,7 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "FastStatistics.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
@@ -3990,6 +3991,365 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
             minMax[1] = statistics->getNegativePercentile(negMinPct);
             minMax[2] = statistics->getPositivePercentile(posMinPct);
             minMax[3] = statistics->getPositivePercentile(posMaxPct);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_USER_SCALE:
+            minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
+            minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
+            minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
+            minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
+            break;
+    }
+    
+    AString textLeft = AString::number(minMax[0], 'f', 1);
+    AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+    AString textCenterPos = AString::number(minMax[2], 'f', 1);
+    AString textCenter = textCenterPos;
+    if (textCenterNeg != textCenterPos) {
+        if (textCenterNeg != AString("-" + textCenterPos)) {
+            textCenter = textCenterNeg + "/" + textCenterPos;
+        }
+    }
+    AString textRight = AString::number(minMax[3], 'f', 1);
+    
+    /*
+     * Reset to the models viewport for drawing text.
+     */
+    glViewport(modelViewport[0], 
+               modelViewport[1], 
+               modelViewport[2], 
+               modelViewport[3]);
+    
+    /*
+     * Switch to the foreground color.
+     */
+    uint8_t foregroundRGB[3];
+    prefs->getColorForeground(foregroundRGB);
+    glColor3ubv(foregroundRGB);
+    
+    /*
+     * Account for margin around colorbar when calculating text locations
+     */
+    const int textCenterX = /*colorbarViewportX +*/ (colorbarViewportWidth / 2);
+    const int textHalfX   = colorbarViewportWidth / (margin * 2);
+    const int textLeftX   = textCenterX - textHalfX;
+    const int textRightX  = textCenterX + textHalfX;
+    
+    const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
+    if (isNegativeDisplayed) {
+        this->drawTextWindowCoords(textLeftX, 
+                                   textY, 
+                                   textLeft,
+                                   BrainOpenGLTextRenderInterface::X_LEFT,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    if (isNegativeDisplayed
+        || isZeroDisplayed
+        || isPositiveDisplayed) {
+        this->drawTextWindowCoords(textCenterX, 
+                                   textY, 
+                                   textCenter,
+                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    if (isPositiveDisplayed) {
+        this->drawTextWindowCoords(textRightX, 
+                                   textY, 
+                                   textRight,
+                                   BrainOpenGLTextRenderInterface::X_RIGHT,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    
+    return;
+}
+
+/**
+ * Draw a palette.
+ * @param palette
+ *    Palette that is drawn.
+ * @param paletteColorMapping
+ *    Controls mapping of data to colors.
+ * @param statistics
+ *    Statistics describing the data that is mapped to the palette.
+ * @param paletteDrawingIndex
+ *    Counts number of palettes being drawn for the Y-position
+ */
+void 
+BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
+                                      const PaletteColorMapping* paletteColorMapping,
+                                      const FastStatistics* statistics,
+                                      const int paletteDrawingIndex)
+{
+    /*
+     * Save viewport.
+     */
+    GLint modelViewport[4];
+    glGetIntegerv(GL_VIEWPORT, modelViewport);
+    
+    /*
+     * Create a viewport for drawing the palettes in the 
+     * lower left corner of the window.
+     */
+    const GLint colorbarViewportWidth = 120;
+    const GLint colorbarViewportHeight = 35;    
+    const GLint colorbarViewportX = modelViewport[0] + 10;
+    
+    GLint colorbarViewportY = (modelViewport[1] + 10 + (paletteDrawingIndex * colorbarViewportHeight));
+    if (paletteDrawingIndex > 0) {
+//        colorbarViewportY += 5;
+    }
+    
+    glViewport(colorbarViewportX, 
+               colorbarViewportY, 
+               colorbarViewportWidth, 
+               colorbarViewportHeight);
+    
+    /*
+     * Create an orthographic projection
+     */
+    //const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
+    const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
+    const GLdouble margin = 1.1;
+    const GLdouble orthoWidth = margin;
+    const GLdouble orthoHeight = halfHeight * margin;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-orthoWidth,  orthoWidth, 
+            -orthoHeight, orthoHeight, 
+            -1.0, 1.0);
+    
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    /*
+     * Use the background color to fill in a rectangle
+     * for display of palette, hiding anything currently drawn.
+     */
+    uint8_t backgroundRGB[3];
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getColorBackground(backgroundRGB);
+    glColor3ubv(backgroundRGB);
+    glRectf(-orthoWidth, -orthoHeight, orthoWidth, orthoHeight);
+    
+    /*
+     * Always interpolate if the palette has only two colors
+     */
+    bool interpolateColor = paletteColorMapping->isInterpolatePaletteFlag();
+    if (palette->getNumberOfScalarsAndColors() <= 2) {
+        interpolateColor = true;
+    }
+    
+    /*
+     * Types of values for display
+     */
+    const bool isPositiveDisplayed = paletteColorMapping->isDisplayPositiveDataFlag();
+    const bool isNegativeDisplayed = paletteColorMapping->isDisplayNegativeDataFlag();
+    const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
+    
+    /*
+     * Draw the colorbar starting with the color assigned
+     * to the negative end of the palette.
+     * Colorbar scalars range from -1 to 1.
+     */
+    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+    const int iEnd = 1;
+    const int iStep = -1;
+    for (int i = iStart; i >= iEnd; i += iStep) {
+        /*
+         * palette data for 'left' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+        float scalar = sc->getScalar();
+        float rgba[4];
+        sc->getColor(rgba);
+        
+        /*
+         * palette data for 'right' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+        float nextScalar = nextSC->getScalar();
+        float nextRGBA[4];
+        nextSC->getColor(nextRGBA);
+        const bool isNoneColorFlag = nextSC->isNoneColor();
+        
+        /*
+         * Exclude negative regions if not displayed.
+         *
+        if (isNegativeDisplayed == false) {
+            if (nextScalar < 0.0) {
+                continue;
+            }
+            else if (scalar < 0.0) {
+                scalar = 0.0;
+            }
+        }
+        */
+        
+        /*
+         * Exclude positive regions if not displayed.
+         *
+        if (isPositiveDisplayed == false) {
+            if (scalar > 0.0) {
+                continue;
+            }
+            else if (nextScalar > 0.0) {
+                nextScalar = 0.0;
+            }
+        }
+        */
+        
+        /*
+         * Normally, the first entry has a scalar value of -1.
+         * If it does not, use the first color draw from 
+         * -1 to the first scalar value.
+         */
+        if (i == iStart) {
+            if (sc->isNoneColor() == false) {
+                if (scalar > -1.0) {
+                    const float xStart = -1.0;
+                    const float xEnd   = scalar;
+                    glColor3fv(rgba);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+        
+        /*
+         * If the 'next' color is none, drawing
+         * is skipped to let the background show
+         * throw the 'none' region of the palette.
+         */ 
+        if (isNoneColorFlag == false) {
+            /*
+             * left and right region of an entry in the palette
+             */
+            const float xStart = scalar;
+            const float xEnd   = nextScalar;
+            
+            /*
+             * Unless interpolating, use the 'next' color.
+             */
+            float* startRGBA = nextRGBA;
+            float* endRGBA   = nextRGBA;
+            if (interpolateColor) {
+                startRGBA = rgba;
+            }
+            
+            /*
+             * Draw the region in the palette.
+             */
+            glBegin(GL_POLYGON);
+            glColor3fv(startRGBA);
+            glVertex3f(xStart, 0.0, 0.0);
+            glVertex3f(xStart, -halfHeight, 0.0);
+            glColor3fv(endRGBA);
+            glVertex3f(xEnd, -halfHeight, 0.0);
+            glVertex3f(xEnd, 0.0, 0.0);
+            glEnd();
+            
+            /*
+             * The last scalar value is normally 1.0.  If the last
+             * scalar is less than 1.0, then fill in the rest of 
+             * the palette from the last scalar to 1.0.
+             */
+            if (i == iEnd) {
+                if (nextScalar < 1.0) {
+                    const float xStart = nextScalar;
+                    const float xEnd   = 1.0;
+                    glColor3fv(nextRGBA);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+    }
+    
+    /*
+     * If positive not displayed, draw over it with background color
+     */
+    if (isPositiveDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(0.0, -orthoHeight, orthoWidth, orthoHeight);
+    }
+    
+    /*
+     * If negative not displayed, draw over it with background color
+     */
+    if (isNegativeDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(-orthoWidth, -orthoHeight, 0.0, orthoHeight);
+    }
+    
+    /*
+     * Draw over thresholded regions with background color
+     */
+    const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
+    if (thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+        const float minMaxThresholds[2] = {
+            paletteColorMapping->getThresholdMinimum(thresholdType),
+            paletteColorMapping->getThresholdMaximum(thresholdType)
+        };
+        float normalizedThresholds[2];
+        
+        paletteColorMapping->mapDataToPaletteNormalizedValues(statistics,
+                                                              minMaxThresholds,
+                                                              normalizedThresholds,
+                                                              2);
+        
+        switch (paletteColorMapping->getThresholdTest()) {
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(-orthoWidth, -orthoHeight, normalizedThresholds[0], orthoHeight);
+                glRectf(normalizedThresholds[1], -orthoHeight, orthoWidth, orthoHeight);
+                break;
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(normalizedThresholds[0], -orthoHeight, normalizedThresholds[1], orthoHeight);
+                break;
+        }
+    }
+    
+    /*
+     * If zeros are not displayed, draw a line in the 
+     * background color at zero in the palette.
+     */
+    if (isZeroDisplayed == false) {
+        glLineWidth(1.0);
+        glColor3ubv(backgroundRGB);
+        glBegin(GL_LINES);
+        glVertex2f(0.0, -halfHeight);
+        glVertex2f(0.0, 0.0);
+        glEnd();
+    }
+    
+    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+    switch (paletteColorMapping->getScaleMode()) {
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+        {
+            float dummy;
+            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+        {
+            const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
+            const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
+            const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
+            const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
+            
+            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
         }
             break;
         case PaletteScaleModeEnum::MODE_USER_SCALE:

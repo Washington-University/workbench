@@ -42,6 +42,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class FastStatistics;
     class DescriptiveStatistics;
     class IdentificationItem;
     class IdentificationManager;
@@ -235,6 +236,11 @@ namespace caret {
         void drawPalette(const Palette* palette,
                          const PaletteColorMapping* paletteColorMapping,
                          const DescriptiveStatistics* statistics,
+                         const int paletteDrawingIndex);
+        
+        void drawPalette(const Palette* palette,
+                         const PaletteColorMapping* paletteColorMapping,
+                         const FastStatistics* statistics,
                          const int paletteDrawingIndex);
         
         float modelSizeToPixelSize(const float modelSize);
