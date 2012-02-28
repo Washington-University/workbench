@@ -32,6 +32,8 @@
 #include "ElapsedTimer.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "FastStatistics.h"
+#include "Histogram.h"
 #include "ConnectivityLoaderFile.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
@@ -559,6 +561,26 @@ ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/)
     return this->descriptiveStatistics;
 }
 
+const FastStatistics* ConnectivityLoaderFile::getMapFastStatistics(const int32_t /*mapIndex*/)
+{
+    if (m_fastStatistics == NULL)
+    {
+        m_fastStatistics.grabNew(new FastStatistics());
+    }
+    m_fastStatistics->update(data, numberOfDataElements);
+    return m_fastStatistics;
+}
+
+const Histogram* ConnectivityLoaderFile::getMapHistogram(const int32_t /*mapIndex*/)
+{
+    if (m_histogram == NULL)
+    {
+        m_histogram.grabNew(new Histogram(100));
+    }
+    m_histogram->update(data, numberOfDataElements);
+    return m_histogram;
+}
+
 /**
  * Get statistics describing the distribution of data
  * mapped with a color palette at the given index for
@@ -597,6 +619,27 @@ ConnectivityLoaderFile::getMapStatistics(const int32_t /*mapIndex*/,
                                         mostNegativeValueInclusive,
                                         includeZeroValues);
     return this->descriptiveStatistics;
+}
+
+const Histogram* ConnectivityLoaderFile::getMapHistogram(const int32_t /*mapIndex*/,
+                                                         const float mostPositiveValueInclusive,
+                                                         const float leastPositiveValueInclusive,
+                                                         const float leastNegativeValueInclusive,
+                                                         const float mostNegativeValueInclusive,
+                                                         const bool includeZeroValues)
+{
+    if (m_histogram == NULL)
+    {
+        m_histogram.grabNew(new Histogram(100));
+    }
+    m_histogram->update(data, numberOfDataElements,
+        mostPositiveValueInclusive,
+        leastPositiveValueInclusive,
+        leastNegativeValueInclusive,
+        mostNegativeValueInclusive,
+        includeZeroValues
+    );
+    return m_histogram;
 }
 
 /**

@@ -30,13 +30,13 @@
 using namespace caret;
 using namespace std;
 
-Histogram::Histogram(int numBuckets)
+Histogram::Histogram(const int& numBuckets)
 {
     resize(numBuckets);
     reset();
 }
 
-Histogram::Histogram(float* data, int64_t dataCount)
+Histogram::Histogram(const float* data, const int64_t& dataCount)
 {
     CaretAssert(dataCount > 0);
     const int MIN_BUCKET_COUNT = 10;
@@ -48,13 +48,13 @@ Histogram::Histogram(float* data, int64_t dataCount)
     update(data, dataCount);
 }
 
-Histogram::Histogram(int numBuckets, float* data, int64_t dataCount)
+Histogram::Histogram(const int& numBuckets, const float* data, const int64_t& dataCount)
 {
     resize(numBuckets);
     update(data, dataCount);
 }
 
-void Histogram::resize(int buckets)
+void Histogram::resize(const int& buckets)
 {
     CaretAssert(buckets > 0);
     m_buckets.resize(buckets);
@@ -79,13 +79,13 @@ void Histogram::reset()
     }
 }
 
-void Histogram::update(int numBuckets, float* data, int64_t dataCount)
+void Histogram::update(const int& numBuckets, const float* data, const int64_t& dataCount)
 {
     resize(numBuckets);
     update(data, dataCount);
 }
 
-void Histogram::update(float* data, int64_t dataCount)
+void Histogram::update(const float* data, const int64_t& dataCount)
 {
     int numBuckets = (int)m_buckets.size();
     reset();
@@ -180,9 +180,9 @@ void Histogram::update(float* data, int64_t dataCount)
     }
 }
 
-void Histogram::update(const float* data, const int64_t dataCount, float mostPositiveValueInclusive,
+void Histogram::update(const float* data, const int64_t& dataCount, float mostPositiveValueInclusive,
                        float leastPositiveValueInclusive, float leastNegativeValueInclusive,
-                       float mostNegativeValueInclusive, const bool includeZeroValues)
+                       float mostNegativeValueInclusive, const bool& includeZeroValues)
 {
     int numBuckets = (int)m_buckets.size();
     reset();

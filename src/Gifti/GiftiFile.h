@@ -27,6 +27,7 @@
 /*LICENSE_END*/
 #include <stdint.h>
 
+#include "CaretAssert.h"
 #include "DataFile.h"
 #include "GiftiDataArray.h"
 #include "GiftiEncodingEnum.h"
@@ -100,10 +101,10 @@ class GiftiFile : public DataFile {
       int32_t getNumberOfDataArrays() const { return dataArrays.size() ; }
       
       /// get a data array
-      GiftiDataArray* getDataArray(const int32_t arrayNumber) { return dataArrays[arrayNumber]; }
+      GiftiDataArray* getDataArray(const int32_t arrayNumber) { CaretAssertVectorIndex(dataArrays, arrayNumber); return dataArrays[arrayNumber]; }
       
       /// get a data array (const method)
-      const GiftiDataArray* getDataArray(const int32_t arrayNumber) const { return dataArrays[arrayNumber]; }
+      const GiftiDataArray* getDataArray(const int32_t arrayNumber) const { CaretAssertVectorIndex(dataArrays, arrayNumber); return dataArrays[arrayNumber]; }
       
       /// reset a data array
       virtual void resetDataArray(const int32_t arrayIndex);

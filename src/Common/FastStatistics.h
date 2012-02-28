@@ -44,16 +44,16 @@ namespace caret
     public:
         FastStatistics();
         
-        FastStatistics(float* data, int64_t dataCount);
+        FastStatistics(const float* data, const int64_t& dataCount);
         
-        void update(float* data, int64_t dataCount);
+        void update(const float* data, const int64_t& dataCount);
         
         ///statistics and display are really not that related, so for now, only include a continuous clipping range, excluding the middle from data will do weird things to standard deviation
-        void update(float* data, int64_t dataCount, float minThreshInclusive, float maxThreshInclusive);
+        void update(const float* data, const int64_t& dataCount, const float& minThreshInclusive, const float& maxThreshInclusive);
         
-        float getApproxPositivePercentile(const float percent) const;
+        float getApproxPositivePercentile(const float& percent) const;
         
-        float getApproxNegativePercentile(const float percent) const;
+        float getApproxNegativePercentile(const float& percent) const;
         
         void getCounts(int64_t& posCount, int64_t& zeroCount, int64_t& negCount, int64_t& infCount, int64_t& negInfCount, int64_t& nanCount) const
         {

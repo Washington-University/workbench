@@ -37,10 +37,12 @@
 #include "DataCompressZLib.h"
 
 //#include "FileUtilities.h"
+#include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
 #include "GiftiXmlElements.h"
+#include "Histogram.h"
 #include "NiftiEnums.h"
 #include "PaletteColorMapping.h"
 #include "SystemUtilities.h"
@@ -1672,6 +1674,26 @@ GiftiDataArray::getDescriptiveStatistics() const
     return this->descriptiveStatistics;
 }
 
+const FastStatistics* GiftiDataArray::getFastStatistics() const
+{
+    if (m_fastStatistics == NULL)
+    {
+        m_fastStatistics.grabNew(new FastStatistics());
+        m_fastStatistics->update(dataPointerFloat, getTotalNumberOfElements());
+    }
+    return m_fastStatistics;
+}
+
+const Histogram* GiftiDataArray::getHistogram() const
+{
+    if (m_histogram == NULL)
+    {
+        m_histogram.grabNew(new Histogram(100));
+        m_histogram->update(dataPointerFloat, getTotalNumberOfElements());
+    }
+    return m_histogram;
+}
+
 /**
  * Get the descriptive statistics for this data array limited
  * to values within the given ranges.
@@ -1706,6 +1728,25 @@ GiftiDataArray::getDescriptiveStatistics(const float mostPositiveValueInclusive,
                                                      mostNegativeValueInclusive,
                                                      includeZeroValues);
     return this->descriptiveStatisticsLimitedValues;    
+}
+
+const Histogram* GiftiDataArray::getHistogram(const float mostPositiveValueInclusive,
+                                              const float leastPositiveValueInclusive,
+                                              const float leastNegativeValueInclusive,
+                                              const float mostNegativeValueInclusive,
+                                              const bool includeZeroValues) const
+{
+    if (m_histogramLimitedValues == NULL)
+    {
+        m_histogramLimitedValues.grabNew(new Histogram(100));
+    }
+    m_histogramLimitedValues->update(dataPointerFloat, getTotalNumberOfElements(),
+                                    mostPositiveValueInclusive,
+                                    leastPositiveValueInclusive,
+                                    leastNegativeValueInclusive,
+                                    mostNegativeValueInclusive,
+                                    includeZeroValues);
+    return m_histogramLimitedValues;
 }
 
 AString 

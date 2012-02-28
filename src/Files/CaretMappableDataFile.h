@@ -34,6 +34,8 @@ namespace caret {
     class GiftiMetaData;
     class GiftiLabelTable;
     class PaletteColorMapping;
+    class FastStatistics;
+    class Histogram;
     
     /**
      * \class caret::CaretMappableDataFile 
@@ -176,6 +178,10 @@ namespace caret {
          */         
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex) = 0;
         
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex) = 0;
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex) = 0;
+        
         /**
          * Get statistics describing the distribution of data
          * mapped with a color palette at the given index for 
@@ -198,6 +204,13 @@ namespace caret {
          *    not mapped using a palette).
          */         
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues) = 0;
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex,
                                                               const float mostPositiveValueInclusive,
                                                               const float leastPositiveValueInclusive,
                                                               const float leastNegativeValueInclusive,

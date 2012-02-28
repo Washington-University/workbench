@@ -39,30 +39,30 @@ namespace caret
         ///counts of each class of number
         int64_t m_posCount, m_zeroCount, m_negCount, m_infCount, m_negInfCount, m_nanCount;
         
-        void resize(int buckets);
+        void resize(const int& buckets);
         
         void reset();
         
         void computeCumulative();
         
     public:
-        Histogram(int numBuckets = 100);
+        Histogram(const int& numBuckets = 100);
         
-        Histogram(float* data, int64_t dataCount);//NOTE: automatically determines number of buckets by square root of dataCount, but with set minimum and maximum
+        Histogram(const float* data, const int64_t& dataCount);//NOTE: automatically determines number of buckets by square root of dataCount, but with set minimum and maximum
         
-        Histogram(int numBuckets, float* data, int64_t dataCount);
+        Histogram(const int& numBuckets, const float* data, const int64_t& dataCount);
         
-        void update(float* data, int64_t dataCount);
+        void update(const float* data, const int64_t& dataCount);
         
-        void update(int numBuckets, float* data, int64_t dataCount);
+        void update(const int& numBuckets, const float* data, const int64_t& dataCount);
         
         void update(const float* data,
-                    const int64_t dataCount,
+                    const int64_t& dataCount,
                     float mostPositiveValueInclusive,
                     float leastPositiveValueInclusive,
                     float leastNegativeValueInclusive,
                     float mostNegativeValueInclusive,
-                    const bool includeZeroValues);
+                    const bool& includeZeroValues);
         
         ///get raw counts (useful mathematically)
         const std::vector<int64_t>& getHistogramCounts() const { return m_buckets; }

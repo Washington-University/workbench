@@ -37,7 +37,7 @@ FastStatistics::FastStatistics()
     reset();
 }
 
-FastStatistics::FastStatistics(float* data, int64_t dataCount)
+FastStatistics::FastStatistics(const float* data, const int64_t& dataCount)
 {
     update(data, dataCount);
 }
@@ -59,7 +59,7 @@ void FastStatistics::reset()
     m_mostPos = 0.0f;
 }
 
-void FastStatistics::update(float* data, int64_t dataCount)
+void FastStatistics::update(const float* data, const int64_t& dataCount)
 {
     reset();
     CaretArray<float> positives(dataCount), negatives(dataCount);
@@ -128,7 +128,7 @@ void FastStatistics::update(float* data, int64_t dataCount)
     m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
 }
 
-void FastStatistics::update(float* data, int64_t dataCount, float minThreshInclusive, float maxThreshInclusive)
+void FastStatistics::update(const float* data, const int64_t& dataCount, const float& minThreshInclusive, const float& maxThreshInclusive)
 {
     reset();
     CaretArray<float> positives(dataCount), negatives(dataCount);
@@ -199,7 +199,7 @@ void FastStatistics::update(float* data, int64_t dataCount, float minThreshInclu
     m_posPercentHist.update(NUM_BUCKETS_PERCENTILE_HIST, positives, m_posCount);
 }
 
-float FastStatistics::getApproxNegativePercentile(const float percent) const
+float FastStatistics::getApproxNegativePercentile(const float& percent) const
 {
     float rank = percent / 100.0f * m_negCount;//translate to rank
     rank = m_negCount - rank;//reverse it because negatives go the other direction, histogram is strictly directional towards positive
@@ -258,7 +258,7 @@ float FastStatistics::getApproxNegativePercentile(const float percent) const
     return lowValue + (highValue - lowValue) * (rank - curLower) / (curUpper - curLower);
 }
 
-float FastStatistics::getApproxPositivePercentile(const float percent) const
+float FastStatistics::getApproxPositivePercentile(const float& percent) const
 {
     float rank = percent / 100.0f * m_posCount;//translate to rank
     if (rank <= 0.0f) return m_leastPos;

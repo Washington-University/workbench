@@ -25,11 +25,13 @@
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
 #include "ElapsedTimer.h"
+#include "FastStatistics.h"
 #include "GiftiDataArray.h"
 #include "GiftiFile.h"
 #include "GiftiMetaData.h"
 #include "GiftiTypeFile.h"
 #include "GiftiMetaDataXmlElements.h"
+#include "Histogram.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "SurfaceFile.h"
@@ -518,6 +520,18 @@ GiftiTypeFile::getMapStatistics(const int32_t mapIndex)
     return gda->getDescriptiveStatistics();
 }
 
+const FastStatistics* GiftiTypeFile::getMapFastStatistics(const int32_t mapIndex)
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getFastStatistics();
+}
+
+const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex)
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getHistogram();
+}
+
 /**
  * Get statistics describing the distribution of data
  * mapped with a color palette at the given index.
@@ -552,6 +566,21 @@ GiftiTypeFile::getMapStatistics(const int32_t mapIndex,
                                          leastNegativeValueInclusive,
                                          mostNegativeValueInclusive,
                                          includeZeroValues);
+}
+
+const Histogram* GiftiTypeFile::getMapHistogram(const int32_t mapIndex,
+                                                const float mostPositiveValueInclusive,
+                                                const float leastPositiveValueInclusive,
+                                                const float leastNegativeValueInclusive,
+                                                const float mostNegativeValueInclusive,
+                                                const bool includeZeroValues)
+{
+    const GiftiDataArray* gda = this->giftiFile->getDataArray(mapIndex);
+    return gda->getHistogram(mostPositiveValueInclusive,
+                            leastPositiveValueInclusive,
+                             leastNegativeValueInclusive,
+                             mostNegativeValueInclusive,
+                             includeZeroValues);
 }
 
 /**

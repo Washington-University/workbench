@@ -35,7 +35,7 @@
 #include "DescriptiveStatistics.h"
 
 namespace caret {
-
+    
     class VolumeFile : public VolumeBase, public CaretMappableDataFile
     {
         CaretVolumeExtension m_caretVolExt;
@@ -46,10 +46,15 @@ namespace caret {
         
         void updateCaretExtension();//called before writing a file, erases all existing caret extensions from m_extensions, and rebuilds one from m_caretVolExt
         
+        void checkStatisticsValid();
+        
         struct BrickAttributes//for storing ONLY stuff that doesn't get saved to the caret extension
-        {
+        {//TODO: prune this once statistics gets straightened out
             CaretPointer<DescriptiveStatistics> m_statistics;
+            CaretPointer<FastStatistics> m_fastStatistics;
             CaretPointer<DescriptiveStatistics> m_statisticsLimitedValues;
+            CaretPointer<Histogram> m_histogram;
+            CaretPointer<Histogram> m_histogramLimitedValues;
             CaretPointer<GiftiMetaData> m_metadata;//NOTE: does not get saved currently!
         };
         
@@ -141,12 +146,23 @@ namespace caret {
         
         const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
         
+        const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
+        
+        const Histogram* getMapHistogram(const int32_t mapIndex);
+        
         const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
                                                       const float mostPositiveValueInclusive,
                                                       const float leastPositiveValueInclusive,
                                                       const float leastNegativeValueInclusive,
                                                       const float mostNegativeValueInclusive,
                                                       const bool includeZeroValues);
+        
+        const Histogram* getMapHistogram(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues);
         
         bool isMappedWithPalette() const;
         

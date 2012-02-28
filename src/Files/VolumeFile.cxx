@@ -29,6 +29,8 @@
 #include <sstream>
 #include <string>
 #include "Palette.h"
+#include "FastStatistics.h"
+#include "Histogram.h"
 
 using namespace caret;
 using namespace std;
@@ -458,6 +460,23 @@ GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex)
     return m_brickAttributes[mapIndex].m_metadata;
 }
 
+void VolumeFile::checkStatisticsValid()
+{
+    if (m_brickStatisticsValid == false)
+    {
+        int32_t numMaps = getNumberOfMaps();
+        for (int i = 0; i < numMaps; ++i)
+        {
+            m_brickAttributes[i].m_statistics.grabNew(NULL);
+            m_brickAttributes[i].m_statisticsLimitedValues.grabNew(NULL);
+            m_brickAttributes[i].m_fastStatistics.grabNew(NULL);
+            m_brickAttributes[i].m_histogram.grabNew(NULL);
+            m_brickAttributes[i].m_histogramLimitedValues.grabNew(NULL);
+        }
+        m_brickStatisticsValid = true;
+    }
+}
+
 /**
  * Get statistics describing the distribution of data
  * mapped with a color palette at the given index.
@@ -471,17 +490,8 @@ GiftiMetaData* VolumeFile::getMapMetaData(const int32_t mapIndex)
 const DescriptiveStatistics* 
 VolumeFile::getMapStatistics(const int32_t mapIndex)
 {
-    if (m_brickStatisticsValid == false)
-    {
-        int32_t numMaps = getNumberOfMaps();
-        for (int i = 0; i < numMaps; ++i)
-        {
-            m_brickAttributes[i].m_statistics.grabNew(NULL);
-            m_brickAttributes[i].m_statisticsLimitedValues.grabNew(NULL);
-        }
-        m_brickStatisticsValid = true;
-    }
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    checkStatisticsValid();
     
     if (m_brickAttributes[mapIndex].m_statistics == NULL) {
         DescriptiveStatistics* ds = new DescriptiveStatistics();
@@ -490,6 +500,28 @@ VolumeFile::getMapStatistics(const int32_t mapIndex)
     }
     
     return m_brickAttributes[mapIndex].m_statistics;
+}
+
+const FastStatistics* VolumeFile::getMapFastStatistics(const int32_t mapIndex)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    checkStatisticsValid();
+    if (m_brickAttributes[mapIndex].m_fastStatistics == NULL)
+    {
+        m_brickAttributes[mapIndex].m_fastStatistics.grabNew(new FastStatistics(getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]));
+    }
+    return m_brickAttributes[mapIndex].m_fastStatistics;
+}
+
+const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    checkStatisticsValid();
+    if (m_brickAttributes[mapIndex].m_histogram == NULL)
+    {
+        m_brickAttributes[mapIndex].m_histogram.grabNew(new Histogram(100, getFrame(mapIndex), m_dimensions[0] * m_dimensions[1] * m_dimensions[2]));
+    }
+    return m_brickAttributes[mapIndex].m_histogram;
 }
 
 /**
@@ -521,17 +553,8 @@ VolumeFile::getMapStatistics(const int32_t mapIndex,
                              const float mostNegativeValueInclusive,
                              const bool includeZeroValues)
 {
-    if (m_brickStatisticsValid == false)
-    {
-        int32_t numMaps = getNumberOfMaps();
-        for (int i = 0; i < numMaps; ++i)
-        {
-            m_brickAttributes[i].m_statistics.grabNew(NULL);
-            m_brickAttributes[i].m_statisticsLimitedValues.grabNew(NULL);
-        }
-        m_brickStatisticsValid = true;
-    }
     CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    checkStatisticsValid();
     
     if (m_brickAttributes[mapIndex].m_statisticsLimitedValues == NULL) {
         m_brickAttributes[mapIndex].m_statisticsLimitedValues.grabNew(new DescriptiveStatistics());
@@ -545,6 +568,29 @@ VolumeFile::getMapStatistics(const int32_t mapIndex,
                                                                 includeZeroValues);
     
     return m_brickAttributes[mapIndex].m_statisticsLimitedValues;
+}
+
+const Histogram* VolumeFile::getMapHistogram(const int32_t mapIndex,
+                                             const float mostPositiveValueInclusive,
+                                             const float leastPositiveValueInclusive,
+                                             const float leastNegativeValueInclusive,
+                                             const float mostNegativeValueInclusive,
+                                             const bool includeZeroValues)
+{
+    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
+    checkStatisticsValid();
+    if (m_brickAttributes[mapIndex].m_histogramLimitedValues == NULL)
+    {
+        m_brickAttributes[mapIndex].m_histogramLimitedValues.grabNew(new Histogram(100));
+    }
+    m_brickAttributes[mapIndex].m_histogramLimitedValues->update(getFrame(mapIndex), 
+                                                    m_dimensions[0] * m_dimensions[1] * m_dimensions[2],
+                                                    mostPositiveValueInclusive,
+                                                    leastPositiveValueInclusive,
+                                                    leastNegativeValueInclusive,
+                                                    mostNegativeValueInclusive,
+                                                    includeZeroValues);
+    return m_brickAttributes[mapIndex].m_histogramLimitedValues;
 }
 
 /**

@@ -35,12 +35,15 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
+#include "CaretPointer.h"
 #include "DescriptiveStatistics.h"
+#include "FastStatistics.h"
 #include "GiftiArrayIndexingOrderEnum.h"
 #include "GiftiEncodingEnum.h"
 #include "GiftiEndianEnum.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
+#include "Histogram.h"
 #include "Matrix4x4.h"
 #include "NiftiEnums.h"
 #include "TracksModificationInterface.h"
@@ -287,11 +290,21 @@ namespace caret {
         
         const DescriptiveStatistics* getDescriptiveStatistics() const;
         
+        const FastStatistics* getFastStatistics() const;
+        
+        const Histogram* getHistogram() const;
+        
         const DescriptiveStatistics* getDescriptiveStatistics(const float mostPositiveValueInclusive,
                                                               const float leastPositiveValueInclusive,
                                                               const float leastNegativeValueInclusive,
                                                               const float mostNegativeValueInclusive,
                                                               const bool includeZeroValues) const;
+        
+        const Histogram* getHistogram(const float mostPositiveValueInclusive,
+                                        const float leastPositiveValueInclusive,
+                                        const float leastNegativeValueInclusive,
+                                        const float mostNegativeValueInclusive,
+                                        const bool includeZeroValues) const;
         
     protected:
         // allocate data for this column
@@ -393,8 +406,14 @@ namespace caret {
         /// statistics about data (DO NOT COPY)
         mutable DescriptiveStatistics* descriptiveStatistics;
         
+        mutable CaretPointer<FastStatistics> m_fastStatistics;
+        
+        mutable CaretPointer<Histogram> m_histogram;
+        
         /// statistics about data (DO NOT COPY)
         mutable DescriptiveStatistics* descriptiveStatisticsLimitedValues;
+        
+        mutable CaretPointer<Histogram> m_histogramLimitedValues;
         
         bool modifiedFlag; // DO NOT COPY
         // ***** BE SURE TO UPDATE copyHelper() if elements are added ******
