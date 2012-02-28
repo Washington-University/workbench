@@ -93,10 +93,9 @@ GiftiLabelTable::copyHelper(const GiftiLabelTable& glt)
     this->clear();
     
     for (LABELS_MAP_CONST_ITERATOR iter = glt.labelsMap.begin();
-         iter != labelsMap.end();
+         iter != glt.labelsMap.end();
          iter++) {
-        GiftiLabel* gl2 = new GiftiLabel(*iter->second);
-        this->addLabel(gl2);
+        this->addLabel(iter->second);
     }
 }
 
@@ -119,7 +118,7 @@ GiftiLabelTable::clear()
     }
     this->labelsMap.clear();
     
-    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 1.0);
+    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 0.0);
     this->addLabel(&gl);
     this->modifiedFlag = false;
 }

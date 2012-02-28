@@ -63,7 +63,7 @@ void OperationName::useParameters(OperationParameters* myParams, ProgressObject*
     if (columnSelect->m_present)
     {//set up to use the single column
         columnNum = (int)myMetric->getMapIndexFromNameOrNumber(columnSelect->getString(1));
-        if (columnNum < 0 || columnNum >= myMetric->getNumberOfColumns())
+        if (columnNum < 0 || columnNum >= myMetric->getNumberOfMaps())
         {
             throw OperationException("invalid column specified");
         }

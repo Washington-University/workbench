@@ -25,6 +25,7 @@ OperationException.h
 OperationMetricMask.h
 OperationMetricPalette.h
 OperationSetStructure.h
+OperationVolumeLabelImport.h
 OperationVolumePalette.h
 
 AbstractOperation.cxx
@@ -35,6 +36,7 @@ OperationException.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx
 OperationSetStructure.cxx
+OperationVolumeLabelImport.cxx
 OperationVolumePalette.cxx
 )
 
