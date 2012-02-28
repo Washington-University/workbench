@@ -80,7 +80,7 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
     {        
         for(int j = 0;j<tlV[i].x.size();j++)
         {
-            tlV.[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
+            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
         }
     }
 
@@ -117,7 +117,7 @@ void TimeCourseDialog::setAnimationStartTime(const double &time)
     {        
         for(int j = 0;j<tlV[i].x.size();j++)
         {
-            tlV.[i].x[j] = startOffset + tlV.[i].timeStep*(double)j;
+            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
         }
     }
     plot->detachItems();

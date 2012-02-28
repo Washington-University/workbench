@@ -43,6 +43,7 @@
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "ConnectivityLoaderManager.h"
+#include "EventUpdateAnimationStartTime.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -270,9 +271,11 @@ void
 PreferencesDialog::animationStartChanged(double value)
 {
    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-   prefs->setAnimationStartTime(value);   
-   ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
-   manager->setAnimationStartTime(value);
+   prefs->setAnimationStartTime(value); 
+   EventUpdateAnimationStartTime e;
+   e.setStartTime(value);
+   EventManager::get()->sendEvent(e.getPointer());
+   
 }
 /**
  * Creates logging widget.

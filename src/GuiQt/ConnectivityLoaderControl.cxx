@@ -54,6 +54,7 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUpdateAnimationStartTime.h"
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQDialogModal.h"
@@ -63,6 +64,7 @@
 #include "WuQWidgetObjectGroup.h"
 #include "TimeSeriesManager.h"
 #include "TimeLine.h"
+#include "CaretPreferences.h"
 
 using namespace caret;
 
@@ -163,7 +165,11 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(const Qt::Orientation orien
     layout->addWidget(addPushButton);
     layout->addStretch();
     //TODO Be sure to get animation start time from saved preferences
+    
     animationStartTime = 0.0f;
+    CaretPreferences *pref = SessionManager::get()->getCaretPreferences();
+    pref->getAnimationStartTime(animationStartTime);    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME);
 }
 
 /**
@@ -172,6 +178,7 @@ ConnectivityLoaderControl::ConnectivityLoaderControl(const Qt::Orientation orien
 ConnectivityLoaderControl::~ConnectivityLoaderControl()
 {
     ConnectivityLoaderControl::allConnectivityLoaderControls.erase(this);
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -799,6 +806,22 @@ ConnectivityLoaderControl::updateOtherConnectivityLoaderControls()
     }
 }
 
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+ConnectivityLoaderControl::receiveEvent(Event* event)
+{
+    if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME) {
+        EventUpdateAnimationStartTime *e = (EventUpdateAnimationStartTime *)event->getPointer();
+        double time = e->getStartTime();
+        this->setAnimationStartTime(time);
+    }
+}
+
 void
 ConnectivityLoaderControl::setAnimationStartTime(const double &value)
 { 
@@ -813,18 +836,4 @@ ConnectivityLoaderControl::setAnimationStartTime(const double &value)
         }            
     }    
     animationStartTime = value;
-
 }
-void
-ConnectivityLoaderControl::updateOtherStartTime(const double &value)
-{
-    for (std::set<ConnectivityLoaderControl*>::iterator iter = ConnectivityLoaderControl::allConnectivityLoaderControls.begin();
-         iter != ConnectivityLoaderControl::allConnectivityLoaderControls.end();
-         iter++) {
-        ConnectivityLoaderControl* clc = *iter;
-        if (clc != this) {
-            clc->setAnimationStartTime(value);
-        }
-    }
-}
-

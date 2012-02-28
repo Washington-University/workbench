@@ -98,6 +98,7 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
 EventToolBoxSelectionDisplay.h
+EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
 GiftiLabelTableEditor.h
@@ -159,6 +160,7 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
 EventToolBoxSelectionDisplay.cxx
+EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
 GiftiLabelTableEditor.cxx

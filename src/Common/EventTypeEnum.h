@@ -98,6 +98,8 @@ public:
         EVENT_PROGRESS_UPDATE,
         /** Update and show the time course dialog */
         EVENT_UPDATE_TIME_COURSE_DIALOG,
+        /** Update Animation start time */
+        EVENT_UPDATE_ANIMATION_START_TIME,
         /* THIS MUST ALWAYS BE LAST - NOT an event type but is number of event types */
         EVENT_COUNT 
     };

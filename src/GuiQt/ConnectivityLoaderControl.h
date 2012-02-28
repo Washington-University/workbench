@@ -32,6 +32,10 @@
 
 #include "AString.h"
 #include "TimeLine.h"
+#include "EventManager.h"
+#include "EventListenerInterface.h"
+#include "EventUpdateAnimationStartTime.h"
+
 
 class QAbstractButton;
 class QButtonGroup;
@@ -51,7 +55,7 @@ namespace caret {
     class SpinBoxReceiver;
     class TimeSeriesManager;
     
-    class ConnectivityLoaderControl : public QWidget {
+    class ConnectivityLoaderControl : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -65,7 +69,7 @@ namespace caret {
         QDoubleSpinBox *getTimeSpinBox(int32_t &index);
         void getTimeLines(std::vector<TimeLine> &tl);
         void setAnimationStartTime(const double &value);
-        void updateOtherStartTime(const double &value);
+        void receiveEvent(Event* event);
         
     private:
         ConnectivityLoaderControl(const ConnectivityLoaderControl&);
