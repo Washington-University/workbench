@@ -48,6 +48,7 @@ namespace caret {
     class DisplayControlDialog;
     class ImageFile;
     class ImageCaptureDialog;
+    class MapScalarDataColorMappingEditorDialog;
     class PreferencesDialog;
     
     /**
@@ -143,6 +144,9 @@ namespace caret {
         
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
+        
+        /* Editor for scalar color mapping. */
+        MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
         
         DisplayControlDialog* displayControlDialog;
         

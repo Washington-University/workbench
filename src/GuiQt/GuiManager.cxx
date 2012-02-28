@@ -38,9 +38,11 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventMapScalarDataColorMappingEditor.h"
 #include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
+#include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
 
@@ -66,8 +68,11 @@ GuiManager::GuiManager(QObject* parent)
     this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->preferencesDialog = NULL;    
+    this->scalarDataColorMappingEditor = NULL;
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
 }
 
 /**
@@ -475,6 +480,33 @@ GuiManager::receiveEvent(Event* event)
     }
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR) {
+        EventMapScalarDataColorMappingEditor* mapEditEvent =
+        dynamic_cast<EventMapScalarDataColorMappingEditor*>(event);
+        CaretAssert(mapEditEvent);
+        
+        const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
+        CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
+        BrainBrowserWindow* browserWindow = this->brainBrowserWindows[browserWindowIndex];
+        CaretAssert(browserWindow);
+        
+        CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
+        const int mapIndex = mapEditEvent->getMapIndex();
+        
+        if (this->scalarDataColorMappingEditor == NULL) {
+            this->scalarDataColorMappingEditor =
+            new MapScalarDataColorMappingEditorDialog(browserWindow);
+            this->nonModalDialogs.push_back(this->scalarDataColorMappingEditor);
+        }
+        this->scalarDataColorMappingEditor->updateEditor(mapFile,
+                                                         mapIndex);
+        this->scalarDataColorMappingEditor->show();
+        this->scalarDataColorMappingEditor->raise();
+        this->scalarDataColorMappingEditor->activateWindow();
+        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                this->scalarDataColorMappingEditor);
+        mapEditEvent->setEventProcessed();
     }
 }
 
