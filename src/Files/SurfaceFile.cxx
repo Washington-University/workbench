@@ -665,9 +665,9 @@ void caret::SurfaceFile::invalidateHelpers()
     m_topoHelpers.clear();
     m_geoHelperIndex = 0;
     m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
-    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
-    m_locator = CaretPointer<CaretPointLocator>(NULL);
-    m_topoBase = CaretPointer<TopologyHelperBase>(NULL);
+    m_geoBase.grabNew(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
+    m_locator.grabNew(NULL);
+    m_topoBase.grabNew(NULL);
 }
 
 /**
