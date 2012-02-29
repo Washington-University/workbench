@@ -1543,10 +1543,10 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     }
                                 }
                                 if (useIt) {
-                                    const DescriptiveStatistics* statistics = 
+                                    const FastStatistics* statistics = 
                                         (connLoadFile != NULL) 
-                                        ? connLoadFile->getMapStatistics(mapIndex)
-                                        : vf->getMapStatistics(mapIndex);
+                                        ? connLoadFile->getMapFastStatistics(mapIndex)
+                                        : vf->getMapFastStatistics(mapIndex);
                                     
                                         VolumeDrawInfo vdi(vf,
                                                            palette,
@@ -3680,7 +3680,7 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
         const AString paletteName = pcm->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
         if (palette != NULL) {
-            const DescriptiveStatistics* statistics = mapFiles[i]->getMapStatistics(mapIndex);
+            const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
             this->drawPalette(palette, 
                               pcm, 
                               statistics, 
@@ -4484,7 +4484,7 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                    Palette* palette,
                                                    PaletteColorMapping* paletteColorMapping,
-                                                   const DescriptiveStatistics* statistics,
+                                                   const FastStatistics* statistics,
                                                    const int32_t mapIndex,
                                                    const float opacity) 
 : statistics(statistics) {

@@ -42,6 +42,8 @@ namespace caret {
     
     class CaretMappableDataFile;
     class DescriptiveStatistics;
+    class FastStatistics;
+    class Histogram;
     class PaletteColorMapping;
     class WuQDoubleSlider;
     class WuQWidgetObjectGroup;
@@ -89,6 +91,8 @@ namespace caret {
         void setLayoutMargins(QLayout* layout);
         
         const DescriptiveStatistics* getDescriptiveStatisticsForHistogram(const DescriptiveStatistics* statisticsForAll) const;
+        
+        const Histogram* getHistogram(const FastStatistics* statisticsForAll) const;
         
         PaletteColorMapping* paletteColorMapping;
         

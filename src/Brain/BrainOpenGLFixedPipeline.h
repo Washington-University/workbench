@@ -97,14 +97,14 @@ namespace caret {
             VolumeDrawInfo(VolumeFile* volumeFile,
                            Palette* palette,
                            PaletteColorMapping* paletteColorMapping,
-                           const DescriptiveStatistics* statistics,
+                           const FastStatistics* statistics,
                            const int32_t mapIndex,
                            const float opacity);
             
             VolumeFile* volumeFile;
             Palette* palette;
             PaletteColorMapping* paletteColorMapping;
-            const DescriptiveStatistics* statistics;
+            const FastStatistics* statistics;
             int32_t mapIndex;
             float opacity;
         };

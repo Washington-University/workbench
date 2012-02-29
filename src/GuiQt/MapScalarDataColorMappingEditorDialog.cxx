@@ -25,6 +25,7 @@
 
 #include <algorithm>
 #include <limits>
+#include <vector>
 
 #include <QBoxLayout>
 #include <QButtonGroup>
@@ -48,7 +49,9 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
+#include "FastStatistics.h"
 #include "GuiManager.h"
+#include "Histogram.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
@@ -901,9 +904,9 @@ MapScalarDataColorMappingEditorDialog::updateEditor(CaretMappableDataFile* caret
                 break;
         }
         
-        const DescriptiveStatistics* statistics = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
-        float minValue  = statistics->getMinimumValue();
-        float maxValue  = statistics->getMaximumValue();
+        const FastStatistics* statistics = this->caretMappableDataFile->getMapFastStatistics(this->mapFileIndex);
+        float minValue  = statistics->getMin();
+        float maxValue  = statistics->getMax();
         
         this->thresholdLowSlider->setRange(minValue, maxValue);
         this->thresholdLowSlider->setValue(lowValue);
@@ -1028,6 +1031,80 @@ MapScalarDataColorMappingEditorDialog::getDescriptiveStatisticsForHistogram(cons
 }
 
 /**
+ * Get histogram for displaying data
+ * @param statisticsForAll
+ *    Statistics for all data.
+ * @param
+ *    Histogram.
+ */
+const Histogram* 
+MapScalarDataColorMappingEditorDialog::getHistogram(const FastStatistics* statisticsForAll) const
+{
+    float mostPos  = 0.0;
+    float leastPos = 0.0;
+    float leastNeg = 0.0;
+    float mostNeg  = 0.0;
+    bool matchFlag = false;
+    if (this->histogramAllRadioButton->isChecked()) {
+        float dummy;
+        statisticsForAll->getNonzeroRanges(mostNeg, dummy, dummy, mostPos);
+    }
+    else if (this->histogramMatchPaletteRadioButton->isChecked()) {
+        matchFlag = true;
+        switch (this->paletteColorMapping->getScaleMode()) {
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+                mostPos  = std::numeric_limits<float>::max();
+                leastPos = 0.0;
+                leastNeg = 0.0;
+                mostNeg  = -std::numeric_limits<float>::max();
+                break;
+            case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+                mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
+                leastPos = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMinimumSpinBox->value());
+                leastNeg = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMinimumSpinBox->value());
+                mostNeg  = statisticsForAll->getApproxNegativePercentile(this->scaleAutoPercentageNegativeMaximumSpinBox->value());
+                break;
+            case PaletteScaleModeEnum::MODE_USER_SCALE:
+                mostPos  = this->scaleFixedPositiveMaximumSpinBox->value();
+                leastPos = this->scaleFixedPositiveMinimumSpinBox->value();
+                leastNeg = this->scaleFixedNegativeMinimumSpinBox->value();
+                mostNeg  = this->scaleFixedNegativeMaximumSpinBox->value();
+                break;
+        }
+    }
+    else {
+        CaretAssert(0);
+    }
+    
+    /*
+     * Remove data that is not displayed
+     */
+    bool isZeroIncluded = true;
+    const Histogram* ret;
+    if (matchFlag) {
+        isZeroIncluded = this->displayModeZeroCheckBox->isChecked();
+        
+        if (this->displayModeNegativeCheckBox->isChecked() == false) {
+            mostNeg  = 0.0;
+            leastNeg = 0.0;
+        }
+        if (this->displayModePositiveCheckBox->isChecked() == false) {
+            mostPos  = 0.0;
+            leastPos = 0.0;
+        }
+        ret = this->caretMappableDataFile->getMapHistogram(this->mapFileIndex, 
+                                                         mostPos, 
+                                                         leastPos, 
+                                                         leastNeg, 
+                                                         mostNeg, 
+                                                         isZeroIncluded);
+    } else {
+        ret = caretMappableDataFile->getMapHistogram(this->mapFileIndex);
+    }
+    return ret;
+}
+
+/**
  * Update the histogram plot.
  */
 void 
@@ -1041,16 +1118,18 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
     
     if (this->paletteColorMapping != NULL) {
         PaletteFile* paletteFile = GuiManager::get()->getBrain()->getPaletteFile();
-        const DescriptiveStatistics* statisticsForAll = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
-        const DescriptiveStatistics* statistics = this->getDescriptiveStatisticsForHistogram(statisticsForAll);
+        /*const DescriptiveStatistics* statisticsForAll = this->caretMappableDataFile->getMapStatistics(this->mapFileIndex);
+        const DescriptiveStatistics* statistics = this->getDescriptiveStatisticsForHistogram(statisticsForAll);//*/
+        
+        const FastStatistics* fastStatistics = caretMappableDataFile->getMapFastStatistics(mapFileIndex);
         
         /*
          * Data values table
          */
-        const float statsMean   = statistics->getMean();
-        const float statsStdDev = statistics->getStandardDeviationSample();
-        const float statsMin    = statistics->getMinimumValue();
-        const float statsMax    = statistics->getMaximumValue();
+        const float statsMean   = fastStatistics->getMean();
+        const float statsStdDev = fastStatistics->getSampleStdDev();
+        const float statsMin    = fastStatistics->getMin();
+        const float statsMax    = fastStatistics->getMax();
         this->statisticsMeanValueLabel->setText(QString::number(statsMean, 'f', 4));
         this->statisticsStandardDeviationLabel->setText(QString::number(statsStdDev, 'f', 4));
         this->statisticsMaximumValueLabel->setText(QString::number(statsMax, 'f', 4));
@@ -1059,10 +1138,12 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
         /*
          * Get data for this histogram.
          */
-        const int64_t numHistogramValues = statistics->getHistogramNumberOfElements();
-        const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
-        const float minValue = statistics->getMinimumValue();
-        const float maxValue = statistics->getMaximumValue();
+        const Histogram* myHist = getHistogram(fastStatistics);
+        //const int64_t* histogram = const_cast<int64_t*>(statistics->getHistogram());
+        float minValue, maxValue;
+        myHist->getRange(minValue, maxValue);
+        const std::vector<float>& displayData = myHist->getHistogramDisplay();
+        const int64_t numHistogramValues = (int64_t)(displayData.size());
         
         /*
          * Width of each 'bar' in the histogram
@@ -1099,7 +1180,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             const Palette* palette = paletteFile->getPaletteByName(this->paletteColorMapping->getSelectedPaletteName());
             if (this->histogramUsePaletteColors->isChecked()
                 && (palette != NULL)) {
-                NodeAndVoxelColoring::colorScalarsWithPalette(statistics, 
+                NodeAndVoxelColoring::colorScalarsWithPalette(fastStatistics, 
                                                               paletteColorMapping, 
                                                               palette, 
                                                               dataValues, 
@@ -1133,7 +1214,7 @@ MapScalarDataColorMappingEditorDialog::updateHistogramPlot()
             
             const float startValue = dataValues[ix];
             const float stopValue  = dataValues[ix + 1];
-            float dataFrequency = histogram[ix];
+            float dataFrequency = displayData[ix];
             
             bool displayIt = true;
             
