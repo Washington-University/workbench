@@ -159,6 +159,9 @@ IdentificationItemSurfaceNode::toString() const
     text += IdentificationItem::toString() + "\n";
     text += "Surface: " + surface->getFileNameNoPath() + "\n";
     text += "Node: " + AString::number(this->nodeNumber) + "\n";
+    if (this->isValid()) {
+        text += "Coordinate: " + AString::fromNumbers(surface->getCoordinate(this->nodeNumber), 3, ", ");
+    }
     text += "Contralateral: " + AString::fromBool(this->contralateralFlag);
     return text;
 }

@@ -166,6 +166,11 @@ IdentificationItemSurfaceTriangle::toString() const
     text += "Surface: " + surface->getFileNameNoPath() + "\n";
     text += "Triangle: " + AString::number(this->triangleNumber);
     text += "Nearest Node: " + AString::number(this->nearestNodeNumber);
+    if (this->isValid()) {
+        if (this->nearestNodeNumber >= 0) {
+            text += "Coordinate: " + AString::fromNumbers(surface->getCoordinate(this->nearestNodeNumber), 3, ", ");
+        }
+    }
     return text;
 }
 

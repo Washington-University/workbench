@@ -921,10 +921,20 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
         
         
         if (triangleIndex >= 0) {
+            bool isTriangleIdAccepted = false;
             if (triangleID != NULL) {
-                triangleID->setSurface(surface);
-                triangleID->setTriangleNumber(triangleIndex);
-                triangleID->setScreenDepth(depth);
+                if (triangleID->isOtherScreenDepthCloserToViewer(depth)) {
+                    triangleID->setSurface(surface);
+                    triangleID->setTriangleNumber(triangleIndex);
+                    const int32_t* triangleNodeIndices = surface->getTriangle(triangleIndex);
+                    triangleID->setNearestNode(triangleNodeIndices[0]);
+                    triangleID->setScreenDepth(depth);
+                    isTriangleIdAccepted = true;
+                    CaretLogFine("Selected Triangle: " + triangleID->toString());   
+                }
+                else {
+                    CaretLogFine("Rejecting Selected Triangle: " + triangleID->toString());   
+                }
             }
             
             /*
@@ -947,7 +957,9 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                 c1[2] + c2[2] + c3[2]
             };
             if (triangleID != NULL) {
-                this->setIdentifiedItemScreenXYZ(triangleID, average);
+                if (isTriangleIdAccepted) {
+                    this->setIdentifiedItemScreenXYZ(triangleID, average);
+                }
             }
                    
             GLdouble selectionModelviewMatrix[16];
@@ -1006,18 +1018,20 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                                                        this->mouseX, 
                                                                        this->mouseY);
                     if (triangleID != NULL) {
-                        triangleID->setNearestNode(n3);
-                        triangleID->setNearestNodeScreenXYZ(wc3);
-                        triangleID->setNearestNodeModelXYZ(dc3);
-                        if ((d1 < d2) && (d1 < d3)) {
-                            triangleID->setNearestNode(n1);
-                            triangleID->setNearestNodeScreenXYZ(wc1);
-                            triangleID->setNearestNodeModelXYZ(dc1);
-                        }
-                        else if ((d2 < d1) && (d2 < d3)) {
-                            triangleID->setNearestNode(n2);
-                            triangleID->setNearestNodeScreenXYZ(wc2);
-                            triangleID->setNearestNodeModelXYZ(dc2);
+                        if (isTriangleIdAccepted) {
+                            triangleID->setNearestNode(n3);
+                            triangleID->setNearestNodeScreenXYZ(wc3);
+                            triangleID->setNearestNodeModelXYZ(dc3);
+                            if ((d1 < d2) && (d1 < d3)) {
+                                triangleID->setNearestNode(n1);
+                                triangleID->setNearestNodeScreenXYZ(wc1);
+                                triangleID->setNearestNodeModelXYZ(dc1);
+                            }
+                            else if ((d2 < d1) && (d2 < d3)) {
+                                triangleID->setNearestNode(n2);
+                                triangleID->setNearestNodeScreenXYZ(wc2);
+                                triangleID->setNearestNodeModelXYZ(dc2);
+                            }
                         }
                     }
                     
@@ -1179,11 +1193,16 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
                                          nodeIndex,
                                          depth);
         if (nodeIndex >= 0) {
-            nodeID->setSurface(surface);
-            nodeID->setNodeNumber(nodeIndex);
-            nodeID->setScreenDepth(depth);
-            this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
-            CaretLogFine("Selected Node: " + QString::number(nodeIndex));   
+            if (nodeID->isOtherScreenDepthCloserToViewer(depth)) {
+                nodeID->setSurface(surface);
+                nodeID->setNodeNumber(nodeIndex);
+                nodeID->setScreenDepth(depth);
+                this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
+                CaretLogFine("Selected Node: " + nodeID->toString());   
+            }
+            else {
+                CaretLogFine("Rejecting Selected Node: " + nodeID->toString());   
+            }
         }
     }
 }
@@ -1296,11 +1315,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                                          nodeIndex,
                                          depth);
         if (nodeIndex >= 0) {
-            symbolID->setSurface(surface);
-            symbolID->setNodeNumber(nodeIndex);
-            symbolID->setScreenDepth(depth);
-            this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
-            CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
+            if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
+                symbolID->setSurface(surface);
+                symbolID->setNodeNumber(nodeIndex);
+                symbolID->setScreenDepth(depth);
+                this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
+                CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
+            }
         }
     }
 }
@@ -1444,19 +1465,21 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                                          borderPointIndex,
                                          depth);
         if (borderFileIndex >= 0) {
-            Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
-            idBorder->setBorder(border);
-            idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
-            idBorder->setBorderIndex(borderIndex);
-            idBorder->setBorderPointIndex(borderPointIndex);
-            idBorder->setSurface(surface);
-            idBorder->setScreenDepth(depth);
-            float xyz[3];
-            border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
-                                                                     xyz,
-                                                                     false);
-            this->setIdentifiedItemScreenXYZ(idBorder, xyz);
-            CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+            if (idBorder->isOtherScreenDepthCloserToViewer(depth)) {
+                Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
+                idBorder->setBorder(border);
+                idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
+                idBorder->setBorderIndex(borderIndex);
+                idBorder->setBorderPointIndex(borderPointIndex);
+                idBorder->setSurface(surface);
+                idBorder->setScreenDepth(depth);
+                float xyz[3];
+                border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
+                                                                         xyz,
+                                                                         false);
+                this->setIdentifiedItemScreenXYZ(idBorder, xyz);
+                CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+            }
         }
     }
 }
@@ -2473,12 +2496,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                             vf->enclosingVoxel(voxelCoordinates,
                                              voxelIndices);
                             if (vf->indexValid(voxelIndices)) {
-                                voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
-                                voxelID->setVoxelIJK(voxelIndices);
-                                voxelID->setScreenDepth(depth);
-                                this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
-                                CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
-                                break;
+                                if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                                    voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
+                                    voxelID->setVoxelIJK(voxelIndices);
+                                    voxelID->setScreenDepth(depth);
+                                    this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                                    CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
+                                    break;
+                                }
                             }
                         }
                     }
@@ -2982,12 +3007,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                     vf->enclosingVoxel(voxelCoordinates,
                                      voxelIndices);
                     if (vf->indexValid(voxelIndices)) {
-                        voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
-                        voxelID->setVoxelIJK(voxelIndices);
-                        voxelID->setScreenDepth(depth);
-                        this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
-                        CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
-                        break;
+                        if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                            voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
+                            voxelID->setVoxelIJK(voxelIndices);
+                            voxelID->setScreenDepth(depth);
+                            this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                            CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
+                            break;
+                        }
                     }
                 }
             }
