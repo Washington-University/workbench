@@ -71,6 +71,17 @@ FileInformation::~FileInformation()
     
 }
 
+//some logic that seems to be missing from QFileInfo: if absolute, return path() + file() rather than using system call
+AString FileInformation::getFilePath() const
+{
+    if (m_fileInfo.isAbsolute())
+    {
+        return m_fileInfo.filePath();
+    } else {
+        return m_fileInfo.absoluteFilePath();
+    }
+}
+
 /**
  * Removes the file.
  * @return

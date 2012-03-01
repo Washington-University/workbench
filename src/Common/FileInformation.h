@@ -106,7 +106,7 @@ namespace caret {
         /**
          * @return The full path to the file. 
          */
-        AString getFilePath() const { return m_fileInfo.absoluteFilePath(); }
+        AString getFilePath() const;
         
         /**
          * @return The file name's extension.
