@@ -499,14 +499,14 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
     }
     
     if (this->selectedModelType == ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID) {
-        if (this->wholeBrainModel != NULL) {
-            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
-        }
-        else if (this->surfaceModelSelector->getSelectedSurfaceController() != NULL) {
+        if (this->surfaceModelSelector->getSelectedSurfaceController() != NULL) {
             this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE;
         }
         else if (this->volumeModel != NULL) {
             this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES;
+        }
+        else if (this->wholeBrainModel != NULL) {
+            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
         }
     }
 }
