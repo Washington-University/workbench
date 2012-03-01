@@ -28,7 +28,7 @@
 
 #include "CaretObject.h"
 
-class QFileInfo;
+#include <QFileInfo>
 
 namespace caret {
 
@@ -46,72 +46,72 @@ namespace caret {
         /**
          * @return true if it exists, else false.
          */
-        bool exists() const { return this->pathExists; }
+        bool exists() const { return m_fileInfo.exists(); }
         
         /**
          * @return true if it is file, else false.
          */
-        bool isFile() const { return this->pathIsFile; }
+        bool isFile() const { return m_fileInfo.isFile(); }
         
         /**
          * @return true if it is directory, else false.
          */
-        bool isDirectory() const { return this->pathIsDirectory; }
+        bool isDirectory() const { return m_fileInfo.isDir(); }
         
         /**
          * @return true if it is symbolic link, else false.
          */
-        bool isSymbolicLink() const { return this->pathIsSymbolicLink; }
+        bool isSymbolicLink() const { return m_fileInfo.isSymLink(); }
         
         /**
          * @return true if it is readable, else false.
          */
-        bool isReadable() const { return this->pathIsReadable; }
+        bool isReadable() const { return m_fileInfo.isReadable(); }
         
         /**
          * @return true if it is writable, else false.
          */
-        bool isWritable() const { return this->pathIsWritable; }
+        bool isWritable() const { return m_fileInfo.isWritable(); }
         
         /**
          * @return true if it is absolute path, else false.
          */
-        bool isAbsolute() const { return this->pathIsAbsolute; }
+        bool isAbsolute() const { return m_fileInfo.isAbsolute(); }
         
         /**
          * @return true if it is relative path, else false.
          */
-        bool isRelative() const { return this->pathIsRelative; }
+        bool isRelative() const { return m_fileInfo.isRelative(); }
         
         /**
          * @return true if it is hidden, else false.
          */
-        bool isHidden() const { return this->pathIsHidden; }
+        bool isHidden() const { return m_fileInfo.isHidden(); }
         
         /**
          * @return Size of the file in bytes.
          */
-        int64_t size() const { return this->fileSize; }
+        int64_t size() const { return m_fileInfo.size(); }
         
         /**
          * @return Name of the file excluding any path.
          */
-        AString getFileName() const { return this->fileName; }
+        AString getFileName() const { return m_fileInfo.fileName(); }
         
         /**
          * @return The file's path excluding the file's name.
          */
-        AString getPathName() const { return this->pathName; }
+        AString getPathName() const { return m_fileInfo.path(); }
         
         /**
          * @return The full path to the file. 
          */
-        AString getFilePath() const { return this->filePath; }
+        AString getFilePath() const { return m_fileInfo.absoluteFilePath(); }
         
         /**
          * @return The file name's extension.
          */
-        AString getFileExtension() const { return this->fileExtension; }
+        AString getFileExtension() const { return m_fileInfo.suffix(); }
         
         bool remove();
         
@@ -124,37 +124,7 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void initialize(const QFileInfo& fileInfo);
-        
-        //AString file;
-        
-        AString filePath;
-        
-        bool pathExists;
-        
-        int64_t fileSize;
-        
-        bool pathIsDirectory;
-        
-        bool pathIsFile;
-        
-        bool pathIsSymbolicLink;
-        
-        bool pathIsReadable;
-        
-        bool pathIsWritable;
-        
-        bool pathIsAbsolute;
-        
-        bool pathIsRelative;
-        
-        bool pathIsHidden;
-        
-        AString fileName;
-        
-        AString pathName;
-        
-        AString fileExtension;
+        QFileInfo m_fileInfo;
     };
     
 #ifdef __FILE_INFORMATION_DECLARE__
