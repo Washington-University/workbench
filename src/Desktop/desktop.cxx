@@ -387,7 +387,6 @@ main(int argc, char* argv[])
         /*
          * Resolution of screens
          */
-        CaretLogConfig("Adding screen sizes");
         AString screenSizeText = "Screen Sizes: ";
         QDesktopWidget* dw = QApplication::desktop();
         const int numScreens = dw->screenCount();
