@@ -579,8 +579,8 @@ WuQtUtilities::isSmallDisplay()
 {
     QDesktopWidget* dw = QApplication::desktop();
     QRect screenRect = dw->screenGeometry();
-    const int verticalSize = screenRect.y();
-    if (verticalSize < 800) {
+    const int verticalSize = screenRect.height();
+    if (verticalSize <= 800) {
         return true;
     }
     
