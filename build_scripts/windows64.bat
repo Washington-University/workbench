@@ -16,6 +16,7 @@ echo "Caret7 Windows64 Build Result"
 REM
 REM Grab the latest Sources
 REM
+c:\cygwin\bin\git.exe reset --hard HEAD
 c:\cygwin\bin\git.exe pull -u
 
 REM
@@ -25,7 +26,7 @@ cd build_scripts/windows64
 %CMD% /c build.bat
 cd ..
 cd ..
-set DIST_DIR=caret@hippocampus:/Volumes/DS4600/caret7_distribution/caret/bin_windows64
+set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/caret/bin_windows64
 
 echo "Copying Files"
 c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%
