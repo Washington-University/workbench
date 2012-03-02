@@ -36,11 +36,12 @@
 #include "BorderPropertiesEditorDialog.h"
 #undef __BORDER_PROPERTIES_EDITOR_DIALOG__DECLARE__
 
+#include "Brain.h"
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumSelectionControl.h"
-#include "Brain.h"
+#include "ClassAndNameHierarchySelection.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
@@ -367,13 +368,14 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     
     BorderFile* borderFile = this->getSelectedBorderFile(false);
     if (borderFile != NULL) {
-        GiftiLabelTable* glt = borderFile->getClassNamesTable();
-        std::vector<int32_t> keys = glt->getLabelKeysSortedByName();
+        const ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+        std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
         for (std::vector<int32_t>::iterator keyIterator = keys.begin();
              keyIterator != keys.end();
              keyIterator++) {
             const int32_t key = *keyIterator;
-            const GiftiLabel* gl = glt->getLabel(key);
+            const GiftiLabel* gl = classLabelTable->getLabel(key);
             
             this->classNameComboBox->addItem(gl->getName());
         }
@@ -480,7 +482,9 @@ void
 BorderPropertiesEditorDialog::displayClassEditor()
 {
     BorderFile* borderFile = this->getSelectedBorderFile(true);
-    GiftiLabelTableEditor editor(borderFile->getClassNamesTable(),
+    ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+    GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+    GiftiLabelTableEditor editor(classLabelTable,
                                  "Edit Class Attributes",
                                  this);
     const QString className = this->classNameComboBox->currentText();

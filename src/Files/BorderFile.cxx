@@ -365,21 +365,13 @@ BorderFile::removeBorder(Border* border)
 }
 
 /**
- * @return The class names table.
+ * @return The class and name hierarchy.
  */
-GiftiLabelTable* 
-BorderFile::getClassNamesTable()
+ClassAndNameHierarchySelection* 
+BorderFile::getClassAndNameHierarchy()
 {
-    return this->classNameHierarchy->getClassLabelTable();
-}
-
-/**
- * @return The class names table.
- */
-const GiftiLabelTable* 
-BorderFile::getClassNamesTable() const
-{
-    return this->classNameHierarchy->getClassLabelTable();
+    this->classNameHierarchy->update(this);
+    return this->classNameHierarchy;
 }
 
 /**
@@ -573,7 +565,6 @@ BorderFile::clearModified()
     CaretDataFile::clearModified();
     
     this->metadata->clearModified();
-    this->getClassNamesTable()->clearModified();
     
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {

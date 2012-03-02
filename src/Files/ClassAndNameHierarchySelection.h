@@ -54,7 +54,11 @@ namespace caret {
         
         GiftiLabelTable* getClassLabelTable();
         
+        const GiftiLabelTable* getClassLabelTable() const;
+        
         GiftiLabelTable* getNameLabelTable();
+        
+        const GiftiLabelTable* getNameLabelTable() const;
         
         void setAllSelected(const bool status);
         
@@ -67,7 +71,7 @@ namespace caret {
         
         GiftiLabelTable* classLabelTable;
         
-        GiftiLabelTable* nameLableTable;
+        GiftiLabelTable* nameLabelTable;
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__

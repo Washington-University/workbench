@@ -116,10 +116,11 @@ namespace caret {
         AString elementText;
         
         /// GIFTI meta data sax reader
-        GiftiMetaDataSaxReader* metaDataSaxReader;       
+        GiftiMetaDataSaxReader* metaDataSaxReader;   
         
         /// GIFTI Label Table (Classes) SAX Reader;
         GiftiLabelTableSaxReader* classTableSaxReader;
+
     };
 
 } // namespace

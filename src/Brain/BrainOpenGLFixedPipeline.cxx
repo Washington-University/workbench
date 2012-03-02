@@ -58,6 +58,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
+#include "ClassAndNameHierarchySelection.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
@@ -1418,8 +1419,9 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        const GiftiLabelTable* classNameTable = borderFile->getClassNamesTable();
-
+        const ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+        
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
@@ -1430,10 +1432,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
-                const int32_t key = classNameTable->getLabelKeyFromName(border->getClassName());
-                const GiftiLabel* classLabel = classNameTable->getLabel(key);
-                if (classLabel != NULL) {
+                const int32_t key = classLabelTable->getLabelKeyFromName(border->getClassName());
+                if (key >= 0) {
                     float rgba[4];
+                    const GiftiLabel* classLabel = classLabelTable->getLabel(key);
                     classLabel->getColor(rgba);
                     glColor3fv(rgba);
                 }

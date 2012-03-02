@@ -84,9 +84,7 @@ namespace caret {
         
         void removeBorder(Border* border);
         
-        GiftiLabelTable* getClassNamesTable();
-        
-        const GiftiLabelTable* getClassNamesTable() const;
+        ClassAndNameHierarchySelection* getClassAndNameHierarchy();
         
         static float getFileVersion();
         
@@ -114,7 +112,7 @@ namespace caret {
         /** Version of this BorderFile */
         static const float borderFileVersion;
         
-        ClassAndNameHierarchySelection* classNameHierarchy;
+        mutable ClassAndNameHierarchySelection* classNameHierarchy;
     };
     
 #ifdef __BORDER_FILE_DECLARE__
