@@ -119,6 +119,8 @@ namespace caret {
         
         static QSize getMinimumScreenSize();
         
+        static bool isSmallDisplay();
+        
     private:
         WuQtUtilities();
         ~WuQtUtilities();

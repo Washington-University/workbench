@@ -568,3 +568,23 @@ WuQtUtilities::getMinimumScreenSize()
     return size;
 }
 
+/**
+ * Is the user's display small?  This is loosely
+ * defined as a vertical resolution of 800 or less.
+ * @return true if resolution is 800 or less, 
+ * else false.
+ */
+bool 
+WuQtUtilities::isSmallDisplay()
+{
+    QDesktopWidget* dw = QApplication::desktop();
+    QRect screenRect = dw->screenGeometry();
+    const int verticalSize = screenRect.y();
+    if (verticalSize < 800) {
+        return true;
+    }
+    
+    return false;
+}
+
+

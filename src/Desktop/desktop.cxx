@@ -25,6 +25,7 @@
 
 
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QGLFormat>
 #include <QGLPixelBuffer>
 #include <QSplashScreen>
@@ -382,6 +383,24 @@ main(int argc, char* argv[])
         else {
             CaretLogConfig("OpenGL PBuffers are NOT supported");
         }
+        
+        /*
+         * Resolution of screens
+         */
+        AString screenSizeText = "Screen Sizes: ";
+        QDesktopWidget* dw = QApplication::desktop();
+        const int numScreens = dw->screenCount();
+        for (int i = 0; i < numScreens; i++) {
+            const QRect rect = dw->screenGeometry(i);
+            const int w = rect.width();
+            const int h = rect.height();
+            screenSizeText += ("("
+                               + AString::number(w)
+                               + ", "
+                               + AString::number(h)
+                               + ")  ");
+        }
+        CaretLogConfig(screenSizeText);
         
         /*
         * Start the app which will launch the main window.

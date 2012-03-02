@@ -135,32 +135,27 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->viewOrientationLeftMedialIcon = NULL;
     this->viewOrientationRightLateralIcon = NULL;
     this->viewOrientationRightMedialIcon = NULL;
-/*
-    qApp->setStyleSheet("QTabBar::tab:selected {"
-                        "    font: bold 14px"
-                        "}  " 
-                        "QTabBar::tab!selected {"
-                        "    font: italic 10px"
-                        "}");
-*/
+
     /*
      * Create tab bar that displays models.
      */
     this->tabBar = new QTabBar();
-    this->tabBar->setStyleSheet("QTabBar::tab:selected {"
-                                "    font: bold 14px;"
-                                //"    text-decoration: underline; "
-                                "}  " 
-                                //"QTabBar::tab:!selected {"
-                                "QTabBar::tab {"
-                                "    font: italic"
-                                "}");
-    /*
-                                "QTabBar::tab:close-button {"
-                                "image: url(close.png)"
-                                "    subcontrol-position: left;"
-                                "}");
-     */
+    if (WuQtUtilities::isSmallDisplay()) {
+        this->tabBar->setStyleSheet("QTabBar::tab:selected {"
+                                    "    font: bold;"
+                                    "}  " 
+                                    "QTabBar::tab {"
+                                    "    font: italic"
+                                    "}");
+    }
+    else {
+        this->tabBar->setStyleSheet("QTabBar::tab:selected {"
+                                    "    font: bold 14px;"
+                                    "}  " 
+                                    "QTabBar::tab {"
+                                    "    font: italic"
+                                    "}");
+    }
 
     //this->tabBar->setDocumentMode(true);
     this->tabBar->setShape(QTabBar::RoundedNorth);

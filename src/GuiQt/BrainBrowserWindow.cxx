@@ -102,7 +102,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                                browserWindowIndex);
     
     const int openGLSizeX = 500;
-    const int openGLSizeY = 375;
+    const int openGLSizeY = (WuQtUtilities::isSmallDisplay() ? 200 : 375);
     this->openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);
     
