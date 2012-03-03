@@ -1,4 +1,4 @@
-#!/bin/sh
+:w#!/bin/sh
 
 #
 # This file is executed by (via "launchd")
@@ -78,11 +78,11 @@ macdeployqt Desktop/workbench.app
 # Copy to distribution directory
 #
 echo "COPYING PROGRAMS"
-DIST_DIR=/Volumes/DS4600/caret7_distribution/caret/macosx64_apps
-/bin/cp -rv Desktop/workbench.app ${DIST_DIR}
-/bin/cp -v CommandLine/wb_command ${DIST_DIR}
+DIST_DIR=/mainpool/storage/DS4600/caret7_distribution/caret/macosx64_apps
+scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
+scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
 
-touch ${DIST_DIR}/workbench.app
+ssh caret@myelin1 touch ${DIST_DIR}/workbench.app
 
 echo "SCRIPT COMPLETED SUCCESSFULLY"
 
