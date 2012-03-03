@@ -63,7 +63,7 @@ ClassAndNameHierarchySelection::ClassAndNameHierarchySelection()
 : CaretObject()
 {
     this->classLabelTable = new GiftiLabelTable();
-    this->nameLableTable  = new GiftiLabelTable();
+    this->nameLabelTable  = new GiftiLabelTable();
 }
 
 /**
@@ -72,7 +72,7 @@ ClassAndNameHierarchySelection::ClassAndNameHierarchySelection()
 ClassAndNameHierarchySelection::~ClassAndNameHierarchySelection()
 {
     delete this->classLabelTable;
-    delete this->nameLableTable;
+    delete this->nameLabelTable;
 }
 
 /**
@@ -82,7 +82,7 @@ void
 ClassAndNameHierarchySelection::clear()
 {
     this->classLabelTable->clear();
-    this->nameLableTable->clear();
+    this->nameLabelTable->clear();
 }
 
 /**
@@ -95,12 +95,30 @@ ClassAndNameHierarchySelection::getClassLabelTable()
 }
 
 /**
+ * @return The class table.
+ */
+const GiftiLabelTable* 
+ClassAndNameHierarchySelection::getClassLabelTable() const
+{
+    return this->classLabelTable;
+}
+
+/**
  * @return The name table.
  */
 GiftiLabelTable* 
 ClassAndNameHierarchySelection::getNameLabelTable()
 {
-    return this->nameLableTable;
+    return this->nameLabelTable;
+}
+
+/**
+ * @return The name table.
+ */
+const GiftiLabelTable* 
+ClassAndNameHierarchySelection::getNameLabelTable() const
+{
+    return this->nameLabelTable;
 }
 
 /**
@@ -109,6 +127,8 @@ ClassAndNameHierarchySelection::getNameLabelTable()
 void 
 ClassAndNameHierarchySelection::setAllSelected(const bool status)
 {
+    this->nameLabelTable->setSelectionStatusForAllLabels(status);
+    this->classLabelTable->setSelectionStatusForAllLabels(status);
 }
 
 /**
@@ -118,25 +138,39 @@ ClassAndNameHierarchySelection::setAllSelected(const bool status)
 void 
 ClassAndNameHierarchySelection::update(BorderFile* borderFile)
 {
+    bool needToGenerateKeys = false;
+    
     const int32_t numBorders = borderFile->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
-        Border* border = borderFile->getBorder(i);
+        const Border* border = borderFile->getBorder(i);
         if (border->isNameOrClassModified()) {
-            const int32_t nameKey = this->nameLableTable->addLabel(border->getName(),
+            needToGenerateKeys = true;
+        }
+    }
+    
+    if (needToGenerateKeys) {
+        this->clear();
+        
+        for (int32_t i = 0; i < numBorders; i++) {
+            Border* border = borderFile->getBorder(i);
+            
+            /*
+             * If the name already exists, addLabel will return the name's key.
+             * Otherwise, it will return the key of the existing label with the name.
+             */
+            const int32_t nameKey = this->nameLabelTable->addLabel(border->getName(),
                                                                    0.0f, 0.0f, 0.0f);
-            int32_t classKey = -1;
             AString className = border->getClassName();
             if (className.isEmpty()) {
                 className = "???";
             }
-            const GiftiLabel* classLabel = this->classLabelTable->getLabel(className);
-            if (classLabel != NULL) {
-                classKey = classLabel->getKey();
-            }
-            else {
-                classKey = this->classLabelTable->addLabel(className,
-                                                           1.0f, 1.0f, 1.0f);
-            }
+
+            /*
+             * If the name already exists, addLabel will return the name's key.
+             * Otherwise, it will return the key of the existing label with the name.
+             */
+            const int32_t classKey = this->nameLabelTable->addLabel(className,
+                                                                   0.0f, 0.0f, 0.0f);
             
             CaretAssert(nameKey >= 0);
             CaretAssert(classKey >= 0);

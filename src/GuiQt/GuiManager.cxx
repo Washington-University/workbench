@@ -38,9 +38,11 @@
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventManager.h"
+#include "EventMapScalarDataColorMappingEditor.h"
 #include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
+#include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
 
@@ -66,8 +68,11 @@ GuiManager::GuiManager(QObject* parent)
     this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->preferencesDialog = NULL;    
+    this->scalarDataColorMappingEditor = NULL;
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
 }
 
 /**
@@ -476,6 +481,33 @@ GuiManager::receiveEvent(Event* event)
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR) {
+        EventMapScalarDataColorMappingEditor* mapEditEvent =
+        dynamic_cast<EventMapScalarDataColorMappingEditor*>(event);
+        CaretAssert(mapEditEvent);
+        
+        const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
+        CaretAssertVectorIndex(this->brainBrowserWindows, browserWindowIndex);
+        BrainBrowserWindow* browserWindow = this->brainBrowserWindows[browserWindowIndex];
+        CaretAssert(browserWindow);
+        
+        CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
+        const int mapIndex = mapEditEvent->getMapIndex();
+        
+        if (this->scalarDataColorMappingEditor == NULL) {
+            this->scalarDataColorMappingEditor =
+            new MapScalarDataColorMappingEditorDialog(browserWindow);
+            this->nonModalDialogs.push_back(this->scalarDataColorMappingEditor);
+        }
+        this->scalarDataColorMappingEditor->updateEditor(mapFile,
+                                                         mapIndex);
+        this->scalarDataColorMappingEditor->show();
+        this->scalarDataColorMappingEditor->raise();
+        this->scalarDataColorMappingEditor->activateWindow();
+        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                this->scalarDataColorMappingEditor);
+        mapEditEvent->setEventProcessed();
+    }
 }
 
 /**
@@ -521,6 +553,33 @@ GuiManager::closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browse
         }
     }
     
+}
+
+/**
+ * Close all but the first window.
+ */
+void 
+GuiManager::closeAllOtherWindows(BrainBrowserWindow* browserWindow)
+{
+    const int32_t numWindows = this->brainBrowserWindows.size();
+    for (int32_t i = 0; i < numWindows; i++) {
+        BrainBrowserWindow* bbw = this->brainBrowserWindows[i];
+        if (bbw != browserWindow) {
+            this->allowBrowserWindowsToCloseWithoutConfirmation = true;
+            bbw->close();
+            
+            /*
+             * Should delete the windows that were closed!
+             * When a window is closed, Qt uses 'deleteLater'
+             * but we need them deleted now so that event listeners
+             * are shut down since the closed windows no longer
+             * have any content.
+             */
+            QCoreApplication::sendPostedEvents(0,  QEvent::DeferredDelete);
+            
+            this->allowBrowserWindowsToCloseWithoutConfirmation = false;
+        }
+    }
 }
 
 /** 
@@ -637,7 +696,6 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
 
     if(browserWindow == NULL) return NULL;//not the best error checking but at least it
                                      //won't crash
-
     if (this->timeCourseDialogs[id] == NULL) {
         this->timeCourseDialogs.insert(id, new TimeCourseDialog(browserWindow));
         this->nonModalDialogs.push_back(this->timeCourseDialogs[id]);
@@ -670,13 +728,7 @@ void GuiManager::removeTimeCourseDialog(void *id)
  */
 void GuiManager::updateAnimationStartTime(double value)
 {
-    QMap <void *, TimeCourseDialog *>::const_iterator i = this->timeCourseDialogs.constBegin();
-    while(i != timeCourseDialogs.constEnd())
-    {
-        
-        ++i;
-    }
-    //this->timeCourseDialogs
+       
 }
 
 /**
@@ -722,5 +774,3 @@ GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowI
 
     return valid;
 }
-
-

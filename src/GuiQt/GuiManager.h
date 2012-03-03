@@ -48,7 +48,9 @@ namespace caret {
     class DisplayControlDialog;
     class ImageFile;
     class ImageCaptureDialog;
+    class MapScalarDataColorMappingEditorDialog;
     class PreferencesDialog;
+    class ConnectivityLoaderControl;
     
     /**
      * Manages the graphical user-interface.
@@ -87,6 +89,8 @@ namespace caret {
                                                                 const bool allowInvalidBrowserWindowIndex);
         
         void receiveEvent(Event* event);
+
+        void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
                                                        std::vector<BrowserTabContent*>& tabContents);
@@ -103,7 +107,7 @@ namespace caret {
         TimeCourseDialog *getTimeCourseDialog(void *id);//id is pointer to corresponding clf
         void addTimeLines(QList <TimeLine> &tlV);
         void removeTimeCourseDialog(void *id);//id is pointer to corresponding clf
-        void updateAnimationStartTime(double value);
+        void updateAnimationStartTime(double value);        
     public slots:
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();
@@ -141,6 +145,9 @@ namespace caret {
         
         /* Performs OpenGL drawing commands */
         //BrainOpenGL* brainOpenGL;
+        
+        /* Editor for scalar color mapping. */
+        MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
         
         DisplayControlDialog* displayControlDialog;
         

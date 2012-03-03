@@ -93,10 +93,9 @@ GiftiLabelTable::copyHelper(const GiftiLabelTable& glt)
     this->clear();
     
     for (LABELS_MAP_CONST_ITERATOR iter = glt.labelsMap.begin();
-         iter != labelsMap.end();
+         iter != glt.labelsMap.end();
          iter++) {
-        GiftiLabel* gl2 = new GiftiLabel(*iter->second);
-        this->addLabel(gl2);
+        this->addLabel(iter->second);
     }
 }
 
@@ -119,7 +118,7 @@ GiftiLabelTable::clear()
     }
     this->labelsMap.clear();
     
-    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 1.0);
+    GiftiLabel gl(0, "???", 1.0, 1.0, 1.0, 0.0);
     this->addLabel(&gl);
     this->modifiedFlag = false;
 }
@@ -656,7 +655,10 @@ GiftiLabelTable::setLabel(
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        if (name != "???")
+        {
+            CaretLogWarning("Label 0 modified!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -699,7 +701,10 @@ GiftiLabelTable::setLabel(const int32_t key,
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        if (name != "???")
+        {
+            CaretLogWarning("Label 0 modified!");
+        }
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
@@ -812,7 +817,7 @@ GiftiLabelTable::setLabelColor(
 {
     if (key == 0)
     {
-        CaretLogWarning("Label 0 modified!");
+        CaretLogFiner("Label 0 color changed");
     }
     LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {

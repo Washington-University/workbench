@@ -344,8 +344,14 @@ OverlaySelectionControl::updateControl()
     }
     
     const OverlaySet* overlaySet = browserTabContent->getOverlaySet();
-    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    if (overlaySet == NULL) {
+        for (int32_t i = 0; i < this->layers.size(); i++) {
+            this->layers[i]->setVisible(false);
+        }
+        return;
+    }
     
+    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
             
 
     for (int32_t i = 0; i < this->layers.size(); i++) {

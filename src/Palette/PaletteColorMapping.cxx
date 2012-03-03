@@ -26,6 +26,7 @@
 #include <sstream>
 
 #include "DescriptiveStatistics.h"
+#include "FastStatistics.h"
 #include "PaletteColorMapping.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "PaletteXmlElements.h"
@@ -1094,7 +1095,7 @@ PaletteColorMapping::isModified() const
  *    The data values.
  * @param normalizedValuesOut
  *    Result of mapping data values to palette normalized 
- *    values which range [0.0, 1.0].  This array MUST contain
+ *    values which range [-1.0, 1.0].  This array MUST contain
  *    the same number of values as 'data'.
  * @param numberOfData  
  *    Number of values in both data and normalizedValuesOut.
@@ -1159,7 +1160,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
          */
         float normalized = 0.0f;
         if (scalar > 0.0) {
-            if (scalar >= mappingLeastPositive) {
+            if (scalar >= mappingMostPositive) {
+                normalized = 1.0;
+            }
+            else if (scalar >= mappingLeastPositive) {
                 float numerator = scalar - mappingLeastPositive;
                 normalized = numerator / mappingPositiveDenominator;
             }
@@ -1168,7 +1172,10 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
             }
         }
         else if (scalar < 0.0) {
-            if (scalar <= mappingLeastNegative) {
+            if (scalar <= mappingMostNegative) {
+                normalized = -1.0;
+            }
+            else if (scalar <= mappingLeastNegative) {
                 float numerator = scalar - mappingLeastNegative;
                 float denominator = mappingNegativeDenominator;
                 if (denominator == 0.0f) {
@@ -1187,3 +1194,108 @@ PaletteColorMapping::mapDataToPaletteNormalizedValues(const DescriptiveStatistic
     }
 }
 
+/**
+ * Map data values to palette normalized values using the 
+ * settings in this palette color mapping.
+ *
+ * @param statistics
+ *    Statistics containing min.max values.
+ * @param data 
+ *    The data values.
+ * @param normalizedValuesOut
+ *    Result of mapping data values to palette normalized 
+ *    values which range [-1.0, 1.0].  This array MUST contain
+ *    the same number of values as 'data'.
+ * @param numberOfData  
+ *    Number of values in both data and normalizedValuesOut.
+ */
+void 
+PaletteColorMapping::mapDataToPaletteNormalizedValues(const FastStatistics* statistics,
+                                                      const float* dataValues,
+                                                      float* normalizedValuesOut,
+                                                      const int64_t numberOfData) const
+{
+    if (numberOfData <= 0) {
+        return;
+    }
+
+    /*
+     * Minimum and maximum values used when mapping scalar into color palette.
+     */
+    float mappingMostNegative  = 0.0;
+    float mappingLeastNegative = 0.0;
+    float mappingLeastPositive  = 0.0;
+    float mappingMostPositive  = 0.0;
+    switch (this->getScaleMode()) {
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+            statistics->getNonzeroRanges(mappingMostNegative, mappingLeastNegative, mappingLeastPositive, mappingMostPositive);
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+        {
+            const float mostNegativePercentage  = this->getAutoScalePercentageNegativeMaximum();
+            const float leastNegativePercentage = this->getAutoScalePercentageNegativeMinimum();
+            const float leastPositivePercentage = this->getAutoScalePercentagePositiveMinimum();
+            const float mostPositivePercentage  = this->getAutoScalePercentagePositiveMaximum();
+            mappingMostNegative  = statistics->getApproxNegativePercentile(mostNegativePercentage);
+            mappingLeastNegative = statistics->getApproxNegativePercentile(leastNegativePercentage);
+            mappingLeastPositive = statistics->getApproxPositivePercentile(leastPositivePercentage);
+            mappingMostPositive  = statistics->getApproxPositivePercentile(mostPositivePercentage);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_USER_SCALE:
+            mappingMostNegative  = this->getUserScaleNegativeMaximum();
+            mappingLeastNegative = this->getUserScaleNegativeMinimum();
+            mappingLeastPositive = this->getUserScalePositiveMinimum();
+            mappingMostPositive  = this->getUserScalePositiveMaximum();
+            break;
+    }
+    float mappingPositiveDenominator = std::fabs(mappingMostPositive - mappingLeastPositive);
+    if (mappingPositiveDenominator == 0.0) {
+        mappingPositiveDenominator = 1.0;
+    }
+    float mappingNegativeDenominator = std::fabs(mappingMostNegative - mappingLeastNegative);
+    if (mappingNegativeDenominator == 0.0) {
+        mappingNegativeDenominator = 1.0;
+    }
+    
+    for (int32_t i = 0; i < numberOfData; i++) {
+        float scalar    = dataValues[i];
+        
+        /*
+         * Color scalar using palette
+         */
+        float normalized = 0.0f;
+        if (scalar > 0.0) {
+            if (scalar >= mappingMostPositive) {
+                normalized = 1.0;
+            }
+            else if (scalar >= mappingLeastPositive) {
+                float numerator = scalar - mappingLeastPositive;
+                normalized = numerator / mappingPositiveDenominator;
+            }
+            else {
+                normalized = 0.00001;
+            }
+        }
+        else if (scalar < 0.0) {
+            if (scalar <= mappingMostNegative) {
+                normalized = -1.0;
+            }
+            else if (scalar <= mappingLeastNegative) {
+                float numerator = scalar - mappingLeastNegative;
+                float denominator = mappingNegativeDenominator;
+                if (denominator == 0.0f) {
+                    denominator = 1.0f;
+                }
+                else if (denominator < 0.0f) {
+                    denominator = -denominator;
+                }
+                normalized = numerator / denominator;
+            }
+            else {
+                normalized = -0.00001;
+            }
+        }
+        normalizedValuesOut[i] = normalized;
+    }
+}

@@ -27,9 +27,12 @@
 #include <QGridLayout>
 #include <QLabel>
 
+#include "Brain.h"
+#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
+#include "GuiManager.h"
 #include "WuQtUtilities.h"
 
 #define __STRUCTURE_SURFACE_SELECTION_CONTROL_DECLARE__
@@ -168,6 +171,8 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     this->surfaceControllerSelector->getSelectableStructures(availableStructures);
     this->surfaceControllerSelector->getSelectableSurfaceControllers(availableSurfaceControllers);
     
+    Surface* volumeInteractionSurface = NULL;
+    
     /*
      * Update the structure selection.
      */
@@ -183,6 +188,12 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     }
     if (defaultStructureIndex < this->structureSelectionComboBox->count()) {
         this->structureSelectionComboBox->setCurrentIndex(defaultStructureIndex);
+        
+        BrainStructure* brainStructure = GuiManager::get()->getBrain()->getBrainStructure(availableStructures[defaultStructureIndex],
+                                                                                          false);
+        if (brainStructure != NULL) {
+            volumeInteractionSurface = brainStructure->getVolumeInteractionSurface();
+        }
     }
     
     const bool allSelected (selectedStructure == StructureEnum::ALL);
@@ -192,7 +203,8 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
      */
     ModelDisplayControllerSurface* selectedSurfaceController =
         this->surfaceControllerSelector->getSelectedSurfaceController();
-    int32_t defaultSurfaceIndex = 0;
+    int32_t defaultSurfaceIndex = -1;
+    int32_t volumeInteractionSurfaceIndex = -1;
     for (std::vector<ModelDisplayControllerSurface*>::const_iterator iter = availableSurfaceControllers.begin();
          iter != availableSurfaceControllers.end();
          iter++) {
@@ -202,8 +214,19 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
         if (selectedSurfaceController == surfaceController) {
             defaultSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
         }
+        if (surfaceController->getSurface() == volumeInteractionSurface) {
+            volumeInteractionSurfaceIndex = this->surfaceControllerSelectionComboBox->count() - 1;
+        }
     }
     
+    if (defaultSurfaceIndex < 0) {
+        if (volumeInteractionSurfaceIndex >= 0) {
+            defaultSurfaceIndex = volumeInteractionSurfaceIndex;
+        }
+        else if (this->surfaceControllerSelectionComboBox->count() > 0) {
+            defaultSurfaceIndex = 0;
+        }
+    }
     if (defaultSurfaceIndex < this->surfaceControllerSelectionComboBox->count()) {
         this->surfaceControllerSelectionComboBox->setCurrentIndex(defaultSurfaceIndex);
     }

@@ -71,11 +71,19 @@ public:
     
     float getValueAsFloat(const int index) const;
     
-    AString getValue(const AString& name) const;
+    AString getValue(const AString& name, const AString& defaultValue = "") const;
     
-    int32_t getValueAsInt(const AString& name) const;
+    AString getValueRequired(const AString& name) const;
     
-    float getValueAsFloat(const AString& name) const;
+    int32_t getValueAsInt(const AString& name, const int32_t defaultValue = 0) const;
+    
+    int32_t getValueAsIntRequired(const AString& name) const;
+    
+    float getValueAsFloat(const AString& name, const float& defaultValue = 0.0f) const;
+    
+    float getValueAsFloatRequired(const AString& name) const;
+    
+    int getIndex(const AString& name) const;
     
 private:
    /** attribute names. */

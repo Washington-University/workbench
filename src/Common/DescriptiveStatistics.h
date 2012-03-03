@@ -42,11 +42,28 @@ namespace caret {
         void update(const float* values,
                     const int64_t numberOfValues);
         
+        void update(const float* values,
+                    const int64_t numberOfValues,
+                    const float mostPositiveValueInclusive,
+                    const float leastPositiveValueInclusive,
+                    const float leastNegativeValueInclusive,
+                    const float mostNegativeValueInclusive,
+                    const bool includeZeroValues);
+        
         void update(const std::vector<float>& values);
+        
+        void update(const std::vector<float>& values,
+                    const float mostPositiveValueInclusive,
+                    const float leastPositiveValueInclusive,
+                    const float leastNegativeValueInclusive,
+                    const float mostNegativeValueInclusive,
+                    const bool includeZeroValues);
         
         float getPositivePercentile(const float percent) const;
         
         float getNegativePercentile(const float percent) const;
+        
+        void invalidateData();
         
         /**
          * @return Does the data contains positive values.
@@ -68,12 +85,6 @@ namespace caret {
          * is HISTOGRAM_NUMBER_OF_ELEMENTS.
          */
         const int64_t* getHistogram() const { return this->m_histogram; }
-        
-        /**
-         * @return Get the histogram for the middle 96% of values.  
-         * The number of elements is HISTOGRAM_NUMBER_OF_ELEMENTS.
-         */
-        const int64_t* getHistogram96() const { return this->m_histogram96; }
         
         /**
          * @return The most positive value.
@@ -125,36 +136,6 @@ namespace caret {
          */
         float getStandardDeviationSample() const { return this->m_standardDeviationSample; }
         
-        /**
-         * @return The minimum value of the middle 96% of elements.
-         */
-        float getMinimumValue96() const { return this->m_minimumValue96; }
-        
-        /**
-         * @return The maximum value of the middle 96% of elements.
-         */
-        float getMaximumValue96() const { return this->m_maximumValue96; }
-        
-        /**
-         * @return The mean (average) of middle 96% of elements.
-         */
-        float getMean96() const { return this->m_mean96; }
-        
-        /**
-         * @return The median of middle 96% of elements.
-         */
-        float getMedian96() const { return this->m_median96; }
-        
-        /**
-         * @return The population standard deviation of middle 96% of elements (divide by N).
-         */
-        float getPopulationStandardDeviation96() const { return this->m_standardDeviationPopulation96; }
-        
-        /**
-         * @return The sample standard deviation of middle 96% of elements (divide by N - 1).
-         */
-        float getStandardDeviationSample96() const { return this->m_standardDeviationSample96; }
-        
     private:
         DescriptiveStatistics(const DescriptiveStatistics&);
 
@@ -169,14 +150,6 @@ namespace caret {
          * distribution of the data.
          */
         int64_t* m_histogram;
-        
-        /**
-         * Contains the histogram which provides the
-         * distribution of the data EXCLUDING the smallest
-         * two percent and the largest two percent of
-         * data values.
-         */
-        int64_t* m_histogram96;
         
         /**
          * Contains the number of elements in the histograms.
@@ -235,26 +208,27 @@ namespace caret {
         /** The median (middle) value. */
         float m_median;
         
-        /** minimum value regardless of sign of the middle 96% of elements */
-        float m_minimumValue96;
-        
-        /** maximum value regardless of sign  of the middle 96% of elements */
-        float m_maximumValue96;
-        
-        /** The mean (average) value of the middle 96% of elements. */
-        float m_mean96;
-        
-        /** The population standard deviation of middle 96% elements (divide by N). */
-        float m_standardDeviationPopulation96;
-        
-        /** The sample standard deviation of middle 96% elements (divide by N - 1). */
-        float m_standardDeviationSample96;
-        
-        /** The median (middle) value of middle 96% of elements*/
-        float m_median96;
-        
         ///counts of each class of number
         int64_t m_validCount, m_infCount, m_negInfCount, m_nanCount;
+
+        /// last input value for number of (prevents unnecessary updates)
+        int64_t m_lastInputNumberOfValues;
+        
+        /// last input value for most positive (prevents unnecessary updates)
+        float m_lastInputMostPositiveValueInclusive;
+        
+        /// last input value for least positive (prevents unnecessary updates)
+        float m_lastInputLeastPositiveValueInclusive;
+        
+        /// last input value for least negative (prevents unnecessary updates)
+        float m_lastInputLeastNegativeValueInclusive;
+        
+        /// last input value for most negative (prevents unnecessary updates)
+        float m_lastInputMostNegativeValueInclusive;
+        
+        /// last input value for include zeros (prevents unnecessary updates)
+        bool m_lastInputIncludeZeroValues;
+
     };
     
 #ifdef __DESCRIPTIVE_STATISTICS_DECLARE__

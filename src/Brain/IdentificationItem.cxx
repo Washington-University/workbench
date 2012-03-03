@@ -220,4 +220,31 @@ IdentificationItem::setModelXYZ(const double modelXYZ[3])
     this->modelXYZ[2] = modelXYZ[2];
 }
 
+/**
+ * Is the other screen depth closer to the viewer than the currently 
+ * identified item?
+ *
+ * (1) If there is no identified item, true is immediately returned.
+ * (2) If there is an identified item and the other screen depth is closer
+ * to the viewer, true is returned.
+ * (3) false is returned.
+ *
+ * @param otherScreenDepth
+ *    Screen depth for testing.
+ * @return result of test.
+ */
+bool 
+IdentificationItem::isOtherScreenDepthCloserToViewer(const double otherScreenDepth) const
+{
+    if (this->isValid() == false) {
+        return true;
+    }
+    
+    if (otherScreenDepth < this->screenDepth) {
+        return true;
+    }
+
+    return false;
+}
+
 

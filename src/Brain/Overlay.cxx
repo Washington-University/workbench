@@ -29,7 +29,6 @@
 #include "Overlay.h"
 #undef __OVERLAY_DECLARE__
 
-#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -48,15 +47,89 @@ using namespace caret;
 
 /**
  * \class Overlay
- * \brief  Base class for overlays.
+ * \brief  An overlay for selection of mappable data.
  */
 
 /**
- * Constructor.
+ * Constructor for surface controllers.
+ * @param modelDisplayControllerSurface
+ *    Controller that is for surfaces.
  */
-Overlay::Overlay()
+Overlay::Overlay(ModelDisplayControllerSurface* modelDisplayControllerSurface)
 : CaretObject()
 {
+    CaretAssert(modelDisplayControllerSurface);
+    
+    this->surfaceController = modelDisplayControllerSurface;
+    this->volumeController  = NULL;
+    this->wholeBrainController  = NULL;
+    
+    this->initializeOverlay(this->surfaceController);
+}
+
+/**
+ * Constructor for volume controllers.
+ * @param modelDisplayControllerVolume
+ *    Controller that is for volumes.
+ */
+Overlay::Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume)
+: CaretObject()
+{
+    CaretAssert(modelDisplayControllerVolume);
+    
+    this->surfaceController = NULL;
+    this->volumeController  = modelDisplayControllerVolume;
+    this->wholeBrainController  = NULL;
+    
+    this->initializeOverlay(this->volumeController);
+}
+
+/**
+ * Constructor for whole brain controllers.
+ * @param modelDisplayControllerWholeBrain
+ *    Controller that is for whole brains.
+ */
+Overlay::Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
+: CaretObject()
+{
+    CaretAssert(modelDisplayControllerWholeBrain);
+    
+    this->surfaceController = NULL;
+    this->volumeController  = NULL;
+    this->wholeBrainController  = modelDisplayControllerWholeBrain;
+    
+    this->initializeOverlay(this->wholeBrainController);
+}
+
+/**
+ * Constructor for
+ * @param
+ *    Controller that is for 
+ */
+Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup)
+: CaretObject()
+{
+    CaretAssert(modelDisplayControllerYokingGroup);
+    
+    this->surfaceController = NULL;
+    this->volumeController  = NULL;
+    this->wholeBrainController  = NULL;
+    
+    this->initializeOverlay(NULL);
+}
+
+/**
+ * Initialize the overlay's members.
+ * @param modelDisplayController
+ *    Controller that uses this overlay.
+ */
+void
+Overlay::initializeOverlay(ModelDisplayController* modelDisplayController)
+{
+    CaretAssert(modelDisplayController);
+    
+    this->modelDisplayController = modelDisplayController;
+    
     this->opacity = 1.0;
     
     this->name = "Overlay ";
@@ -153,12 +226,25 @@ Overlay::copyData(const Overlay* overlay)
 {
     CaretAssert(overlay);
     
+    /*
+     * These members are not copied since they
+     * identify the overlay:
+     *    name
+     *    overlayIndex
+     *
+     */
+    this->modelDisplayController = overlay->modelDisplayController;
+    this->surfaceController = overlay->surfaceController;
+    this->volumeController  = overlay->volumeController;
+    this->wholeBrainController = overlay->wholeBrainController;
+    
     this->opacity = overlay->opacity;
     this->enabled = overlay->enabled;
     
     this->mapFiles = overlay->mapFiles;
     this->selectedMapFile = overlay->selectedMapFile;
     this->selectedMapUniqueID = overlay->selectedMapUniqueID;
+    this->paletteDisplayedFlag = overlay->paletteDisplayedFlag;
 }
 
 /**
@@ -169,34 +255,46 @@ Overlay::copyData(const Overlay* overlay)
 void 
 Overlay::swapData(Overlay* overlay)
 {
-    Overlay swapOverlay;
-    swapOverlay.copyData(overlay);
+    Overlay* swapOverlay = NULL;
+    
+    if (this->surfaceController != NULL) {
+        swapOverlay = new Overlay(this->surfaceController);
+    }
+    else if (this->volumeController != NULL) {
+        swapOverlay = new Overlay(this->volumeController);
+    }
+    else if (this->wholeBrainController != NULL) {
+        swapOverlay = new Overlay(this->wholeBrainController);
+    }
+    else {
+        CaretAssertMessage(0, "Unknown overlay type");
+    }
+    
+    swapOverlay->copyData(overlay);
     
     overlay->copyData(this);
-    this->copyData(&swapOverlay);
+    this->copyData(swapOverlay);
+    
+    delete swapOverlay;
 }
 
 /**
  * Get the current selection.  If the current selection is
  * invalid, new map data will be selected.
  *
- * @param browserTabContent
- *    Tab in which this overlay is applied.
  * @param mapDataFileTypeOut
  *    Type of map file out.
  * @param selectedMapUniqueIDOut
  *    UniqueID of map that is selected.
  */
 void 
-Overlay::getSelectionData(BrowserTabContent* browserTabContent,
-                          DataFileTypeEnum::Enum& mapDataFileTypeOut,
+Overlay::getSelectionData(DataFileTypeEnum::Enum& mapDataFileTypeOut,
                           AString& selectedMapUniqueIDOut)
 {
     std::vector<CaretMappableDataFile*> allFiles;
     CaretMappableDataFile* selectedFile;
     int32_t selectedIndex;
-    this->getSelectionData(browserTabContent,
-                           allFiles,
+    this->getSelectionData(allFiles,
                            selectedFile,
                            selectedMapUniqueIDOut,
                            selectedIndex);
@@ -214,23 +312,19 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
  * Return the selection information.  This method is typically
  * called to update the user-interface.
  *
- * @param browserTabContent
- *    Tab in which this overlay is applied.
  * @param selectedMapFileOut
  *    The selected map file.  May be NULL.
  * @param selectedMapIndexOut
  *    Index of selected map in the selected file.
  */
 void 
-Overlay::getSelectionData(BrowserTabContent* browserTabContent,
-                          CaretMappableDataFile* &selectedMapFileOut,
+Overlay::getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
                           int32_t& selectedMapIndexOut)
 {
     std::vector<CaretMappableDataFile*> mapFiles;
     AString mapUniqueID;
     
-    this->getSelectionData(browserTabContent, 
-                           mapFiles, 
+    this->getSelectionData(mapFiles, 
                            selectedMapFileOut, 
                            mapUniqueID, 
                            selectedMapIndexOut);
@@ -240,8 +334,6 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
  * Return the selection information.  This method is typically
  * called to update the user-interface.
  *
- * @param browserTabContent
- *    Tab in which this overlay is applied.
  * @param mapFilesOut
  *    Contains all map files that can be selected.
  * @param selectedMapFileOut
@@ -252,8 +344,7 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
  *    Index of selected map in the selected file.
  */
 void 
-Overlay::getSelectionData(BrowserTabContent* browserTabContent,
-                          std::vector<CaretMappableDataFile*>& mapFilesOut,
+Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                           CaretMappableDataFile* &selectedMapFileOut,
                           AString& selectedMapUniqueIDOut,
                           int32_t& selectedMapIndexOut)
@@ -279,25 +370,22 @@ Overlay::getSelectionData(BrowserTabContent* browserTabContent,
      * match the structure of the displayed surface.
      */
     StructureEnum::Enum selectedSurfaceStructure = StructureEnum::ALL;
-    ModelDisplayControllerSurface* surfaceController = browserTabContent->getDisplayedSurfaceModel();
-    if (surfaceController != NULL) {
-        selectedSurfaceStructure = surfaceController->getSurface()->getStructure();
+    if (this->surfaceController != NULL) {
+        selectedSurfaceStructure = this->surfaceController->getSurface()->getStructure();
         showSurfaceMapFiles = true;
     }
     
     /*
      * If a volume is selected, restrict selections to volume files.
      */
-    ModelDisplayControllerVolume* volumeController = browserTabContent->getDisplayedVolumeModel();
-    if (volumeController != NULL) {
+    if (this->volumeController != NULL) {
         showVolumeMapFiles = true;
     }
     
     /*
      * If whole brain is selected, show surface and volume files.
      */
-    ModelDisplayControllerWholeBrain* wholeBrainController = browserTabContent->getDisplayedWholeBrainModel();
-    if (wholeBrainController != NULL) {
+    if (this->wholeBrainController != NULL) {
         showSurfaceMapFiles = true;
         showVolumeMapFiles = true;
     }

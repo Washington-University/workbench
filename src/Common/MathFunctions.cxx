@@ -1521,3 +1521,5 @@ bool MathFunctions::isPosInf(const float number)
 {
     return (number > 1.0f && number * 2.0f == number);
 }
+
+

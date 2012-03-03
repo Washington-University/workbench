@@ -46,7 +46,6 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
-#include "EventMapScalarDataColorMappingEditor.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventToolBoxSelectionDisplay.h"
@@ -54,7 +53,6 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
-#include "MapScalarDataColorMappingEditorDialog.h"
 #include "ModelDisplayControllerSurface.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "SessionManager.h"
@@ -90,7 +88,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
 {
     this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     
-    this->scalarDataColorMappingEditor = NULL;
     GuiManager* guiManager = GuiManager::get();
     
     this->setAttribute(Qt::WA_DeleteOnClose);
@@ -105,7 +102,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                                browserWindowIndex);
     
     const int openGLSizeX = 500;
-    const int openGLSizeY = 375;
+    const int openGLSizeY = (WuQtUtilities::isSmallDisplay() ? 200 : 375);
     this->openGLWidget->setMinimumSize(openGLSizeX, 
                                        openGLSizeY);
     
@@ -145,7 +142,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
     }
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
     
     QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
                      this->toolBox, SLOT(updateDisplayedPanel()));
@@ -847,8 +843,13 @@ BrainBrowserWindow::processCloseSpecFile()
 {
     Brain* brain = GuiManager::get()->getBrain();
     brain->resetBrain();
+    
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    GuiManager::get()->closeAllOtherWindows(this);
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());    
 }
 
 /**
@@ -1639,35 +1640,6 @@ BrainBrowserWindow::receiveEvent(Event* event)
         this->toolbar->updateToolBar();
         
         uiEvent->setEventProcessed();
-    }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR) {
-        EventMapScalarDataColorMappingEditor* mapEditEvent =
-        dynamic_cast<EventMapScalarDataColorMappingEditor*>(event);
-        CaretAssert(mapEditEvent);
-        
-        const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
-        if (browserWindowIndex == this->browserWindowIndex) {
-            CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
-            const int mapIndex = mapEditEvent->getMapIndex();
-            
-            if (this->scalarDataColorMappingEditor == NULL) {
-                this->scalarDataColorMappingEditor =
-                new MapScalarDataColorMappingEditorDialog(this);
-            }
-            this->scalarDataColorMappingEditor->updateEditor(mapFile,
-                                                             mapIndex);
-            this->scalarDataColorMappingEditor->show();
-            this->scalarDataColorMappingEditor->raise();
-            this->scalarDataColorMappingEditor->activateWindow();
-            WuQtUtilities::moveWindowToSideOfParent(this,
-                                                    this->scalarDataColorMappingEditor);
-            mapEditEvent->setEventProcessed();
-        }
-        else {
-            if (this->scalarDataColorMappingEditor != NULL) {
-                this->scalarDataColorMappingEditor->hide();
-            }
-        }
     }
     else {
         

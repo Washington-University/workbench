@@ -48,7 +48,6 @@ ENDIF (OPENGL_FOUND)
 #
 ADD_LIBRARY(Brain
 Brain.h
-BrainConstants.h
 BrainOpenGL.h
 BrainOpenGLFixedPipeline.h
 BrainOpenGLTextRenderInterface.h
@@ -73,9 +72,9 @@ EventNodeDataFilesGet.h
 EventModelDisplayControllerAdd.h
 EventModelDisplayControllerDelete.h
 EventModelDisplayControllerGetAll.h
+EventModelDisplayControllerSurfaceGet.h
 EventModelDisplayControllerYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
-EventSurfaceColoringInvalidate.h
 EventSurfacesGet.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
@@ -111,7 +110,6 @@ VolumeSurfaceOutlineSelection.h
 YokingTypeEnum.h
 
 Brain.cxx
-BrainConstants.cxx
 BrainOpenGL.cxx
 BrainOpenGLFixedPipeline.cxx
 BrainOpenGLViewportContent.cxx
@@ -135,9 +133,9 @@ EventNodeDataFilesGet.cxx
 EventModelDisplayControllerAdd.cxx
 EventModelDisplayControllerDelete.cxx
 EventModelDisplayControllerGetAll.cxx
+EventModelDisplayControllerSurfaceGet.cxx
 EventModelDisplayControllerYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
-EventSurfaceColoringInvalidate.cxx
 EventSurfacesGet.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx

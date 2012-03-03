@@ -25,6 +25,7 @@
 
 
 #include <QApplication>
+#include <QDesktopWidget>
 #include <QGLFormat>
 #include <QGLPixelBuffer>
 #include <QSplashScreen>
@@ -135,6 +136,7 @@ struct ProgramState
 {
     vector<AString> fileList;
     int specLoadType;
+    int windowSizeXY[2];
     ProgramState();
 };
 
@@ -349,6 +351,12 @@ main(int argc, char* argv[])
 
         BrainBrowserWindow* myWindow = GuiManager::get()->getBrowserWindowByWindowIndex(0);
         
+        if ((myState.windowSizeXY[0] > 0) 
+            && (myState.windowSizeXY[1] > 0)) {
+            myWindow->setFixedSize(myState.windowSizeXY[0],
+                                   myState.windowSizeXY[1]);
+        }
+        
         //use command line
         if (haveFiles)
         {
@@ -375,6 +383,24 @@ main(int argc, char* argv[])
         else {
             CaretLogConfig("OpenGL PBuffers are NOT supported");
         }
+        
+        /*
+         * Resolution of screens
+         */
+        AString screenSizeText = "Screen Sizes: ";
+        QDesktopWidget* dw = QApplication::desktop();
+        const int numScreens = dw->screenCount();
+        for (int i = 0; i < numScreens; i++) {
+            const QRect rect = dw->screenGeometry(i);
+            const int w = rect.width();
+            const int h = rect.height();
+            screenSizeText += ("("
+                               + AString::number(w)
+                               + ", "
+                               + AString::number(h)
+                               + ")  ");
+        }
+        CaretLogConfig(screenSizeText);
         
         /*
         * Start the app which will launch the main window.
@@ -433,6 +459,9 @@ void printHelp(const AString& progName)
     << endl
     << "    -spec-load-all" << endl
     << "        load all files in the given spec file, don't show spec file dialog" << endl
+    << endl
+    << "    -window-size  <X Y>" << endl
+    << "        Set the size of the browser window" << endl
     << endl;
 }
 
@@ -451,6 +480,19 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
                 exit(0);
             } else if (thisParam == "-spec-load-all") {
                 myState.specLoadType = 1;
+            } else if (thisParam == "-window-size") {
+                if (myParams->hasNext()) {
+                    myState.windowSizeXY[0] = myParams->nextInt("Window Size X");
+                }
+                else {
+                    cerr << "Missing X & Y sizes for window" << endl;
+                }
+                if (myParams->hasNext()) {
+                    myState.windowSizeXY[1] = myParams->nextInt("Window Size Y");
+                }
+                else {
+                    cerr << "Missing Y sizes for window" << endl;
+                }
             } else {
                 cerr << "unrecognized option \"" << thisParam << "\"" << endl;
                 printHelp(progName);
@@ -465,4 +507,6 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
 ProgramState::ProgramState()
 {
     specLoadType = 0;//0: use spec window, 1: all
+    windowSizeXY[0] = -1;
+    windowSizeXY[1] = -1;
 }

@@ -27,6 +27,8 @@
 #include "ModelDisplayControllerSurfaceSelector.h"
 #undef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__
 
+#include "Brain.h"
+#include "BrainStructure.h"
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "ModelDisplayControllerSurface.h"
@@ -258,12 +260,63 @@ ModelDisplayControllerSurfaceSelector::updateSelector()
     if (std::find(this->availableSurfaceControllers.begin(),
                   this->availableSurfaceControllers.end(),
                   this->selectedSurfaceController) == this->availableSurfaceControllers.end()) {
-        if (this->availableSurfaceControllers.empty() == false) {
-            this->selectedSurfaceController = this->availableSurfaceControllers[0];
+        /*
+         * Selected controller is not found.
+         */
+        this->selectedSurfaceController = NULL;
+
+        /*
+         * First, see if a previous controller for structure still exists, if so, use it.
+         */
+        std::map<StructureEnum::Enum, ModelDisplayControllerSurface*>::iterator iter =
+        this->previousSelectedSurfaceController.find(this->selectedStructure);
+        if (iter != this->previousSelectedSurfaceController.end()) {
+            ModelDisplayControllerSurface* previousController = iter->second;
+            if (std::find(this->availableSurfaceControllers.begin(),
+                          this->availableSurfaceControllers.end(),
+                          previousController) != this->availableSurfaceControllers.end()) {
+                this->selectedSurfaceController = previousController;
+            }
         }
-        else {
-            this->selectedSurfaceController = NULL;
+
+        /*
+         * Still not found?
+         */
+        if (this->selectedSurfaceController == NULL) {
+            /*
+             * Default to first
+             */
+            if (this->availableSurfaceControllers.empty() == false) {
+                this->selectedSurfaceController = this->availableSurfaceControllers[0];
+                
+                /*
+                 * Try to find and used the volume interaction surface.
+                 */
+                Brain* brain = this->selectedSurfaceController->getBrain();
+                if (brain != NULL) {
+                    BrainStructure* brainStructure = brain->getBrainStructure(this->selectedStructure, false);
+                    if (brainStructure != NULL) {
+                        const Surface* volInteractSurface = brainStructure->getVolumeInteractionSurface();
+                        if (volInteractSurface != NULL) {
+                            const int numSurfaceControllers = static_cast<int32_t>(this->availableSurfaceControllers.size());
+                            for (int32_t i = 0; i < numSurfaceControllers; i++) {
+                                if (this->availableSurfaceControllers[i]->getSurface() == volInteractSurface) {
+                                    this->selectedSurfaceController = this->availableSurfaceControllers[i];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+    }
+    
+    /*
+     * Save controller for retrieval later.
+     */
+    if (this->selectedSurfaceController != NULL) {
+        this->previousSelectedSurfaceController[this->selectedStructure] = this->selectedSurfaceController;
     }
 }
 /**

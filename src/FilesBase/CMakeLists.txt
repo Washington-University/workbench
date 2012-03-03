@@ -18,6 +18,7 @@ INCLUDE (${QT_USE_FILE})
 # Create the NIFTI library
 #
 ADD_LIBRARY(FilesBase
+BrainConstants.h
 GiftiException.h
 GiftiLabel.h
 GiftiLabelTable.h
@@ -30,6 +31,7 @@ NiftiEnums.h
 NiftiException.h
 VolumeBase.h
 
+BrainConstants.cxx
 GiftiException.cxx
 GiftiLabel.cxx
 GiftiLabelTable.cxx

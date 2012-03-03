@@ -28,19 +28,11 @@
 
 #include "stdint.h"
 #include <vector>
-#include "BoundingBox.h"
 #include "CaretAssert.h"
-#include "NiftiEnums.h"
-#include "StructureEnum.h"
 #include "CaretPointer.h"
 
 namespace caret {
 
-    class DescriptiveStatistics;
-    class GiftiLabelTable;
-    class GiftiMetaData;
-    class PaletteColorMapping;
-    
     struct AbstractVolumeExtension
     {
         enum ExtensionType
@@ -48,7 +40,6 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
-        ExtensionType type;
         CaretArray<char> m_bytes;
         virtual ExtensionType getType() = 0;
         virtual ~AbstractVolumeExtension();
@@ -61,7 +52,6 @@ namespace caret {
             NIFTI1,
             NIFTI2
         };
-        HeaderType type;
         virtual HeaderType getType() = 0;
         virtual ~AbstractHeader();
     };
@@ -83,26 +73,6 @@ namespace caret {
         
         void freeMemory();
         void setupIndexing();//sets up the magic
-
-        void createAttributes();
-        void freeAttributes();
-        GiftiMetaData* m_metadata; // file's metadata
-        GiftiLabelTable* m_labelTable;
-        PaletteColorMapping* m_paletteColorMapping;
-        
-        class BrickAttributes {
-        public:
-            BrickAttributes();
-            
-            ~BrickAttributes();
-            
-            GiftiMetaData* m_metadata;
-            DescriptiveStatistics* m_statistics;
-        };
-        
-        NiftiIntentEnum::Enum m_niftiIntent;
-        std::vector<BrickAttributes*> m_brickAttributes;
-        
         bool m_ModifiedFlag;
         
     public:
@@ -140,6 +110,10 @@ namespace caret {
         ///get the originally specified dimensions vector
         inline const std::vector<int64_t>& getOriginalDimensions() const {
             return m_origDims;
+        }
+        
+        inline const int64_t& getNumberOfComponents() const {
+            return m_dimensions[4];
         }
         
         ///translates extraspatial indices into a (flat) brick index
@@ -273,75 +247,13 @@ namespace caret {
             return true;
         }
 
-        BoundingBox getSpaceBoundingBox() const;
-        
-        void setModified() { m_ModifiedFlag = true; }
-        void clearModified() { m_ModifiedFlag = false;}
-        bool isModified() const { return m_ModifiedFlag; }
+        virtual void setModified();//virtual because we need the functions that change voxels in this class to call the setModified in VolumeFile if it really is a VolumeFile (which it always is)
+        virtual void clearModified();
+        virtual bool isModified() const;
         
         bool isEmpty() const;
         
-        
-        /**
-         * @return The structure for this file.
-         */
-        StructureEnum::Enum getStructure() const;
-        
-        /**
-         * Set the structure for this file.
-         * @param structure
-         *   New structure for this file.
-         */
-        void setStructure(const StructureEnum::Enum structure);
-        
-        /**
-         * @return Get access to the file's metadata.
-         */
-        GiftiMetaData* getFileMetaData();
-        
-        /**
-         * @return Get access to unmodifiable file's metadata.
-         */
-        const GiftiMetaData* getFileMetaData() const;
-        
-
-        
-        bool isSurfaceMappable() const;
-        
-        bool isVolumeMappable() const;
-        
-        int32_t getNumberOfMaps() const;
-        
-        AString getMapName(const int32_t mapIndex) const;
-        
-        int32_t getMapIndexFromName(const AString& mapName);
-        
-        void setMapName(const int32_t mapIndex,
-                                const AString& mapName);
-        
-        const GiftiMetaData* getMapMetaData(const int32_t mapIndex) const;
-        
-        GiftiMetaData* getMapMetaData(const int32_t mapIndex);
-        
-        const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
-        
-        bool isMappedWithPalette() const;
-        
-        PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex);
-        
-        const PaletteColorMapping* getMapPaletteColorMapping(const int32_t mapIndex) const;
-        
-        bool isMappedWithLabelTable() const;
-        
-        GiftiLabelTable* getMapLabelTable(const int32_t mapIndex);
-        
-        const GiftiLabelTable* getMapLabelTable(const int32_t mapIndex) const;
-
-        AString getMapUniqueID(const int32_t mapIndex) const;
-        
-        int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
-        
-    };
+};
 
 }
 

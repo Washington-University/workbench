@@ -22,7 +22,7 @@
  * 
  */ 
 #include "PointerTest.h"
-#include <iostream>
+//#include <iostream>
 
 #include "CaretPointer.h"
 #include "CaretMutex.h"

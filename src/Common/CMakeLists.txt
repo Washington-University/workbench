@@ -58,8 +58,10 @@ EventListenerInterface.h
 EventManager.h
 EventProgressUpdate.h
 EventTypeEnum.h
+FastStatistics.h
 FileInformation.h
 FloatMatrix.h
+Histogram.h
 HtmlStringBuilder.h
 Logger.h
 LogHandler.h
@@ -113,8 +115,10 @@ EventInformationTextDisplay.cxx
 EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx
+FastStatistics.cxx
 FileInformation.cxx
 FloatMatrix.cxx
+Histogram.cxx
 HtmlStringBuilder.cxx
 Logger.cxx
 LogHandler.cxx

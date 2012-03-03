@@ -22,6 +22,8 @@
  * 
  */ 
 
+#include <limits>
+
 #include <QThread>
 
 #include "BoundingBox.h"
@@ -29,6 +31,7 @@
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "EventSurfaceColoringInvalidate.h"
 
 #include "GiftiFile.h"
 #include "GiftiMetaDataXmlElements.h"
@@ -43,6 +46,7 @@ SurfaceFile::SurfaceFile()
 : GiftiTypeFile(DataFileTypeEnum::SURFACE)
 {
     this->initializeMembersSurfaceFile();
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 /**
@@ -52,9 +56,11 @@ SurfaceFile::SurfaceFile()
  *     Surface file that is copied.
  */
 SurfaceFile::SurfaceFile(const SurfaceFile& sf)
-: GiftiTypeFile(sf)
+: GiftiTypeFile(sf), EventListenerInterface()
 {
+    this->initializeMembersSurfaceFile();
     this->copyHelperSurfaceFile(sf);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE);
 }
 
 
@@ -82,10 +88,14 @@ SurfaceFile::operator=(const SurfaceFile& sf)
  */
 SurfaceFile::~SurfaceFile()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     if (this->boundingBox != NULL) {
         delete this->boundingBox;
         this->boundingBox = NULL;
     }
+    
+    this->invalidateNodeColoringForBrowserTabs();
 }
 
 /**
@@ -96,6 +106,7 @@ SurfaceFile::clear()
 {
     GiftiTypeFile::clear();
     invalidateHelpers();
+    this->invalidateNodeColoringForBrowserTabs();
 }
 
 /**
@@ -581,7 +592,7 @@ void SurfaceFile::getGeodesicHelper(CaretPointer<GeodesicHelper>& helpOut) const
         {
             m_geoHelpers.clear();//just to be sure
             m_geoHelperIndex = 0;
-            m_geoBase = CaretPointer<GeodesicHelperBase>(new GeodesicHelperBase(this));//yes, this takes some time, and is single threaded at the moment
+            m_geoBase.grabNew(new GeodesicHelperBase(this));//yes, this takes some time, and is single threaded at the moment
         }//keep locked while searching
         int32_t& myIndex = m_geoHelperIndex;
         int32_t myEnd = m_geoHelpers.size();
@@ -629,7 +640,7 @@ void SurfaceFile::getTopologyHelper(CaretPointer<TopologyHelper>& helpOut, bool 
         }
         if (m_topoBase == NULL || (infoSorted && !m_topoBase->isNodeInfoSorted()))
         {
-            m_topoBase = CaretPointer<TopologyHelperBase>(new TopologyHelperBase(this, infoSorted));
+            m_topoBase.grabNew(new TopologyHelperBase(this, infoSorted));
         }
     }
     CaretPointer<TopologyHelper> ret(new TopologyHelper(m_topoBase));
@@ -654,9 +665,9 @@ void caret::SurfaceFile::invalidateHelpers()
     m_topoHelpers.clear();
     m_geoHelperIndex = 0;
     m_geoHelpers.clear();//CaretPointers make this nice, if they are still in use elsewhere, they don't vanish, even though this class is supposed to "control" them to some extent
-    m_geoBase = CaretPointer<GeodesicHelperBase>(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
-    m_locator = CaretPointer<CaretPointLocator>(NULL);
-    m_topoBase = CaretPointer<TopologyHelperBase>(NULL);
+    m_geoBase.grabNew(NULL);//no, i do NOT want to make this easier, if someone changes something to be a CaretPointer<T> and tries to assign a T*, it needs to break until they change the code
+    m_locator.grabNew(NULL);
+    m_topoBase.grabNew(NULL);
 }
 
 /**
@@ -727,7 +738,7 @@ int32_t SurfaceFile::closestNode(const float target[3], const float maxDist) con
         CaretMutexLocker myLock(&m_locatorMutex);
         if (m_locator == NULL)//test again AFTER lock to avoid race conditions
         {
-            m_locator = CaretPointer<CaretPointLocator>(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
+            m_locator.grabNew(new CaretPointLocator(getCoordinateData(), getNumberOfNodes()));
         }
     }
     if (maxDist > 0.0f)
@@ -763,6 +774,187 @@ SurfaceFile::getInformation() const
             + ")\n");
     
     return txt;
+}
+
+/**
+ * Invalidate surface coloring.
+ */
+void 
+SurfaceFile::invalidateNodeColoringForBrowserTabs()
+{
+    /*
+     * Free memory since could have many tabs and many surfaces equals lots of memory
+     */
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->surfaceNodeColoringForBrowserTabs[i].clear();
+        this->wholeBrainNodeColoringForBrowserTabs[i].clear();
+    }    
+}
+
+/**
+ * Allocate node coloring for a single surface in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                               const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->surfaceNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Allocate node coloring for a whole brain surface in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                      const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Get the RGBA color components for this single surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be 
+ *    set.
+ */
+float* 
+SurfaceFile::getSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->surfaceNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a single surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface in the given tab.
+ */
+void 
+SurfaceFile::setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                         const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->surfaceNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateSurfaceNodeColoringForBrowserTab(browserTabIndex, 
+                                            false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->surfaceNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+/**
+ * Get the RGBA color components for this whole brain surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be set.
+ */
+float* 
+SurfaceFile::getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a whole brain surface in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface in the given tab.
+ */
+void 
+SurfaceFile::setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->wholeBrainNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateWholeBrainNodeColoringForBrowserTab(browserTabIndex, 
+                                                   false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->wholeBrainNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+/**
+ * Receive an event.
+ * 
+ * @param event
+ *     The event that the receive can respond to.
+ */
+void 
+SurfaceFile::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+        EventSurfaceColoringInvalidate* invalidateEvent =
+        dynamic_cast<EventSurfaceColoringInvalidate*>(event);
+        CaretAssert(invalidateEvent);
+        
+        invalidateEvent->setEventProcessed();
+        
+        this->invalidateNodeColoringForBrowserTabs();
+    }    
 }
 
 

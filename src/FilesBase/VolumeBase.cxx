@@ -102,10 +102,6 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     m_data = new float[m_dataSize];
     CaretAssert(m_data != NULL);
     setupIndexing();
-    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
-    //TODO: adjust any existing nifti header to match, or remove nifti header?
-    
-    createAttributes();
 }
 
 VolumeBase::VolumeBase()
@@ -132,11 +128,6 @@ VolumeBase::VolumeBase()
         }
     }
     m_spaceToIndex = m_indexToSpace;
-    m_labelTable = NULL;
-    m_metadata = NULL;
-    m_paletteColorMapping = NULL;
-    createAttributes();
-    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     m_ModifiedFlag = false;
 }
 
@@ -149,12 +140,8 @@ VolumeBase::VolumeBase(const vector<uint64_t>& dimensionsIn, const vector<vector
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    m_labelTable = NULL;
-    m_metadata = NULL;
-    m_paletteColorMapping = NULL;
-    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);//use the overloaded version to convert
-    m_ModifiedFlag = false;
+    m_ModifiedFlag = true;
 }
 
 VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
@@ -166,12 +153,8 @@ VolumeBase::VolumeBase(const vector<int64_t>& dimensionsIn, const vector<vector<
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    m_labelTable = NULL;
-    m_metadata = NULL;
-    m_paletteColorMapping = NULL;
-    m_niftiIntent = NiftiIntentEnum::NIFTI_INTENT_NONE;
     reinitialize(dimensionsIn, indexToSpace, numComponents);
-    m_ModifiedFlag = false;
+    m_ModifiedFlag = true;
 }
 
 void VolumeBase::getOrientAndSpacingForPlumb(OrientTypes* orientOut, float* spacingOut, float* centerOut) const
@@ -392,7 +375,6 @@ void VolumeBase::freeMemory()
     m_cMult = NULL;
     
     m_extensions.clear();
-    freeAttributes();
 }
 
 void VolumeBase::setupIndexing()
@@ -457,33 +439,6 @@ VolumeBase::~VolumeBase()
     freeMemory();
 }
 
-void 
-VolumeBase::createAttributes()
-{
-    m_labelTable = new GiftiLabelTable();
-    m_metadata   = new GiftiMetaData();
-    m_paletteColorMapping = new PaletteColorMapping();
-    m_paletteColorMapping->setSelectedPaletteName(Palette::GRAY_INTERP_POSITIVE_PALETTE_NAME);
-    m_paletteColorMapping->setScaleMode(PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE);
-    for (int64_t i = 0; i < m_dimensions[3]; i++) {
-        m_brickAttributes.push_back(new BrickAttributes());
-    }
-}
-
-void 
-VolumeBase::freeAttributes()
-{
-    delete m_metadata;
-    delete m_labelTable;
-    delete m_paletteColorMapping;
-    for (std::vector<BrickAttributes*>::iterator iter = m_brickAttributes.begin();
-         iter != m_brickAttributes.end();
-         iter++) {
-        delete *iter;
-    }
-    m_brickAttributes.clear();
-}
-
 /**
  * Is the file empty (contains no data)?
  *
@@ -525,349 +480,32 @@ VolumeBase::setValueAllVoxels(const float value)
     //std::fill(m_data, (m_data + m_dataSize), value);
 }
 
-
 /**
- * @return The structure for this file.
- */
-StructureEnum::Enum 
-VolumeBase::getStructure() const
-{
-    return StructureEnum::INVALID;
-}
-
-/**
- * Set the structure for this file.
- * @param structure
- *   New structure for this file.
- */
-void 
-VolumeBase::setStructure(const StructureEnum::Enum /*structure*/)
-{
-    /* no structure in volulme file */
-}
-
-/**
- * @return Get access to the file's metadata.
- */
-GiftiMetaData* 
-VolumeBase::getFileMetaData()
-{
-    return m_metadata;
-}
-
-/**
- * @return Get access to unmodifiable file's metadata.
- */
-const GiftiMetaData* 
-VolumeBase::getFileMetaData() const
-{
-    return m_metadata;
-}
-
-
-/**
- * @return Is the data mappable to a surface?
+ * @return Is this instance modified?
  */
 bool 
-VolumeBase::isSurfaceMappable() const
-{
+VolumeBase::isModified() const 
+{ 
+    if (m_ModifiedFlag) {
+        return true;
+    }
     return false;
 }
 
 /**
- * @return Is the data mappable to a volume?
- */
-bool 
-VolumeBase::isVolumeMappable() const
-{
-    return true;
-}
-
-/**
- * @return The number of maps in the file.  
- * Note: Caret5 used the term 'columns'.
- */
-int32_t 
-VolumeBase::getNumberOfMaps() const
-{
-    return m_dimensions[3];
-}
-
-/**
- * Get the name of the map at the given index.
- * 
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Name of the map.
- */
-AString 
-VolumeBase::getMapName(const int32_t mapIndex) const
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    AString name = m_brickAttributes[mapIndex]->m_metadata->get(GiftiXmlElements::TAG_METADATA_NAME);
-    if (name.isEmpty()) {
-        name = "#" + AString::number(mapIndex + 1);
-    }
-    return name;
-}
-
-/**
- * Find the index of the map that uses the given name.
- * 
- * @param mapName
- *    Name of the desired map.
- * @return
- *    Index of the map using the given name.  If there is more
- *    than one map with the given name, this method is likely
- *    to return the index of the first map with the name.
- */
-int32_t 
-VolumeBase::getMapIndexFromName(const AString& mapName)
-{
-    for (int64_t i = 0; i < m_dimensions[3]; i++) {
-        if (this->getMapName(i) == mapName) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * Set the name of the map at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @param mapName
- *    New name for the map.
+ * Clear this instance's modified status
  */
 void 
-VolumeBase::setMapName(const int32_t mapIndex,
-                          const AString& mapName)
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    m_brickAttributes[mapIndex]->m_metadata->set(GiftiXmlElements::TAG_METADATA_NAME, mapName);
-    setModified();
+VolumeBase::clearModified() 
+{ 
+    m_ModifiedFlag = false;
 }
 
 /**
- * Get the metadata for the map at the given index
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Metadata for the map (const value).
- */         
-const GiftiMetaData* 
-VolumeBase::getMapMetaData(const int32_t mapIndex) const
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    return m_brickAttributes[mapIndex]->m_metadata;
-}
-
-/**
- * Get the metadata for the map at the given index
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Metadata for the map.
- */         
-GiftiMetaData* 
-VolumeBase::getMapMetaData(const int32_t mapIndex)
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    return m_brickAttributes[mapIndex]->m_metadata;
-}
-
-/**
- * Get statistics describing the distribution of data
- * mapped with a color palette at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Descriptive statistics for data (will be NULL for data
- *    not mapped using a palette).
- */         
-const DescriptiveStatistics* 
-VolumeBase::getMapStatistics(const int32_t mapIndex)
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    
-    if (m_brickAttributes[mapIndex]->m_statistics == NULL) {
-        DescriptiveStatistics* ds = new DescriptiveStatistics();
-        ds->update(m_data, m_dataSize);
-        m_brickAttributes[mapIndex]->m_statistics = ds;
-    }
-    
-    return m_brickAttributes[mapIndex]->m_statistics;
-}
-
-/**
- * @return Is the data in the file mapped to colors using
- * a palette.
+ * Set this instance's status to modified.
  */
-bool 
-VolumeBase::isMappedWithPalette() const
-{
-    return (m_niftiIntent != NiftiIntentEnum::NIFTI_INTENT_LABEL);
-}
-
-/**
- * Get the palette color mapping for the map at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Palette color mapping for the map (will be NULL for data
- *    not mapped using a palette).
- */         
-PaletteColorMapping* 
-VolumeBase::getMapPaletteColorMapping(const int32_t /*mapIndex*/)
-{
-    /*
-     * Use one palette for all bricks
-     */
-    return m_paletteColorMapping;
-}
-
-/**
- * Get the palette color mapping for the map at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Palette color mapping for the map (constant) (will be NULL for data
- *    not mapped using a palette).
- */         
-const PaletteColorMapping* 
-VolumeBase::getMapPaletteColorMapping(const int32_t /*mapIndex*/) const
-{
-    /*
-     * Use one palette for all bricks
-     */
-    return m_paletteColorMapping;
-}
-
-/**
- * @return Is the data in the file mapped to colors using
- * a label table.
- */
-bool 
-VolumeBase::isMappedWithLabelTable() const
-{
-    return (m_niftiIntent == NiftiIntentEnum::NIFTI_INTENT_LABEL);
-}
-
-/**
- * Get the label table for the map at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Label table for the map (will be NULL for data
- *    not mapped using a label table).
- */         
-GiftiLabelTable* 
-VolumeBase::getMapLabelTable(const int32_t /*mapIndex*/)
-{
-    /*
-     * Use file's label table since volume uses one
-     * label table for all data arrays.
-     */
-    return m_labelTable;
-}
-
-/**
- * Get the label table for the map at the given index.
- *
- * @param mapIndex
- *    Index of the map.
- * @return
- *    Label table for the map (constant) (will be NULL for data
- *    not mapped using a label table).
- */         
-const GiftiLabelTable* 
-VolumeBase::getMapLabelTable(const int32_t /*mapIndex*/) const
-{
-    /*
-     * Use file's label table since volume uses one
-     * label table for all data arrays.
-     */
-    return m_labelTable;
-}
-
-/**
- * Get the unique ID (UUID) for the map at the given index.
- * 
- * @param mapIndex
- *    Index of the map.
- * @return
- *    String containing UUID for the map.
- */
-AString 
-VolumeBase::getMapUniqueID(const int32_t mapIndex) const
-{
-    CaretAssertVectorIndex(m_brickAttributes, mapIndex);
-    return m_brickAttributes[mapIndex]->m_metadata->getUniqueID();
-}
-
-/**
- * Find the index of the map that uses the given unique ID (UUID).
- * 
- * @param uniqueID
- *    Unique ID (UUID) of the desired map.
- * @return
- *    Index of the map using the given UUID.
- */
-int32_t 
-VolumeBase::getMapIndexFromUniqueID(const AString& uniqueID) const
-{
-    for (int64_t i = 0; i < m_dimensions[3]; i++) {
-        if (m_brickAttributes[i]->m_metadata->getUniqueID() == uniqueID) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * @return Bounding box of the volumes spatial coordinates.
- */
-BoundingBox 
-VolumeBase::getSpaceBoundingBox() const
-{
-    BoundingBox bb;
-    float coordinates[3];
-    for (int i = 0; i < 2; ++i)//if the volume isn't plumb, we need to test all corners, so just always test all corners
-    {
-        for (int j = 0; j < 2; ++j)
-        {
-            for (int k = 0; k < 2; ++k)
-            {
-                this->indexToSpace(i * m_dimensions[0] - 0.5f, j * m_dimensions[1] - 0.5f, k * m_dimensions[2] - 0.5f, coordinates);//accounts for extra half voxel on each side of each center
-                bb.update(coordinates);
-            }
-        }
-    }
-    return bb;
-}
-
-
-
-
-//==================================================================================
-VolumeBase::BrickAttributes::BrickAttributes()
-{
-    m_metadata = new GiftiMetaData();
-    m_statistics = NULL;
-}
-
-VolumeBase::BrickAttributes::~BrickAttributes()
-{
-    delete m_metadata;
-    if (m_statistics != NULL) {
-        delete m_statistics;
-    }
+void 
+VolumeBase::setModified()
+{ 
+    m_ModifiedFlag = true;
 }

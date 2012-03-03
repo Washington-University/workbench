@@ -71,6 +71,7 @@
 #include "EventManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventModelDisplayControllerYokingGroupGetAll.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
@@ -119,6 +120,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolBoxToolButtonAction = toolBox->toggleViewAction();
     this->updateCounter = 0;
     
+    this->indexOfNewestAddedOrInsertedTab = -1;
+    
     this->isContructorFinished = false;
     this->isDestructionInProgress = false;
 
@@ -132,32 +135,27 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->viewOrientationLeftMedialIcon = NULL;
     this->viewOrientationRightLateralIcon = NULL;
     this->viewOrientationRightMedialIcon = NULL;
-/*
-    qApp->setStyleSheet("QTabBar::tab:selected {"
-                        "    font: bold 14px"
-                        "}  " 
-                        "QTabBar::tab!selected {"
-                        "    font: italic 10px"
-                        "}");
-*/
+
     /*
      * Create tab bar that displays models.
      */
     this->tabBar = new QTabBar();
-    this->tabBar->setStyleSheet("QTabBar::tab:selected {"
-                                "    font: bold 14px;"
-                                //"    text-decoration: underline; "
-                                "}  " 
-                                //"QTabBar::tab:!selected {"
-                                "QTabBar::tab {"
-                                "    font: italic"
-                                "}");
-    /*
-                                "QTabBar::tab:close-button {"
-                                "image: url(close.png)"
-                                "    subcontrol-position: left;"
-                                "}");
-     */
+    if (WuQtUtilities::isSmallDisplay()) {
+        this->tabBar->setStyleSheet("QTabBar::tab:selected {"
+                                    "    font: bold;"
+                                    "}  " 
+                                    "QTabBar::tab {"
+                                    "    font: italic"
+                                    "}");
+    }
+    else {
+        this->tabBar->setStyleSheet("QTabBar::tab:selected {"
+                                    "    font: bold 14px;"
+                                    "}  " 
+                                    "QTabBar::tab {"
+                                    "    font: italic"
+                                    "}");
+    }
 
     //this->tabBar->setDocumentMode(true);
     this->tabBar->setShape(QTabBar::RoundedNorth);
@@ -438,6 +436,7 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
     
     const int32_t tabContentIndex = tabContent->getTabNumber();
     
+    this->indexOfNewestAddedOrInsertedTab = -1;
     
     int32_t newTabIndex = -1;
     const int32_t numTabs = this->tabBar->count();
@@ -459,6 +458,9 @@ BrainBrowserWindowToolBar::addNewTab(BrowserTabContent* tabContent)
             newTabIndex = insertIndex;
         }
     }
+    
+    this->indexOfNewestAddedOrInsertedTab = newTabIndex;
+    
     this->tabBar->setTabData(newTabIndex, qVariantFromValue((void*)tabContent));
     
     const int32_t numOpenTabs = this->tabBar->count();
@@ -556,8 +558,29 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
         }
     }
     
-    int32_t tabIndex = 0;
+    int32_t numberOfTabsNeeded = 0;
+    if (leftSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (rightSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (cerebellumSurfaceController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (volumeController != NULL) {
+        numberOfTabsNeeded++;
+    }
+    if (wholeBrainController != NULL) {
+        numberOfTabsNeeded++;
+    }
     
+    const int32_t numberOfTabsToAdd = numberOfTabsNeeded - this->tabBar->count();
+    for (int32_t i = 0; i < numberOfTabsToAdd; i++) {
+        this->addNewTab();
+    }
+    
+    int32_t tabIndex = 0;
     tabIndex = loadIntoTab(tabIndex,
                            leftSurfaceController);
     tabIndex = loadIntoTab(tabIndex,
@@ -598,10 +621,18 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
     int32_t tabIndex = tabIndexIn;
     
     if (controller != NULL) {
+        this->indexOfNewestAddedOrInsertedTab = -1;
+        
         if (tabIndex >= this->tabBar->count()) {
             this->addNewTab();
-            tabIndex = this->tabBar->count() - 1;
+            if (this->indexOfNewestAddedOrInsertedTab >= 0) {
+                tabIndex = this->indexOfNewestAddedOrInsertedTab;
+            }
+            else {
+                tabIndex = this->tabBar->count() - 1;
+            }
         }
+        
         void* p = this->tabBar->tabData(tabIndex).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
         btc->setSelectedModelType(controller->getControllerType());
@@ -611,10 +642,9 @@ BrainBrowserWindowToolBar::loadIntoTab(const int32_t tabIndexIn,
         if (surfaceController != NULL) {
             btc->getSurfaceModelSelector()->setSelectedStructure(surfaceController->getSurface()->getStructure());
             btc->getSurfaceModelSelector()->setSelectedSurfaceController(surfaceController);
+            btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE);
         }
         this->updateTabName(tabIndex);
-        
-        btc->getOverlaySet()->initializeOverlays(controller);
         
         tabIndex++;
     }
@@ -679,7 +709,9 @@ BrainBrowserWindowToolBar::removeAndReturnAllTabs(std::vector<BrowserTabContent*
     for (int32_t i = (numTabs - 1); i >= 0; i--) {
         void* p = this->tabBar->tabData(i).value<void*>();
         BrowserTabContent* btc = (BrowserTabContent*)p;
-        allTabContent.push_back(btc);
+        if (btc != NULL) {
+            allTabContent.push_back(btc);
+        }
         this->tabBar->setTabData(i, qVariantFromValue((void*)NULL));
         this->tabClosed(i);
     }
@@ -788,13 +820,17 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
         tabIndexForUpdate = this->tabBar->currentIndex();
     }
     void* p = this->tabBar->tabData(tabIndexForUpdate).value<void*>();
-    BrowserTabContent* btc = (BrowserTabContent*)p;    
-    this->tabBar->setTabText(tabIndexForUpdate, btc->getName());
+    AString newName = "";
+    BrowserTabContent* btc = (BrowserTabContent*)p;   
+    if (btc != NULL) {
+        newName = btc->getName();
+    }
+    this->tabBar->setTabText(tabIndexForUpdate, newName);
 
     /*
      * Set title of toolbox
      */
-    this->toolBox->setWindowTitle(btc->getName());
+    this->toolBox->setWindowTitle(newName);
     /*
     QIcon coronalIcon;
     const bool coronalIconValid =
@@ -837,30 +873,39 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 }
 
 void 
-BrainBrowserWindowToolBar::tabClosed(int indx)
+BrainBrowserWindowToolBar::tabClosed(int tabIndex)
 {
-    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), indx);
+    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
+    this->removeTab(tabIndex);
     
-    void* p = this->tabBar->tabData(indx).value<void*>();
+    this->updateToolBar();
+    emit viewedModelChanged();
+}
+
+/**
+ * Remove the tab at the given index.
+ * @param index
+ */
+void 
+BrainBrowserWindowToolBar::removeTab(int tabIndex)
+{
+    CaretAssertArrayIndex(this-tabBar->tabData(), this->tabBar->count(), tabIndex);
+    
+    void* p = this->tabBar->tabData(tabIndex).value<void*>();
     if (p != NULL) {
         BrowserTabContent* btc = (BrowserTabContent*)p;
-    
+        
         EventBrowserTabDelete deleteTabEvent(btc);
         EventManager::get()->sendEvent(deleteTabEvent.getPointer());
     }
     
     this->tabBar->blockSignals(true);
-    this->tabBar->removeTab(indx);
+    this->tabBar->removeTab(tabIndex);
     this->tabBar->blockSignals(false);
-    
-    const int numOpenTabs = this->tabBar->count();
-    this->tabBar->setTabsClosable(numOpenTabs > 1);
-    
-//    this->updateUserInterface();
-    this->updateToolBar();
-    emit viewedModelChanged();
-}
 
+    const int numOpenTabs = this->tabBar->count();
+    this->tabBar->setTabsClosable(numOpenTabs > 1);    
+}
 
 /**
  * Update the toolbar.
@@ -870,6 +915,17 @@ BrainBrowserWindowToolBar::updateToolBar()
 {
     if (this->isDestructionInProgress) {
         return;
+    }
+    
+    /*
+     * If there are no models, close all but the first tab.
+     */
+    EventModelDisplayControllerGetAll getAllModelsEvent;
+    EventManager::get()->sendEvent(getAllModelsEvent.getPointer());
+    if (getAllModelsEvent.getFirstModelDisplayController() == NULL) {
+        for (int i = (this->tabBar->count() - 1); i >= 1; i--) {
+            this->removeTab(i);
+        }
     }
     
     this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
@@ -962,6 +1018,8 @@ BrainBrowserWindowToolBar::updateToolBar()
     if (this->updateCounter != 0) {
         CaretLogSevere("Update counter is non-zero at end of updateToolBar()");
     }
+    
+    this->updateTabName(-1);
     
     BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->browserWindowIndex);
     if (browserWindow != NULL) {
@@ -3653,7 +3711,7 @@ BrainBrowserWindowToolBar::surfaceSelectionControlChanged(
         ModelDisplayControllerSurfaceSelector* surfaceModelSelector = btc->getSurfaceModelSelector();
         surfaceModelSelector->setSelectedStructure(structure);
         surfaceModelSelector->setSelectedSurfaceController(surfaceController);
-        btc->invalidateSurfaceColoring();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         this->updateUserInterface();
         this->updateGraphicsWindow();
     }

@@ -25,6 +25,7 @@
  * 
  */ 
 
+#include <map>
 
 #include "CaretObject.h"
 #include "StructureEnum.h"
@@ -78,6 +79,7 @@ namespace caret {
         
         ModelDisplayControllerSurface* selectedSurfaceController;
         
+        std::map<StructureEnum::Enum, ModelDisplayControllerSurface*> previousSelectedSurfaceController;
     };
     
 #ifdef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__

@@ -35,7 +35,13 @@ namespace caret {
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
-        void smoothFrame(const float* inFrame, std::vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights, int irange, int jrange, int krange, const bool& fixZeros);
+        void smoothFrame(const float* inFrame, std::vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchWeights,
+                         CaretArray<float> scratchWeights2, const VolumeFile* inVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights,
+                         int irange, int jrange, int krange, const bool& fixZeros);
+        void smoothFrameROI(const float* inFrame, std::vector<int64_t> myDims, CaretArray<float> scratchFrame, CaretArray<float> scratchFrame2, CaretArray<float> scratchFrame3,
+                                              CaretArray<float> scratchWeights, CaretArray<float> scratchWeights2, std::vector<int> lists[3],
+                                              const VolumeFile* inVol, const VolumeFile* roiVol, CaretArray<float> iweights, CaretArray<float> jweights, CaretArray<float> kweights,
+                                              int irange, int jrange, int krange, const bool& fixZeros);
         void smoothFrameNonOrth(const float* inFrame, const std::vector<int64_t>& myDims, CaretArray<float>& scratchFrame, const VolumeFile* inVol, const VolumeFile* roiVol, const CaretArray<float**>& weights, const int& irange, const int& jrange, const int& krange, const bool& fixZeros);
     public:
         AlgorithmVolumeSmoothing(ProgressObject* myProgObj, const VolumeFile* inVol, const float& kernel, VolumeFile* outVol, const VolumeFile* roiVol = NULL, const bool& fixZeros = false, const int& subvol = -1);

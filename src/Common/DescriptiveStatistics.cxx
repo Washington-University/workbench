@@ -29,8 +29,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <limits>
 
 #include "CaretAssert.h"
+#include "MathFunctions.h"
 
 using namespace caret;
 using namespace std;
@@ -57,21 +59,16 @@ DescriptiveStatistics::DescriptiveStatistics(const int64_t histogramNumberOfElem
 : CaretObject()
 {
     m_histogramNumberOfElements = histogramNumberOfElements;
-    m_percentileDivisions = percentileDivisions;
-    m_validCount = 0;
-    m_infCount = 0;
-    m_negInfCount = 0;
-    m_nanCount = 0;
-    m_minimumValue = 0.0;
-    m_maximumValue = 0.0;
-    m_minimumValue96 = 0.0;
-    m_maximumValue96 = 0.0;
     CaretAssert(m_histogramNumberOfElements > 2);
+    m_percentileDivisions = percentileDivisions;
     CaretAssert(m_percentileDivisions > 2);
+    m_lastInputNumberOfValues = -1;
+    
     m_histogram = new int64_t[m_histogramNumberOfElements];
-    m_histogram96 = new int64_t[m_histogramNumberOfElements];
     m_positivePercentiles = new float[m_percentileDivisions];
     m_negativePercentiles = new float[m_percentileDivisions];
+
+    this->invalidateData();
 }
 
 /**
@@ -83,10 +80,6 @@ DescriptiveStatistics::~DescriptiveStatistics()
     {
         delete[] m_histogram;
     }
-    if (m_histogram96 != NULL)
-    {
-        delete[] m_histogram96;
-    }
     if (m_positivePercentiles != NULL)
     {
         delete[] m_positivePercentiles;
@@ -95,19 +88,25 @@ DescriptiveStatistics::~DescriptiveStatistics()
     {
         delete[] m_negativePercentiles;
     }
+    
 }
 
 /**
- * Update the statistics with the given data.
- * @param values
- *    Values for which statistics are calculated.
- * @param numberOfValues
- *    Number of elements in values array.
+ * Invalidate data so that next call to update()
+ * recreates the statistics.
  */
 void 
-DescriptiveStatistics::update(const float* values,
-                              const int64_t numberOfValues)
-{    
+DescriptiveStatistics::invalidateData()
+{
+    m_lastInputNumberOfValues = -1;
+    
+    m_validCount = 0;
+    m_infCount = 0;
+    m_negInfCount = 0;
+    m_nanCount = 0;
+    m_minimumValue = 0.0;
+    m_maximumValue = 0.0;
+
     m_containsNegativeValues = false;
     m_containsPositiveValues = false;
     
@@ -115,17 +114,140 @@ DescriptiveStatistics::update(const float* values,
     m_median = 0.0;
     m_standardDeviationPopulation = 0.0;
     m_standardDeviationSample = 0.0;
+
+}
+
+/**
+ * Update the statistics with the given data but
+ * limit the range of values to the given 
+ * minimum and maximum values.
+ *
+ * @param values
+ *    Values for which statistics are calculated.
+ * @param numberOfValues
+ *    Number of elements in values array.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ */
+void 
+DescriptiveStatistics::update(const std::vector<float>& values,
+                              const float mostPositiveValueInclusive,
+                              const float leastPositiveValueInclusive,
+                              const float leastNegativeValueInclusive,
+                              const float mostNegativeValueInclusive,
+                              const bool includeZeroValues)
+{
+    const float* valuesArray = (values.empty() ? NULL : &values[0]);
+    const int64_t numberOfValues = (values.empty() ? 0 : values.size());
     
-    m_mean96 = 0.0;
-    m_median96 = 0.0;
-    m_standardDeviationPopulation96 = 0.0;
-    m_standardDeviationSample96 = 0.0;
+    this->update(valuesArray,
+                 numberOfValues,
+                 mostPositiveValueInclusive,
+                 leastPositiveValueInclusive,
+                 leastNegativeValueInclusive,
+                 mostNegativeValueInclusive,
+                 includeZeroValues);
+}
+
+/**
+ * Update the statistics with the given data but
+ * limit the range of values to the given 
+ * minimum and maximum values.
+ *
+ * @param values
+ *    Values for which statistics are calculated.
+ * @param numberOfValues
+ *    Number of elements in values array.
+ * @param mostPositiveValueInclusive
+ *    Values more positive than this value are excluded.
+ * @param leastPositiveValueInclusive
+ *    Values less positive than this value are excluded.
+ * @param leastNegativeValueInclusive
+ *    Values less negative than this value are excluded.
+ * @param mostNegativeValueInclusive
+ *    Values more negative than this value are excluded.
+ * @param includeZeroValues
+ *    If true zero values (very near zero) are included.
+ */
+void 
+DescriptiveStatistics::update(const float* valuesIn,
+                              const int64_t numberOfValuesIn,
+                              const float mostPositiveValueInclusive,
+                              const float leastPositiveValueInclusive,
+                              const float leastNegativeValueInclusive,
+                              const float mostNegativeValueInclusive,
+                              const bool includeZeroValues)
+{
+    bool needUpdate = false;
+    if (m_lastInputNumberOfValues <= 0) {
+        needUpdate = true;
+    }
+    else {
+        if ((numberOfValuesIn != m_lastInputNumberOfValues)
+            || (mostPositiveValueInclusive != m_lastInputMostPositiveValueInclusive) 
+            || (leastPositiveValueInclusive != m_lastInputLeastPositiveValueInclusive)
+            || (leastNegativeValueInclusive != m_lastInputLeastNegativeValueInclusive)
+            || (mostNegativeValueInclusive != m_lastInputMostNegativeValueInclusive)
+            || (includeZeroValues != m_lastInputIncludeZeroValues)) {
+            needUpdate = true;
+        }
+    }
+    
+    if (needUpdate == false) {
+        return;
+    }
+    this->invalidateData();
+    
+    m_lastInputNumberOfValues = numberOfValuesIn;
+    m_lastInputMostPositiveValueInclusive = mostPositiveValueInclusive;
+    m_lastInputLeastPositiveValueInclusive = leastPositiveValueInclusive;
+    m_lastInputLeastNegativeValueInclusive = leastNegativeValueInclusive;
+    m_lastInputMostNegativeValueInclusive = mostNegativeValueInclusive;
+    m_lastInputIncludeZeroValues = includeZeroValues;
+    
+    std::vector<float> valuesVector;
+    valuesVector.reserve(numberOfValuesIn);
+    for (int64_t i = 0; i < numberOfValuesIn; i++) {
+        bool useIt = false;
+        
+        const float v = valuesIn[i];
+        if (v >= leastPositiveValueInclusive) {
+            if (v <= mostPositiveValueInclusive) {
+                useIt = true;
+            }
+        }
+        else if (v <= leastNegativeValueInclusive) {
+            if (v >= mostNegativeValueInclusive) {
+                useIt = true;
+            }
+        }
+        
+        if (useIt) {
+            if (includeZeroValues == false) {
+                if (MathFunctions::isZero(v)) {
+                    useIt = false;
+                }
+            }
+            
+            if (useIt) {
+                valuesVector.push_back(v);
+            }
+        }
+    }
+    
+    const float* values = (valuesVector.empty() ? NULL : &valuesVector[0]);
+    const int64_t numberOfValues = static_cast<int64_t>(valuesVector.size());
     
     std::fill(m_histogram,
               m_histogram + m_histogramNumberOfElements,
-              0.0);
-    std::fill(m_histogram96,
-              m_histogram96 + m_histogramNumberOfElements,
               0.0);
     std::fill(m_positivePercentiles,
               m_positivePercentiles + m_percentileDivisions,
@@ -143,29 +265,22 @@ DescriptiveStatistics::update(const float* values,
         m_mean = v;
         m_median = v;
         m_histogram[m_histogramNumberOfElements / 2] = v;
-        m_histogram96[m_histogramNumberOfElements / 2] = v;
         fill(m_positivePercentiles,
-                  m_positivePercentiles + m_percentileDivisions,
-                  v);
+             m_positivePercentiles + m_percentileDivisions,
+             v);
         fill(m_negativePercentiles,
-                  m_negativePercentiles + m_percentileDivisions,
-                  v);
+             m_negativePercentiles + m_percentileDivisions,
+             v);
         m_minimumValue = v;
         m_maximumValue = v;
-        m_minimumValue96 = v;
-        m_maximumValue96 = v;
         return;
     }
     
-
+    
     /*
      * Copy and sort the input data.
      */
     float* sortedValues = new float[numberOfValues];
-    m_validCount = 0;
-    m_infCount = 0;
-    m_negInfCount = 0;
-    m_nanCount = 0;
     for (int64_t i = 0; i < numberOfValues; ++i)
     {//remove and count non-numerical values
         if (values[i] != values[i])
@@ -290,40 +405,17 @@ DescriptiveStatistics::update(const float* values,
     }
     
     /*
-     * Indices at 2% and 98%
-     */
-    const int64_t twoPercentIndex = (int64_t)(m_validCount * 0.02 + 0.5);
-    const int64_t ninetyEightPercentIndex = (int64_t)(m_validCount * 0.98 + 0.5);
-    
-    /*
      * Prepare for histogram of all data
      */
     const float minValue = sortedValues[0];
     const float maxValue = sortedValues[m_validCount - 1];
     const float bucketSize = (maxValue - minValue) / m_histogramNumberOfElements;
-
-    /*
-     * Prepare for histogram of middle 96%
-     */
-    CaretAssertArrayIndex(sortedValues, m_validCount, twoPercentIndex);
-    const float minValue96 = sortedValues[twoPercentIndex];
-    CaretAssertArrayIndex(sortedValues, m_validCount, ninetyEightPercentIndex);
-    const float maxValue96 = sortedValues[ninetyEightPercentIndex];
-    const float bucketSize96 = (maxValue96 - minValue96) / m_histogramNumberOfElements;
-    
-    /*
-     * Min/max of the middle 96% of values
-     */
-    m_minimumValue96 = sortedValues[twoPercentIndex];
-    m_maximumValue96 = sortedValues[ninetyEightPercentIndex];
-    
+        
     /*
      * Prepare for statistics
      */
     double sum = 0.0;
     double sumSQ = 0.0;
-    double sum96 = 0.0;
-    double sumSQ96 = 0.0;
     
     /*
      * Create histogram and statistics.
@@ -338,20 +430,9 @@ DescriptiveStatistics::update(const float* values,
         
         sum += v;
         const float v2 = v * v;
-        sumSQ += v2;
-        
-        if ((i >= twoPercentIndex) && (i <= ninetyEightPercentIndex)) {
-            int64_t indx96 = (v - minValue96) / bucketSize96;
-            if (indx96 >= m_histogramNumberOfElements) indx96 = m_histogramNumberOfElements - 1;
-            if (indx96 < 0) indx96 = 0;
-            CaretAssertArrayIndex(m_histogram, m_histogramNumberOfElements, indx96);
-            m_histogram96[indx96]++;
-            
-            sum96 += v;
-            sumSQ96 += v2;
-        }
+        sumSQ += v2;        
     }    
-
+    
     /*
      * Compute statistics of all.
      * Pop Variance = (sum(x^2) - [(sum(x))^2] / N) / N
@@ -369,23 +450,26 @@ DescriptiveStatistics::update(const float* values,
             m_standardDeviationSample = sqrt(numerator / (m_validCount - 1));
         }
     }
-    
-    /*
-     * Compute statistics of middle 96%
-     */
-    const int64_t numberOfValues96 = ninetyEightPercentIndex - twoPercentIndex;
-    m_mean96 = sum96 / numberOfValues96;
-    m_median96 = sortedValues[(numberOfValues96 / 2) + twoPercentIndex];
-    const double numerator96 = (sumSQ96 - ((sum96*sum96) / numberOfValues96));
-    m_standardDeviationPopulation96 = -1.0;
-    m_standardDeviationSample96 = -1.0;
-    if (numberOfValues96 > 0)
-    {
-        m_standardDeviationPopulation = sqrt(numerator96 / numberOfValues96);
-        if (numberOfValues96 > 1) {
-            m_standardDeviationSample = sqrt(numerator96 / (numberOfValues96 - 1));
-        }
-    }
+}
+
+/**
+ * Update the statistics with the given data.
+ * @param values
+ *    Values for which statistics are calculated.
+ * @param numberOfValues
+ *    Number of elements in values array.
+ */
+void 
+DescriptiveStatistics::update(const float* values,
+                              const int64_t numberOfValues)
+{    
+    this->update(values,
+                 numberOfValues,
+                 std::numeric_limits<float>::max(),
+                 0.0,
+                 0.0,
+                 -std::numeric_limits<float>::max(),
+                 true);
 }
 
 /**
@@ -396,7 +480,12 @@ DescriptiveStatistics::update(const float* values,
 void 
 DescriptiveStatistics::update(const std::vector<float>& values)
 {
-    this->update(&values[0], values.size());
+    this->update(values,
+                 std::numeric_limits<float>::max(),
+                 0.0,
+                 0.0,
+                 -std::numeric_limits<float>::max(),
+                 true);
 }
 
 /**

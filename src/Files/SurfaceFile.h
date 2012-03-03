@@ -29,13 +29,16 @@
 #include <vector>
 #include <stdint.h>
 
+#include "BrainConstants.h"
+#include "CaretMutex.h"
+#include "CaretPointer.h"
+#include "CaretPointLocator.h"
+#include "EventManager.h"
+#include "EventListenerInterface.h"
+#include "GeodesicHelper.h"
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
-#include "CaretPointer.h"
-#include "CaretMutex.h"
 #include "TopologyHelper.h"
-#include "GeodesicHelper.h"
-#include "CaretPointLocator.h"
 
 namespace caret {
 
@@ -45,7 +48,7 @@ namespace caret {
     /**
      * A surface data file.
      */
-    class SurfaceFile : public GiftiTypeFile {
+    class SurfaceFile : public GiftiTypeFile, EventListenerInterface {
         
     public:
         SurfaceFile();
@@ -55,6 +58,8 @@ namespace caret {
         SurfaceFile& operator=(const SurfaceFile& sf);
         
         virtual ~SurfaceFile();
+        
+        virtual void receiveEvent(Event* event);
         
         virtual void clear();
         
@@ -108,6 +113,16 @@ namespace caret {
         
         AString getInformation() const;
         
+        float* getSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
+        
+        void setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                              const float* rgbaNodeColorComponents);
+        
+        float* getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
+        
+        void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                              const float* rgbaNodeColorComponents);
+        
     protected:
         /**
          * Validate the contents of the file after it
@@ -121,8 +136,32 @@ namespace caret {
         void initializeMembersSurfaceFile();
         
     private:
+        void invalidateNodeColoringForBrowserTabs();
+        
+        void allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                      const bool zeroizeColorsFlag);
+        
+        void allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                         const bool zeroizeColorsFlag);
+        
         /** Data array containing the coordinates. */
         GiftiDataArray* coordinateDataArray;
+        
+        /** 
+         * This coloring is used when a ONE surface is displayed.
+         * Node color components Red, Green, Blue, Alpha for each browser tab.
+         * Each element of the vector points to the coloring
+         * for a browser tab with the corresponding index.
+         */
+        std::vector<float> surfaceNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** 
+         * This coloring is used when a Whole Brain is displayed.
+         * Node color components Red, Green, Blue, Alpha for each browser tab.
+         * Each element of the vector points to the coloring
+         * for a browser tab with the corresponding index.
+         */
+        std::vector<float> wholeBrainNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** Points to memory containing the coordinates. */
         float* coordinatePointer;

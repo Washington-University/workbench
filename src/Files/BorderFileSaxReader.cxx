@@ -31,6 +31,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderFileSaxReader.h"
+#include "ClassAndNameHierarchySelection.h"
 #include "GiftiLabelTableSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "SurfaceProjectedItem.h"
@@ -143,11 +144,13 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
            }
            break;
       case STATE_BORDER_FILE:
-         if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
-             this->state = STATE_CLASSES;
-             this->classTableSaxReader = new GiftiLabelTableSaxReader(this->borderFile->getClassNamesTable());
-             this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
-         }
+           if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
+               this->state = STATE_CLASSES;
+               ClassAndNameHierarchySelection* classAndNameHierarchy = this->borderFile->getClassAndNameHierarchy();
+               GiftiLabelTable* classTable = classAndNameHierarchy->getClassLabelTable();
+               this->classTableSaxReader = new GiftiLabelTableSaxReader(classTable);
+               this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
+           }
          else if (qName == GiftiXmlElements::TAG_METADATA) {
              this->state = STATE_METADATA;
              this->metaDataSaxReader = new GiftiMetaDataSaxReader(this->borderFile->getFileMetaData());
@@ -168,7 +171,7 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_METADATA:
            this->metaDataSaxReader->startElement(namespaceURI, localName, qName, attributes);
          break;
-      case STATE_CLASSES:
+       case STATE_CLASSES:
            this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
            break;
       case STATE_SURFACE_PROJECTED_ITEM:
@@ -223,7 +226,7 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
                this->metaDataSaxReader = NULL;
            }
          break;
-      case STATE_CLASSES:
+       case STATE_CLASSES:
            CaretAssert(this->classTableSaxReader);
            this->classTableSaxReader->endElement(namespaceURI, localName, qName);
            if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {

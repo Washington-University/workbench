@@ -180,13 +180,13 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->colorSelectionControl, 
                           true);
     
-    float minLineWidth, maxLineWidth;
-    BrainOpenGL::getMinMaxLineWidth(minLineWidth, 
-                                    maxLineWidth);
+    const float minLineWidth = 0.5;
+    const float maxLineWidth = 100.0;
+    const float stepSize = 0.5;
     this->thicknessSpinBox = new QDoubleSpinBox();
     this->thicknessSpinBox->setRange(minLineWidth, 
                                      maxLineWidth);
-    this->thicknessSpinBox->setSingleStep(1.0);
+    this->thicknessSpinBox->setSingleStep(stepSize);
     parentPage->addWidget(this->thicknessSpinBox, 
                           true);
     

@@ -792,6 +792,10 @@ Border::setNameAndClassKeys(const int32_t nameKey,
 {
     this->nameKey = nameKey;
     this->classKey = classKey;
+    
+    /*
+     * Clear status 
+     */
     this->nameClassModificationStatus = false;
 }
 

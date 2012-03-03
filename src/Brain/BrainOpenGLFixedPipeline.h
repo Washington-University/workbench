@@ -32,6 +32,7 @@
 #include "BrainOpenGL.h"
 #include "BrainOpenGLTextRenderInterface.h"
 #include "IdentificationItemDataTypeEnum.h"
+#include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
 class QGLWidget;
@@ -41,6 +42,7 @@ namespace caret {
     class Brain;
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
+    class FastStatistics;
     class DescriptiveStatistics;
     class IdentificationItem;
     class IdentificationManager;
@@ -95,15 +97,15 @@ namespace caret {
             VolumeDrawInfo(VolumeFile* volumeFile,
                            Palette* palette,
                            PaletteColorMapping* paletteColorMapping,
-                           const DescriptiveStatistics* statistics,
-                           const int32_t brickIndex,
+                           const FastStatistics* statistics,
+                           const int32_t mapIndex,
                            const float opacity);
             
             VolumeFile* volumeFile;
             Palette* palette;
             PaletteColorMapping* paletteColorMapping;
-            const DescriptiveStatistics* statistics;
-            int32_t brickIndex;
+            const FastStatistics* statistics;
+            int32_t mapIndex;
             float opacity;
         };
         
@@ -115,13 +117,17 @@ namespace caret {
         void drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
                                    const int32_t viewport[4]);
         
-        void drawSurface(Surface* surface);
+        void drawSurface(Surface* surface,
+                         const float* nodeColoringRGBA);
         
-        void drawSurfaceNodes(Surface* surface);
+        void drawSurfaceNodes(Surface* surface,
+                              const float* nodeColoringRGBA);
         
-        void drawSurfaceTrianglesWithVertexArrays(const Surface* surface);
+        void drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                  const float* nodeColoringRGBA);
         
-        void drawSurfaceTriangles(Surface* surface);
+        void drawSurfaceTriangles(Surface* surface,
+                                  const float* nodeColoringRGBA);
         
         void drawSurfaceNodeAttributes(Surface* surface);
         
@@ -155,6 +161,7 @@ namespace caret {
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
         void drawVolumeSurfaceOutlines(Brain* brain,
+                                       ModelDisplayController* modelDisplayController,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        VolumeFile* underlayVolume);
@@ -176,6 +183,9 @@ namespace caret {
         void enableLighting();
         
         void disableLighting();
+        
+        void enableLineAntiAliasing();
+        void disableLineAntiAliasing();
         
         void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
                                            const int32_t x,
@@ -228,6 +238,13 @@ namespace caret {
                          const DescriptiveStatistics* statistics,
                          const int paletteDrawingIndex);
         
+        void drawPalette(const Palette* palette,
+                         const PaletteColorMapping* paletteColorMapping,
+                         const FastStatistics* statistics,
+                         const int paletteDrawingIndex);
+        
+        float modelSizeToPixelSize(const float modelSize);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
@@ -251,6 +268,9 @@ namespace caret {
 
         SurfaceProjectedItem* modeProjectionData;
         
+        /** Performs node coloring */
+        SurfaceNodeColoring* surfaceNodeColoring;
+         
         uint32_t sphereDisplayList;
         
         SphereOpenGL* sphereOpenGL;

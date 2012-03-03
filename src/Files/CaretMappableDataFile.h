@@ -34,6 +34,8 @@ namespace caret {
     class GiftiMetaData;
     class GiftiLabelTable;
     class PaletteColorMapping;
+    class FastStatistics;
+    class Histogram;
     
     /**
      * \class caret::CaretMappableDataFile 
@@ -93,7 +95,7 @@ namespace caret {
          *    than one map with the given name, this method is likely
          *    to return the index of the first map with the name.
          */
-        virtual int32_t getMapIndexFromName(const AString& mapName) = 0;
+        virtual int32_t getMapIndexFromName(const AString& mapName);
         
         /**
          * Find the index of the map that uses the given name.
@@ -156,7 +158,7 @@ namespace caret {
          * @return
          *    Index of the map using the given UUID.
          */
-        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const = 0;
+        virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
         
         /**
          * @return Is the data in the file mapped to colors using
@@ -175,6 +177,45 @@ namespace caret {
          *    not mapped using a palette).
          */         
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex) = 0;
+        
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex) = 0;
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex) = 0;
+        
+        /**
+         * Get statistics describing the distribution of data
+         * mapped with a color palette at the given index for 
+         * data within the given ranges.
+         *
+         * @param mapIndex
+         *    Index of the map.
+         * @param mostPositiveValueInclusive
+         *    Values more positive than this value are excluded.
+         * @param leastPositiveValueInclusive
+         *    Values less positive than this value are excluded.
+         * @param leastNegativeValueInclusive
+         *    Values less negative than this value are excluded.
+         * @param mostNegativeValueInclusive
+         *    Values more negative than this value are excluded.
+         * @param includeZeroValues
+         *    If true zero values (very near zero) are included.
+         * @return
+         *    Descriptive statistics for data (will be NULL for data
+         *    not mapped using a palette).
+         */         
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues) = 0;
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues) = 0;
         
         /**
          * Get the palette color mapping for the map at the given index.

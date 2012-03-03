@@ -227,7 +227,7 @@ void Nifti1Header::getDimensions(std::vector< int64_t > &dimensionsOut) const
 
 void Nifti1Header::setDimensions(const std::vector<int64_t> &dimensionsIn) throw (NiftiException)
 {
-    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nift1 dimension number.");
+    if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nifti1 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
     for(int i =0;i<(int)dimensionsIn.size();i++)
     {
@@ -242,6 +242,9 @@ void Nifti1Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
 void Nifti1Header::setNiftiDataTypeEnum(const NiftiDataTypeEnum::Enum &enumIn)
 {
     m_header.datatype = (short) NiftiDataTypeEnum::toIntegerCode(enumIn);
+    int32_t myByteSize;
+    getValueByteSize(myByteSize);
+    m_header.bitpix = 8 * myByteSize;
 }
 
 void Nifti1Header::getComponentDimensions(int32_t &componentDimensionsOut) const
@@ -261,7 +264,7 @@ void Nifti1Header::getValueByteSize(int32_t &valueByteSizeOut) const throw(Nifti
         valueByteSizeOut = sizeof(double);
         break;
     case NIFTI_TYPE_RGB24:
-        valueByteSizeOut = 1;
+        valueByteSizeOut = 3;//to make bitpix = 8 * byte size work out
         break;
     default:
         throw NiftiException("Unsupported Data Type.");

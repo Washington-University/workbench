@@ -58,10 +58,12 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
+#include "ClassAndNameHierarchySelection.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "FastStatistics.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
@@ -86,6 +88,7 @@
 #include "SessionManager.h"
 #include "SphereOpenGL.h"
 #include "Surface.h"
+#include "SurfaceNodeColoring.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "VolumeFile.h"
@@ -108,6 +111,7 @@ BrainOpenGLFixedPipeline::BrainOpenGLFixedPipeline(BrainOpenGLTextRenderInterfac
     this->colorIdentification   = new IdentificationWithColor();
     this->sphereDisplayList = 0;
     this->sphereOpenGL = NULL;
+    this->surfaceNodeColoring = new SurfaceNodeColoring();
 }
 
 /**
@@ -121,6 +125,10 @@ BrainOpenGLFixedPipeline::~BrainOpenGLFixedPipeline()
     if (this->sphereOpenGL != NULL) {
         delete this->sphereOpenGL;
         this->sphereOpenGL = NULL;
+    }
+    if (this->surfaceNodeColoring != NULL) {
+        delete this->surfaceNodeColoring;
+        this->surfaceNodeColoring = NULL;
     }
     delete this->colorIdentification;
     this->colorIdentification = NULL;
@@ -539,6 +547,39 @@ void
 BrainOpenGLFixedPipeline::initializeOpenGL()
 {
     if (BrainOpenGLFixedPipeline::versionOfOpenGL == 0.0) {
+     
+        AString lineInfo;
+        
+#ifdef GL_VERSION_2_0
+        GLfloat values[2];
+        glGetFloatv (GL_ALIASED_LINE_WIDTH_RANGE, values);
+        const AString aliasedLineWidthRange = ("GL_ALIASED_LINE_WIDTH_RANGE value is "
+                                               + AString::fromNumbers(values, 2, ", "));
+
+        glGetFloatv (GL_SMOOTH_LINE_WIDTH_RANGE, values);
+        const AString smoothLineWidthRange = ("GL_SMOOTH_LINE_WIDTH_RANGE value is "
+                                               + AString::fromNumbers(values, 2, ", "));
+        
+        glGetFloatv (GL_SMOOTH_LINE_WIDTH_GRANULARITY, values);
+        const AString smoothLineWidthGranularity = ("GL_SMOOTH_LINE_WIDTH_GRANULARITY value is "
+                                               + AString::number(values[0]));
+        
+        lineInfo = ("\n" + aliasedLineWidthRange
+                    + "\n" + smoothLineWidthRange
+                    + "\n" + smoothLineWidthGranularity);
+#else  // GL_VERSION_2_0
+        GLfloat values[2];
+        glGetFloatv (GL_LINE_WIDTH_RANGE, values);
+        const AString lineWidthRange = ("GL_LINE_WIDTH_RANGE value is "
+                                              + AString::fromNumbers(values, 2, ", "));
+        
+        glGetFloatv (GL_LINE_WIDTH_GRANULARITY, values);
+        const AString lineWidthGranularity = ("GL_LINE_WIDTH_GRANULARITY value is "
+                                                    + AString::number(values[0]));
+        lineInfo = ("\n" + lineWidthRange
+                    + "\n" + lineWidthGranularity);
+#endif // GL_VERSION_2_0
+        
         //
         // Note: The version string might be something like 1.2.4.  std::atof()
         // will get just the 1.2 which is okay.
@@ -549,7 +590,8 @@ BrainOpenGLFixedPipeline::initializeOpenGL()
         const char* renderStr = (char*)(glGetString(GL_RENDERER));
         CaretLogConfig("OpenGL version: " + AString(versionStr)
                        + "\nOpenGL vendor: " + AString(vendorStr)
-                       + "\nOpenGL renderer: " + AString(renderStr));
+                       + "\nOpenGL renderer: " + AString(renderStr)
+                       + lineInfo);
     }
     
     glEnable(GL_DEPTH_TEST);
@@ -670,6 +712,28 @@ BrainOpenGLFixedPipeline::disableLighting()
 }
 
 /**
+ * Enable line anti-aliasing (line smoothing) which also required blending.
+ */
+void 
+BrainOpenGLFixedPipeline::enableLineAntiAliasing()
+{
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+}
+
+/**
+ * Disable line anti-aliasing (line smoothing) which also required blending.
+ */
+void 
+BrainOpenGLFixedPipeline::disableLineAntiAliasing()
+{
+    glDisable(GL_LINE_SMOOTH);
+    glDisable(GL_BLEND);
+}
+
+/**
  * Draw contents of a surface controller.
  * @param surfaceController
  *    Controller that is drawn.
@@ -694,7 +758,12 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelDisplayControllerSurface* s
                                       center,
                                       isRightSurfaceLateralMedialYoked);
     
-    this->drawSurface(surface);
+    const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceController, 
+                                                                                 surface, 
+                                                                                 this->windowTabIndex);
+    
+    this->drawSurface(surface,
+                      nodeColoringRGBA);
 }
 
 /**
@@ -706,7 +775,6 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
     const float bigNumber = 1000000.0;
     glPushMatrix();
     glColor3f(1.0, 0.0, 0.0);
-    glDisable(GL_LINE_SMOOTH);
     glBegin(GL_LINES);
     glVertex3f(-bigNumber, 0.0, 0.0);
     glVertex3f( bigNumber, 0.0, 0.0);
@@ -723,9 +791,12 @@ BrainOpenGLFixedPipeline::drawSurfaceAxes()
  * Draw a surface.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
+                                      const float* nodeColoringRGBA)
 {
     glMatrixMode(GL_MODELVIEW);
     
@@ -735,22 +806,26 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
     
     switch (this->mode)  {
         case MODE_DRAWING:
-            this->drawSurfaceTrianglesWithVertexArrays(surface);
+            this->drawSurfaceTrianglesWithVertexArrays(surface,
+                                                       nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
             break;
         case MODE_IDENTIFICATION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceNodes(surface);
-            this->drawSurfaceTriangles(surface);
+            this->drawSurfaceNodes(surface,
+                                   nodeColoringRGBA);
+            this->drawSurfaceTriangles(surface,
+                                       nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
             this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
         case MODE_PROJECTION:
             glShadeModel(GL_FLAT); // Turn off shading since ID info encoded in colors
-            this->drawSurfaceTriangles(surface);
+            this->drawSurfaceTriangles(surface,
+                                       nodeColoringRGBA);
             glShadeModel(GL_SMOOTH);
             break;
     }
@@ -762,16 +837,18 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface)
  * Draw a surface as individual triangles.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
+                                               const float* nodeColoringRGBA)
 {
     const int numTriangles = surface->getNumberOfTriangles();
     
     const int32_t* triangles = surface->getTriangle(0);
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
 
     IdentificationItemSurfaceTriangle* triangleID = NULL;
     /*
@@ -821,13 +898,13 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
             glVertex3fv(&coordinates[n3*3]);
         }
         else {
-            glColor4fv(&rgbaColoring[n1*4]);
+            glColor4fv(&nodeColoringRGBA[n1*4]);
             glNormal3fv(&normals[n1*3]);
             glVertex3fv(&coordinates[n1*3]);
-            glColor4fv(&rgbaColoring[n2*4]);
+            glColor4fv(&nodeColoringRGBA[n2*4]);
             glNormal3fv(&normals[n2*3]);
             glVertex3fv(&coordinates[n2*3]);
-            glColor4fv(&rgbaColoring[n3*4]);
+            glColor4fv(&nodeColoringRGBA[n3*4]);
             glNormal3fv(&normals[n3*3]);
             glVertex3fv(&coordinates[n3*3]);
         }
@@ -845,10 +922,20 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
         
         
         if (triangleIndex >= 0) {
+            bool isTriangleIdAccepted = false;
             if (triangleID != NULL) {
-                triangleID->setSurface(surface);
-                triangleID->setTriangleNumber(triangleIndex);
-                triangleID->setScreenDepth(depth);
+                if (triangleID->isOtherScreenDepthCloserToViewer(depth)) {
+                    triangleID->setSurface(surface);
+                    triangleID->setTriangleNumber(triangleIndex);
+                    const int32_t* triangleNodeIndices = surface->getTriangle(triangleIndex);
+                    triangleID->setNearestNode(triangleNodeIndices[0]);
+                    triangleID->setScreenDepth(depth);
+                    isTriangleIdAccepted = true;
+                    CaretLogFine("Selected Triangle: " + triangleID->toString());   
+                }
+                else {
+                    CaretLogFine("Rejecting Selected Triangle: " + triangleID->toString());   
+                }
             }
             
             /*
@@ -871,7 +958,9 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                 c1[2] + c2[2] + c3[2]
             };
             if (triangleID != NULL) {
-                this->setIdentifiedItemScreenXYZ(triangleID, average);
+                if (isTriangleIdAccepted) {
+                    this->setIdentifiedItemScreenXYZ(triangleID, average);
+                }
             }
                    
             GLdouble selectionModelviewMatrix[16];
@@ -930,18 +1019,20 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
                                                                        this->mouseX, 
                                                                        this->mouseY);
                     if (triangleID != NULL) {
-                        triangleID->setNearestNode(n3);
-                        triangleID->setNearestNodeScreenXYZ(wc3);
-                        triangleID->setNearestNodeModelXYZ(dc3);
-                        if ((d1 < d2) && (d1 < d3)) {
-                            triangleID->setNearestNode(n1);
-                            triangleID->setNearestNodeScreenXYZ(wc1);
-                            triangleID->setNearestNodeModelXYZ(dc1);
-                        }
-                        else if ((d2 < d1) && (d2 < d3)) {
-                            triangleID->setNearestNode(n2);
-                            triangleID->setNearestNodeScreenXYZ(wc2);
-                            triangleID->setNearestNodeModelXYZ(dc2);
+                        if (isTriangleIdAccepted) {
+                            triangleID->setNearestNode(n3);
+                            triangleID->setNearestNodeScreenXYZ(wc3);
+                            triangleID->setNearestNodeModelXYZ(dc3);
+                            if ((d1 < d2) && (d1 < d3)) {
+                                triangleID->setNearestNode(n1);
+                                triangleID->setNearestNodeScreenXYZ(wc1);
+                                triangleID->setNearestNodeModelXYZ(dc1);
+                            }
+                            else if ((d2 < d1) && (d2 < d3)) {
+                                triangleID->setNearestNode(n2);
+                                triangleID->setNearestNodeScreenXYZ(wc2);
+                                triangleID->setNearestNodeModelXYZ(dc2);
+                            }
                         }
                     }
                     
@@ -1039,15 +1130,17 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface)
  * Draw a surface as individual nodes.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
+                                           const float* nodeColoringRGBA)
 {
     const int numNodes = surface->getNumberOfNodes();
     
     const float* coordinates = surface->getCoordinate(0);
     const float* normals     = surface->getNormalVector(0);
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
     
     IdentificationItemSurfaceNode* nodeID = 
     this->getIdentificationManager()->getSurfaceNodeIdentification();
@@ -1085,7 +1178,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
             glVertex3fv(&coordinates[i3]);
         }
         else {
-            glColor4fv(&rgbaColoring[i*4]);
+            glColor4fv(&nodeColoringRGBA[i*4]);
             glNormal3fv(&normals[i3]);
             glVertex3fv(&coordinates[i3]);
         }
@@ -1101,11 +1194,16 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
                                          nodeIndex,
                                          depth);
         if (nodeIndex >= 0) {
-            nodeID->setSurface(surface);
-            nodeID->setNodeNumber(nodeIndex);
-            nodeID->setScreenDepth(depth);
-            this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
-            CaretLogFine("Selected Node: " + QString::number(nodeIndex));   
+            if (nodeID->isOtherScreenDepthCloserToViewer(depth)) {
+                nodeID->setSurface(surface);
+                nodeID->setNodeNumber(nodeIndex);
+                nodeID->setScreenDepth(depth);
+                this->setIdentifiedItemScreenXYZ(nodeID, &coordinates[nodeIndex * 3]);
+                CaretLogFine("Selected Node: " + nodeID->toString());   
+            }
+            else {
+                CaretLogFine("Rejecting Selected Node: " + nodeID->toString());   
+            }
         }
     }
 }
@@ -1115,12 +1213,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface)
  * Draw a surface triangles with vertex arrays.
  * @param surface
  *    Surface that is drawn.
+ * @param nodeColoringRGBA
+ *    RGBA coloring for the nodes.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* surface)
+BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* surface,
+                                                               const float* nodeColoringRGBA)
 {
-    const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
-    
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_COLOR_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
@@ -1131,7 +1230,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTrianglesWithVertexArrays(const Surface* su
     glColorPointer(4, 
                    GL_FLOAT, 
                    0, 
-                   reinterpret_cast<const GLvoid*>(rgbaColoring));
+                   reinterpret_cast<const GLvoid*>(nodeColoringRGBA));
     glNormalPointer(GL_FLOAT, 
                     0, 
                     reinterpret_cast<const GLvoid*>(surface->getNormalVector(0)));
@@ -1217,11 +1316,13 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                                          nodeIndex,
                                          depth);
         if (nodeIndex >= 0) {
-            symbolID->setSurface(surface);
-            symbolID->setNodeNumber(nodeIndex);
-            symbolID->setScreenDepth(depth);
-            this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
-            CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
+            if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
+                symbolID->setSurface(surface);
+                symbolID->setNodeNumber(nodeIndex);
+                symbolID->setScreenDepth(depth);
+                this->setIdentifiedItemScreenXYZ(symbolID, &coordinates[nodeIndex * 3]);
+                CaretLogFine("Selected Node Identification Symbol: " + QString::number(nodeIndex));   
+            }
         }
     }
 }
@@ -1318,8 +1419,9 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        const GiftiLabelTable* classNameTable = borderFile->getClassNamesTable();
-
+        const ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+        
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
@@ -1330,10 +1432,10 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
             
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
-                const int32_t key = classNameTable->getLabelKeyFromName(border->getClassName());
-                const GiftiLabel* classLabel = classNameTable->getLabel(key);
-                if (classLabel != NULL) {
+                const int32_t key = classLabelTable->getLabelKeyFromName(border->getClassName());
+                if (key >= 0) {
                     float rgba[4];
+                    const GiftiLabel* classLabel = classLabelTable->getLabel(key);
                     classLabel->getColor(rgba);
                     glColor3fv(rgba);
                 }
@@ -1365,19 +1467,21 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                                          borderPointIndex,
                                          depth);
         if (borderFileIndex >= 0) {
-            Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
-            idBorder->setBorder(border);
-            idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
-            idBorder->setBorderIndex(borderIndex);
-            idBorder->setBorderPointIndex(borderPointIndex);
-            idBorder->setSurface(surface);
-            idBorder->setScreenDepth(depth);
-            float xyz[3];
-            border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
-                                                                     xyz,
-                                                                     false);
-            this->setIdentifiedItemScreenXYZ(idBorder, xyz);
-            CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+            if (idBorder->isOtherScreenDepthCloserToViewer(depth)) {
+                Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
+                idBorder->setBorder(border);
+                idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
+                idBorder->setBorderIndex(borderIndex);
+                idBorder->setBorderPointIndex(borderPointIndex);
+                idBorder->setSurface(surface);
+                idBorder->setScreenDepth(depth);
+                float xyz[3];
+                border->getPoint(borderPointIndex)->getProjectedPosition(*surface,
+                                                                         xyz,
+                                                                         false);
+                this->setIdentifiedItemScreenXYZ(idBorder, xyz);
+                CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+            }
         }
     }
 }
@@ -1426,8 +1530,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
         if (overlay->isEnabled()) {
             CaretMappableDataFile* mapFile;
             int32_t mapIndex;
-            overlay->getSelectionData(browserTabContent,
-                                      mapFile,
+            overlay->getSelectionData(mapFile,
                                       mapIndex);
             if (mapFile != NULL) {
                 if (mapFile->isVolumeMappable()) {
@@ -1459,16 +1562,16 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                     const VolumeDrawInfo& vdi = volumeDrawInfoOut[volumeDrawInfoOut.size() - 1];
                                     if ((vdi.volumeFile == vf) 
                                         && (opacity >= 1.0)
-                                        && (mapIndex == vdi.brickIndex)
+                                        && (mapIndex == vdi.mapIndex)
                                         && (palette == vdi.palette)) {
                                         useIt = false;
                                     }
                                 }
                                 if (useIt) {
-                                    const DescriptiveStatistics* statistics = 
+                                    const FastStatistics* statistics = 
                                         (connLoadFile != NULL) 
-                                        ? connLoadFile->getMapStatistics(mapIndex)
-                                        : vf->getMapStatistics(mapIndex);
+                                        ? connLoadFile->getMapFastStatistics(mapIndex)
+                                        : vf->getMapFastStatistics(mapIndex);
                                     
                                         VolumeDrawInfo vdi(vf,
                                                            palette,
@@ -1584,6 +1687,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                                 sliceIndex, 
                                                                 volumeDrawInfo);
                                 this->drawVolumeSurfaceOutlines(brain, 
+                                                                volumeController,
                                                                 slicePlane, 
                                                                 sliceIndex, 
                                                                 underlayVolumeFile);
@@ -1623,6 +1727,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::AXIAL, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1640,6 +1745,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::CORONAL, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1657,6 +1763,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1676,6 +1783,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexAxial(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1693,6 +1801,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexCoronal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1710,6 +1819,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile),
                                                         volumeDrawInfo);
                         this->drawVolumeSurfaceOutlines(brain, 
+                                                        volumeController,
                                                         slicePlane, 
                                                         selectedSlices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                         underlayVolumeFile);
@@ -1722,7 +1832,6 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
             }
             break;
         }
-        
     }
 }
 
@@ -1751,7 +1860,6 @@ BrainOpenGLFixedPipeline::drawVolumeAxesCrosshairs(
             const float bigNumber = 10000;
             glLineWidth(1.0);
             glColor3ubv(green);
-            glDisable(GL_LINE_SMOOTH);
             glBegin(GL_LINES);
             glVertex3f(voxelXYZ[0], -bigNumber, voxelXYZ[2]);
             glVertex3f(voxelXYZ[0],  bigNumber, voxelXYZ[2]);
@@ -1927,7 +2035,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
         const VolumeFile* volumeFile = volInfo.volumeFile;
         int64_t dimI, dimJ, dimK, numMaps, numComponents;
         volumeFile->getDimensions(dimI, dimJ, dimK, numMaps, numComponents);
-        
+        const int64_t mapIndex = volInfo.mapIndex;        
         
         float originX, originY, originZ;
         float x1, y1, z1;
@@ -2075,7 +2183,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                 break;
                         }
                         
-                        const float voxel = volumeFile->getValue(i, j, k);
+                        const float voxel = volumeFile->getValue(i, j, k, mapIndex);
                         CaretAssertVectorIndex(sliceVoxelsValuesVector, voxelOffset);
                         sliceVoxelValues[voxelOffset] = voxel;
                     }
@@ -2390,12 +2498,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                             vf->enclosingVoxel(voxelCoordinates,
                                              voxelIndices);
                             if (vf->indexValid(voxelIndices)) {
-                                voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);
-                                voxelID->setVoxelIJK(voxelIndices);
-                                voxelID->setScreenDepth(depth);
-                                this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
-                                CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
-                                break;
+                                if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                                    voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
+                                    voxelID->setVoxelIJK(voxelIndices);
+                                    voxelID->setScreenDepth(depth);
+                                    this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                                    CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
+                                    break;
+                                }
                             }
                         }
                     }
@@ -2603,14 +2713,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                 for (int32_t iVol = 0; iVol < numberOfVolumesToDraw; iVol++) {
                     VolumeDrawInfo& volInfo = volumeDrawInfo[iVol];
                     VolumeFile* vf = volInfo.volumeFile;
-                    const int64_t brickIndex = volInfo.brickIndex;
+                    const int64_t mapIndex = volInfo.mapIndex;
                     bool valid = false;
                     float voxel = 0;
                     {
                         int64_t iVoxel, jVoxel, kVoxel;
                         vf->enclosingVoxel(x, y, z, iVoxel, jVoxel, kVoxel);
-                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, brickIndex)) {
-                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, brickIndex);
+                        if (vf->indexValid(iVoxel, jVoxel, kVoxel, mapIndex)) {
+                            voxel = vf->getValue(iVoxel, jVoxel, kVoxel, mapIndex);
                             valid = true;
                         }
                     }
@@ -2899,12 +3009,14 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                     vf->enclosingVoxel(voxelCoordinates,
                                      voxelIndices);
                     if (vf->indexValid(voxelIndices)) {
-                        voxelID->setVolumeFile(volumeDrawInfo[0].volumeFile);
-                        voxelID->setVoxelIJK(voxelIndices);
-                        voxelID->setScreenDepth(depth);
-                        this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
-                        CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
-                        break;
+                        if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                            voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
+                            voxelID->setVoxelIJK(voxelIndices);
+                            voxelID->setScreenDepth(depth);
+                            this->setIdentifiedItemScreenXYZ(voxelID, voxelCoordinates);
+                            CaretLogFine("Selected Voxel: " + AString::fromNumbers(voxelIndices, 3, ","));  
+                            break;
+                        }
                     }
                 }
             }
@@ -2918,9 +3030,21 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
 
 /**
  * Draw surface outlines on volume slices.
+ *
+ * @param brain
+ *    The brain.
+ * @param modelDisplayController
+ *    Model display controller in which surface outlines are drawn.
+ * @param slicePlane
+ *    Plane on which surface outlines are drawn.
+ * @param sliceIndex
+ *    Index of slice.
+ * @param underlayVolume
+ *    Bottom-most displayed volume.
  */
 void 
 BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
+                                                    ModelDisplayController* modelDisplayController,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     VolumeFile* underlayVolume)
@@ -2928,7 +3052,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     CaretAssert(brain);
     CaretAssert(underlayVolume);
     
-    const DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
+    DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
     
     std::vector<int64_t> dim;
     underlayVolume->getDimensions(dim);
@@ -2975,27 +3099,35 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     float intersectionPoint1[3];
     float intersectionPoint2[3];
     
+    this->enableLineAntiAliasing();
+    
     /*
      * Process each surface outline
      */
     for (int io = 0; 
          io < DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; 
          io++) {
-        const VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
+        VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
         if (outline->isDisplayed()) {
-            const Surface* surface = outline->getSurface();
+            Surface* surface = outline->getSurface();
             if (surface != NULL) {
                 const float thickness = outline->getThickness();
+                const float lineWidth = this->modelSizeToPixelSize(thickness);
                 
                 int numTriangles = surface->getNumberOfTriangles();
                 
                 const CaretColorEnum::Enum outlineColor = outline->getColor();
                 const bool surfaceColorFlag = (outlineColor == CaretColorEnum::SURFACE);
-                const float* rgbaColoring = this->browserTabContent->getSurfaceColoring(surface);
+
+                float* nodeColoringRGBA = NULL;
+                if (surfaceColorFlag) {
+                    nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(modelDisplayController, 
+                                                                                    surface, 
+                                                                                    this->windowTabIndex);
+                }
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));
-                glLineWidth(thickness);
-                glEnable(GL_LINE_SMOOTH);
+                glLineWidth(lineWidth);
                 
                 /*
                  * Examine each triangle to see if it intersects the Plane
@@ -3017,8 +3149,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                              * but only if Alpha is valid (greater than zero).
                              */
                             const int64_t colorIndex = triangleNodes[0] * 4;
-                            if (rgbaColoring[colorIndex + 3] > 0.0) {
-                                glColor3fv(&rgbaColoring[triangleNodes[0] * 4]);
+                            if (nodeColoringRGBA[colorIndex + 3] > 0.0) {
+                                glColor3fv(&nodeColoringRGBA[triangleNodes[0] * 4]);
                             }
                             else {
                                 continue;
@@ -3030,7 +3162,6 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                          */
                         switch(slicePlane) {
                             case VolumeSliceViewPlaneEnum::ALL:
-                                return;
                                 break;
                             case VolumeSliceViewPlaneEnum::PARASAGITTAL:
                                 glVertex3f(p1[0], intersectionPoint1[1], intersectionPoint1[2]);
@@ -3051,6 +3182,8 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
             }
         }
     }
+    
+    this->disableLineAntiAliasing();
 }
 
 /**
@@ -3118,10 +3251,15 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                     break;
             }
             
+            const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(wholeBrainController, 
+                                                                                         surface, 
+                                                                                         this->windowTabIndex);
+            
             if (drawIt) {
                 glPushMatrix();
                 glTranslatef(dx, dy, dz);
-                this->drawSurface(surface);
+                this->drawSurface(surface,
+                                  nodeColoringRGBA);
                 glPopMatrix();
             }
         }
@@ -3149,6 +3287,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::AXIAL, 
                                                 slices->getSliceIndexAxial(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
@@ -3158,6 +3297,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::CORONAL, 
                                                 slices->getSliceIndexCoronal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
@@ -3167,6 +3307,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo);
                 this->drawVolumeSurfaceOutlines(brain, 
+                                                wholeBrainController,
                                                 VolumeSliceViewPlaneEnum::PARASAGITTAL, 
                                                 slices->getSliceIndexParasagittal(underlayVolumeFile), 
                                                 volumeDrawInfo[0].volumeFile);
@@ -3568,7 +3709,7 @@ BrainOpenGLFixedPipeline::drawAllPalettes(Brain* brain)
         const AString paletteName = pcm->getSelectedPaletteName();
         const Palette* palette = paletteFile->getPaletteByName(paletteName);
         if (palette != NULL) {
-            const DescriptiveStatistics* statistics = mapFiles[i]->getMapStatistics(mapIndex);
+            const FastStatistics* statistics = mapFiles[i]->getMapFastStatistics(mapIndex);
             this->drawPalette(palette, 
                               pcm, 
                               statistics, 
@@ -3856,7 +3997,6 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     if (isZeroDisplayed == false) {
         glLineWidth(1.0);
         glColor3ubv(backgroundRGB);
-        glDisable(GL_LINE_SMOOTH);
         glBegin(GL_LINES);
         glVertex2f(0.0, -halfHeight);
         glVertex2f(0.0, 0.0);
@@ -3952,6 +4092,420 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
     return;
 }
 
+/**
+ * Draw a palette.
+ * @param palette
+ *    Palette that is drawn.
+ * @param paletteColorMapping
+ *    Controls mapping of data to colors.
+ * @param statistics
+ *    Statistics describing the data that is mapped to the palette.
+ * @param paletteDrawingIndex
+ *    Counts number of palettes being drawn for the Y-position
+ */
+void 
+BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
+                                      const PaletteColorMapping* paletteColorMapping,
+                                      const FastStatistics* statistics,
+                                      const int paletteDrawingIndex)
+{
+    /*
+     * Save viewport.
+     */
+    GLint modelViewport[4];
+    glGetIntegerv(GL_VIEWPORT, modelViewport);
+    
+    /*
+     * Create a viewport for drawing the palettes in the 
+     * lower left corner of the window.
+     */
+    const GLint colorbarViewportWidth = 120;
+    const GLint colorbarViewportHeight = 35;    
+    const GLint colorbarViewportX = modelViewport[0] + 10;
+    
+    GLint colorbarViewportY = (modelViewport[1] + 10 + (paletteDrawingIndex * colorbarViewportHeight));
+    if (paletteDrawingIndex > 0) {
+//        colorbarViewportY += 5;
+    }
+    
+    glViewport(colorbarViewportX, 
+               colorbarViewportY, 
+               colorbarViewportWidth, 
+               colorbarViewportHeight);
+    
+    /*
+     * Create an orthographic projection
+     */
+    //const GLdouble halfWidth = static_cast<GLdouble>(colorbarViewportWidth / 2);
+    const GLdouble halfHeight = static_cast<GLdouble>(colorbarViewportHeight / 2);
+    const GLdouble margin = 1.1;
+    const GLdouble orthoWidth = margin;
+    const GLdouble orthoHeight = halfHeight * margin;
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-orthoWidth,  orthoWidth, 
+            -orthoHeight, orthoHeight, 
+            -1.0, 1.0);
+    
+    glMatrixMode (GL_MODELVIEW);
+    glLoadIdentity();
+
+    /*
+     * Use the background color to fill in a rectangle
+     * for display of palette, hiding anything currently drawn.
+     */
+    uint8_t backgroundRGB[3];
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getColorBackground(backgroundRGB);
+    glColor3ubv(backgroundRGB);
+    glRectf(-orthoWidth, -orthoHeight, orthoWidth, orthoHeight);
+    
+    /*
+     * Always interpolate if the palette has only two colors
+     */
+    bool interpolateColor = paletteColorMapping->isInterpolatePaletteFlag();
+    if (palette->getNumberOfScalarsAndColors() <= 2) {
+        interpolateColor = true;
+    }
+    
+    /*
+     * Types of values for display
+     */
+    const bool isPositiveDisplayed = paletteColorMapping->isDisplayPositiveDataFlag();
+    const bool isNegativeDisplayed = paletteColorMapping->isDisplayNegativeDataFlag();
+    const bool isZeroDisplayed     = paletteColorMapping->isDisplayZeroDataFlag();
+    
+    /*
+     * Draw the colorbar starting with the color assigned
+     * to the negative end of the palette.
+     * Colorbar scalars range from -1 to 1.
+     */
+    const int iStart = palette->getNumberOfScalarsAndColors() - 1;
+    const int iEnd = 1;
+    const int iStep = -1;
+    for (int i = iStart; i >= iEnd; i += iStep) {
+        /*
+         * palette data for 'left' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* sc = palette->getScalarAndColor(i);
+        float scalar = sc->getScalar();
+        float rgba[4];
+        sc->getColor(rgba);
+        
+        /*
+         * palette data for 'right' side of a color in the palette.
+         */
+        const PaletteScalarAndColor* nextSC = palette->getScalarAndColor(i - 1);
+        float nextScalar = nextSC->getScalar();
+        float nextRGBA[4];
+        nextSC->getColor(nextRGBA);
+        const bool isNoneColorFlag = nextSC->isNoneColor();
+        
+        /*
+         * Exclude negative regions if not displayed.
+         *
+        if (isNegativeDisplayed == false) {
+            if (nextScalar < 0.0) {
+                continue;
+            }
+            else if (scalar < 0.0) {
+                scalar = 0.0;
+            }
+        }
+        */
+        
+        /*
+         * Exclude positive regions if not displayed.
+         *
+        if (isPositiveDisplayed == false) {
+            if (scalar > 0.0) {
+                continue;
+            }
+            else if (nextScalar > 0.0) {
+                nextScalar = 0.0;
+            }
+        }
+        */
+        
+        /*
+         * Normally, the first entry has a scalar value of -1.
+         * If it does not, use the first color draw from 
+         * -1 to the first scalar value.
+         */
+        if (i == iStart) {
+            if (sc->isNoneColor() == false) {
+                if (scalar > -1.0) {
+                    const float xStart = -1.0;
+                    const float xEnd   = scalar;
+                    glColor3fv(rgba);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+        
+        /*
+         * If the 'next' color is none, drawing
+         * is skipped to let the background show
+         * throw the 'none' region of the palette.
+         */ 
+        if (isNoneColorFlag == false) {
+            /*
+             * left and right region of an entry in the palette
+             */
+            const float xStart = scalar;
+            const float xEnd   = nextScalar;
+            
+            /*
+             * Unless interpolating, use the 'next' color.
+             */
+            float* startRGBA = nextRGBA;
+            float* endRGBA   = nextRGBA;
+            if (interpolateColor) {
+                startRGBA = rgba;
+            }
+            
+            /*
+             * Draw the region in the palette.
+             */
+            glBegin(GL_POLYGON);
+            glColor3fv(startRGBA);
+            glVertex3f(xStart, 0.0, 0.0);
+            glVertex3f(xStart, -halfHeight, 0.0);
+            glColor3fv(endRGBA);
+            glVertex3f(xEnd, -halfHeight, 0.0);
+            glVertex3f(xEnd, 0.0, 0.0);
+            glEnd();
+            
+            /*
+             * The last scalar value is normally 1.0.  If the last
+             * scalar is less than 1.0, then fill in the rest of 
+             * the palette from the last scalar to 1.0.
+             */
+            if (i == iEnd) {
+                if (nextScalar < 1.0) {
+                    const float xStart = nextScalar;
+                    const float xEnd   = 1.0;
+                    glColor3fv(nextRGBA);
+                    glBegin(GL_POLYGON);
+                    glVertex3f(xStart, 0.0, 0.0);
+                    glVertex3f(xStart, -halfHeight, 0.0);
+                    glVertex3f(xEnd, -halfHeight, 0.0);
+                    glVertex3f(xEnd, 0.0, 0.0);
+                    glEnd();
+                }
+            }
+        }
+    }
+    
+    /*
+     * If positive not displayed, draw over it with background color
+     */
+    if (isPositiveDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(0.0, -orthoHeight, orthoWidth, orthoHeight);
+    }
+    
+    /*
+     * If negative not displayed, draw over it with background color
+     */
+    if (isNegativeDisplayed == false) {
+        glColor3ubv(backgroundRGB);
+        glRectf(-orthoWidth, -orthoHeight, 0.0, orthoHeight);
+    }
+    
+    /*
+     * Draw over thresholded regions with background color
+     */
+    const PaletteThresholdTypeEnum::Enum thresholdType = paletteColorMapping->getThresholdType();
+    if (thresholdType != PaletteThresholdTypeEnum::THRESHOLD_TYPE_OFF) {
+        const float minMaxThresholds[2] = {
+            paletteColorMapping->getThresholdMinimum(thresholdType),
+            paletteColorMapping->getThresholdMaximum(thresholdType)
+        };
+        float normalizedThresholds[2];
+        
+        paletteColorMapping->mapDataToPaletteNormalizedValues(statistics,
+                                                              minMaxThresholds,
+                                                              normalizedThresholds,
+                                                              2);
+        
+        switch (paletteColorMapping->getThresholdTest()) {
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_INSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(-orthoWidth, -orthoHeight, normalizedThresholds[0], orthoHeight);
+                glRectf(normalizedThresholds[1], -orthoHeight, orthoWidth, orthoHeight);
+                break;
+            case PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE:
+                glColor3ubv(backgroundRGB);
+                glRectf(normalizedThresholds[0], -orthoHeight, normalizedThresholds[1], orthoHeight);
+                break;
+        }
+    }
+    
+    /*
+     * If zeros are not displayed, draw a line in the 
+     * background color at zero in the palette.
+     */
+    if (isZeroDisplayed == false) {
+        glLineWidth(1.0);
+        glColor3ubv(backgroundRGB);
+        glBegin(GL_LINES);
+        glVertex2f(0.0, -halfHeight);
+        glVertex2f(0.0, 0.0);
+        glEnd();
+    }
+    
+    float minMax[4] = { -1.0, 0.0, 0.0, 1.0 };
+    switch (paletteColorMapping->getScaleMode()) {
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE:
+        {
+            float dummy;
+            statistics->getNonzeroRanges(minMax[0], dummy, dummy, minMax[3]);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
+        {
+            const float negMaxPct = paletteColorMapping->getAutoScalePercentageNegativeMaximum();
+            const float negMinPct = paletteColorMapping->getAutoScalePercentageNegativeMinimum();
+            const float posMinPct = paletteColorMapping->getAutoScalePercentagePositiveMinimum();
+            const float posMaxPct = paletteColorMapping->getAutoScalePercentagePositiveMaximum();
+            
+            minMax[0] = statistics->getApproxNegativePercentile(negMaxPct);
+            minMax[1] = statistics->getApproxNegativePercentile(negMinPct);
+            minMax[2] = statistics->getApproxPositivePercentile(posMinPct);
+            minMax[3] = statistics->getApproxPositivePercentile(posMaxPct);
+        }
+            break;
+        case PaletteScaleModeEnum::MODE_USER_SCALE:
+            minMax[0] = paletteColorMapping->getUserScaleNegativeMaximum();
+            minMax[1] = paletteColorMapping->getUserScaleNegativeMinimum();
+            minMax[2] = paletteColorMapping->getUserScalePositiveMinimum();
+            minMax[3] = paletteColorMapping->getUserScalePositiveMaximum();
+            break;
+    }
+    
+    AString textLeft = AString::number(minMax[0], 'f', 1);
+    AString textCenterNeg = AString::number(minMax[1], 'f', 1);
+    AString textCenterPos = AString::number(minMax[2], 'f', 1);
+    AString textCenter = textCenterPos;
+    if (textCenterNeg != textCenterPos) {
+        if (textCenterNeg != AString("-" + textCenterPos)) {
+            textCenter = textCenterNeg + "/" + textCenterPos;
+        }
+    }
+    AString textRight = AString::number(minMax[3], 'f', 1);
+    
+    /*
+     * Reset to the models viewport for drawing text.
+     */
+    glViewport(modelViewport[0], 
+               modelViewport[1], 
+               modelViewport[2], 
+               modelViewport[3]);
+    
+    /*
+     * Switch to the foreground color.
+     */
+    uint8_t foregroundRGB[3];
+    prefs->getColorForeground(foregroundRGB);
+    glColor3ubv(foregroundRGB);
+    
+    /*
+     * Account for margin around colorbar when calculating text locations
+     */
+    const int textCenterX = /*colorbarViewportX +*/ (colorbarViewportWidth / 2);
+    const int textHalfX   = colorbarViewportWidth / (margin * 2);
+    const int textLeftX   = textCenterX - textHalfX;
+    const int textRightX  = textCenterX + textHalfX;
+    
+    const int textY = 2 + colorbarViewportY  - modelViewport[1] + (colorbarViewportHeight / 2);
+    if (isNegativeDisplayed) {
+        this->drawTextWindowCoords(textLeftX, 
+                                   textY, 
+                                   textLeft,
+                                   BrainOpenGLTextRenderInterface::X_LEFT,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    if (isNegativeDisplayed
+        || isZeroDisplayed
+        || isPositiveDisplayed) {
+        this->drawTextWindowCoords(textCenterX, 
+                                   textY, 
+                                   textCenter,
+                                   BrainOpenGLTextRenderInterface::X_CENTER,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    if (isPositiveDisplayed) {
+        this->drawTextWindowCoords(textRightX, 
+                                   textY, 
+                                   textRight,
+                                   BrainOpenGLTextRenderInterface::X_RIGHT,
+                                   BrainOpenGLTextRenderInterface::Y_BOTTOM);
+    }
+    
+    return;
+}
+
+/**
+ * Since OpenGL draws lines/points in pixels, map window coordinates to
+ * model coordinates to estimate the line width or points size in pixels
+ * for a line width or point size that is in model coordinates.
+ * @param modelSize
+ *    Size in model coordinates.
+ * @return
+ *    Size converted to pixels.
+ */
+float 
+BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
+{
+    float pixelSize = modelSize;
+    
+    GLdouble modelview[16];
+    GLdouble projection[16];
+    glGetDoublev(GL_MODELVIEW_MATRIX, modelview);
+    glGetDoublev(GL_PROJECTION_MATRIX, projection);
+    
+    GLint viewport[4];
+    glGetIntegerv(GL_VIEWPORT, 
+                  viewport);
+    
+    GLdouble windowA[3] = { viewport[0], viewport[1], 0.0 };
+    GLdouble windowB[3] = { viewport[0] + viewport[2] - 1, viewport[1] + viewport[3] - 1, 0.0 };
+    GLdouble modelA[3], modelB[3];
+    if (gluUnProject(windowA[0], 
+                     windowA[1], 
+                     windowA[2], 
+                     modelview, 
+                     projection, 
+                     viewport, 
+                     &modelA[0], 
+                     &modelA[1], 
+                     &modelA[2]) == GL_TRUE) {
+        if (gluUnProject(windowB[0], 
+                         windowB[1], 
+                         windowB[2], 
+                         modelview, 
+                         projection, 
+                         viewport, 
+                         &modelB[0], 
+                         &modelB[1], 
+                         &modelB[2]) == GL_TRUE) {
+            const double modelDist = MathFunctions::distance3D(modelA, modelB);
+            const double windowDist = MathFunctions::distance3D(windowA, windowB);
+            
+            const float scaling = windowDist / modelDist;
+            
+            pixelSize *= scaling;
+        }
+    }
+    return pixelSize;
+}
+
 //============================================================================
 /**
  * Constructor.
@@ -3959,13 +4513,13 @@ BrainOpenGLFixedPipeline::drawPalette(const Palette* palette,
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                    Palette* palette,
                                                    PaletteColorMapping* paletteColorMapping,
-                                                   const DescriptiveStatistics* statistics,
-                                                   const int32_t brickIndex,
+                                                   const FastStatistics* statistics,
+                                                   const int32_t mapIndex,
                                                    const float opacity) 
 : statistics(statistics) {
     this->volumeFile = volumeFile;
     this->palette = palette;
     this->paletteColorMapping = paletteColorMapping;
-    this->brickIndex = brickIndex;
+    this->mapIndex = mapIndex;
     this->opacity    = opacity;
 }

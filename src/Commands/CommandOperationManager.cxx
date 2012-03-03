@@ -41,6 +41,7 @@
 #include "OperationMetricMask.h"
 #include "OperationMetricPalette.h"
 #include "OperationSetStructure.h"
+#include "OperationVolumeLabelImport.h"
 #include "OperationVolumePalette.h"
 
 #include "CommandParser.h"
@@ -107,6 +108,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationVolumeLabelImport()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationVolumePalette()));
     
     this->commandOperations.push_back(new CommandNiftiInformation());

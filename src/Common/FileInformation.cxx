@@ -47,46 +47,8 @@ using namespace caret;
  *    Name of path for which information is obtained.
  */
 FileInformation::FileInformation(const AString& file)
-: CaretObject()
+: CaretObject(), m_fileInfo(file)
 {
-    QFileInfo fileInfo(file);
-    this->initialize(fileInfo);
-/*
-    this->file = file;
-    
-    this->fileSize = 0;
-    
-    this->pathExists = false;
-    this->pathIsAbsolute = false;
-    this->pathIsDirectory = false;
-    this->pathIsFile = false;
-    this->pathIsHidden = false;
-    this->pathIsReadable = false;
-    this->pathIsRelative = false;
-    this->pathIsSymbolicLink = false;
-    this->pathIsWritable = false;
-
-    this->fileName = "";
-    this->pathName = "";
-    
-    QFileInfo fileInfo(this->file);    
-    this->pathExists = fileInfo.exists();
-    if (this->pathExists) {
-        this->fileSize = fileInfo.size();
-        
-        this->pathIsAbsolute = fileInfo.isAbsolute();
-        this->pathIsDirectory = fileInfo.isDir();
-        this->pathIsFile      = fileInfo.isFile();
-        this->pathIsHidden    = fileInfo.isHidden();
-        this->pathIsReadable = fileInfo.isReadable();
-        this->pathIsRelative = fileInfo.isRelative();
-        this->pathIsSymbolicLink = fileInfo.isSymLink();
-        this->pathIsWritable = fileInfo.isWritable();
-        
-        this->fileName = fileInfo.fileName();
-        this->pathName = fileInfo.path();
-    }
- */
 }
 
 /**
@@ -97,12 +59,8 @@ FileInformation::FileInformation(const AString& file)
  *    Name of path for which information is obtained.
  */
 FileInformation::FileInformation(const AString& path,
-                                 const AString& file)
+                                 const AString& file) : CaretObject(), m_fileInfo(path, file)
 {
-    QDir dir(path);
-    QFileInfo fileInfo(dir, file);
-    
-    this->initialize(fileInfo);
 }
 
 /**
@@ -113,48 +71,15 @@ FileInformation::~FileInformation()
     
 }
 
-void 
-FileInformation::initialize(const QFileInfo& fileInfo)
+//some logic that seems to be missing from QFileInfo: if absolute, return path() + file() rather than using system call
+AString FileInformation::getFilePath() const
 {
-    //this->file = file;
-    
-    this->fileSize = 0;
-    
-    this->pathExists = false;
-    this->pathIsAbsolute = false;
-    this->pathIsDirectory = false;
-    this->pathIsFile = false;
-    this->pathIsHidden = false;
-    this->pathIsReadable = false;
-    this->pathIsRelative = false;
-    this->pathIsSymbolicLink = false;
-    this->pathIsWritable = false;
-    
-    this->fileName = "";
-    this->pathName = "";
-    this->filePath = "";
-    this->fileExtension = "";
-    
-    this->pathExists = fileInfo.exists();
-    if (this->pathExists) {
-        this->fileSize = fileInfo.size();
+    if (m_fileInfo.isAbsolute())
+    {
+        return m_fileInfo.filePath();
+    } else {
+        return m_fileInfo.absoluteFilePath();
     }
-
-    this->pathIsAbsolute = fileInfo.isAbsolute();
-    this->pathIsDirectory = fileInfo.isDir();
-    this->pathIsFile      = fileInfo.isFile();
-    this->pathIsHidden    = fileInfo.isHidden();
-    this->pathIsReadable = fileInfo.isReadable();
-    this->pathIsRelative = fileInfo.isRelative();
-    this->pathIsSymbolicLink = fileInfo.isSymLink();
-    this->pathIsWritable = fileInfo.isWritable();
-    
-    this->fileName = fileInfo.fileName();
-    this->pathName = fileInfo.path();
-    
-    this->filePath = fileInfo.absoluteFilePath();
-    
-    this->fileExtension = fileInfo.suffix();
 }
 
 /**
@@ -165,8 +90,8 @@ FileInformation::initialize(const QFileInfo& fileInfo)
 bool 
 FileInformation::remove()
 {   bool result = false;
-    if (this->pathExists) {
-        result = QFile::remove(this->filePath);
+    if (m_fileInfo.exists()) {
+        result = QFile::remove(m_fileInfo.absoluteFilePath());
     }
     return result;
 }
@@ -179,6 +104,6 @@ FileInformation::remove()
 AString 
 FileInformation::toString() const
 {
-    return ("FileInformation for " + this->filePath);
+    return ("FileInformation for " + m_fileInfo.absoluteFilePath());
 }
 

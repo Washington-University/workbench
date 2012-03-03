@@ -73,7 +73,8 @@ namespace caret {
         
         void addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException);
         
-        void addSurface(Surface* surface) throw (DataFileException);
+        void addSurface(Surface* surface,
+                        const bool initilizeOverlaysFlag) throw (DataFileException);
         
         void deleteSurface(Surface* surface);
         
@@ -133,6 +134,9 @@ namespace caret {
         void getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut);
         
         bool removeDataFile(CaretDataFile* caretDataFile);
+        
+        bool getMetricShapeMap(MetricFile* &metricFileOut,
+                               int32_t& shapeMapIndexOut) const;
         
     private:
         const Surface* getVolumeInteractionSurfacePrivate() const;

@@ -207,6 +207,8 @@ namespace caret {
         void tabClosed(int index);
         
     private:
+        void removeTab(int index);
+        
         QRadioButton* viewModeSurfaceRadioButton;
         QRadioButton* viewModeVolumeRadioButton;
         QRadioButton* viewModeWholeBrainRadioButton;
@@ -372,6 +374,8 @@ namespace caret {
         
         bool isContructorFinished;
         bool isDestructionInProgress;
+        
+        int32_t indexOfNewestAddedOrInsertedTab;
     };
 }
 

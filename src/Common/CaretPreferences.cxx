@@ -613,11 +613,26 @@ CaretPreferences::readPreferences()
     this->displayVolumeAxesLabels = this->getBoolean(CaretPreferences::NAME_AXES_LABELS,
                                                      true);
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
-                                                         true);
-    
+                                                         true);    
+
+    this->animationStartTime = this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
+
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);
 }
+
+void CaretPreferences::getAnimationStartTime(double& time)
+{  
+   time = animationStartTime;
+   
+}
+
+void CaretPreferences::setAnimationStartTime(const double& time)
+{
+   animationStartTime = time;
+   this->qSettings->setValue(CaretPreferences::NAME_ANIMATION_START_TIME, time);
+}
+
 
 /**
  * Get a description of this object's content.

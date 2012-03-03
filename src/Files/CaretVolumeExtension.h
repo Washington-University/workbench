@@ -29,6 +29,7 @@
 #include "PaletteColorMapping.h"
 #include "CaretPointer.h"
 #include <vector>
+#include "XmlWriter.h"
 #include "XmlSaxParserHandlerInterface.h"
 #include "PaletteColorMappingSaxReader.h"
 #include "GiftiLabelTableSaxReader.h"
@@ -67,15 +68,31 @@ namespace caret
     {
         AString m_comment;
         AString m_date;//TODO: make a class to handle ISO-8601 dates
-        vector<SubvolumeAttributes> m_attributes;
+        std::vector<CaretPointer<SubvolumeAttributes> > m_attributes;
         void writeAsXML(XmlWriter& xmlWriter);
         void readFromXmlString(const AString& s);
     };
     
-    class CaretVolumeExtensionXMLReader : XmlSaxParserHandlerInterface
+    class CaretVolumeExtensionXMLReader : public XmlSaxParserHandlerInterface
     {
+        enum State
+        {
+            INVALID,
+            CARET_EXTENSION,
+            ROOT_COMMENT,
+            DATE,
+            VOLUME_INFORMATION,
+            VI_COMMENT,
+            GUI_LABEL,
+            LABEL_TABLE,
+            STUDY_META_DATA_LINK_SET,
+            PALETTE_COLOR_MAPPING,
+            VOLUME_TYPE
+        };
+        std::vector<State> m_stateStack;
         CaretVolumeExtension* m_toFill;
-        AString m_charAcum;
+        std::vector<AString> m_charDataStack;
+        int m_viIndex;
         CaretPointer<PaletteColorMappingSaxReader> m_paletteReader;
         CaretPointer<GiftiLabelTableSaxReader> m_labelReader;
         CaretVolumeExtensionXMLReader();//disallow default construction
@@ -101,4 +118,5 @@ namespace caret
     };
 
 }
+
 #endif //__CARET_VOLUME_EXTENSION__

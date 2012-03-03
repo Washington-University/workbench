@@ -31,6 +31,7 @@
 #include "CaretMappableDataFile.h"
 #include "StructureEnum.h"
 #include "TimeLine.h"
+#include "CaretPointer.h"
 
 namespace caret {
 
@@ -100,6 +101,24 @@ namespace caret {
         virtual int32_t getMapIndexFromUniqueID(const AString& uniqueID) const;
         
         virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex);
+        
+        virtual const FastStatistics* getMapFastStatistics(const int32_t mapIndex);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex);
+        
+        virtual const DescriptiveStatistics* getMapStatistics(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues);
+        
+        virtual const Histogram* getMapHistogram(const int32_t mapIndex,
+                                                              const float mostPositiveValueInclusive,
+                                                              const float leastPositiveValueInclusive,
+                                                              const float leastNegativeValueInclusive,
+                                                              const float mostNegativeValueInclusive,
+                                                              const bool includeZeroValues);
         
         virtual bool isMappedWithPalette() const;
         
@@ -208,6 +227,10 @@ namespace caret {
         CiftiInterface* ciftiInterface;
         
         DescriptiveStatistics* descriptiveStatistics;
+        
+        CaretPointer<FastStatistics> m_fastStatistics;
+        
+        CaretPointer<Histogram> m_histogram;
         
         PaletteColorMapping* paletteColorMapping;
         

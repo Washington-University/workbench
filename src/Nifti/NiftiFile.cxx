@@ -55,7 +55,6 @@ NiftiFile::NiftiFile(const AString &fileName) throw (NiftiException)
 
 void NiftiFile::init()
 {
-    extension_bytes = NULL;
     newFile = false;
 }
 
@@ -81,7 +80,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
 {
     this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
-	m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_fileName = fpath.toNativeSeparators(this->m_fileName);
 
 
     if(!QFile::exists(m_fileName))//opening file for writing
@@ -93,7 +92,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     gzFile zFile;
     if(isCompressed())
     {
-		zFile = gzopen(m_fileName.toAscii().data(), "rb");
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
     }
     else
     {
@@ -107,26 +106,82 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     else
         headerIO.readFile(file);
 
-    //read Extension Bytes, eventually a class will handle this
+    //read extensions, maybe a class should handle this
     int64_t vOffset = headerIO.getVolumeOffset();
     int64_t eOffset = headerIO.getExtensionsOffset();
-    int64_t eLength = vOffset-eOffset;
-    if(extension_bytes) delete [] extension_bytes;
-    extension_bytes = new int8_t[eLength];
-    if(this->isCompressed())
+    if (vOffset > eOffset + 4)//handle incorrect nifti that starts voxel data at the end of the header without the 4 byte extender, I have seen it happen
     {
-        gzseek(zFile,eOffset,0);
-        gzread(zFile,extension_bytes,eLength);
-    }
-    else
-    {
-        file.seek(eOffset);
-        file.read((char *)extension_bytes, eLength);
-    }
-
-    if(headerIO.getSwapNeeded())
-    {
-        swapExtensionsBytes(extension_bytes, eLength);
+        char extender[4];
+        if (isCompressed())
+        {
+            if (gzread(zFile, extender, 4) != 4)
+            {
+                throw NiftiException("failed to read bytes from file");
+            }
+        } else {
+            if (file.read(extender, 4) != 4)
+            {
+                throw NiftiException("failed to read bytes from file");
+            }
+        }
+        if (extender[0] != 0)
+        {
+            int64_t curOffset = eOffset + 4;
+            while (curOffset + 8 <= vOffset)//ensure reading the elength, ecode doesn't go into the voxel data
+            {
+                int32_t esize, ecode;
+                if (isCompressed())
+                {
+                    if (gzread(zFile, (void*)&esize, sizeof(int32_t)) != (int)sizeof(int32_t))
+                    {//maybe we should wrap gz functions into a class that throws exceptions instead of this C-style error checking
+                        throw NiftiException("failed to read bytes from file");
+                    }
+                    if (gzread(zFile, (void*)&ecode, sizeof(int32_t)) != (int)sizeof(int32_t))
+                    {
+                        throw NiftiException("failed to read bytes from file");
+                    }
+                } else {
+                    if (file.read((char*)&esize, sizeof(int32_t)) != (qint64)sizeof(int32_t))
+                    {//QT didn't make file IO throw on errors? the shame...
+                        throw NiftiException("failed to read bytes from file");
+                    }
+                    if (file.read((char*)&ecode, sizeof(int32_t)) != (qint64)sizeof(int32_t))
+                    {
+                        throw NiftiException("failed to read bytes from file");
+                    }
+                }
+                if (headerIO.getSwapNeeded())
+                {
+                    ByteSwapping::swapBytes(&esize, 1);
+                    ByteSwapping::swapBytes(&ecode, 1);
+                }
+                if (esize < 8 || curOffset + esize > vOffset)//esize is signed according to spec, and should take into account the 8 bytes of esize, ecode
+                {
+                    break;//so, stop immediately if esize doesn't make sense, but allow an extension with no data bytes
+                }
+                CaretPointer<NiftiAbstractVolumeExtension> tempExt(new NiftiAbstractVolumeExtension());
+                tempExt->m_niftiVersion = getNiftiVersion();
+                tempExt->m_ecode = ecode;
+                if (esize > 8)//don't try to read 0 bytes (CaretArray is smart enough to initialize to NULL with nonpositive size, though)
+                {
+                    tempExt->m_bytes = CaretArray<char>(esize - 8);
+                    if (isCompressed())
+                    {
+                        if (gzread(zFile, tempExt->m_bytes, esize - 8) != esize - 8)
+                        {
+                            throw NiftiException("failed to read bytes from file");
+                        }
+                    } else {
+                        if (file.read(tempExt->m_bytes, esize - 8) != esize - 8)
+                        {
+                            throw NiftiException("failed to read bytes from file");
+                        }
+                    }
+                }
+                m_extensions.push_back(tempExt);//NOTE: according to nifti spec, DO NOT swap extension byte data, because we don't know the encoding
+                curOffset += esize;//move to the next extension
+            }
+        }
     }
 
     //set up Matrix    
@@ -149,18 +204,6 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         matrix.readFile(file);
 }
 
-void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLength)
-{
-    if(!bytes[0]) return;
-    int64_t currentIndex = 4;//skip over the extension char array
-    while(currentIndex < extensionLength)
-    {
-        //byte swap esize
-        ByteSwapping::swapBytes((int32_t *)&bytes[currentIndex],2);
-        currentIndex+=*((int32_t *)(&bytes[currentIndex]));
-    }
-}
-
 /**
  *
  *
@@ -170,31 +213,46 @@ void NiftiFile::swapExtensionsBytes(int8_t *bytes, const int64_t &extensionLengt
  */
 void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) throw (NiftiException)
 {  
-	this->m_fileName = fileName;
+    this->m_fileName = fileName;
     QDir fpath(this->m_fileName);
-	m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_fileName = fpath.toNativeSeparators(this->m_fileName);
     
     //write extension code
 
-    int64_t vOffset = headerIO.getVolumeOffset();
     int64_t eOffset = headerIO.getExtensionsOffset();
-    int64_t eLength = vOffset-eOffset;
-    if(!extension_bytes || eLength < 4)//extension doesn't exist, just write four 0x00
+    QByteArray extensionBytes;
+    extensionBytes.resize(4);
+    extensionBytes[0] = 0;
+    extensionBytes[1] = 0;
+    extensionBytes[2] = 0;
+    extensionBytes[3] = 0;
+    int numExtensions = (int)m_extensions.size();
+    if(numExtensions != 0)
     {
-        extension_bytes = new int8_t [4];
-        memset(extension_bytes,0x00,4);
-        eLength = 4;//FIXME: wtf do we do to let the header know the length has changed
-        headerIO.setVolumeOffset(eOffset + 4);//this?
-    }
-    else
-    {
-        //check for NATIVE_BYTE_ORDER and if it needs swapping
-        if(byteOrder != NATIVE_BYTE_ORDER)
+        char padding[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        extensionBytes[0] = 1;
+        for (int i = 0; i < numExtensions; ++i)
         {
-            swapExtensionsBytes(extension_bytes, eLength);
+            int totalBytes = m_extensions[i]->m_bytes.size() + 8, extraBytes = 0;//include size for esize, ecode
+            if (totalBytes % 16 != 0)
+            {
+                extraBytes = 16 - (totalBytes % 16);
+                totalBytes += extraBytes;
+            }
+            int32_t esize = totalBytes;
+            int32_t ecode = m_extensions[i]->m_ecode;
+            if (byteOrder == SWAPPED_BYTE_ORDER)
+            {
+                ByteSwapping::swapBytes(&esize, 1);
+                ByteSwapping::swapBytes(&ecode, 1);
+            }
+            extensionBytes.append((char*)&esize, sizeof(int32_t));
+            extensionBytes.append((char*)&ecode, sizeof(int32_t));
+            extensionBytes.append(m_extensions[i]->m_bytes, m_extensions[i]->m_bytes.size());
+            extensionBytes.append(padding, extraBytes);
         }
-
     }
+    headerIO.setVolumeOffset(eOffset + extensionBytes.size());
 
     //uggh, needs an output layout
     //until then, will hack around this...
@@ -216,6 +274,27 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     bool valid = true;
     newLayout.niftiDataType = NiftiDataTypeEnum::fromIntegerCode(NIFTI_TYPE_FLOAT32,&valid);
     if(!valid) throw NiftiException("Nifti Enum bites it again.");
+    switch (headerIO.getNiftiVersion())
+    {
+        case 1:
+            {
+                Nifti1Header myheader;
+                headerIO.getHeader(myheader);
+                myheader.setNiftiDataTypeEnum(newLayout.niftiDataType);
+                headerIO.setHeader(myheader);
+            }
+            break;
+        case 2:
+            {
+                Nifti2Header myheader;
+                headerIO.getHeader(myheader);
+                myheader.setNiftiDataTypeEnum(newLayout.niftiDataType);
+                headerIO.setHeader(myheader);
+            }
+            break;
+        default:
+            throw NiftiException("error, header uninitialized in NiftiFile::writeFile");
+    }
     matrix.setMatrixLayoutOnDisk(newLayout);
     matrix.setMatrixOffset(headerIO.getVolumeOffset());
     //need better handling for different matrices, for later
@@ -226,7 +305,10 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     {
         zFile = gzopen(m_fileName.toAscii().data(), "wb");
         headerIO.writeFile(zFile,byteOrder);
-        gzwrite(zFile,extension_bytes,eLength);
+        if (gzwrite(zFile, extensionBytes.constData(), extensionBytes.size()) != extensionBytes.size())
+        {
+            throw NiftiException("failed to write bytes to file");
+        }
         matrix.writeFile(zFile);
         gzclose(zFile);
     }
@@ -235,7 +317,10 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         file.setFileName(m_fileName);
         file.open(QIODevice::WriteOnly);
         headerIO.writeFile(file, byteOrder);
-        file.write((char *)extension_bytes,eLength);
+        if (file.write(extensionBytes.constData(), extensionBytes.size()) != extensionBytes.size())
+        {
+            throw NiftiException("failed to write bytes to file");
+        }
         matrix.writeFile(file);
         file.close();
     }
@@ -248,7 +333,6 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
  */
 NiftiFile::~NiftiFile()
 {
-    if(extension_bytes) delete [] extension_bytes;
 }
 
 /**
@@ -321,19 +405,15 @@ int NiftiFile::getNiftiVersion()
 
 void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
 {
-    NiftiAbstractHeader *aHeader = new NiftiAbstractHeader();
-    CaretPointer<NiftiAbstractVolumeExtension> aVolumeExtension(new NiftiAbstractVolumeExtension);
+    CaretPointer<NiftiAbstractHeader> aHeader(new NiftiAbstractHeader());
 
-	this->m_fileName = filename;
+    this->m_fileName = filename;
     QDir fpath(this->m_fileName);
-	m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_fileName = fpath.toNativeSeparators(this->m_fileName);
     this->openFile(m_fileName);
 
     headerIO.getAbstractHeader(*aHeader);
-    this->getAbstractVolumeExtension(*aVolumeExtension);
     vol.m_header = aHeader;
-    vol.m_extensions.push_back(aVolumeExtension);
-
     //get dimensions, sform and component size
     Nifti2Header header;
     headerIO.getHeader(header);
@@ -346,6 +426,12 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     header.getComponentDimensions(components);
 
     vol.reinitialize(dim,sForm,components);
+    int numExtensions = (int)m_extensions.size();
+    for (int i = 0; i < numExtensions; ++i)
+    {
+        vol.m_extensions.push_back(m_extensions[i]);
+    }
+
     matrix.getVolume(vol);
 }
 
@@ -359,17 +445,28 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
             case AbstractHeader::NIFTI2:
                 headerIO.setAbstractHeader(*(NiftiAbstractHeader*)vol.m_header.getPointer());
                 break;
+            default:
+                break;//discard unknown header types
         };
     }
     int numExtensions = (int)vol.m_extensions.size();
-    if (numExtensions > 0)//FIXME: do all extensions
+    for (int i = 0; i < numExtensions; ++i)
     {
-        switch (vol.m_extensions[0]->getType())
+        switch (vol.m_extensions[i]->getType())
         {
-            case AbstractVolumeExtension::NIFTI1:
-            case AbstractVolumeExtension::NIFTI2:
-                this->setAbstractVolumeExtension(*(NiftiAbstractVolumeExtension*)(vol.m_extensions[0].getPointer()));
+            case AbstractVolumeExtension::NIFTI1://these are actually fully compatible as far as we know, so handle them together
+            case AbstractVolumeExtension::NIFTI2://inheritance works only one way, so we need to make a new CaretPointer to a new NiftiAbstractExtension and point its m_bytes to the same place
+                {
+                    CaretPointer<NiftiAbstractVolumeExtension> tempExt(new NiftiAbstractVolumeExtension());
+                    NiftiAbstractVolumeExtension* toCopy = (NiftiAbstractVolumeExtension*)vol.m_extensions[i].getPointer();
+                    tempExt->m_ecode = toCopy->m_ecode;
+                    tempExt->m_niftiVersion = toCopy->m_niftiVersion;
+                    tempExt->m_bytes = toCopy->m_bytes;//make a dumb shallow copy, thats okay because we don't modify it
+                    m_extensions.push_back(tempExt);
+                }//have make it a block because switch hates initializations
                 break;
+            default:
+                break;//ignore unknown extensions since we don't know the ecode for them
         }
     }
 
@@ -378,47 +475,39 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         Nifti1Header header;
         header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
         header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
-        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        std::vector<int64_t> myOrigDims;
+        myOrigDims = vol.getOriginalDimensions();
+        int components = vol.getNumberOfComponents();
         if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        myDims.resize(4);
-        header.setDimensions(myDims);
+        header.setDimensions(myOrigDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
         Nifti1Header header;
         headerIO.getHeader(header);
         header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
-        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        std::vector<int64_t> myOrigDims;
+        myOrigDims = vol.getOriginalDimensions();
+        int components = vol.getNumberOfComponents();
         if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        myDims.resize(4);
-        header.setDimensions(myDims);
+        header.setDimensions(myOrigDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
         Nifti2Header header;
         headerIO.getHeader(header);
         header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myDims;
-        vol.getDimensions(myDims);//TODO: should use the original dimensions, support not currently implemented in VolumeBase
-        int components = myDims[4];//TODO: check this - need separate getComponents method for using original dimensions
+        std::vector<int64_t> myOrigDims;
+        myOrigDims = vol.getOriginalDimensions();
+        int components = vol.getNumberOfComponents();
         if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        myDims.resize(4);
-        header.setDimensions(myDims);
+        header.setDimensions(myOrigDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     }
     matrix.setVolume(vol);
-	this->m_fileName = filename;
+    this->m_fileName = filename;
     QDir fpath(this->m_fileName);
-	m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_fileName = fpath.toNativeSeparators(this->m_fileName);
     writeFile(filename);
 }
-
-
-
-
-

@@ -146,6 +146,10 @@ EventTypeEnum::initialize()
                                     "EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL", 
                                     "Get all model display controllers"));
 
+    enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET, 
+                                     "EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET", 
+                                     "Get a specific model display controller surface"));
+    
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL", 
                                      "Get all model display YOKING GROUP controllers"));
@@ -177,6 +181,10 @@ EventTypeEnum::initialize()
     enumData.push_back(EventTypeEnum(EVENT_UPDATE_TIME_COURSE_DIALOG, 
                                      "EVENT_UPDATE_TIME_COURSE_DIALOG", 
                                      "Update the time course dialog after user has selected a node"));
+
+    enumData.push_back(EventTypeEnum(EVENT_UPDATE_ANIMATION_START_TIME, 
+                                     "EVENT_UPDATE_ANIMATION_START_TIME", 
+                                     "Update the animation start time after user has modified the preference"));
     
     enumData.push_back(EventTypeEnum(EVENT_COUNT, 
                                     "EVENT_COUNT", 

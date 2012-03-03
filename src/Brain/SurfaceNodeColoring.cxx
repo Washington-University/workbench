@@ -33,10 +33,14 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventManager.h"
+#include "EventModelDisplayControllerSurfaceGet.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerVolume.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -78,10 +82,93 @@ SurfaceNodeColoring::toString() const
 }
 
 /**
+ * Assign color components to surface nodes.
+ * If colors are currently valid, no changes are made to the surface coloring.
+ * @param modelDisplayController
+ *     Model controller that is displayed.
+ * @param surface
+ *     Surface that is displayed.
+ * @param browserTabIndex
+ *     Index of tab in which model is displayed.
+ */
+float* 
+SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayController,
+                                       Surface* surface,
+                                       const int32_t browserTabIndex)
+{
+    CaretAssert(modelDisplayController);
+    CaretAssert(surface);
+
+    ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
+    ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
+    ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
+    
+    OverlaySet* overlaySet = NULL;
+    float* rgba = NULL;
+
+    /*
+     * For a volume controller, find and use the surface controller for the 
+     * surface and in the same tab as the volume controller.  This typically 
+     * occurs when the volume surface outline is drawn over a volume slice.
+     */
+    if (volumeController != NULL) {
+        EventModelDisplayControllerSurfaceGet surfaceGet(surface);
+        EventManager::get()->sendEvent(surfaceGet.getPointer());
+        surfaceController = surfaceGet.getModelDisplayControllerSurface();
+        CaretAssert(surfaceController);
+    }
+    
+    /*
+     * Get coloring and overlays for the valid controller.
+     */
+    if (surfaceController != NULL) {
+        rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+        overlaySet = surfaceController->getOverlaySet(browserTabIndex);
+    }
+    else if (wholeBrainController != NULL) {
+        rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
+        overlaySet = wholeBrainController->getOverlaySet(browserTabIndex);
+    }
+    else if (volumeController != NULL) {
+        // nothing since surfaceController enabled above
+    }
+    else {
+        CaretAssertMessage(0, "Unknown controller type: " + modelDisplayController->getNameForGUI(false));
+    }
+    
+    CaretAssert(overlaySet);
+    
+    if (rgba != NULL) {
+        return rgba;
+    }
+    
+    const int numNodes = surface->getNumberOfNodes();
+    const int numColorComponents = numNodes * 4;
+    float *rgbaColor = new float[numColorComponents];
+    
+    this->colorSurfaceNodes(surface, 
+                            overlaySet, 
+                            rgbaColor);
+    
+    if (surfaceController != NULL) {
+        surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                         rgbaColor);
+        rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+    }
+    else if (wholeBrainController != NULL) {
+        surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                            rgbaColor);
+        rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
+    }
+
+    if(rgbaColor) delete [] rgbaColor;
+    
+    return rgba;
+}
+
+/**
  * Assign color components to surface nodes. 
  *
- * @param browserTabContent
- *    Tab in which this coloring is applied.
  * @param surface
  *    Surface that has its nodes colored.
  * @param overlaySet
@@ -90,8 +177,7 @@ SurfaceNodeColoring::toString() const
  *    RGBA color components that are set by this method.
  */
 void 
-SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
-                                       const Surface* surface,
+SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
                                        OverlaySet* overlaySet,
                                        float* rgbaNodeColors)
 {
@@ -123,8 +209,7 @@ SurfaceNodeColoring::colorSurfaceNodes(BrowserTabContent* browserTabContent,
             AString selectedMapUniqueID;
             int32_t selectedMapIndex;
             
-            overlay->getSelectionData(browserTabContent,
-                                      mapFiles,
+            overlay->getSelectionData(mapFiles,
                                       selectedMapFile,
                                       selectedMapUniqueID,
                                       selectedMapIndex);

@@ -29,13 +29,23 @@
 #include "DataFileTypeEnum.h"
 
 namespace caret {
-    class BrowserTabContent;
     class CaretMappableDataFile;
+    class ModelDisplayController;
+    class ModelDisplayControllerSurface;
+    class ModelDisplayControllerVolume;
+    class ModelDisplayControllerWholeBrain;
+    class ModelDisplayControllerYokingGroup;
     
     class Overlay : public CaretObject {
         
     public:
-        Overlay();
+        Overlay(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        
+        Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume);
+        
+        Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
+        
+        Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
         
         virtual ~Overlay();
         
@@ -57,18 +67,15 @@ namespace caret {
         
         void swapData(Overlay* overlay);
         
-        void getSelectionData(BrowserTabContent* browserTabContent,
-                              DataFileTypeEnum::Enum& mapFileTypeOut,
+        void getSelectionData(DataFileTypeEnum::Enum& mapFileTypeOut,
                               AString& selectedMapUniqueIDOut);
         
-        void getSelectionData(BrowserTabContent* browserTabContent,
-                              std::vector<CaretMappableDataFile*>& mapFilesOut,
+        void getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
                               CaretMappableDataFile* &selectedMapFileOut,
                               AString& selectedMapUniqueIDOut,
                               int32_t& selectedMapIndexOut);
         
-        void getSelectionData(BrowserTabContent* browserTabContent,
-                              CaretMappableDataFile* &selectedMapFileOut,
+        void getSelectionData(CaretMappableDataFile* &selectedMapFileOut,
                               int32_t& selectedMapIndexOut);
         
         void setSelectionData(CaretMappableDataFile* selectedMapFile,
@@ -82,6 +89,20 @@ namespace caret {
         Overlay(const Overlay&);
 
         Overlay& operator=(const Overlay&);
+
+        void initializeOverlay(ModelDisplayController* modelDisplayController);
+        
+        /** Model controller in this overlay */
+        ModelDisplayController* modelDisplayController;
+        
+        /** Surface controller using this overlay (NULL if this overlay is not assigned to a surface controller) */
+        ModelDisplayControllerSurface* surfaceController;
+        
+        /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
+        ModelDisplayControllerVolume* volumeController;
+        
+        /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
+        ModelDisplayControllerWholeBrain* wholeBrainController;
         
         /** Name of overlay (DO NOT COPY)*/
         AString name;

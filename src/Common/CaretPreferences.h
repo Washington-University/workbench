@@ -86,6 +86,10 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
+        void setAnimationStartTime(const double &time);
+        
+        void getAnimationStartTime(double &time);
+        
         //bool isContralateralIdentificationEnabled() const;
         
         //void setContralateralIdentificationEnabled(const bool enabled);
@@ -132,6 +136,8 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
+        double animationStartTime;
+        
         //bool contralateralIdentificationEnabled;
         
         static const AString NAME_AXES_CROSSHAIRS;
@@ -143,6 +149,7 @@ namespace caret {
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_USER_VIEWS;
+        static const AString NAME_ANIMATION_START_TIME;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
@@ -155,6 +162,7 @@ namespace caret {
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
+    const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

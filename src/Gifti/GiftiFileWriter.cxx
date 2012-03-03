@@ -215,7 +215,8 @@ GiftiFileWriter::writeDataArray(GiftiDataArray* gda) throw (GiftiException)
                 }
             }
             const int64_t fileOffset = this->externalFileOutputStream->tellp();
-            gda->setExternalFileInformation(this->getExternalFileNameForWriting(),
+            FileInformation myInfo(this->getExternalFileNameForWriting());//TODO: get filename only without doing a stat?
+            gda->setExternalFileInformation(myInfo.getFileName(),
                                             fileOffset);
         }
         

@@ -418,7 +418,9 @@ ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
             TimeLine tl;            
             clf->getTimeLine(tl);
             tl.clmID = i+1;
+            tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
+            
         }
     }
 
@@ -440,6 +442,7 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
             TimeLine tl;            
             clf->getTimeLine(tl);
             tl.clmID = i+1;
+            tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
         }
     }

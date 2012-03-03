@@ -52,6 +52,9 @@ ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
     this->initializeMembersModelDisplayControllerWholeBrain();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i] = new OverlaySet(this);
+    }
 }
 
 /**
@@ -399,8 +402,7 @@ ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabN
     BrowserTabContent* btc = getBrowserTabEvent.getBrowserTab();
     if (btc != NULL) {
         OverlaySet* overlaySet = btc->getOverlaySet();
-        vf = overlaySet->getUnderlayVolume(btc);
-        
+        vf = overlaySet->getUnderlayVolume();
     }
     
     return vf;

@@ -51,6 +51,8 @@ namespace caret {
         
         void setBrain(Brain* brain);
         
+        bool isOtherScreenDepthCloserToViewer(const double otherScreenDepth) const;
+        
         double getScreenDepth() const;
         
         void setScreenDepth(const double screenDepth);
