@@ -163,6 +163,8 @@ public:
     std::vector<int32_t> getLabelKeysSortedByName() const;
 
     void resetLabelCounts();
+    
+    void removeLabelsWithZeroCounts();
 
     void createLabelsForKeys(const std::set<int32_t>& newKeys);
 

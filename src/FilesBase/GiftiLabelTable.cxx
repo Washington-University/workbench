@@ -915,6 +915,60 @@ GiftiLabelTable::resetLabelCounts()
 }
 
 /**
+ * Remove labels that have the 'count' attribute
+ * set to zero.
+ */
+void 
+GiftiLabelTable::removeLabelsWithZeroCounts()
+{
+    /**
+     * First, iterate through the map to find
+     * labels that have the 'count' attribute
+     * set to zero.  Delete the label and save 
+     * the key since one cannot erase the map
+     * element without confusing the iterator
+     * and causing a crash.
+     */
+    std::vector<int32_t> unusedkeys;
+    for (LABELS_MAP_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        const GiftiLabel* gl = iter->second;
+        if (gl->getCount() <= 0) {
+            /*
+             * Get key and save it.
+             */
+            const int32_t key = iter->first;
+            unusedkeys.push_back(key);
+            
+            /*
+             * Delete the label.
+             */
+            delete gl;
+            iter->second = NULL;
+        }
+    }
+
+    /*
+     * Now, remove all of the elements in the
+     * map for the keys that were found in the
+     * previous loop.
+     */
+    bool isLabelRemoved = false;
+    for (std::vector<int32_t>::iterator iter = unusedkeys.begin();
+         iter != unusedkeys.end();
+         iter++) {
+        const int32_t key = *iter;
+        this->labelsMap.erase(key);
+        isLabelRemoved = true;
+    }
+    
+    if (isLabelRemoved) {
+        this->setModified();
+    }
+}
+
+/**
  * Create labels for the keys with generated names and colors.
  * @param newKeys - Keys that need labels.
  *
