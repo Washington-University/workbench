@@ -917,10 +917,14 @@ GiftiLabelTable::resetLabelCounts()
 /**
  * Remove labels that have the 'count' attribute
  * set to zero.
+ * Note the ??? label is not removed.
  */
 void 
 GiftiLabelTable::removeLabelsWithZeroCounts()
 {
+    
+    const int32_t unknownKey = getUnassignedLabelKey();
+    
     /**
      * First, iterate through the map to find
      * labels that have the 'count' attribute
@@ -939,13 +943,15 @@ GiftiLabelTable::removeLabelsWithZeroCounts()
              * Get key and save it.
              */
             const int32_t key = iter->first;
-            unusedkeys.push_back(key);
-            
-            /*
-             * Delete the label.
-             */
-            delete gl;
-            iter->second = NULL;
+            if (key != unknownKey) {
+                unusedkeys.push_back(key);
+                
+                /*
+                 * Delete the label.
+                 */
+                delete gl;
+                iter->second = NULL;
+            }
         }
     }
 
