@@ -35,7 +35,7 @@
 #include "BorderFileSaxReader.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "ClassAndNameHierarchySelection.h"
+#include "ClassAndNameHierarchyModel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
@@ -85,7 +85,7 @@ BorderFile::~BorderFile()
 void 
 BorderFile::initializeBorderFile()
 {
-    this->classNameHierarchy = new ClassAndNameHierarchySelection();
+    this->classNameHierarchy = new ClassAndNameHierarchyModel();
     this->metadata = new GiftiMetaData();
 }
 
@@ -131,7 +131,7 @@ BorderFile::copyHelperBorderFile(const BorderFile& obj)
     if (this->classNameHierarchy != NULL) {
         delete this->classNameHierarchy;
     }
-    this->classNameHierarchy = new ClassAndNameHierarchySelection();
+    this->classNameHierarchy = new ClassAndNameHierarchyModel();
     *this->metadata = *obj.metadata;
     
     const int32_t numBorders = obj.getNumberOfBorders();
@@ -367,7 +367,7 @@ BorderFile::removeBorder(Border* border)
 /**
  * @return The class and name hierarchy.
  */
-ClassAndNameHierarchySelection* 
+ClassAndNameHierarchyModel* 
 BorderFile::getClassAndNameHierarchy()
 {
     this->classNameHierarchy->update(this);

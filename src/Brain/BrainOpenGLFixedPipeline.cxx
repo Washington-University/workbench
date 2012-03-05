@@ -58,7 +58,7 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "CaretPreferences.h"
-#include "ClassAndNameHierarchySelection.h"
+#include "ClassAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
 #include "DisplayPropertiesVolume.h"
@@ -1419,7 +1419,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        const ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
         const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
         
         const int32_t numBorders = borderFile->getNumberOfBorders();

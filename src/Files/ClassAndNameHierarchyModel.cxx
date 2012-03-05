@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__
-#include "ClassAndNameHierarchySelection.h"
-#undef __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__
+#define __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__
+#include "ClassAndNameHierarchyModel.h"
+#undef __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__
 
 #include "Border.h"
 #include "BorderFile.h"
@@ -71,7 +71,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-ClassAndNameHierarchySelection::ClassAndNameHierarchySelection()
+ClassAndNameHierarchyModel::ClassAndNameHierarchyModel()
 : CaretObject()
 {
     this->classLabelTable = new GiftiLabelTable();
@@ -81,7 +81,7 @@ ClassAndNameHierarchySelection::ClassAndNameHierarchySelection()
 /**
  * Destructor.
  */
-ClassAndNameHierarchySelection::~ClassAndNameHierarchySelection()
+ClassAndNameHierarchyModel::~ClassAndNameHierarchyModel()
 {
     this->clearPrivate(true);
     delete this->classLabelTable;
@@ -91,7 +91,7 @@ ClassAndNameHierarchySelection::~ClassAndNameHierarchySelection()
  * Clear the class/name hierarchy.
  */
 void 
-ClassAndNameHierarchySelection::clear()
+ClassAndNameHierarchyModel::clear()
 {
     this->clearPrivate(false);
 }
@@ -102,7 +102,7 @@ ClassAndNameHierarchySelection::clear()
  *    true if in the process of descontructing this instance.
  */
 void 
-ClassAndNameHierarchySelection::clearPrivate(const bool isDestruction)
+ClassAndNameHierarchyModel::clearPrivate(const bool isDestruction)
 {
     this->classLabelTable->clear();
     
@@ -135,7 +135,7 @@ ClassAndNameHierarchySelection::clearPrivate(const bool isDestruction)
  * @return The class table.
  */
 GiftiLabelTable* 
-ClassAndNameHierarchySelection::getClassLabelTable()
+ClassAndNameHierarchyModel::getClassLabelTable()
 {
     return this->classLabelTable;
 }
@@ -144,7 +144,7 @@ ClassAndNameHierarchySelection::getClassLabelTable()
  * @return The class table.
  */
 const GiftiLabelTable* 
-ClassAndNameHierarchySelection::getClassLabelTable() const
+ClassAndNameHierarchyModel::getClassLabelTable() const
 {
     return this->classLabelTable;
 }
@@ -156,7 +156,7 @@ ClassAndNameHierarchySelection::getClassLabelTable() const
  * @return LabelTable containing names for class.
  */
 GiftiLabelTable* 
-ClassAndNameHierarchySelection::getNameLabelTableForClass(const int32_t classKey)
+ClassAndNameHierarchyModel::getNameLabelTableForClass(const int32_t classKey)
 {
     std::map<int32_t, GiftiLabelTable*>::iterator iter = this->classKeyToChildNamesMap.find(classKey);
     if (iter != this->classKeyToChildNamesMap.end()) {
@@ -175,7 +175,7 @@ ClassAndNameHierarchySelection::getNameLabelTableForClass(const int32_t classKey
  * @return LabelTable containing names for class.
  */
 const GiftiLabelTable* 
-ClassAndNameHierarchySelection::getNameLabelTableForClass(const int32_t classKey) const
+ClassAndNameHierarchyModel::getNameLabelTableForClass(const int32_t classKey) const
 {
     const std::map<int32_t, GiftiLabelTable*>::const_iterator iter = this->classKeyToChildNamesMap.find(classKey);
     if (iter != this->classKeyToChildNamesMap.end()) {
@@ -193,7 +193,7 @@ ClassAndNameHierarchySelection::getNameLabelTableForClass(const int32_t classKey
  *    The selection status.
  */
 void 
-ClassAndNameHierarchySelection::setAllSelected(const bool status)
+ClassAndNameHierarchyModel::setAllSelected(const bool status)
 {
     this->classLabelTable->setSelectionStatusForAllLabels(status);
     for (std::map<int32_t, GiftiLabelTable*>::iterator iter = this->classKeyToChildNamesMap.begin();
@@ -221,7 +221,7 @@ ClassAndNameHierarchySelection::setAllSelected(const bool status)
  * thus they must not be deleted.
  */
 void 
-ClassAndNameHierarchySelection::update(BorderFile* borderFile)
+ClassAndNameHierarchyModel::update(BorderFile* borderFile)
 {
     bool needToGenerateKeys = false;
     
@@ -322,7 +322,7 @@ ClassAndNameHierarchySelection::update(BorderFile* borderFile)
  *    Border file that contains names and classes.
  */
 void 
-ClassAndNameHierarchySelection::removeUnusedNamesAndClasses(BorderFile* borderFile)
+ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(BorderFile* borderFile)
 {
     /*
      * Update with latest data.
@@ -385,7 +385,7 @@ ClassAndNameHierarchySelection::removeUnusedNamesAndClasses(BorderFile* borderFi
  * hierarchy.
  */
 AString 
-ClassAndNameHierarchySelection::toString() const
+ClassAndNameHierarchyModel::toString() const
 {
     AString text;
     text.reserve(10000);

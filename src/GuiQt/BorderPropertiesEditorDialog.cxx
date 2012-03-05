@@ -41,7 +41,7 @@
 #include "BorderFile.h"
 #include "CaretAssert.h"
 #include "CaretColorEnumSelectionControl.h"
-#include "ClassAndNameHierarchySelection.h"
+#include "ClassAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
@@ -368,7 +368,7 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     
     BorderFile* borderFile = this->getSelectedBorderFile(false);
     if (borderFile != NULL) {
-        const ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
         const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
         std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
         for (std::vector<int32_t>::iterator keyIterator = keys.begin();
@@ -482,7 +482,7 @@ void
 BorderPropertiesEditorDialog::displayClassEditor()
 {
     BorderFile* borderFile = this->getSelectedBorderFile(true);
-    ClassAndNameHierarchySelection* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+    ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
     GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
     GiftiLabelTableEditor editor(classLabelTable,
                                  "Edit Class Attributes",

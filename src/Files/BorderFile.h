@@ -31,7 +31,7 @@
 namespace caret {
 
     class Border;
-    class ClassAndNameHierarchySelection;
+    class ClassAndNameHierarchyModel;
     class GiftiLabelTable;
     class SurfaceFile;
     class SurfaceProjectedItem;
@@ -84,7 +84,7 @@ namespace caret {
         
         void removeBorder(Border* border);
         
-        ClassAndNameHierarchySelection* getClassAndNameHierarchy();
+        ClassAndNameHierarchyModel* getClassAndNameHierarchy();
         
         static float getFileVersion();
         
@@ -112,7 +112,7 @@ namespace caret {
         /** Version of this BorderFile */
         static const float borderFileVersion;
         
-        mutable ClassAndNameHierarchySelection* classNameHierarchy;
+        mutable ClassAndNameHierarchyModel* classNameHierarchy;
     };
     
 #ifdef __BORDER_FILE_DECLARE__

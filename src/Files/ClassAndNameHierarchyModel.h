@@ -1,5 +1,5 @@
-#ifndef __CLASS_AND_NAME_HIERARCHY_SELECTION__H_
-#define __CLASS_AND_NAME_HIERARCHY_SELECTION__H_
+#ifndef __CLASS_AND_NAME_HIERARCHY_MODEL_H_
+#define __CLASS_AND_NAME_HIERARCHY_MODEL_H_
 
 /*LICENSE_START*/
 /*
@@ -44,12 +44,12 @@ namespace caret {
     class BorderFile;
     class GiftiLabelTable;
     
-    class ClassAndNameHierarchySelection : public CaretObject {
+    class ClassAndNameHierarchyModel : public CaretObject {
         
     public:
-        ClassAndNameHierarchySelection();
+        ClassAndNameHierarchyModel();
         
-        virtual ~ClassAndNameHierarchySelection();
+        virtual ~ClassAndNameHierarchyModel();
         
         void clear();
         
@@ -70,9 +70,9 @@ namespace caret {
         AString toString() const;
         
     private:
-        ClassAndNameHierarchySelection(const ClassAndNameHierarchySelection&);
+        ClassAndNameHierarchyModel(const ClassAndNameHierarchyModel&);
 
-        ClassAndNameHierarchySelection& operator=(const ClassAndNameHierarchySelection&);
+        ClassAndNameHierarchyModel& operator=(const ClassAndNameHierarchyModel&);
         
         void clearPrivate(const bool isDestruction);
         
@@ -87,9 +87,9 @@ namespace caret {
         std::map<int32_t, GiftiLabelTable*> classKeyToChildNamesMap;
     };
     
-#ifdef __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__
+#ifdef __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__
+#endif // __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__
 
 } // namespace
-#endif  //__CLASS_AND_NAME_HIERARCHY_SELECTION__H_
+#endif  //__CLASS_AND_NAME_HIERARCHY_MODEL_H_

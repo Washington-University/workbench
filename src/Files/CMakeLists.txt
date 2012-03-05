@@ -26,7 +26,7 @@ BorderFileSaxReader.h
 CaretDataFile.h
 CaretMappableDataFile.h
 CaretVolumeExtension.h
-ClassAndNameHierarchySelection.h
+ClassAndNameHierarchyModel.h
 ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 EventSurfaceColoringInvalidate.h
@@ -62,7 +62,7 @@ DataFileTypeEnum.cxx
 CaretDataFile.cxx
 CaretMappableDataFile.cxx
 CaretVolumeExtension.cxx
-ClassAndNameHierarchySelection.cxx
+ClassAndNameHierarchyModel.cxx
 ConnectivityLoaderFile.cxx
 EventSurfaceColoringInvalidate.cxx
 GeodesicHelper.cxx
