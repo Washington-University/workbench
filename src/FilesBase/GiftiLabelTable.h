@@ -109,10 +109,14 @@ public:
 
     const GiftiLabel* getLabel(const AString& labelName) const;
 
+    GiftiLabel* getLabel(const AString& labelName);
+    
     const GiftiLabel* getLabelBestMatching(const AString& name) const;
 
     const GiftiLabel* getLabel(const int32_t key) const;
 
+    GiftiLabel* getLabel(const int32_t key);
+    
     int32_t getUnassignedLabelKey() const;
 
     int32_t getNumberOfLabels() const;

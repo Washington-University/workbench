@@ -514,6 +514,27 @@ GiftiLabelTable::getLabel(const AString& labelName) const
 }
 
 /**
+ * Get a GIFTI Label from its name.
+ * @param labelName - Name of label that is sought.
+ * @return  Reference to label with name or null if no matching label.
+ *
+ */
+GiftiLabel*
+GiftiLabelTable::getLabel(const AString& labelName)
+{
+    LABELS_MAP newMap;
+    for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        GiftiLabel* gl = iter->second;
+        if (gl->getName() == labelName) {
+            return gl;
+        }
+    }
+    return NULL;
+}
+
+/**
  * Get the label whose name is the longest substring of "name" beginning
  * at the first character.
  *
@@ -556,6 +577,23 @@ const GiftiLabel*
 GiftiLabelTable::getLabel(const int32_t key) const
 {
     LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.find(key);
+    if (iter != this->labelsMap.end()) {
+        return iter->second;
+    }
+    return NULL;
+}
+
+/**
+ * Get the GiftiLabel at the specified key.
+ *
+ * @param  key - Key of GiftiLabel entry.
+ * @return       The GiftiLabel at the specified key or null if the
+ *    there is not a label at the specified key.
+ */
+GiftiLabel*
+GiftiLabelTable::getLabel(const int32_t key)
+{
+    LABELS_MAP_ITERATOR iter = this->labelsMap.find(key);
     if (iter != this->labelsMap.end()) {
         return iter->second;
     }
