@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <map>
 
 #include "CaretObject.h"
 
@@ -52,26 +53,38 @@ namespace caret {
         
         void clear();
         
+        void removeUnusedNamesAndClasses(BorderFile* borderFile);
+        
         GiftiLabelTable* getClassLabelTable();
         
         const GiftiLabelTable* getClassLabelTable() const;
         
-        GiftiLabelTable* getNameLabelTable();
+        GiftiLabelTable* getNameLabelTableForClass(const int32_t classKey);
         
-        const GiftiLabelTable* getNameLabelTable() const;
+        const GiftiLabelTable* getNameLabelTableForClass(const int32_t classKey) const;
         
         void setAllSelected(const bool status);
         
         void update(BorderFile* borderFile);
+        
+        AString toString() const;
         
     private:
         ClassAndNameHierarchySelection(const ClassAndNameHierarchySelection&);
 
         ClassAndNameHierarchySelection& operator=(const ClassAndNameHierarchySelection&);
         
+        void clearPrivate(const bool isDestruction);
+        
         GiftiLabelTable* classLabelTable;
         
-        GiftiLabelTable* nameLabelTable;
+        /**
+         * Maps a class key to a label table.
+         * The label table contains names that are members of the class.
+         * Using this map allows an identical name to be a member of multiple classes
+         * but keeps the selection status for each name independent. 
+         */
+        std::map<int32_t, GiftiLabelTable*> classKeyToChildNamesMap;
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_SELECTION_DECLARE__
