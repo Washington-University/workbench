@@ -53,6 +53,7 @@ cd ${GIT_ROOT_DIR}
 # Update source from repository
 #
 echo "UPDATING SOURCE FROM GIT REPOSITORY"
+git reset --hard HEAD
 git pull -u
 
 #
@@ -78,7 +79,7 @@ macdeployqt Desktop/workbench.app
 # Copy to distribution directory
 #
 echo "COPYING PROGRAMS"
-DIST_DIR=/mainpool/storage/DS4600/caret7_distribution/caret/macosx64_apps
+DIST_DIR=/mainpool/storage/distribution/caret7_distribution/caret/macosx64_apps
 scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
 scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
 
