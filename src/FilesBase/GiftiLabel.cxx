@@ -272,14 +272,18 @@ GiftiLabel::operator=(const GiftiLabel& o)
 void
 GiftiLabel::copyHelper(const GiftiLabel& gl)
 {
-    this->modifiedFlag = false;
+    this->initializeMembersGiftiLabel();
     this->name = gl.name;
     this->key = gl.key;
-    this->selected = false;
+    this->selected = gl.selected;
     this->red = gl.red;
     this->green = gl.green;    
     this->blue = gl.blue;    
     this->alpha = gl.alpha;
+    this->x = gl.x;
+    this->y = gl.y;
+    this->z = gl.z;
+    this->count = 0;
 }
 
 /**
