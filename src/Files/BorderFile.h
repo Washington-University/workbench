@@ -84,7 +84,11 @@ namespace caret {
         
         void removeBorder(Border* border);
         
-        ClassAndNameHierarchyModel* getClassAndNameHierarchy();
+        GiftiLabelTable* getClassColorTable();
+        
+        const GiftiLabelTable* getClassColorTable() const;
+        
+        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
         
         static float getFileVersion();
         
@@ -109,10 +113,13 @@ namespace caret {
         
         std::vector<Border*> borders;
         
-        /** Version of this BorderFile */
-        static const float borderFileVersion;
+        /** Holds colors assigned to classes */
+        GiftiLabelTable* classColorTable;
         
         mutable ClassAndNameHierarchyModel* classNameHierarchy;
+        
+        /** Version of this BorderFile */
+        static const float borderFileVersion;
     };
     
 #ifdef __BORDER_FILE_DECLARE__

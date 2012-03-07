@@ -236,7 +236,7 @@ ClassAndNameHierarchyModel::update(BorderFile* borderFile)
     const int32_t numBorders = borderFile->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         const Border* border = borderFile->getBorder(i);
-        if (border->isNameOrClassModified()) {
+        if (border->isSelectionClassOrNameModified()) {
             needToGenerateKeys = true;
         }
     }
@@ -320,8 +320,8 @@ ClassAndNameHierarchyModel::update(BorderFile* borderFile)
             /*
              * Update keys used by the border.
              */
-            border->setNameAndClassKeys(nameKey,
-                                        classKey);
+            border->setSelectionClassAndNameKeys(classKey,
+                                                 nameKey);
         }
     }
 }

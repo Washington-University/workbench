@@ -31,7 +31,6 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "BorderFileSaxReader.h"
-#include "ClassAndNameHierarchyModel.h"
 #include "GiftiLabelTableSaxReader.h"
 #include "GiftiMetaDataSaxReader.h"
 #include "SurfaceProjectedItem.h"
@@ -146,8 +145,7 @@ BorderFileSaxReader::startElement(const AString& namespaceURI,
       case STATE_BORDER_FILE:
            if (qName == GiftiXmlElements::TAG_LABEL_TABLE) {
                this->state = STATE_CLASSES;
-               ClassAndNameHierarchyModel* classAndNameHierarchy = this->borderFile->getClassAndNameHierarchy();
-               GiftiLabelTable* classTable = classAndNameHierarchy->getClassLabelTable();
+               GiftiLabelTable* classTable = this->borderFile->getClassColorTable();
                this->classTableSaxReader = new GiftiLabelTableSaxReader(classTable);
                this->classTableSaxReader->startElement(namespaceURI, localName, qName, attributes);
            }

@@ -102,14 +102,14 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        bool isNameOrClassModified() const;
+        bool isSelectionClassOrNameModified() const;
         
-        void setNameAndClassKeys(const int32_t nameKey,
-                                 const int32_t classKey);
+        void setSelectionClassAndNameKeys(const int32_t selectionClassKey,
+                                          const int32_t selectionNameKey);
         
-        int32_t getNameKey() const;
+        int32_t getSelectionNameKey() const;
         
-        int32_t getClassKey() const;
+        int32_t getSelectionClassKey() const;
         
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
@@ -130,17 +130,17 @@ namespace caret {
         std::vector<SurfaceProjectedItem*> points;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t nameKey;
+        int32_t selectionNameKey;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
-        int32_t classKey;
+        int32_t selectionClassKey;
         
         /** 
          * Name/Class modification status, not saved to file. 
          * COMPLETELY separate from the modification status
          * that tracks all modifications to a border.
          */
-        bool nameClassModificationStatus;
+        bool selectionClassNameModificationStatus;
     };
     
 #ifdef __BORDER_DECLARE__

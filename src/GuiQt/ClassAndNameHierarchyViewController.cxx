@@ -95,8 +95,6 @@ void
 ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item,
                                                           int column)
 {
-    std::cout << item->text(column) << " was selected. " << std::endl;
-    
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
     ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
     
@@ -137,7 +135,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
          iter++) {
         BorderFile* bf = *iter;
         CaretAssert(bf);
-        classAndNameHierarchyModels.push_back(bf->getClassAndNameHierarchy());
+        classAndNameHierarchyModels.push_back(bf->getClassAndNameHierarchyModel());
         borderFilePointers.push_back((void*)bf);
     }
     

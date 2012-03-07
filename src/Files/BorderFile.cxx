@@ -67,6 +67,7 @@ BorderFile::BorderFile()
  */
 BorderFile::~BorderFile()
 {
+    delete this->classColorTable;
     delete this->metadata;
     
     for (std::vector<Border*>::iterator iter = this->borders.begin();
@@ -85,6 +86,7 @@ BorderFile::~BorderFile()
 void 
 BorderFile::initializeBorderFile()
 {
+    this->classColorTable = new GiftiLabelTable();
     this->classNameHierarchy = new ClassAndNameHierarchyModel();
     this->metadata = new GiftiMetaData();
 }
@@ -128,6 +130,7 @@ BorderFile::operator=(const BorderFile& obj)
 void 
 BorderFile::copyHelperBorderFile(const BorderFile& obj)
 {
+    *this->classColorTable = *obj.classColorTable;
     if (this->classNameHierarchy != NULL) {
         delete this->classNameHierarchy;
     }
@@ -197,6 +200,7 @@ BorderFile::clear()
 {
     CaretDataFile::clear();
     this->classNameHierarchy->clear();
+    this->classColorTable->clear();
     this->metadata->clear();
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
@@ -327,6 +331,13 @@ void
 BorderFile::addBorder(Border* border)
 {
     this->borders.push_back(border);
+    AString className = border->getClassName();
+    if (className.isEmpty() == false) {
+        const int32_t classColorKey = this->classColorTable->getLabelKeyFromName(className);
+        if (classColorKey < 0) {
+            this->classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 0.0f);
+        }
+    }
     this->setModified();
 }
 
@@ -368,10 +379,28 @@ BorderFile::removeBorder(Border* border)
  * @return The class and name hierarchy.
  */
 ClassAndNameHierarchyModel* 
-BorderFile::getClassAndNameHierarchy()
+BorderFile::getClassAndNameHierarchyModel()
 {
     this->classNameHierarchy->update(this);
     return this->classNameHierarchy;
+}
+
+/**
+ * @return  The class color table.
+ */
+GiftiLabelTable* 
+BorderFile::getClassColorTable()
+{
+    return this->classColorTable;
+}
+
+/**
+ * @return  The class color table.
+ */
+const GiftiLabelTable* 
+BorderFile::getClassColorTable() const
+{
+    return this->classColorTable;
 }
 
 /**
@@ -509,7 +538,7 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Write the classes
         //
-        this->classNameHierarchy->getClassLabelTable()->writeAsXML(xmlWriter);
+        this->classColorTable->writeAsXML(xmlWriter);
         
         //
         // Write borders
@@ -546,9 +575,14 @@ BorderFile::isModified() const
     if (this->metadata->isModified()) {
         return true;
     }
-    if (this->classNameHierarchy->getClassLabelTable()->isModified()) {
+    if (this->classColorTable->isModified()) {
         return true;
     }
+    
+    /* 
+     * Note, these members do not affect modification status:
+     * classNameHierarchy 
+     */
     
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {

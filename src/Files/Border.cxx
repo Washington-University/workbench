@@ -49,7 +49,7 @@ Border::Border()
 : CaretObjectTracksModification()
 {
     this->color = CaretColorEnum::BLACK;
-    this->nameClassModificationStatus = true; // name/class is new!!
+    this->selectionClassNameModificationStatus = true; // name/class is new!!
 }
 
 /**
@@ -732,7 +732,7 @@ Border::replacePoints(const Border* border)
 void 
 Border::setNameOrClassModified()
 {
-    this->nameClassModificationStatus = true;
+    this->selectionClassNameModificationStatus = true;
 }
 
 /**
@@ -744,9 +744,9 @@ Border::setNameOrClassModified()
  * names.
  */
 bool 
-Border::isNameOrClassModified() const
+Border::isSelectionClassOrNameModified() const
 {
-    return this->nameClassModificationStatus;
+    return this->selectionClassNameModificationStatus;
 }
 
 /**
@@ -758,40 +758,40 @@ Border::isNameOrClassModified() const
  * borders based upon selected classes and
  * names.
  *
- * @param nameKey
- *     Key for the border name.
- * @param classKey
+ * @param selectionClassKey
  *     Key for the border class.
+ * @param selectionNameKey
+ *     Key for the border name.
  */
 void 
-Border::setNameAndClassKeys(const int32_t nameKey,
-                            const int32_t classKey)
+Border::setSelectionClassAndNameKeys(const int32_t selectionClassKey,
+                                     const int32_t selectionNameKey)
 {
-    this->nameKey = nameKey;
-    this->classKey = classKey;
+    this->selectionClassKey = selectionClassKey;
+    this->selectionNameKey = selectionNameKey;
     
     /*
      * Clear status 
      */
-    this->nameClassModificationStatus = false;
+    this->selectionClassNameModificationStatus = false;
 }
 
 /**
  * @return The key for the border's name in the class and name hierarchy.
  */
 int32_t 
-Border::getNameKey() const
+Border::getSelectionNameKey() const
 {
-    return this->nameKey;
+    return this->selectionNameKey;
 }
 
 /**
  * @return The key for the border's class in the class and name hierarchy.
  */
 int32_t 
-Border::getClassKey() const
+Border::getSelectionClassKey() const
 {
-    return this->classKey;
+    return this->selectionClassKey;
 }
 
 /**

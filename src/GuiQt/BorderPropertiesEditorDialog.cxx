@@ -368,8 +368,7 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     
     BorderFile* borderFile = this->getSelectedBorderFile(false);
     if (borderFile != NULL) {
-        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
-        const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+        const GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
         std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
         for (std::vector<int32_t>::iterator keyIterator = keys.begin();
              keyIterator != keys.end();
@@ -482,8 +481,7 @@ void
 BorderPropertiesEditorDialog::displayClassEditor()
 {
     BorderFile* borderFile = this->getSelectedBorderFile(true);
-    ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
-    GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+    GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
     GiftiLabelTableEditor editor(classLabelTable,
                                  "Edit Class Attributes",
                                  this);

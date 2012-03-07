@@ -54,7 +54,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
 : DisplayProperties(brain)
 {
     this->displayStatus = true;
-    this->contralateralDisplayStatus = true;
+    this->contralateralDisplayStatus = false;
 }
 
 /**
@@ -73,7 +73,7 @@ void
 DisplayPropertiesBorders::reset()
 {
     this->displayStatus = true;
-    this->contralateralDisplayStatus = true;
+    this->contralateralDisplayStatus = false;
 }
 
 /**

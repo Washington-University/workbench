@@ -1445,37 +1445,44 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
-        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
         if (classAndNameSelection->isSelected() == false) {
             continue;
         }
         
-        const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
+        const GiftiLabelTable* classSelectionTable = classAndNameSelection->getClassLabelTable();
+        const GiftiLabelTable* classColorTable = borderFile->getClassColorTable();
         
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
             Border* border = borderFile->getBorder(j);
-            const int32_t classKey = border->getClassKey();
-            const GiftiLabel* classLabel = classLabelTable->getLabel(classKey);
-            CaretAssert(classLabel);
-            if (classLabel->isSelected() == false) {
+            const int32_t selectionClassKey = border->getSelectionClassKey();
+            const GiftiLabel* selectionClassLabel = classSelectionTable->getLabel(selectionClassKey);
+            CaretAssert(selectionClassLabel);
+            if (selectionClassLabel->isSelected() == false) {
                 continue;
             }
-            
-            const int32_t nameKey  = border->getNameKey();
-            const GiftiLabelTable* nameLabelTable = classAndNameSelection->getNameLabelTableForClass(classKey);
-            const GiftiLabel* nameLabel = nameLabelTable->getLabel(nameKey);
-            CaretAssert(nameLabel);
-            if (nameLabel->isSelected() == false) {
+
+            const GiftiLabelTable* nameLabelTable = classAndNameSelection->getNameLabelTableForClass(selectionClassKey);
+            const int32_t selectionNameKey  = border->getSelectionNameKey();
+            const GiftiLabel* selectionNameLabel = nameLabelTable->getLabel(selectionNameKey);
+            CaretAssert(selectionNameLabel);
+            if (selectionNameLabel->isSelected() == false) {
                 continue;
             }
             
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
-                    float rgba[4];
-                    classLabel->getColor(rgba);
+                const AString classColorName = border->getClassName();
+                const GiftiLabel* classColorLabel = classColorTable->getLabel(classColorName);
+                if (classColorLabel != NULL) {
+                    const float* rgba = classColorLabel->getColor();
                     glColor3fv(rgba);
+                }
+                else {
+                    glColor3fv(CaretColorEnum::toRGB(CaretColorEnum::BLACK));
+                }
             }
             else {
                 glColor3fv(CaretColorEnum::toRGB(border->getColor()));
