@@ -63,11 +63,19 @@ namespace caret {
         
         const GiftiLabelTable* getNameLabelTableForClass(const int32_t classKey) const;
         
+        bool isClassValid(const int32_t classKey) const;
+        
         void setAllSelected(const bool status);
         
         void update(BorderFile* borderFile);
         
         AString toString() const;
+        
+        AString getName() const;
+        
+        bool isSelected() const;
+        
+        void setSelected(const bool selectionStatus);
         
     private:
         ClassAndNameHierarchyModel(const ClassAndNameHierarchyModel&);
@@ -85,6 +93,12 @@ namespace caret {
          * but keeps the selection status for each name independent. 
          */
         std::map<int32_t, GiftiLabelTable*> classKeyToChildNamesMap;
+        
+        /** Name of model, does NOT get cleared. */
+        AString name;
+        
+        /* overlay selection status */
+        bool selectionStatus;
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__

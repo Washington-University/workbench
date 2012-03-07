@@ -1420,28 +1420,36 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         BorderFile* borderFile = brain->getBorderFile(i);
 
         const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchy();
+        if (classAndNameSelection->isSelected() == false) {
+            continue;
+        }
+        
         const GiftiLabelTable* classLabelTable = classAndNameSelection->getClassLabelTable();
         
         const int32_t numBorders = borderFile->getNumberOfBorders();
         
         for (int32_t j = 0; j < numBorders; j++) {
             Border* border = borderFile->getBorder(j);
-            if (border->isDisplayed() == false) {
+            const int32_t classKey = border->getClassKey();
+            const GiftiLabel* classLabel = classLabelTable->getLabel(classKey);
+            CaretAssert(classLabel);
+            if (classLabel->isSelected() == false) {
+                continue;
+            }
+            
+            const int32_t nameKey  = border->getNameKey();
+            const GiftiLabelTable* nameLabelTable = classAndNameSelection->getNameLabelTableForClass(classKey);
+            const GiftiLabel* nameLabel = nameLabelTable->getLabel(nameKey);
+            CaretAssert(nameLabel);
+            if (nameLabel->isSelected() == false) {
                 continue;
             }
             
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
-                const int32_t key = classLabelTable->getLabelKeyFromName(border->getClassName());
-                if (key >= 0) {
                     float rgba[4];
-                    const GiftiLabel* classLabel = classLabelTable->getLabel(key);
                     classLabel->getColor(rgba);
                     glColor3fv(rgba);
-                }
-                else {
-                    glColor3f(0.0, 0.0, 0.0);
-                }
             }
             else {
                 glColor3fv(CaretColorEnum::toRGB(border->getColor()));

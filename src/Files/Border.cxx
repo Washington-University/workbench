@@ -49,7 +49,6 @@ Border::Border()
 : CaretObjectTracksModification()
 {
     this->color = CaretColorEnum::BLACK;
-    this->displayFlag = true;
     this->nameClassModificationStatus = true; // name/class is new!!
 }
 
@@ -107,7 +106,6 @@ Border::copyHelperBorder(const Border& obj)
     
     this->name = obj.name;
     this->className = obj.className;
-    this->displayFlag = obj.displayFlag;
     
     this->clearModified();
     this->setNameOrClassModified(); // new name/class so modified
@@ -125,7 +123,6 @@ Border::clear()
     this->name = "";
     this->className = "";
     this->color = CaretColorEnum::BLACK;
-    this->displayFlag = true;
     this->setNameOrClassModified(); // new name/class so modified
 }
 
@@ -722,26 +719,6 @@ Border::replacePoints(const Border* border)
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
         this->addPoint(spi);
     } 
-}
-
-/**
- * Is this border displayed?
- */
-bool 
-Border::isDisplayed() const
-{
-    return this->displayFlag;
-}
-
-/**
- * Set the displayed status of this border.
- * @param displayed
- *    New displayed status.
- */
-void 
-Border::setDisplayed(const bool displayed)
-{
-    this->displayFlag = displayed;
 }
 
 /**

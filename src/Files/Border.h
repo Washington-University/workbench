@@ -102,10 +102,6 @@ namespace caret {
         
         void writeAsXML(XmlWriter& xmlWriter) throw (XmlException);
         
-        bool isDisplayed() const;
-        
-        void setDisplayed(const bool displayed);
-        
         bool isNameOrClassModified() const;
         
         void setNameAndClassKeys(const int32_t nameKey,
@@ -132,9 +128,6 @@ namespace caret {
         CaretColorEnum::Enum color;
         
         std::vector<SurfaceProjectedItem*> points;
-        
-        /** display status: not saved to file and does not affect modification status */
-        bool displayFlag;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
         int32_t nameKey;

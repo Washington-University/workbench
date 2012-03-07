@@ -32,23 +32,30 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #include <QAction>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QStackedWidget>
-#include <QTreeWidget>
-#include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
 #define __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
 #include "BrainBrowserSelectionToolBox.h"
 #undef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
 
+#include "BorderFile.h"
+#include "Brain.h"
 #include "CaretAssert.h"
+#include "ClassAndNameHierarchyModel.h"
+#include "ClassAndNameHierarchySelectedItem.h"
+#include "ClassAndNameHierarchyViewController.h"
+#include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventToolBoxSelectionDisplay.h"
+#include "GuiManager.h"
 
 using namespace caret;
 
@@ -112,16 +119,6 @@ BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.erase(this);
 }
 
-QTreeWidgetItem*
-createItem(const QString& name)
-{
-    QTreeWidgetItem* twi = new QTreeWidgetItem();
-    twi->setText(0, name);
-    twi->setFlags(Qt::ItemIsUserCheckable
-                  | Qt::ItemIsEnabled);
-    twi->setCheckState(0, Qt::Checked);
-    return twi;
-}
 /**
  * Create the border selection widget.
  * @return The border selection widget.
@@ -139,32 +136,38 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     yokeLayout->addWidget(yokeComboBox);
     yokeLayout->addStretch(); 
     
-    QCheckBox* contralateralCheckBox = new QCheckBox("Contralateral");
+    this->bordersContralateralCheckBox = new QCheckBox("Contralateral");
+    QObject::connect(this->bordersContralateralCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(updateAfterSelectionsChanged()));
     
-    QCheckBox* displayCheckBox = new QCheckBox("Display Borders");
+    this->bordersDisplayCheckBox = new QCheckBox("Display Borders");
+    QObject::connect(this->bordersDisplayCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(updateAfterSelectionsChanged()));
     
-    QTreeWidgetItem* nameATW  = createItem("Name A");
-    QTreeWidgetItem* nameBTW  = createItem("Name B");
-    QTreeWidgetItem* class1TW = createItem("Class 1");
-    class1TW->addChild(nameATW);
-    class1TW->addChild(nameBTW);
-    
-    QTreeWidgetItem* fileTW = createItem("file");
-    fileTW->addChild(class1TW);
-    
-    QTreeWidget* tw = new QTreeWidget();
-    tw->addTopLevelItem(fileTW);
-    
-    tw->expandAll();
+    this->borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController();
+    QObject::connect(this->borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
+                     this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
+
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
-    layout->addWidget(displayCheckBox);  
-    layout->addWidget(contralateralCheckBox);  
+    layout->addWidget(this->bordersDisplayCheckBox);  
+    layout->addWidget(this->bordersContralateralCheckBox);  
     layout->addLayout(yokeLayout);  
-    layout->addWidget(tw);  
+    layout->addWidget(this->borderClassNameHierarchyViewController);  
     
     return w;
+}
+
+/**
+ * Called when the border selections are changed.
+ * Updates border display information and redraws
+ * graphics.
+ */
+void 
+BrainBrowserSelectionToolBox::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem)
+{
+    this->updateAfterSelectionsChanged();
 }
 
 /**
@@ -174,6 +177,18 @@ void
 BrainBrowserSelectionToolBox::updateBorderSelectionWidget()
 {
     this->setWindowTitle("Borders");
+    
+    /*
+     * Get all of border files.
+     */
+    std::vector<BorderFile*> allBorderFiles;
+    Brain* brain = GuiManager::get()->getBrain();
+    const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
+    for (int32_t ibf= 0; ibf < numberOfBorderFiles; ibf++) {
+        allBorderFiles.push_back(brain->getBorderFile(ibf));
+    }
+     
+    this->borderClassNameHierarchyViewController->updateContents(allBorderFiles);
 }
 
 /*
@@ -208,6 +223,16 @@ BrainBrowserSelectionToolBox::updateOtherSelectionToolBoxes()
 }
 
 /**
+ * Issue update events after selections are changed.
+ */
+void 
+BrainBrowserSelectionToolBox::updateAfterSelectionsChanged()
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    this->updateOtherSelectionToolBoxes();
+}
+
+/**
  * Receive events from the event manager.
  * 
  * @param event
@@ -231,7 +256,6 @@ BrainBrowserSelectionToolBox::receiveEvent(Event* event)
                     if (isVisible == false) {
                         viewAction->trigger();
                     }
-                    this->updateSelectionToolBox();
                     break;
                 case EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE:
                     if (isVisible) {

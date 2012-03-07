@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
-#define __BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
+#ifndef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER__H_
+#define __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -34,68 +34,64 @@
  */
 /*LICENSE_END*/
 
-#include <stdint.h>
-#include <set>
+#include <vector>
 
-#include <QDockWidget>
+#include <QWidget>
 
-#include "EventListenerInterface.h"
+#include "AString.h"
 
 class QCheckBox;
-class QStackedWidget;
+class QTreeWidget;
+class QTreeWidgetItem;
 
 namespace caret {
 
+    class BorderFile;
+    class ClassAndNameHierarchyModel;
     class ClassAndNameHierarchySelectedItem;
-    class ClassAndNameHierarchyViewController;
     
-    class BrainBrowserSelectionToolBox : public QDockWidget, public EventListenerInterface {
+    class ClassAndNameHierarchyViewController : public QWidget {
         
         Q_OBJECT
 
     public:
-        BrainBrowserSelectionToolBox(const int32_t browserWindowIndex,
-                                     QWidget* parent = 0);
+        ClassAndNameHierarchyViewController(QWidget* parent = 0);
         
-        virtual ~BrainBrowserSelectionToolBox();
+        virtual ~ClassAndNameHierarchyViewController();
         
-        void receiveEvent(Event* event);
-
+        void updateContents(std::vector<BorderFile*> borderFiles);
+        
+    signals:
+        void itemSelected(ClassAndNameHierarchySelectedItem* selectedItem);
+        
     private slots:
-        void bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem);
-                
-        void updateAfterSelectionsChanged();
+        void treeWidgetItemChanged(QTreeWidgetItem* item,
+                                   int column);
         
+
     private:
-        BrainBrowserSelectionToolBox(const BrainBrowserSelectionToolBox&);
+        ClassAndNameHierarchyViewController(const ClassAndNameHierarchyViewController&);
 
-        BrainBrowserSelectionToolBox& operator=(const BrainBrowserSelectionToolBox&);
+        ClassAndNameHierarchyViewController& operator=(const ClassAndNameHierarchyViewController&);
         
-        QWidget* createBorderSelectionWidget();
+        void updateContents(std::vector<ClassAndNameHierarchyModel*>& ClassAndNameHierarchyModels);
         
-        void updateBorderSelectionWidget();
+        void deleteItemSelectionInfo();
         
-        void updateSelectionToolBox();
+        QTreeWidgetItem* createTreeWidgetItem(const AString& name,
+                                              const bool isSelected,
+                                              ClassAndNameHierarchySelectedItem* selectionInfo);
         
-        void updateOtherSelectionToolBoxes();
+        std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
         
-        int32_t browserWindowIndex;
-
-        static std::set<BrainBrowserSelectionToolBox*> allSelectionToolBoxes;
+        QTreeWidget* treeWidget;
         
-        QStackedWidget* stackedWidget;
-        
-        QWidget* borderSelectionWidget;
-        
-        ClassAndNameHierarchyViewController* borderClassNameHierarchyViewController;
-        
-        QCheckBox* bordersDisplayCheckBox;
-        QCheckBox* bordersContralateralCheckBox;
+        std::vector<ClassAndNameHierarchySelectedItem*> itemSelectionInfo;
     };
-    
-#ifdef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
-    std::set<BrainBrowserSelectionToolBox*> BrainBrowserSelectionToolBox::allSelectionToolBoxes;
-#endif // __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
+        
+#ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
+#endif  //__CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER__H_

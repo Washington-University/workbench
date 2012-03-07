@@ -76,6 +76,7 @@ ClassAndNameHierarchyModel::ClassAndNameHierarchyModel()
 {
     this->classLabelTable = new GiftiLabelTable();
     this->clear();
+    this->selectionStatus = true;
 }
 
 /**
@@ -129,6 +130,11 @@ ClassAndNameHierarchyModel::clearPrivate(const bool isDestruction)
             this->classKeyToChildNamesMap.insert(std::make_pair(classKey, nameLabelTable));
         }
     }
+    
+    /*
+     * Note: These members are not cleared.
+     */
+    //this->name = "";
 }
 
 /**
@@ -225,6 +231,8 @@ ClassAndNameHierarchyModel::update(BorderFile* borderFile)
 {
     bool needToGenerateKeys = false;
     
+    this->name = borderFile->getFileNameNoPath();
+    
     const int32_t numBorders = borderFile->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         const Border* border = borderFile->getBorder(i);
@@ -264,17 +272,19 @@ ClassAndNameHierarchyModel::update(BorderFile* borderFile)
             /*
              * Get the class.  If it is empty, use the default name.
              */
-            AString theClass = border->getClassName();
-            if (theClass.isEmpty()) {
-                theClass = unknownClassName;
+            AString theClassName = border->getClassName();
+            if (theClassName.isEmpty()) {
+                theClassName = unknownClassName;
             }
             
             /*
-             * If the class already exists, addLabel will return the class' key.
-             * Otherwise, it will return the key of the existing label with the class.
+             * If the class name exists, it will have a valid key.  If not
+             * create a new label for the class name.
              */
-            const int32_t classKey = this->classLabelTable->addLabel(theClass,
-                                                                     0.0f, 0.0f, 0.0f);
+            int32_t classKey = this->classLabelTable->getLabelKeyFromName(theClassName);
+            if (classKey < 0) {
+                classKey = this->classLabelTable->addLabel(theClassName, 0.0f, 0.0f, 0.0f);
+            }
             CaretAssert(classKey >= 0);
             
             GiftiLabel* classLabel = this->classLabelTable->getLabel(classKey);
@@ -380,6 +390,36 @@ ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(BorderFile* borderFile)
 }
 
 /**
+ * Is the class valid?  Valid if class has at least one child
+ * with a count attribute greater than zero (it is used).
+ * @return true if class is valid, else false.
+ */
+bool 
+ClassAndNameHierarchyModel::isClassValid(const int32_t classKey) const
+{
+    const GiftiLabelTable* nameLabelTable = this->getNameLabelTableForClass(classKey);
+    if (nameLabelTable == NULL) {
+        return false;
+    }
+    
+    const std::set<int32_t> nameKeys = nameLabelTable->getKeys();
+    for (std::set<int32_t>::const_iterator iter = nameKeys.begin();
+         iter != nameKeys.end();
+         iter++) {
+        int32_t key = *iter;
+        
+        const GiftiLabel* gl = nameLabelTable->getLabel(key);
+        CaretAssert(gl);
+        if (gl->getCount() > 0) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+
+/**
  * @return A string containing a description
  * of the contents of this class and name
  * hierarchy.
@@ -390,8 +430,8 @@ ClassAndNameHierarchyModel::toString() const
     AString text;
     text.reserve(10000);
     
-    const std::set<int32_t> classKeys = this->classLabelTable->getKeys();
-    for (std::set<int32_t>::const_iterator iter = classKeys.begin();
+    const std::vector<int32_t> classKeys = this->classLabelTable->getLabelKeysSortedByName();
+    for (std::vector<int32_t>::const_iterator iter = classKeys.begin();
          iter != classKeys.end();
          iter++) {
         int32_t key = *iter;
@@ -399,7 +439,9 @@ ClassAndNameHierarchyModel::toString() const
         const GiftiLabel* gl = this->classLabelTable->getLabel(key);
         CaretAssert(gl);
         const AString theClass = gl->getName();
-        text += ("Class Key/Name/Count: " 
+        text += ("Class Key/Name/Count for "
+                 + this->name
+                 + ": " 
                  + AString::number(key)
                  + " "
                  + theClass
@@ -409,8 +451,8 @@ ClassAndNameHierarchyModel::toString() const
         
         const GiftiLabelTable* nameLabelTable = this->getNameLabelTableForClass(key);
         CaretAssert(nameLabelTable);
-        const std::set<int32_t> nameKeys = nameLabelTable->getKeys();
-        for (std::set<int32_t>::const_iterator iter = nameKeys.begin();
+        const std::vector<int32_t> nameKeys = nameLabelTable->getLabelKeysSortedByName();
+        for (std::vector<int32_t>::const_iterator iter = nameKeys.begin();
              iter != nameKeys.end();
              iter++) {
             int32_t key = *iter;
@@ -433,5 +475,33 @@ ClassAndNameHierarchyModel::toString() const
     return text;
 }
 
+/**
+ * @return  Name of this model.
+ */
+AString 
+ClassAndNameHierarchyModel::getName() const
+{
+    return this->name;
+}
+
+/**
+ * @return Is this hierarchy selected?
+ */
+bool 
+ClassAndNameHierarchyModel::isSelected() const
+{
+    return this->selectionStatus;
+}
+
+/**
+ * Set the selection status of this hierarchy model.
+ * @param selectionStatus
+ *    New selection status.
+ */
+void 
+ClassAndNameHierarchyModel::setSelected(const bool selectionStatus)
+{
+    this->selectionStatus = selectionStatus;
+}
 
 
