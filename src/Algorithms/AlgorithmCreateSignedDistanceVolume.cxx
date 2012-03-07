@@ -68,7 +68,7 @@ OperationParameters* AlgorithmCreateSignedDistanceVolume::getParameters()
     approxNeighborhoodOpt->addIntegerParameter(1, "num", "size of neighborhood cube measured from center to face, in voxels (default 2 = 5x5x5)");
     
     OptionalParameter* windingMethodOpt = ret->createOptionalParameter(7, "-winding", "winding method for point inside surface test");
-    windingMethodOpt->addStringParameter(1, "method", "name of the method");
+    windingMethodOpt->addStringParameter(1, "method", "name of the method (default EVEN_ODD)");
     
     ret->setHelpText(
         AString("Computes the signed distance function of the surface.  Exact distance is calculated by finding the closest point on any surface triangle ") +
