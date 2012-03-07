@@ -61,6 +61,7 @@
 #include "ClassAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
+#include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "FastStatistics.h"
@@ -1347,19 +1348,38 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                                      const Border* border,
                                      const int32_t borderFileIndex,
                                      const int32_t borderIndex,
-                                     const bool isSelect)
+                                     const bool isSelect,
+                                     const bool isContralateralEnabled)
 {
     CaretAssert(surface);
     CaretAssert(border);
     
-    const StructureEnum::Enum structure = surface->getStructure();
+    const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const int32_t numBorderPoints = border->getNumberOfPoints();
     
     for (int32_t i = 0; i < numBorderPoints; i++) {
         const SurfaceProjectedItem* p = border->getPoint(i);
-        if (structure != p->getStructure()) {
+
+        /*
+         * If surface structure does not match the point's structure,
+         * check to see if contralateral display is enabled and 
+         * compare contralateral surface structure to point's structure.
+         */
+        const StructureEnum::Enum pointStructure = p->getStructure();
+        bool structureMatches = true;
+        if (surfaceStructure != pointStructure) {
+            structureMatches = false;
+            if (isContralateralEnabled) {
+                const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+                if (contralateralSurfaceStructure == pointStructure) {
+                    structureMatches = true;
+                }
+            }
+        }
+        if (structureMatches == false) {
             continue;
         }
+        
         float xyz[3];
         const bool isXyzValid = p->getProjectedPosition(*surface, 
                                                         xyz,
@@ -1415,6 +1435,12 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
     
 
     Brain* brain = surface->getBrainStructure()->getBrain();
+    const DisplayPropertiesBorders* borderDisplayProperties = brain->getDisplayPropertiesBorders();
+    if (borderDisplayProperties->isDisplayed() == false) {
+        return;
+    }
+    
+    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed();
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
@@ -1458,7 +1484,8 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                              border,
                              i,
                              j,
-                             isSelect);
+                             isSelect,
+                             isContralateralEnabled);
         }
     }
     
@@ -1509,6 +1536,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
                          this->borderBeingDrawn,
                          -1,
                          -1,
+                         false,
                          false);
     }
 }

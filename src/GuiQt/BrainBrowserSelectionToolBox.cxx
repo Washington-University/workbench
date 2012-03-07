@@ -52,6 +52,7 @@
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
 #include "ClassAndNameHierarchyViewController.h"
+#include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventToolBoxSelectionDisplay.h"
@@ -137,12 +138,12 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     yokeLayout->addStretch(); 
     
     this->bordersContralateralCheckBox = new QCheckBox("Contralateral");
-    QObject::connect(this->bordersContralateralCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(updateAfterSelectionsChanged()));
+    QObject::connect(this->bordersContralateralCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processBorderSelectionChanges()));
     
     this->bordersDisplayCheckBox = new QCheckBox("Display Borders");
-    QObject::connect(this->bordersDisplayCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(updateAfterSelectionsChanged()));
+    QObject::connect(this->bordersDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processBorderSelectionChanges()));
     
     this->borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController();
     QObject::connect(this->borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
@@ -167,7 +168,7 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
 void 
 BrainBrowserSelectionToolBox::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem)
 {
-    this->updateAfterSelectionsChanged();
+    this->processBorderSelectionChanges();
 }
 
 /**
@@ -178,16 +179,24 @@ BrainBrowserSelectionToolBox::updateBorderSelectionWidget()
 {
     this->setWindowTitle("Borders");
     
-    /*
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    
+    this->bordersDisplayCheckBox->setChecked(dsb->isDisplayed());
+    this->bordersContralateralCheckBox->setChecked(dsb->isContralateralDisplayed());
+    
+    /*;
      * Get all of border files.
      */
     std::vector<BorderFile*> allBorderFiles;
-    Brain* brain = GuiManager::get()->getBrain();
     const int32_t numberOfBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t ibf= 0; ibf < numberOfBorderFiles; ibf++) {
         allBorderFiles.push_back(brain->getBorderFile(ibf));
     }
-     
+    
+    /*
+     * Update the class/name hierarchy
+     */
     this->borderClassNameHierarchyViewController->updateContents(allBorderFiles);
 }
 
@@ -223,13 +232,27 @@ BrainBrowserSelectionToolBox::updateOtherSelectionToolBoxes()
 }
 
 /**
+ * Gets called when border selections are changed.
+ */
+void 
+BrainBrowserSelectionToolBox::processBorderSelectionChanges()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    dsb->setDisplayed(this->bordersDisplayCheckBox->isChecked());
+    dsb->setContralateralDisplayed(this->bordersContralateralCheckBox->isChecked());
+    
+    this->processSelectionChanges();
+}
+
+/**
  * Issue update events after selections are changed.
  */
 void 
-BrainBrowserSelectionToolBox::updateAfterSelectionsChanged()
+BrainBrowserSelectionToolBox::processSelectionChanges()
 {
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     this->updateOtherSelectionToolBoxes();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

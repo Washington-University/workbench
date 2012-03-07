@@ -1,5 +1,5 @@
-#ifndef __BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
-#define __BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
+#ifndef __DISPLAY_PROPERTIES_BORDERS__H_
+#define __DISPLAY_PROPERTIES_BORDERS__H_
 
 /*LICENSE_START*/
 /*
@@ -34,70 +34,45 @@
  */
 /*LICENSE_END*/
 
-#include <stdint.h>
-#include <set>
 
-#include <QDockWidget>
-
-#include "EventListenerInterface.h"
-
-class QCheckBox;
-class QStackedWidget;
+#include "DisplayProperties.h"
 
 namespace caret {
 
-    class ClassAndNameHierarchySelectedItem;
-    class ClassAndNameHierarchyViewController;
+    class Brain;
     
-    class BrainBrowserSelectionToolBox : public QDockWidget, public EventListenerInterface {
+    class DisplayPropertiesBorders : public DisplayProperties {
         
-        Q_OBJECT
-
     public:
-        BrainBrowserSelectionToolBox(const int32_t browserWindowIndex,
-                                     QWidget* parent = 0);
+        DisplayPropertiesBorders(Brain* brain);
         
-        virtual ~BrainBrowserSelectionToolBox();
-        
-        void receiveEvent(Event* event);
+        virtual ~DisplayPropertiesBorders();
 
-    private slots:
-        void bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem);
-                
-        void processBorderSelectionChanges();
+        virtual void reset();
         
-        void processSelectionChanges();
+        virtual void update();
+        
+        bool isDisplayed() const;
+        
+        void setDisplayed(const bool displayStatus);
+        
+        bool isContralateralDisplayed() const;
+        
+        void setContralateralDisplayed(const bool contralateralDisplayStatus);
         
     private:
-        BrainBrowserSelectionToolBox(const BrainBrowserSelectionToolBox&);
+        DisplayPropertiesBorders(const DisplayPropertiesBorders&);
 
-        BrainBrowserSelectionToolBox& operator=(const BrainBrowserSelectionToolBox&);
+        DisplayPropertiesBorders& operator=(const DisplayPropertiesBorders&);
         
-        QWidget* createBorderSelectionWidget();
+        bool displayStatus;
         
-        void updateBorderSelectionWidget();
-        
-        void updateSelectionToolBox();
-        
-        void updateOtherSelectionToolBoxes();
-        
-        int32_t browserWindowIndex;
-
-        static std::set<BrainBrowserSelectionToolBox*> allSelectionToolBoxes;
-        
-        QStackedWidget* stackedWidget;
-        
-        QWidget* borderSelectionWidget;
-        
-        ClassAndNameHierarchyViewController* borderClassNameHierarchyViewController;
-        
-        QCheckBox* bordersDisplayCheckBox;
-        QCheckBox* bordersContralateralCheckBox;
+        bool contralateralDisplayStatus;
     };
     
-#ifdef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
-    std::set<BrainBrowserSelectionToolBox*> BrainBrowserSelectionToolBox::allSelectionToolBoxes;
-#endif // __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__
+#ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __DISPLAY_PROPERTIES_BORDERS_DECLARE__
 
 } // namespace
-#endif  //__BRAIN_BROWSER_SELECTION_TOOL_BOX__H_
+#endif  //__DISPLAY_PROPERTIES_BORDERS__H_

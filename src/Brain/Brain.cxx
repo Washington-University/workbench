@@ -33,6 +33,7 @@
 #include "BrainStructure.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -71,6 +72,9 @@ Brain::Brain()
     this->specFile = new SpecFile();
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
+    
+    this->displayPropertiesBorders = new DisplayPropertiesBorders(this);
+    this->displayProperties.push_back(this->displayPropertiesBorders);
     
     this->displayPropertiesInformation = new DisplayPropertiesInformation(this);
     this->displayProperties.push_back(this->displayPropertiesInformation);
@@ -1378,6 +1382,24 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     }
 
     return wasRemoved;
+}
+
+/**
+ * @return The border display properties.
+ */
+DisplayPropertiesBorders* 
+Brain::getDisplayPropertiesBorders()
+{
+    return this->displayPropertiesBorders;
+}
+
+/**
+ * @return The border display properties.
+ */
+const DisplayPropertiesBorders* 
+Brain::getDisplayPropertiesBorders() const
+{
+    return this->displayPropertiesBorders;
 }
 
 /**

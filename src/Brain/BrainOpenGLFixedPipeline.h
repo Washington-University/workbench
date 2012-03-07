@@ -139,7 +139,8 @@ namespace caret {
                         const Border* border,
                         const int32_t borderFileIndex,
                         const int32_t borderIndex,
-                        const bool isSelect);
+                        const bool isSelect,
+                        const bool isContralateralEnabled);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelDisplayControllerVolume* volumeController,
