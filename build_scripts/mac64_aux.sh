@@ -82,7 +82,7 @@ macdeployqt CommandLine/wb_command.app
 echo "COPYING PROGRAMS"
 DIST_DIR=/mainpool/storage/distribution/caret7_distribution/caret/macosx64_apps
 scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
-scp -v CommandLine/wb_command caret@myelin1:${DIST_DIR}
+scp -rv CommandLine/wb_command.app caret@myelin1:${DIST_DIR}
 
 ssh caret@myelin1 touch ${DIST_DIR}/workbench.app
 
