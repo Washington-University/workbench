@@ -19,16 +19,30 @@ SET(QT_USE_QTNETWORK TRUE)
 INCLUDE (${QT_USE_FILE})
 
 #
-# Create the executable
+# Name of executable
 #
-ADD_EXECUTABLE(wb_command
-wb_command.cxx
-)
+set (EXE_NAME wb_command)
+
+#
+# Create the executable
+# Apple creates a bundle
+#
+IF (APPLE)
+   ADD_EXECUTABLE(${EXE_NAME}
+      MACOSX_BUNDLE
+      wb_command.cxx
+   )
+ELSE (APPLE)
+   ADD_EXECUTABLE(${EXE_NAME}
+      wb_command.cxx
+   )
+ENDIF (APPLE)
+
 
 #
 # Libraries that are linked
 #
-TARGET_LINK_LIBRARIES(wb_command 
+TARGET_LINK_LIBRARIES(${EXE_NAME}
 Commands
 Algorithms
 Operations
@@ -65,3 +79,4 @@ ${CMAKE_SOURCE_DIR}/FilesBase
 ${CMAKE_SOURCE_DIR}/Xml
 ${CMAKE_SOURCE_DIR}/Common
 )
+
