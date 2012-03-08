@@ -80,7 +80,7 @@ macdeployqt CommandLine/wb_command.app
 # Copy to distribution directory
 #
 echo "COPYING PROGRAMS"
-DIST_DIR=/mainpool/storage/distribution/caret7_distribution/caret/macosx64_apps
+DIST_DIR=/mainpool/storage/distribution/caret7_distribution/workbench/macosx64_apps
 scp -rv Desktop/workbench.app caret@myelin1:${DIST_DIR}
 scp -rv CommandLine/wb_command.app caret@myelin1:${DIST_DIR}
 

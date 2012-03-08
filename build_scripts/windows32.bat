@@ -26,7 +26,7 @@ cd build_scripts/windows32
 %CMD% /c build.bat
 cd ..
 cd ..
-set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/caret/bin_windows32
+set DIST_DIR=caret@myelin1:/mainpool/storage/distribution/caret7_distribution/workbench/bin_windows32
 
 echo "Copying Files"
 c:\cygwin\bin\scp build/Desktop/workbench.exe %DIST_DIR%
