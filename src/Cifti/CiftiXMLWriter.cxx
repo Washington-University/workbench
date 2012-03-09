@@ -138,7 +138,7 @@ void caret::writeMatrixIndicesMap(QXmlStreamWriter &xml, CiftiMatrixIndicesMapEl
 
     if(timeStepUnits.length()>0) {
         QString str;
-        xml.writeAttribute("TimeStep",str.sprintf("%.1f",matrixIndicesMap.m_timeStep));
+        xml.writeAttribute("TimeStep",str.sprintf("%.10f",matrixIndicesMap.m_timeStep));
         xml.writeAttribute("TimeStepUnits",timeStepUnits);
     }
     if(matrixIndicesMap.m_appliesToMatrixDimension.size())
@@ -245,9 +245,9 @@ void caret::writeTransformationMatrixVoxelIndicesIJKtoXYZ(QXmlStreamWriter &xml,
     QString s;
     for(int i = 0;i<15;i++)
     {
-        voxelIndices.append(s.sprintf("%.1f ",transform.m_transform[i]));
+        voxelIndices.append(s.sprintf("%.10f ",transform.m_transform[i]));
     }
-    voxelIndices.append(s.sprintf("%.1f", transform.m_transform[15]));
+    voxelIndices.append(s.sprintf("%.10f", transform.m_transform[15]));
     xml.writeCharacters(voxelIndices);
 
     xml.writeEndElement();
