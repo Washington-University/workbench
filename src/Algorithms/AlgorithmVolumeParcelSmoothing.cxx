@@ -138,7 +138,6 @@ AlgorithmVolumeParcelSmoothing::AlgorithmVolumeParcelSmoothing(ProgressObject* m
                     voxelLists[keyIndex].push_back(i);
                     voxelLists[keyIndex].push_back(j);
                     voxelLists[keyIndex].push_back(k);
-                    break;
                 }
             }
         }
