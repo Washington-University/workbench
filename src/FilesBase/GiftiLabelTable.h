@@ -33,6 +33,7 @@
 
 #include <map>
 #include <set>
+#include <vector>
 #include <stdint.h>
 
 #include <AString.h>
@@ -182,6 +183,8 @@ public:
     //Iterator<int32_t> getKeysIterator() const;
 
     std::set<int32_t> getKeys() const;
+
+    void getKeys(std::vector<int32_t>& keysOut) const;
 
 private:
     /** The label table storage.  Use a TreeMap since label keys

@@ -1189,3 +1189,12 @@ GiftiLabelTable::getKeys() const
     return keys;
 }
 
+void GiftiLabelTable::getKeys(std::vector<int32_t>& keysOut) const
+{
+    keysOut.reserve(labelsMap.size());
+    for (std::map<int32_t,GiftiLabel*>::const_iterator iter = this->labelsMap.begin();
+         iter != this->labelsMap.end();
+         iter++) {
+        keysOut.push_back(iter->first);
+    }
+}

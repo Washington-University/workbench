@@ -163,13 +163,13 @@ namespace caret {
         void enclosingVoxel(const float& coordIn1, const float& coordIn2, const float& coordIn3, int64_t& indexOut1, int64_t& indexOut2, int64_t& indexOut3) const;
 
         ///get a value at an index triplet and optionally timepoint
-        inline float getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
+        inline const float& getValue(const int64_t* indexIn, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
             return getValue(indexIn[0], indexIn[1], indexIn[2], brickIndex, component);
         }
         
         ///get a value at three indexes and optionally timepoint
-        inline float getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
+        inline const float& getValue(const int64_t& indexIn1, const int64_t& indexIn2, const int64_t& indexIn3, const int64_t brickIndex = 0, const int64_t component = 0) const
         {
             CaretAssert(indexValid(indexIn1, indexIn2, indexIn3, brickIndex, component));//assert so release version isn't slowed by checking
             if (m_indexRef != NULL)

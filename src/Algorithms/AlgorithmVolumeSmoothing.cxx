@@ -28,6 +28,7 @@
 #include "Vector3D.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
+#include "CaretAssert.h"
 #include <cmath>
 
 using namespace caret;
@@ -99,6 +100,8 @@ void AlgorithmVolumeSmoothing::useParameters(OperationParameters* myParams, Prog
 
 AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, const VolumeFile* inVol, const float& kernel, VolumeFile* outVol, const VolumeFile* roiVol, const bool& fixZeros, const int& subvol) : AbstractAlgorithm(myProgObj)
 {
+    CaretAssert(inVol != NULL);
+    CaretAssert(outVol != NULL);
     LevelProgress myProgress(myProgObj);
     if (roiVol != NULL && !inVol->matchesVolumeSpace(roiVol))
     {
