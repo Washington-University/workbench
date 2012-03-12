@@ -1,5 +1,5 @@
-#ifndef __DISPLAY_PROPERTIES_BORDERS__H_
-#define __DISPLAY_PROPERTIES_BORDERS__H_
+#ifndef __DISPLAY_GROUP_ENUM_COMBO_BOX__H_
+#define __DISPLAY_GROUP_ENUM_COMBO_BOX__H_
 
 /*LICENSE_START*/
 /*
@@ -34,55 +34,46 @@
  */
 /*LICENSE_END*/
 
-#include "BrainConstants.h"
+
+#include <QWidget>
+
 #include "DisplayGroupEnum.h"
-#include "DisplayProperties.h"
+
+class QComboBox;
 
 namespace caret {
 
-    class Brain;
-    
-    class DisplayPropertiesBorders : public DisplayProperties {
-        
+    class DisplayGroupEnumComboBox : public QWidget {
+        Q_OBJECT
     public:
-        DisplayPropertiesBorders(Brain* brain);
+        DisplayGroupEnumComboBox();
         
-        virtual ~DisplayPropertiesBorders();
-
-        virtual void reset();
+        virtual ~DisplayGroupEnumComboBox();
         
-        virtual void update();
+        DisplayGroupEnum::Enum getSelectedDisplayGroup() const;
         
-        bool isDisplayed(const int32_t browserTabIndex) const;
+        QWidget* getWidget();
         
-        void setDisplayed(const int32_t browserTabIndex,
-                          const bool displayStatus);
+    public slots:
+        void setSelectedDisplayGroup(const DisplayGroupEnum::Enum displayGroup);
         
-        bool isContralateralDisplayed(const int32_t browserTabIndex) const;
+    signals:
+        void displayGroupSelected(const DisplayGroupEnum::Enum);
         
-        void setContralateralDisplayed(const int32_t browserTabIndex,
-                                       const bool contralateralDisplayStatus);
-        
-        DisplayGroupEnum::Enum getDisplayGroup(const int32_t browserTabIndex) const;
-        
-        void setDisplayGroup(const int32_t browserTabIndex,
-                             const DisplayGroupEnum::Enum  displayGroup);
+    private slots:
+        void displayGroupComboBoxSelection(int);
         
     private:
-        DisplayPropertiesBorders(const DisplayPropertiesBorders&);
+        DisplayGroupEnumComboBox(const DisplayGroupEnumComboBox&);
 
-        DisplayPropertiesBorders& operator=(const DisplayPropertiesBorders&);
+        DisplayGroupEnumComboBox& operator=(const DisplayGroupEnumComboBox&);
         
-        bool displayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        bool contralateralDisplayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
-        
-        DisplayGroupEnum::Enum displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        QComboBox* displayGroupComboBox;
     };
     
-#ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__
+#ifdef __DISPLAY_GROUP_ENUM_COMBO_BOX_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __DISPLAY_PROPERTIES_BORDERS_DECLARE__
+#endif // __DISPLAY_GROUP_ENUM_COMBO_BOX_DECLARE__
 
 } // namespace
-#endif  //__DISPLAY_PROPERTIES_BORDERS__H_
+#endif  //__DISPLAY_GROUP_ENUM_COMBO_BOX__H_

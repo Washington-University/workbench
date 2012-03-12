@@ -36,12 +36,10 @@
 
 
 #include "CaretObject.h"
+#include "ClassAndNameHierarchyModel.h"
 
 namespace caret {
 
-    class ClassAndNameHierarchyModel;
-    class GiftiLabel;
-    
     class ClassAndNameHierarchySelectedItem : public CaretObject {
         
     public:
@@ -55,25 +53,36 @@ namespace caret {
             ITEM_TYPE_NAME
         };
         
-        ClassAndNameHierarchySelectedItem(const ItemType itemType,
-                                          void* data);
+        ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel* classAndNameHierarchyModel);
+        
+        ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classDisplayGroupSelector);
+        
+        ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameDisplayGroupSelector);
         
         ~ClassAndNameHierarchySelectedItem();
         
         ItemType getItemType() const;
         
-        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel() const;
+        ClassAndNameHierarchyModel* getClassAndNameHierarchyModel();
         
-        GiftiLabel* getDataAsGiftiLabel() const;
+        ClassAndNameHierarchyModel::ClassDisplayGroupSelector* getClassDisplayGroupSelector();
+        
+        ClassAndNameHierarchyModel::NameDisplayGroupSelector* getNameDisplayGroupSelector();
         
     private:
         ClassAndNameHierarchySelectedItem(const ClassAndNameHierarchySelectedItem&);
         
         ClassAndNameHierarchySelectedItem& operator=(const ClassAndNameHierarchySelectedItem&);
         
+        void initialize(const ItemType itemType);
+        
         ItemType itemType;
         
-        void* itemData;
+        ClassAndNameHierarchyModel* classAndNameHierarchyModel;
+        
+        ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classDisplayGroupSelector;
+        
+        ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameDisplayGroupSelector;
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__

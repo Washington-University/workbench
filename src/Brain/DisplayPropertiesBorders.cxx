@@ -36,6 +36,8 @@
 #include "DisplayPropertiesBorders.h"
 #undef __DISPLAY_PROPERTIES_BORDERS_DECLARE__
 
+#include "CaretAssert.h"
+
 using namespace caret;
 
 
@@ -53,8 +55,11 @@ using namespace caret;
 DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
 : DisplayProperties(brain)
 {
-    this->displayStatus = true;
-    this->contralateralDisplayStatus = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->displayStatus[i] = true;
+        this->contralateralDisplayStatus[i] = false;
+        this->displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+    }
 }
 
 /**
@@ -72,8 +77,11 @@ DisplayPropertiesBorders::~DisplayPropertiesBorders()
 void 
 DisplayPropertiesBorders::reset()
 {
-    this->displayStatus = true;
-    this->contralateralDisplayStatus = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->displayStatus[i] = true;
+        this->contralateralDisplayStatus[i] = false;
+        this->displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+    }
 }
 
 /**
@@ -87,40 +95,92 @@ DisplayPropertiesBorders::update()
 
 /**
  * @return  Display status of borders.
+ * @param browserTabIndex
+ *    Index of browser tab.
  */
 bool 
-DisplayPropertiesBorders::isDisplayed() const
+DisplayPropertiesBorders::isDisplayed(const int32_t browserTabIndex) const
 {
-    return this->displayStatus;
+    return this->displayStatus[browserTabIndex];
 }
 
 /**
  * Set the display status for borders.
+ * @param browserTabIndex
+ *    Index of browser tab.
  * @param displayStatus
  *    New status.
  */
 void 
-DisplayPropertiesBorders::setDisplayed(const bool displayStatus)
+DisplayPropertiesBorders::setDisplayed(const int32_t browserTabIndex,
+                                       const bool displayStatus)
 {
-    this->displayStatus = displayStatus;
+    CaretAssertArrayIndex(this->displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    this->displayStatus[browserTabIndex] = displayStatus;
 }
 
 /**
  * @return  Contralateral display status of borders.
+ * @param browserTabIndex
+ *    Index of browser tab.
  */
 bool 
-DisplayPropertiesBorders::isContralateralDisplayed() const
+DisplayPropertiesBorders::isContralateralDisplayed(const int32_t browserTabIndex) const
 {
-    return this->contralateralDisplayStatus;
+    CaretAssertArrayIndex(this->displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    return this->contralateralDisplayStatus[browserTabIndex];
 }
 
 /**
  * Set the contralateral display status for borders.
+ * @param browserTabIndex
+ *    Index of browser tab.
  * @param contralateralDisplayStatus
  *    New status.
  */
 void 
-DisplayPropertiesBorders::setContralateralDisplayed(const bool contralateralDisplayStatus)
+DisplayPropertiesBorders::setContralateralDisplayed(const int32_t browserTabIndex,
+                                                    const bool contralateralDisplayStatus)
 {
-    this->contralateralDisplayStatus = contralateralDisplayStatus;
+    CaretAssertArrayIndex(this->displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    this->contralateralDisplayStatus[browserTabIndex] = contralateralDisplayStatus;
 }
+
+/**
+ * Get the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ */
+DisplayGroupEnum::Enum 
+DisplayPropertiesBorders::getDisplayGroup(const int32_t browserTabIndex) const
+{
+    CaretAssertArrayIndex(this->displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    return this->displayGroup[browserTabIndex];
+}
+
+/**
+ * Set the display group for a given browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param displayGroup
+ *    New value for display group.
+ */
+void 
+DisplayPropertiesBorders::setDisplayGroup(const int32_t browserTabIndex,
+                                          const DisplayGroupEnum::Enum  displayGroup)
+{
+    CaretAssertArrayIndex(this->displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    this->displayGroup[browserTabIndex] = displayGroup;
+}
+
+

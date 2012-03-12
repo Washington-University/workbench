@@ -39,6 +39,7 @@
 
 #include <QDockWidget>
 
+#include "DisplayGroupEnum.h"
 #include "EventListenerInterface.h"
 
 class QCheckBox;
@@ -48,6 +49,7 @@ namespace caret {
 
     class ClassAndNameHierarchySelectedItem;
     class ClassAndNameHierarchyViewController;
+    class DisplayGroupEnumComboBox;
     
     class BrainBrowserSelectionToolBox : public QDockWidget, public EventListenerInterface {
         
@@ -67,6 +69,8 @@ namespace caret {
         void processBorderSelectionChanges();
         
         void processSelectionChanges();
+        
+        void borderDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
     private:
         BrainBrowserSelectionToolBox(const BrainBrowserSelectionToolBox&);
@@ -93,6 +97,8 @@ namespace caret {
         
         QCheckBox* bordersDisplayCheckBox;
         QCheckBox* bordersContralateralCheckBox;
+        
+        DisplayGroupEnumComboBox* bordersDisplayGroupComboBox;
     };
     
 #ifdef __BRAIN_BROWSER_SELECTION_TOOL_BOX_DECLARE__

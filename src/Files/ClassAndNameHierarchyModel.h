@@ -34,17 +34,99 @@
  */
 /*LICENSE_END*/
 
+#include <deque>
 #include <map>
 
 #include "CaretObject.h"
 
+#include "DisplayGroupEnum.h"
 
 namespace caret {
 
     class BorderFile;
-    class GiftiLabelTable;
     
     class ClassAndNameHierarchyModel : public CaretObject {
+    public:
+        /* ==================== Member classes ========================================
+         *
+         * Need to declare these member classes here.  Otherwise, the compiler will
+         * have problems when these classes are used in templates as members of
+         * the encapsulating class.
+         */
+        
+        class NameDisplayGroupSelector  : public CaretObject{
+        public:
+            NameDisplayGroupSelector(const AString& name,
+                                     const int32_t key);
+            
+            ~NameDisplayGroupSelector();
+            
+            AString getName() const;
+            
+            int32_t getKey() const;
+            
+            bool isSelected(const DisplayGroupEnum::Enum displayGroup) const;
+            
+            void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                             const bool status);
+            
+            void clearCounter();
+            
+            void incrementCounter();
+            
+            int32_t getCounter() const;
+            
+        private:
+            /** Name of an item (border, focus, etc) */
+            AString name;
+            
+            /** Key for quickly locating item */
+            int32_t key;
+            
+            /** Selection for each display group */
+            bool selected[DisplayGroupEnum::NUMBER_OF_GROUPS];
+            
+            /** Counter for tracking usage of item */
+            int32_t counter;
+        };
+        
+        class ClassDisplayGroupSelector : public NameDisplayGroupSelector {
+        public:
+            ClassDisplayGroupSelector(const AString& name,
+                                      const int32_t key);
+            
+            ~ClassDisplayGroupSelector();
+            
+            void clear();
+            
+            int32_t addName(const AString& name);
+            
+            void setAllSelected(const bool status);
+            
+            std::vector<int32_t> getAllNameKeysSortedByName() const;
+            
+            NameDisplayGroupSelector* getNameSelector(const int32_t nameKey);
+            
+            const NameDisplayGroupSelector* getNameSelector(const int32_t nameKey) const;
+            
+            NameDisplayGroupSelector* getNameSelector(const AString& name);
+            
+            int32_t getNumberOfNamesWithCountersGreaterThanZero() const;
+            
+            void clearAllNameCounters();
+            
+            void removeNamesWithCountersEqualZero();
+            
+        private:
+            /** If keys are removed, they are stored here for future reuse. */
+            std::deque<int32_t> availableNameKeys;
+            
+            /** Indexes name information by name key.  Vector provides fast access by key. */
+            std::vector<NameDisplayGroupSelector*> keyToNameSelectorVector;
+            
+            /** Maps a name to its name information.  Map is fastest way to search by name.   */
+            std::map<AString, NameDisplayGroupSelector*> nameToNameSelectorMap;
+        };
         
     public:
         ClassAndNameHierarchyModel();
@@ -54,14 +136,6 @@ namespace caret {
         void clear();
         
         void removeUnusedNamesAndClasses(BorderFile* borderFile);
-        
-        GiftiLabelTable* getClassLabelTable();
-        
-        const GiftiLabelTable* getClassLabelTable() const;
-        
-        GiftiLabelTable* getNameLabelTableForClass(const int32_t classKey);
-        
-        const GiftiLabelTable* getNameLabelTableForClass(const int32_t classKey) const;
         
         bool isClassValid(const int32_t classKey) const;
         
@@ -73,32 +147,63 @@ namespace caret {
         
         AString getName() const;
         
-        bool isSelected() const;
+        bool isSelected(const DisplayGroupEnum::Enum displayGroup) const;
         
-        void setSelected(const bool selectionStatus);
+        void setSelected(const DisplayGroupEnum::Enum displayGroup,
+                         const bool selectionStatus);
+        
+        std::vector<int32_t> getAllClassKeysSortedByName() const;
+        
+        ClassDisplayGroupSelector* getClassSelectorForClassName(const AString& className);
+        
+        const ClassDisplayGroupSelector* getClassSelectorForClassName(const AString& className) const;
+        
+        ClassDisplayGroupSelector* getClassSelectorForClassKey(const int32_t classKey);
+        
+        const ClassDisplayGroupSelector* getClassSelectorForClassKey(const int32_t classKey) const;
+        
+        void addName(const AString& parentClassName,
+                     const AString& name,
+                     int32_t& parentClassKeyOut,
+                     int32_t& nameKeyOut);
+        
+        bool isClassSelected(DisplayGroupEnum::Enum displayGroup,
+                             const int32_t classKey) const;
+        
+        void setClassSelected(DisplayGroupEnum::Enum displayGroup,
+                              const int32_t classKey,
+                              const bool selected);
+        
+        bool isNameSelected(DisplayGroupEnum::Enum displayGroup,
+                            const int32_t parentClassKey,
+                            const int32_t nameKey) const;
+
+        void setNameSelected(DisplayGroupEnum::Enum displayGroup,
+                             const int32_t parentClassKey,
+                             const int32_t nameKey,
+                             const bool selected);
         
     private:
         ClassAndNameHierarchyModel(const ClassAndNameHierarchyModel&);
 
         ClassAndNameHierarchyModel& operator=(const ClassAndNameHierarchyModel&);
         
-        void clearPrivate(const bool isDestruction);
-        
-        GiftiLabelTable* classLabelTable;
-        
-        /**
-         * Maps a class key to a label table.
-         * The label table contains names that are members of the class.
-         * Using this map allows an identical name to be a member of multiple classes
-         * but keeps the selection status for each name independent. 
-         */
-        std::map<int32_t, GiftiLabelTable*> classKeyToChildNamesMap;
-        
         /** Name of model, does NOT get cleared. */
         AString name;
         
         /* overlay selection status */
-        bool selectionStatus;
+        bool selectionStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
+        
+        /** If keys are removed, they are stored here for future reuse. */
+        std::deque<int32_t> availableClassKeys;
+        
+        /** Holds class and its names, indexed by class key.  Vector provides fast access by key. */
+        std::vector<ClassDisplayGroupSelector*> keyToClassNameSelectorVector;
+        
+        /** Maps a class name to its class selector.  Map is fastest way to search by name.  */
+        std::map<AString, ClassDisplayGroupSelector*> classNameToClassSelectorMap;
+        
+        
     };
     
 #ifdef __CLASS_AND_NAME_HIERARCHY_MODEL_DECLARE__

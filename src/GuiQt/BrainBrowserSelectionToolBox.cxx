@@ -48,14 +48,17 @@
 
 #include "BorderFile.h"
 #include "Brain.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
 #include "ClassAndNameHierarchyViewController.h"
+#include "DisplayGroupEnumComboBox.h"
 #include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventToolBoxSelectionDisplay.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 
 using namespace caret;
@@ -100,14 +103,15 @@ BrainBrowserSelectionToolBox::BrainBrowserSelectionToolBox(const int32_t browser
     //this->setTitleBarWidget(NULL);
     
     /*
-     * Listen for events sent to this selection toolbox
-     */
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY);    
-
-    /*
      * Track each toolbox created
      */
     BrainBrowserSelectionToolBox::allSelectionToolBoxes.insert(this);    
+
+    /*
+     * Listen for events sent to this selection toolbox
+     */
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_SELECTION_DISPLAY);    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -127,15 +131,15 @@ BrainBrowserSelectionToolBox::~BrainBrowserSelectionToolBox()
 QWidget* 
 BrainBrowserSelectionToolBox::createBorderSelectionWidget()
 {
-    QLabel* yokeLabel = new QLabel("Yoking");
-    QComboBox* yokeComboBox = new QComboBox();
-    yokeComboBox->addItem("Group A");
-    yokeComboBox->addItem("Group B");
-    yokeComboBox->addItem("OFF");
-    QHBoxLayout* yokeLayout = new QHBoxLayout();
-    yokeLayout->addWidget(yokeLabel);
-    yokeLayout->addWidget(yokeComboBox);
-    yokeLayout->addStretch(); 
+    QLabel* groupLabel = new QLabel("Group");
+    this->bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox();
+    QObject::connect(this->bordersDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
+                     this, SLOT(borderDisplayGroupSelected(const DisplayGroupEnum::Enum)));
+    
+    QHBoxLayout* groupLayout = new QHBoxLayout();
+    groupLayout->addWidget(groupLabel);
+    groupLayout->addWidget(this->bordersDisplayGroupComboBox->getWidget());
+    groupLayout->addStretch(); 
     
     this->bordersContralateralCheckBox = new QCheckBox("Contralateral");
     QObject::connect(this->bordersContralateralCheckBox, SIGNAL(clicked(bool)),
@@ -145,7 +149,7 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     QObject::connect(this->bordersDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processBorderSelectionChanges()));
     
-    this->borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController();
+    this->borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(this->browserWindowIndex);
     QObject::connect(this->borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
                      this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
 
@@ -154,10 +158,38 @@ BrainBrowserSelectionToolBox::createBorderSelectionWidget()
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(this->bordersDisplayCheckBox);  
     layout->addWidget(this->bordersContralateralCheckBox);  
-    layout->addLayout(yokeLayout);  
+    layout->addLayout(groupLayout);  
     layout->addWidget(this->borderClassNameHierarchyViewController);  
     
     return w;
+}
+
+/**
+ * Called when the border display group combo box is changed.
+ */
+void 
+BrainBrowserSelectionToolBox::borderDisplayGroupSelected(const DisplayGroupEnum::Enum displayGroup)
+{
+    /*
+     * Update selected display group in model.
+     */
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
+    dsb->setDisplayGroup(browserTabIndex,
+                         displayGroup);
+    
+    /*
+     * Since display group has changed, need to update controls
+     */
+    this->updateSelectionToolBox();
+    
+    /*
+     * Apply the changes.
+     */
+    this->processBorderSelectionChanges();
 }
 
 /**
@@ -177,13 +209,18 @@ BrainBrowserSelectionToolBox::bordersSelectionsChanged(ClassAndNameHierarchySele
 void 
 BrainBrowserSelectionToolBox::updateBorderSelectionWidget()
 {
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
     this->setWindowTitle("Borders");
     
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
     
-    this->bordersDisplayCheckBox->setChecked(dsb->isDisplayed());
-    this->bordersContralateralCheckBox->setChecked(dsb->isContralateralDisplayed());
+    this->bordersDisplayCheckBox->setChecked(dsb->isDisplayed(browserTabIndex));
+    this->bordersContralateralCheckBox->setChecked(dsb->isContralateralDisplayed(browserTabIndex));
+    this->bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroup(browserTabIndex));
     
     /*;
      * Get all of border files.
@@ -237,10 +274,18 @@ BrainBrowserSelectionToolBox::updateOtherSelectionToolBoxes()
 void 
 BrainBrowserSelectionToolBox::processBorderSelectionChanges()
 {
+    BrowserTabContent* browserTabContent = 
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    dsb->setDisplayed(this->bordersDisplayCheckBox->isChecked());
-    dsb->setContralateralDisplayed(this->bordersContralateralCheckBox->isChecked());
+    dsb->setDisplayed(browserTabIndex,
+                      this->bordersDisplayCheckBox->isChecked());
+    dsb->setContralateralDisplayed(browserTabIndex,
+                                   this->bordersContralateralCheckBox->isChecked());
+    dsb->setDisplayGroup(browserTabIndex, 
+                         this->bordersDisplayGroupComboBox->getSelectedDisplayGroup());
+    
     
     this->processSelectionChanges();
 }
@@ -290,4 +335,11 @@ BrainBrowserSelectionToolBox::receiveEvent(Event* event)
             tbEvent->setEventProcessed();
         }
     }
+   else if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+       EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+       CaretAssert(uiEvent);
+              
+       this->updateSelectionToolBox();
+       event->setEventProcessed();
+   }
 }

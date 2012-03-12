@@ -91,7 +91,7 @@ DisplayGroupEnum::initialize()
 
     enumData.push_back(DisplayGroupEnum(DISPLAY_ALL_WINDOWS, 
                                         "DISPLAY_ALL_WINDOWS", 
-                                        ""));
+                                        "All Windows"));
     
     enumData.push_back(DisplayGroupEnum(DISPLAY_GROUP_A, 
                                         "DISPLAY_GROUP_A", 

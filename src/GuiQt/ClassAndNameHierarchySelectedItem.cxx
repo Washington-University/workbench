@@ -37,7 +37,7 @@
 #undef __CLASS_AND_NAME_HIERARCHY_SELECTED_ITEM_DECLARE__
 
 #include "BorderFile.h"
-#include "GiftiLabel.h"
+#include "CaretAssert.h"
 
 using namespace caret;
 
@@ -49,27 +49,60 @@ using namespace caret;
  */
 
 /**
- * Constructor.
- * @param itemType 
- *     The type of the itemData.
- * @param itemData
- *     Pointer to the item corresponding to itemType.
+ * Constructor for ClassAndNameHierarchyModel
+ * @param classAndNameHierarchyModel
+ *   The class name hierarchy model.
  */
-ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(const ItemType itemType,
-                                                                     void* itemData)
-: CaretObject()
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel* classAndNameHierarchyModel)
 {
-    this->itemType = itemType;
-    this->itemData = itemData;
+    this->initialize(ITEM_TYPE_HIERARCHY_MODEL);
+    this->classAndNameHierarchyModel = classAndNameHierarchyModel;
 }
+
+/**
+ * Constructor for ClassDisplayGroupSelector
+ * @param classDisplayGroupSelector
+ *   The class display group selector.
+ */
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classDisplayGroupSelector)
+{
+    this->initialize(ITEM_TYPE_CLASS);
+    this->classDisplayGroupSelector = classDisplayGroupSelector;    
+}
+
+/**
+ * Constructor for NameDisplayGroupSelector
+ * @param nameDisplayGroupSelector
+ *   The name display group selector.
+ */
+ClassAndNameHierarchySelectedItem::ClassAndNameHierarchySelectedItem(ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameDisplayGroupSelector)
+{
+    this->initialize(ITEM_TYPE_NAME);
+    this->nameDisplayGroupSelector = nameDisplayGroupSelector;
+}
+
 
 /**
  * Destructor.
  */
 ClassAndNameHierarchySelectedItem::~ClassAndNameHierarchySelectedItem()
 {
-    
 }
+
+/**
+ * Initialize this instance.
+ * @param itemType
+ *    Type of item contained in this instance.
+ */
+void 
+ClassAndNameHierarchySelectedItem::initialize(const ItemType itemType)
+{
+    this->itemType = itemType;
+    this->classAndNameHierarchyModel = NULL;
+    this->classDisplayGroupSelector  = NULL;
+    this->nameDisplayGroupSelector   = NULL;
+}
+
 
 /**
  * @return ItemType of the selected item.
@@ -81,40 +114,35 @@ ClassAndNameHierarchySelectedItem::getItemType() const
 }
 
 /**
- * @return Border file that was selected.  NULL if item
- * type is not a border file.
+ * @return The class name and hierarchy model.  NULL
+ * if this instance contains another type of data.
  */
 ClassAndNameHierarchyModel* 
-ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel() const
+ClassAndNameHierarchySelectedItem::getClassAndNameHierarchyModel()
 {
-    ClassAndNameHierarchyModel* hierarchyModel = NULL;
-    switch (this->itemType) {
-        case ITEM_TYPE_HIERARCHY_MODEL:
-            hierarchyModel = (ClassAndNameHierarchyModel*)this->itemData;
-            break;
-        case ITEM_TYPE_CLASS:
-            break;
-        case ITEM_TYPE_NAME:
-            break;
-    }
-    return hierarchyModel;
+    CaretAssert(this->itemType == ITEM_TYPE_HIERARCHY_MODEL);
+    return this->classAndNameHierarchyModel;
 }
 
 /**
- * @return Gifti Label that was selected.  NULL if item
- * type is not a Gifti Label.
+ * @return The class name and hierarchy model.  NULL
+ * if this instance contains another type of data.
  */
-GiftiLabel* 
-ClassAndNameHierarchySelectedItem::getDataAsGiftiLabel() const
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector* 
+ClassAndNameHierarchySelectedItem::getClassDisplayGroupSelector()
 {
-    GiftiLabel* giftiLabel = NULL;
-    switch (this->itemType) {
-        case ITEM_TYPE_HIERARCHY_MODEL:
-            break;
-        case ITEM_TYPE_CLASS:
-        case ITEM_TYPE_NAME:
-            giftiLabel = (GiftiLabel*)this->itemData;
-            break;
-    }
-    return giftiLabel;
+    CaretAssert(this->itemType == ITEM_TYPE_CLASS);
+    return this->classDisplayGroupSelector;
 }
+
+/**
+ * @return The class name and hierarchy model.  NULL
+ * if this instance contains another type of data.
+ */
+ClassAndNameHierarchyModel::NameDisplayGroupSelector* 
+ClassAndNameHierarchySelectedItem::getNameDisplayGroupSelector()
+{
+    CaretAssert(this->itemType == ITEM_TYPE_NAME);
+    return this->nameDisplayGroupSelector;
+}
+

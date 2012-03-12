@@ -61,6 +61,7 @@
 #include "ClassAndNameHierarchyModel.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
+#include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -1436,21 +1437,22 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
 
     Brain* brain = surface->getBrainStructure()->getBrain();
     const DisplayPropertiesBorders* borderDisplayProperties = brain->getDisplayPropertiesBorders();
-    if (borderDisplayProperties->isDisplayed() == false) {
+    if (borderDisplayProperties->isDisplayed(this->windowTabIndex) == false) {
         return;
     }
     
-    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed();
+    const DisplayGroupEnum::Enum displayGroup = borderDisplayProperties->getDisplayGroup(this->windowTabIndex);
+    
+    const bool isContralateralEnabled = borderDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
     const int32_t numBorderFiles = brain->getNumberOfBorderFiles();
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
 
         const ClassAndNameHierarchyModel* classAndNameSelection = borderFile->getClassAndNameHierarchyModel();
-        if (classAndNameSelection->isSelected() == false) {
+        if (classAndNameSelection->isSelected(displayGroup) == false) {
             continue;
         }
         
-        const GiftiLabelTable* classSelectionTable = classAndNameSelection->getClassLabelTable();
         const GiftiLabelTable* classColorTable = borderFile->getClassColorTable();
         
         const int32_t numBorders = borderFile->getNumberOfBorders();
@@ -1458,17 +1460,13 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         for (int32_t j = 0; j < numBorders; j++) {
             Border* border = borderFile->getBorder(j);
             const int32_t selectionClassKey = border->getSelectionClassKey();
-            const GiftiLabel* selectionClassLabel = classSelectionTable->getLabel(selectionClassKey);
-            CaretAssert(selectionClassLabel);
-            if (selectionClassLabel->isSelected() == false) {
+            const int32_t selectionNameKey  = border->getSelectionNameKey();
+            if (classAndNameSelection->isClassSelected(displayGroup, selectionClassKey) == false) {
                 continue;
             }
-
-            const GiftiLabelTable* nameLabelTable = classAndNameSelection->getNameLabelTableForClass(selectionClassKey);
-            const int32_t selectionNameKey  = border->getSelectionNameKey();
-            const GiftiLabel* selectionNameLabel = nameLabelTable->getLabel(selectionNameKey);
-            CaretAssert(selectionNameLabel);
-            if (selectionNameLabel->isSelected() == false) {
+            if (classAndNameSelection->isNameSelected(displayGroup, 
+                                                      selectionClassKey, 
+                                                      selectionNameKey) == false) {
                 continue;
             }
             

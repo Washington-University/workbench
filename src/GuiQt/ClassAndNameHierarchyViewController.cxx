@@ -40,10 +40,14 @@
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
+#include "Brain.h"
 #include "BorderFile.h"
+#include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
+#include "DisplayPropertiesBorders.h"
+#include "GuiManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "WuQtUtilities.h"
@@ -65,9 +69,11 @@ using namespace caret;
  * @param parent
  *    Parent widget.
  */
-ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(QWidget* parent)
+ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const int32_t browserWindowIndex,
+                                                                         QWidget* parent)
 : QWidget(parent)
 {
+    this->browserWindowIndex = browserWindowIndex;
     this->treeWidget = new QTreeWidget();
     this->treeWidget->setColumnCount(1);
     QObject::connect(this->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
@@ -100,20 +106,33 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
     
     const bool isSelected = (item->checkState(0) == Qt::Checked);
     
+    BrowserTabContent* browserTabContent = 
+       GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    
     switch (selectionInfo->getItemType()) {
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
         {
             ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
             CaretAssert(hierarchyModel);
-            hierarchyModel->setSelected(isSelected);
+            hierarchyModel->setSelected(displayGroup,
+                                        isSelected);
         }
             break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
+        {
+            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            classSelector->setSelected(displayGroup,
+                                      isSelected);
+        }
+            break;
         case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
         {
-            GiftiLabel* giftiLabel = selectionInfo->getDataAsGiftiLabel();
-            CaretAssert(giftiLabel);
-            giftiLabel->setSelected(isSelected);
+            ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = selectionInfo->getNameDisplayGroupSelector();
+            nameSelector->setSelected(displayGroup,
+                                      isSelected);
         }
             break;
     }
@@ -176,45 +195,48 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
     this->treeWidget->clear();
     this->deleteItemSelectionInfo();
     
+    BrowserTabContent* browserTabContent = 
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    
     /*
      * Loop through the models.
      */
     const int32_t numberOfModels = static_cast<int32_t>(this->classAndNameHierarchyModels.size());
     for (int32_t iModel = 0; iModel < numberOfModels; iModel++) {
-        const ClassAndNameHierarchyModel* classNamesModel = this->classAndNameHierarchyModels[iModel];
+        ClassAndNameHierarchyModel* classNamesModel = this->classAndNameHierarchyModels[iModel];
         
         QList<QTreeWidgetItem*> classTreeWidgets;
         
         /*
          * Loop through each class
          */
-        const GiftiLabelTable* classTable = classNamesModel->getClassLabelTable();
-        const std::vector<int32_t> classKeys = classTable->getLabelKeysSortedByName();
-        for (std::vector<int32_t>::const_iterator classIter = classKeys.begin();
-             classIter != classKeys.end();
+        const std::vector<int32_t> classKeysVector = classNamesModel->getAllClassKeysSortedByName();
+        for (std::vector<int32_t>::const_iterator classIter = classKeysVector.begin();
+             classIter != classKeysVector.end();
              classIter++) {
             const int32_t classKey = *classIter;
-            const GiftiLabel* classLabel = classTable->getLabel(classKey);
-            CaretAssert(classLabel);
+            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = classNamesModel->getClassSelectorForClassKey(classKey);
+            CaretAssert(classSelector);
                 
             /*
              * Names in the model
              */
             QList<QTreeWidgetItem*> nameTreeWidgets;
-            const GiftiLabelTable* namesTable = classNamesModel->getNameLabelTableForClass(classKey);
-            const std::vector<int32_t> nameKeys = namesTable->getLabelKeysSortedByName();
-            for (std::vector<int32_t>::const_iterator nameIter = nameKeys.begin();
-                 nameIter != nameKeys.end();
+            const std::vector<int32_t> nameKeysVector = classSelector->getAllNameKeysSortedByName();
+            for (std::vector<int32_t>::const_iterator nameIter = nameKeysVector.begin();
+                 nameIter != nameKeysVector.end();
                  nameIter++) {
                 const int32_t nameKey = *nameIter;
-                const GiftiLabel* nameLabel = namesTable->getLabel(nameKey);
-                CaretAssert(nameLabel);
-                if (nameLabel->getCount() > 0) {
+                ClassAndNameHierarchyModel::NameDisplayGroupSelector* nameSelector = classSelector->getNameSelector(nameKey);
+                CaretAssert(nameSelector);
+                if (nameSelector->getCounter() > 0) {
                     ClassAndNameHierarchySelectedItem* nameInfo = 
-                    new ClassAndNameHierarchySelectedItem(ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME,
-                                                           (void*)nameLabel);
-                    QTreeWidgetItem* nameItem = this->createTreeWidgetItem(nameLabel->getName(),
-                                                                           nameLabel->isSelected(),
+                    new ClassAndNameHierarchySelectedItem(nameSelector);
+                    QTreeWidgetItem* nameItem = this->createTreeWidgetItem(nameSelector->getName(),
+                                                                           nameSelector->isSelected(displayGroup),
                                                                            nameInfo);
                     nameTreeWidgets.append(nameItem);
                 }
@@ -228,10 +250,9 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                  * Item for class
                  */
                 ClassAndNameHierarchySelectedItem* classInfo = 
-                   new ClassAndNameHierarchySelectedItem(ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS,
-                                                       (void*)classLabel);
-                QTreeWidgetItem* classItem = this->createTreeWidgetItem(classLabel->getName(),
-                                                                        classLabel->isSelected(),
+                   new ClassAndNameHierarchySelectedItem(classSelector);
+                QTreeWidgetItem* classItem = this->createTreeWidgetItem(classSelector->getName(),
+                                                                        classSelector->isSelected(displayGroup),
                                                                         classInfo);
                 classItem->addChildren(nameTreeWidgets);
                 
@@ -244,8 +265,7 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
          */
         if (classTreeWidgets.empty() == false) {
             ClassAndNameHierarchySelectedItem* modelInfo = 
-               new ClassAndNameHierarchySelectedItem(ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL,
-                                                       (void*)classNamesModel);
+               new ClassAndNameHierarchySelectedItem(classNamesModel);
             QTreeWidgetItem* modelItem = this->createTreeWidgetItem(classNamesModel->getName(), 
                                                                     true, 
                                                                     modelInfo);

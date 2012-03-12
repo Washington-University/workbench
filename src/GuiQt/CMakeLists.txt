@@ -40,6 +40,7 @@ ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
+DisplayGroupEnumComboBox.h
 GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -95,6 +96,7 @@ ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
+DisplayGroupEnumComboBox.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
@@ -159,6 +161,7 @@ ConnectivityLoaderControl.cxx
 ConnectomeDBBrowserWindow.cxx
 DisplayControlDialog.cxx
 DisplayControlVolumeSurfaceOutlinePage.cxx
+DisplayGroupEnumComboBox.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx

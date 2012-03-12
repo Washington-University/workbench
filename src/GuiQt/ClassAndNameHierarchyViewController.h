@@ -55,7 +55,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ClassAndNameHierarchyViewController(QWidget* parent = 0);
+        ClassAndNameHierarchyViewController(const int32_t browserWindowIndex,
+                                            QWidget* parent = 0);
         
         virtual ~ClassAndNameHierarchyViewController();
         
@@ -87,6 +88,8 @@ namespace caret {
         QTreeWidget* treeWidget;
         
         std::vector<ClassAndNameHierarchySelectedItem*> itemSelectionInfo;
+
+        int32_t browserWindowIndex;
     };
         
 #ifdef __CLASS_AND_NAME_HIERARCHY_VIEW_CONTROLLER_DECLARE__
