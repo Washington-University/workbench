@@ -210,7 +210,11 @@ void
 BrainBrowserSelectionToolBox::updateBorderSelectionWidget()
 {
     BrowserTabContent* browserTabContent = 
-    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     
     this->setWindowTitle("Borders");
