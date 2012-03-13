@@ -67,22 +67,21 @@ TimeCourseDialog::~TimeCourseDialog()
 void TimeCourseDialog::addTimeLine(TimeLine &tl)
 {    
     tlV.push_back(tl);
+    //readjust x values to account for timestep
+    for(int j = 0;j<tlV.last().x.size();j++)
+    {
+        tlV.last().x[j] = startOffset + tlV.last().timeStep*(double)j;
+    }
 }
 
 void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
 {
     for(int i = 0;i<tlVIn.size();i++)
     {
-        tlV.push_back(tlVIn[i]);
+        this->addTimeLine(tlV[i]);
     }
-    //readjust x values to account for timestep
-    for(int i =0;i<tlV.size();i++)
-    {        
-        for(int j = 0;j<tlV[i].x.size();j++)
-        {
-            tlV[i].x[j] = startOffset + tlV[i].timeStep*(double)j;
-        }
-    }
+    
+    
 
 }
 
