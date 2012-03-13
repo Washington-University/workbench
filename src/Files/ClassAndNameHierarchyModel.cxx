@@ -144,19 +144,27 @@ ClassAndNameHierarchyModel::setAllSelected(const bool status)
  * that the class or names is valid.  Plus, color
  * components are associated with classes and
  * thus they must not be deleted.
+ *
+ * @param borderFile
+ *    The border file from which classes and names are from.
+ * @parm forceUpdate
+ *    If true, force an update.
  */
 void 
-ClassAndNameHierarchyModel::update(BorderFile* borderFile)
+ClassAndNameHierarchyModel::update(BorderFile* borderFile,
+                                   const bool forceUpdate)
 {
-    bool needToGenerateKeys = false;
+    bool needToGenerateKeys = forceUpdate;
     
     this->name = borderFile->getFileNameNoPath();
-    
+
     const int32_t numBorders = borderFile->getNumberOfBorders();
-    for (int32_t i = 0; i < numBorders; i++) {
-        const Border* border = borderFile->getBorder(i);
-        if (border->isSelectionClassOrNameModified()) {
-            needToGenerateKeys = true;
+    if (needToGenerateKeys == false) {
+        for (int32_t i = 0; i < numBorders; i++) {
+            const Border* border = borderFile->getBorder(i);
+            if (border->isSelectionClassOrNameModified()) {
+                needToGenerateKeys = true;
+            }
         }
     }
     
@@ -230,7 +238,8 @@ ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(BorderFile* borderFile)
     /*
      * Update with latest data.
      */ 
-    this->update(borderFile);
+    this->update(borderFile,
+                 true);
     
     /*
      * Remove unused classes.

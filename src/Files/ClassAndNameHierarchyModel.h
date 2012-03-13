@@ -141,7 +141,8 @@ namespace caret {
         
         void setAllSelected(const bool status);
         
-        void update(BorderFile* borderFile);
+        void update(BorderFile* borderFile,
+                    const bool forceUpdate);
         
         AString toString() const;
         

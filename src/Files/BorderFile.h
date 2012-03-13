@@ -116,7 +116,11 @@ namespace caret {
         /** Holds colors assigned to classes */
         GiftiLabelTable* classColorTable;
         
+        /** Holds class and name hierarchy used for display selection */
         mutable ClassAndNameHierarchyModel* classNameHierarchy;
+        
+        /** force an update of the class and name hierarchy */
+        bool forceUpdateOfClassAndNameHierarchy;
         
         /** Version of this BorderFile */
         static const float borderFileVersion;

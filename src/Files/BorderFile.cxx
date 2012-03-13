@@ -89,6 +89,7 @@ BorderFile::initializeBorderFile()
     this->classColorTable = new GiftiLabelTable();
     this->classNameHierarchy = new ClassAndNameHierarchyModel();
     this->metadata = new GiftiMetaData();
+    this->forceUpdateOfClassAndNameHierarchy = true;
 }
 
 /**
@@ -141,6 +142,7 @@ BorderFile::copyHelperBorderFile(const BorderFile& obj)
     for (int32_t i = 0; i < numBorders; i++) {
         this->borders.push_back(new Border(*obj.getBorder(i)));
     }
+    this->forceUpdateOfClassAndNameHierarchy = true;
     
     this->setModified();
 }
@@ -338,6 +340,7 @@ BorderFile::addBorder(Border* border)
             this->classColorTable->addLabel(className, 0.0f, 0.0f, 0.0f, 0.0f);
         }
     }
+    this->forceUpdateOfClassAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -353,6 +356,7 @@ BorderFile::removeBorder(const int32_t indx)
     Border* border = this->getBorder(indx);
     this->borders.erase(this->borders.begin() + indx);
     delete border;
+    this->forceUpdateOfClassAndNameHierarchy = true;
     this->setModified();
 }
 
@@ -381,7 +385,10 @@ BorderFile::removeBorder(Border* border)
 ClassAndNameHierarchyModel* 
 BorderFile::getClassAndNameHierarchyModel()
 {
-    this->classNameHierarchy->update(this);
+    this->classNameHierarchy->update(this,
+                                     this->forceUpdateOfClassAndNameHierarchy);
+    this->forceUpdateOfClassAndNameHierarchy = false;
+    
     return this->classNameHierarchy;
 }
 
@@ -464,7 +471,9 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     
     this->setFileName(filename);
     
-    this->classNameHierarchy->update(this);
+    this->classNameHierarchy->update(this,
+                                     true);
+    this->forceUpdateOfClassAndNameHierarchy = false;
     this->classNameHierarchy->setAllSelected(true);
     
     std::cout << "CLASS/NAME Table for : "
