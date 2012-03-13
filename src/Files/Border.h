@@ -81,6 +81,8 @@ namespace caret {
                        const int32_t startPointIndex = -1,
                        const int32_t pointCount = -1);
         
+        void addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile);
+        
         void removeAllPoints();
         
         void removePoint(const int32_t indx);

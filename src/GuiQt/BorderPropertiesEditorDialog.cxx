@@ -78,10 +78,13 @@ using namespace caret;
  */
 BorderPropertiesEditorDialog*
 BorderPropertiesEditorDialog::newInstanceFinishBorder(Border* border,
+                                                      SurfaceFile* surfaceFile,
                                                       QWidget* parent)
 {
+    CaretAssert(surfaceFile);
     BorderPropertiesEditorDialog* dialog =
     new BorderPropertiesEditorDialog("Finish Border",
+                                     surfaceFile,
                                      BorderPropertiesEditorDialog::MODE_FINISH_DRAWING,
                                      NULL,
                                      border,
@@ -110,6 +113,7 @@ BorderPropertiesEditorDialog::newInstanceEditBorder(BorderFile* editModeBorderFi
 {
     BorderPropertiesEditorDialog* dialog =
     new BorderPropertiesEditorDialog("Edit Border Properties",
+                                     NULL,
                                      BorderPropertiesEditorDialog::MODE_EDIT,
                                      editModeBorderFile,
                                      border,
@@ -121,6 +125,7 @@ BorderPropertiesEditorDialog::newInstanceEditBorder(BorderFile* editModeBorderFi
  * Constructor.
  */
 BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
+                                                           SurfaceFile* finishBorderSurfaceFile,
                                                            Mode mode,
                                                            BorderFile* editModeBorderFile,
                                                            Border* border,
@@ -129,6 +134,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
                  parent)
 {
     CaretAssert(border);
+    this->finishBorderSurfaceFile = finishBorderSurfaceFile;
     this->editModeBorderFile = editModeBorderFile;
     this->mode   = mode;
     this->border = border;
@@ -445,6 +451,13 @@ BorderPropertiesEditorDialog::okButtonPressed()
     borderBeingEdited->setColor(color);
     
     if (finishModeFlag) {
+        /*
+         * Close border
+         */
+        if (this->closedCheckBox->isChecked()) {
+            borderBeingEdited->addPointsToCloseBorderWithGeodesic(this->finishBorderSurfaceFile);    
+        }
+        
         /*
          * Add border to border file
          */

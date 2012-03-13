@@ -31,8 +31,13 @@
 #include <cmath>
 
 #include "CaretAssert.h"
+#include "CaretLogger.h"
+#include "CaretPointer.h"
+#include "GeodesicHelper.h"
 #include "MathFunctions.h"
+#include "SurfaceFile.h"
 #include "SurfaceProjectedItem.h"
+#include "SurfaceProjectionBarycentric.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -344,6 +349,95 @@ Border::addPoints(const Border* border,
     
     for (int32_t i = startIndex; i < endIndex; i++) {
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*border->getPoint(i));
+        this->addPoint(spi);
+    }
+}
+
+/**
+ * Add points to the border so that the last point
+ * connects to the first point.
+ */
+void 
+Border::addPointsToCloseBorderWithGeodesic(const SurfaceFile* surfaceFile)
+{
+    const int32_t numberOfPoints = this->getNumberOfPoints();
+    if (numberOfPoints < 3) {
+        return;
+    }
+    
+    /*
+     * Index of surface node nearest first border point
+     */
+    float firstBorderPointXYZ[3];
+    this->points[0]->getProjectedPosition(*surfaceFile, firstBorderPointXYZ, true);
+    const int firstNodeIndex = surfaceFile->closestNode(firstBorderPointXYZ);
+    if (firstNodeIndex < 0) {
+        return;
+    }
+    
+    /*
+     * Index of surface node nearest last border point
+     */
+    float lastBorderPointXYZ[3];
+    this->points[numberOfPoints - 1]->getProjectedPosition(*surfaceFile, lastBorderPointXYZ, true);
+    const int lastNodeIndex = surfaceFile->closestNode(lastBorderPointXYZ);
+    if (lastNodeIndex < 0) {
+        return;
+    }
+    
+    /*
+     * Geodesics from node nearest last border point
+     */
+    std::vector<int32_t> nodeParents;
+    std::vector<float> nodeDistances;
+    CaretPointer<GeodesicHelper> geoHelp = surfaceFile->getGeodesicHelper();
+    geoHelp->getGeoFromNode(lastNodeIndex,
+                            nodeDistances,
+                            nodeParents,
+                            true);
+    
+    /*
+     * Get path along border points
+     */
+    const int32_t numberOfSurfaceNodes = surfaceFile->getNumberOfNodes();
+    std::vector<int32_t> pathFromFirstNodeToLastNode;
+    int32_t geoNodeIndex = firstNodeIndex;
+    int32_t failCounter = 0;
+    while (geoNodeIndex >= 0) {
+        geoNodeIndex = nodeParents[geoNodeIndex];
+        if (geoNodeIndex == lastNodeIndex) {
+            geoNodeIndex = -1;
+        }
+        else if (geoNodeIndex >= 0) {
+            pathFromFirstNodeToLastNode.push_back(geoNodeIndex);
+        }
+        
+        failCounter ++;
+        if (failCounter > numberOfSurfaceNodes) {
+            CaretLogWarning("Geodesic path for closing border failed.");
+            pathFromFirstNodeToLastNode.clear();
+        }
+    }
+    
+    /*
+     * Add points to border.
+     */
+    const float triangleAreas[3] = { 1.0, 0.0, 0.0 };
+    const StructureEnum::Enum structure = surfaceFile->getStructure();
+    const int32_t numNewPoints = static_cast<int32_t>(pathFromFirstNodeToLastNode.size());
+    for (int32_t i = (numNewPoints - 1); i >= 0; i--) {
+        const int32_t nodeIndex = pathFromFirstNodeToLastNode[i];
+        const float* xyz = surfaceFile->getCoordinate(nodeIndex);
+        
+        SurfaceProjectedItem* spi = new SurfaceProjectedItem();
+        spi->setStereotaxicXYZ(xyz);
+        spi->setStructure(structure);
+        SurfaceProjectionBarycentric* bp = spi->getBarycentricProjection();
+        bp->setTriangleAreas(triangleAreas);
+        const int32_t triangleNodes[3] = { nodeIndex, nodeIndex, nodeIndex };
+        bp->setTriangleNodes(triangleNodes);
+        bp->setValid(true);
+        
         this->addPoint(spi);
     }
 }

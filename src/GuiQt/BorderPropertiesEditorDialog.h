@@ -39,6 +39,7 @@ namespace caret {
     class Border;
     class BorderFile;
     class CaretColorEnumSelectionControl;
+    class SurfaceFile;
     
     class BorderPropertiesEditorDialog : public WuQDialogModal {
         Q_OBJECT
@@ -46,6 +47,7 @@ namespace caret {
     public:
         static BorderPropertiesEditorDialog*
             newInstanceFinishBorder(Border* border,
+                                    SurfaceFile* surfaceFile,
                                     QWidget* parent = 0);
         
         static BorderPropertiesEditorDialog*
@@ -70,6 +72,7 @@ namespace caret {
         };
         
         BorderPropertiesEditorDialog(const QString& title,
+                                     SurfaceFile* finishBorderSurfaceFile,
                                      const Mode mode,
                                      BorderFile* editModeBorderFile,
                                      Border* border,
@@ -101,6 +104,8 @@ namespace caret {
         QCheckBox* reversePointOrderCheckBox;
         
         CaretColorEnumSelectionControl* colorSelectionControl;
+        
+        SurfaceFile* finishBorderSurfaceFile;
         
         static AString previousName;
         static BorderFile* previousBorderFile;

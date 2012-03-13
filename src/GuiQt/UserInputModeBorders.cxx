@@ -40,6 +40,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventToolBoxSelectionDisplay.h"
+#include "EventUserInterfaceUpdate.h"
 #include "EventManager.h"
 #include "GuiManager.h"
 #include "IdentificationItemBorderSurface.h"
@@ -222,6 +223,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 Border* border = idBorder->getBorder();
                                 borderFile->removeBorder(border);
                                 mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                mouseEvent->setUserInterfaceUpdateRequested();
                             }
                         }
                         break;
@@ -240,6 +242,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                                                                                 openGLWidget));
                                 if (editBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
                                     mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                                    mouseEvent->setUserInterfaceUpdateRequested();
                                 }
                             }
                         }
@@ -372,6 +375,7 @@ UserInputModeBorders::drawOperationFinish()
     this->borderBeingDrawnByOpenGL->clear();
 
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
 }
 
 /**

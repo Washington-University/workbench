@@ -418,12 +418,28 @@ UserInputModeBordersWidget::drawUndoButtonClicked()
 void 
 UserInputModeBordersWidget::drawFinishButtonClicked()
 {
+    BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->inputModeBorders->windowIndex);
+    if (browserWindow == NULL) {
+        return;
+    }
+    BrowserTabContent* btc = browserWindow->getBrowserTabContent();
+    if (btc == NULL) {
+        return;
+    }
+    ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
+    if (surfaceController == NULL) {
+        return;
+    }
+    
+    Surface* surface = surfaceController->getSurface();
+    
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
         {
             std::auto_ptr<BorderPropertiesEditorDialog> finishBorderDialog(
                     BorderPropertiesEditorDialog::newInstanceFinishBorder(this->inputModeBorders->borderBeingDrawnByOpenGL,
-                                                                  this));
+                                                                          surface,
+                                                                          this));
             if (finishBorderDialog->exec() == BorderPropertiesEditorDialog::Accepted) {
                 this->inputModeBorders->drawOperationFinish();
             }
@@ -433,20 +449,6 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         case UserInputModeBorders::DRAW_OPERATION_EXTEND:
         case UserInputModeBorders::DRAW_OPERATION_REPLACE:
         {
-            BrainBrowserWindow* browserWindow = GuiManager::get()->getBrowserWindowByWindowIndex(this->inputModeBorders->windowIndex);
-            if (browserWindow == NULL) {
-                return;
-            }
-            BrowserTabContent* btc = browserWindow->getBrowserTabContent();
-            if (btc == NULL) {
-                return;
-            }
-            ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
-            if (surfaceController == NULL) {
-                return;
-            }
-            
-            Surface* surface = surfaceController->getSurface();
             Brain* brain = surfaceController->getBrain();
             
             float nearestTolerance = 15;
