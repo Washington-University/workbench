@@ -70,6 +70,8 @@ namespace caret {
         
         void sendEvent(Event* event);
         
+        void blockEvent(const EventTypeEnum::Enum eventToBlock,
+                        const bool blockStatus);
     private:
         EventManager();
         
@@ -80,7 +82,11 @@ namespace caret {
         
         EVENT_LISTENER_CONTAINER eventListeners[EventTypeEnum::EVENT_COUNT];
         
-        int64_t eventCounter;
+        /** Counter that is incremented each time an event is issued */
+        int64_t eventIssuedCounter;
+        
+        /** A counter for blocking events of each type */
+        std::vector<int64_t> eventBlockingCounter;
         
         static EventManager* singletonEventManager;
         

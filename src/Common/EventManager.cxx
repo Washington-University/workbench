@@ -44,7 +44,8 @@ using namespace caret;
  */
 EventManager::EventManager()
 {
-    this->eventCounter = 0;
+    this->eventIssuedCounter = 0;
+    this->eventBlockingCounter.resize(EventTypeEnum::EVENT_COUNT, 0);
 }
 
 /**
@@ -208,53 +209,117 @@ EventManager::removeAllEventsFromListener(EventListenerInterface* eventListener)
 void 
 EventManager::sendEvent(Event* event)
 {   
-    /*
-     * Get listeners for event.
-     */
     EventTypeEnum::Enum eventType = event->getEventType();
-    EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
+    const AString eventNumberString = AString::number(this->eventIssuedCounter);
+    const AString eventMessagePrefix = ("Event "
+                                        + eventNumberString
+                                        + ": "
+                                        + event->toString() 
+                                        + " from thread: " 
+                                        + AString::number((uint64_t)QThread::currentThread())
+                                        + " ");
     
-    const AString eventNumberString = AString::number(this->eventCounter);
-    
-    AString msg = ("Sending event "
-                   + eventNumberString
-                   + ": "
-                   + event->toString() 
-                   + " from thread: " 
-                   + AString::number((uint64_t)QThread::currentThread()));
-    CaretLogFiner(msg);
-    //std::cout << msg << std::endl;
-    
-    /*
-     * Send event to each of the listeners.
-     */
-    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
-         iter != listeners.end();
-         iter++) {
-        EventListenerInterface* listener = *iter;
+    const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
+    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
+    if (this->eventBlockingCounter[eventTypeIndex] > 0) {
+        AString msg = (eventMessagePrefix
+                       + " is blocked.  Blocking counter="
+                       + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+        CaretLogFiner(msg);
+    }
+    else {
+        /*
+         * Get listeners for event.
+         */
+        EVENT_LISTENER_CONTAINER listeners = this->eventListeners[eventType];
         
-        //std::cout << "Sending event from class "
-        //<< typeid(*listener).name()
-        //<< " for "
-        //<< EventTypeEnum::toName(eventType)
-        //<< std::endl;
+        const AString eventNumberString = AString::number(this->eventIssuedCounter);
+        
+        AString msg = (eventMessagePrefix + " SENT.");
+        CaretLogFiner(msg);
+        //std::cout << msg << std::endl;
+        
+        /*
+         * Send event to each of the listeners.
+         */
+        for (EVENT_LISTENER_CONTAINER_ITERATOR iter = listeners.begin();
+             iter != listeners.end();
+             iter++) {
+            EventListenerInterface* listener = *iter;
+            
+            //std::cout << "Sending event from class "
+            //<< typeid(*listener).name()
+            //<< " for "
+            //<< EventTypeEnum::toName(eventType)
+            //<< std::endl;
+            
+            
+            listener->receiveEvent(event);
+            
+            if (event->isError()) {
+                CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
+                break;
+            }
+        }
+        
+        /*
+         * Verify event was processed.
+         */
+        if (event->getEventProcessCount() == 0) {
+            CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
+        }
+    }    
+    
+    this->eventIssuedCounter++;
+}
 
-        
-        listener->receiveEvent(event);
-        
-        if (event->isError()) {
-            CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
-            break;
+/**
+ * Block an event.  A counter is used to track blocking of each
+ * event type.  Each time a request is made to block an event type,
+ * the counter is incremented for that event type.  When a request
+ * is made to un-block the event, the counter is decremented.  This
+ * allows multiple requests for blocking an event to come from 
+ * different sections of the source code.  Thus, anytime the
+ * blocking counter is greater than zero for an event, the event
+ * is blocked.
+ * 
+ * @param eventType
+ *    Type of event to block.
+ * @param blockStatus
+ *    Blocking status (true increments blocking counter,
+ *    false decrements blocking counter.
+ */
+void 
+EventManager::blockEvent(const EventTypeEnum::Enum eventType,
+                         const bool blockStatus)
+{
+    const int32_t eventTypeIndex = static_cast<int32_t>(eventType);
+    CaretAssertVectorIndex(this->eventBlockingCounter, eventTypeIndex);
+    
+    const AString eventName = EventTypeEnum::toName(eventType);
+    
+    if (blockStatus) {
+        this->eventBlockingCounter[eventTypeIndex]++;
+        CaretLogFiner("Blocking event "
+                      + eventName
+                      + " blocking counter is now "
+                      + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+    }
+    else {
+        if (this->eventBlockingCounter[eventTypeIndex] > 0) {
+            this->eventBlockingCounter[eventTypeIndex]--;
+            CaretLogFiner("Unblocking event "
+                          + eventName
+                          + " blocking counter is now "
+                          + AString::number(this->eventBlockingCounter[eventTypeIndex]));
+        }
+        else {
+            const AString message("Trying to unblock event "
+                                  + eventName
+                                  + " but it is not blocked");
+            CaretAssertMessage(0, message);
+            CaretLogWarning(message);
         }
     }
-    
-    /*
-     * Verify event was processed.
-     */
-    if (event->getEventProcessCount() == 0) {
-        CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
-    }
-    
-    this->eventCounter++;
 }
 
