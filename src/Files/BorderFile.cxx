@@ -476,10 +476,10 @@ BorderFile::readFile(const AString& filename) throw (DataFileException)
     this->forceUpdateOfClassAndNameHierarchy = false;
     this->classNameHierarchy->setAllSelected(true);
     
-    std::cout << "CLASS/NAME Table for : "
-              << qPrintable(this->getFileNameNoPath())
-              << std::endl;
-    std::cout << qPrintable(this->classNameHierarchy->toString()) << std::endl;
+    CaretLogFiner("CLASS/NAME Table for : "
+                  + this->getFileNameNoPath()
+                  + "\n"
+                  + this->classNameHierarchy->toString());
     
     this->clearModified();
 }

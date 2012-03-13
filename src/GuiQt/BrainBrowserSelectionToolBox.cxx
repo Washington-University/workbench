@@ -198,7 +198,7 @@ BrainBrowserSelectionToolBox::borderDisplayGroupSelected(const DisplayGroupEnum:
  * graphics.
  */
 void 
-BrainBrowserSelectionToolBox::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem)
+BrainBrowserSelectionToolBox::bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* /*selectedItem*/)
 {
     this->processBorderSelectionChanges();
 }

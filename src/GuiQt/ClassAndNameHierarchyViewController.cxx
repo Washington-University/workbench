@@ -99,7 +99,7 @@ ClassAndNameHierarchyViewController::~ClassAndNameHierarchyViewController()
  */
 void 
 ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item,
-                                                          int column)
+                                                          int /*column*/)
 {
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
     ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
