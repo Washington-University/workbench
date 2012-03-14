@@ -290,7 +290,7 @@ namespace caret {
         void updateSliceIndicesAndCoordinatesRanges();
         
     private slots:
-        void volumeIndicesResetActionTriggered();
+        void volumeIndicesOriginActionTriggered();
         void volumeIndicesParasagittalCheckBoxStateChanged(int state);
         void volumeIndicesCoronalCheckBoxStateChanged(int state);
         void volumeIndicesAxialCheckBoxStateChanged(int state);

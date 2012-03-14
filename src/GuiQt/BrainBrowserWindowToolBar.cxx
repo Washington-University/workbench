@@ -1708,13 +1708,14 @@ BrainBrowserWindowToolBar::updateWholeBrainSurfaceOptionsWidget(BrowserTabConten
 QWidget* 
 BrainBrowserWindowToolBar::createVolumeIndicesWidget()
 {
-    QAction* volumeIndicesResetToolButtonAction = WuQtUtilities::createAction("R\nE\nS\nE\nT", 
-                                                                         "Reset to the slices indices to those with stereotaxic coordinate (0, 0, 0)", 
-                                                                         this, 
-                                                                         this, 
-                                                                         SLOT(volumeIndicesResetActionTriggered()));
-    QToolButton* volumeIndicesResetToolButton = new QToolButton;
-    volumeIndicesResetToolButton->setDefaultAction(volumeIndicesResetToolButtonAction);
+    QAction* volumeIndicesOriginToolButtonAction = WuQtUtilities::createAction("O\nR\nI\nG\nI\nN", 
+                                                                              "Set the slice indices to the origin, \n"
+                                                                              "stereotaxic coordinate (0, 0, 0)", 
+                                                                              this, 
+                                                                              this, 
+                                                                              SLOT(volumeIndicesOriginActionTriggered()));
+    QToolButton* volumeIndicesOriginToolButton = new QToolButton;
+    volumeIndicesOriginToolButton->setDefaultAction(volumeIndicesOriginToolButtonAction);
     
     QLabel* parasagittalLabel = new QLabel("P:");
     QLabel* coronalLabel = new QLabel("C:");
@@ -1805,7 +1806,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     gridLayout->addWidget(this->volumeIndicesAxialSpinBox, 2, 2);
     gridLayout->addWidget(this->volumeIndicesZcoordSpinBox, 2, 3);
 
-    gridLayout->addWidget(volumeIndicesResetToolButton, 0, 4, 3, 1);
+    gridLayout->addWidget(volumeIndicesOriginToolButton, 0, 4, 3, 1);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
@@ -1814,7 +1815,7 @@ BrainBrowserWindowToolBar::createVolumeIndicesWidget()
     layout->addStretch();
     
     this->volumeIndicesWidgetGroup = new WuQWidgetObjectGroup(this);
-    this->volumeIndicesWidgetGroup->add(volumeIndicesResetToolButtonAction);
+    this->volumeIndicesWidgetGroup->add(volumeIndicesOriginToolButtonAction);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalCheckBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesParasagittalSpinBox);
     this->volumeIndicesWidgetGroup->add(this->volumeIndicesCoronalCheckBox);
@@ -3382,10 +3383,10 @@ BrainBrowserWindowToolBar::wholeBrainSurfaceSeparationCerebellumSpinBoxSelected(
 }
 
 /**
- * Called when volume indices RESET tool button is pressed.
+ * Called when volume indices ORIGIN tool button is pressed.
  */
 void
-BrainBrowserWindowToolBar::volumeIndicesResetActionTriggered()
+BrainBrowserWindowToolBar::volumeIndicesOriginActionTriggered()
 {
     CaretLogEntering();
     this->checkUpdateCounter();
