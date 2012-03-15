@@ -198,10 +198,10 @@ namespace caret {
         ///get the timestep for columns, returns false if not timeseries
         bool getColumnTimestep(float& seconds) const;
         
-        ///get the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        ///get the number of timepoints for rows, returns false if not timeseries, sets -1 if unknown number of timepoints
         bool getRowNumberOfTimepoints(int& numTimepoints) const;
         
-        ///get the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        ///get the number of timepoints for rows, returns false if not timeseries, sets -1 if unknown number of timepoints
         bool getColumnNumberOfTimepoints(int& numTimepoints) const;
         
         ///set the timestep for rows, returns false if not timeseries
@@ -210,10 +210,10 @@ namespace caret {
         ///set the timestep for columns, returns false if not timeseries
         bool setColumnTimestep(const float& seconds);
         
-        ///set the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        ///set the number of timepoints for rows, returns false if not timeseries
         bool setRowNumberOfTimepoints(const int& numTimepoints);
         
-        ///set the number of timepoints for rows, returns false if not timeseries, returns -1 if unknown number of timepoints
+        ///set the number of timepoints for rows, returns false if not timeseries
         bool setColumnNumberOfTimepoints(const int& numTimepoints);
         
         ///set rows to be brain models, and clear the list of brain models for rows

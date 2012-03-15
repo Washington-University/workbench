@@ -26,6 +26,7 @@
 #include "CommandOperationManager.h"
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
+#include "AlgorithmCiftiCreateDenseTimeseries.h"
 #include "AlgorithmCiftiSmoothing.h"
 #include "AlgorithmCreateSignedDistanceVolume.h"
 #include "AlgorithmLabelDilate.h"
@@ -94,6 +95,7 @@ CommandOperationManager::deleteCommandOperationManager()
  */
 CommandOperationManager::CommandOperationManager()
 {
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseTimeseries()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCreateSignedDistanceVolume()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmLabelDilate()));

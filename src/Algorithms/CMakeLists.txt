@@ -18,6 +18,7 @@ INCLUDE (${QT_USE_FILE})
 #
 ADD_LIBRARY(Algorithms
 AbstractAlgorithm.h
+AlgorithmCiftiCreateDenseTimeseries.h
 AlgorithmCiftiSmoothing.h
 AlgorithmCreateSignedDistanceVolume.h
 AlgorithmException.h
@@ -30,6 +31,7 @@ AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
 
 AbstractAlgorithm.cxx
+AlgorithmCiftiCreateDenseTimeseries.cxx
 AlgorithmCiftiSmoothing.cxx
 AlgorithmCreateSignedDistanceVolume.cxx
 AlgorithmException.cxx
