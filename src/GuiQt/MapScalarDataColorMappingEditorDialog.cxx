@@ -66,8 +66,8 @@
 #include "qwt_plot_histogram.h"
 #include "qwt_plot_intervalcurve.h"
 #include "qwt_plot_layout.h"
-#include "qwt_plot_magnifier.h"
-#include "qwt_plot_panner.h"
+#include "PlotMagnifier.h"
+#include "PlotPanner.h"
 
 using namespace caret;
 
@@ -501,14 +501,14 @@ MapScalarDataColorMappingEditorDialog::createHistogramSection()
     /*
      * Allow zooming
      */
-    QwtPlotMagnifier* magnifier = new QwtPlotMagnifier(this->thresholdPlot->canvas());
+    PlotMagnifier* magnifier = new PlotMagnifier(this->thresholdPlot->canvas());
     magnifier->setAxisEnabled(QwtPlot::yLeft, true);
     magnifier->setAxisEnabled(QwtPlot::yRight, true);
     
     /*
      * Allow panning
      */
-    (void)new QwtPlotPanner(this->thresholdPlot->canvas());
+    (void)new PlotPanner(this->thresholdPlot->canvas());
     
     /*
      * Auto scaling

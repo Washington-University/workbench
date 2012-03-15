@@ -47,7 +47,7 @@
 #include "ColorManager.h"
 #include "QList"
 #include <stdio.h>
-#include <QKeyEvent>
+#include "PlotMagnifier.h"
 
 
 namespace Ui {
@@ -112,29 +112,6 @@ private:
 
 
 namespace caret {
-
-class PlotMagnifier : public QwtPlotMagnifier
-{
-    Q_OBJECT
-public:
-    //void enableZoom();
-    //void disableZoom();
-    PlotMagnifier(QwtPlotCanvas * canvas = NULL);
-protected:
-    //virtual void widgetKeyPressEvent(QKeyEvent * keyEvent);
-    //virtual void widgetKeyReleaseEvent(QKeyEvent * keyEvent); 
-    virtual bool eventFilter(QObject * object,QEvent *event);
-    //virtual void widgetMousePressEvent(QMouseEvent *mouseEvent);
-    virtual void widgetWheelEvent( QWheelEvent *wheelEvent );
-    virtual void widgetMouseMoveEvent( QMouseEvent *mouseEvent );
-    virtual void widgetMousePressEvent( QMouseEvent *mouseEvent );
-    virtual void widgetMouseReleaseEvent( QMouseEvent *mouseEvent );
-private:
-    
-    bool ctrlKeyDown;
-    bool shiftKeyDown;
-};
-
 
 class PlotTC : public QwtPlot
 {

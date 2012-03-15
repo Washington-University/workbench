@@ -52,6 +52,8 @@ MultiPageDialog.h
 MultiPageDialogPage.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+PlotMagnifier.h
+PlotPanner.h
 PreferencesDialog.h
 SpecFileDialog.h
 StructureSelectionControl.h
@@ -120,6 +122,8 @@ MultiPageDialog.h
 MultiPageDialogPage.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+PlotMagnifier.h
+PlotPanner.h
 PreferencesDialog.h
 SpecFileDialog.h
 StructureSelectionControl.h
@@ -186,6 +190,8 @@ MultiPageDialogPage.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
 PreferencesDialog.cxx
+PlotMagnifier.cxx
+PlotPanner.cxx
 SpecFileDialog.cxx
 StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx

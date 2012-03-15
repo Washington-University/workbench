@@ -41,6 +41,7 @@
 #include "qwt_text.h"
 #include "qwt_math.h"
 #include "math.h"
+#include "PlotPanner.h"
 
 using namespace caret;
 
@@ -56,45 +57,10 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     isEnabled = true;
 
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
-    ui->verticalLayout_4->insertWidget(0,plot,100);
-    //this->installEventFilter(this);
+    ui->verticalLayout_4->insertWidget(0,plot,100);    
 }
 
-/*bool TimeCourseDialog::eventFilter(QObject * object,QEvent *event)
-{
-    bool eventProcessed = false;
-    if(object == this && event->type() == QEvent::KeyPress)
-    {
-        eventProcessed = true;
-        QKeyEvent *keyEvent = (QKeyEvent *)event;        
-        if(keyEvent->key() == Qt::Key_Control)
-        {
-            ctrlKeyDown = true;
-        }
-        if(keyEvent->key() == Qt::Key_Shift)
-        {
-            shiftKeyDown = true;
-        }
-    }
-    if(object == this && event->type() == QEvent::KeyRelease)
-    {
-        eventProcessed = true;
-        QKeyEvent *keyEvent = (QKeyEvent *)event;
-        if(keyEvent->key() == Qt::Key_Control)
-        {
-            ctrlKeyDown = false;
-        }
-        if(keyEvent->key() == Qt::Key_Shift)
-        {
-            shiftKeyDown = false;
-        }
-    }
-    if(!eventProcessed) return QDialog::eventFilter(object,event);
 
-    if(!ctrlKeyDown || shiftKeyDown); //plot->magnifier->disableZoom();
-    else plot->magnifier->enableZoom();
-    return false;
-}*/
 
 TimeCourseDialog::~TimeCourseDialog()
 {
@@ -117,9 +83,6 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
     {
         this->addTimeLine(tlV[i]);
     }
-    
-    
-
 }
 
 void TimeCourseDialog::updateDialog(bool forceUpdate)
@@ -211,177 +174,8 @@ void TimeCourseDialog::setTimeSeriesGraphEnabled(bool enabled)
 
 
 
-PlotMagnifier::PlotMagnifier(QwtPlotCanvas * canvas) : QwtPlotMagnifier(canvas)
-{
-    ctrlKeyDown = false;
-    shiftKeyDown = false;
-    this->setEnabled(true);
-    
-}
-
-/*void PlotMagnifier::widgetKeyPressEvent(QKeyEvent * keyEvent)
-{
-    if(keyEvent->key() == Qt::Key_Control)
-    {
-        ctrlKeyDown = true;
-    }
-    if(keyEvent->key() == Qt::Key_Shift)
-    {
-        shiftKeyDown = true;
-    }
-    if(!ctrlKeyDown || shiftKeyDown) disableZoom();
-    else enableZoom();
-}
-
-void PlotMagnifier::widgetKeyReleaseEvent(QKeyEvent * keyEvent )
-{
-    if(keyEvent->key() == Qt::Key_Control)
-    {
-        ctrlKeyDown = false;
-    }
-    if(keyEvent->key() == Qt::Key_Shift)
-    {
-        shiftKeyDown = false;
-    }
-    if(!ctrlKeyDown || shiftKeyDown) disableZoom();
-    else enableZoom();
-}*/
 
 
-bool PlotMagnifier::eventFilter(QObject * object,QEvent *event)
-{
-    if ( object && (object == parent() || object == parent()->parent()) )
-    {
-        switch ( event->type() )
-        {
-            case QEvent::MouseButtonPress:
-            {
-                widgetMousePressEvent( ( QMouseEvent * )event );
-                break;
-            }
-            case QEvent::MouseMove:
-            {
-                widgetMouseMoveEvent( ( QMouseEvent * )event );
-                break;
-            }
-            case QEvent::MouseButtonRelease:
-            {
-                widgetMouseReleaseEvent( ( QMouseEvent * )event );
-                break;
-            }
-            case QEvent::Wheel:
-            {
-                widgetWheelEvent( ( QWheelEvent * )event );
-                break;
-            }
-            case QEvent::KeyPress:
-            {
-                widgetKeyPressEvent( ( QKeyEvent * )event );
-                break;
-            }
-            case QEvent::KeyRelease:
-            {
-                widgetKeyReleaseEvent( ( QKeyEvent * )event );
-                break;
-            }
-            default:;
-        }
-    }
-    return QObject::eventFilter( object, event );
-}
-
-/*!
-  Handle a mouse press event for the observed widget.
-
-  \param mouseEvent Mouse event
-  \sa eventFilter(), widgetMouseReleaseEvent(), widgetMouseMoveEvent()
-*/
-void PlotMagnifier::widgetMousePressEvent( QMouseEvent *mouseEvent )
-{
-    mouseEvent->setModifiers(Qt::NoModifier); // remove modifier so base class accepts event, we ignore events when shift key is pressed so panning works
-    QwtPlotMagnifier::widgetMousePressEvent( mouseEvent);    
-}
-
-/*!
-  Handle a mouse release event for the observed widget.
-
-  \param mouseEvent Mouse event
-
-  \sa eventFilter(), widgetMousePressEvent(), widgetMouseMoveEvent(),
-*/
-void PlotMagnifier::widgetMouseReleaseEvent( QMouseEvent *mouseEvent )
-{
-    mouseEvent->setModifiers(Qt::NoModifier); // remove modifier so base class accepts event, we ignore events when shift key is pressed so panning works
-    QwtPlotMagnifier::widgetMouseReleaseEvent( mouseEvent); 
-    
-}
-
-/*!
-  Handle a mouse move event for the observed widget.
-
-  \param mouseEvent Mouse event
-  \sa eventFilter(), widgetMousePressEvent(), widgetMouseReleaseEvent(),
-*/
-void PlotMagnifier::widgetMouseMoveEvent( QMouseEvent *mouseEvent )
-{
-    if(mouseEvent->modifiers() != Qt::ControlModifier || mouseEvent->modifiers() == Qt::ShiftModifier) 
-    {
-        return;        
-    }
-    mouseEvent->setModifiers(Qt::NoModifier);// remove modifier so base class accepts event, we ignore events when shift key is pressed so panning works
-    QwtPlotMagnifier::widgetMouseMoveEvent( mouseEvent); 
-}
-
-/*!
-  Handle a wheel event for the observed widget.
-
-  \param wheelEvent Wheel event
-  \sa eventFilter()
-*/
-void PlotMagnifier::widgetWheelEvent( QWheelEvent *wheelEvent )
-{
-    // remove modifier so base class accepts event
-    wheelEvent->setModifiers(Qt::NoModifier);    
-    QwtPlotMagnifier::widgetWheelEvent( wheelEvent);
-}
-
-
-/*
-bool PlotTC::eventFilter(QObject * object,QEvent *event)
-{
-    bool eventProcessed = false;
-    if(object == this && event->type() == QEvent::KeyPress)
-    {
-        eventProcessed = true;
-        QKeyEvent *keyEvent = (QKeyEvent *)event;        
-        if(keyEvent->key() == Qt::Key_Control)
-        {
-            ctrlKeyDown = true;
-        }
-        if(keyEvent->key() == Qt::Key_Shift)
-        {
-            shiftKeyDown = true;
-        }
-    }
-    if(object == this && event->type() == QEvent::KeyRelease)
-    {
-        eventProcessed = true;
-        QKeyEvent *keyEvent = (QKeyEvent *)event;
-        if(keyEvent->key() == Qt::Key_Control)
-        {
-            ctrlKeyDown = false;
-        }
-        if(keyEvent->key() == Qt::Key_Shift)
-        {
-            shiftKeyDown = false;
-        }
-    }
-    if(!eventProcessed) return QwtPlot::eventFilter(object,event);
-
-    if(!ctrlKeyDown || shiftKeyDown) magnifier->disableZoom();
-    else magnifier->enableZoom();
-    return eventProcessed;
-}*/
 
 PlotTC::PlotTC(QWidget *parent):
     QwtPlot( parent )
@@ -392,18 +186,12 @@ PlotTC::PlotTC(QWidget *parent):
     lineWidth = 1;
     autoScaleEnabled = true;
     // panning with the left mouse button
-    //(void) new QwtPlotPanner( canvas() );
+    (void) new PlotPanner( canvas() );
 
     // zoom in/out with the wheel
-    magnifier = new PlotMagnifier( canvas() );
-    //this->installEventFilter(magnifier);
+    magnifier = new PlotMagnifier( canvas() );    
     magnifier->setAxisEnabled(QwtPlot::yLeft,false);
-    magnifier->setAxisEnabled(QwtPlot::yRight,false);
-    //The two function calls below reverse the default behavior of zooming so that it is consistent with
-    //brainview's zooming
-    magnifier->setMouseFactor(1.05);//inverse of default value, 0.95
-    magnifier->setWheelFactor(1.11);//inverse of default value, 0.9
-    magnifier->setMouseButton(Qt::LeftButton);
+    magnifier->setAxisEnabled(QwtPlot::yRight,false);    
 
     setAutoFillBackground( true );
     setPalette( QPalette( QColor( 165, 193, 228 ) ) );    
