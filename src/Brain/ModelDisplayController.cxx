@@ -54,7 +54,6 @@ ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeE
     this->allowsRotationStatus   = allowsRotationStatus;
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i] = NULL;  // initialized in contructors of child classes
         this->resetViewPrivate(i);
     }
     
@@ -71,20 +70,6 @@ ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeE
  */
 ModelDisplayController::~ModelDisplayController()
 {
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        delete this->overlaySet[i];
-    }
-}
-
-/**
- * Initilize the overlays for this controller.
- */
-void 
-ModelDisplayController::initializeOverlays()
-{
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i]->initializeOverlays();
-    }
 }
 
 void
@@ -646,37 +631,4 @@ ModelDisplayController::getBrain()
 {
     return this->brain;
 }
-
-/**
- * Get the overlay set for the given tab.
- * @param tabIndex
- *   Index of tab.
- * @return
- *   Overlay set at the given tab index.
- */
-OverlaySet* 
-ModelDisplayController::getOverlaySet(const int tabIndex)
-{
-    CaretAssertArrayIndex(this->overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return this->overlaySet[tabIndex];
-}
-
-/**
- * Get the overlay set for the given tab.
- * @param tabIndex
- *   Index of tab.
- * @return
- *   Overlay set at the given tab index.
- */
-const OverlaySet* 
-ModelDisplayController::getOverlaySet(const int tabIndex) const
-{
-    CaretAssertArrayIndex(this->overlaySet, 
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
-                          tabIndex);
-    return this->overlaySet[tabIndex];
-}
-
 

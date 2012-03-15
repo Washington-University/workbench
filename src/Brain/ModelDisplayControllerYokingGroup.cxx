@@ -114,4 +114,41 @@ ModelDisplayControllerYokingGroup::getYokingGroupIndex() const
     return this->yokingGroupIndex;
 }
 
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+OverlaySet* 
+ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/)
+{
+    CaretAssertMessage(0, "NEVER should be called.");
+    return NULL;
+}
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+const OverlaySet* 
+ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/) const
+{
+    CaretAssertMessage(0, "NEVER should be called.");
+    return NULL;
+}
+
+/**
+ * Initilize the overlays for this controller.
+ */
+void 
+ModelDisplayControllerYokingGroup::initializeOverlays()
+{
+}
+
+
 

@@ -31,6 +31,7 @@
 
 namespace caret {
 
+    class BrainStructure;
     class BrowserTabContent;
     class ModelDisplayController;
     class VolumeFile;
@@ -38,7 +39,7 @@ namespace caret {
     class OverlaySet : public CaretObject {
         
     public:
-        OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        OverlaySet(BrainStructure* brainStructure);
         
         OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume);
         
@@ -76,7 +77,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
-        void initializeOverlaySet(ModelDisplayController* modelDisplayController);
+        void initializeOverlaySet(ModelDisplayController* modelDisplayController,
+                                  BrainStructure* brainStructure);
 
         OverlaySet(const OverlaySet&);
         
@@ -85,6 +87,8 @@ namespace caret {
         Overlay* overlays[BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS];
         
         ModelDisplayController* modelDisplayController;
+        
+        BrainStructure* brainStructure;
         
         int32_t numberOfDisplayedOverlays;
     };

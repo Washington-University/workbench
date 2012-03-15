@@ -94,7 +94,12 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-                                    
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        void initializeOverlays();
+                                            
     private:
         ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
         
@@ -133,6 +138,10 @@ namespace caret {
         mutable VolumeSliceCoordinateSelection volumeSlicesSelected[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         VolumeFile* lastVolumeFile;
+
+        /** Overlays sets for this model and for each tab */
+        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
     };
 
 } // namespace

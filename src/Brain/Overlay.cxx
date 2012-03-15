@@ -29,6 +29,7 @@
 #include "Overlay.h"
 #undef __OVERLAY_DECLARE__
 
+#include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "EventCaretMappableDataFilesGet.h"
@@ -55,16 +56,16 @@ using namespace caret;
  * @param modelDisplayControllerSurface
  *    Controller that is for surfaces.
  */
-Overlay::Overlay(ModelDisplayControllerSurface* modelDisplayControllerSurface)
+Overlay::Overlay(BrainStructure* brainStructure)
 : CaretObject()
 {
-    CaretAssert(modelDisplayControllerSurface);
+    CaretAssert(brainStructure);
     
-    this->surfaceController = modelDisplayControllerSurface;
     this->volumeController  = NULL;
     this->wholeBrainController  = NULL;
     
-    this->initializeOverlay(this->surfaceController);
+    this->initializeOverlay(NULL,
+                            brainStructure);
 }
 
 /**
@@ -77,11 +78,11 @@ Overlay::Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume)
 {
     CaretAssert(modelDisplayControllerVolume);
     
-    this->surfaceController = NULL;
     this->volumeController  = modelDisplayControllerVolume;
     this->wholeBrainController  = NULL;
     
-    this->initializeOverlay(this->volumeController);
+    this->initializeOverlay(this->volumeController,
+                            NULL);
 }
 
 /**
@@ -94,11 +95,11 @@ Overlay::Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBr
 {
     CaretAssert(modelDisplayControllerWholeBrain);
     
-    this->surfaceController = NULL;
     this->volumeController  = NULL;
     this->wholeBrainController  = modelDisplayControllerWholeBrain;
     
-    this->initializeOverlay(this->wholeBrainController);
+    this->initializeOverlay(this->wholeBrainController,
+                            NULL);
 }
 
 /**
@@ -111,11 +112,11 @@ Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking
 {
     CaretAssert(modelDisplayControllerYokingGroup);
     
-    this->surfaceController = NULL;
     this->volumeController  = NULL;
     this->wholeBrainController  = NULL;
     
-    this->initializeOverlay(NULL);
+    this->initializeOverlay(NULL,
+                            NULL);
 }
 
 /**
@@ -124,11 +125,22 @@ Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking
  *    Controller that uses this overlay.
  */
 void
-Overlay::initializeOverlay(ModelDisplayController* modelDisplayController)
+Overlay::initializeOverlay(ModelDisplayController* modelDisplayController,
+                           BrainStructure* brainStructure)
 {
-    CaretAssert(modelDisplayController);
+    this->brainStructure = brainStructure;
     
-    this->modelDisplayController = modelDisplayController;
+    if (modelDisplayController == NULL) {
+        CaretAssert(this->brainStructure != NULL);
+    }
+    else if (this->brainStructure == NULL) {
+        CaretAssert(modelDisplayController != NULL);
+    }
+    else {
+        CaretAssertMessage(0, "Both mode and brain structure are NULL");
+    }
+    
+    this->brainStructure = brainStructure;
     
     this->opacity = 1.0;
     
@@ -233,8 +245,7 @@ Overlay::copyData(const Overlay* overlay)
      *    overlayIndex
      *
      */
-    this->modelDisplayController = overlay->modelDisplayController;
-    this->surfaceController = overlay->surfaceController;
+    this->brainStructure = brainStructure;
     this->volumeController  = overlay->volumeController;
     this->wholeBrainController = overlay->wholeBrainController;
     
@@ -257,8 +268,8 @@ Overlay::swapData(Overlay* overlay)
 {
     Overlay* swapOverlay = NULL;
     
-    if (this->surfaceController != NULL) {
-        swapOverlay = new Overlay(this->surfaceController);
+    if (this->brainStructure != NULL) {
+        swapOverlay = new Overlay(this->brainStructure);
     }
     else if (this->volumeController != NULL) {
         swapOverlay = new Overlay(this->volumeController);
@@ -370,8 +381,8 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
      * match the structure of the displayed surface.
      */
     StructureEnum::Enum selectedSurfaceStructure = StructureEnum::ALL;
-    if (this->surfaceController != NULL) {
-        selectedSurfaceStructure = this->surfaceController->getSurface()->getStructure();
+    if (this->brainStructure != NULL) {
+        selectedSurfaceStructure = this->brainStructure->getStructure();
         showSurfaceMapFiles = true;
     }
     

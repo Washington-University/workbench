@@ -50,6 +50,12 @@ namespace caret {
         
         virtual void receiveEvent(Event* event);
         
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        void initializeOverlays();
+        
     private:
         ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);
         

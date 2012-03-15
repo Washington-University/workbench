@@ -62,17 +62,33 @@ using namespace caret;
  */
 
 /**
+ * \class OverlaySet
+ * \brief Contains a set of overlay assignments
+ *
+ * The maximum number of overlays is fixed.  The number
+ * of overlays presented to the user varies and is
+ * controlled using the ToolBox in a Browser Window.
+ * 
+ * The primary overlay is always the overlay at index zero.
+ * The underlay is the overlay at (numberOfDisplayedOverlays - 1).
+ * When models are colored, the overlays are assigned 
+ * starting with the underlay and concluding with the primary
+ * overlay.
+ */
+
+/**
  * Constructor for surface controller.
  * @param modelDisplayController
  *     Surface controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurface)
+OverlaySet::OverlaySet(BrainStructure* brainStructure)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerSurface);
+    this->initializeOverlaySet(NULL,
+                               brainStructure);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        this->overlays[i] = new Overlay(modelDisplayControllerSurface);
+        this->overlays[i] = new Overlay(brainStructure);
     }
 }
 
@@ -84,7 +100,8 @@ OverlaySet::OverlaySet(ModelDisplayControllerSurface* modelDisplayControllerSurf
 OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerVolume);
+    this->initializeOverlaySet(modelDisplayControllerVolume,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         this->overlays[i] = new Overlay(modelDisplayControllerVolume);
@@ -99,7 +116,8 @@ OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolum
 OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerWholeBrain);
+    this->initializeOverlaySet(modelDisplayControllerWholeBrain,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         this->overlays[i] = new Overlay(modelDisplayControllerWholeBrain);
@@ -114,7 +132,8 @@ OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerW
 OverlaySet::OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking)
 : CaretObject()
 {
-    this->initializeOverlaySet(modelDisplayControllerYoking);
+    this->initializeOverlaySet(modelDisplayControllerYoking,
+                               NULL);
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         this->overlays[i] = NULL;
@@ -137,10 +156,22 @@ OverlaySet::~OverlaySet()
  *     Controller that uses this overlay set.
  */
 void 
-OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController)
+OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController,
+                                 BrainStructure* brainStructure)
 {
-    CaretAssert(modelDisplayController);
     this->modelDisplayController = modelDisplayController;
+    this->brainStructure = brainStructure;
+    
+    if (this->modelDisplayController == NULL) {
+        CaretAssert(this->brainStructure != NULL);
+    }
+    else if (this->brainStructure == NULL) {
+        CaretAssert(this->modelDisplayController != NULL);
+    }
+    else {
+        CaretAssertMessage(0, "Both mode and brain structure are NULL");
+    }
+    
     this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
 }
 
@@ -354,7 +385,14 @@ OverlaySet::moveDisplayedOverlayDown(const int32_t overlayIndex)
 void 
 OverlaySet::initializeOverlays()
 {
-    Brain* brain = this->modelDisplayController->getBrain();
+    
+    Brain* brain = NULL;
+    if (this->modelDisplayController != NULL) {
+        brain = this->modelDisplayController->getBrain();
+    }
+    else if (this->brainStructure != NULL) {
+        brain = this->brainStructure->getBrain();
+    }
     if (brain == NULL) {
         return;
     }
@@ -401,17 +439,10 @@ OverlaySet::initializeOverlays()
     std::deque<CaretMappableDataFile*> overlayMapFiles;
     std::deque<int32_t> overlayMapFileIndices;
     
-    ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayController);
     ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
     ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
     
-    if (mdcs != NULL) {
-        /*
-         * Surface
-         */
-        Surface* surface = mdcs->getSurface();
-        BrainStructure* brainStructure = surface->getBrainStructure();
-                
+    if (this->brainStructure != NULL) {
         /*
          * Look for a shape map in metric
          */

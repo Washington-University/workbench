@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
@@ -55,7 +56,6 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
     this->initializeMembersModelDisplayControllerSurface();
     this->surface = surface;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->overlaySet[i] = new OverlaySet(this);
         this->lateralView(i);
     }
     
@@ -240,6 +240,55 @@ ModelDisplayControllerSurface::medialView(const int32_t windowTabNumber)
         }
     }
 }
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+OverlaySet* 
+ModelDisplayControllerSurface::getOverlaySet(const int tabIndex)
+{
+    if (this->surface != NULL) {
+        BrainStructure* brainStructure = this->surface->getBrainStructure();
+        if (brainStructure != NULL) {
+            return brainStructure->getOverlaySet(tabIndex);
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+const OverlaySet* 
+ModelDisplayControllerSurface::getOverlaySet(const int tabIndex) const
+{
+    if (this->surface != NULL) {
+        const BrainStructure* brainStructure = this->surface->getBrainStructure();
+        if (brainStructure != NULL) {
+            return brainStructure->getOverlaySet(tabIndex);
+        }
+    }
+    
+    return NULL;
+}
+
+/**
+ * Initilize the overlays for this controller.
+ */
+void 
+ModelDisplayControllerSurface::initializeOverlays()
+{
+}
+
 
 
 

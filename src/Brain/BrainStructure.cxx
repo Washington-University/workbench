@@ -50,6 +50,7 @@
 #include "MathFunctions.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
+#include "OverlaySet.h"
 #include "RgbaFile.h"
 #include "SessionManager.h"
 #include "Surface.h"
@@ -70,6 +71,10 @@ BrainStructure::BrainStructure(Brain* brain,
     this->nodeAttributes = new BrainStructureNodeAttributes();
     this->volumeInteractionSurface = NULL;
     
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i] = new OverlaySet(this);
+    }
+    
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET);
     EventManager::get()->addEventListener(this, 
@@ -88,6 +93,10 @@ BrainStructure::BrainStructure(Brain* brain,
 BrainStructure::~BrainStructure()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete this->overlaySet[i];
+    }
     
     /*
      * Make a copy of all surface pointers since
@@ -284,7 +293,7 @@ BrainStructure::addSurface(Surface* surface,
     this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
     
     if (initilizeOverlaysFlag) {
-        mdcs->initializeOverlays();
+        this->initializeOverlays();
     }
     
     /*
@@ -1126,4 +1135,46 @@ BrainStructure::getMetricShapeMap(MetricFile* &shapeMetricFileOut,
     return false;
 }
 
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+OverlaySet* 
+BrainStructure::getOverlaySet(const int tabIndex)
+{
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
+}
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+const OverlaySet* 
+BrainStructure::getOverlaySet(const int tabIndex) const
+{
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
+}
+
+/**
+ * Initilize the overlays for this controller.
+ */
+void 
+BrainStructure::initializeOverlays()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i]->initializeOverlays();
+    }
+}
 

@@ -52,6 +52,13 @@ namespace caret {
         AString getNameForGUI(const bool includeStructureFlag) const;
         
         virtual AString getNameForBrowserTab() const;        
+
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        void initializeOverlays();
+        
     private:
         ModelDisplayControllerYokingGroup(const ModelDisplayControllerYokingGroup&);
         

@@ -31,6 +31,7 @@
 
 #include <stdint.h>
 
+#include "BrainConstants.h"
 #include "CaretObject.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
@@ -45,6 +46,7 @@ namespace caret {
     class LabelFile;
     class MetricFile;
     class ModelDisplayControllerSurface;
+    class OverlaySet;
     class RgbaFile;
     class Surface;
     
@@ -138,12 +140,21 @@ namespace caret {
         bool getMetricShapeMap(MetricFile* &metricFileOut,
                                int32_t& shapeMapIndexOut) const;
         
+        OverlaySet* getOverlaySet(const int tabIndex);
+        
+        const OverlaySet* getOverlaySet(const int tabIndex) const;
+        
+        void initializeOverlays();
+        
     private:
         const Surface* getVolumeInteractionSurfacePrivate() const;
         
         Brain* brain;
         
         StructureEnum::Enum structure;
+        
+        /** Overlays sets for this model and for each tab */
+        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         std::vector<Surface*> surfaces;
         

@@ -29,6 +29,7 @@
 #include "DataFileTypeEnum.h"
 
 namespace caret {
+    class BrainStructure;
     class CaretMappableDataFile;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
@@ -39,7 +40,7 @@ namespace caret {
     class Overlay : public CaretObject {
         
     public:
-        Overlay(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        Overlay(BrainStructure* brainStructure);
         
         Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume);
         
@@ -90,13 +91,11 @@ namespace caret {
 
         Overlay& operator=(const Overlay&);
 
-        void initializeOverlay(ModelDisplayController* modelDisplayController);
+        void initializeOverlay(ModelDisplayController* modelDisplayController,
+                               BrainStructure* brainStructure);
         
-        /** Model controller in this overlay */
-        ModelDisplayController* modelDisplayController;
-        
-        /** Surface controller using this overlay (NULL if this overlay is not assigned to a surface controller) */
-        ModelDisplayControllerSurface* surfaceController;
+        /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
+        BrainStructure* brainStructure;
         
         /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
         ModelDisplayControllerVolume* volumeController;

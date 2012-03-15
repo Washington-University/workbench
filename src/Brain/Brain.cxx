@@ -1083,8 +1083,6 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
 void 
 Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataFilesEvent)
 {
-    this->isSpecFileBeingRead = true;
-    
     ElapsedTimer timer;
     timer.start();
     
@@ -1099,6 +1097,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         delete this->specFile;
     }
     this->specFile = new SpecFile(*sf);
+    
+    this->isSpecFileBeingRead = true;
     
     FileInformation fileInfo(sf->getFileName());
     this->setCurrentDirectory(fileInfo.getPathName());
@@ -1153,6 +1153,16 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
          iter++) {
         ModelDisplayController* mdc = *iter;
         mdc->initializeOverlays();
+    }
+    
+    /*
+     * Initialize overlays for brain structures
+     */
+    for (std::vector<BrainStructure*>::iterator iter = this->brainStructures.begin();
+         iter != this->brainStructures.end();
+         iter++) {
+        BrainStructure* bs = *iter;
+        bs->initializeOverlays();
     }
     
     CaretLogInfo("Time to read files from spec file (in Brain) \""

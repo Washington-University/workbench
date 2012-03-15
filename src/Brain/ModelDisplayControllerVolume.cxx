@@ -59,6 +59,9 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
 ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete this->overlaySet[i];
+    }
 }
 
 void
@@ -344,5 +347,49 @@ ModelDisplayControllerVolume::receiveEvent(Event* event)
         idLocationEvent->setEventProcessed();
     }
 }
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+OverlaySet* 
+ModelDisplayControllerVolume::getOverlaySet(const int tabIndex)
+{
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
+}
+
+/**
+ * Get the overlay set for the given tab.
+ * @param tabIndex
+ *   Index of tab.
+ * @return
+ *   Overlay set at the given tab index.
+ */
+const OverlaySet* 
+ModelDisplayControllerVolume::getOverlaySet(const int tabIndex) const
+{
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
+}
+
+/**
+ * Initilize the overlays for this controller.
+ */
+void 
+ModelDisplayControllerVolume::initializeOverlays()
+{
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i]->initializeOverlays();
+    }
+}
+
 
 
