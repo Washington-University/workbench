@@ -147,6 +147,64 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     CiftiXML myXML;
     myXML.resetColumnsToBrainModels();
     int numMaps = -1;
+    if (leftData != NULL)
+    {
+        numMaps = leftData->getNumberOfMaps();
+        if (leftRoi == NULL)
+        {
+            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
+        } else {
+            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
+            {
+                throw AlgorithmException("left surface ROI and data have different node counts");
+            }
+            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
+        }
+    }
+    if (rightData != NULL)
+    {
+        if (numMaps == -1)
+        {
+            numMaps = rightData->getNumberOfMaps();
+        } else {
+            if (numMaps != rightData->getNumberOfMaps())
+            {
+                throw AlgorithmException("right and left surface data have a different number of maps");
+            }
+        }
+        if (rightRoi == NULL)
+        {
+            myXML.addSurfaceModelToColumns(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
+        } else {
+            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
+            {
+                throw AlgorithmException("right surface ROI and data have different node counts");
+            }
+            myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
+        }
+    }
+    if (cerebData != NULL)
+    {
+        if (numMaps == -1)
+        {
+            numMaps = cerebData->getNumberOfMaps();
+        } else {
+            if (numMaps != cerebData->getNumberOfMaps())
+            {
+                throw AlgorithmException("cerebellum surface data has a different number of maps");
+            }
+        }
+        if (cerebRoi == NULL)
+        {
+            myXML.addSurfaceModelToColumns(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
+        } else {
+            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
+            {
+                throw AlgorithmException("cerebellum surface ROI and data have different node counts");
+            }
+            myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
+        }
+    }
     if (myVol != NULL)
     {
         CaretAssert(myVolLabel != NULL);
@@ -154,7 +212,15 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         {
             throw AlgorithmException("label volume has a different volume space than data volume");
         }
-        numMaps = myVol->getNumberOfMaps();
+        if (numMaps == -1)
+        {
+            numMaps = myVol->getNumberOfMaps();
+        } else {
+            if (numMaps != myVol->getNumberOfMaps())
+            {
+                throw AlgorithmException("volume data has a different number of maps");
+            }
+        }
         map<int, StructureEnum::Enum> labelMap;//maps label values to structures
         vector<vector<voxelIndexType> > voxelLists;//voxel lists for each volume component
         map<StructureEnum::Enum, int> componentMap;//maps structures to indexes in voxelLists
@@ -202,72 +268,6 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
             myXML.addVolumeModelToColumns(voxelLists[myiter->second], myiter->first);
         }
     }
-    if (leftData != NULL)
-    {
-        if (numMaps == -1)
-        {
-            numMaps = leftData->getNumberOfMaps();
-        } else {
-            if (numMaps != leftData->getNumberOfMaps())
-            {
-                throw AlgorithmException("left surface data and volume data have a different number of maps");
-            }
-        }
-        if (leftRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT);
-        } else {
-            if (leftRoi->getNumberOfNodes() != leftData->getNumberOfNodes())
-            {
-                throw AlgorithmException("left surface ROI and data have different node counts");
-            }
-            myXML.addSurfaceModelToColumns(leftData->getNumberOfNodes(), StructureEnum::CORTEX_LEFT, leftRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (rightData != NULL)
-    {
-        if (numMaps == -1)
-        {
-            numMaps = rightData->getNumberOfMaps();
-        } else {
-            if (numMaps != rightData->getNumberOfMaps())
-            {
-                throw AlgorithmException("right surface data has a different number of maps");
-            }
-        }
-        if (rightRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(rightData->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT);
-        } else {
-            if (rightRoi->getNumberOfNodes() != rightData->getNumberOfNodes())
-            {
-                throw AlgorithmException("right surface ROI and data have different node counts");
-            }
-            myXML.addSurfaceModelToColumns(rightRoi->getNumberOfNodes(), StructureEnum::CORTEX_RIGHT, rightRoi->getValuePointerForColumn(0));
-        }
-    }
-    if (cerebData != NULL)
-    {
-        if (numMaps == -1)
-        {
-            numMaps = cerebData->getNumberOfMaps();
-        } else {
-            if (numMaps != cerebData->getNumberOfMaps())
-            {
-                throw AlgorithmException("cerebellum surface data has a different number of maps");
-            }
-        }
-        if (cerebRoi == NULL)
-        {
-            myXML.addSurfaceModelToColumns(cerebData->getNumberOfNodes(), StructureEnum::CEREBELLUM);
-        } else {
-            if (cerebRoi->getNumberOfNodes() != cerebData->getNumberOfNodes())
-            {
-                throw AlgorithmException("cerebellum surface ROI and data have different node counts");
-            }
-            myXML.addSurfaceModelToColumns(cerebRoi->getNumberOfNodes(), StructureEnum::CEREBELLUM, cerebRoi->getValuePointerForColumn(0));
-        }
-    }
     if (numMaps == -1)
     {
         throw AlgorithmException("no models specified");
@@ -275,18 +275,6 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
     myXML.resetRowsToTimepoints(timestep, numMaps);
     myCiftiOut->setCiftiXML(myXML);
     CaretArray<float> temprow(numMaps);
-    vector<CiftiVolumeMap> volMap;
-    if (myXML.getVolumeMapForColumns(volMap))//we don't need to know which voxel is from which parcel
-    {
-        for (int64_t i = 0; i < (int)volMap.size(); ++i)
-        {
-            for (int t = 0; t < numMaps; ++t)
-            {
-                temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
-            }
-            myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
-        }
-    }
     vector<CiftiSurfaceMap> surfMap;
     if (myXML.getSurfaceMapForColumns(surfMap, StructureEnum::CORTEX_LEFT))
     {
@@ -319,6 +307,18 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
                 temprow[t] = cerebData->getValue(surfMap[i].m_surfaceNode, t);
             }
             myCiftiOut->setRow(temprow, surfMap[i].m_ciftiIndex);
+        }
+    }
+    vector<CiftiVolumeMap> volMap;
+    if (myXML.getVolumeMapForColumns(volMap))//we don't need to know which voxel is from which parcel
+    {
+        for (int64_t i = 0; i < (int)volMap.size(); ++i)
+        {
+            for (int t = 0; t < numMaps; ++t)
+            {
+                temprow[t] = myVol->getValue(volMap[i].m_ijk, t);
+            }
+            myCiftiOut->setRow(temprow, volMap[i].m_ciftiIndex);
         }
     }
 }
