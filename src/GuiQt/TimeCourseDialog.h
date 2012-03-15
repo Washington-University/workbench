@@ -47,6 +47,7 @@
 #include "ColorManager.h"
 #include "QList"
 #include <stdio.h>
+#include <QKeyEvent>
 
 
 namespace Ui {
@@ -67,8 +68,9 @@ public:
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
     void setTimeSeriesGraphEnabled(bool enabled);
-    void setAnimationStartTime(const double &time);
-
+    void setAnimationStartTime(const double &time);  
+protected:
+    //virtual bool eventFilter(QObject * object,QEvent *event);
 private slots:
     void on_TDClose_clicked();
 
@@ -103,17 +105,42 @@ private:
     AString filename;
     bool isEnabled;
     double startOffset; 
+    bool ctrlKeyDown;
+    bool shiftKeyDown;
 
 };
 
 
 namespace caret {
 
+class PlotMagnifier : public QwtPlotMagnifier
+{
+    Q_OBJECT
+public:
+    //void enableZoom();
+    //void disableZoom();
+    PlotMagnifier(QwtPlotCanvas * canvas = NULL);
+protected:
+    //virtual void widgetKeyPressEvent(QKeyEvent * keyEvent);
+    //virtual void widgetKeyReleaseEvent(QKeyEvent * keyEvent); 
+    virtual bool eventFilter(QObject * object,QEvent *event);
+    //virtual void widgetMousePressEvent(QMouseEvent *mouseEvent);
+    virtual void widgetWheelEvent( QWheelEvent *wheelEvent );
+    virtual void widgetMouseMoveEvent( QMouseEvent *mouseEvent );
+    virtual void widgetMousePressEvent( QMouseEvent *mouseEvent );
+    virtual void widgetMouseReleaseEvent( QMouseEvent *mouseEvent );
+private:
+    
+    bool ctrlKeyDown;
+    bool shiftKeyDown;
+};
+
 
 class PlotTC : public QwtPlot
 {
+    Q_OBJECT
 public:
-    PlotTC( QWidget *parent = NULL);
+     PlotTC( QWidget *parent = NULL);
      void populate(QList<TimeLine> &tlVIn);
      void sortByColorId(QList<TimeLine> &tlV);
      void setDisplayAverage(bool checked);
@@ -123,10 +150,13 @@ public:
      int getMaxTimeLines() { return max;}
      void setAutoScaleEnabled(bool checked);
      void setTimeLineWidth(int width);
-     QwtPlotMagnifier * magnifier;
+     PlotMagnifier * magnifier;
      void resetView();
      bool getAutoScale();     
 protected:
+    bool ctrlKeyDown;
+    bool shiftKeyDown;
+    //virtual bool eventFilter(QObject * object,QEvent *event);
     void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
     virtual void resizeEvent( QResizeEvent * );
     QList<QwtPlotCurve *> plotV;

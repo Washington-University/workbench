@@ -93,6 +93,7 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     if(isCompressed())
     {
         zFile = gzopen(m_fileName.toAscii().data(), "rb");
+        gzbuffer(zFile,10485760);
     }
     else
     {
@@ -304,6 +305,7 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     if(isCompressed())
     {
         zFile = gzopen(m_fileName.toAscii().data(), "wb");
+        gzbuffer(zFile,10485760);
         headerIO.writeFile(zFile,byteOrder);
         if (gzwrite(zFile, extensionBytes.constData(), extensionBytes.size()) != extensionBytes.size())
         {

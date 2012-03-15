@@ -229,7 +229,7 @@ ConnectivityLoaderFile::setup(const AString& path,
             this->ciftiDiskFile = new CiftiFile();
             if(this->loaderType == LOADER_TYPE_DENSE_TIME_SERIES)
             {
-                this->ciftiDiskFile->openFile(path, IN_MEMORY);
+                this->ciftiDiskFile->openFile(path, ON_DISK);
             }
             else this->ciftiDiskFile->openFile(path, ON_DISK);
 
