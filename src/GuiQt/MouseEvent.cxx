@@ -250,6 +250,17 @@ MouseEvent::isAltKeyDown() const
 }
 
 /**
+ * Set the status of the ALT key.
+ * @param altKeyDown
+ *    New status for ALT key.
+ */
+void
+MouseEvent::setAltKeyDown(const bool altKeyDown)
+{
+    this->keyDownAlt = altKeyDown;
+}
+
+/**
  * @return Is the CONTROL key down?
  */
 bool 

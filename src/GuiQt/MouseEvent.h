@@ -85,6 +85,8 @@ namespace caret {
         
         bool isAnyKeyDown() const;
         
+        void setAltKeyDown(const bool altKeyDown);
+        
         bool isGraphicsUpdateOneWindowRequested() const;
         
         void setGraphicsUpdateOneWindowRequested();
