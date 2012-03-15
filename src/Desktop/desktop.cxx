@@ -247,6 +247,11 @@ main(int argc, char* argv[])
         QApplication::setOrganizationName("Van Essen Lab");
         
         /*
+         * Override the system local to US - English
+         */
+        QLocale::setDefault(QLocale(QLocale::English, QLocale::UnitedStates));
+        
+        /*
         * Make sure OpenGL is available.
         */
         if (!QGLFormat::hasOpenGL()) { 
@@ -384,6 +389,15 @@ main(int argc, char* argv[])
             CaretLogConfig("OpenGL PBuffers are NOT supported");
         }
         
+        /*
+         * Log local (language, country)
+         */
+        QLocale sytemLocale = QLocale::system();
+        CaretLogConfig("Local Language="
+                       + QLocale::languageToString(sytemLocale.language())
+                       + " Country="
+                       + QLocale::countryToString(sytemLocale.country()));
+
         /*
          * Resolution of screens
          */
