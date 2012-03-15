@@ -182,16 +182,35 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
         const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
+        const bool isLeftDragWithAltKeyDown = (isLeftDrag
+                                               && mouseEvent->isAltKeyDown());
+        const bool isLeftClickWithShiftKeyDown = (isLeftClick
+                                                  && mouseEvent->isShiftKeyDown());
         
         switch (this->mode) {
             case MODE_DRAW:
             {
-                if (this->borderToolsWidget->isDrawModeTransformSelected()) {
+                /*
+                 * Shift click is always FINISH
+                 */
+                if (isLeftClickWithShiftKeyDown) {
+                    this->borderToolsWidget->executeFinishOperation();
+                }
+                else if (this->borderToolsWidget->isDrawModeTransformSelected()) {                
                     if (isLeftDrag || isWheel) {
                         UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                           browserTabContent, 
                                                                           openGLWidget);
                     }
+                }
+                else if (isLeftDragWithAltKeyDown) {
+                    /*
+                     * In drawing mode, but perform surface rotation
+                     */
+                    mouseEvent->setAltKeyDown(false);
+                    UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                      browserTabContent, 
+                                                                      openGLWidget);
                 }
                 else {
                     switch (this->drawOperation) {

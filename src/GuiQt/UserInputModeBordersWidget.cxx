@@ -288,20 +288,26 @@ QWidget*
 UserInputModeBordersWidget::createDrawOperationWidget()
 {
     this->drawModeTransformAction = WuQtUtilities::createAction("Adjust View", 
-                                                        "Pause border drawing and allow the mouse to\n"
-                                                        "adjust view (pan/zoom/rotate) of the surface", 
-                                                        this);
+                                                                "When selected, border drawing is paused and\n"
+                                                                "the mouse pans/zooms/rotates the surface.\n"
+                                                                "\n"
+                                                                "Note: When this is NOT selected, holding\n"
+                                                                "down the ALT key while moving the mouse\n"
+                                                                "will rotate the surface instead of drawing\n"
+                                                                "a border.", 
+                                                                this);
     this->drawModeTransformAction->setCheckable(true);
     QToolButton* transformToolButton = new QToolButton();
     transformToolButton->setDefaultAction(this->drawModeTransformAction);
     
     QAction* drawAction = WuQtUtilities::createAction("Draw", 
-                                                      "Draw a border  by either clicking the\n"
+                                                      "Draw a border segment by either clicking the\n"
                                                       "mouse along the desired border path or by\n"
                                                       "moving the mouse with the left mouse button\n"
                                                       "depressed until the end point is reached.\n"
-                                                      "Press the \"Finish\" button to complete the \n"
-                                                      "border by setting its name and color", 
+                                                      "Press the \"Finish\" button to apply the\n"
+                                                      "border segment based upon the selection of\n"
+                                                      "the Draw, Erase, Extend, or Replace button.\n",
                                                       this);
     drawAction->setCheckable(true);
     drawAction->setData(static_cast<int>(UserInputModeBorders::DRAW_OPERATION_CREATE));
@@ -341,8 +347,17 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     replaceToolButton->setDefaultAction(replaceAction);
     
     QAction* finishAction = WuQtUtilities::createAction("Finish", 
-                                                        "Finish drawing a new border by\n"
-                                                        "setting the name and color", 
+                                                        "Apply border segment drawn based upon\n"
+                                                        "the selection of the Draw, Erase, Extend\n"
+                                                        ", or Replace buttons.  If Draw, a dialog\n"
+                                                        "is popped up to set the attributes of \n"
+                                                        "new border.  Erase, Extend, and Replace\n"
+                                                        "are applied immediately upon pressing \n"
+                                                        "this button.\n"
+                                                        "\n"
+                                                        "Note: Holding down the SHIFT key and \n"
+                                                        "clicking the mouse will initiate the\n"
+                                                        "Finish operation.",
                                                         this,
                                                         this,
                                                         SLOT(drawFinishButtonClicked()));
@@ -350,13 +365,18 @@ UserInputModeBordersWidget::createDrawOperationWidget()
     finishToolButton->setDefaultAction(finishAction);
     
     QAction* undoAction = WuQtUtilities::createAction("Undo", 
-                                                      "Remove (undo) the last border point\n"
-                                                      "in the unfinished border",
+                                                      "Remove (undo) the last point in the\n"
+                                                      "drawn border segment.  If the button\n"
+                                                      "is held down, it will repeat removal\n"
+                                                      "of points until the button is released.",
                                                       this,
                                                       this,
                                                       SLOT(drawUndoButtonClicked()));
     QToolButton* undoToolButton = new QToolButton();
     undoToolButton->setDefaultAction(undoAction);
+    undoToolButton->setAutoRepeat(true);
+    undoToolButton->setAutoRepeatDelay(500);  // 500ms = 1/2 second
+    undoToolButton->setAutoRepeatInterval(100);  // 100ms = 1/10 second
     
     QAction* resetAction = WuQtUtilities::createAction("Reset", 
                                                        "Remove all points in the unfinished border", 
@@ -410,6 +430,17 @@ void
 UserInputModeBordersWidget::drawUndoButtonClicked()
 {
     this->inputModeBorders->drawOperationUndo();
+}
+
+/**
+ * Publicly accessible method for initiating
+ * an operation as if the Finish button was
+ * pressed.
+ */
+void 
+UserInputModeBordersWidget::executeFinishOperation()
+{
+    this->drawFinishButtonClicked();
 }
 
 /**
@@ -515,6 +546,8 @@ UserInputModeBordersWidget::drawOperationActionTriggered(QAction* action)
     const UserInputModeBorders::DrawOperation drawOperation = 
         static_cast<UserInputModeBorders::DrawOperation>(drawModeInteger);
     this->inputModeBorders->setDrawOperation(drawOperation);
+    
+    this->drawModeTransformAction->setChecked(false);
 }
 
 /**

@@ -51,6 +51,8 @@ namespace caret {
         
         bool isDrawModeTransformSelected() const;
         
+        void executeFinishOperation();
+        
     private slots:
         void modeActionTriggered(QAction*);
         void drawOperationActionTriggered(QAction*);
