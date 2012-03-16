@@ -239,7 +239,7 @@ main(int argc, char* argv[])
         */
         SystemUtilities::setHandlersForUnexpected();
         
-        qInstallMsgHandler(messageHandlerForQt);\
+        qInstallMsgHandler(messageHandlerForQt);
         //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
 #ifdef CARET_OS_MACOSX
         QApplication::setGraphicsSystem("raster");
