@@ -239,16 +239,16 @@ main(int argc, char* argv[])
         */
         SystemUtilities::setHandlersForUnexpected();
         
-        qInstallMsgHandler(messageHandlerForQt);
+        qInstallMsgHandler(messageHandlerForQt);\
+        //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
+#ifdef CARET_OS_MACOSX
+        QApplication::setGraphicsSystem("raster");
+#endif //CARET_OS_MACOSX        
         QApplication app(argc, argv);
         QApplication::setApplicationName("Connectome Workbench");
         QApplication::setApplicationVersion("0");
         QApplication::setOrganizationDomain("brainvis.wustl.edu");
         QApplication::setOrganizationName("Van Essen Lab");
-        //change the default graphics system on mac to avoid rendering performance issues with qwtplotter
-#ifdef CARET_OS_MACOSX
-        QApplication::setGraphicsSystem("raster");
-#endif //CARET_OS_MACOSX        
         /*
          * Override the system local to US - English
          */
