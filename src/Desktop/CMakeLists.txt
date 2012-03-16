@@ -142,3 +142,13 @@ IF (APPLE)
             ###COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_frameworks.sh ${EXE_NAME}
         )
 ENDIF (APPLE)
+
+IF (APPLE)
+    SET (MACOSX_BUNDLE_INFO_STRING Workbench Copyright 2012 )
+
+    ADD_CUSTOM_COMMAND(
+        TARGET ${EXE_NAME}
+        POST_BUILD
+        COMMAND ${CMAKE_SOURCE_DIR}/CMakeScripts/copy_mac_icon.sh ${EXE_NAME} ${CMAKE_SOURCE_DIR}/../icons/mac/workbench.icns
+    )
+ENDIF (APPLE)
