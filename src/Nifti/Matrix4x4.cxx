@@ -1212,8 +1212,8 @@ Matrix4x4::writeAsGiftiXML(XmlWriter& xmlWriter,
 {
     xmlWriter.writeStartElement(xmlMatrixTag);
     
-    xmlWriter.writeElementNoSpace(xmlDataSpaceTag, this->dataSpaceName);
-    xmlWriter.writeElementNoSpace(xmlTransformedSpaceTag, this->transformedSpaceName);
+    xmlWriter.writeElementCData(xmlDataSpaceTag, this->dataSpaceName);
+    xmlWriter.writeElementCData(xmlTransformedSpaceTag, this->transformedSpaceName);
 
     xmlWriter.writeStartElement(xmlMatrixDataTag);
     for (int32_t i = 0; i < 4; i++) {

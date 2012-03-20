@@ -107,10 +107,10 @@ GiftiDataArray::GiftiDataArray(const NiftiIntentEnum::Enum intentIn)
    externalFileName = "";
    externalFileOffset = 0;
    
-    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {   
+    /*if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET) {
       Matrix4x4 gm;
       matrices.push_back(gm);
-   }
+   }//*///TSC: do not add a fake matrix with no data or transformed space BEFORE knowing if one already exists, instead add one in validate, after reading, if none exists
    
    dataType = NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32;
    getDataTypeAppropriateForIntent(intent, dataType);
@@ -607,8 +607,8 @@ GiftiDataArray::readFromText(const AString text,
    if (dimensionsForReading.size() == 0) {
       throw GiftiException("Data array has no dimensions.");
    }
-   setExternalFileInformation(externalFileNameForReading,
-                              externalFileOffsetForReading);
+   //setExternalFileInformation(externalFileNameForReading,
+   //                           externalFileOffsetForReading);//TSC: don't set the external filename on the array, because that is what it uses when writing the array
                               
    //
    // If NOT metadata only
@@ -736,27 +736,27 @@ GiftiDataArray::readFromText(const AString text,
             break;
           case GiftiEncodingEnum::EXTERNAL_FILE_BINARY:
             {
-               if (externalFileName.length() <= 0) {
+               if (externalFileNameForReading.length() <= 0) {
                   throw GiftiException("External file name is empty.");
                }
                
-                std::ifstream extBinFile(externalFileName.toStdString().c_str(),
+                std::ifstream extBinFile(externalFileNameForReading.toStdString().c_str(),
                                          std::ifstream::in);
                 if (extBinFile.good() == false) {
                         throw GiftiException("Error opening \""
-                                            + externalFileName
+                                            + externalFileNameForReading
                                             + "\"");
                 }
                 else {
                   //
                   // Move to the offset of the data
                   //
-                  extBinFile.seekg(externalFileOffset, std::ios::beg);
+                  extBinFile.seekg(externalFileOffsetForReading, std::ios::beg);
                   if (extBinFile.good() == false) {
                         throw GiftiException("Error seeking to \""
-                                             + AString::number(externalFileOffset)
+                                             + AString::number(externalFileOffsetForReading)
                                              + "\" in \""
-                                             + externalFileName
+                                             + externalFileNameForReading
                                              + "\"");
                   }
                     
@@ -791,7 +791,7 @@ GiftiDataArray::readFromText(const AString text,
                      throw GiftiException("Tried to read "
                                          + AString::number((int64_t)numberOfBytesToRead)
                                          + " from "
-                                         + externalFileName
+                                         + externalFileOffsetForReading
                                          + " but failed");
                   }
                   
@@ -1759,4 +1759,16 @@ GiftiDataArray::toString() const
     str << "   Dimensions=" << AString::fromNumbers(this->dimensions, ",").toStdString();
     str << "   MetaData=" << this->metaData.toString().toStdString() << std::endl;
     return AString::fromStdString(str.str());
+}
+
+void GiftiDataArray::validateArrayAfterReading()
+{
+    //pointset arrays are mandated to have at least one tranfsormation matrix, for some unknown reason
+    if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET && matrices.size() == 0)
+    {
+        Matrix4x4 gm;
+        gm.setDataSpaceName("NIFTI_XFORM_TALAIRACH");
+        gm.setTransformedSpaceName("NIFTI_XFORM_TALAIRACH");
+        matrices.push_back(gm);
+    }
 }

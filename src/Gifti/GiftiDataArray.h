@@ -307,6 +307,10 @@ namespace caret {
                                         const bool includeZeroValues) const;
         
     protected:
+        
+        //validate the array
+        void validateArrayAfterReading();
+        
         // allocate data for this column
         virtual void allocateData();
         
