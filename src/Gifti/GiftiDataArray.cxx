@@ -1766,6 +1766,7 @@ void GiftiDataArray::validateArrayAfterReading()
     //pointset arrays are mandated to have at least one tranfsormation matrix, for some unknown reason
     if (intent == NiftiIntentEnum::NIFTI_INTENT_POINTSET && matrices.size() == 0)
     {
+        CaretLogWarning("pointset gifti array did not include a transformation matrix, adding identity transform");
         Matrix4x4 gm;
         gm.setDataSpaceName("NIFTI_XFORM_TALAIRACH");
         gm.setTransformedSpaceName("NIFTI_XFORM_TALAIRACH");
