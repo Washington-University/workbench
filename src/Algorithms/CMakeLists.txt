@@ -26,6 +26,7 @@ AlgorithmLabelDilate.h
 AlgorithmMetricDilate.h
 AlgorithmMetricGradient.h
 AlgorithmMetricSmoothing.h
+AlgorithmVolumeParcelResampling.h
 AlgorithmVolumeParcelSmoothing.h
 AlgorithmVolumeSmoothing.h
 AlgorithmVolumeToSurfaceMapping.h
@@ -39,6 +40,7 @@ AlgorithmLabelDilate.cxx
 AlgorithmMetricDilate.cxx
 AlgorithmMetricGradient.cxx
 AlgorithmMetricSmoothing.cxx
+AlgorithmVolumeParcelResampling.cxx
 AlgorithmVolumeParcelSmoothing.cxx
 AlgorithmVolumeSmoothing.cxx
 AlgorithmVolumeToSurfaceMapping.cxx

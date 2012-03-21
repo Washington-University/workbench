@@ -30,9 +30,13 @@
 #include "CaretOMP.h"
 #include "CaretAssert.h"
 #include <cmath>
+#include <list>
 
 using namespace caret;
 using namespace std;
+
+//makes the program issue warning only once per launch, prevents repeated calls by other algorithms from spamming
+bool AlgorithmVolumeSmoothing::haveWarned = false;
 
 AString AlgorithmVolumeSmoothing::getCommandSwitch()
 {
@@ -200,7 +204,11 @@ AlgorithmVolumeSmoothing::AlgorithmVolumeSmoothing(ProgressObject* myProgObj, co
             }
         }
     } else {
-        CaretLogWarning("input volume is not orthogonal, smoothing will take longer");
+        if (!haveWarned)
+        {
+            CaretLogWarning("input volume is not orthogonal, smoothing will take longer");
+            haveWarned = true;
+        }
         ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
         jkorth = jvec.cross(kvec).normal();
         kiorth = kvec.cross(ivec).normal();
@@ -488,9 +496,14 @@ void AlgorithmVolumeSmoothing::smoothFrameROI(const float* inFrame, vector<int64
                 }
             }
         }
+        if (lists[0].size() == 0)
+        {
+            lists[0].push_back(-1);//to keep it from scanning the ROI again when the ROI has no voxels, slightly hacky
+        }
     } else {//lists already made, use them
         const float* roiFrame = roiVol->getFrame();
         int64_t ibasesize = (int64_t)lists[0].size();
+        if (ibasesize < 3) return;//handle the case of empty ROI here (ibasesize will be 1)
         int64_t jbasesize = (int64_t)lists[1].size();
         int64_t kbasesize = (int64_t)lists[2].size();
 #pragma omp CARET_PARFOR schedule(dynamic)

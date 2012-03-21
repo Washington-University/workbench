@@ -32,6 +32,7 @@ namespace caret {
     class AlgorithmVolumeSmoothing : public AbstractAlgorithm
     {
         AlgorithmVolumeSmoothing();
+        static bool haveWarned;
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
