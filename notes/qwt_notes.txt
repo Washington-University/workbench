@@ -1,0 +1,65 @@
+
+
+
+Setting up QWT for use with workbench
+
+
+In QWT's 'src' directory:
+
+Examine src.pro
+
+A configuration item (QWT_CONFIG) allow selective building of items.
+
+There are some HEADERS and SOURCES that we need.   These are the HEADERS and SOURCES not controlled with QWT_CONFIG, and QwtPlot.
+
+QwtSvg and QwtWidgets are NOT needed to copy part of the src.pro file to create a command for deleting these unneeded files.
+
+Something like this:
+
+#!/bin/sh
+
+rm \
+   qwt_plot_svgitem.h \
+   qwt_plot_svgitem.cpp
+
+
+rm \
+        qwt_abstract_slider.h \
+        qwt_abstract_scale.h \
+        qwt_arrow_button.h \
+        qwt_analog_clock.h \
+        qwt_compass.h \
+        qwt_compass_rose.h \
+        qwt_counter.h \
+        qwt_dial.h \
+        qwt_dial_needle.h \
+        qwt_double_range.h \
+        qwt_knob.h \
+        qwt_slider.h \
+        qwt_thermo.h \
+        qwt_wheel.h
+
+rm \
+        qwt_abstract_slider.cpp \
+        qwt_abstract_scale.cpp \
+        qwt_arrow_button.cpp \
+        qwt_analog_clock.cpp \
+        qwt_compass.cpp \
+        qwt_compass_rose.cpp \
+        qwt_counter.cpp \
+        qwt_dial.cpp \
+        qwt_dial_needle.cpp \
+        qwt_double_range.cpp \
+        qwt_knob.cpp \
+        qwt_slider.cpp \
+        qwt_thermo.cpp \
+        qwt_wheel.cpp
+
+
+Next, copy the src.pro to CMakeLists.txt.
+
+Run "grep --files-with-matches Q_OBJECT *.h" to find the files that need to go in the MOC_INPUT_HEADER_FILES section of the CMakeLists.txt file.
+
+Next place all headers and CPP files into the SOURCE_FILES section.
+
+

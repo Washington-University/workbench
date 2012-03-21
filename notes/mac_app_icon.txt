@@ -1,0 +1,6 @@
+
+* Create an image file in photoshop or other program with a transparent background that is 128x128.
+* Save as TIFF.
+* Start Icon Composer (/Developer/Utilities/Icon Composer).
+* Using Finder, drag the TIFF image and drop it into the 128x128 box.
+* Save the ICNS file.
