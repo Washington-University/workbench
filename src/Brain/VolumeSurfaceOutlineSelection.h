@@ -25,13 +25,13 @@
  * 
  */ 
 
-#include "CaretColorEnum.h"
 #include "CaretObject.h"
 
 namespace caret {
 
     class Surface;
     class SurfaceSelection;
+    class VolumeSurfaceOutlineColorOrTabModel;
     
     class VolumeSurfaceOutlineSelection : public CaretObject {
         
@@ -54,9 +54,9 @@ namespace caret {
         
         Surface* getSurface();
         
-        CaretColorEnum::Enum getColor() const;
+        VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel();
         
-        void setColor(CaretColorEnum::Enum color);
+        const VolumeSurfaceOutlineColorOrTabModel* getColorOrTabModel() const;
         
     private:
         VolumeSurfaceOutlineSelection(const VolumeSurfaceOutlineSelection&);
@@ -70,7 +70,7 @@ namespace caret {
         bool displayed;
         float thickness;
         SurfaceSelection* surfaceSelection;
-        CaretColorEnum::Enum color;
+        VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel;
     };
     
 #ifdef __VOLUME_SURFACE_OUTLINE_SELECTION_DECLARE__

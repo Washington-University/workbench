@@ -36,10 +36,13 @@
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
-#include "CaretColorEnumSelectionControl.h"
+#include "CaretAssert.h"
 #include "DisplayPropertiesVolume.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "SurfaceSelectionControl.h"
+#include "VolumeSurfaceOutlineColorOrTabViewController.h"
 #include "VolumeSurfaceOutlineSelection.h"
 
 using namespace caret;
@@ -58,6 +61,8 @@ using namespace caret;
 DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage()
 : MultiPageDialogPage("Volume Surface Outline")
 {
+    EventManager::get()->addEventListener(this, 
+                                          EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -65,6 +70,8 @@ DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage()
  */
 DisplayControlVolumeSurfaceOutlinePage::~DisplayControlVolumeSurfaceOutlinePage()
 {
+    EventManager::get()->removeAllEventsFromListener(this);
+    
     const int32_t numOutlines = static_cast<int32_t>(this->outlineWidgets.size());
     for (int32_t i = 0; i < numOutlines; i++) {
         delete this->outlineWidgets[i];
@@ -108,7 +115,7 @@ DisplayControlVolumeSurfaceOutlinePage::createPageContent()
     const int32_t COLUMN_SURFACE   = columnCounter++;
     
     QLabel* columnShowLabel      = new QLabel("Show");
-    QLabel* columnColorLabel     = new QLabel("Color");
+    QLabel* columnColorLabel     = new QLabel("Color/Tab");
     QLabel* columnThicknessLabel = new QLabel("Thickness");
     QLabel* columnSurfaceLabel   = new QLabel("Surface");
     
@@ -131,7 +138,7 @@ DisplayControlVolumeSurfaceOutlinePage::createPageContent()
 
         const int32_t row = layout->rowCount();
         layout->addWidget(outlineWidget->selectionCheckBox, row, COLUMN_SHOW);
-        layout->addWidget(outlineWidget->colorSelectionControl->getWidget(), row, COLUMN_COLOR);
+        layout->addWidget(outlineWidget->colorOrTabSelectionControl->getWidget(), row, COLUMN_COLOR);
         layout->addWidget(outlineWidget->thicknessSpinBox, row, COLUMN_THICKNESS);
         layout->addWidget(outlineWidget->surfaceSelectionControl->getWidget(), row, COLUMN_SURFACE);
         
@@ -151,6 +158,24 @@ DisplayControlVolumeSurfaceOutlinePage::updatePageContent()
         this->outlineWidgets[i]->updateWidget();
     }
 }
+
+/**
+ * Receive events.
+ * @param event
+ *    The event.
+ */
+void 
+DisplayControlVolumeSurfaceOutlinePage::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+        this->updatePageContent();
+        event->setEventProcessed();
+    }
+}
+
 
 //===================================================================================
 
@@ -176,8 +201,8 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->selectionCheckBox, 
                           true);
     
-    this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_SURFACE);
-    parentPage->addWidget(this->colorSelectionControl, 
+    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(vsos->getColorOrTabModel());
+    parentPage->addWidget(this->colorOrTabSelectionControl, 
                           true);
     
     const float minLineWidth = 0.5;
@@ -215,7 +240,6 @@ OutlineWidget::applyWidget()
     VolumeSurfaceOutlineSelection* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     vsos->setDisplayed(this->selectionCheckBox->isChecked());
-    vsos->setColor(this->colorSelectionControl->getSelectedColor());
     vsos->setThickness(this->thicknessSpinBox->value());
 }
 
@@ -230,7 +254,8 @@ OutlineWidget::updateWidget()
     VolumeSurfaceOutlineSelection* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     this->selectionCheckBox->setChecked(vsos->isDisplayed());
-    this->colorSelectionControl->setSelectedColor(vsos->getColor());
+    this->colorOrTabSelectionControl->updateViewController();
     this->thicknessSpinBox->setValue(vsos->getThickness());
     this->surfaceSelectionControl->updateControl();
 }
+

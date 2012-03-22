@@ -76,3 +76,13 @@ EventBrowserTabGetAll::addBrowserTab(BrowserTabContent* browserTab)
     this->allBrowserTabs.push_back(browserTab);
 }
 
+/**
+ * @return All browser tabs.
+ */
+std::vector<BrowserTabContent*> 
+EventBrowserTabGetAll::getAllBrowserTabs() const
+{
+    return this->allBrowserTabs;
+}
+
+

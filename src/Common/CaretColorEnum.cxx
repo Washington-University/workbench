@@ -98,13 +98,6 @@ CaretColorEnum::initialize()
                                       0,
                                       0));
       
-    enumData.push_back(CaretColorEnum(SURFACE, 
-                                      "SURFACE", 
-                                      "Surface",
-                                      0,
-                                      0,
-                                      0));
-    
     enumData.push_back(CaretColorEnum(AQUA, 
                                       "AQUA", 
                                       "Aqua",
@@ -438,11 +431,6 @@ CaretColorEnum::getAllEnums(std::vector<CaretColorEnum::Enum>& allEnums,
          iter++) {
         if (iter->enumValue == CLASS) {
             if ((options & OPTION_INCLUDE_CLASS) == 0) {
-                continue;
-            }
-        }
-        else if (iter->enumValue == SURFACE) {
-            if ((options & OPTION_INCLUDE_SURFACE) == 0) {
                 continue;
             }
         }

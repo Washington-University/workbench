@@ -29,17 +29,18 @@
 #include <QWidget>
 
 #include "CaretObject.h"
+#include "EventListenerInterface.h"
 #include "MultiPageDialogPage.h"
 
 class QCheckBox;
 class QDoubleSpinBox;
 
 namespace caret {
-    class CaretColorEnumSelectionControl;
     class OutlineWidget;
     class SurfaceSelectionControl;
+    class VolumeSurfaceOutlineColorOrTabViewController;
     
-    class DisplayControlVolumeSurfaceOutlinePage : public MultiPageDialogPage {
+    class DisplayControlVolumeSurfaceOutlinePage : public MultiPageDialogPage, public EventListenerInterface {
         
     public:
         DisplayControlVolumeSurfaceOutlinePage();
@@ -47,6 +48,8 @@ namespace caret {
         virtual ~DisplayControlVolumeSurfaceOutlinePage();
         
         virtual bool isPageValid();
+        
+        void receiveEvent(Event* event);
         
     private:
         DisplayControlVolumeSurfaceOutlinePage(const DisplayControlVolumeSurfaceOutlinePage&);
@@ -82,7 +85,7 @@ namespace caret {
     private:
         QCheckBox* selectionCheckBox;
         
-        CaretColorEnumSelectionControl* colorSelectionControl;
+        VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
         
         QDoubleSpinBox* thicknessSpinBox;
         

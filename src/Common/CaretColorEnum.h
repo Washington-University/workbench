@@ -41,8 +41,6 @@ public:
     enum Enum {
         /** Special case for using class coloring (borders). */
         CLASS,
-        /** Special case for using surface colooring */
-        SURFACE,
         /** AQUA */
         AQUA,
         /** Black */
@@ -84,9 +82,7 @@ public:
      */
     enum Options {
         /** Include the CLASS color */
-        OPTION_INCLUDE_CLASS = 1,
-        /** Include the SURFACE color */
-        OPTION_INCLUDE_SURFACE = 2
+        OPTION_INCLUDE_CLASS = 1
     };
 
     ~CaretColorEnum();

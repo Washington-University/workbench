@@ -28,6 +28,7 @@
 #undef __VOLUME_SURFACE_OUTLINE_SELECTION_DECLARE__
 
 #include "SurfaceSelection.h"
+#include "VolumeSurfaceOutlineColorOrTabModel.h"
 
 using namespace caret;
 
@@ -48,7 +49,7 @@ VolumeSurfaceOutlineSelection::VolumeSurfaceOutlineSelection()
     this->displayed = false;
     this->thickness = 5.0;
     this->surfaceSelection = new SurfaceSelection();
-    this->color = CaretColorEnum::WHITE;
+    this->colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
 }
 
 /**
@@ -57,6 +58,7 @@ VolumeSurfaceOutlineSelection::VolumeSurfaceOutlineSelection()
 VolumeSurfaceOutlineSelection::~VolumeSurfaceOutlineSelection()
 {
     delete this->surfaceSelection;
+    delete this->colorOrTabModel;
 }
 
 /**
@@ -137,22 +139,21 @@ VolumeSurfaceOutlineSelection::getSurface()
 }
 
 /**
- * @return  Get the selected color.
+ * @return The model for color or tab selection.
  */
-CaretColorEnum::Enum 
-VolumeSurfaceOutlineSelection::getColor() const
+VolumeSurfaceOutlineColorOrTabModel* 
+VolumeSurfaceOutlineSelection::getColorOrTabModel()
 {
-    return this->color;
+    return this->colorOrTabModel;
 }
 
 /**
- * Set the selected color.
- * @param color
- *    New value for color.
+ * @return The model for color or tab selection.
  */
-void 
-VolumeSurfaceOutlineSelection::setColor(CaretColorEnum::Enum color)
+const VolumeSurfaceOutlineColorOrTabModel* 
+VolumeSurfaceOutlineSelection::getColorOrTabModel() const
 {
-    this->color = color;
+    return this->colorOrTabModel;
 }
+
 

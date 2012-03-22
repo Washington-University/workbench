@@ -94,6 +94,7 @@
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
 #include "VolumeFile.h"
+#include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineSelection.h"
 
 using namespace caret;
@@ -3157,14 +3158,26 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
                 
                 int numTriangles = surface->getNumberOfTriangles();
                 
-                const CaretColorEnum::Enum outlineColor = outline->getColor();
-                const bool surfaceColorFlag = (outlineColor == CaretColorEnum::SURFACE);
+                CaretColorEnum::Enum outlineColor = CaretColorEnum::BLACK;
+                int32_t colorSourceBrowserTabIndex = -1;
+                
+                VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel = outline->getColorOrTabModel();
+                VolumeSurfaceOutlineColorOrTabModel::Item* selectedColorOrTabItem = colorOrTabModel->getSelectedItem();
+                switch (selectedColorOrTabItem->getItemType()) {
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_BROWSER_TAB:
+                        colorSourceBrowserTabIndex = selectedColorOrTabItem->getBrowserTabIndex();
+                        break;
+                    case VolumeSurfaceOutlineColorOrTabModel::Item::ITEM_TYPE_COLOR:
+                        outlineColor = selectedColorOrTabItem->getColor();
+                        break;
+                }
+                const bool surfaceColorFlag = (colorSourceBrowserTabIndex >= 0);
 
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
                     nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(modelDisplayController, 
                                                                                     surface, 
-                                                                                    this->windowTabIndex);
+                                                                                    colorSourceBrowserTabIndex);
                 }
                 
                 glColor3fv(CaretColorEnum::toRGB(outlineColor));

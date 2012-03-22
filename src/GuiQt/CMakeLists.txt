@@ -62,6 +62,7 @@ SurfaceSelectionControl.h
 TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
+VolumeSurfaceOutlineColorOrTabViewController.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -136,6 +137,7 @@ UserInputModeBordersWidget.h
 UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
+VolumeSurfaceOutlineColorOrTabViewController.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -202,6 +204,7 @@ UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
+VolumeSurfaceOutlineColorOrTabViewController.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx
 WuQDialogModal.cxx

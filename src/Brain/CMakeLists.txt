@@ -107,6 +107,7 @@ SurfaceNodeColoring.h
 VolumeSliceCoordinateSelection.h
 VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
+VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineSelection.h
 YokingTypeEnum.h
 
@@ -169,9 +170,10 @@ SurfaceNodeColoring.cxx
 VolumeSliceCoordinateSelection.cxx
 VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx
+VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineSelection.cxx
 YokingTypeEnum.cxx
-)
+) 
 
 #
 # Find Headers

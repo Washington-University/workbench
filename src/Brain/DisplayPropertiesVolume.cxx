@@ -29,7 +29,9 @@
 
 #include "Brain.h"
 #include "CaretAssert.h"
+#include "CaretColorEnum.h"
 #include "SurfaceSelection.h"
+#include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineSelection.h"
 #include "BrainStructure.h"
 
@@ -60,7 +62,7 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
             color = CaretColorEnum::fromIntegerCode(colorCounter,
                                                     &validColor);
         }
-        vsos->setColor(color);
+        vsos->getColorOrTabModel()->setColor(color);
         this->volumeSurfaceOutlineSelections.push_back(vsos);
         colorCounter++;
     }
@@ -137,13 +139,13 @@ DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded()
         Surface* surface = brainStructure->getVolumeInteractionSurface();
         if (surface != NULL) {
             this->volumeSurfaceOutlineSelections[i]->getSurfaceSelection()->setSurface(surface);
-            this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::SURFACE);
+            //this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::SURFACE);
             this->volumeSurfaceOutlineSelections[i]->setThickness(5);
         }
     }
     
     for (int32_t i = maxStructureIndex; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        this->volumeSurfaceOutlineSelections[i]->setColor(CaretColorEnum::BLACK);
+        this->volumeSurfaceOutlineSelections[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
         this->volumeSurfaceOutlineSelections[i]->setThickness(1);
     }
 }

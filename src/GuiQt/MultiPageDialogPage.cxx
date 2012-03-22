@@ -36,6 +36,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "SurfaceSelectionControl.h"
+#include "VolumeSurfaceOutlineColorOrTabViewController.h"
 
 #include "CaretAssert.h"
 
@@ -179,6 +180,13 @@ MultiPageDialogPage::addWidget(QObject* widget,
         SurfaceSelectionControl* ss = dynamic_cast<SurfaceSelectionControl*>(widget);
         if (isValueChangedSignalConnectedToApplyPage) {
             QObject::connect(ss, SIGNAL(surfaceSelected(Surface*)),
+                             this, SLOT(applyPage()));
+        }
+    }
+    else if (dynamic_cast<VolumeSurfaceOutlineColorOrTabViewController*>(widget) != NULL) {
+        VolumeSurfaceOutlineColorOrTabViewController* ct = dynamic_cast<VolumeSurfaceOutlineColorOrTabViewController*>(widget);
+        if (isValueChangedSignalConnectedToApplyPage) {
+            QObject::connect(ct, SIGNAL(modelSelected(VolumeSurfaceOutlineColorOrTabModel::Item*)),
                              this, SLOT(applyPage()));
         }
     }
