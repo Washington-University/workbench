@@ -30,7 +30,6 @@
 #include "CaretOMP.h"
 #include "CaretAssert.h"
 #include <cmath>
-#include <list>
 
 using namespace caret;
 using namespace std;

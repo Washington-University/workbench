@@ -71,7 +71,8 @@ OperationParameters* AlgorithmVolumeParcelResampling::getParameters()
         AString("Smooths and resamples the region inside each label in cur-parcels to the region of the same label name in new-parcels.  ") +
         "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the voxel, and after smoothing " +
         "is complete, it will check for any remaining values of zero, and fill them in with extrapolated values.  Any voxels in the output label region " +
-        "but outside the input label region will be extrapolated from nearby data."
+        "but outside the input label region will be extrapolated from nearby data.\n\nNote: all volumes must have the same dimensions and spacing.  To use a different " +
+        "output space, see -volume-parcel-resampling-generic."
     );
     return ret;
 }
@@ -233,10 +234,13 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, vector
         outVol->reinitialize(newDims, inVol->getVolumeSpace(), myDims[4], inVol->getType());
     }
     outVol->setValueAllVoxels(0.0f);
+    const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
     for (int whichList = 0; whichList < numLabels; ++whichList)
     {
         int curLabelValue = matchedLabels[whichList].first;
         int newLabelValue = matchedLabels[whichList].second;
+        myProgress.reportProgress(((float)whichList) / numLabels);
+        myProgress.setTask("Processing parcel " + curTable->getLabelName(curLabelValue));
         const vector<int64_t>& thisList = voxelLists[whichList];
         int64_t listSize = (int64_t)thisList.size();
         if (listSize > 2)//NOTE: this should NEVER be something other than a multiple of 3, but check against what we will actually access anyway
@@ -477,10 +481,13 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
         outVol->reinitialize(newDims, inVol->getVolumeSpace(), myDims[4], inVol->getType());
     }
     outVol->setValueAllVoxels(0.0f);
+    const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0);
     for (int whichList = 0; whichList < numLabels; ++whichList)
     {
         int curLabelValue = matchedLabels[whichList].first;
         int newLabelValue = matchedLabels[whichList].second;
+        myProgress.reportProgress(((float)whichList) / numLabels);
+        myProgress.setTask("Processing parcel " + curTable->getLabelName(curLabelValue));
         const vector<int64_t>& thisList = voxelLists[whichList];
         int64_t listSize = (int64_t)thisList.size();
         if (listSize > 2)//NOTE: this should NEVER be something other than a multiple of 3, but check against what we will actually access anyway

@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-AlgorithmVolumeParcelResampling     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_VOLUME_PARCEL_RESAMPLING    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--volume-parcel-resampling   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-SMOOTH AND RESAMPLE VOLUME PARCELS : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the algorithm takes no parameters (???) uncomment the line below for takesParameters(), otherwise delete it
-
-next, make AlgorithmVolumeParcelResampling.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeParcelResampling/g' | sed 's/-[c]ommand-switch/-volume-parcel-resampling/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH AND RESAMPLE VOLUME PARCELS/g' > AlgorithmVolumeParcelResampling.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeParcelResampling/g' | sed 's/-[c]ommand-switch/-volume-parcel-resampling/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH AND RESAMPLE VOLUME PARCELS/g' > Algorithms/AlgorithmVolumeParcelResampling.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmVolumeParcelResampling/g' | sed 's/-[c]ommand-switch/-volume-parcel-resampling/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH AND RESAMPLE VOLUME PARCELS/g' > src/Algorithms/AlgorithmVolumeParcelResampling.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmVolumeParcelResampling.h
-AlgorithmVolumeParcelResampling.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmVolumeParcelResampling.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 
 namespace caret {
