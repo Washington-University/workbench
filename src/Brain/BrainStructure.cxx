@@ -532,6 +532,75 @@ BrainStructure::setVolumeInteractionSurface(Surface* volumeInteractionSurface)
 }
 
 /**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+Surface* 
+BrainStructure::getSurfaceContainingTextInName(const AString& text)
+{
+    /*
+     * Kludge to avoid duplicated code and ease maintenance
+     */
+    const Surface* constSurface = this->getSurfaceContainingTextInNamePrivate(text);
+    Surface* s = (Surface*)constSurface;
+    return s;
+}
+
+
+/**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+const Surface* 
+BrainStructure::getSurfaceContainingTextInName(const AString& text) const
+{
+    return this->getSurfaceContainingTextInNamePrivate(text);
+}
+
+/**
+ * Find and return the first surface encountered that contains the
+ * given text in the name of the surface's filename.  Text is searched
+ * in an case-insensitive mode.
+ *
+ * @param text
+ *   Text that is to bound in the surface's filenname.
+ * @return
+ *   Surface that contains the given text in its filename or 
+ *   NULL if no surface matches.
+ */
+const Surface* 
+BrainStructure::getSurfaceContainingTextInNamePrivate(const AString& text) const
+{
+    for (std::vector<Surface*>::const_iterator iter = this->surfaces.begin();
+         iter != this->surfaces.end();
+         iter++) {
+        const Surface* surface = *iter;
+        const AString name = surface->getFileNameNoPath();
+        if (name.indexOf(text,
+                         0,
+                         Qt::CaseInsensitive) >= 0) {
+            return surface;
+        }
+    }
+    
+    return NULL;
+}
+
+/**
  * Is the surface in this brain structure?
  * @param surface
  *   Surface that is tested for being in this brain structure.

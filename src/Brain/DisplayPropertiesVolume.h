@@ -26,10 +26,12 @@
  */ 
 
 
+#include "CaretColorEnum.h"
 #include "DisplayProperties.h"
 
 namespace caret {
 
+    class Surface;
     class VolumeSurfaceOutlineSelection;
     
     class DisplayPropertiesVolume : public DisplayProperties {
@@ -49,7 +51,7 @@ namespace caret {
         
         const VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx) const;
         
-        void selectSurfacesAfterSpecFileLoaded();
+        void selectSurfacesAfterSpecFileLoaded(const bool searchForTabs);
         
     private:
         DisplayPropertiesVolume(const DisplayPropertiesVolume&);
@@ -57,6 +59,12 @@ namespace caret {
         DisplayPropertiesVolume& operator=(const DisplayPropertiesVolume&);
         
     private:
+        void addSurfaceOutline(Surface* surface,
+                               const float thickness,
+                               const int32_t browserTabIndex,
+                               const CaretColorEnum::Enum color,
+                               int32_t& outlineIndex);
+        
         std::vector<VolumeSurfaceOutlineSelection*> volumeSurfaceOutlineSelections;
     };
     

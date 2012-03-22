@@ -1140,7 +1140,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
     
-    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded();
+    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded(false);
     
     /*
      * Initialize the overlay for ALL models

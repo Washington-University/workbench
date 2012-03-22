@@ -93,6 +93,10 @@ namespace caret {
         
         Surface* getVolumeInteractionSurface();
         
+        const Surface* getSurfaceContainingTextInName(const AString& text) const;
+        
+        Surface* getSurfaceContainingTextInName(const AString& text);
+        
         void setVolumeInteractionSurface(Surface* surface);
         
         Brain* getBrain();
@@ -149,7 +153,9 @@ namespace caret {
     private:
         const Surface* getVolumeInteractionSurfacePrivate() const;
         
-        Brain* brain;
+        const Surface* getSurfaceContainingTextInNamePrivate(const AString& text) const;
+
+        Brain* brain;        
         
         StructureEnum::Enum structure;
         

@@ -39,6 +39,7 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
 #include "ElapsedTimer.h"
@@ -911,7 +912,8 @@ BrainBrowserWindow::processDataFileOpen()
         std::vector<AString> filenamesVector;
         QStringListIterator nameIter(selectedFiles);
         while (nameIter.hasNext()) {
-            filenamesVector.push_back(nameIter.next());
+            const QString name = nameIter.next();
+            filenamesVector.push_back(name);
         }
         this->loadFiles(filenamesVector,
                         LOAD_SPEC_FILE_WITH_DIALOG,
@@ -1157,6 +1159,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     const float createTabsStartTime = timer.getElapsedTimeSeconds();
     if (createDefaultTabsFlag) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
+        
+        GuiManager::get()->getBrain()->getDisplayPropertiesVolume()->selectSurfacesAfterSpecFileLoaded(true);
     }
     const float createTabsTime = timer.getElapsedTimeSeconds() - createTabsStartTime;
     
