@@ -193,6 +193,14 @@ void
 VolumeSurfaceOutlineColorOrTabModel::setSelectedItem(Item* item)
 {
     this->selectedItem = item;
+    std::vector<Item*> allItems = this->getValidItems();
+    const int32_t numItems = static_cast<int32_t>(allItems.size());
+    for (int32_t i = 0; i < numItems; i++) {
+        if (allItems[i] == this->selectedItem) {
+            this->previousSelectedItemIndex = i;
+            break;
+        }
+    }
 }
 
 /**

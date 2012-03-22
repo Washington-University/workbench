@@ -61,8 +61,12 @@ using namespace caret;
 DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage()
 : MultiPageDialogPage("Volume Surface Outline")
 {
-    EventManager::get()->addEventListener(this, 
-                                          EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addProcessedEventListener(this, 
+                                          EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
+    EventManager::get()->addProcessedEventListener(this, 
+                                          EventTypeEnum::EVENT_BROWSER_TAB_NEW);
+    EventManager::get()->addProcessedEventListener(this, 
+                                                   EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -167,12 +171,12 @@ DisplayControlVolumeSurfaceOutlinePage::updatePageContent()
 void 
 DisplayControlVolumeSurfaceOutlinePage::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
-        EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
-        CaretAssert(uiEvent);
-        
-        this->updatePageContent();
+    if ((event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_DELETE)
+        || (event->getEventType() == EventTypeEnum::EVENT_BROWSER_TAB_NEW) 
+        || (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE)) {
         event->setEventProcessed();
+            
+        this->updatePageContent();
     }
 }
 
