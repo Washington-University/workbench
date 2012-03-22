@@ -82,6 +82,17 @@ SurfaceSelection::SurfaceSelection(BrainStructure* brainStructure)
 }
 
 /**
+ * Constructor for surface of a specific type.
+ * @param surfaceType
+ *   Limit to surfaces from this of these types.
+ */
+SurfaceSelection::SurfaceSelection(const SurfaceTypeEnum::Enum surfaceType)
+{
+    this->allowableSurfaceTypes.push_back(surfaceType);
+    this->mode = MODE_SURFACE_TYPE;
+}
+
+/**
  * Destructor.
  */
 SurfaceSelection::~SurfaceSelection()
@@ -148,6 +159,24 @@ SurfaceSelection::getAvailableSurfaces() const
             surfaces = getSurfacesEvent.getSurfaces();
         }
             break;
+        case MODE_SURFACE_TYPE:
+        {
+            EventSurfacesGet getSurfacesEvent;
+            EventManager::get()->sendEvent(getSurfacesEvent.getPointer());
+            std::vector<Surface*> allSurfaces = getSurfacesEvent.getSurfaces();
+            for (std::vector<Surface*>::iterator iter = allSurfaces.begin();
+                 iter != allSurfaces.end();
+                 iter++) {
+                Surface* s = *iter;
+                const SurfaceTypeEnum::Enum surfaceType = s->getSurfaceType();
+                if (std::find(this->allowableSurfaceTypes.begin(),
+                              this->allowableSurfaceTypes.end(),
+                              surfaceType) != this->allowableSurfaceTypes.end()) {
+                    surfaces.push_back(s);
+                }
+            }
+        }
+            break;
             
     }
     
@@ -179,9 +208,13 @@ SurfaceSelection::updateSelection() const
                     break;
                 case MODE_STRUCTURE:
                     break;
+                case MODE_SURFACE_TYPE:
+                    break;
             }
             
-            this->selectedSurface = surfaces[0];
+            if (this->selectedSurface == NULL) {
+                this->selectedSurface = surfaces[0];
+            }
         }
     }
 }

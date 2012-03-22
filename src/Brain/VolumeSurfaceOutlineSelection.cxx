@@ -28,6 +28,7 @@
 #undef __VOLUME_SURFACE_OUTLINE_SELECTION_DECLARE__
 
 #include "SurfaceSelection.h"
+#include "SurfaceTypeEnum.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 
 using namespace caret;
@@ -48,7 +49,7 @@ VolumeSurfaceOutlineSelection::VolumeSurfaceOutlineSelection()
 {
     this->displayed = false;
     this->thickness = 5.0;
-    this->surfaceSelection = new SurfaceSelection();
+    this->surfaceSelection = new SurfaceSelection(SurfaceTypeEnum::ANATOMICAL);
     this->colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
 }
 

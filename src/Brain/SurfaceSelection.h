@@ -29,6 +29,7 @@
 #include "CaretObject.h"
 
 #include "StructureEnum.h"
+#include "SurfaceTypeEnum.h"
 
 namespace caret {
 
@@ -44,6 +45,8 @@ namespace caret {
         
         SurfaceSelection(BrainStructure* brainStructure);
         
+        SurfaceSelection(const SurfaceTypeEnum::Enum surfaceType);
+        
         virtual ~SurfaceSelection();
         
         Surface* getSurface();
@@ -57,7 +60,8 @@ namespace caret {
     private:
         enum Mode {
             MODE_BRAIN_STRUCTURE,
-            MODE_STRUCTURE
+            MODE_STRUCTURE,
+            MODE_SURFACE_TYPE
         };
         
         SurfaceSelection(const SurfaceSelection&);
@@ -74,6 +78,9 @@ namespace caret {
         
         /** If empty, allow any structure, otherwise restrict to these structures */
         std::vector<StructureEnum::Enum> allowableStructures;
+        
+        /** If empty, allow any surface type, otherwise restrict to these types */
+        std::vector<SurfaceTypeEnum::Enum> allowableSurfaceTypes;
     };
     
 #ifdef __SURFACE_SELECTION_DECLARE__
