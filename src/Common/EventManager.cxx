@@ -38,6 +38,35 @@
 #include "EventListenerInterface.h"
 
 using namespace caret;
+/**
+ * \class  caret::EventManager
+ * \brief  The event manager.
+ *
+ * The event manager processes events
+ * from senders to receivers.
+ *
+ * Events are sent by calling this class' sendEvent()
+ * method.
+ *
+ * Objects that wish to receive events must (1) extend
+ * publicly EventListenerInterface, (2) implement
+ * EventListenerInterface's receiveEvent() method,
+ * (3) Call one of two methods in EventManger,
+ * addEventListener() or addProcessedEventListener() which
+ * are typically called from the object's constructor, and
+ * (4) call removeEventFromListener() or removeAllEventsFromListener
+ * to cease listening for events which is typciall called
+ * from the object's constructor.
+ *
+ * In most cases addEventListener() is used to request events.
+ * addProcessedEventListener() is used when an object wants
+ * to be notified of an event but not until after it has been
+ * processed by at least one other receiver.  For example,
+ * a event for a new window may be sent.  A receiver of the
+ * event will create the new window.  Other receivers may
+ * want to know AFTER the window has been created in which
+ * case these receivers will use addProcessedEventListener().
+ */
 
 /**
  * Constructor.
@@ -83,6 +112,21 @@ EventManager::~EventManager()
         }
     }
     
+    /*
+     * Verify that all listeners were removed.
+     */ 
+    for (int32_t i = 0; i < EventTypeEnum::EVENT_COUNT; i++) {
+        EVENT_LISTENER_CONTAINER el = this->eventProcessedListeners[i];
+        if (el.empty() == false) {
+            EventTypeEnum::Enum enumValue = static_cast<EventTypeEnum::Enum>(i);
+            std::cout 
+            << "Not all listeners removed for processed event "
+            << EventTypeEnum::toName(enumValue)
+            << ", count is: "
+            << el.size()
+            << std::endl;
+        }
+    }
 }
 
 /**
@@ -148,6 +192,28 @@ EventManager::addEventListener(EventListenerInterface* eventListener,
 }
 
 /**
+ * Add a listener for a specific event but only receive the
+ * event AFTER it has been processed.
+ *
+ * @param eventListener
+ *     Listener for an event.
+ * @param listenForEventType
+ *     Type of event that is wanted.
+ */
+void 
+EventManager::addProcessedEventListener(EventListenerInterface* eventListener,
+                               const EventTypeEnum::Enum listenForEventType)
+{
+    this->eventProcessedListeners[listenForEventType].push_back(eventListener);
+    
+    //std::cout << "Adding listener from class "
+    //<< typeid(*eventListener).name()
+    //<< " for "
+    //<< EventTypeEnum::toName(listenForEventType)
+    //<< std::endl;
+}
+
+/**
  * Stop listening for an event.
  *
  * @param eventListener
@@ -160,7 +226,6 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
                                   const EventTypeEnum::Enum listenForEventType)
 {
     EVENT_LISTENER_CONTAINER listeners = this->eventListeners[listenForEventType];
-    
     
     /*
      * Remove the listener by creating a new container
@@ -184,6 +249,34 @@ EventManager::removeEventFromListener(EventListenerInterface* eventListener,
     
     if (updatedListeners.size() != listeners.size()) {
         this->eventListeners[listenForEventType] = updatedListeners;
+    }
+    
+    
+    
+    EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[listenForEventType];
+    
+    /*
+     * Remove the listener by creating a new container
+     * of non-matching listeners.
+     */
+    EVENT_LISTENER_CONTAINER updatedProcessedListeners;
+    for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
+         iter != processedListeners.end();
+         iter++) {
+        if (*iter == eventListener) {
+            //std::cout << "Removing listener from class "
+            //<< typeid(*eventListener).name()
+            //<< " for "
+            //<< EventTypeEnum::toName(listenForEventType)
+            //<< std::endl;            
+        }
+        else {
+            updatedProcessedListeners.push_back(*iter);
+        }
+    }
+    
+    if (updatedProcessedListeners.size() != processedListeners.size()) {
+        this->eventProcessedListeners[listenForEventType] = updatedProcessedListeners;
     }
 }
 
@@ -265,7 +358,32 @@ EventManager::sendEvent(Event* event)
         /*
          * Verify event was processed.
          */
-        if (event->getEventProcessCount() == 0) {
+        if (event->getEventProcessCount() > 0) {
+            /*
+             * Send event to each of the PROCESSED listeners.
+             */
+            EVENT_LISTENER_CONTAINER processedListeners = this->eventProcessedListeners[eventType];
+            for (EVENT_LISTENER_CONTAINER_ITERATOR iter = processedListeners.begin();
+                 iter != processedListeners.end();
+                 iter++) {
+                EventListenerInterface* listener = *iter;
+                
+                //std::cout << "Sending event from class "
+                //<< typeid(*listener).name()
+                //<< " for "
+                //<< EventTypeEnum::toName(eventType)
+                //<< std::endl;
+                
+                
+                listener->receiveEvent(event);
+                
+                if (event->isError()) {
+                    CaretLogWarning("Event " + eventNumberString + " had error: " + event->toString());
+                    break;
+                }
+            }
+        }
+        else {
             CaretLogWarning("Event " + eventNumberString + " not processed: " + event->toString());
         }
     }    
