@@ -549,6 +549,8 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                             {
                                 inbox.setValue(inVol->getValue(thisList[base], thisList[base + 1], thisList[base + 2], s, c),
                                     thisList[base] - extrema[0], thisList[base + 1] - extrema[2], thisList[base + 2] - extrema[4], s, c);
+                            } else {
+                                inbox.setValue(0.0f, thisList[base] - extrema[0], thisList[base + 1] - extrema[2], thisList[base + 2] - extrema[4], s, c);
                             }
                         }
                     }
@@ -596,11 +598,15 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                                                 int tempi = (int)floor(labelFrame[thisIndex] + 0.5f);
                                                 if (tempi == curLabelValue)
                                                 {
-                                                    iscratch = jscratch + ivec * (ikern - i);
-                                                    float tempf = iscratch.length();
-                                                    float weight = exp(tempf * tempf * kernelMult);
-                                                    sum += weight * current->getValue(ikern - extrema[0], jkern - extrema[2], kkern - extrema[4], s, c);
-                                                    weightsum += weight;
+                                                    float dataVal = current->getValue(ikern - extrema[0], jkern - extrema[2], kkern - extrema[4], s, c);
+                                                    if (dataVal != 0.0f)
+                                                    {
+                                                        iscratch = jscratch + ivec * (ikern - i);
+                                                        float tempf = iscratch.length();
+                                                        float weight = exp(tempf * tempf * kernelMult);
+                                                        sum += weight * dataVal;
+                                                        weightsum += weight;
+                                                    }
                                                 }
                                             }
                                         }
@@ -698,11 +704,15 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                                             int tempi = (int)floor(labelFrame[thisIndex] + 0.5f);
                                             if (tempi == curLabelValue)
                                             {
-                                                iscratch = jscratch + ivec * (ikern - i);
-                                                float tempf = iscratch.length();
-                                                float weight = exp(tempf * tempf * kernelMult);
-                                                sum += weight * current->getValue(ikern - extrema[0], jkern - extrema[2], kkern - extrema[4], 0, c);
-                                                weightsum += weight;
+                                                float dataVal = current->getValue(ikern - extrema[0], jkern - extrema[2], kkern - extrema[4], 0, c);
+                                                if (dataVal != 0.0f)
+                                                {
+                                                    iscratch = jscratch + ivec * (ikern - i);
+                                                    float tempf = iscratch.length();
+                                                    float weight = exp(tempf * tempf * kernelMult);
+                                                    sum += weight * dataVal;
+                                                    weightsum += weight;
+                                                }
                                             }
                                         }
                                     }
