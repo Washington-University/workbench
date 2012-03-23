@@ -69,10 +69,10 @@ OperationParameters* AlgorithmVolumeParcelResampling::getParameters()
     
     ret->setHelpText(
         AString("Smooths and resamples the region inside each label in cur-parcels to the region of the same label name in new-parcels.  ") +
+        "Any voxels in the output label region but outside the input label region will be extrapolated from nearby data.  " +
         "The -fix-zeros option causes the smoothing to not use an input value if it is zero, but still write a smoothed value to the voxel, and after smoothing " +
-        "is complete, it will check for any remaining values of zero, and fill them in with extrapolated values.  Any voxels in the output label region " +
-        "but outside the input label region will be extrapolated from nearby data.\n\nNote: all volumes must have the same dimensions and spacing.  To use a different " +
-        "output space, see -volume-parcel-resampling-generic."
+        "is complete, it will check for any remaining values of zero, and fill them in with extrapolated values.\n\nNote: all volumes must have " + 
+        "the same dimensions and spacing.  To use a different output space, see -volume-parcel-resampling-generic."
     );
     return ret;
 }
@@ -114,7 +114,11 @@ AlgorithmVolumeParcelResampling::AlgorithmVolumeParcelResampling(ProgressObject*
     }
     if (curLabel->getType() != SubvolumeAttributes::LABEL || newLabel->getType() != SubvolumeAttributes::LABEL)
     {
-        throw AlgorithmException("input label volumes are not of type label");
+        throw AlgorithmException("parcel volumes are not of type label");
+    }
+    if (subvolNum < -1 || subvolNum >= inVol->getNumberOfMaps())
+    {
+        throw AlgorithmException("invalid subvolume specified");
     }
     vector<pair<int, int> > matchedLabels;
     matchLabels(curLabel, newLabel, matchedLabels);
@@ -224,7 +228,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, vector
         newLabelReverse[matchedLabels[i].second] = i;
     }
     vector<int64_t> myDims;
-    curLabel->getDimensions(myDims);
+    inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
         outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getVolumeSpace(), myDims[4], inVol->getType());
@@ -471,7 +475,7 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
         newLabelReverse[matchedLabels[i].second] = i;
     }
     vector<int64_t> myDims;
-    curLabel->getDimensions(myDims);
+    inVol->getDimensions(myDims);
     if (subvolNum == -1)
     {
         outVol->reinitialize(inVol->getOriginalDimensions(), inVol->getVolumeSpace(), myDims[4], inVol->getType());
@@ -550,9 +554,9 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                 }
                 AlgorithmVolumeSmoothing(NULL, &inbox, kernel, &outbox, &roibox, true);
                 float kernelMult = -1.0f / kernel / kernel / 2.0f;//precompute the part of the kernel function that doesn't change
-                int fixIter;
                 VolumeFile* current = &outbox, *next = &inbox, *tempvol;//reuse inbox as scratch space for iterated dilation
                 const float* labelFrame = newLabel->getFrame();
+                int fixIter;
                 for (fixIter = 0; fixIter < FIX_ZEROS_POST_ITERATIONS; ++fixIter)
                 {
                     bool again = false;

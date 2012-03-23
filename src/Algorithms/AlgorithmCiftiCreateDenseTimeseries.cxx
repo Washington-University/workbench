@@ -212,6 +212,10 @@ AlgorithmCiftiCreateDenseTimeseries::AlgorithmCiftiCreateDenseTimeseries(Progres
         {
             throw AlgorithmException("label volume has a different volume space than data volume");
         }
+        if (myVolLabel->getType() != SubvolumeAttributes::LABEL)
+        {
+            throw AlgorithmException("parcel volume is not of type label");
+        }
         if (numMaps == -1)
         {
             numMaps = myVol->getNumberOfMaps();
