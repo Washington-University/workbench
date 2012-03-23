@@ -325,7 +325,7 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const 
                             {
                                 outVol->setValue(outbox.getValue(newList[base] - extrema[0], newList[base + 1] - extrema[2], newList[base + 2] - extrema[4], s, c),
                                     newList[base], newList[base + 1], newList[base + 2], s, c);
-                            } else {//TODO: dilate from input
+                            } else {
                                 float sum = 0.0f, weightsum = 0.0f;//coded in-place for now, its a special restricted case of volume dilate, copied out of nonorth volume smoothing
                                 int i = newList[base], j = newList[base + 1], k = newList[base + 2];//special casing orthogonal would be faster, but harder to follow/debug, and more code
                                 int imin = i - irange, imax = i + irange + 1;//one-after array size convention
@@ -741,13 +741,10 @@ void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress
                 }
                 for (int c = 0; c < myDims[4]; ++c)//copy the final result into the output valume
                 {
-                    for (int s = 0; s < myDims[3]; ++s)
+                    for (int64_t base = 0; base < newListSize; base += 3)
                     {
-                        for (int64_t base = 0; base < newListSize; base += 3)
-                        {
-                            outVol->setValue(current->getValue(newList[base] - extrema[0], newList[base + 1] - extrema[2], newList[base + 2] - extrema[4], 0, c),
-                                newList[base], newList[base + 1], newList[base + 2], subvolNum, c);
-                        }
+                        outVol->setValue(current->getValue(newList[base] - extrema[0], newList[base + 1] - extrema[2], newList[base + 2] - extrema[4], 0, c),
+                            newList[base], newList[base + 1], newList[base + 2], 0, c);
                     }
                 }
             }
