@@ -83,7 +83,7 @@ void AlgorithmVolumeParcelResampling::useParameters(OperationParameters* myParam
     VolumeFile* curLabel = myParams->getVolume(2);
     VolumeFile* newLabel = myParams->getVolume(3);
     float kernel = (float)myParams->getDouble(4);
-    VolumeFile* outVol = myParams->getVolume(5);
+    VolumeFile* outVol = myParams->getOutputVolume(5);
     bool fixZeros = false;
     if (myParams->getOptionalParameter(6)->m_present)
     {
@@ -142,7 +142,7 @@ AlgorithmVolumeParcelResampling::AlgorithmVolumeParcelResampling(ProgressObject*
     }
 }
 
-void AlgorithmVolumeParcelResampling::matchLabels(const VolumeFile* curLabel, const VolumeFile* newLabel, vector<pair<int, int> > matchedLabels)
+void AlgorithmVolumeParcelResampling::matchLabels(const VolumeFile* curLabel, const VolumeFile* newLabel, vector<pair<int, int> >& matchedLabels)
 {
     const GiftiLabelTable* curTable = curLabel->getMapLabelTable(0), *newTable = newLabel->getMapLabelTable(0);
     vector<int32_t> curKeys;
@@ -164,7 +164,7 @@ void AlgorithmVolumeParcelResampling::matchLabels(const VolumeFile* curLabel, co
     }
 }
 
-void AlgorithmVolumeParcelResampling::generateVoxelLists(vector<pair<int, int> > matchedLabels, const VolumeFile* curLabel, const VolumeFile* newLabel, vector<vector<int64_t> > voxelLists)
+void AlgorithmVolumeParcelResampling::generateVoxelLists(const vector<pair<int, int> >& matchedLabels, const VolumeFile* curLabel, const VolumeFile* newLabel, vector<vector<int64_t> >& voxelLists)
 {
     map<int, int> curLabelReverse, newLabelReverse;
     for (int i = 0; i < (int)matchedLabels.size(); ++i)
@@ -172,6 +172,7 @@ void AlgorithmVolumeParcelResampling::generateVoxelLists(vector<pair<int, int> >
         curLabelReverse[matchedLabels[i].first] = i;
         newLabelReverse[matchedLabels[i].second] = i;
     }
+    voxelLists.resize(matchedLabels.size());
     vector<int64_t> myDims;
     curLabel->getDimensions(myDims);
     for (int64_t k = 0; k < myDims[2]; ++k)
@@ -200,8 +201,8 @@ void AlgorithmVolumeParcelResampling::generateVoxelLists(vector<pair<int, int> >
     }
 }
 
-void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, vector<pair<int, int> > matchedLabels,
-                                               vector<vector<int64_t> > voxelLists, const VolumeFile* inVol,
+void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, const vector<pair<int, int> >& matchedLabels,
+                                               const vector<vector<int64_t> >& voxelLists, const VolumeFile* inVol,
                                                const VolumeFile* curLabel, const VolumeFile* newLabel,
                                                const float& kernel, VolumeFile* outVol, const int& subvolNum)
 {
@@ -447,8 +448,8 @@ void AlgorithmVolumeParcelResampling::resample(LevelProgress& myProgress, vector
     }
 }
 
-void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress, vector<pair<int, int> > matchedLabels,
-                                                       vector<vector<int64_t> > voxelLists, const VolumeFile* inVol,
+void AlgorithmVolumeParcelResampling::resampleFixZeros(LevelProgress& myProgress, const vector<pair<int, int> >& matchedLabels,
+                                                       const vector<vector<int64_t> >& voxelLists, const VolumeFile* inVol,
                                                        const VolumeFile* curLabel, const VolumeFile* newLabel,
                                                        const float& kernel, VolumeFile* outVol, const int& subvolNum)
 {

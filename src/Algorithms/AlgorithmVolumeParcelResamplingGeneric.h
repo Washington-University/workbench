@@ -35,8 +35,8 @@ namespace caret {
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
-        void matchLabels(const caret::VolumeFile* curLabel, const caret::VolumeFile* newLabel, std::vector<std::pair<int, int> > matchedLabels);
-        void generateVoxelLists(std::vector<std::pair<int, int> > matchedLabels, const VolumeFile* newLabel, std::vector<std::vector<int64_t> > voxelLists);
+        void matchLabels(const caret::VolumeFile* curLabel, const caret::VolumeFile* newLabel, std::vector<std::pair<int, int> >& matchedLabels);
+        void generateVoxelLists(const std::vector<std::pair<int, int> >& matchedLabels, const VolumeFile* newLabel, std::vector<std::vector<int64_t> >& voxelLists);
     public:
         AlgorithmVolumeParcelResamplingGeneric(ProgressObject* myProgObj, const VolumeFile* inVol, const VolumeFile* curLabel, const VolumeFile* newLabel, const float& kernel, VolumeFile* outVol, const bool& fixZeros = false, const int& subvolNum = -1);
         static OperationParameters* getParameters();

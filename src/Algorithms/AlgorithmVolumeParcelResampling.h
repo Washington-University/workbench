@@ -32,10 +32,10 @@ namespace caret {
     class AlgorithmVolumeParcelResampling : public AbstractAlgorithm
     {
         AlgorithmVolumeParcelResampling();
-        void matchLabels(const caret::VolumeFile* curLabel, const caret::VolumeFile* newLabel, std::vector<std::pair<int, int> > matchedLabels);
-        void generateVoxelLists(std::vector<std::pair<int, int> > matchedLabels, const VolumeFile* curLabel, const VolumeFile* newLabel, std::vector<std::vector<int64_t> > voxelLists);
-        void resampleFixZeros(LevelProgress& myProgress, std::vector<std::pair<int, int> > matchedLabels, std::vector<std::vector<int64_t> > voxelLists, const VolumeFile* inVol, const VolumeFile* curLabel, const caret::VolumeFile* newLabel, const float& kernel, VolumeFile* outVol, const int& subvolNum);
-        void resample(LevelProgress& myProgress, std::vector<std::pair<int, int> > matchedLabels, std::vector<std::vector<int64_t> > voxelLists, const VolumeFile* inVol, const VolumeFile* curLabel, const caret::VolumeFile* newLabel, const float& kernel, VolumeFile* outVol, const int& subvolNum);
+        void matchLabels(const caret::VolumeFile* curLabel, const caret::VolumeFile* newLabel, std::vector<std::pair<int, int> >& matchedLabels);
+        void generateVoxelLists(const std::vector<std::pair<int, int> >& matchedLabels, const VolumeFile* curLabel, const VolumeFile* newLabel, std::vector<std::vector<int64_t> >& voxelLists);
+        void resampleFixZeros(LevelProgress& myProgress, const std::vector<std::pair<int, int> >& matchedLabels, const std::vector<std::vector<int64_t> >& voxelLists, const VolumeFile* inVol, const VolumeFile* curLabel, const caret::VolumeFile* newLabel, const float& kernel, VolumeFile* outVol, const int& subvolNum);
+        void resample(LevelProgress& myProgress, const std::vector<std::pair<int, int> >& matchedLabels, const std::vector<std::vector<int64_t> >& voxelLists, const VolumeFile* inVol, const VolumeFile* curLabel, const caret::VolumeFile* newLabel, const float& kernel, VolumeFile* outVol, const int& subvolNum);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
