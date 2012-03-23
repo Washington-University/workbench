@@ -26,6 +26,7 @@
 #include "OperationException.h"
 #include "VolumeFile.h"
 #include "GiftiLabel.h"
+#include "FileInformation.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -107,7 +108,16 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
             throw OperationException("invalid column specified");
         }
     }
+    FileInformation textFileInfo(listfileName);
+    if (!textFileInfo.exists())
+    {
+        throw OperationException("label list file doesn't exist");
+    }
     fstream labelListFile(listfileName.toLocal8Bit().constData(), fstream::in);
+    if (!labelListFile.good())
+    {
+        throw OperationException("error reading label list file");
+    }
     string labelName;
     int32_t value, red, green, blue, alpha;
     GiftiLabelTable myTable;
