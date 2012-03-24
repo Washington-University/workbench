@@ -60,7 +60,7 @@ namespace caret {
         *
         * Default Constructor
         */
-        CiftiXML() { }
+        CiftiXML();
         /**
         * Constructor
         *

@@ -32,6 +32,14 @@
 using namespace caret;
 using namespace std;
 
+CiftiXML::CiftiXML()
+{
+    m_rowMap = NULL;
+    m_colMap = NULL;
+    m_rowVoxels = 0;
+    m_colVoxels = 0;
+}
+
 int64_t CiftiXML::getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myElement) const
 {
     if (myElement == NULL || myElement->m_modelType != CIFTI_MODEL_TYPE_SURFACE) return -1;
@@ -686,6 +694,7 @@ bool CiftiXML::addSurfaceModel(CiftiMatrixIndicesMapElement* myMap, const int& n
     tempModel.m_brainStructure = structure;
     tempModel.m_modelType = CIFTI_MODEL_TYPE_SURFACE;
     tempModel.m_indexOffset = getNewRangeStart(myMap);
+    tempModel.m_surfaceNumberOfNodes = numberOfNodes;
     if (roi == NULL)
     {
         tempModel.m_indexCount = numberOfNodes;
@@ -705,6 +714,8 @@ bool CiftiXML::addSurfaceModel(CiftiMatrixIndicesMapElement* myMap, const int& n
         if (allNodes)
         {
             tempModel.m_nodeIndices.clear();
+        } else {
+            tempModel.m_indexCount = (unsigned long long)tempModel.m_nodeIndices.size();
         }
     }
     myMap->m_brainModels.push_back(tempModel);
@@ -736,10 +747,13 @@ bool CiftiXML::addVolumeModel(CiftiMatrixIndicesMapElement* myMap, const vector<
     if (myMap == m_rowMap)
     {
         m_rowVoxels += tempModel.m_indexCount;
-    } else {
+    }
+    if (myMap == m_colMap)
+    {
         m_colVoxels += tempModel.m_indexCount;
     }
     tempModel.m_voxelIndicesIJK = ijkList;
+    myMap->m_brainModels.push_back(tempModel);
     return true;
 }
 
@@ -854,7 +868,7 @@ CiftiMatrixIndicesMapElement* CiftiXML::createMap(int dimension)
     }
     CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
     myMatrix.m_matrixIndicesMap.push_back(tempMap);
-    return &(myMatrix.m_matrixIndicesMap[myMatrix.m_matrixIndicesMap.size()]);
+    return &(myMatrix.m_matrixIndicesMap[myMatrix.m_matrixIndicesMap.size() - 1]);
 }
 
 void CiftiXML::separateMaps()

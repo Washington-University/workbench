@@ -75,6 +75,7 @@ public:
         m_timeStep = -1.0;
         m_timeStepUnits = -1;
         m_numTimeSteps = -1;
+        m_indicesMapToDataType = CIFTI_INDEX_TYPE_INVALID;
     }
 
     std::vector<int> m_appliesToMatrixDimension; /*!< Lists the dimension(s) of the matrix to which this MatrixIndicesMap applies. */
