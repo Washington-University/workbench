@@ -865,6 +865,7 @@ CiftiMatrixIndicesMapElement* CiftiXML::createMap(int dimension)
     if (m_root.m_matrices.size() == 0)
     {
         m_root.m_matrices.resize(1);
+        m_root.m_numberOfMatrices = 1;
     }
     CiftiMatrixElement& myMatrix = m_root.m_matrices[0];//assume only one matrix
     myMatrix.m_matrixIndicesMap.push_back(tempMap);
