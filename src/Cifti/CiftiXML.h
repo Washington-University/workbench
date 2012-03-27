@@ -264,47 +264,48 @@ namespace caret {
         ///get dimensions and sform, useful for making a volume
         bool getVolumeDimsAndSForm(int64_t dimsOut[3], std::vector<std::vector<float> >& sformOut) const;
         
+        ///set the volume space
+        void setVolumeDimsAndSForm(const int64_t dims[3], const std::vector<std::vector<float> >& sform);
+        
         ///check what types of data it has
         bool hasRowVolumeData() const;
         bool hasColumnVolumeData() const;
         bool hasRowSurfaceData(const StructureEnum::Enum& structure) const;
         bool hasColumnSurfaceData(const StructureEnum::Enum& structure) const;
         
-        CiftiXML& operator=(const CiftiXML& right);
     protected:
         CiftiRootElement m_root;
-        CiftiMatrixIndicesMapElement* m_rowMap, *m_colMap;//assumes only one matrix
-        int64_t m_rowVoxels, m_colVoxels;
+        int m_rowMapIndex, m_colMapIndex;
         
-        ///updates the member variables associated with our root
+        ///updates the member variables associated with our root, should only be needed after reading from XML
         void rootChanged();
         
         ///convenience functions to grab the correct model out of the tree, to replace the rowLeft/rowRight stuff (since we might have other surfaces too)
-        const CiftiBrainModelElement* findSurfaceModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const;
-        const CiftiBrainModelElement* findVolumeModel(const CiftiMatrixIndicesMapElement* myMap, const StructureEnum::Enum& structure) const;
+        const CiftiBrainModelElement* findSurfaceModel(const int& myMapIndex, const StructureEnum::Enum& structure) const;
+        const CiftiBrainModelElement* findVolumeModel(const int& myMapIndex, const StructureEnum::Enum& structure) const;
         
         ///some boilerplate to get the correct index in a particular mapping
         int64_t getSurfaceIndex(const int64_t& node, const CiftiBrainModelElement* myModel) const;
-        int64_t getVolumeIndex(const int64_t* ijk, const CiftiMatrixIndicesMapElement* myMap) const;
-        int64_t getVolumeIndex(const float* xyz, const CiftiMatrixIndicesMapElement* myMap) const;
-        int64_t getTimestepIndex(const float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
-        bool getTimestep(float& seconds, const CiftiMatrixIndicesMapElement* myMap) const;
-        bool setTimestep(const float& seconds, CiftiMatrixIndicesMapElement* myMap);
+        int64_t getVolumeIndex(const int64_t* ijk, const int& myMapIndex) const;
+        int64_t getVolumeIndex(const float* xyz, const int& myMapIndex) const;
+        int64_t getTimestepIndex(const float& seconds, const int& myMapIndex) const;
+        bool getTimestep(float& seconds, const int& myMapIndex) const;
+        bool setTimestep(const float& seconds, const int& myMapIndex);
         
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
-        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const CiftiMatrixIndicesMapElement* myMap, const int64_t& myCount) const;
-        bool getVolumeParcelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const CiftiMatrixIndicesMapElement* myMap) const;
+        bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const int& myMapIndex) const;
+        bool getVolumeParcelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
         
         ///boilerplate for has data
-        bool hasVolumeData(const CiftiMatrixIndicesMapElement* myMap) const;
+        bool hasVolumeData(const int& myMapIndex) const;
         
-        bool addSurfaceModel(CiftiMatrixIndicesMapElement* myMap, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
-        bool addVolumeModel(CiftiMatrixIndicesMapElement* myMap, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
+        bool addVolumeModel(const int& myMapIndex, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         void applyDimensionHelper(const int& from, const int& to);
-        int getNewRangeStart(const CiftiMatrixIndicesMapElement* myMap) const;
+        int getNewRangeStart(const int& myMapIndex) const;
         void separateMaps();
-        CiftiMatrixIndicesMapElement* createMap(int dimension);
+        int createMap(int dimension);
     };
 
 }
