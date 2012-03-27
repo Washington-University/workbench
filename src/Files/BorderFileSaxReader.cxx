@@ -205,7 +205,10 @@ BorderFileSaxReader::endElement(const AString& namespaceURI,
                this->border->setClassName(this->elementText.trimmed());
            }
            else if (qName == Border::XML_TAG_COLOR_NAME) {
-               this->border->setColor(CaretColorEnum::fromName(this->elementText.trimmed(), NULL));
+               bool valid = false;
+               CaretColorEnum::Enum colorEnum = CaretColorEnum::fromName(this->elementText.trimmed(), 
+                                                                         &valid);
+               this->border->setColor(colorEnum);
            }
            else if (qName == Border::XML_TAG_BORDER) {
                this->borderFile->addBorder(this->border);
