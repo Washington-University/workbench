@@ -1429,6 +1429,8 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
             EventManager::get()->removeAllEventsFromListener(this);  // ignore update requests
             this->close();
         }
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     }
 }
 
