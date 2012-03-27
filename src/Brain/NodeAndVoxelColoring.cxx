@@ -33,6 +33,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "DescriptiveStatistics.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTable.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 
@@ -450,6 +452,49 @@ NodeAndVoxelColoring::colorScalarsWithPalette(const FastStatistics* statistics,
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Assign colors to label indices using a GIFTI label table.
+ *
+ * @param labelTabl
+ *     Label table used for coloring and indexing with label indices.
+ * @param labelIndices
+ *     The indices are are used to access colors in the label table.
+ * @param numberOfIndices
+ *     Number of indices.
+ * @param rgbv 
+ *     Output with assigned colors.  Number of elements is (numberOfIndices * 4).
+ */
+void
+NodeAndVoxelColoring::colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                                 const int32_t* labelIndices,
+                                                 const int32_t numberOfIndices,
+                                                 float* rgbv)
+{
+    /*
+     * Invalidate all coloring.
+     */
+    for (int32_t i = 0; i < numberOfIndices; i++) {
+        rgbv[i*4+3] = 0.0;
+    }   
+    /*
+     * Assign colors from labels to nodes
+     */
+    float labelRGBA[4];
+    for (int i = 0; i < numberOfIndices; i++) {
+        const GiftiLabel* gl = labelTable->getLabel(labelIndices[i]);
+        if (gl != NULL) {
+            gl->getColor(labelRGBA);
+            if (labelRGBA[3] > 0.0) {
+                const int32_t i4 = i * 4;
+                rgbv[i4]   = labelRGBA[0];
+                rgbv[i4+1] = labelRGBA[1];
+                rgbv[i4+2] = labelRGBA[2];
+                rgbv[i4+3] = 1.0;
             }
         }
     }

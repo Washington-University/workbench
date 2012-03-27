@@ -1629,6 +1629,15 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                                 + vf->getFileNameNoPath());
                             }
                         }
+                        else {
+                            VolumeDrawInfo vdi(vf,
+                                               NULL,
+                                               NULL,
+                                               NULL,
+                                               mapIndex,
+                                               1.0);
+                            volumeDrawInfoOut.push_back(vdi);
+                        }
                     }
                 }
             }
@@ -2245,13 +2254,19 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
             /*
              * Get colors for all voxels in the slice.
              */
-            NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
-                                                          volInfo.paletteColorMapping,
-                                                          volInfo.palette,
-                                                          sliceVoxelValues,
-                                                          sliceVoxelValues,
-                                                          numVoxelsInSlice,
-                                                          sliceVoxelsRGBA);
+            this->colorizeVoxels(volInfo,
+                                 sliceVoxelValues,
+                                 sliceVoxelValues,
+                                 numVoxelsInSlice,
+                                 sliceVoxelsRGBA,
+                                 true);
+//            NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
+//                                                          volInfo.paletteColorMapping,
+//                                                          volInfo.palette,
+//                                                          sliceVoxelValues,
+//                                                          sliceVoxelValues,
+//                                                          numVoxelsInSlice,
+//                                                          sliceVoxelsRGBA);
             
             /*
              * Voxels not color will have negative alpha so fix it.
@@ -2769,13 +2784,19 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
                     
                     if (valid) {
                         float rgba[4];
-                        NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
-                                                                      volInfo.paletteColorMapping,
-                                                                      volInfo.palette,
-                                                                      &voxel,
-                                                                      &voxel,
-                                                                      1,
-                                                                      rgba);
+                        this->colorizeVoxels(volInfo,
+                                             &voxel,
+                                             &voxel,
+                                             1,
+                                             rgba,
+                                             true);
+//                        NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
+//                                                                      volInfo.paletteColorMapping,
+//                                                                      volInfo.palette,
+//                                                                      &voxel,
+//                                                                      &voxel,
+//                                                                      1,
+//                                                                      rgba);
                         if (rgba[3] > 0.0) {
                             sliceRGBA[sliceRgbaOffset]   = rgba[0];
                             sliceRGBA[sliceRgbaOffset+1] = rgba[1];
@@ -3069,6 +3090,93 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSlice(const VolumeSliceViewPlaneEn
     glEnable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
 }
+
+/**
+ * Apply coloring to voxels.
+ *
+ * @param volumeDrawInfo
+ *    Info about volume being drawn.
+ * @param scalarValues
+ *    Scalar values that are used to assign colors.
+ * @param thresholdValues
+ *    Scalar values that are used for thresholding.
+ * @param numberOfScalars
+ *    Number of scalars.
+ * @param rgbaOut
+ *    Output containing RGBA colors.
+ * @param ignoreThresholding
+ *    If true, thresolding is ignored.
+ */
+void 
+BrainOpenGLFixedPipeline::colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
+                                         const float* scalarValues,
+                                         const float* thresholdValues,
+                                         const int32_t numberOfScalars,
+                                         float* rgbaOut,
+                                         const bool ignoreThresholding)
+{
+    bool clearColorsFlag = false;
+    
+    const VolumeFile* vf = volumeDrawInfo.volumeFile;
+    
+    switch (vf->getType()) {
+        case SubvolumeAttributes::UNKNOWN:
+        case SubvolumeAttributes::ANATOMY:
+        case SubvolumeAttributes::FUNCTIONAL:
+            NodeAndVoxelColoring::colorScalarsWithPalette(volumeDrawInfo.statistics,
+                                                          volumeDrawInfo.paletteColorMapping,
+                                                          volumeDrawInfo.palette,
+                                                          scalarValues,
+                                                          thresholdValues,
+                                                          numberOfScalars,
+                                                          rgbaOut,
+                                                          ignoreThresholding);
+            break;
+        case SubvolumeAttributes::LABEL:
+            if (numberOfScalars > 0) {
+                std::vector<int32_t> labelIndices(numberOfScalars);
+                for (int32_t i = 0; i < numberOfScalars; i++) {
+                    labelIndices[i] = static_cast<int32_t>(scalarValues[i]);
+                }
+                
+               NodeAndVoxelColoring::colorIndicesWithLabelTable(vf->getMapLabelTable(volumeDrawInfo.mapIndex), 
+                                                                 &labelIndices[0], 
+                                                                 numberOfScalars, 
+                                                                 rgbaOut);
+            }
+            break;
+        case SubvolumeAttributes::RGB:
+            clearColorsFlag = true;
+            break;
+        case SubvolumeAttributes::SEGMENTATION:
+            clearColorsFlag = true;
+            break;
+        case SubvolumeAttributes::VECTOR:
+            clearColorsFlag = true;
+            break;
+    }
+    
+    if (clearColorsFlag) {
+        for (int32_t i = 0; i < numberOfScalars; i++) {
+            const int32_t i4 = i * 4;
+            rgbaOut[i4]   = 0.0;
+            rgbaOut[i4+1] = 0.0;
+            rgbaOut[i4+2] = 0.0;
+            rgbaOut[i4+3] = 0.0;
+        }
+    }
+    
+    /*
+     NodeAndVoxelColoring::colorScalarsWithPalette(volInfo.statistics,
+     volInfo.paletteColorMapping,
+     volInfo.palette,
+     &voxel,
+     &voxel,
+     1,
+     rgba);
+     */
+}
+
 
 /**
  * Draw surface outlines on volume slices.
@@ -4572,6 +4680,7 @@ BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
                                                    const float opacity) 
 : statistics(statistics) {
     this->volumeFile = volumeFile;
+    this->volumeType = volumeFile->getType();
     this->palette = palette;
     this->paletteColorMapping = paletteColorMapping;
     this->mapIndex = mapIndex;

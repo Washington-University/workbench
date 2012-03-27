@@ -30,6 +30,7 @@
 namespace caret {
     class DescriptiveStatistics;
     class FastStatistics;
+    class GiftiLabelTable;
     class Palette;
     class PaletteColorMapping;
     
@@ -57,6 +58,10 @@ namespace caret {
         static const float SMALL_POSITIVE;
         static const float SMALL_NEGATIVE;
         
+        static void colorIndicesWithLabelTable(const GiftiLabelTable* labelTable,
+                                               const int32_t* labelIndices,
+                                               const int32_t numberOfIndices,
+                                               float* rgbv);
     private:
         NodeAndVoxelColoring();
         

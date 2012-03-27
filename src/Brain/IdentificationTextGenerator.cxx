@@ -33,7 +33,9 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
+#include "CaretVolumeExtension.h"
 #include "EventManager.h"
+#include "GiftiLabel.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
@@ -155,7 +157,24 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                     AString text;
                     const int32_t numMaps = vf->getNumberOfMaps();
                     for (int j = 0; j < numMaps; j++) {
-                        text += AString::number(vf->getValue(vfIJK));
+                        if (j > 0) {
+                            text += " ";
+                        }
+                        if (vf->getType() == SubvolumeAttributes::LABEL) {
+                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfIJK));
+                            const GiftiLabelTable* glt = vf->getMapLabelTable(j);
+                            const GiftiLabel* gl = glt->getLabel(labelIndex);
+                            if (gl != NULL) {
+                                text += gl->getName();
+                            }
+                            else {
+                                text += ("LABLE_MISSING_FOR_INDEX=" 
+                                         + AString::number(labelIndex));
+                            }
+                        }
+                        else {
+                            text += AString::number(vf->getValue(vfIJK));
+                        }
                     }
                     
                     idText.addLine(true,

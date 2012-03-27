@@ -31,6 +31,7 @@
 #include "BrainConstants.h"
 #include "BrainOpenGL.h"
 #include "BrainOpenGLTextRenderInterface.h"
+#include "CaretVolumeExtension.h"
 #include "IdentificationItemDataTypeEnum.h"
 #include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -102,6 +103,7 @@ namespace caret {
                            const float opacity);
             
             VolumeFile* volumeFile;
+            SubvolumeAttributes::VolumeType volumeType;
             Palette* palette;
             PaletteColorMapping* paletteColorMapping;
             const FastStatistics* statistics;
@@ -109,6 +111,13 @@ namespace caret {
             float opacity;
         };
         
+        void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
+                            const float* scalarValues,
+                            const float* thresholdValues,
+                            const int32_t numberOfScalars,
+                            float* rgbaOut,
+                            const bool ignoreThresholding);
+
         void drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent);
         
