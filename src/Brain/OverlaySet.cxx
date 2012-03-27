@@ -471,8 +471,20 @@ OverlaySet::initializeOverlays()
     else if (mdcv != NULL) {
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
         for (int32_t i = 0; i < numVolumes; i++) {
-            shapeMapFiles.push_back(brain->getVolumeFile(i));
-            shapeMapFileIndices.push_back(0);
+            VolumeFile* vf = brain->getVolumeFile(i);
+            if ((vf->getType() == SubvolumeAttributes::ANATOMY)
+                || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
+                shapeMapFiles.push_back(vf);
+                shapeMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::LABEL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
         }
     }
     else if (mdcwb != NULL) {
@@ -548,9 +560,21 @@ OverlaySet::initializeOverlays()
         }
         
         const int32_t numVolumes = brain->getNumberOfVolumeFiles();
-        if (numVolumes > 0) {
-            shapeMapFiles.push_back(brain->getVolumeFile(0));
-            shapeMapFileIndices.push_back(0);
+        for (int32_t i = 0; i < numVolumes; i++) {
+            VolumeFile* vf = brain->getVolumeFile(i);
+            if ((vf->getType() == SubvolumeAttributes::ANATOMY)
+                || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
+                shapeMapFiles.push_back(vf);
+                shapeMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
+            else if (vf->getType() == SubvolumeAttributes::LABEL) {
+                overlayMapFiles.push_back(vf);
+                overlayMapFileIndices.push_back(0);
+            }
         }
     }
     else {
