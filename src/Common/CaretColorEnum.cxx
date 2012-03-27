@@ -265,7 +265,7 @@ CaretColorEnum::fromName(const AString& name, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WHITE;
+    Enum enumValue = BLACK;
     
     for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -333,7 +333,7 @@ CaretColorEnum::fromGuiName(const AString& guiName, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WHITE;
+    Enum enumValue = BLACK;
     
     for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
@@ -386,7 +386,7 @@ CaretColorEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
-    Enum enumValue = WHITE;
+    Enum enumValue = BLACK;
     
     for (std::vector<CaretColorEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
