@@ -58,10 +58,10 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     presmooth->addDoubleParameter(5, "presmoothing", "how much smoothing to apply");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(6, "-roi", "select a region of interest to take the gradient of");
-    roiOption->addMetricParameter(7, "roi-metric", "the area to smooth within, as a metric");
+    roiOption->addMetricParameter(7, "roi-metric", "the area to take the gradient within, as a metric");
     
     OptionalParameter* vecOut = ret->createOptionalParameter(11, "-vectors", "output vectors");
-    vecOut->addMetricOutputParameter(12, "vector-metric-out", "the vectors as a metric with 3x the number of input columns");
+    vecOut->addMetricOutputParameter(12, "vector-metric-out", "the vectors as a metric file");
     
     OptionalParameter* columnSelect = ret->createOptionalParameter(8, "-column", "select a single column to compute the gradient of");
     columnSelect->addStringParameter(1, "column", "the column number or name");
@@ -69,12 +69,12 @@ OperationParameters* AlgorithmMetricGradient::getParameters()
     ret->createOptionalParameter(10, "-average-normals", "average the normals of each node with its neighbors before using them to compute the gradient");
     //that option has no parameters to take, so don't store the return value
     ret->setHelpText(
-        AString("At each node, the immediate neighbors are unfolded onto a plane tangent to the surface at the node.  ") +
-        "The gradient is computed by a regression between the unfolded positions of the nodes and their values.  " +
-        "The gradient is then given by the slopes of the regression, and reconstructed as a 3d gradient vector.  " +
+        AString("At each node, the immediate neighbors are unfolded onto a plane tangent to the surface at the node (specifically, perpendicular to the normal).  ") +
+        "The gradient is computed using a regression between the unfolded positions of the nodes and their values.  " +
+        "The gradient is then given by the slopes of the regression, and reconstructed as a 3D gradient vector.  " +
         "By default, takes the gradient of all columns, with no presmoothing, across the whole surface, without averaging the normals of the surface among neighbors.  " +
         "Specifying an ROI will restrict the gradient to only use data from where the ROI metric is positive, and output zeros anywhere the ROI metric is not positive.  " +
-        "The vector output metric is organized such that the X, Y, and Z components from a single input column are consecutive."
+        "The vector output metric is organized such that the X, Y, and Z components from a single input column are consecutive columns."
     );
     return ret;
 }

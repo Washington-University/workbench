@@ -28,6 +28,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "Vector3D.h"
+#include "CaretOMP.h"
 #include <vector>
 #include <map>
 #include <utility>
@@ -172,6 +173,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                 for (int s = 0; s < myDims[3]; ++s)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
+#pragma omp CARET_PARFOR schedule(dynamic)
                     for (int64_t base = 0; base < listSize; base += 3)
                     {
                         float sum = 0.0f, weightsum = 0.0f;
@@ -225,6 +227,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                         for (fixIter = 0; fixIter < FIX_ZEROS_POST_ITERATIONS; ++fixIter)
                         {
                             bool again = false;
+#pragma omp CARET_PARFOR schedule(dynamic)
                             for (int64_t base = 0; base < listSize; base += 3)
                             {
                                 int i = thisList[base], j = thisList[base + 1], k = thisList[base + 2];
@@ -303,6 +306,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
             for (int c = 0; c < myDims[4]; ++c)
             {
                 const float* inFrame = inVol->getFrame(subvolNum, c);
+#pragma omp CARET_PARFOR schedule(dynamic)
                 for (int64_t base = 0; base < listSize; base += 3)
                 {
                     float sum = 0.0f, weightsum = 0.0f;
@@ -356,6 +360,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                     for (fixIter = 0; fixIter < FIX_ZEROS_POST_ITERATIONS; ++fixIter)
                     {
                         bool again = false;
+#pragma omp CARET_PARFOR schedule(dynamic)
                         for (int64_t base = 0; base < listSize; base += 3)
                         {
                             int i = thisList[base], j = thisList[base + 1], k = thisList[base + 2];

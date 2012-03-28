@@ -33,6 +33,7 @@
 #include "AlgorithmMetricDilate.h"
 #include "AlgorithmMetricGradient.h"
 #include "AlgorithmMetricSmoothing.h"
+#include "AlgorithmVolumeGradient.h"
 #include "AlgorithmVolumeParcelResampling.h"
 #include "AlgorithmVolumeParcelResamplingGeneric.h"
 #include "AlgorithmVolumeParcelSmoothing.h"
@@ -104,6 +105,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricDilate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmMetricSmoothing()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResampling()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelResamplingGeneric()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmVolumeParcelSmoothing()));

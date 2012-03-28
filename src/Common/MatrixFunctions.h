@@ -239,7 +239,6 @@ namespace caret {
             msize_t i, j, k, myrow = 0;
             int pivotrow;
             T tempval;
-            vector<T> swaprow;
             for (i = 0; i < cols; ++i)
             {
                if (myrow >= rows) break;//no pivots left
@@ -257,9 +256,7 @@ namespace caret {
                {//naively expect linearly dependence to show as an exact zero
                   continue;//move to the next column
                }
-               swaprow = inout[pivotrow];//STL copy swap
-               inout[pivotrow] = inout[myrow];
-               inout[myrow] = swaprow;
+               inout[pivotrow].swap(inout[myrow]);//STL swap via pointers for constant time row swap
                tempval = inout[myrow][i];
                inout[myrow][i] = 1;
                for (j = i + 1; j < cols; ++j)

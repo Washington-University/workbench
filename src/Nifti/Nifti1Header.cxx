@@ -76,6 +76,10 @@ void Nifti1Header::getHeaderAsString(QString &string)
     string += "bitpix: " + QString::number(m_header.bitpix) + "\n";
     string += "dim_info: " + QString::number(m_header.dim_info) + "\n";
     string += "dim[0]: " + QString::number(m_header.dim[0]) + "\n";
+    for (int i = 1; i <= m_header.dim[0]; ++i)
+    {
+        string += "dim[" + QString::number(i) + "]: " + QString::number(m_header.dim[i]) + "\n";
+    }
     string += "intent_p1: " + QString::number(m_header.intent_p1) + "\n";
     string += "intent_p2: " + QString::number(m_header.intent_p2) + "\n";
     string += "intent_p3: " + QString::number(m_header.intent_p3) + "\n";
