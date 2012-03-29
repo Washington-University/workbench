@@ -64,10 +64,10 @@ ENDIF (APPLE)
 # Libraries that are linked
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
+GuiQt
 Algorithms
 Operations
 OperationsBase
-GuiQt
 Qwt
 Brain
 Files
