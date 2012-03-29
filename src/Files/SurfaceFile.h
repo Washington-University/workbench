@@ -184,7 +184,7 @@ namespace caret {
         mutable CaretPointer<TopologyHelperBase> m_topoBase;
         
         ///tracks allocated TopologyHelpers for this class
-        mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;//a true test of CaretPointer
+        mutable std::vector<CaretPointer<TopologyHelper> > m_topoHelpers;
         
         ///used to search through topology helpers without starting from 0 every time, wraps around
         mutable int32_t m_topoHelperIndex;

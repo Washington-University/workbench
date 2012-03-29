@@ -149,7 +149,7 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
             if ((m_edgeInfo[thisEdge].node1 == node) != m_edgeInfo[thisEdge].tiles[0].edgeReversed)//this checks if the edge from center to neighbor is oriented with the tile
             {//since edge info is always node1 < node2, we have to xor (this center is node1) and (this edge is reversed compared to its only triangle)
                 break;//found one
-            }//the reason this is ONLY on the break, is so that if we don't find a correctly oriented edge, we still find an edge if one exists
+            }//the reason the break is in the additional if, is so that if we don't find a correctly oriented edge, we still find an edge if one exists
         }
     }
     vector<int> tempNeigh, tempEdges, tempTiles;//why not sort everything? verts get regenerated in place
@@ -196,7 +196,8 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
         tempEdges.push_back(nextEdge);
         nodeScratch[nextNode] = 0;//remember, -1 is "unused"
         tempTiles.push_back(nextTile);
-        tileScratch[nextTile] = 0;//using zero to mark "used" so the conditional can be a jz without a subtract, maybe?
+        nextNode = node3;//update the next node we are going to use
+        tileScratch[nextTile] = 0;
         tileToUse = 0;
         if (tileScratch[m_edgeInfo[nextEdge].tiles[0].tile] == 0 && m_edgeInfo[nextEdge].numTiles > 1)
         {
@@ -207,7 +208,7 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
             foundNext = false;
         }
     } while (foundNext);
-    for (int i = 0; i < numNeigh; ++i)//clean up, find any neighbors that are gap-separated or on third+ tile of an edge
+    for (int i = 0; i < numNeigh; ++i)//clean up scratch array, find any neighbors that are gap-separated or on third+ tile of an edge
     {
         if (nodeScratch[myNodeInfo.m_neighbors[i]] == 0)
         {
@@ -248,7 +249,7 @@ void TopologyHelperBase::sortNeighbors(const SurfaceFile* mySurf, const int& nod
 
 TopologyHelper::TopologyHelper(CaretPointer<TopologyHelperBase> myBase) : m_base(myBase), m_nodeInfo(myBase->m_nodeInfo), m_edgeInfo(myBase->m_edgeInfo),
                                                                                     m_tileInfo(myBase->m_tileInfo), m_boundaryCount(myBase->m_boundaryCount)
-{//by-value so that it makes a private copy that can't be pointed elsewhere during this constructor
+{//pointer is by-value so that it makes a private copy that can't be pointed elsewhere during this constructor
     m_maxNeigh = m_base->m_maxNeigh;
     m_neighborsSorted = m_base->m_neighborsSorted;
     m_numNodes = m_base->m_numNodes;
