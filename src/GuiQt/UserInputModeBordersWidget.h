@@ -35,6 +35,9 @@ class QStackedWidget;
 
 namespace caret {
 
+    class Border;
+    class Brain;
+    class SurfaceFile;
     class UserInputModeBorders;
     
     class UserInputModeBordersWidget : public QWidget {
@@ -52,6 +55,10 @@ namespace caret {
         bool isDrawModeTransformSelected() const;
         
         void executeFinishOperation();
+        
+        void executeRoiInsideSelectedBorderOperation(Brain* brain,
+                                                     const SurfaceFile* surfaceFile,
+                                                     const Border* border);
         
     private slots:
         void modeActionTriggered(QAction*);
@@ -84,6 +91,8 @@ namespace caret {
         
         QWidget* createEditOperationWidget();
         
+        QWidget* createRoiOperationWidget();
+        
         QWidget* createSelectOperationWidget();
         
         QComboBox* modeComboBox;
@@ -93,6 +102,8 @@ namespace caret {
         QWidget* widgetDrawOperation;
         
         QWidget* widgetEditOperation;
+        
+        QWidget* widgetRoiOperation;
         
         QWidget* widgetSelectOperation;
         

@@ -39,15 +39,20 @@
 #include "UserInputModeBordersWidget.h"
 #undef __USER_INPUT_MODE_BORDERS_WIDGET_DECLARE__
 
+#include "AlgorithmException.h"
+#include "AlgorithmNodesInsideBorder.h"
 #include "Border.h"
 #include "BorderPropertiesEditorDialog.h"
 #include "Brain.h"
 #include "BrainBrowserWindow.h"
+#include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
+#include "LabelFile.h"
+#include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
@@ -86,11 +91,14 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->widgetEditOperation = this->createEditOperationWidget();
     
+    this->widgetRoiOperation = this->createRoiOperationWidget();
+    
     this->widgetSelectOperation = this->createSelectOperationWidget();
     
     this->operationStackedWidget = new QStackedWidget();
     this->operationStackedWidget->addWidget(this->widgetDrawOperation);
     this->operationStackedWidget->addWidget(this->widgetEditOperation);
+    this->operationStackedWidget->addWidget(this->widgetRoiOperation);
     this->operationStackedWidget->addWidget(this->widgetSelectOperation);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -129,6 +137,9 @@ UserInputModeBordersWidget::updateWidget()
             this->operationStackedWidget->setCurrentWidget(this->widgetEditOperation);
             this->setActionGroupByActionData(this->editOperationActionGroup, 
                                              inputModeBorders->getEditOperation());
+            break;
+        case UserInputModeBorders::MODE_ROI:
+            this->operationStackedWidget->setCurrentWidget(this->widgetRoiOperation);
             break;
         case UserInputModeBorders::MODE_SELECT:
             this->operationStackedWidget->setCurrentWidget(this->widgetSelectOperation);
@@ -194,6 +205,7 @@ UserInputModeBordersWidget::createModeWidget()
     this->modeComboBox = new QComboBox();
     this->modeComboBox->addItem("Draw", (int)UserInputModeBorders::MODE_DRAW);
     this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
+    this->modeComboBox->addItem("ROI", (int)UserInputModeBorders::MODE_ROI);
     this->modeComboBox->addItem("Select", (int)UserInputModeBorders::MODE_SELECT);
     QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
@@ -619,4 +631,66 @@ UserInputModeBordersWidget::createSelectOperationWidget()
     widget->setFixedWidth(widget->sizeHint().width());
     return widget;
 }
+
+/**
+ * @return The ROI widget.
+ */
+QWidget* 
+UserInputModeBordersWidget::createRoiOperationWidget()
+{
+    QWidget* widget = new QWidget();
+//    QHBoxLayout* layout = new QHBoxLayout(widget);
+//    WuQtUtilities::setLayoutMargins(layout, 2, 0);
+//    
+//    widget->setFixedWidth(widget->sizeHint().width());
+    return widget;
+}
+
+/**
+ * Called when the user selects a border in ROI opeation.
+ *
+ * @param brain
+ *    Brain on which identification occurred.
+ * @param surfaceFile
+ *    Surface on which border is located.
+ * @param border
+ *    Border for which nodes are found inside.
+ */
+void 
+UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* brain,
+                                                                    const SurfaceFile* surfaceFile,
+                                                                    const Border* border)
+{
+    MetricFile* metricFile = new MetricFile();
+    metricFile->setNumberOfNodesAndColumns(surfaceFile->getNumberOfNodes(), 
+                                           1);
+    metricFile->setStructure(surfaceFile->getStructure());
+    metricFile->setMapName(0, border->getName());
+    try {
+        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                         surfaceFile,
+                                                         border,
+                                                         0,
+                                                         1.0,
+                                                         metricFile);
+        const StructureEnum::Enum structure = metricFile->getStructure();
+        BrainStructure* brainStructure = brain->getBrainStructure(structure, 
+                                                                  false);
+        if (brainStructure == NULL) {
+            delete metricFile;
+            WuQMessageBox::errorOk(this,
+                                   ("No brain structure found for structure="
+                                    + StructureEnum::toGuiName(structure)));
+            return;
+        }
+        brainStructure->addMetricFile(metricFile);
+    }
+    catch (const AlgorithmException& e) {
+        delete metricFile;
+        WuQMessageBox::errorOk(this,
+                               e.whatString());
+
+    }
+}
+
 

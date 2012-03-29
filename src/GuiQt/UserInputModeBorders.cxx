@@ -269,6 +269,24 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 }
             }
                 break;
+            case MODE_ROI:
+                if (isLeftClick) {
+                    IdentificationManager* idManager =
+                    openGLWidget->performIdentification(mouseEvent->getX(), mouseEvent->getY());
+                    IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
+                    if (idBorder->isValid()) {
+                        Brain* brain = idBorder->getBrain();
+                        SurfaceFile* surfaceFile = idBorder->getSurface();
+                        BorderFile* borderFile = idBorder->getBorderFile();
+                        Border* border = idBorder->getBorder();
+                        this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
+                                                                                         surfaceFile,
+                                                                                         border);
+                        mouseEvent->setGraphicsUpdateAllWindowsRequested();
+                        mouseEvent->setUserInterfaceUpdateRequested();
+                    }
+                }
+                break;
             case MODE_SELECT:
             {
             }
@@ -294,6 +312,7 @@ UserInputModeBorders::showHideBorderSelectionToolBox()
     switch (this->mode) {
         case MODE_DRAW:
         case MODE_EDIT:
+        case MODE_ROI:
             EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(this->windowIndex,
                                                                         EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
             break;

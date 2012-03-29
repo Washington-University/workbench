@@ -51,7 +51,16 @@ namespace caret {
 
         void findNodesInsideBorder(const SurfaceFile* surfaceFile,
                                    const Border* border,
-                                   std::vector<int32_t>& nodesInBorderOut);
+                                   std::vector<int32_t>& nodesInsideBorderOut);
+        
+        void findNodesInConnectedNodesPath(const SurfaceFile* surfaceFile,
+                                           const std::vector<int32_t>& connectedNodesPath,
+                                           std::vector<int32_t>& nodesInsidePathOut);
+        
+        void cleanConnectedNodesPath(std::vector<int32_t>& connectedNodesPath);
+        
+        void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
+                                        const std::vector<int32_t>& connectedNodesPath);
         
     public:
         AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 

@@ -1510,6 +1510,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
         if (borderFileIndex >= 0) {
             if (idBorder->isOtherScreenDepthCloserToViewer(depth)) {
                 Border* border = brain->getBorderFile(borderFileIndex)->getBorder(borderIndex);
+                idBorder->setBrain(brain);
                 idBorder->setBorder(border);
                 idBorder->setBorderFile(brain->getBorderFile(borderFileIndex));
                 idBorder->setBorderIndex(borderIndex);

@@ -40,6 +40,7 @@ namespace caret {
         enum Mode {
             MODE_DRAW,
             MODE_EDIT,
+            MODE_ROI,
             MODE_SELECT
         };
         

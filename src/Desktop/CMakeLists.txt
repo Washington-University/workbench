@@ -65,6 +65,8 @@ ENDIF (APPLE)
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 Algorithms
+Operations
+OperationsBase
 GuiQt
 Qwt
 Brain

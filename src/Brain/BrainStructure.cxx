@@ -172,6 +172,19 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
             throw e;
         }
     }
+        
+    if (labelFile->getStructure() != this->getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + labelFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(labelFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(this->getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
     
     this->labelFiles.push_back(labelFile);
 }
@@ -207,6 +220,19 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
         }
     }
     
+    if (metricFile->getStructure() != this->getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + metricFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(metricFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(this->getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
+    
     this->metricFiles.push_back(metricFile);
 }
 
@@ -239,6 +265,20 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
             CaretLogThrowing(e);
             throw e;
         }
+    }
+    
+    
+    if (rgbaFile->getStructure() != this->getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + rgbaFile->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(rgbaFile->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(this->getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
     }
     
     this->rgbaFiles.push_back(rgbaFile);
@@ -276,6 +316,18 @@ BrainStructure::addSurface(Surface* surface,
         }
     }
     
+    if (surface->getStructure() != this->getStructure()) {
+        AString message = ("Trying to add metric file named \""
+                           + surface->getFileNameNoPath()
+                           + "\" with structure \""
+                           + StructureEnum::toGuiName(surface->getStructure())
+                           + " to BrainStructure for \""
+                           + StructureEnum::toGuiName(this->getStructure())
+                           + "\n");
+        DataFileException(e);
+        CaretLogThrowing(e);
+        throw e;        
+    }
     if (numNodes == 0) {
         const int32_t numSurfaceNodes = surface->getNumberOfNodes();
         this->nodeAttributes->update(numSurfaceNodes);
