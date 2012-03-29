@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <iterator>
 #include <stack>
 
 #define __ALGORITHM_NODES_INSIDE_BORDER_DECLARE__
