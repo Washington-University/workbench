@@ -39,6 +39,13 @@ namespace caret
         bool checkRowIndex(int64_t index) const;
         bool checkColumnIndex(int64_t index) const;
     public:
+        ///simple enum for interaction between various cifti methods
+        enum CiftiDirection
+        {
+            ALONG_ROW,
+            ALONG_COLUMN
+        };
+
         ///get a row
         virtual void getRow(float* rowOut, const int64_t& rowIndex) const throw (CiftiFileException) = 0;
         

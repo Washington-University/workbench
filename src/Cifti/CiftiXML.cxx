@@ -186,6 +186,39 @@ bool CiftiXML::getVolumeMapForRows(vector<CiftiVolumeMap>& mappingOut) const
     return getVolumeMapping(mappingOut, m_rowMapIndex);
 }
 
+bool CiftiXML::getVolumeStructureMapping(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const
+{
+    mappingOut.clear();
+    const CiftiBrainModelElement* myModel = findVolumeModel(myMapIndex, structure);
+    if (myModel == NULL)
+    {
+        return false;
+    }
+    int64_t size = (int64_t)myModel->m_voxelIndicesIJK.size();
+    CaretAssert(size % 3 == 0);
+    mappingOut.resize(size / 3);
+    int64_t index = 0;
+    for (int64_t i = 0; i < size; i += 3)
+    {
+        mappingOut[index].m_ciftiIndex = myModel->m_indexOffset + index;
+        mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i];
+        mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i + 1];
+        mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i + 2];
+        ++index;
+    }
+    return true;
+}
+
+bool CiftiXML::getVolumeStructureMapForColumns(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
+{
+    return getVolumeStructureMapping(mappingOut, structure, m_colMapIndex);
+}
+
+bool CiftiXML::getVolumeStructureMapForRows(vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const
+{
+    return getVolumeStructureMapping(mappingOut, structure, m_rowMapIndex);
+}
+
 bool CiftiXML::getVolumeParcelMappings(vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const
 {
     mappingsOut.clear();
@@ -231,6 +264,48 @@ bool CiftiXML::getVolumeParcelMapsForColumns(vector<CiftiVolumeStructureMap>& ma
 bool CiftiXML::getVolumeParcelMapsForRows(vector<CiftiVolumeStructureMap>& mappingsOut) const
 {
     return getVolumeParcelMappings(mappingsOut, m_rowMapIndex);
+}
+
+bool CiftiXML::getStructureLists(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const
+{
+    surfaceList.clear();
+    volumeList.clear();
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    const CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    {
+        return false;
+    }
+    int numModels = (int)myMap->m_brainModels.size();
+    for (int i = 0; i < numModels; ++i)
+    {
+        switch (myMap->m_brainModels[i].m_modelType)
+        {
+            case CIFTI_MODEL_TYPE_SURFACE:
+                surfaceList.push_back(myMap->m_brainModels[i].m_brainStructure);
+                break;
+            case CIFTI_MODEL_TYPE_VOXELS:
+                volumeList.push_back(myMap->m_brainModels[i].m_brainStructure);
+                break;
+            default:
+                break;
+        }
+    }
+    return true;
+}
+
+bool CiftiXML::getStructureListsForColumns(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
+{
+    return getStructureLists(surfaceList, volumeList, m_colMapIndex);
+}
+
+bool CiftiXML::getStructureListsForRows(vector<StructureEnum::Enum>& surfaceList, vector<StructureEnum::Enum>& volumeList) const
+{
+    return getStructureLists(surfaceList, volumeList, m_rowMapIndex);
 }
 
 void CiftiXML::rootChanged()

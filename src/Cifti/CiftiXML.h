@@ -179,6 +179,18 @@ namespace caret {
         
         ///get the mapping for a volume in columns, returns false and empty vector if not found
         bool getVolumeMapForColumns(std::vector<CiftiVolumeMap>& mappingOut) const;
+            
+        ///get the mapping for a volume in rows, returns false and empty vector if not found
+        bool getVolumeStructureMapForRows(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
+        
+        ///get the mapping for a volume in columns, returns false and empty vector if not found
+        bool getVolumeStructureMapForColumns(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure) const;
+        
+        ///get the lists of what structures exist
+        bool getStructureListsForRows(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
+
+        ///get the lists of what structures exist
+        bool getStructureListsForColumns(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList) const;
 
         ///get the list of volume parcels and their maps in rows, returns false and empty vector if not found
         bool getVolumeParcelMapsForRows(std::vector<CiftiVolumeStructureMap>& mappingsOut) const;
@@ -295,7 +307,9 @@ namespace caret {
         ///some boilerplate to build mappings
         bool getSurfaceMapping(std::vector<CiftiSurfaceMap>& mappingOut, const CiftiBrainModelElement* myModel) const;
         bool getVolumeMapping(std::vector<CiftiVolumeMap>& mappingOut, const int& myMapIndex) const;
+        bool getVolumeStructureMapping(std::vector<CiftiVolumeMap>& mappingOut, const StructureEnum::Enum& structure, const int& myMapIndex) const;
         bool getVolumeParcelMappings(std::vector<CiftiVolumeStructureMap>& mappingsOut, const int& myMapIndex) const;
+        bool getStructureLists(std::vector<StructureEnum::Enum>& surfaceList, std::vector<StructureEnum::Enum>& volumeList, const int& myMapIndex) const;
         
         ///boilerplate for has data
         bool hasVolumeData(const int& myMapIndex) const;
