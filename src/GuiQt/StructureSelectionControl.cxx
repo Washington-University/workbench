@@ -38,9 +38,11 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param parent
+ *   The parent.
  */
-StructureSelectionControl::StructureSelectionControl()
-: QObject()
+StructureSelectionControl::StructureSelectionControl(QObject* parent)
+: QObject(parent)
 {
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);

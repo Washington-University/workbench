@@ -58,8 +58,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage()
-: MultiPageDialogPage("Volume Surface Outline")
+DisplayControlVolumeSurfaceOutlinePage::DisplayControlVolumeSurfaceOutlinePage(QObject* parent)
+: MultiPageDialogPage(parent,
+                      "Volume Surface Outline")
 {
     EventManager::get()->addProcessedEventListener(this, 
                                           EventTypeEnum::EVENT_BROWSER_TAB_DELETE);
@@ -205,7 +206,8 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->selectionCheckBox, 
                           true);
     
-    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(vsos->getColorOrTabModel());
+    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(parentPage,
+                                                                                        vsos->getColorOrTabModel());
     parentPage->addWidget(this->colorOrTabSelectionControl, 
                           true);
     
@@ -219,7 +221,8 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->thicknessSpinBox, 
                           true);
     
-    this->surfaceSelectionControl = new SurfaceSelectionControl(vsos->getSurfaceSelection());
+    this->surfaceSelectionControl = new SurfaceSelectionControl(parentPage,
+                                                                vsos->getSurfaceSelection());
     parentPage->addWidget(this->surfaceSelectionControl, 
                           true);
     

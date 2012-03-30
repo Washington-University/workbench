@@ -48,7 +48,7 @@ DisplayControlDialog::DisplayControlDialog(QWidget* parent,
                   parent,
                   flags)
 {
-    this->addPage(new DisplayControlVolumeSurfaceOutlinePage(), 
+    this->addPage(new DisplayControlVolumeSurfaceOutlinePage(this), 
                   false);
 }
 

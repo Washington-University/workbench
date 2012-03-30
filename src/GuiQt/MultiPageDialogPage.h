@@ -39,7 +39,8 @@ namespace caret {
         Q_OBJECT
 
     protected:
-        MultiPageDialogPage(const AString& pageName);
+        MultiPageDialogPage(QObject* pareant,
+                            const AString& pageName);
         
     public:
         virtual ~MultiPageDialogPage();

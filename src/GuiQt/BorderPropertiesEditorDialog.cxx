@@ -179,7 +179,8 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    this->colorSelectionControl = new CaretColorEnumSelectionControl(CaretColorEnum::OPTION_INCLUDE_CLASS);
+    this->colorSelectionControl = new CaretColorEnumSelectionControl(this,
+                                                                     CaretColorEnum::OPTION_INCLUDE_CLASS);
     this->colorSelectionControl->setSelectedColor(borderColor);
     WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionControl->getWidget(), 
                                           "If the color is set to \"CLASS\", the border is colored\n"

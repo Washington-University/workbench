@@ -43,7 +43,7 @@ namespace caret {
     class DisplayControlVolumeSurfaceOutlinePage : public MultiPageDialogPage, public EventListenerInterface {
         
     public:
-        DisplayControlVolumeSurfaceOutlinePage();
+        DisplayControlVolumeSurfaceOutlinePage(QObject* parent);
         
         virtual ~DisplayControlVolumeSurfaceOutlinePage();
         

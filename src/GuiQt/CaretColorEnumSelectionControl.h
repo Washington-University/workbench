@@ -39,7 +39,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        CaretColorEnumSelectionControl(const uint64_t options = 0);
+        CaretColorEnumSelectionControl(QObject* parent,
+                                       const uint64_t options = 0);
         
         virtual ~CaretColorEnumSelectionControl();
         

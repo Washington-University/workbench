@@ -55,8 +55,9 @@ using namespace caret;
  * @param pageName
  *    Name of page.
  */
-MultiPageDialogPage::MultiPageDialogPage(const AString& pageName)
-: QObject()
+MultiPageDialogPage::MultiPageDialogPage(QObject* parent,
+                                         const AString& pageName)
+: QObject(parent)
 {
     this->pageName = pageName;
     this->pageWidget = NULL;

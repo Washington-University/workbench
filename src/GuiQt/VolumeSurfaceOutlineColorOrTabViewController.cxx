@@ -50,8 +50,9 @@ using namespace caret;
 /**
  * Constructor.
  */
-VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabViewController(VolumeSurfaceOutlineColorOrTabModel* model)
-: QObject()
+VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabViewController(QObject* parent,
+                                                                                           VolumeSurfaceOutlineColorOrTabModel* model)
+: QObject(parent)
 {
     this->modelComboBox = new QComboBox();
     QObject::connect(this->modelComboBox, 

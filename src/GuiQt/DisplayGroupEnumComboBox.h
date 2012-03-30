@@ -43,10 +43,10 @@ class QComboBox;
 
 namespace caret {
 
-    class DisplayGroupEnumComboBox : public QWidget {
+    class DisplayGroupEnumComboBox : public QObject {
         Q_OBJECT
     public:
-        DisplayGroupEnumComboBox();
+        DisplayGroupEnumComboBox(QObject* parent);
         
         virtual ~DisplayGroupEnumComboBox();
         

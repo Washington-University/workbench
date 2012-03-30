@@ -45,7 +45,8 @@ namespace caret {
     class OverlaySelectionControlLayer : public QObject {
         Q_OBJECT
     public:
-        OverlaySelectionControlLayer(const int32_t browserWindowIndex,
+        OverlaySelectionControlLayer(QObject* parent,
+                                     const int32_t browserWindowIndex,
                                      OverlaySelectionControl* overlaySelectionControl,
                                      const int32_t layerIndex);
         

@@ -39,7 +39,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        StructureSelectionControl();
+        StructureSelectionControl(QObject* parent);
         
         virtual ~StructureSelectionControl();
         

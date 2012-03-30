@@ -221,6 +221,7 @@ ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
 ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
                              Brain* brain,
                              CaretDataFile* caretDataFile)
+: QObject(parentWidget)
 {
     this->brain = brain;
     this->parentWidget  = parentWidget;

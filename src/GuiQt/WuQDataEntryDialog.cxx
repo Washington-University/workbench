@@ -415,7 +415,7 @@ WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
                                                  const StructureEnum::Enum defaultStructure)
 {
     StructureSelectionControl* structureSelectionControl = 
-    new StructureSelectionControl();
+    new StructureSelectionControl(this);
     structureSelectionControl->setSelectedStructure(defaultStructure);
     
     this->addWidget(labelText,
@@ -433,7 +433,8 @@ WuQDataEntryDialog::addSurfaceSelectionControl(const QString& labelText,
                                                BrainStructure* brainStructure)
 {
     SurfaceSelectionControl* surfaceSelectionControl =
-    new SurfaceSelectionControl(brainStructure);
+    new SurfaceSelectionControl(this,
+                                brainStructure);
     
     this->addWidget(labelText,
                     surfaceSelectionControl->getWidget());

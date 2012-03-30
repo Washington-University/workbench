@@ -185,7 +185,8 @@ OverlaySelectionControl::createLayers()
     
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        OverlaySelectionControlLayer* layer = new OverlaySelectionControlLayer(this->browserWindowIndex,
+        OverlaySelectionControlLayer* layer = new OverlaySelectionControlLayer(this,
+                                                                               this->browserWindowIndex,
                                  this, 
                                  i);
         this->layers.append(layer);

@@ -54,9 +54,11 @@ using namespace caret;
 
 /**
  * Constructor.
+ * @param Parent
+ *    Parent object.
  */
-DisplayGroupEnumComboBox::DisplayGroupEnumComboBox()
-: QWidget()
+DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
+: QObject(parent)
 {
     std::vector<DisplayGroupEnum::Enum> allDisplayGroups;
     DisplayGroupEnum::getAllEnums(allDisplayGroups);

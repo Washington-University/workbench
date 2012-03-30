@@ -41,12 +41,15 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param parent
+ *     Parent object. 
  * @param options
  *     Controls inclusion of special colors by bitwise or'ing the 
  *     CaretColorEnum::Options enumerated type values.
  */
-CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(const uint64_t options)
-: QObject()
+CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(QObject* parent,
+                                                               const uint64_t options)
+: QObject(parent)
 {
     this->colorComboBox = new QComboBox();
     

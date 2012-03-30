@@ -586,7 +586,7 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     this->removeToolButton = new QToolButton();
     this->removeToolButton->setDefaultAction(this->removeAction);
     
-    this->structureSelectionControl = new StructureSelectionControl();
+    this->structureSelectionControl = new StructureSelectionControl(this);
     this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
     QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
                      this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));

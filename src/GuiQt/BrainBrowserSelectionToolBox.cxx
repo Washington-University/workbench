@@ -132,7 +132,7 @@ QWidget*
 BrainBrowserSelectionToolBox::createBorderSelectionWidget()
 {
     QLabel* groupLabel = new QLabel("Group");
-    this->bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox();
+    this->bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
     QObject::connect(this->bordersDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
                      this, SLOT(borderDisplayGroupSelected(const DisplayGroupEnum::Enum)));
     

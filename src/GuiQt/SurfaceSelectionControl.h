@@ -40,9 +40,11 @@ namespace caret {
         Q_OBJECT
 
     public:
-        SurfaceSelectionControl(SurfaceSelection* surfaceSelection);
+        SurfaceSelectionControl(QObject* parent,
+                                SurfaceSelection* surfaceSelection);
         
-        SurfaceSelectionControl(BrainStructure* brainStructure);
+        SurfaceSelectionControl(QObject* parent,
+                                BrainStructure* brainStructure);
         
         virtual ~SurfaceSelectionControl();
         

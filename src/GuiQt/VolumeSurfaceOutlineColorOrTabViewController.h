@@ -50,7 +50,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        VolumeSurfaceOutlineColorOrTabViewController(VolumeSurfaceOutlineColorOrTabModel* model);
+        VolumeSurfaceOutlineColorOrTabViewController(QObject* parent,
+                                                     VolumeSurfaceOutlineColorOrTabModel* model);
         
         virtual ~VolumeSurfaceOutlineColorOrTabViewController();
         

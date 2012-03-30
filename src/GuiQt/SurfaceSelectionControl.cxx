@@ -44,11 +44,14 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param parent
+ *   The parent.
  * @param surfaceSelection
  *    Surface selection that is controlled through this control.
  */
-SurfaceSelectionControl::SurfaceSelectionControl(SurfaceSelection* surfaceSelection)
-: QObject()
+SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
+                                                 SurfaceSelection* surfaceSelection)
+: QObject(parent)
 {
     this->initializeControl(surfaceSelection);
     this->thisInstanceOwnsSurfaceSelection = false;
@@ -56,10 +59,14 @@ SurfaceSelectionControl::SurfaceSelectionControl(SurfaceSelection* surfaceSelect
 
 /**
  * Constructor.
+ * @param parent
+ *   The parent.
  * @param brainStructure
  *   Allows selection of any surface with the specified brain structure.
  */
-SurfaceSelectionControl::SurfaceSelectionControl(BrainStructure* brainStructure)
+SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
+                                                 BrainStructure* brainStructure)
+: QObject(parent)
 {
     SurfaceSelection* ss = new SurfaceSelection(brainStructure);
     this->initializeControl(ss);

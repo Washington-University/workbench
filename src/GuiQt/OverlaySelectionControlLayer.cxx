@@ -63,9 +63,11 @@ using namespace caret;
  * @param layerIndex
  *    Index of this layer.
  */
-OverlaySelectionControlLayer::OverlaySelectionControlLayer(const int32_t browserWindowIndex,
-                                      OverlaySelectionControl* overlaySelectionControl,
-                                      const int32_t layerIndex)
+OverlaySelectionControlLayer::OverlaySelectionControlLayer(QObject* parent,
+                                                           const int32_t browserWindowIndex,
+                                                           OverlaySelectionControl* overlaySelectionControl,
+                                                           const int32_t layerIndex)
+: QObject(parent)
 {
     const bool verticalFlag = (overlaySelectionControl->orientation == Qt::Vertical);
     
