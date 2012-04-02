@@ -54,6 +54,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
+#include "RegionOfInterestCreateFromBorderDialog.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
 #include "WuQMessageBox.h"
@@ -658,39 +659,13 @@ UserInputModeBordersWidget::createRoiOperationWidget()
  */
 void 
 UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* brain,
-                                                                    const SurfaceFile* surfaceFile,
-                                                                    const Border* border)
+                                                                    Surface* surface,
+                                                                    Border* border)
 {
-    MetricFile* metricFile = new MetricFile();
-    metricFile->setNumberOfNodesAndColumns(surfaceFile->getNumberOfNodes(), 
-                                           1);
-    metricFile->setStructure(surfaceFile->getStructure());
-    metricFile->setMapName(0, border->getName());
-    try {
-        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
-                                                         surfaceFile,
-                                                         border,
-                                                         0,
-                                                         1.0,
-                                                         metricFile);
-        const StructureEnum::Enum structure = metricFile->getStructure();
-        BrainStructure* brainStructure = brain->getBrainStructure(structure, 
-                                                                  false);
-        if (brainStructure == NULL) {
-            delete metricFile;
-            WuQMessageBox::errorOk(this,
-                                   ("No brain structure found for structure="
-                                    + StructureEnum::toGuiName(structure)));
-            return;
-        }
-        brainStructure->addMetricFile(metricFile);
-    }
-    catch (const AlgorithmException& e) {
-        delete metricFile;
-        WuQMessageBox::errorOk(this,
-                               e.whatString());
-
-    }
+    RegionOfInterestCreateFromBorderDialog createRoiDialog(border,
+                                                           surface,
+                                                           this);
+    createRoiDialog.exec();
 }
 
 

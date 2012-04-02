@@ -276,11 +276,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     IdentificationItemBorderSurface* idBorder = idManager->getSurfaceBorderIdentification();
                     if (idBorder->isValid()) {
                         Brain* brain = idBorder->getBrain();
-                        SurfaceFile* surfaceFile = idBorder->getSurface();
-                        BorderFile* borderFile = idBorder->getBorderFile();
+                        Surface* surface = idBorder->getSurface();
+                        //BorderFile* borderFile = idBorder->getBorderFile();
                         Border* border = idBorder->getBorder();
                         this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
-                                                                                         surfaceFile,
+                                                                                         surface,
                                                                                          border);
                         mouseEvent->setGraphicsUpdateAllWindowsRequested();
                         mouseEvent->setUserInterfaceUpdateRequested();

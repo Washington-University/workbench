@@ -37,7 +37,7 @@ namespace caret {
 
     class Border;
     class Brain;
-    class SurfaceFile;
+    class Surface;
     class UserInputModeBorders;
     
     class UserInputModeBordersWidget : public QWidget {
@@ -57,8 +57,8 @@ namespace caret {
         void executeFinishOperation();
         
         void executeRoiInsideSelectedBorderOperation(Brain* brain,
-                                                     const SurfaceFile* surfaceFile,
-                                                     const Border* border);
+                                                     Surface* surface,
+                                                     Border* border);
         
     private slots:
         void modeActionTriggered(QAction*);

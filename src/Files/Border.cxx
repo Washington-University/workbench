@@ -132,6 +132,21 @@ Border::clear()
 }
 
 /**
+ * @return Structure to which this border is assigned.
+ */
+StructureEnum::Enum 
+Border::getStructure()
+{
+    StructureEnum::Enum structure = StructureEnum::INVALID;
+    
+    if (this->points.empty() == false) {
+        structure = this->points[0]->getStructure();
+    }
+    
+    return structure;
+}
+
+/**
  * Remove all points in this border.
  */
 void 

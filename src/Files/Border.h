@@ -28,7 +28,7 @@
 #include "BorderException.h"
 #include "CaretColorEnum.h"
 #include "CaretObjectTracksModification.h"
-
+#include "StructureEnum.h"
 #include "XmlException.h"
 
 namespace caret {
@@ -63,6 +63,8 @@ namespace caret {
         CaretColorEnum::Enum getColor() const;
         
         void setColor(const CaretColorEnum::Enum color);
+        
+        StructureEnum::Enum getStructure();
         
         int32_t getNumberOfPoints() const;
         
