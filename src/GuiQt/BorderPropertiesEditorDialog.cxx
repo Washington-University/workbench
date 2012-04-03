@@ -46,6 +46,7 @@
 #include "GiftiLabelTable.h"
 #include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
+#include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 
@@ -163,10 +164,17 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->borderFileSelectionComboBox = new QComboBox();
     this->loadBorderFileComboBox();
     WuQtUtilities::setToolTipAndStatusTip(this->borderFileSelectionComboBox, 
-                                          "Selects a new or existing border file\n"
+                                          "Selects an existing border file\n"
                                           "to which new borders are added.");
     QObject::connect(this->borderFileSelectionComboBox, SIGNAL(activated(int)),
                      this, SLOT(borderFileSelected()));
+    QAction* newFileAction = WuQtUtilities::createAction("New",
+                                                         "Create a new border file", 
+                                                         this, 
+                                                         this,
+                                                         SLOT(newBorderFileButtonClicked()));
+    QToolButton* newFileToolButton = new QToolButton();
+    newFileToolButton->setDefaultAction(newFileAction);
     
     /*
      * Name
@@ -240,6 +248,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     int row = 0;
     gridLayout->addWidget(borderFileLabel, row, 0);
     gridLayout->addWidget(this->borderFileSelectionComboBox, row, 1);
+    gridLayout->addWidget(newFileToolButton, row, 2);
     row++;
     gridLayout->addWidget(nameLabel, row, 0);
     gridLayout->addWidget(this->nameLineEdit, row, 1);
@@ -273,8 +282,9 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
             break;
     }
     
-    borderFileLabel->setVisible(showClosedOptionFlag);
+    borderFileLabel->setVisible(showFileOptionFlag);
     this->borderFileSelectionComboBox->setVisible(showFileOptionFlag);
+    newFileToolButton->setVisible(showFileOptionFlag);
     this->closedCheckBox->setVisible(showClosedOptionFlag);
     this->reversePointOrderCheckBox->setVisible(showReverseOptionFlag);
     
@@ -293,30 +303,20 @@ BorderPropertiesEditorDialog::~BorderPropertiesEditorDialog()
 }
 
 /**
- * Get the selected border file.  If New Border
- * File is selected, create a border file and update
- * the border file combo box.
- * @param createIfNoValidBorderFiles
- *    If there are no valid border files, create one.
+ * Get the selected border file.
  * @return BorderFile or NULL if no border file.
  */
 BorderFile* 
-BorderPropertiesEditorDialog::getSelectedBorderFile(bool createIfNoValidBorderFiles)
+BorderPropertiesEditorDialog::getSelectedBorderFile()
 {
     if (this->editModeBorderFile != NULL) {
         return this->editModeBorderFile;
     }
+    
     const int fileComboBoxIndex = this->borderFileSelectionComboBox->currentIndex();
     void* filePointer = this->borderFileSelectionComboBox->itemData(fileComboBoxIndex).value<void*>();
     BorderFile* borderFile = (BorderFile*)filePointer;
-    if (borderFile == NULL) {
-        if (createIfNoValidBorderFiles) {
-            borderFile = GuiManager::get()->getBrain()->addBorderFile();
-        }
-    }
     BorderPropertiesEditorDialog::previousBorderFile = borderFile;
-    
-    this->loadBorderFileComboBox();
     
     return borderFile;
 }
@@ -332,8 +332,6 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
     this->borderFileSelectionComboBox->clear();
     
     int defaultFileComboIndex = 0;
-    this->borderFileSelectionComboBox->addItem("New File",
-                                               qVariantFromValue((void*)NULL));
     for (int32_t i = 0; i < numBorderFiles; i++) {
         BorderFile* borderFile = brain->getBorderFile(i);
         const AString name = borderFile->getFileNameNoPath();
@@ -345,6 +343,45 @@ BorderPropertiesEditorDialog::loadBorderFileComboBox()
     }
     this->borderFileSelectionComboBox->setCurrentIndex(defaultFileComboIndex);
 }
+
+/**
+ * Called to create a new border file.
+ */
+void 
+BorderPropertiesEditorDialog::newBorderFileButtonClicked()
+{
+    const QString fileExtension = DataFileTypeEnum::toFileExtension(DataFileTypeEnum::BORDER);
+    QString newFileName = ("NewFile." 
+                           + fileExtension);
+    
+    WuQDataEntryDialog newFileDialog("New Border File",
+                                        this);
+    QLineEdit* newFileNameLineEdit = newFileDialog.addLineEditWidget("New Border File Name", 
+                                                                        newFileName);
+    
+    if (newFileDialog.exec() == WuQDataEntryDialog::Accepted) {
+        QString borderFileName   = newFileNameLineEdit->text();
+        
+        try {
+            if (borderFileName.endsWith(fileExtension) == false) {
+                borderFileName += ("."
+                                + fileExtension);
+            }
+            
+            BorderFile* borderFile = GuiManager::get()->getBrain()->addBorderFile();
+            borderFile->setFileName(borderFileName);
+            
+            BorderPropertiesEditorDialog::previousBorderFile = borderFile;
+            this->loadBorderFileComboBox();
+            this->borderFileSelected();
+        }
+        catch (const DataFileException& dfe) {
+            WuQMessageBox::errorOk(this, 
+                                   dfe.whatString());
+        }
+    }
+}
+
 
 /**
  * Called when a border file is selected.
@@ -373,7 +410,7 @@ BorderPropertiesEditorDialog::loadClassNameComboBox(const QString& className)
     
     this->classNameComboBox->clear();
     
-    BorderFile* borderFile = this->getSelectedBorderFile(false);
+    BorderFile* borderFile = this->getSelectedBorderFile();
     if (borderFile != NULL) {
         const GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
         std::vector<int32_t> keys = classLabelTable->getLabelKeysSortedByName();
@@ -401,6 +438,16 @@ BorderPropertiesEditorDialog::okButtonPressed()
     AString errorMessage;
 
     /*
+     * Get border file.
+     */
+    BorderFile* borderFile = this->getSelectedBorderFile();
+    if (borderFile == NULL) {
+        WuQMessageBox::errorOk(this, 
+                               "Border file is not valid, use the New button to create a border file.");
+        return;
+    }
+    
+    /*
      * Get data entered by the user.
      */
     const AString name = this->nameLineEdit->text();
@@ -427,10 +474,6 @@ BorderPropertiesEditorDialog::okButtonPressed()
         return;
     }
     
-    /*
-     * Get/Create border file.
-     */
-    BorderFile* borderFile = this->getSelectedBorderFile(true);
     
     Border* borderBeingEdited = NULL;
     bool finishModeFlag = false;
@@ -494,7 +537,13 @@ BorderPropertiesEditorDialog::okButtonPressed()
 void 
 BorderPropertiesEditorDialog::displayClassEditor()
 {
-    BorderFile* borderFile = this->getSelectedBorderFile(true);
+    BorderFile* borderFile = this->getSelectedBorderFile();
+    if (borderFile == NULL) {
+        WuQMessageBox::errorOk(this, 
+                               "Border file is not valid, use the New button to create a border file.");
+        return;
+    }
+    
     GiftiLabelTable* classLabelTable = borderFile->getClassColorTable();
     GiftiLabelTableEditor editor(classLabelTable,
                                  "Edit Class Attributes",

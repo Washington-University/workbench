@@ -65,6 +65,8 @@ namespace caret {
     
         void borderFileSelected();
         
+        void newBorderFileButtonClicked();
+        
     private:
         enum Mode {
             MODE_EDIT,
@@ -82,7 +84,7 @@ namespace caret {
 
         BorderPropertiesEditorDialog& operator=(const BorderPropertiesEditorDialog&);
         
-        BorderFile* getSelectedBorderFile(bool createIfNoValidBorderFiles);
+        BorderFile* getSelectedBorderFile();
         
         void loadBorderFileComboBox();
         
