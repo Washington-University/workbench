@@ -147,6 +147,30 @@ Border::getStructure()
 }
 
 /**
+ * @return True if all points are on the 
+ * same structure, else false.
+ */
+bool 
+Border::verifyAllPointsOnSameStructure() const
+{
+    const int32_t numPoints = this->getNumberOfPoints();
+    if (numPoints <= 1) {
+        return true;
+    }
+    
+    StructureEnum::Enum structure = this->points[0]->getStructure();
+
+    for (int32_t i = 1; i < numPoints; i++) {
+        if (this->points[i]->getStructure() != structure) {
+            return false;
+        }
+    }
+    
+    return true;
+}
+
+
+/**
  * Remove all points in this border.
  */
 void 

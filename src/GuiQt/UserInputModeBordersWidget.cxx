@@ -471,6 +471,12 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     if (btc == NULL) {
         return;
     }
+    
+    if (this->inputModeBorders->borderBeingDrawnByOpenGL->verifyAllPointsOnSameStructure() == false) {
+        WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
+        return;
+    }
+    
     ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
     ModelDisplayControllerWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     
@@ -672,6 +678,11 @@ UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* brain
                                                                     Surface* surface,
                                                                     Border* border)
 {
+    if (border->verifyAllPointsOnSameStructure() == false) {
+        WuQMessageBox::errorOk(this, "Error: Border points are on more than one structure.");
+        return;
+    }
+    
     RegionOfInterestCreateFromBorderDialog createRoiDialog(border,
                                                            surface,
                                                            this);

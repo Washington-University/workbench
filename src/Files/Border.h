@@ -66,6 +66,8 @@ namespace caret {
         
         StructureEnum::Enum getStructure();
         
+        bool verifyAllPointsOnSameStructure() const;
+        
         int32_t getNumberOfPoints() const;
         
         const SurfaceProjectedItem* getPoint(const int32_t indx) const;

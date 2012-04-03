@@ -269,15 +269,17 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
      */
     int32_t numberOfNodesInConnectedPath = static_cast<int32_t>(connectedPathNodes.size());
     if (numberOfNodesInConnectedPath >= 4) {
-        AString text;
-        text.reserve(10000);
-        text += ("Nodes in path (count="
-                 + AString::number(numberOfNodesInConnectedPath)
-                 + "):");
-        for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
-            text += (" " + AString::number(connectedPathNodes[i]));
+        if (CaretLogger::getLogger()->isFiner()) {
+            AString text;
+            text.reserve(10000);
+            text += ("Nodes in path (count="
+                     + AString::number(numberOfNodesInConnectedPath)
+                     + "):");
+            for (int32_t i = 0; i < numberOfNodesInConnectedPath; i++) {
+                text += (" " + AString::number(connectedPathNodes[i]));
+            }
+            CaretLogFiner(text);
         }
-        std::cout << qPrintable(text) << std::endl;
         
         /*
          * Determine the nodes inside the connected path
@@ -287,15 +289,17 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
                                             nodesInsideBorderOut);
         
         const int32_t numberOfNodesInside = static_cast<int32_t>(nodesInsideBorderOut.size());
-        text = "";
-        text.reserve(20000);
-        text = ("Nodes INSIDE border (count="
-                + AString::number(numberOfNodesInside)
-                + "):");
-        for (int32_t i = 0; i < numberOfNodesInside; i++) {
-            text += (" " + AString::number(nodesInsideBorderOut[i]));
+        if (CaretLogger::getLogger()->isFiner()) {
+            AString text;
+            text.reserve(20000);
+            text = ("Nodes INSIDE border (count="
+                    + AString::number(numberOfNodesInside)
+                    + "):");
+            for (int32_t i = 0; i < numberOfNodesInside; i++) {
+                text += (" " + AString::number(nodesInsideBorderOut[i]));
+            }
+            CaretLogFiner(text);
         }
-        std::cout << qPrintable(text) << std::endl;
     }
     else {
         throw AlgorithmException("Connected path along border is too small "
