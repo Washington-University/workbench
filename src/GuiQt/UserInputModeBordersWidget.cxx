@@ -54,6 +54,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerWholeBrain.h"
 #include "RegionOfInterestCreateFromBorderDialog.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
@@ -471,11 +472,20 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         return;
     }
     ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
-    if (surfaceController == NULL) {
-        return;
+    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    
+    Surface* surface = NULL;
+    if (surfaceController != NULL) {
+        surface = surfaceController->getSurface();
+    }
+    else if (wholeBrainController != NULL) {
+        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
+        surface = wholeBrainController->getSelectedSurface(structure, btc->getTabNumber());
     }
     
-    Surface* surface = surfaceController->getSurface();
+    if (surface == NULL) {
+        return;
+    }
     
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:

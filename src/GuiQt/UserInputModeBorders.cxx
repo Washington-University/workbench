@@ -245,6 +245,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 mouseEvent->setUserInterfaceUpdateRequested();
                             }
                         }
+                        else if (isLeftDrag || isWheel) {
+                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                              browserTabContent, 
+                                                                              openGLWidget);
+                        }
                         break;
                     case EDIT_OPERATION_PROPERTIES:
                         if (isLeftClick) {
@@ -265,6 +270,11 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                 }
                             }
                         }
+                        else if (isLeftDrag || isWheel) {
+                            UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                              browserTabContent, 
+                                                                              openGLWidget);
+                        }
                         break;
                 }
             }
@@ -284,9 +294,19 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                                                                          border);
                     }
                 }
+                else if (isLeftDrag || isWheel) {
+                    UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                      browserTabContent, 
+                                                                      openGLWidget);
+                }
                 break;
             case MODE_SELECT:
             {
+                if (isLeftDrag || isWheel) {
+                    UserInputModeView::processModelViewTransformation(mouseEvent, 
+                                                                      browserTabContent, 
+                                                                      openGLWidget);
+                }
             }
                 break;
         }
