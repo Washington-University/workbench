@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <set>
+#include <limits>
 
 #define __REGION_OF_INTEREST_CREATE_FROM_BORDER_DIALOG_DECLARE__
 #include "RegionOfInterestCreateFromBorderDialog.h"
