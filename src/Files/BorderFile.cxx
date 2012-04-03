@@ -613,6 +613,8 @@ BorderFile::clearModified()
     
     this->metadata->clearModified();
     
+    this->classColorTable->clearModified();
+    
     const int32_t numBorders = this->getNumberOfBorders();
     for (int32_t i = 0; i < numBorders; i++) {
         this->borders[i]->clearModified();
