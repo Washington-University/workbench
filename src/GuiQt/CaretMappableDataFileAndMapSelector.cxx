@@ -32,6 +32,7 @@
  */
 /*LICENSE_END*/
 
+#include <limits>
 
 #include <QAction>
 #include <QComboBox>
