@@ -83,6 +83,9 @@ namespace caret {
         virtual StructureEnum::Enum getStructure() const;
         
         virtual void setStructure(const StructureEnum::Enum structure);
+
+        virtual void addMaps(const int32_t numberOfNodes,
+                             const int32_t numberOfMaps) throw (DataFileException);
         
         /** @return  Number of nodes in the file. */
         virtual int32_t getNumberOfNodes() const = 0;
@@ -100,9 +103,6 @@ namespace caret {
                                    const AString& columnName);
         
         PaletteColorMapping* getPaletteColorMapping(const int32_t columnIndex);
-        
-        
-        
         
         virtual bool isSurfaceMappable() const;
         

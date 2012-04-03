@@ -70,12 +70,12 @@ namespace caret {
                                    const float assignMetricValue,
                                    MetricFile* metricFileInOut);
         
-//        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
-//                                   const SurfaceFile* surfaceFile,
-//                                   const Border* border, 
-//                                   const int32_t assignToLabelMapIndex,
-//                                   const AString& assignLabelName,
-//                                   LabelFile* labelFileInOut);
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border, 
+                                   const int32_t assignToLabelMapIndex,
+                                   const int32_t assignLabelKey,
+                                   LabelFile* labelFileInOut);
   
 //        static OperationParameters* getParameters();
 //        static void useParameters(OperationParameters* myParams, 

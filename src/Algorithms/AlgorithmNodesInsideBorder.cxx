@@ -109,16 +109,32 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     }
 }
 
-//AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
-//                           const SurfaceFile* surfaceFile,
-//                           const Border* border, 
-//                           const int32_t assignToLabelMapIndex,
-//                           const AString& assignLabelName,
-//                           LabelFile* labelFileInOut)
-//: AbstractAlgorithm(myProgObj)
-//{
-//    
-//}
+AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
+                                                       const SurfaceFile* surfaceFile,
+                                                       const Border* border, 
+                                                       const int32_t assignToLabelMapIndex,
+                                                       const int32_t assignLabelKey,
+                                                       LabelFile* labelFileInOut)
+: AbstractAlgorithm(myProgObj)
+{
+    CaretAssert(surfaceFile);
+    CaretAssert(border);
+    CaretAssert(labelFileInOut);
+    CaretAssert(surfaceFile->getNumberOfNodes() == labelFileInOut->getNumberOfNodes());
+    
+    std::vector<int32_t> nodesInsideBorder;
+    this->findNodesInsideBorder(surfaceFile,
+                                border,
+                                nodesInsideBorder);
+    
+    const int32_t numberOfNodesInsideBorder = static_cast<int32_t>(nodesInsideBorder.size());
+    for (int32_t i = 0; i < numberOfNodesInsideBorder; i++) {
+        const int32_t nodeNumber = nodesInsideBorder[i];
+        labelFileInOut->setLabelKey(nodeNumber,
+                                    assignToLabelMapIndex,
+                                    assignLabelKey);
+    }
+}
 
 /**
  * Find nodes inside the border.

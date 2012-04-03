@@ -264,6 +264,23 @@ GiftiTypeFile::setStructure(const StructureEnum::Enum structure)
 }
 
 /**
+ * Add map(s) to this GIFTI file.
+ * @param numberOfNodes
+ *     Number of nodes.  If file is not empty, this value must
+ *     match the number of nodes that are in the file.
+ * @param numberOfMaps
+ *     Number of maps to add.
+ */
+void 
+GiftiTypeFile::addMaps(const int32_t /*numberOfNodes*/,
+                       const int32_t /*numberOfMaps*/) throw (DataFileException)
+{
+    throw DataFileException("This file, "
+                            + this->getFileNameNoPath()
+                            + " does not support adding additional maps");
+}
+
+/**
  * @return Get access to the file's metadata.
  */
 GiftiMetaData* 

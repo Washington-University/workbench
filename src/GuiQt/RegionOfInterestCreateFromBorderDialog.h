@@ -75,10 +75,6 @@ namespace caret {
         void createDialog(const std::vector<Border*>& borders,
                           std::vector<Surface*>& surfaces);
         
-        QWidget* createMetricValueWidget();
-        
-        QWidget* createLabelValueWidget();
-        
         typedef std::map<StructureEnum::Enum,
                          CaretMappableDataFileAndMapSelector*> STRUCTURE_MAP_FILE_SELECTOR_MAP;
         
@@ -93,16 +89,6 @@ namespace caret {
         std::vector<Surface*> surfaces;
         
         std::vector<Border*> borders;
-        
-        QDoubleSpinBox* metricValueSpinBox;
-        
-        QLineEdit* labelNameLineEdit;
-        
-        QStackedWidget* valueEntryStackedWidget;
-        
-        QWidget* valueWidgetMetric;
-        
-        QWidget* valueWidgetLabel;
         
     };
     

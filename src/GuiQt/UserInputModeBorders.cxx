@@ -282,8 +282,6 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         this->borderToolsWidget->executeRoiInsideSelectedBorderOperation(brain,
                                                                                          surface,
                                                                                          border);
-                        mouseEvent->setGraphicsUpdateAllWindowsRequested();
-                        mouseEvent->setUserInterfaceUpdateRequested();
                     }
                 }
                 break;

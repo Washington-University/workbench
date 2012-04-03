@@ -268,6 +268,63 @@ void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
     setModified();
 }
 
+/**
+ * Add map(s) to this GIFTI file.
+ * @param numberOfNodes
+ *     Number of nodes.  If file is not empty, this value must
+ *     match the number of nodes that are in the file.
+ * @param numberOfMaps
+ *     Number of maps to add.
+ */
+void 
+LabelFile::addMaps(const int32_t numberOfNodes,
+                       const int32_t numberOfMaps) throw (DataFileException)
+{
+    if (numberOfNodes <= 0) {
+        throw DataFileException("When adding maps to "
+                                + this->getFileNameNoPath()
+                                + " the number of nodes must be greater than zero");
+    }
+    
+    if (this->getNumberOfNodes() > 0) {
+        if (numberOfNodes != this->getNumberOfNodes()) {
+            throw DataFileException("When adding maps to "
+                                    + this->getFileNameNoPath()
+                                    + " the requested number of nodes is "
+                                    + AString::number(numberOfNodes)
+                                    + " but the file contains "
+                                    + AString::number(this->getNumberOfNodes())
+                                    + " nodes.");
+        }
+    }
+    
+    if (numberOfMaps <= 0) {
+        throw DataFileException("When adding maps, the number of maps must be greater than zero.");
+    }
+    
+    if ((this->getNumberOfNodes() > 0) 
+        && (this->getNumberOfMaps() > 0)) {
+        std::vector<int64_t> dimensions;
+        dimensions.push_back(numberOfNodes);
+        
+        for (int32_t i = 0; i < numberOfMaps; ++i)
+        {
+            this->giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_LABEL, 
+                                                             NiftiDataTypeEnum::NIFTI_TYPE_INT32, 
+                                                             dimensions, 
+                                                             GiftiEncodingEnum::GZIP_BASE64_BINARY));
+            const int32_t mapIndex = giftiFile->getNumberOfDataArrays() - 1;
+            this->columnDataPointers.push_back(giftiFile->getDataArray(mapIndex)->getDataPointerInt());
+        }
+    }
+    else {
+        this->setNumberOfNodesAndColumns(numberOfNodes, 
+                                         numberOfMaps);
+    }
+    
+    this->setModified();
+}
+
 void LabelFile::setLabelKeysForColumn(const int32_t columnIndex, const int32_t* valuesIn)
 {
     CaretAssertVectorIndex(this->columnDataPointers, columnIndex);

@@ -47,6 +47,7 @@
 #include <QLineEdit>
 #include <QRadioButton>
 #include <QStackedWidget>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 using namespace caret;
@@ -58,6 +59,11 @@ using namespace caret;
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFileAndMapSelector.h"
+#include "EventManager.h"
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
@@ -122,6 +128,7 @@ void
 RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>& borders,
                                                      std::vector<Surface*>& surfaces)
 {
+    this->borders   = borders;
     this->surfaces = surfaces;
     
     std::set<StructureEnum::Enum> requiredStructures;
@@ -135,26 +142,14 @@ RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>&
                                             this->surfaces, 
                                             this->mapFileTypeSelectors);
     
-    this->valueWidgetLabel  = this->createLabelValueWidget();
-    this->valueWidgetMetric = this->createMetricValueWidget();
-    
-    this->valueEntryStackedWidget = new QStackedWidget();
-    this->valueEntryStackedWidget->addWidget(this->valueWidgetLabel);
-    this->valueEntryStackedWidget->addWidget(this->valueWidgetMetric);
-    
     QWidget* widget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(dialogLayout, 
                                     2, 
                                     2);
     dialogLayout->addWidget(selectorWidget);
-    dialogLayout->addWidget(this->valueEntryStackedWidget);
     
     this->setCentralWidget(widget);
-
-    this->borders.insert(this->borders.end(),
-                         borders.begin(),
-                         borders.end());
 }
 
 /**
@@ -214,69 +209,12 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
 void 
 RegionOfInterestCreateFromBorderDialog::fileSelectionWasChanged(CaretMappableDataFileAndMapSelector* selector)
 {
-    std::cout << "Selection changed. " << std::endl;
-    
-    const DataFileTypeEnum::Enum dataFileType = selector->getSelectedMapFileType();
-    switch (dataFileType) {
-        case DataFileTypeEnum::LABEL:
-            this->valueEntryStackedWidget->setCurrentWidget(this->valueWidgetLabel);
-            break;
-        case DataFileTypeEnum::METRIC:
-            this->valueEntryStackedWidget->setCurrentWidget(this->valueWidgetMetric);
-            break;
-        default:
-            CaretAssertMessage(0,
-                               ("File Type "
-                                + DataFileTypeEnum::toName(dataFileType)
-                                + " not allowed."));
-            break;
-    }
+//    std::cout << "Selection changed. " << std::endl;    
 }
 
 /**
- * @return Widget for entering metric value assigned
- * to nodes in the ROI.
+ * Called when the user presses the OK button.
  */
-QWidget* 
-RegionOfInterestCreateFromBorderDialog::createMetricValueWidget()
-{
-    QLabel* valueLabel = new QLabel("Value: ");
-    this->metricValueSpinBox = new QDoubleSpinBox();
-    this->metricValueSpinBox->setRange(-std::numeric_limits<float>::max(), 
-                                       std::numeric_limits<float>::max());
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 
-                                    2, 
-                                    2);
-    layout->addWidget(valueLabel,
-                      0);
-    layout->addWidget(this->metricValueSpinBox,
-                      100);
-    return widget;
-}
-
-/**
- * @return Widget for entering label value assigned
- * to nodes in the ROI.
- */
-QWidget* 
-RegionOfInterestCreateFromBorderDialog::createLabelValueWidget()
-{
-    QLabel* nameLabel = new QLabel("Label Name: ");
-    this->labelNameLineEdit = new QLineEdit();
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 
-                                    2, 
-                                    2);
-    layout->addWidget(nameLabel,
-                      0);
-    layout->addWidget(this->labelNameLineEdit,
-                      100);
-    return widget;
-}
-
 void 
 RegionOfInterestCreateFromBorderDialog::okButtonPressed()
 {
@@ -311,13 +249,60 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
             if (structureMapIterator != this->mapFileTypeSelectors.end()) {
                 const StructureEnum::Enum structure = structureMapIterator->first;
                 CaretMappableDataFileAndMapSelector* mapSelector = structureMapIterator->second;
+                mapSelector->saveCurrentSelections(); // save for next time
                 
                 switch (mapSelector->getSelectedMapFileType()) {
+                    case DataFileTypeEnum::LABEL:
+                    {
+                        LabelFile* labelFile = dynamic_cast<LabelFile*>(mapSelector->getSelectedMapFile());
+                        const int32_t mapIndex = mapSelector->getSelectedMapIndex();
+                        
+                        const int32_t labelKey = mapSelector->getSelectedLabelKey(); 
+                        
+                        Surface* surface = NULL;
+                        for (std::vector<Surface*>::iterator surfaceIterator = this->surfaces.begin();
+                             surfaceIterator != this->surfaces.end();
+                             surfaceIterator++) {
+                            Surface* s = *surfaceIterator;
+                            if (s->getStructure() == structure) {
+                                surface = s;
+                                break;
+                            }
+                        }
+                        CaretAssert(surface);
+                        
+                        if (surface != NULL) {
+                            try {
+                                AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                                                 surface,
+                                                                                 border,
+                                                                                 mapIndex,
+                                                                                 labelKey,
+                                                                                 labelFile);
+                            }
+                            catch (const AlgorithmException& e) {
+                                if (errorMessage.isEmpty() == false) {
+                                    errorMessage += "\n";
+                                }
+                                errorMessage += e.whatString();
+                            }
+                        }
+                        else {
+                            if (errorMessage.isEmpty() == false) {
+                                errorMessage += "\n";
+                            }
+                            errorMessage += ("Surface for structure "
+                                             + StructureEnum::toGuiName(structure)
+                                             + " was not found");
+                        }
+                        
+                    }
+                        break;
                     case DataFileTypeEnum::METRIC:
                     {
                         MetricFile* metricFile = dynamic_cast<MetricFile*>(mapSelector->getSelectedMapFile());
                         const int32_t mapIndex = mapSelector->getSelectedMapIndex();
-                        const float value = this->metricValueSpinBox->value();
+                        const float value = mapSelector->getSelectedMetricValue();
                         
                         Surface* surface = NULL;
                         for (std::vector<Surface*>::iterator surfaceIterator = this->surfaces.begin();
@@ -369,6 +354,10 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
         }        
     }
     
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+
     if (errorMessage.isEmpty() == false) {
         WuQMessageBox::errorOk(this, 
                                errorMessage);

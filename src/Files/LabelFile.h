@@ -58,6 +58,9 @@ namespace caret {
         
         void setNumberOfNodesAndColumns(int32_t nodes, int32_t columns);
 
+        virtual void addMaps(const int32_t numberOfNodes,
+                             const int32_t numberOfMaps) throw (DataFileException);
+        
         GiftiLabelTable* getLabelTable();
         
         const GiftiLabelTable* getLabelTable() const;

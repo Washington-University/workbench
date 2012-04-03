@@ -35,12 +35,16 @@
 
 #include <QAction>
 #include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QGridLayout>
 #include <QInputDialog>
 #include <QLabel>
+#include <QLineEdit>
+#include <QStackedWidget>
 #include <QToolButton>
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
+#include "WuQWidgetObjectGroup.h"
 #include "WuQtUtilities.h"
 
 #define __CARET_MAPPABLE_DATA_FILE_AND_MAP_SELECTOR_DECLARE__
@@ -49,6 +53,10 @@
 
 #include "BrainStructure.h"
 #include "CaretAssert.h"
+#include "GiftiLabel.h"
+#include "GiftiLabelTableEditor.h"
+#include "GiftiLabelTable.h"
+#include "GiftiMetaData.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "WuQMessageBox.h"
@@ -88,12 +96,9 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
     this->supportedMapFileTypes.push_back(DataFileTypeEnum::METRIC);
     
     /*
-     * Create widgets
+     * File Type
      */
     QLabel* mapFileTypeLabel = new QLabel("Type: ");
-    QLabel* mapFileLabel     = new QLabel("File: ");
-    QLabel* mapNameLabel     = new QLabel("Map: ");
-    
     this->mapFileTypeComboBox = new QComboBox();
     for (std::vector<DataFileTypeEnum::Enum>::iterator dataFileTypeIterator = this->supportedMapFileTypes.begin();
          dataFileTypeIterator != this->supportedMapFileTypes.end();
@@ -106,14 +111,13 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
     QObject::connect(this->mapFileTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapFileTypeComboBoxSelected(int)));
     
+    /*
+     * File Selection
+     */
+    QLabel* mapFileLabel     = new QLabel("File: ");
     this->mapFileComboBox = new QComboBox();
     QObject::connect(this->mapFileComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapFileComboBoxSelected(int)));
-    
-    this->mapNameComboBox     = new QComboBox();
-    QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
-                     this, SLOT(mapNameComboBoxSelected(int)));
-    
     QAction* newMapFileAction = WuQtUtilities::createAction("New...", 
                                                             "", 
                                                             this, 
@@ -121,7 +125,14 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
                                                             SLOT(newMapFileToolButtonSelected()));
     QToolButton* newMapFileToolButton = new QToolButton();
     newMapFileToolButton->setDefaultAction(newMapFileAction);
-
+    
+    /*
+     * Map Name Selection
+     */
+    QLabel* mapNameLabel     = new QLabel("Map: ");
+    this->mapNameComboBox     = new QComboBox();
+    QObject::connect(this->mapNameComboBox, SIGNAL(activated(int)),
+                     this, SLOT(mapNameComboBoxSelected(int)));
     QAction* newMapAction = WuQtUtilities::createAction("New...", 
                                                         "", 
                                                         this, 
@@ -129,6 +140,40 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
                                                         SLOT(newMapToolButtonSelected()));
     QToolButton* newMapToolButton     = new QToolButton();
     newMapToolButton->setDefaultAction(newMapAction);
+    
+    /*
+     * Label selection
+     */
+    QLabel* labelNameLabel = new QLabel("Label Name: ");
+    this->labelSelectionComboBox = new QComboBox();
+    QObject::connect(this->labelSelectionComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(labelNameComboBoxSelected(int)));
+    QAction* editLabelsAction = WuQtUtilities::createAction("Edit...", 
+                                                            "Add/Edit/Delete Labels\nand edit their colors", 
+                                                            this, 
+                                                            this, 
+                                                            SLOT(showLabelsEditor()));
+    QToolButton* editLabelsToolButton = new QToolButton();
+    editLabelsToolButton->setDefaultAction(editLabelsAction);
+    this->labelValueControlsGroup = new WuQWidgetObjectGroup(this);
+    this->labelValueControlsGroup->add(labelNameLabel);
+    this->labelValueControlsGroup->add(this->labelSelectionComboBox);
+    this->labelValueControlsGroup->add(editLabelsToolButton);
+    
+    /*
+     * Metric Value Entry
+     */
+    QLabel* metricValueLabel = new QLabel("Value: ");
+    this->metricValueSpinBox = new QDoubleSpinBox();
+    this->metricValueSpinBox->setMaximumWidth(100);
+    this->metricValueSpinBox->setRange(-std::numeric_limits<float>::max(), 
+                                       std::numeric_limits<float>::max());
+    this->metricValueSpinBox->setValue(1.0);
+    QObject::connect(this->metricValueSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(metricValueChanged(double)));
+    this->metricValueControlsGroup = new WuQWidgetObjectGroup(this);
+    this->metricValueControlsGroup->add(metricValueLabel);
+    this->metricValueControlsGroup->add(this->metricValueSpinBox);
     
     /*
      * Layout widgets
@@ -139,7 +184,7 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
                                     4, 
                                     2);
     gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 1);
+    gridLayout->setColumnStretch(1, 100);
     gridLayout->setColumnStretch(2, 0);
     gridLayout->addWidget(mapFileTypeLabel, 0, 0);
     gridLayout->addWidget(this->mapFileTypeComboBox, 0, 1);
@@ -149,8 +194,15 @@ CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainSt
     gridLayout->addWidget(mapNameLabel, 2, 0);
     gridLayout->addWidget(this->mapNameComboBox, 2, 1);
     gridLayout->addWidget(newMapToolButton, 2, 2);
+    gridLayout->addWidget(labelNameLabel, 3, 0);
+    gridLayout->addWidget(this->labelSelectionComboBox, 3, 1);
+    gridLayout->addWidget(editLabelsToolButton, 3, 2);
+    gridLayout->addWidget(metricValueLabel, 4, 0, Qt::AlignLeft);
+    gridLayout->addWidget(this->metricValueSpinBox, 4, 1);
 
     this->setMapFileTypeComboBoxCurrentIndex(0);
+    
+    this->applyPreviousSelection(true);
 }
 
 /**
@@ -173,7 +225,7 @@ CaretMappableDataFileAndMapSelector::loadMapFileComboBox(const int32_t selectedF
     /*
      * Fill widgets
      */
-    std::vector<CaretMappableDataFile*> mapFiles;
+    std::vector<GiftiTypeFile*> mapFiles;
     
     const DataFileTypeEnum::Enum dataFileType = this->getSelectedMapFileType();
     
@@ -206,12 +258,12 @@ CaretMappableDataFileAndMapSelector::loadMapFileComboBox(const int32_t selectedF
     
     this->mapFileComboBox->clear();
     
-    for (std::vector<CaretMappableDataFile*>::iterator iter = mapFiles.begin();
+    for (std::vector<GiftiTypeFile*>::iterator iter = mapFiles.begin();
          iter != mapFiles.end();
          iter++) {
-        CaretMappableDataFile* cmdf = *iter;
-        this->mapFileComboBox->addItem(cmdf->getFileNameNoPath(),
-                                       qVariantFromValue((void*)cmdf));
+        GiftiTypeFile* gtf = *iter;
+        this->mapFileComboBox->addItem(gtf->getFileNameNoPath(),
+                                       qVariantFromValue((void*)gtf));
     }
     
     if ((selectedFileIndex >= 0) 
@@ -234,6 +286,7 @@ void
 CaretMappableDataFileAndMapSelector::mapFileTypeComboBoxSelected(int indx)
 {
     this->setMapFileTypeComboBoxCurrentIndex(indx);
+    this->applyPreviousSelection(false);
     emit selectionChanged(this);
 }
 
@@ -246,7 +299,34 @@ void
 CaretMappableDataFileAndMapSelector::setMapFileTypeComboBoxCurrentIndex(int indx)
 {
     this->mapFileTypeComboBox->setCurrentIndex(indx);
+    const int32_t integerCode = this->mapFileTypeComboBox->itemData(indx).toInt();
+    const DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::fromIntegerCode(integerCode, NULL);
+    this->updateFileTypeSelections(dataFileType);
     this->loadMapFileComboBox(0); 
+}
+
+/**
+ * Update the selections for specific file types.
+ */
+void 
+CaretMappableDataFileAndMapSelector::updateFileTypeSelections(const DataFileTypeEnum::Enum dataFileType)
+{
+    switch (dataFileType) {
+        case DataFileTypeEnum::LABEL:
+            this->labelValueControlsGroup->setVisible(true);
+            this->metricValueControlsGroup->setVisible(false);
+            break;
+        case DataFileTypeEnum::METRIC:
+            this->labelValueControlsGroup->setVisible(false);
+            this->metricValueControlsGroup->setVisible(true);
+            break;
+        default:
+            CaretAssertMessage(0,
+                               ("File Type "
+                                + DataFileTypeEnum::toName(dataFileType)
+                                + " not allowed."));
+            break;            
+    }
 }
 
 
@@ -275,6 +355,7 @@ CaretMappableDataFileAndMapSelector::setMapFileComboBoxCurrentIndex(int indx)
     this->mapFileComboBox->setCurrentIndex(indx);
     
     this->loadMapNameComboBox(0);
+    this->loadLabelNameComboBox();
 }
 
 /**
@@ -354,12 +435,12 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                                                                         "Map Name");
     
     if (newFileMapDialog.exec() == WuQDataEntryDialog::Accepted) {
-        const QString mapFileName = mapFileNameLineEdit->text();
-        const QString mapName     = mapNameLineEdit->text();
+        QString mapFileName   = mapFileNameLineEdit->text();
+        const QString mapName = mapNameLineEdit->text();
         
         try {
-            if (newFileName.endsWith(fileExtension) == false) {
-                newFileName += ("."
+            if (mapFileName.endsWith(fileExtension) == false) {
+                mapFileName += ("."
                                 + fileExtension);
             }
 
@@ -374,7 +455,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     labelFile->setNumberOfNodesAndColumns(numberOfNodes, 1);
                     labelFile->setMapName(0, mapName);
                     labelFile->setStructure(this->brainStructure->getStructure());
-                    labelFile->setFileName(newFileName);
+                    labelFile->setFileName(mapFileName);
                     this->brainStructure->addLabelFile(labelFile); 
                     fileIndex = this->brainStructure->getNumberOfLabelFiles() - 1;
                 }
@@ -385,7 +466,7 @@ CaretMappableDataFileAndMapSelector::newMapFileToolButtonSelected()
                     metricFile->setNumberOfNodesAndColumns(numberOfNodes, 1);
                     metricFile->setMapName(0, mapName);
                     metricFile->setStructure(this->brainStructure->getStructure());
-                    metricFile->setFileName(newFileName);
+                    metricFile->setFileName(mapFileName);
                     this->brainStructure->addMetricFile(metricFile);                
                     fileIndex = this->brainStructure->getNumberOfMetricFiles() - 1;
                 }
@@ -427,8 +508,14 @@ CaretMappableDataFileAndMapSelector::getWidget()
 void 
 CaretMappableDataFileAndMapSelector::newMapToolButtonSelected()
 {
-    CaretMappableDataFile* cmdf = this->getSelectedMapFile();
-    if (cmdf != NULL) {
+    GiftiTypeFile* gtf = this->getSelectedMapFile();
+    if (gtf != NULL) {
+        if (gtf->getNumberOfNodes() <= 0) {
+            WuQMessageBox::errorOk(this->getWidget(), 
+                                   "The selected file is invalid, use the New button to create a new file.");
+            return;
+        }
+        
         bool valid = false;
         const QString newMapName = QInputDialog::getText(this->mapFileComboBox, 
                                                          "Map Name", 
@@ -436,7 +523,25 @@ CaretMappableDataFileAndMapSelector::newMapToolButtonSelected()
                                                          QLineEdit::Normal, 
                                                          "map", &valid);
         if (valid) {
+            try {
+                gtf->addMaps(gtf->getNumberOfNodes(),
+                             1);
+                
+                const int32_t mapIndex = gtf->getNumberOfMaps() - 1;
+                gtf->setMapName(mapIndex, newMapName);
+                this->loadMapNameComboBox(mapIndex);
+                
+                this->loadLabelNameComboBox();
+            }
+            catch (const DataFileException& e) {
+                WuQMessageBox::errorOk(this->getWidget(), 
+                                       e.whatString());
+            }
         }
+    }
+    else {
+        WuQMessageBox::errorOk(this->getWidget(), 
+                               "The selected file is invalid, use the New button to create a new file.");
     }
 }
 
@@ -444,15 +549,15 @@ CaretMappableDataFileAndMapSelector::newMapToolButtonSelected()
  * @return   The selected map file.  Value will be NULL
  * if no map file is selected.
  */
-CaretMappableDataFile* 
+GiftiTypeFile* 
 CaretMappableDataFileAndMapSelector::getSelectedMapFile()
 {
     const int indx = this->mapFileComboBox->currentIndex();
     if ((indx >= 0) 
         && (indx < this->mapFileComboBox->count())) {
         void* pointer = this->mapFileComboBox->itemData(indx).value<void*>();
-        CaretMappableDataFile* cmdf = (CaretMappableDataFile*)pointer;
-        return cmdf;
+        GiftiTypeFile* gtf = (GiftiTypeFile*)pointer;
+        return gtf;
     }
     
     return NULL;
@@ -533,5 +638,282 @@ CaretMappableDataFileAndMapSelector::isValidSelections(AString& errorMessageOut)
     const bool valid = errorMessageOut.isEmpty();
     return valid;
 }
+
+/**
+ * Called when a selection is made from the label combo box.
+ * @param indx
+ *    Index of selection.
+ */
+void 
+CaretMappableDataFileAndMapSelector::labelNameComboBoxSelected(int /*indx*/)
+{
+    emit selectionChanged(this);
+}
+
+/**
+ * Called when a selection is made from the label combo box.
+ * @param value
+ *    New value.
+ */
+void 
+CaretMappableDataFileAndMapSelector::metricValueChanged(double /*value*/)
+{
+    emit selectionChanged(this);
+}
+
+
+/**
+ * Load the label names into the label selection combo box.
+ */
+void 
+CaretMappableDataFileAndMapSelector::loadLabelNameComboBox()
+{
+    const int32_t selectedKey = this->getSelectedLabelKey();
+    
+    this->labelSelectionComboBox->clear();
+    
+    if (this->getSelectedMapFileType() == DataFileTypeEnum::LABEL) {
+        GiftiTypeFile* gtf = this->getSelectedMapFile();
+        LabelFile* labelFile = dynamic_cast<LabelFile*>(gtf);
+        if (labelFile != NULL) {
+            GiftiLabelTable* labelTable = labelFile->getLabelTable();
+            
+            int32_t selectedIndex = 0;
+            
+            std::vector<int32_t> labelKeys = labelTable->getLabelKeysSortedByName();
+            const int numKeys = static_cast<int32_t>(labelKeys.size());
+            for (int32_t i = 0; i < numKeys; i++) {
+                const int32_t key = labelKeys[i];
+                if (selectedKey == key) {
+                    selectedIndex = i;
+                }
+                const AString name = labelTable->getLabelName(key);
+                this->labelSelectionComboBox->addItem(name,
+                                                      (int)key);
+            }
+            
+            if ((selectedIndex >= 0)
+                && (selectedIndex < this->labelSelectionComboBox->count())) {
+                this->labelSelectionComboBox->setCurrentIndex(selectedIndex);
+            }
+        }
+    }
+}
+
+/**
+ * Display the label editor.
+ */
+void 
+CaretMappableDataFileAndMapSelector::showLabelsEditor()
+{
+    if (this->getSelectedMapFileType() == DataFileTypeEnum::LABEL) {
+        GiftiTypeFile* gtf = this->getSelectedMapFile();
+        LabelFile* labelFile = dynamic_cast<LabelFile*>(gtf);
+        if (labelFile != NULL) {
+            GiftiLabelTable* labelTable = labelFile->getLabelTable();
+            GiftiLabelTableEditor labelsEditor(labelTable,
+                                               "Edit Labels",
+                                               this->getWidget());
+            if (labelsEditor.exec() == GiftiLabelTableEditor::Accepted) {
+                this->loadLabelNameComboBox();
+                
+                const AString labelName = labelsEditor.getLastSelectedLabelName();
+                const int32_t labelKey  = labelTable->getLabelKeyFromName(labelName);
+                
+                const int labelIndex = this->labelSelectionComboBox->findData((int)labelKey);
+                if (labelIndex >= 0) {
+                    this->labelSelectionComboBox->setCurrentIndex(labelIndex);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * @return The metric value from the metric value spin box.
+ */
+float 
+CaretMappableDataFileAndMapSelector::getSelectedMetricValue() const
+{
+    const float value = this->metricValueSpinBox->value();
+    return value;
+}
+
+/**
+ * @return Key of the selected label.
+ */
+int32_t 
+CaretMappableDataFileAndMapSelector::getSelectedLabelKey() const
+{
+    int32_t key = 0;
+    
+    const int indx = this->labelSelectionComboBox->currentIndex();
+    if ((indx >= 0) 
+        && (indx < this->labelSelectionComboBox->count())) {
+        key = this->labelSelectionComboBox->itemData(indx).toInt();
+    }
+    
+    return key;
+}
+
+/**
+ * Apply previous selections when dialog launched or
+ * file type changed.
+ */
+void 
+CaretMappableDataFileAndMapSelector::applyPreviousSelection(const bool useFileTypeFromPreviousSelection)
+{
+    if (this->brainStructure == NULL) {
+        return;
+    }
+    const StructureEnum::Enum structure = this->brainStructure->getStructure();
+    Selections* s = this->getPreviousSelection(structure);
+    
+    DataFileTypeEnum::Enum dataFileType = s->dataFileType;
+    if (useFileTypeFromPreviousSelection == false) {
+        dataFileType = this->getSelectedMapFileType();
+    }
+    if (dataFileType == DataFileTypeEnum::UNKNOWN) { 
+        dataFileType = DataFileTypeEnum::LABEL;
+        
+        if (this->brainStructure->getNumberOfLabelFiles() > 0) {
+            dataFileType = DataFileTypeEnum::LABEL;
+        }
+        else if (this->brainStructure->getNumberOfMetricFiles() > 0) {
+            dataFileType = DataFileTypeEnum::METRIC;
+        }
+    }
+    
+    const int mapTypeIndex = this->mapFileTypeComboBox->findData((int)dataFileType);
+    if (mapTypeIndex >= 0) {
+        this->setMapFileTypeComboBoxCurrentIndex(mapTypeIndex);
+    }
+    
+    switch (dataFileType) {
+        case DataFileTypeEnum::LABEL:
+        {
+            if (s->labelFile != NULL) {
+                const int fileIndex = this->mapFileComboBox->findData(qVariantFromValue((void*)s->labelFile));
+                if (fileIndex >= 0) {
+                    this->setMapFileComboBoxCurrentIndex(fileIndex);
+                    
+                    const int mapIndex = s->labelFile->CaretMappableDataFile::getMapIndexFromName(s->labelMapName);
+                    if (mapIndex >= 0) {
+                        this->setMapNameComboBoxCurrentIndex(mapIndex);
+                    }
+                    
+                    if (s->labelName.isEmpty() == false) {
+                        const int labelIndex = labelSelectionComboBox->findText(s->labelName);
+                        if (labelIndex >= 0) {
+                            this->labelSelectionComboBox->setCurrentIndex(labelIndex);
+                        }
+                    }
+                }
+            }
+        }
+            break;
+        case DataFileTypeEnum::METRIC:
+        {
+            if (s->metricFile != NULL) {
+                const int fileIndex = this->mapFileComboBox->findData(qVariantFromValue((void*)s->metricFile));
+                if (fileIndex >= 0) {
+                    this->setMapFileComboBoxCurrentIndex(fileIndex);
+                    
+                    const int mapIndex = s->metricFile->CaretMappableDataFile::getMapIndexFromName(s->metricMapName);
+                    if (mapIndex >= 0) {
+                        this->setMapNameComboBoxCurrentIndex(mapIndex);
+                    }
+                    
+                    this->metricValueSpinBox->setValue(s->metricValue);
+                }
+            }
+        }
+            break;
+        default:
+            /*
+             * If here, previous selections have not been initilized
+             */
+            break;
+    }    
+}
+
+/**
+ * Save the current selections.  User of this selector
+ * MUST call this to save the selections so that they 
+ * can be initialized the next time a selector for the
+ * brain structure is used.
+ */
+void 
+CaretMappableDataFileAndMapSelector::saveCurrentSelections()
+{
+    if (this->brainStructure == NULL) {
+        return;
+    }
+    const StructureEnum::Enum structure = this->brainStructure->getStructure();
+    Selections* s = this->getPreviousSelection(structure);
+    
+    const DataFileTypeEnum::Enum dataFileType = this->getSelectedMapFileType();
+    s->dataFileType = dataFileType;
+    switch (dataFileType) {
+        case DataFileTypeEnum::LABEL:
+        {
+            LabelFile* lf = dynamic_cast<LabelFile*>(this->getSelectedMapFile());
+            if (lf != NULL) {
+                s->labelFile = lf;
+                const int32_t mapIndex = this->getSelectedMapIndex();
+                if ((mapIndex >= 0)
+                    && (mapIndex < lf->getNumberOfMaps())) {
+                    s->labelMapName = lf->getMapName(mapIndex);
+                }
+                s->labelName = this->labelSelectionComboBox->currentText();
+            }
+        }
+            break;
+        case DataFileTypeEnum::METRIC:
+        {
+            MetricFile* mf = dynamic_cast<MetricFile*>(this->getSelectedMapFile());
+            if (mf != NULL) {
+                s->metricFile = mf;
+                const int32_t mapIndex = this->getSelectedMapIndex();
+                if ((mapIndex >= 0)
+                    && (mapIndex < mf->getNumberOfMaps())) {
+                    s->metricMapName = mf->getMapName(mapIndex);
+                }
+                s->metricValue = this->metricValueSpinBox->value();
+            }
+        }
+            break;
+        default:
+            CaretAssertMessage(0,
+                               ("File Type "
+                                + DataFileTypeEnum::toName(dataFileType)
+                                + " not allowed."));
+            break;
+    }
+}
+
+
+/**
+ * Get the previous selections for a structure.  If a previous selections does not
+ * exist for the structure it is created and returned.
+ * @param structure
+ *    Structure for which previous selections are desired.
+ * @return
+ *    Selections object.
+ */ 
+CaretMappableDataFileAndMapSelector::Selections* 
+CaretMappableDataFileAndMapSelector::getPreviousSelection(const StructureEnum::Enum structure)
+{
+    std::map<StructureEnum::Enum, Selections*>::iterator iter = previousSelections.find(structure);
+    if (iter != previousSelections.end()) {
+        Selections* s = iter->second;
+        return s;
+    }
+    
+    Selections* s = new Selections();
+    previousSelections.insert(std::make_pair(structure, s));
+    return s;
+}
+
 
 
