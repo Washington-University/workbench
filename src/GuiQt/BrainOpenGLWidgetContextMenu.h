@@ -43,7 +43,7 @@ class QAction;
 namespace caret {
 
     class BrowserTabContent;
-    class ConnectivityLoaderFile;
+    class ConnectivityLoaderManager;
     class IdentificationManager;
     class LabelFile;
     class Surface;
@@ -79,14 +79,14 @@ namespace caret {
                                const QString& labelName,
                                Surface* surface,
                                const int32_t nodeNumber,
-                               ConnectivityLoaderFile* connectivityLoaderFile) {
+                               ConnectivityLoaderManager* connectivityLoaderManager) {
                 this->labelFile = labelFile;
                 this->labelFileMapIndex = labelFileMapIndex;
                 this->labelKey = labelKey;
                 this->labelName = labelName;
                 this->surface = surface;
                 this->nodeNumber = nodeNumber;
-                this->connectivityLoaderFile = connectivityLoaderFile;
+                this->connectivityLoaderManager = connectivityLoaderManager;
             }
             
             LabelFile* labelFile;
@@ -95,7 +95,7 @@ namespace caret {
             QString labelName;
             Surface* surface;
             int32_t nodeNumber;
-            ConnectivityLoaderFile* connectivityLoaderFile;
+            ConnectivityLoaderManager* connectivityLoaderManager;
         };
         
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);

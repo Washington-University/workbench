@@ -272,7 +272,8 @@ void
 BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
 {
     const int x = contextMenuEvent->x();
-    const int y = contextMenuEvent->y();
+    const int y1 = contextMenuEvent->y();
+    const int y = this->height() - y1;
     
     BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(x, y);
     if (viewportContent == NULL) {

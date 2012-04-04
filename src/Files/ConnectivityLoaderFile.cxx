@@ -952,6 +952,91 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
 }
 
 /**
+ * Load connectivity data for the surface's nodes and then average the data.  
+ *
+ * For a dense connectivity file, the data loaded is
+ * the connectivity from the node to other brainordinates.
+ * For a dense time series file, the data loaded is the
+ * time-series for this node.
+ *
+ * @param surfaceFile
+ *    Surface file used for structure.
+ * @param nodeIndices
+ *    Indices of nodes.
+ */
+void 
+ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                    const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                this->allocateData(num);
+                this->zeroizeData();
+                
+                if (this->ciftiInterface->hasRowSurfaceData(structure)) {
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    std::vector<float> rowDataVector(num);
+                    float* rowData = &rowDataVector[0];
+                    
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        const int32_t nodeIndex = nodeIndices[i];
+                        if (this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            CaretLogFine("Read row for node " + AString::number(nodeIndex));
+                            
+                            for (int32_t j = 0; j < num; j++) {
+                                averageData[j] += rowData[j];
+                            }
+                        }
+                        else {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+                    
+                    for (int32_t i = 0; i < num; i++) {
+                        this->data[i] = averageData[i] / numberOfNodeIndices;
+                    }
+                    
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                }
+            }
+                break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+                throw DataFileException("Loading of average time-series data not supported.");
+                break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+}
+
+/**
  * Load data for a voxel at the given coordinate.
  *
  * For a dense connectivity file, the data loaded is

@@ -145,6 +145,9 @@ namespace caret {
         void loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t nodeIndex) throw (DataFileException);
         
+        void loadAverageDataForSurfaceNodes(const StructureEnum::Enum structure,
+                                            const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+        
         void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         void loadTimePointAtTime(const float seconds) throw (DataFileException);

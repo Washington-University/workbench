@@ -43,10 +43,12 @@
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
+#include "CursorDisplay.h"
 #include "EventManager.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
@@ -151,17 +153,36 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                     ModelDisplayController* model = this->browserTabContent->getModelControllerForDisplay();
                     if (model != NULL) {
                         OverlaySet* overlaySet = model->getOverlaySet(this->browserTabContent->getTabNumber());
+                        
                         std::vector<LabelFile*> labelFiles;
                         std::vector<int32_t> labelMapIndices;
-                        overlaySet->getLabelFilesForSurface(surface, 
-                                                            labelFiles, 
-                                                            labelMapIndices); 
+                        
+                        bool useAllLabelFiles = true;
+                        if (useAllLabelFiles) {
+                            std::vector<LabelFile*> brainStructureLabelFiles;
+                            surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
+                            const int numBrainStructureLabelFiles = static_cast<int32_t>(brainStructureLabelFiles.size());
+                            for (int32_t i = 0; i < numBrainStructureLabelFiles; i++) {
+                                LabelFile* lf = brainStructureLabelFiles[i];
+                                const int32_t numMaps = lf->getNumberOfMaps();
+                                for (int im = 0; im < numMaps; im++) {
+                                    labelFiles.push_back(lf);
+                                    labelMapIndices.push_back(im);
+                                }
+                            }
+                        }
+                        else {
+                            overlaySet->getLabelFilesForSurface(surface, 
+                                                                labelFiles, 
+                                                                labelMapIndices); 
+                        }
                         const int32_t numberOfLabelFiles = static_cast<int32_t>(labelFiles.size());
                         for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
                             LabelFile* labelFile = dynamic_cast<LabelFile*>(labelFiles[ilf]);
                             const int32_t mapIndex = labelMapIndices[ilf];
                             const int labelKey = labelFile->getLabelKey(nodeNumber, 
                                                                         mapIndex);
+                            const AString mapName = labelFile->getMapName(mapIndex);
                             const GiftiLabel* giftiLabel = labelFile->getLabelTable()->getLabel(labelKey);
                             if (giftiLabel != NULL) {
                                 ParcelConnectivity* pc = new ParcelConnectivity(labelFile,
@@ -170,11 +191,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                                                 giftiLabel->getName(),
                                                                                 surface,
                                                                                 nodeNumber,
-                                                                                clf);
+                                                                                clm);
                                 this->parcelConntivities.push_back(pc);
                                 
                                 const AString actionName("Show Connectivity For Parcel "
-                                                         + giftiLabel->getName());
+                                                         + giftiLabel->getName()
+                                                         + " in map "
+                                                         + mapName);
                                 QAction* action = connectivityActionGroup->addAction(actionName);
                                 action->setData(qVariantFromValue((void*)pc));
                                 
@@ -220,8 +243,6 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
     void* pointer = action->data().value<void*>();
     ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
     
-    std::cout << "Show node " << pc->nodeNumber << " for file " << pc->connectivityLoaderFile->getFileNameNoPath() << std::endl;
-    
     std::vector<int32_t> nodeIndices;
     pc->labelFile->getNodeIndicesWithLabelKey(pc->labelFileMapIndex, 
                                               pc->labelKey,
@@ -232,6 +253,18 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
         return;
     }
     
+    try {
+        CursorDisplay cursor(Qt::WaitCursor);
+        pc->connectivityLoaderManager->loadAverageDataForSurfaceNodes(pc->surface,
+                                                                      nodeIndices);
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+    
+    
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
 }
 
 /**

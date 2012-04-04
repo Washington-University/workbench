@@ -241,6 +241,41 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
 }
 
 /**
+ * Load data for each of the given surface node indices and average the data.
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndices
+ *    Indices of the surface nodes.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    bool haveData = false;
+    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
+         iter != this->connectivityLoaderFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {
+            if (clf->isDense()) {
+                clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+                haveData = true;
+            }
+        }
+    }
+    
+    if (haveData) {
+        this->colorConnectivityData();
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    }
+    
+    return haveData;
+}
+
+
+/**
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
