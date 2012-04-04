@@ -1210,7 +1210,8 @@ void
 BrainBrowserWindow::processManageSaveLoadedFiles()
 {
     ManageLoadedFilesDialog manageLoadedFile(this,
-                                             GuiManager::get()->getBrain());
+                                             GuiManager::get()->getBrain(),
+                                             false);
     manageLoadedFile.exec();
 }
 

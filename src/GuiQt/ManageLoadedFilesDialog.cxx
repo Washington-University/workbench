@@ -61,17 +61,30 @@ using namespace caret;
  */
 /**
  * Constructor.
+ * @param parent
+ *     Parent widget on which this dialog is displayed.
+ * @param brain
+ *     The brain whose data files are checked for modification.
+ * @param isQuittingWorkbench
+ *     True if the user is exiting workbench.
  */
 ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
-                                                 Brain* brain)
+                                                 Brain* brain,
+                                                 const bool isQuittingWorkbench)
 : WuQDialogModal("Manage and Save Loaded Files",
                  parent)
 {
     this->brain = brain;
+    this->isQuittingWorkbench = isQuittingWorkbench;
     
     this->setOkButtonText("");
     this->setCancelButtonText("Close");
-    this->saveCheckedFilesPushButton = this->addUserPushButton("Save Checked Files");
+    AString saveButtonText = "Save Checked Files";
+    if (this->isQuittingWorkbench) {
+        saveButtonText = "Save Checked Files and Quit Workbench";
+        this->setCancelButtonText("Cancel");
+    }
+    this->saveCheckedFilesPushButton = this->addUserPushButton(saveButtonText);
     
     QWidget* filesWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(filesWidget);
@@ -193,6 +206,14 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         
         if (msg.isEmpty() == false) {
             WuQMessageBox::errorOk(this, msg);
+        }
+        else {
+            if (this->isQuittingWorkbench) {
+                /*
+                 * Close the dialog indicating success
+                 */
+                WuQDialogModal::okButtonPressed();
+            }
         }
     }
     else {

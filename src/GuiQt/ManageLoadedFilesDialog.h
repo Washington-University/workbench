@@ -47,7 +47,8 @@ namespace caret {
         
     public:
         ManageLoadedFilesDialog(QWidget* parent,
-                                Brain* brain);
+                                Brain* brain,
+                                const bool isQuittingWorkbench);
         
         virtual ~ManageLoadedFilesDialog();
 
@@ -83,6 +84,8 @@ namespace caret {
         Brain* brain;
         
         friend class ManageFileRow;
+        
+        bool isQuittingWorkbench;
     };
     
     

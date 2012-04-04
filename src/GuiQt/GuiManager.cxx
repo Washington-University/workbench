@@ -29,6 +29,7 @@
 #include "GuiManager.h"
 #undef __GUI_MANAGER_DEFINE__
 
+#include "Brain.h"
 #include "BrainBrowserWindow.h"
 #include "BrainOpenGL.h"
 #include "BrowserTabContent.h"
@@ -42,6 +43,7 @@
 #include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
+#include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
 #include "SessionManager.h"
@@ -341,7 +343,19 @@ GuiManager::exitProgram(QWidget* parent)
     /*
      * Are files modified?
      */
-    const bool areFilesModified = false;
+    bool areFilesModified = false;
+    std::vector<CaretDataFile*> dataFiles;
+    this->getBrain()->getAllDataFiles(dataFiles);
+    for (std::vector<CaretDataFile*>::iterator iter = dataFiles.begin();
+         iter != dataFiles.end();
+         iter++) {
+        CaretDataFile* cdf = *iter;
+        if (cdf->isModified()) {
+            areFilesModified = true;
+            break;
+        }
+    }
+         
     if (areFilesModified) {
         WuQMessageBox::StandardButton buttonPressed = 
         WuQMessageBox::saveDiscardCancel(parent, 
@@ -350,6 +364,14 @@ GuiManager::exitProgram(QWidget* parent)
         
         switch (buttonPressed) {
             case QMessageBox::Save:
+            {
+                ManageLoadedFilesDialog manageLoadedFile(parent,
+                                                         this->getBrain(),
+                                                         true);
+                if (manageLoadedFile.exec() == ManageLoadedFilesDialog::Accepted) {
+                    okToExit = true;
+                }
+            }
                 break;
             case QMessageBox::Discard:
                 okToExit = true;
