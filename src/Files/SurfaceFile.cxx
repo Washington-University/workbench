@@ -31,6 +31,7 @@
 #include "SurfaceFile.h"
 #include "CaretAssert.h"
 #include "CaretOMP.h"
+#include "DescriptiveStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
 
 #include "GiftiFile.h"
@@ -763,8 +764,9 @@ SurfaceFile::getInformation() const
     txt += ("Type: "
             + SurfaceTypeEnum::toGuiName(this->getSurfaceType())
             + "\n");
+    const int32_t numberOfNodes = this->getNumberOfNodes();
     txt += ("Number of Nodes: "
-            + AString::number(this->getNumberOfNodes())
+            + AString::number(numberOfNodes)
             + "\n");
     txt += ("Number of Triangles: "
             + AString::number(this->getNumberOfTriangles())
@@ -772,6 +774,45 @@ SurfaceFile::getInformation() const
     txt += ("Bounds: ("
             + AString::fromNumbers(this->getBoundingBox()->getBounds(), 6, ", ")
             + ")\n");
+    
+    if (numberOfNodes > 0) {        
+        std::vector<float> nodeSpacing;
+        nodeSpacing.reserve(numberOfNodes * 10);
+        CaretPointer<TopologyHelper> th = this->getTopologyHelper();
+        int numberOfNeighbors;
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            const int* neighbors = th->getNodeNeighbors(i, numberOfNeighbors);
+            for (int32_t j = 0; j < numberOfNeighbors; j++) {
+                const int n = neighbors[j];
+                if (n > i) {
+                    const float dist = MathFunctions::distance3D(this->getCoordinate(i),
+                                                                 this->getCoordinate(n));
+                    nodeSpacing.push_back(dist);
+                }
+            }
+        }
+        
+        DescriptiveStatistics stats;
+        stats.update(nodeSpacing);
+        const float mean = stats.getMean();
+        const float stdDev = stats.getStandardDeviationSample();
+        const float minValue = stats.getMinimumValue();
+        const float maxValue = stats.getMaximumValue();
+        
+        txt += ("Spacing:\n");
+        txt += ("    Mean: "
+                + AString::number(mean, 'f', 6)
+                + "\n");
+        txt += ("    Std Dev: "
+                + AString::number(stdDev, 'f', 6)
+                + "\n");
+        txt += ("    Minimum: "
+                + AString::number(minValue, 'f', 6)
+                + "\n");
+        txt += ("    Maximum: "
+                + AString::number(maxValue, 'f', 6)
+                + "\n");
+    }
     
     return txt;
 }
