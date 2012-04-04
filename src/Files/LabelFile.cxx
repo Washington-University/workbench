@@ -243,6 +243,32 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
 }
 
 /**
+ * Get nodes in the given column with the given lable key.
+ * @param columnIndex
+ *    Index of column
+ * @param labelKey
+ *    Key of label that is desired.
+ * @param nodeIndicesOut
+ *    On exit, will contain indices of nodes that have the 
+ *    given label key in the given column.
+ */
+void 
+LabelFile::getNodeIndicesWithLabelKey(const int32_t columnIndex,
+                                const int32_t labelKey,
+                                std::vector<int32_t>& nodeIndicesOut) const
+{
+    const int32_t numberOfNodes = this->getNumberOfNodes();
+    nodeIndicesOut.clear();
+    nodeIndicesOut.reserve(numberOfNodes);
+    
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (this->getLabelKey(i, columnIndex) == labelKey) {
+            nodeIndicesOut.push_back(i);
+        }
+    }
+}
+
+/**
  * Get a pointer to the keys for a label file column.
  * @param columnIndex
  *     Index of the column.

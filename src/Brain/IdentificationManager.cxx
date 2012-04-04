@@ -264,6 +264,25 @@ IdentificationManager::clearDistantSelections()
 }
 
 /**
+ * Reset all identified items except for the given identified item.
+ * @param identifiedItem
+ *    IdentifiedItem that is NOT reset.
+ */
+void 
+IdentificationManager::clearOtherIdentifiedItems(IdentificationItem* identifiedItem)
+{
+    for (std::vector<IdentificationItem*>::iterator iter = this->allIdentificationItems.begin();
+         iter != this->allIdentificationItems.end();
+         iter++) {
+        IdentificationItem* item = *iter;
+        if (item != identifiedItem) {
+            item->reset();
+        }
+    }
+    
+}
+
+/**
  * From the list of selectable items, find the item with the 
  * minimum depth.
  * @param items  List of selectable items.

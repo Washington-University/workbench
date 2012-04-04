@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <cmath>
 
+#include <QContextMenuEvent>
 #include <QMouseEvent>
 #include <QWheelEvent>
 
@@ -35,6 +36,7 @@
 #include "Border.h"
 #include "Brain.h"
 #include "BrainOpenGLFixedPipeline.h"
+#include "BrainOpenGLWidgetContextMenu.h"
 #include "BrainOpenGLWidgetTextRenderer.h"
 #include "BrainOpenGLViewportContent.h"
 #include "BrainStructure.h"
@@ -259,6 +261,34 @@ BrainOpenGLWidget::paintGL()
         this->openGL->setBorderBeingDrawn(NULL);
     }
     this->openGL->drawModels(this->drawingViewportContents);
+}
+
+/**
+ * Receive Content Menu events from Qt.
+ * @param contextMenuEvent
+ *    The context menu event.
+ */
+void 
+BrainOpenGLWidget::contextMenuEvent(QContextMenuEvent* contextMenuEvent)
+{
+    const int x = contextMenuEvent->x();
+    const int y = contextMenuEvent->y();
+    
+    BrainOpenGLViewportContent* viewportContent = this->getViewportContentAtXY(x, y);
+    if (viewportContent == NULL) {
+        return;
+    }
+    BrowserTabContent* tabContent = viewportContent->getBrowserTabContent();
+    if (tabContent == NULL) {
+        return;
+    }
+    
+    IdentificationManager* idManager = this->performIdentification(x, y);
+    
+    BrainOpenGLWidgetContextMenu contextMenu(idManager,
+                                             tabContent,
+                                             this);
+    contextMenu.exec(contextMenuEvent->globalPos());
 }
 
 /**

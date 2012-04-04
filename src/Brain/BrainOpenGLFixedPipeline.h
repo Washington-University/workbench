@@ -96,12 +96,13 @@ namespace caret {
         class VolumeDrawInfo {
         public:
             VolumeDrawInfo(VolumeFile* volumeFile,
+                           Brain* brain,
                            Palette* palette,
                            PaletteColorMapping* paletteColorMapping,
                            const FastStatistics* statistics,
                            const int32_t mapIndex,
                            const float opacity);
-            
+            Brain* brain;
             VolumeFile* volumeFile;
             SubvolumeAttributes::VolumeType volumeType;
             Palette* palette;
@@ -177,7 +178,7 @@ namespace caret {
                                        VolumeFile* underlayVolume);
         
         void setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
-                                 PaletteFile* paletteFile,
+                                 Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
         void drawWholeBrainController(BrowserTabContent* browserTabContent,

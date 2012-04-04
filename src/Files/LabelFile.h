@@ -75,6 +75,10 @@ namespace caret {
                          const int32_t columnIndex,
                          const int32_t labelIndex);
         
+        void getNodeIndicesWithLabelKey(const int32_t columnIndex,
+                                        const int32_t labelKey,
+                                        std::vector<int32_t>& nodeIndicesOut) const;
+        
         const int32_t* getLabelKeyPointerForColumn(const int32_t columnIndex) const;
         
         void setLabelKeysForColumn(const int32_t columnIndex, const int32_t* keysIn);

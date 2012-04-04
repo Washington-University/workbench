@@ -928,6 +928,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
             bool isTriangleIdAccepted = false;
             if (triangleID != NULL) {
                 if (triangleID->isOtherScreenDepthCloserToViewer(depth)) {
+                    triangleID->setBrain(surface->getBrainStructure()->getBrain());
                     triangleID->setSurface(surface);
                     triangleID->setTriangleNumber(triangleIndex);
                     const int32_t* triangleNodeIndices = surface->getTriangle(triangleIndex);
@@ -1198,6 +1199,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodes(Surface* surface,
                                          depth);
         if (nodeIndex >= 0) {
             if (nodeID->isOtherScreenDepthCloserToViewer(depth)) {
+                nodeID->setBrain(surface->getBrainStructure()->getBrain());
                 nodeID->setSurface(surface);
                 nodeID->setNodeNumber(nodeIndex);
                 nodeID->setScreenDepth(depth);
@@ -1320,6 +1322,7 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                                          depth);
         if (nodeIndex >= 0) {
             if (symbolID->isOtherScreenDepthCloserToViewer(depth)) {
+                symbolID->setBrain(surface->getBrainStructure()->getBrain());
                 symbolID->setSurface(surface);
                 symbolID->setNodeNumber(nodeIndex);
                 symbolID->setScreenDepth(depth);
@@ -1561,11 +1564,12 @@ BrainOpenGLFixedPipeline::drawSurfaceBorderBeingDrawn(const Surface* surface)
  */
 void 
 BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabContent,
-                                 PaletteFile* paletteFile,
+                                 Brain* brain,
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut)
 {
     volumeDrawInfoOut.clear();
     
+    PaletteFile* paletteFile = brain->getPaletteFile();
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
     const int32_t numberOfOverlays = overlaySet->getNumberOfDisplayedOverlays();
     for (int32_t iOver = (numberOfOverlays - 1); iOver >= 0; iOver--) {
@@ -1617,6 +1621,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                                         : vf->getMapFastStatistics(mapIndex);
                                     
                                         VolumeDrawInfo vdi(vf,
+                                                           brain,
                                                            palette,
                                                            paletteColorMapping,
                                                            statistics,
@@ -1632,6 +1637,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
                         }
                         else {
                             VolumeDrawInfo vdi(vf,
+                                               NULL,
                                                NULL,
                                                NULL,
                                                NULL,
@@ -1671,7 +1677,7 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
      */
     std::vector<VolumeDrawInfo> volumeDrawInfo;
     this->setupVolumeDrawInfo(browserTabContent,
-                              volumeController->getBrain()->getPaletteFile(),
+                              brain,
                               volumeDrawInfo);
     
     if (volumeDrawInfo.empty() == false) {
@@ -2557,6 +2563,7 @@ BrainOpenGLFixedPipeline::drawVolumeOrthogonalSliceVolumeViewer(const VolumeSlic
                                              voxelIndices);
                             if (vf->indexValid(voxelIndices)) {
                                 if (voxelID->isOtherScreenDepthCloserToViewer(depth)) {
+                                    voxelID->setBrain(volumeDrawInfo[iVol].brain);
                                     voxelID->setVolumeFile(volumeDrawInfo[iVol].volumeFile);
                                     voxelID->setVoxelIJK(voxelIndices);
                                     voxelID->setScreenDepth(depth);
@@ -3440,7 +3447,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
     if (underlayVolumeFile != NULL) {
         std::vector<VolumeDrawInfo> volumeDrawInfo;
         this->setupVolumeDrawInfo(browserTabContent,
-                                  wholeBrainController->getBrain()->getPaletteFile(),
+                                  brain,
                                   volumeDrawInfo);
         if (volumeDrawInfo.empty() == false) {
             const VolumeSliceCoordinateSelection* slices = 
@@ -4674,13 +4681,15 @@ BrainOpenGLFixedPipeline::modelSizeToPixelSize(const float modelSize)
  * Constructor.
  */
 BrainOpenGLFixedPipeline::VolumeDrawInfo::VolumeDrawInfo(VolumeFile* volumeFile,
-                                                   Palette* palette,
-                                                   PaletteColorMapping* paletteColorMapping,
-                                                   const FastStatistics* statistics,
-                                                   const int32_t mapIndex,
-                                                   const float opacity) 
+                                                         Brain* brain,
+                                                         Palette* palette,
+                                                         PaletteColorMapping* paletteColorMapping,
+                                                         const FastStatistics* statistics,
+                                                         const int32_t mapIndex,
+                                                         const float opacity) 
 : statistics(statistics) {
     this->volumeFile = volumeFile;
+    this->brain = brain;
     this->volumeType = volumeFile->getType();
     this->palette = palette;
     this->paletteColorMapping = paletteColorMapping;

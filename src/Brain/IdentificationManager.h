@@ -75,6 +75,8 @@ namespace caret {
         
         void clearDistantSelections();
         
+        void clearOtherIdentifiedItems(IdentificationItem* identifiedItem);
+        
         void addAdditionalSurfaceNodeIdentification(Surface* surface,
                                                     const int32_t nodeIndex,
                                                     bool isContralateralIdentification);

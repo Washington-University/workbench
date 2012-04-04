@@ -82,6 +82,8 @@ namespace caret {
         
         void paintGL();
         
+        void contextMenuEvent(QContextMenuEvent* contextMenuEvent);
+        
         void mouseMoveEvent(QMouseEvent* e);
         
         void mousePressEvent(QMouseEvent* e);

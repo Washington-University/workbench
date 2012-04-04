@@ -33,7 +33,9 @@ namespace caret {
 
     class BrainStructure;
     class BrowserTabContent;
+    class LabelFile;
     class ModelDisplayController;
+    class Surface;
     class VolumeFile;
     
     class OverlaySet : public CaretObject {
@@ -72,6 +74,10 @@ namespace caret {
         VolumeFile* setUnderlayToVolume();
         
         void initializeOverlays();
+        
+        void getLabelFilesForSurface(const Surface* surface,
+                                     std::vector<LabelFile*>& labelFilesOut,
+                                     std::vector<int32_t>& labelMapIndicesOut);
         
     public:
         virtual AString toString() const;

@@ -33,6 +33,7 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CaretMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "LabelFile.h"
@@ -41,6 +42,7 @@
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "ModelDisplayControllerYokingGroup.h"
+#include "Overlay.h"
 #include "Surface.h"
 #include "VolumeFile.h"
 
@@ -638,6 +640,45 @@ OverlaySet::initializeOverlays()
                                          this->getNumberOfDisplayedOverlays());
     for (int32_t i = 0; i < numMapFiles; i++) {
         this->getOverlay(i)->setSelectionData(mapFiles[i], mapFileIndices[i]);
+    }
+}
+
+/**
+ * Get any label files that are selected and applicable for the given surface.
+ * @param surface
+ *    Surface for which label files are desired.
+ * @param labelFilesOut
+ *    Label files that are applicable to the given surface.
+ * @param labelMapIndicesOut
+ *    Selected map indices in the output label files.
+ */
+void 
+OverlaySet::getLabelFilesForSurface(const Surface* surface,
+                                    std::vector<LabelFile*>& labelFilesOut,
+                                    std::vector<int32_t>& labelMapIndicesOut)
+{
+    CaretAssert(surface);
+    
+    labelFilesOut.clear();
+    labelMapIndicesOut.clear();
+    
+    const int32_t numberOfOverlays = this->getNumberOfDisplayedOverlays();
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
+        Overlay* overlay = this->getOverlay(i);
+        if (overlay->isEnabled()) {
+            CaretMappableDataFile* mapFile;
+            int32_t mapIndex;
+            overlay->getSelectionData(mapFile, mapIndex);
+            if (mapFile != NULL) {
+                if (mapFile->getDataFileType() == DataFileTypeEnum::LABEL) {
+                    if (mapFile->getStructure() == surface->getStructure()) {
+                        LabelFile* labelFile = dynamic_cast<LabelFile*>(mapFile);
+                        labelFilesOut.push_back(labelFile);
+                        labelMapIndicesOut.push_back(mapIndex);
+                    }
+                }
+            }
+        }
     }
 }
 

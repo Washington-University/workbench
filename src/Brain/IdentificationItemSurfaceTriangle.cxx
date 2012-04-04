@@ -33,7 +33,7 @@
 using namespace caret;
 
 /**
- * \class IdentificationItemSurfaceNode
+ * \class IdentificationItemSurfaceTriangle
  * \brief Identified node.
  *
  * Information about the identified node.
