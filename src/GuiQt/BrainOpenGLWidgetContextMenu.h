@@ -34,6 +34,7 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
 #include <vector>
 
 #include <QMenu>
@@ -69,6 +70,8 @@ namespace caret {
         void identifyVoxelSelected();
         
         void parcelConnectivityActionSelected(QAction* action);
+        
+        void borderConnectivitySelected();
         
     private:
         class ParcelConnectivity {

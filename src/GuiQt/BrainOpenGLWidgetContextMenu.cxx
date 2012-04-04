@@ -268,6 +268,15 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
 }
 
 /**
+ * Called when border connectivity is selected.
+ */
+void 
+BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
+{
+    
+}
+
+/**
  * Called to display identication information on the surface border.
  */
 void 
