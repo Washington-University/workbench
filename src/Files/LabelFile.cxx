@@ -239,6 +239,7 @@ LabelFile::setLabelKey(const int32_t nodeIndex,
     CaretAssertMessage((nodeIndex >= 0) && (nodeIndex < this->getNumberOfNodes()), "Node Index out of range.");
     
     this->columnDataPointers[columnIndex][nodeIndex] = labelKey;
+    this->setModified();
 }
 
 /**
