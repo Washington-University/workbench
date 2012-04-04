@@ -43,6 +43,7 @@ class QAction;
 
 namespace caret {
 
+    class Brain;
     class BrowserTabContent;
     class ConnectivityLoaderManager;
     class IdentificationManager;
@@ -104,6 +105,8 @@ namespace caret {
         BrainOpenGLWidgetContextMenu(const BrainOpenGLWidgetContextMenu&);
 
         BrainOpenGLWidgetContextMenu& operator=(const BrainOpenGLWidgetContextMenu&);
+        
+        ConnectivityLoaderManager* getConnectivityLoaderManager(Brain* brain);
         
         std::vector<ParcelConnectivity*> parcelConntivities;
         

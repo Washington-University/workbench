@@ -1000,17 +1000,21 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     std::vector<float> rowDataVector(num);
                     float* rowData = &rowDataVector[0];
                     
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    
                     const int32_t numberOfNodeIndices = nodeIndices.size();
                     for (int32_t i = 0; i < numberOfNodeIndices; i++) {
                         const int32_t nodeIndex = nodeIndices[i];
                         if (this->ciftiInterface->getRowFromNode(rowData,
                                                                  nodeIndex,
                                                                  structure)) {
-                            CaretLogFine("Read row for node " + AString::number(nodeIndex));
                             
                             for (int32_t j = 0; j < num; j++) {
                                 averageData[j] += rowData[j];
                             }
+                            countForAveraging += 1.0;
                         }
                         else {
                             CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
@@ -1018,7 +1022,7 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     }
                     
                     for (int32_t i = 0; i < num; i++) {
-                        this->data[i] = averageData[i] / numberOfNodeIndices;
+                        this->data[i] = averageData[i] / countForAveraging;
                     }
                     
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;

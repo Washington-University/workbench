@@ -38,6 +38,9 @@
 #include "BrainOpenGLWidgetContextMenu.h"
 #undef __BRAIN_OPEN_G_L_WIDGET_CONTEXT_MENU_DECLARE__
 
+#include "AlgorithmException.h"
+#include "AlgorithmNodesInsideBorder.h"
+#include "Border.h"
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -96,9 +99,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     /*
      * Identify actions
      */
+    IdentificationItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
     std::vector<QAction*> identificationActions;
-    if (this->identificationManager->getSurfaceBorderIdentification()->isValid()) {
-        identificationActions.push_back(WuQtUtilities::createAction("Identify Border Under Mouse", 
+    if (borderID->isValid()) {
+        const QString text = ("Identify Border ("
+                              + borderID->getBorder()->getName()
+                              + ") Under Mouse");
+        identificationActions.push_back(WuQtUtilities::createAction(text, 
                                                                     "", 
                                                                     this, 
                                                                     this, 
@@ -107,6 +114,10 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
 
     IdentificationItemSurfaceNode* surfaceID = this->identificationManager->getSurfaceNodeIdentification();
     if (surfaceID->isValid()) {
+        const QString text = ("Identify Node ("
+                              + QString::number(surfaceID->getNodeNumber())
+                              + ") Under Mouse");
+
         identificationActions.push_back(WuQtUtilities::createAction("Identify Node Under Mouse", 
                                                                     "", 
                                                                     this, 
@@ -132,92 +143,132 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
         }
     }
     
-    if (surfaceID->isValid()) {
-        QActionGroup* connectivityActionGroup = new QActionGroup(this);
-        QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
-                         this, SLOT(parcelConnectivityActionSelected(QAction*)));
-        
+    
+    std::vector<QAction*> connectivityActions;
+    QActionGroup* connectivityActionGroup = new QActionGroup(this);
+    QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelConnectivityActionSelected(QAction*)));
+
+    if (borderID->isValid()) {
         /*
-         * Connectivity actions
+         * Connectivity actions for labels
          */
-        std::vector<QAction*> connectivityActions;
+        Brain* brain = borderID->getBrain();
+        ConnectivityLoaderManager* clm = this->getConnectivityLoaderManager(brain);
+        if (clm != NULL) {
+            const QString text = ("Show Connectivity for Nodes Inside Border "
+                                  + borderID->getBorder()->getName());
+            QAction* action = WuQtUtilities::createAction(text,
+                                                          "",
+                                                          this,
+                                                          this,
+                                                          SLOT(borderConnectivitySelected()));
+            connectivityActions.push_back(action);
+        }
+    }
+    
+    if (surfaceID->isValid()) {
+        /*
+         * Connectivity actions for labels
+         */
         Brain* brain = surfaceID->getBrain();
         Surface* surface = surfaceID->getSurface();
         const int32_t nodeNumber = surfaceID->getNodeNumber();
-        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnLoaders = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnLoaders; i++) {
-            ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-            if (clf->isDense()) {
-                if (clf->isEmpty() == false) {
-                    ModelDisplayController* model = this->browserTabContent->getModelControllerForDisplay();
-                    if (model != NULL) {
-                        OverlaySet* overlaySet = model->getOverlaySet(this->browserTabContent->getTabNumber());
+        ConnectivityLoaderManager* clm = this->getConnectivityLoaderManager(brain);
+        if (clm != NULL) {
+            ModelDisplayController* model = this->browserTabContent->getModelControllerForDisplay();
+            if (model != NULL) {
+                OverlaySet* overlaySet = model->getOverlaySet(this->browserTabContent->getTabNumber());
+                
+                std::vector<LabelFile*> labelFiles;
+                std::vector<int32_t> labelMapIndices;
+                
+                bool useAllLabelFiles = true;
+                if (useAllLabelFiles) {
+                    std::vector<LabelFile*> brainStructureLabelFiles;
+                    surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
+                    const int numBrainStructureLabelFiles = static_cast<int32_t>(brainStructureLabelFiles.size());
+                    for (int32_t i = 0; i < numBrainStructureLabelFiles; i++) {
+                        LabelFile* lf = brainStructureLabelFiles[i];
+                        const int32_t numMaps = lf->getNumberOfMaps();
+                        for (int im = 0; im < numMaps; im++) {
+                            labelFiles.push_back(lf);
+                            labelMapIndices.push_back(im);
+                        }
+                    }
+                }
+                else {
+                    overlaySet->getLabelFilesForSurface(surface, 
+                                                        labelFiles, 
+                                                        labelMapIndices); 
+                }
+                const int32_t numberOfLabelFiles = static_cast<int32_t>(labelFiles.size());
+                for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
+                    LabelFile* labelFile = dynamic_cast<LabelFile*>(labelFiles[ilf]);
+                    const int32_t mapIndex = labelMapIndices[ilf];
+                    const int labelKey = labelFile->getLabelKey(nodeNumber, 
+                                                                mapIndex);
+                    const AString mapName = labelFile->getMapName(mapIndex);
+                    const GiftiLabel* giftiLabel = labelFile->getLabelTable()->getLabel(labelKey);
+                    if (giftiLabel != NULL) {
+                        ParcelConnectivity* pc = new ParcelConnectivity(labelFile,
+                                                                        mapIndex,
+                                                                        labelKey,
+                                                                        giftiLabel->getName(),
+                                                                        surface,
+                                                                        nodeNumber,
+                                                                        clm);
+                        this->parcelConntivities.push_back(pc);
                         
-                        std::vector<LabelFile*> labelFiles;
-                        std::vector<int32_t> labelMapIndices;
+                        const AString actionName("Show Connectivity For Parcel "
+                                                 + giftiLabel->getName()
+                                                 + " in map "
+                                                 + mapName);
+                        QAction* action = connectivityActionGroup->addAction(actionName);
+                        action->setData(qVariantFromValue((void*)pc));
                         
-                        bool useAllLabelFiles = true;
-                        if (useAllLabelFiles) {
-                            std::vector<LabelFile*> brainStructureLabelFiles;
-                            surface->getBrainStructure()->getLabelFiles(brainStructureLabelFiles);
-                            const int numBrainStructureLabelFiles = static_cast<int32_t>(brainStructureLabelFiles.size());
-                            for (int32_t i = 0; i < numBrainStructureLabelFiles; i++) {
-                                LabelFile* lf = brainStructureLabelFiles[i];
-                                const int32_t numMaps = lf->getNumberOfMaps();
-                                for (int im = 0; im < numMaps; im++) {
-                                    labelFiles.push_back(lf);
-                                    labelMapIndices.push_back(im);
-                                }
-                            }
-                        }
-                        else {
-                            overlaySet->getLabelFilesForSurface(surface, 
-                                                                labelFiles, 
-                                                                labelMapIndices); 
-                        }
-                        const int32_t numberOfLabelFiles = static_cast<int32_t>(labelFiles.size());
-                        for (int32_t ilf = 0; ilf < numberOfLabelFiles; ilf++) {
-                            LabelFile* labelFile = dynamic_cast<LabelFile*>(labelFiles[ilf]);
-                            const int32_t mapIndex = labelMapIndices[ilf];
-                            const int labelKey = labelFile->getLabelKey(nodeNumber, 
-                                                                        mapIndex);
-                            const AString mapName = labelFile->getMapName(mapIndex);
-                            const GiftiLabel* giftiLabel = labelFile->getLabelTable()->getLabel(labelKey);
-                            if (giftiLabel != NULL) {
-                                ParcelConnectivity* pc = new ParcelConnectivity(labelFile,
-                                                                                mapIndex,
-                                                                                labelKey,
-                                                                                giftiLabel->getName(),
-                                                                                surface,
-                                                                                nodeNumber,
-                                                                                clm);
-                                this->parcelConntivities.push_back(pc);
-                                
-                                const AString actionName("Show Connectivity For Parcel "
-                                                         + giftiLabel->getName()
-                                                         + " in map "
-                                                         + mapName);
-                                QAction* action = connectivityActionGroup->addAction(actionName);
-                                action->setData(qVariantFromValue((void*)pc));
-                                
-                                connectivityActions.push_back(action);
-                            }
-                        }
+                        connectivityActions.push_back(action);
                     }
                 }
             }
         }
-        if (connectivityActions.empty() == false) {
-            this->addSeparator();            
-            for (std::vector<QAction*>::iterator connIter = connectivityActions.begin();
-                 connIter != connectivityActions.end();
-                 connIter++) {
-                this->addAction(*connIter);
-            }
+    }
+    
+    if (connectivityActions.empty() == false) {
+        this->addSeparator();            
+        for (std::vector<QAction*>::iterator connIter = connectivityActions.begin();
+             connIter != connectivityActions.end();
+             connIter++) {
+            this->addAction(*connIter);
         }
     }
 }
+
+/**
+ * @return connectivity loader manager if there are dense loaders.
+ */
+ConnectivityLoaderManager*
+BrainOpenGLWidgetContextMenu::getConnectivityLoaderManager(Brain* brain)
+{
+    bool haveIt = false;
+    ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+    const int32_t numConnLoaders = clm->getNumberOfConnectivityLoaderFiles();
+    for (int32_t i = 0; i < numConnLoaders; i++) {
+        ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+        if (clf->isDense()) {
+            if (clf->isEmpty() == false) {
+                haveIt = true;
+            }
+        }
+    }
+    
+    if (haveIt == false) {
+        clm = NULL;
+    }
+    
+    return clm;
+}
+
 
 /**
  * Destructor.
@@ -273,7 +324,55 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
 void 
 BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
 {
+    IdentificationItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    Border* border = borderID->getBorder();
+    Surface* surface = borderID->getSurface();
     
+    const int32_t numberOfNodes = surface->getNumberOfNodes();
+    LabelFile labelFile;
+    labelFile.setNumberOfNodesAndColumns(numberOfNodes, 1);
+    const int32_t labelKey = labelFile.getLabelTable()->addLabel("TempLabel", 1.0f, 1.0f, 1.0f, 1.0f);
+    const int32_t mapIndex = 0;
+    
+    try {
+        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                         surface,
+                                                         border,
+                                                         mapIndex,
+                                                         labelKey,
+                                                         &labelFile);
+        std::vector<int32_t> nodeIndices;
+        nodeIndices.reserve(numberOfNodes);
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            if (labelFile.getLabelKey(i, mapIndex) == labelKey) {
+                nodeIndices.push_back(i);
+            }
+        }
+        
+        if (nodeIndices.empty()) {
+            WuQMessageBox::errorOk(this,
+                                   "No nodes found inside border " + border->getName());
+            return;
+        }
+        
+        try {
+            CursorDisplay cursor(Qt::WaitCursor);
+            ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
+            connectivityLoaderManager->loadAverageDataForSurfaceNodes(surface,
+                                                                          nodeIndices);
+        }
+        catch (const DataFileException& e) {
+            WuQMessageBox::errorOk(this, e.whatString());
+        }
+        
+        
+        EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
+    }
+    catch (const AlgorithmException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+
 }
 
 /**
