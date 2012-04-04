@@ -119,12 +119,12 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
 
 AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                                  SurfaceFile* mySurf,
-                                                 MetricFile* myMetricIn,
+                                                 const MetricFile* myMetricIn,
                                                  MetricFile* myMetricOut,
                                                  MetricFile* myVectorsOut,
                                                  const float myPresmooth,
                                                  const bool myAvgNormals,
-                                                 MetricFile* myRoi,
+                                                 const MetricFile* myRoi,
                                                  const int32_t myColumn) : AbstractAlgorithm(myProgObj)
 {
     ProgressObject* smoothProgress = NULL;
@@ -147,11 +147,12 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
     {
         throw AlgorithmException("invalid column number");
     }
-    MetricFile* toProcess = myMetricIn;
+    const MetricFile* toProcess = myMetricIn;
     if (myPresmooth > 0.0f)
     {
-        toProcess = new MetricFile();
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, toProcess, myRoi, myColumn);
+        MetricFile* tempMetric = new MetricFile();
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, tempMetric, myRoi, myColumn);
+        toProcess = tempMetric;
     }
     mySurf->computeNormals(myAvgNormals);
     const float* myNormals = mySurf->getNormalData();

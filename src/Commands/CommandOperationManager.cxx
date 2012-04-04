@@ -27,6 +27,7 @@
 #undef __COMMAND_OPERATION_MANAGER_DEFINE__
 
 #include "AlgorithmCiftiCreateDenseTimeseries.h"
+#include "AlgorithmCiftiGradient.h"
 #include "AlgorithmCiftiReplaceStructure.h"
 #include "AlgorithmCiftiSeparate.h"
 #include "AlgorithmCiftiSmoothing.h"
@@ -101,6 +102,7 @@ CommandOperationManager::deleteCommandOperationManager()
 CommandOperationManager::CommandOperationManager()
 {
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCreateDenseTimeseries()));
+    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiGradient()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiReplaceStructure()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSeparate()));
     this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));

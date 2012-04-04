@@ -42,7 +42,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, const float& kernel, VolumeFile* volOut, const VolumeFile* myRoi = NULL, VolumeFile* vectorsOut = NULL, const int& subvolNum = -1);
+        AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, const float& kernel, VolumeFile* volOut, const VolumeFile* myRoi = NULL,
+                                VolumeFile* vectorsOut = NULL, const int& subvolNum = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

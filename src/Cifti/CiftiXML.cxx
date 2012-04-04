@@ -202,8 +202,8 @@ bool CiftiXML::getVolumeStructureMapping(vector<CiftiVolumeMap>& mappingOut, con
     {
         mappingOut[index].m_ciftiIndex = myModel->m_indexOffset + index;
         mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i];
-        mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i + 1];
-        mappingOut[index].m_ijk[0] = myModel->m_voxelIndicesIJK[i + 2];
+        mappingOut[index].m_ijk[1] = myModel->m_voxelIndicesIJK[i + 1];
+        mappingOut[index].m_ijk[2] = myModel->m_voxelIndicesIJK[i + 2];
         ++index;
     }
     return true;

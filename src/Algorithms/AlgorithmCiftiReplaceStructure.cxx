@@ -232,9 +232,9 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
             jvec[0] = mySform[0][1]; jvec[1] = mySform[1][1]; jvec[2] = mySform[2][1];
             kvec[0] = mySform[0][2]; kvec[1] = mySform[1][2]; kvec[2] = mySform[2][2];
             shift = offset[0] * ivec + offset[1] * jvec + offset[2] * kvec;
-            mySform[3][0] += shift[0];//fix the sform to align to the old position with the new dimensions
-            mySform[3][1] += shift[1];
-            mySform[3][2] += shift[2];
+            mySform[0][3] += shift[0];//fix the sform to align to the old position with the new dimensions
+            mySform[1][3] += shift[1];
+            mySform[2][3] += shift[2];
         } else {
             throw AlgorithmException("cropped volume specified, but no voxels exist in this structure");
         }

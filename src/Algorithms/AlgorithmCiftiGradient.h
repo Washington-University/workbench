@@ -1,5 +1,5 @@
-#ifndef __ALGORITHM_METRIC_GRADIENT_H__
-#define __ALGORITHM_METRIC_GRADIENT_H__
+#ifndef __ALGORITHM_CIFTI_GRADIENT_H__
+#define __ALGORITHM_CIFTI_GRADIENT_H__
 
 /*LICENSE_START*/
 /*
@@ -26,33 +26,28 @@
  */
 
 #include "AbstractAlgorithm.h"
+#include "CiftiInterface.h"
 
 namespace caret {
     
-    class AlgorithmMetricGradient : public AbstractAlgorithm
+    class AlgorithmCiftiGradient : public AbstractAlgorithm
     {
-        AlgorithmMetricGradient();
+        AlgorithmCiftiGradient();
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmMetricGradient(ProgressObject* myProgObj,
-                                SurfaceFile* mySurf,
-                                const MetricFile* myMetricIn,
-                                MetricFile* myMetricOut,
-                                MetricFile* myVectorsOut = NULL,
-                                const float myPresmooth = -1.0f,
-                                const bool myAvgNormals = false,
-                                const MetricFile* myRoi = NULL,
-                                const int32_t myColumn = -1);
+        AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern, const CiftiInterface::CiftiDirection& myDir,
+                                CiftiFile* myCiftiOut, const float& surfKern = -1.0f, SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL,
+                                SurfaceFile* myCerebSurf = NULL, bool outputAverage = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
         static AString getShortDescription();
     };
 
-    typedef TemplateAutoOperation<AlgorithmMetricGradient> AutoAlgorithmMetricGradient;
+    typedef TemplateAutoOperation<AlgorithmCiftiGradient> AutoAlgorithmCiftiGradient;
 
 }
 
-#endif //__ALGORITHM_METRIC_GRADIENT_H__
+#endif //__ALGORITHM_CIFTI_GRADIENT_H__
