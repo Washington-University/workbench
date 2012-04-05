@@ -715,7 +715,7 @@ CaretMappableDataFileAndMapSelector::showLabelsEditor()
             GiftiLabelTableEditor labelsEditor(labelTable,
                                                "Edit Labels",
                                                this->getWidget());
-            labelsEditor.selectLabelWithName(this->getSelectedLabelName());
+            //labelsEditor.selectLabelWithName(this->getSelectedLabelName());
             if (labelsEditor.exec() == GiftiLabelTableEditor::Accepted) {
                 this->loadLabelNameComboBox();
                 

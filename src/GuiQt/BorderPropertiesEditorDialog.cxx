@@ -546,7 +546,9 @@ BorderPropertiesEditorDialog::displayClassEditor()
                                  this);
     const QString className = this->classNameComboBox->currentText();
     if (className.isEmpty() == false) {
-        editor.selectLabelWithName(className);
+        if (this->mode == MODE_EDIT) {
+            editor.selectLabelWithName(className);
+        }
     }
     editor.exec();
     
