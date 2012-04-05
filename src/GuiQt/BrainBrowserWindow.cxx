@@ -28,6 +28,7 @@
 #include <QMessageBox>
 #include <QTabBar>
 
+#include "AboutWorkbenchDialog.h"
 #include "Brain.h"
 #include "BrainBrowserSelectionToolBox.h"
 #include "BrainBrowserWindow.h"
@@ -225,6 +226,13 @@ BrainBrowserWindow::createActions()
     CaretAssert(this->toolbar);
     
     GuiManager* guiManager = GuiManager::get();
+    
+    this->aboutWorkbenchAction =
+    WuQtUtilities::createAction("About Workbench...",
+                                "Information about Workbench",
+                                this,
+                                this,
+                                SLOT(processAboutWorkbench()));
     
     this->newWindowAction =
     WuQtUtilities::createAction("New Window",
@@ -452,6 +460,7 @@ BrainBrowserWindow::createMenuFile()
     QObject::connect(menu, SIGNAL(aboutToShow()),
                      this, SLOT(processFileMenuAboutToShow()));
 
+    menu->addAction(this->aboutWorkbenchAction);
     menu->addAction(this->preferencesAction);
 #ifndef CARET_OS_MACOSX
     menu->addSeparator();
@@ -862,6 +871,16 @@ BrainBrowserWindow::processNewWindow()
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+}
+
+/**
+ * Display about workbench dialog.
+ */
+void 
+BrainBrowserWindow::processAboutWorkbench()
+{
+    AboutWorkbenchDialog awd(this);
+    awd.exec();
 }
 
 /**

@@ -91,6 +91,7 @@ namespace caret {
         void closeEvent(QCloseEvent* event);
         
     private slots:        
+        void processAboutWorkbench();
         void processDisplayControl();        
         void processNewWindow();
         void processNewTab();
@@ -170,6 +171,8 @@ namespace caret {
         BrainBrowserWindowToolBar* toolbar;
         
         BrainBrowserSelectionToolBox* selectionToolBox;
+        
+        QAction* aboutWorkbenchAction;
         
         QAction* newWindowAction;
         
