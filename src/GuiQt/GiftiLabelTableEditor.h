@@ -47,6 +47,7 @@ namespace caret {
     class ColorEditorWidget;
     class GiftiLabel;
     class GiftiLabelTable;
+    class WuQWidgetObjectGroup;
     
     class GiftiLabelTableEditor : public WuQDialogModal {
         Q_OBJECT
@@ -79,8 +80,8 @@ namespace caret {
         void labelNameLineEditTextEdited(const QString&);
         
     private:
-        void loadLabels(const AString& selectedName = "",
-                        const bool usePreviouslySelectedIndex = false);
+        void loadLabels(const AString& selectedName,
+                        const bool usePreviouslySelectedIndex);
         
         GiftiLabel* getSelectedLabel();
         
@@ -98,6 +99,8 @@ namespace caret {
         AString lastSelectedLabelName;
         
         GiftiLabel* undoGiftiLabel;
+        
+        WuQWidgetObjectGroup* editingGroup;
     };
     
 #ifdef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__

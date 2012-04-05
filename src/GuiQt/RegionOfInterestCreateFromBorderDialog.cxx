@@ -64,7 +64,6 @@ using namespace caret;
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
-#include "GiftiLabelTableEditor.h"
 #include "GuiManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"

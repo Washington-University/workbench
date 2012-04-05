@@ -82,6 +82,8 @@ namespace caret {
         
         int32_t getSelectedLabelKey() const;
         
+        AString getSelectedLabelName() const;
+        
         void saveCurrentSelections();
         
     signals:

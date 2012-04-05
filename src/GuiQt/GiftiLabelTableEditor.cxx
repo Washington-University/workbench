@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #define __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
 #include "GiftiLabelTableEditor.h"
 #undef __GIFTI_LABEL_TABLE_EDITOR_DECLARE__
@@ -52,6 +54,7 @@
 #include "GiftiLabelTable.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -79,6 +82,7 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
      * List widget for editing labels.
      */
     this->labelSelectionListWidget = new QListWidget();
+    this->labelSelectionListWidget->setSelectionMode(QListWidget::SingleSelection);
     QObject::connect(this->labelSelectionListWidget, SIGNAL(currentRowChanged(int)),
                      this, SLOT(listWidgetLabelSelected(int)));
     
@@ -151,7 +155,14 @@ GiftiLabelTableEditor::GiftiLabelTableEditor(GiftiLabelTable* giftiLableTable,
     
     this->setCentralWidget(widget);
     
-    this->loadLabels();
+    this->editingGroup = new WuQWidgetObjectGroup(this);
+    this->editingGroup->add(undoPushButton);
+    this->editingGroup->add(deletePushButton);
+    this->editingGroup->add(nameLabel);
+    this->editingGroup->add(this->labelNameLineEdit);
+    this->editingGroup->add(this->colorEditorWidget);
+    
+    this->loadLabels("", false);
     
     this->setOkButtonText("Close");
     this->setCancelButtonText("");
@@ -226,8 +237,10 @@ GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
         this->undoGiftiLabel = NULL;
     }
     
+    bool isEditingAllowed = false;
     GiftiLabel* gl = this->getSelectedLabel();
     if (gl != NULL) {
+        const bool isUnassignedLabel = (gl->getKey() == this->giftiLableTable->getUnassignedLabelKey());
         float rgba[4];
         gl->getColor(rgba);
         this->colorEditorWidget->setColor(rgba);
@@ -235,11 +248,19 @@ GiftiLabelTableEditor::listWidgetLabelSelected(int /*row*/)
         
         this->lastSelectedLabelName = gl->getName();
         
-        this->undoGiftiLabel = new GiftiLabel(*gl);
+        if (isUnassignedLabel) {
+            this->undoGiftiLabel = NULL;
+        }
+        else {
+            this->undoGiftiLabel = new GiftiLabel(*gl);
+            isEditingAllowed = true;
+        }
     }
     else {
         this->lastSelectedLabelName = "";
     }
+    
+    this->editingGroup->setEnabled(isEditingAllowed);
 }
 
 /**
@@ -326,7 +347,7 @@ GiftiLabelTableEditor::loadLabels(const AString& selectedName,
     
     this->labelSelectionListWidget->blockSignals(false);
     
-    if (defaultIndex >= 0) {
+    if (defaultIndex >= 0) {        
         this->labelSelectionListWidget->setCurrentRow(defaultIndex);
     }
 }
@@ -401,7 +422,7 @@ GiftiLabelTableEditor::newButtonClicked()
                                     blue,
                                     alpha);
     
-    this->loadLabels(name);
+    this->loadLabels(name, false);
     
     this->labelNameLineEdit->selectAll();
 //    this->labelNameLineEdit->grabKeyboard();

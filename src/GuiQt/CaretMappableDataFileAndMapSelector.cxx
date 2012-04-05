@@ -715,6 +715,7 @@ CaretMappableDataFileAndMapSelector::showLabelsEditor()
             GiftiLabelTableEditor labelsEditor(labelTable,
                                                "Edit Labels",
                                                this->getWidget());
+            labelsEditor.selectLabelWithName(this->getSelectedLabelName());
             if (labelsEditor.exec() == GiftiLabelTableEditor::Accepted) {
                 this->loadLabelNameComboBox();
                 
@@ -723,7 +724,9 @@ CaretMappableDataFileAndMapSelector::showLabelsEditor()
                 
                 const int labelIndex = this->labelSelectionComboBox->findData((int)labelKey);
                 if (labelIndex >= 0) {
-                    this->labelSelectionComboBox->setCurrentIndex(labelIndex);
+                    if (labelKey != labelTable->getUnassignedLabelKey()) {
+                        this->labelSelectionComboBox->setCurrentIndex(labelIndex);
+                    }
                 }
             }
         }
@@ -755,6 +758,21 @@ CaretMappableDataFileAndMapSelector::getSelectedLabelKey() const
     }
     
     return key;
+}
+
+/**
+ * @return Name of the selected label, empty string if no selection.
+ */
+AString 
+CaretMappableDataFileAndMapSelector::getSelectedLabelName() const
+{
+    AString name = "";
+    const int indx = this->labelSelectionComboBox->currentIndex();
+    if ((indx >= 0) 
+        && (indx < this->labelSelectionComboBox->count())) {
+        name = this->labelSelectionComboBox->currentText();
+    }
+    return name;
 }
 
 /**
