@@ -414,6 +414,7 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
     
     QGroupBox* groupBox = new QGroupBox(groupName);
     QGridLayout* gridLayout = new QGridLayout(groupBox);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
     for (int32_t i = 0; i < NUMBER_OF_COLUMNS; i++) {
         gridLayout->setColumnStretch(i, 0);
     }
@@ -564,7 +565,7 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     QObject::connect(this->openFilePushButton, SIGNAL(clicked()),
                      this, SLOT(openFilePushButtonClicked()));
     
-    this->selectionCheckBox = new QCheckBox("");
+    this->selectionCheckBox = new QCheckBox(" ");
     this->selectionCheckBox->setChecked(dataFileInfo->isSelected());
     
     this->metadataAction = WuQtUtilities::createAction("M",
