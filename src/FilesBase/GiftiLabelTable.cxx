@@ -603,7 +603,7 @@ GiftiLabelTable::getLabel(const int32_t key)
 /**
  * Get the key for the unassigned label.
  * @return  Index of key for unassigned label.
- *  or -1 if not found.
+ *          A valid key will always be returned.
  *
  */
 int32_t
@@ -613,7 +613,14 @@ GiftiLabelTable::getUnassignedLabelKey() const
     if (gl != NULL) {
         return gl->getKey();
     }
-    return -1;
+
+    /*
+     * Remove 'constness' from this object so that the 
+     * label can be added.
+     */
+    GiftiLabelTable* glt = (GiftiLabelTable*)this;
+    const int32_t key = glt->addLabel("???", 0.0f, 0.0f, 0.0f, 0.0f);
+    return key;
 }
 
 /**

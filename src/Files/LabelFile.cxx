@@ -285,12 +285,19 @@ LabelFile::getLabelKeyPointerForColumn(const int32_t columnIndex) const
 void LabelFile::setNumberOfNodesAndColumns(int32_t nodes, int32_t columns)
 {
     giftiFile->clear();
+
+    const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();
+    
     std::vector<int64_t> dimensions;
     dimensions.push_back(nodes);
     for (int32_t i = 0; i < columns; ++i)
     {
         giftiFile->addDataArray(new GiftiDataArray(NiftiIntentEnum::NIFTI_INTENT_LABEL, NiftiDataTypeEnum::NIFTI_TYPE_INT32, dimensions, GiftiEncodingEnum::GZIP_BASE64_BINARY));
         columnDataPointers.push_back(giftiFile->getDataArray(i)->getDataPointerInt());
+        int32_t* ptr = giftiFile->getDataArray(i)->getDataPointerInt();
+        for (int32_t j = 0; j < nodes; j++) {
+            ptr[j] = unassignedKey;
+        }
     }
     setModified();
 }
@@ -329,6 +336,8 @@ LabelFile::addMaps(const int32_t numberOfNodes,
         throw DataFileException("When adding maps, the number of maps must be greater than zero.");
     }
     
+    const int32_t unassignedKey = this->getLabelTable()->getUnassignedLabelKey();
+    
     if ((this->getNumberOfNodes() > 0) 
         && (this->getNumberOfMaps() > 0)) {
         std::vector<int64_t> dimensions;
@@ -342,6 +351,11 @@ LabelFile::addMaps(const int32_t numberOfNodes,
                                                              GiftiEncodingEnum::GZIP_BASE64_BINARY));
             const int32_t mapIndex = giftiFile->getNumberOfDataArrays() - 1;
             this->columnDataPointers.push_back(giftiFile->getDataArray(mapIndex)->getDataPointerInt());
+            
+            int32_t* ptr = giftiFile->getDataArray(mapIndex)->getDataPointerInt();
+            for (int32_t j = 0; j < numberOfNodes; j++) {
+                ptr[j] = unassignedKey;
+            }
         }
     }
     else {
