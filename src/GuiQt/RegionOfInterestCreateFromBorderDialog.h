@@ -42,6 +42,7 @@
 #include "WuQDialogModal.h"
 
 class QButtonGroup;
+class QCheckBox;
 class QDoubleSpinBox;
 class QLineEdit;
 class QStackedWidget;
@@ -89,6 +90,8 @@ namespace caret {
         std::vector<Surface*> surfaces;
         
         std::vector<Border*> borders;
+        
+        QCheckBox* inverseCheckBox;
         
     };
     

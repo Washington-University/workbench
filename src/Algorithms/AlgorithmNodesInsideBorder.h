@@ -46,6 +46,22 @@ namespace caret {
     class SurfaceFile;
     
     class AlgorithmNodesInsideBorder : public AbstractAlgorithm {
+    public:
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border, 
+                                   const bool isInverseSelection,
+                                   const int32_t assignToMetricMapIndex,
+                                   const float assignMetricValue,
+                                   MetricFile* metricFileInOut);
+        
+        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
+                                   const SurfaceFile* surfaceFile,
+                                   const Border* border, 
+                                   const bool isInverseSelection,
+                                   const int32_t assignToLabelMapIndex,
+                                   const int32_t assignLabelKey,
+                                   LabelFile* labelFileInOut);
     private:
         AlgorithmNodesInsideBorder();
 
@@ -62,20 +78,7 @@ namespace caret {
         void validateConnectedNodesPath(const SurfaceFile* surfaceFile,
                                         const std::vector<int32_t>& connectedNodesPath);
         
-    public:
-        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
-                                   const SurfaceFile* surfaceFile,
-                                   const Border* border, 
-                                   const int32_t assignToMetricMapIndex,
-                                   const float assignMetricValue,
-                                   MetricFile* metricFileInOut);
-        
-        AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
-                                   const SurfaceFile* surfaceFile,
-                                   const Border* border, 
-                                   const int32_t assignToLabelMapIndex,
-                                   const int32_t assignLabelKey,
-                                   LabelFile* labelFileInOut);
+        bool isInverseSelection;
   
 //        static OperationParameters* getParameters();
 //        static void useParameters(OperationParameters* myParams, 

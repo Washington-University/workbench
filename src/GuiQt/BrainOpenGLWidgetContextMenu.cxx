@@ -338,6 +338,7 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
                                                          surface,
                                                          border,
+                                                         false,
                                                          mapIndex,
                                                          labelKey,
                                                          &labelFile);

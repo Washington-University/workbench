@@ -83,17 +83,20 @@ using namespace caret;
  *    Metric file that has map set with nodes inside border.
  */
 AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
-                           const SurfaceFile* surfaceFile,
-                           const Border* border, 
-                           const int32_t assignToMetricMapIndex,
-                           const float assignMetricValue,
-                           MetricFile* metricFileInOut)
+                                                       const SurfaceFile* surfaceFile,
+                                                       const Border* border, 
+                                                       const bool isInverseSelection,
+                                                       const int32_t assignToMetricMapIndex,
+                                                       const float assignMetricValue,
+                                                       MetricFile* metricFileInOut)
 : AbstractAlgorithm(myProgObj)
 {
     CaretAssert(surfaceFile);
     CaretAssert(border);
     CaretAssert(metricFileInOut);
     CaretAssert(surfaceFile->getNumberOfNodes() == metricFileInOut->getNumberOfNodes());
+    
+    this->isInverseSelection = isInverseSelection;
     
     std::vector<int32_t> nodesInsideBorder;
     this->findNodesInsideBorder(surfaceFile,
@@ -112,6 +115,7 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
 AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj, 
                                                        const SurfaceFile* surfaceFile,
                                                        const Border* border, 
+                                                       const bool isInverseSelection,
                                                        const int32_t assignToLabelMapIndex,
                                                        const int32_t assignLabelKey,
                                                        LabelFile* labelFileInOut)
@@ -121,6 +125,8 @@ AlgorithmNodesInsideBorder::AlgorithmNodesInsideBorder(ProgressObject* myProgObj
     CaretAssert(border);
     CaretAssert(labelFileInOut);
     CaretAssert(surfaceFile->getNumberOfNodes() == labelFileInOut->getNumberOfNodes());
+    
+    this->isInverseSelection = isInverseSelection;
     
     std::vector<int32_t> nodesInsideBorder;
     this->findNodesInsideBorder(surfaceFile,
@@ -461,6 +467,15 @@ AlgorithmNodesInsideBorder::findNodesInConnectedNodesPath(const SurfaceFile* sur
      * the selected nodes.
      */
     if (insideCount > (numberOfNodes / 2)) {
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            inside[i] = (! inside[i]);
+        }
+    }
+    
+    /*
+     * User requested inverse?
+     */
+    if (this->isInverseSelection) {
         for (int32_t i = 0; i < numberOfNodes; i++) {
             inside[i] = (! inside[i]);
         }

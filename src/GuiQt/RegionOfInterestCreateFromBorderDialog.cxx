@@ -40,6 +40,7 @@
 #undef __REGION_OF_INTEREST_CREATE_FROM_BORDER_DIALOG_DECLARE__
 
 #include <QButtonGroup>
+#include <QCheckBox>
 #include <QDoubleSpinBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -142,12 +143,17 @@ RegionOfInterestCreateFromBorderDialog::createDialog(const std::vector<Border*>&
                                             this->surfaces, 
                                             this->mapFileTypeSelectors);
     
+    this->inverseCheckBox = new QCheckBox("Invert Selected Nodes");
+    
     QWidget* widget = new QWidget();
     QVBoxLayout* dialogLayout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(dialogLayout, 
                                     2, 
                                     2);
     dialogLayout->addWidget(selectorWidget);
+    dialogLayout->addWidget(this->inverseCheckBox,
+                            0,
+                            Qt::AlignLeft);
     
     this->setCentralWidget(widget);
 }
@@ -207,7 +213,7 @@ RegionOfInterestCreateFromBorderDialog::createSelectors(std::set<StructureEnum::
  *    Selector in which selection was made.
  */
 void 
-RegionOfInterestCreateFromBorderDialog::fileSelectionWasChanged(CaretMappableDataFileAndMapSelector* selector)
+RegionOfInterestCreateFromBorderDialog::fileSelectionWasChanged(CaretMappableDataFileAndMapSelector* /*selector*/)
 {
 //    std::cout << "Selection changed. " << std::endl;    
 }
@@ -234,6 +240,8 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
             errorMessage += msg;
         }
     }
+    
+    const bool isInverseSelection = this->inverseCheckBox->isChecked();
     
     bool allowDialogToClose = true;
     if (errorMessage.isEmpty() == false) {
@@ -281,6 +289,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
                                 AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
                                                                                  surface,
                                                                                  border,
+                                                                                 isInverseSelection,
                                                                                  mapIndex,
                                                                                  labelKey,
                                                                                  labelFile);
@@ -326,6 +335,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
                                 AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
                                                                                  surface,
                                                                                  border,
+                                                                                 isInverseSelection,
                                                                                  mapIndex,
                                                                                  value,
                                                                                  metricFile);

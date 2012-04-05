@@ -674,7 +674,7 @@ UserInputModeBordersWidget::createRoiOperationWidget()
  *    Border for which nodes are found inside.
  */
 void 
-UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* brain,
+UserInputModeBordersWidget::executeRoiInsideSelectedBorderOperation(Brain* /*brain*/,
                                                                     Surface* surface,
                                                                     Border* border)
 {
