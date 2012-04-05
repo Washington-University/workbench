@@ -1361,15 +1361,13 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         }
     }
     
-    for (std::vector<BorderFile*>::iterator bfi = this->borderFiles.begin();
-         bfi != this->borderFiles.end();
-         bfi++) {
-        BorderFile* bf = *bfi;
-        if (bf == caretDataFile) {
-            delete bf;
-            this->borderFiles.erase(bfi);
-            wasRemoved = true;
-        }
+    std::vector<BorderFile*>::iterator borderIterator = std::find(this->borderFiles.begin(),
+                                                                  this->borderFiles.end(),
+                                                                  caretDataFile);
+    if (borderIterator != this->borderFiles.end()) {
+        delete caretDataFile;
+        this->borderFiles.erase(borderIterator);
+        wasRemoved = true;
     }
     
     if (this->paletteFile == caretDataFile) {
