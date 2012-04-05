@@ -289,6 +289,7 @@ AlgorithmNodesInsideBorder::findNodesInsideBorder(const SurfaceFile* surfaceFile
                                             nodesInsideBorderOut);
         
         const int32_t numberOfNodesInside = static_cast<int32_t>(nodesInsideBorderOut.size());
+        
         if (CaretLogger::getLogger()->isFiner()) {
             AString text;
             text.reserve(20000);
@@ -441,6 +442,27 @@ AlgorithmNodesInsideBorder::findNodesInConnectedNodesPath(const SurfaceFile* sur
                     stack.push(neighborNode);
                 }
             }
+        }
+    }
+    
+    /*
+     * Count nodes in path
+     */
+    int32_t insideCount = 0;
+    for (int32_t i = 0; i < numberOfNodes; i++) {
+        if (inside[i]) {
+            insideCount++;
+        }
+    }
+    
+    /*
+     * If more than half of nodes inside, it is likely
+     * that the user drew the path clockwise so invert
+     * the selected nodes.
+     */
+    if (insideCount > (numberOfNodes / 2)) {
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            inside[i] = (! inside[i]);
         }
     }
     
