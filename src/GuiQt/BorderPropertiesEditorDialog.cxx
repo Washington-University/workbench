@@ -23,7 +23,6 @@
  * 
  */ 
 
-#include <QButtonGroup>
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
@@ -215,16 +214,13 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     this->loadClassNameComboBox(className);
     
     /*
-     * Open/Closed
+     * Closed
      */
     this->closedCheckBox = new QCheckBox("Closed Border");
     WuQtUtilities::setToolTipAndStatusTip(this->closedCheckBox, 
                                           "If checked, additional points will be added\n"
                                           "to the border so that the border forms a loop\n"
                                           "with the last point adjacent to the first point.");
-    
-    QButtonGroup* openClosedButtonGroup = new QButtonGroup(this);
-    openClosedButtonGroup->addButton(this->closedCheckBox);
     if (BorderPropertiesEditorDialog::previousClosedSelected) {
         this->closedCheckBox->setChecked(true);
     }
