@@ -35,6 +35,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
 #include "CaretFileDialog.h"
+#include "CursorDisplayScoped.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -189,6 +190,12 @@ ManageLoadedFilesDialog::~ManageLoadedFilesDialog()
 void 
 ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 {
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
     if (this->saveCheckedFilesPushButton == userPushButton) {
         AString msg;
         try {
@@ -205,7 +212,9 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
         }
         
         if (msg.isEmpty() == false) {
+            cursor.restoreCursor();
             WuQMessageBox::errorOk(this, msg);
+            cursor.showWaitCursor();
         }
         else {
             if (this->isQuittingWorkbench) {

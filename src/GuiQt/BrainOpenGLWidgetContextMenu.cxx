@@ -305,7 +305,8 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
     }
     
     try {
-        CursorDisplayScoped cursor(Qt::WaitCursor);
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
         pc->connectivityLoaderManager->loadAverageDataForSurfaceNodes(pc->surface,
                                                                       nodeIndices);
     }
@@ -357,7 +358,8 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         }
         
         try {
-            CursorDisplayScoped cursor(Qt::WaitCursor);
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
             ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
             connectivityLoaderManager->loadAverageDataForSurfaceNodes(surface,
                                                                           nodeIndices);

@@ -40,6 +40,7 @@
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretPreferences.h"
+#include "CursorDisplayScoped.h"
 #include "DisplayPropertiesVolume.h"
 #include "EventBrowserWindowNew.h"
 #include "CaretLogger.h"
@@ -569,6 +570,9 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
         SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
                                                                        this);
         if (sfd->exec() == QDialog::Accepted) {
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+            
             EventSpecFileReadDataFiles readSpecFileEvent(GuiManager::get()->getBrain(),
                                                          &specFile);
             
@@ -868,6 +872,9 @@ BrainBrowserWindow::processCloseSpecFile()
 void 
 BrainBrowserWindow::processNewWindow()
 {
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
     EventBrowserWindowNew eventNewBrowser(this, NULL);
     EventManager::get()->sendEvent(eventNewBrowser.getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -1010,6 +1017,12 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
     }
     
     /*
+     * Display the wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+
+    /*
      * Load files in this order:
      * (1) Spec File - Limit to one.
      * (2) Volume File
@@ -1092,11 +1105,21 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     case LOAD_SPEC_FILE_WITH_DIALOG:
                     {
                         /*
+                         * Remove wait cursor
+                         */
+                        cursor.restoreCursor();
+                        
+                        /*
                          * Allow user to choose files listed in the spec file
                          */
                         SpecFileDialog* sfd = SpecFileDialog::createForLoadingSpecFile(&specFile,
                                                                                        this);
                         if (sfd->exec() == QDialog::Accepted) {
+                            /*
+                             * Redisplay wait cursor
+                             */
+                            cursor.showWaitCursor();
+                            
                             timer.reset();
                             specFileTimeStart = timer.getElapsedTimeSeconds();
                             
@@ -1115,6 +1138,12 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             
                             createDefaultTabsFlag = true;
                         }
+                        else {
+                            /*
+                             * Redisplay wait cursor
+                             */
+                            cursor.showWaitCursor();
+                        }
                         
                         delete sfd;
                     }
@@ -1132,6 +1161,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     AString loadErrorMessage = "";
                     
                     if (loadFileEvent.isErrorInvalidStructure()) {
+                        /*
+                         * Remove wait cursor
+                         */
+                        cursor.restoreCursor();
+                        
                         WuQDataEntryDialog ded("Structure",
                                                this);
                         StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
@@ -1142,6 +1176,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                                           "\nto prevent this error."),
                                          false);
                         if (ded.exec() == WuQDataEntryDialog::Accepted) {
+                            /*
+                             * Redisplay wait cursor
+                             */
+                            cursor.showWaitCursor();
+
                             EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
                                                                      ssc->getSelectedStructure(),
                                                                      fileType,
@@ -1151,6 +1190,12 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             if (loadFileEventStructure.isError()) {
                                 loadErrorMessage = loadFileEventStructure.getErrorMessage();
                             }
+                        }
+                        else {
+                            /*
+                             * Redisplay wait cursor
+                             */
+                            cursor.showWaitCursor();
                         }
                     }
                     else {
@@ -1201,6 +1246,11 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                      + " seconds.\n  Time to create tabs was "
                      + AString::number(createTabsTime));
     }
+    
+    /*
+     * Remove wait cursor
+     */
+    cursor.restoreCursor();
     
     if (errorMessages.isEmpty() == false) {
         QMessageBox::critical(this, 
@@ -1355,6 +1405,12 @@ BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 void 
 BrainBrowserWindow::processNewTab()
 {
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     this->toolbar->addNewTab();
     this->toolbar->updateToolBar();
 
@@ -1369,6 +1425,12 @@ BrainBrowserWindow::processNewTab()
 void 
 BrainBrowserWindow::processMoveAllTabsToOneWindow()
 {
+    /*
+     * Wait cursor
+     */
+    CursorDisplayScoped cursor;
+    cursor.showWaitCursor();
+    
     std::vector<BrowserTabContent*> otherTabContent;
     GuiManager::get()->closeOtherWindowsAndReturnTheirTabContent(this,
                                                                  otherTabContent);
@@ -1429,6 +1491,12 @@ void
 BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
 {
     if (action != NULL) {
+        /*
+         * Wait cursor
+         */
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
         void* p = action->data().value<void*>();
         BrainBrowserWindow* moveToBrowserWindow = (BrainBrowserWindow*)p;
         

@@ -45,7 +45,9 @@ namespace caret {
     public:
         CursorDisplayScoped();
         
-        CursorDisplayScoped(const QCursor& cursor);
+        void showWaitCursor();
+        
+        void showCursor(const QCursor& cursor);
         
         void restoreCursor();
         
@@ -56,15 +58,14 @@ namespace caret {
 
         CursorDisplayScoped& operator=(const CursorDisplayScoped&);
         
-    public:
-        virtual AString toString() const;
+        bool isCursorActive;
         
     private:
     };
     
 #ifdef __CURSOR_DISPLAY_SCOPED_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif __CURSOR_DISPLAY_SCOPED_DECLARE__
+#endif // __CURSOR_DISPLAY_SCOPED_DECLARE__
 
 } // namespace
 #endif  //__CURSOR_DISPLAY_SCOPED__H_

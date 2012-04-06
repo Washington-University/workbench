@@ -251,7 +251,8 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
         /*
          * Show the wait cursor.
          */
-        CursorDisplayScoped cursor(Qt::WaitCursor);
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
         
         for (std::vector<Border*>::iterator borderIterator = this->borders.begin();
              borderIterator != this->borders.end();

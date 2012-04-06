@@ -48,8 +48,9 @@ using namespace caret;
  * \class caret::CursorDisplayScoped 
  * \brief Displays a override cursor
  *
- * Displays a cursor that overrides all other cursors in the
- * application until an instance goes out of scope or the
+ * When one of the 'show' methods is called, 
+ * displays a cursor that overrides all other cursors in the
+ * application until an instance of this goes out of scope or the
  * method restoreCursor() is called.
  */
 
@@ -60,21 +61,7 @@ using namespace caret;
 CursorDisplayScoped::CursorDisplayScoped()
 : CaretObject()
 {
-    QApplication::setOverrideCursor(GuiManager::get()->getCursorManager()->getWaitCursor());
-    QApplication::processEvents();
-}
-
-/**
- * Constructor for display of a specific cursor.
- *
- * @param cursor
- *   Cursor that is displayed.
- */
-CursorDisplayScoped::CursorDisplayScoped(const QCursor& cursor)
-: CaretObject()
-{
-    QApplication::setOverrideCursor(cursor);
-    QApplication::processEvents();
+    this->isCursorActive = false;
 }
 
 /**
@@ -86,21 +73,39 @@ CursorDisplayScoped::~CursorDisplayScoped()
 }
 
 /**
+ * Display the given cursor.
+ *
+ * @param cursor
+ *   Cursor that is displayed.
+ */
+void
+CursorDisplayScoped::showCursor(const QCursor& cursor)
+{
+    this->isCursorActive = true;
+    
+    QApplication::setOverrideCursor(cursor);
+    QApplication::processEvents();
+}
+
+/**
+ * Display the wait cursor.
+ */
+void 
+CursorDisplayScoped::showWaitCursor()
+{
+    this->showCursor(Qt::WaitCursor);
+}
+
+/**
  * Restore the default cursor.
  */
 void 
 CursorDisplayScoped::restoreCursor()
 {
-    QApplication::restoreOverrideCursor();
+    if (this->isCursorActive) {
+        QApplication::restoreOverrideCursor();
+        QApplication::processEvents();
+        this->isCursorActive = false;
+    }
 }
 
-
-/**
- * Get a description of this object's content.
- * @return String describing this object's content.
- */
-AString 
-CursorDisplayScoped::toString() const
-{
-    return "CursorDisplay";
-}
