@@ -24,6 +24,7 @@ QT4_WRAP_CPP(MOC_SOURCE_FILES ${MOC_INPUT_HEADER_FILES})
 # Create a library
 #
 ADD_LIBRARY(Common
+ApplicationInformation.h
 AString.h
 Base64.h
 BoundingBox.h
@@ -88,6 +89,7 @@ UserView.h
 Vector3D.h
 
 ${MOC_SOURCE_FILES}
+ApplicationInformation.cxx
 AString.cxx
 Base64.cxx
 BoundingBox.cxx

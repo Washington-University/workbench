@@ -32,58 +32,69 @@
  */
 /*LICENSE_END*/
 
-#define __ABOUT_WORKBENCH_DIALOG_DECLARE__
-#include "AboutWorkbenchDialog.h"
-#undef __ABOUT_WORKBENCH_DIALOG_DECLARE__
-
-#include <QLabel>
-#include <QVBoxLayout>
-
+#define __APPLICATION_INFORMATION_DECLARE__
 #include "ApplicationInformation.h"
-#include "WuQtUtilities.h"
+#undef __APPLICATION_INFORMATION_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class caret::AboutWorkbenchDialog 
- * \brief Dialog that displays information about workbench.
+ * \class caret::ApplicationInformation 
+ * \brief Provides application information.
+ *
+ * Provides application information (name, version, etc).
  */
 
 /**
  * Constructor.
  */
-AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
-: WuQDialogModal("About Workbench",
-                 parent)
+ApplicationInformation::ApplicationInformation()
+: CaretObject()
 {
-    this->setCancelButtonText("");
-    
-    std::vector<AString> informationData;
-    
-    ApplicationInformation appInfo;
-    appInfo.getAllInformation(informationData);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 
-                                    4, 
-                                    2);
-    
-    const int32_t numInfo = static_cast<int32_t>(informationData.size());
-    for (int32_t i = 0; i < numInfo; i++) {
-        layout->addWidget(new QLabel(informationData[i]));
-    }
-    
-    this->setCentralWidget(widget);
+    this->name    = "Workbench";
+    this->version = "Alpha";
 }
 
 /**
  * Destructor.
  */
-AboutWorkbenchDialog::~AboutWorkbenchDialog()
+ApplicationInformation::~ApplicationInformation()
 {
     
+}
+
+/**
+ * @return Name of the application.
+ */
+AString 
+ApplicationInformation::getName() const
+{
+    return this->name;
+}
+
+/**
+ * @return Version of application.
+ */
+AString 
+ApplicationInformation::getVersion() const
+{
+    return this->version;
+}
+
+/**
+ * Get all information.
+ * @param informationValues
+ *    Output information.
+ */
+void 
+ApplicationInformation::getAllInformation(std::vector<AString>& informationValues) const
+{
+    informationValues.clear();
+    
+    informationValues.push_back(this->name);
+    
+    informationValues.push_back("Version: " + this->version);
 }
 

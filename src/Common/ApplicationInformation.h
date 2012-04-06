@@ -1,3 +1,5 @@
+#ifndef __APPLICATION_INFORMATION__H_
+#define __APPLICATION_INFORMATION__H_
 
 /*LICENSE_START*/
 /*
@@ -32,58 +34,37 @@
  */
 /*LICENSE_END*/
 
-#define __ABOUT_WORKBENCH_DIALOG_DECLARE__
-#include "AboutWorkbenchDialog.h"
-#undef __ABOUT_WORKBENCH_DIALOG_DECLARE__
 
-#include <QLabel>
-#include <QVBoxLayout>
+#include "CaretObject.h"
 
-#include "ApplicationInformation.h"
-#include "WuQtUtilities.h"
+namespace caret {
 
-using namespace caret;
+    class ApplicationInformation : public CaretObject {
+        
+    public:
+        ApplicationInformation();
+        
+        virtual ~ApplicationInformation();
+        
+        AString getName() const;
+        
+        AString getVersion() const;
+        
+        void getAllInformation(std::vector<AString>& informationValues) const;
+        
+    private:
+        ApplicationInformation(const ApplicationInformation&);
 
-
+        ApplicationInformation& operator=(const ApplicationInformation&);
+        
+        AString name;
+        
+        AString version;
+    };
     
-/**
- * \class caret::AboutWorkbenchDialog 
- * \brief Dialog that displays information about workbench.
- */
+#ifdef __APPLICATION_INFORMATION_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif // __APPLICATION_INFORMATION_DECLARE__
 
-/**
- * Constructor.
- */
-AboutWorkbenchDialog::AboutWorkbenchDialog(QWidget* parent)
-: WuQDialogModal("About Workbench",
-                 parent)
-{
-    this->setCancelButtonText("");
-    
-    std::vector<AString> informationData;
-    
-    ApplicationInformation appInfo;
-    appInfo.getAllInformation(informationData);
-    
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 
-                                    4, 
-                                    2);
-    
-    const int32_t numInfo = static_cast<int32_t>(informationData.size());
-    for (int32_t i = 0; i < numInfo; i++) {
-        layout->addWidget(new QLabel(informationData[i]));
-    }
-    
-    this->setCentralWidget(widget);
-}
-
-/**
- * Destructor.
- */
-AboutWorkbenchDialog::~AboutWorkbenchDialog()
-{
-    
-}
-
+} // namespace
+#endif  //__APPLICATION_INFORMATION__H_
