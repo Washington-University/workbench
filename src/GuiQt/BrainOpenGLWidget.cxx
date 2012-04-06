@@ -190,6 +190,17 @@ BrainOpenGLWidget::clearDrawingViewportContents()
 void 
 BrainOpenGLWidget::paintGL()
 {
+    /*
+     * Set the cursor to that requested by the user input processor
+     */
+    QCursor userInputCursor;
+    if (this->selectedUserInputProcessor->getCursor(userInputCursor)) {
+        this->setCursor(userInputCursor);
+    }
+    else {
+        this->unsetCursor();
+    }
+    
     this->clearDrawingViewportContents();
     
     int viewport[4] = {

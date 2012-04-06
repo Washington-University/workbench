@@ -386,6 +386,22 @@ UserInputModeView::finish()
 }
 
 /**
+ * Get the cursor display in the OpenGL widget.
+ * 
+ * @param cursorOut
+ *     Cursor that is to be displayed (output).
+ * @return
+ *     True if the cursor should be used, else false.
+ *     If false the cursor is 'unset' and Qt will display
+ *     the cursor of the parent widget, typically the arrow.
+ */
+bool 
+UserInputModeView::getCursor(QCursor& /*cursorOut*/) 
+{ 
+    return false; 
+}
+
+/**
  * @return A widget for display at the bottom of the
  * Browser Window Toolbar when this mode is active.
  * View mode has no widget so this returns NULL.

@@ -46,7 +46,7 @@
 #include "BrowserTabContent.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
-#include "CursorDisplay.h"
+#include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
@@ -305,7 +305,7 @@ BrainOpenGLWidgetContextMenu::parcelConnectivityActionSelected(QAction* action)
     }
     
     try {
-        CursorDisplay cursor(Qt::WaitCursor);
+        CursorDisplayScoped cursor(Qt::WaitCursor);
         pc->connectivityLoaderManager->loadAverageDataForSurfaceNodes(pc->surface,
                                                                       nodeIndices);
     }
@@ -357,7 +357,7 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         }
         
         try {
-            CursorDisplay cursor(Qt::WaitCursor);
+            CursorDisplayScoped cursor(Qt::WaitCursor);
             ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
             connectivityLoaderManager->loadAverageDataForSurfaceNodes(surface,
                                                                           nodeIndices);

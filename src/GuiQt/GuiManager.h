@@ -45,6 +45,7 @@ namespace caret {
     class Brain;
     class BrainBrowserWindow;
     class BrowserTabContent;
+    class CursorManager;
     class DisplayControlDialog;
     class ImageFile;
     class ImageCaptureDialog;
@@ -90,6 +91,8 @@ namespace caret {
         
         void receiveEvent(Event* event);
 
+        const CursorManager* getCursorManager() const;
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -154,6 +157,8 @@ namespace caret {
         ImageCaptureDialog* imageCaptureDialog;
         
         PreferencesDialog* preferencesDialog;       
+        
+        CursorManager* cursorManager;
         
         /** 
          * Tracks non-modal dialogs that are created only one time

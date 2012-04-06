@@ -48,6 +48,8 @@ namespace caret {
         
         void finish();
 
+        virtual bool getCursor(QCursor& cursorOut);
+        
         QWidget* getWidgetForToolBar();
         
         static void processModelViewTransformation(MouseEvent* mouseEvent,

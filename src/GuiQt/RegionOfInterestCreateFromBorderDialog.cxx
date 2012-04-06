@@ -60,7 +60,7 @@ using namespace caret;
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFileAndMapSelector.h"
-#include "CursorDisplay.h"
+#include "CursorDisplayScoped.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
@@ -251,7 +251,7 @@ RegionOfInterestCreateFromBorderDialog::okButtonPressed()
         /*
          * Show the wait cursor.
          */
-        CursorDisplay cursor(Qt::WaitCursor);
+        CursorDisplayScoped cursor(Qt::WaitCursor);
         
         for (std::vector<Border*>::iterator borderIterator = this->borders.begin();
              borderIterator != this->borders.end();

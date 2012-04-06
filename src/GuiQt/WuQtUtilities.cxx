@@ -458,8 +458,12 @@ WuQtUtilities::loadPixmap(const QString& filename,
 {
     bool valid = pixmapOut.load(filename);
     
-    if ((pixmapOut.width() <= 0) || (pixmapOut.height() <= 0)) {
-        QString msg = "Pixmap " + filename + " has invalid size";
+    if (valid == false) {
+        QString msg = "Failed to load Pixmap \"" + filename + "\".";
+        CaretLogSevere(msg);
+    }
+    else if ((pixmapOut.width() <= 0) || (pixmapOut.height() <= 0)) {
+        QString msg = "Pixmap \"" + filename + "\" has invalid size.";
         CaretLogSevere(msg);
         valid = false;
     }

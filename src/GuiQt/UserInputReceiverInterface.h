@@ -25,6 +25,8 @@
  * 
  */ 
 
+#include <QCursor>
+
 class QWidget;
 
 namespace caret {
@@ -95,6 +97,18 @@ namespace caret {
          * delete it so derived class MUST NOT delete the widget.
          */
         virtual QWidget* getWidgetForToolBar() = 0;
+        
+        /**
+         * Get the cursor display in the OpenGL widget.
+         * 
+         * @param cursorOut
+         *     Cursor that is to be displayed (output).
+         * @return
+         *     True if the cursor should be used, else false.
+         *     If false the cursor is 'unset' and Qt will display
+         *     the cursor of the parent widget, typically the arrow.
+         */
+        virtual bool getCursor(QCursor& /*cursorOut*/) = 0;
         
     protected:
         UserInputReceiverInterface() { }

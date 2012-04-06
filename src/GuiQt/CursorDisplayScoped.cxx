@@ -1,5 +1,3 @@
-#ifndef __CURSOR_DISPLAY__H_
-#define __CURSOR_DISPLAY__H_
 
 /*LICENSE_START*/
 /*
@@ -34,35 +32,75 @@
  */
 /*LICENSE_END*/
 
-#include <Qt>
+#include <QApplication>
 
-#include "CaretObject.h"
+#define __CURSOR_DISPLAY_SCOPED_DECLARE__
+#include "CursorDisplayScoped.h"
+#undef __CURSOR_DISPLAY_SCOPED_DECLARE__
 
-namespace caret {
+#include "CursorManager.h"
+#include "GuiManager.h"
 
-    class CursorDisplay : public CaretObject {
-        
-    public:
-        CursorDisplay(const Qt::CursorShape cursorShape);
-        
-        void restoreCursor();
-        
-        virtual ~CursorDisplay();
-        
-    private:
-        CursorDisplay(const CursorDisplay&);
+using namespace caret;
 
-        CursorDisplay& operator=(const CursorDisplay&);
-        
-    public:
-        virtual AString toString() const;
-        
-    private:
-    };
     
-#ifdef __CURSOR_DISPLAY_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CURSOR_DISPLAY_DECLARE__
+/**
+ * \class caret::CursorDisplayScoped 
+ * \brief Displays a override cursor
+ *
+ * Displays a cursor that overrides all other cursors in the
+ * application until an instance goes out of scope or the
+ * method restoreCursor() is called.
+ */
 
-} // namespace
-#endif  //__CURSOR_DISPLAY__H_
+/**
+ * Constructor that displays a wait cursor.
+ *
+ */
+CursorDisplayScoped::CursorDisplayScoped()
+: CaretObject()
+{
+    QApplication::setOverrideCursor(GuiManager::get()->getCursorManager()->getWaitCursor());
+    QApplication::processEvents();
+}
+
+/**
+ * Constructor for display of a specific cursor.
+ *
+ * @param cursor
+ *   Cursor that is displayed.
+ */
+CursorDisplayScoped::CursorDisplayScoped(const QCursor& cursor)
+: CaretObject()
+{
+    QApplication::setOverrideCursor(cursor);
+    QApplication::processEvents();
+}
+
+/**
+ * Destructor.
+ */
+CursorDisplayScoped::~CursorDisplayScoped()
+{
+    this->restoreCursor();
+}
+
+/**
+ * Restore the default cursor.
+ */
+void 
+CursorDisplayScoped::restoreCursor()
+{
+    QApplication::restoreOverrideCursor();
+}
+
+
+/**
+ * Get a description of this object's content.
+ * @return String describing this object's content.
+ */
+AString 
+CursorDisplayScoped::toString() const
+{
+    return "CursorDisplay";
+}

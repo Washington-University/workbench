@@ -37,6 +37,7 @@
 #include "BrainOpenGLWidget.h"
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
+#include "CursorManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventToolBoxSelectionDisplay.h"
@@ -473,4 +474,42 @@ UserInputModeBorders::setEditOperation(const EditOperation editOperation)
 {
     this->editOperation = editOperation;
 }
+
+/**
+ * Get the cursor display in the OpenGL widget.
+ * 
+ * @param cursorOut
+ *     Cursor that is to be displayed (output).
+ * @return
+ *     True if the cursor should be used, else false.
+ *     If false the cursor is 'unset' and Qt will display
+ *     the cursor of the parent widget, typically the arrow.
+ */
+bool 
+UserInputModeBorders::getCursor(QCursor& cursorOut) 
+{ 
+    bool cursorValid = false;
+    
+    switch (this->mode) {
+        case MODE_DRAW:
+            if (this->borderToolsWidget->isDrawModeTransformSelected() == false) {
+                cursorOut = GuiManager::get()->getCursorManager()->getPenCursor();
+                cursorValid = true;
+            }
+            break;
+        case MODE_EDIT:
+            cursorOut = GuiManager::get()->getCursorManager()->getPointingHandCursor();
+            cursorValid = true;
+            break;
+        case MODE_ROI:
+            cursorOut = GuiManager::get()->getCursorManager()->getPointingHandCursor();
+            cursorValid = true;
+            break;
+        case MODE_SELECT:
+            break;
+    }
+    
+    return cursorValid;
+}
+
 

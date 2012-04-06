@@ -1,3 +1,5 @@
+#ifndef __CURSOR_DISPLAY_SCOPED_H_
+#define __CURSOR_DISPLAY_SCOPED_H_
 
 /*LICENSE_START*/
 /*
@@ -32,61 +34,37 @@
  */
 /*LICENSE_END*/
 
-#include <QApplication>
+#include "CaretObject.h"
 
-#define __CURSOR_DISPLAY_DECLARE__
-#include "CursorDisplay.h"
-#undef __CURSOR_DISPLAY_DECLARE__
+class QCursor;
 
-using namespace caret;
+namespace caret {
 
+    class CursorDisplayScoped : public CaretObject {
+        
+    public:
+        CursorDisplayScoped();
+        
+        CursorDisplayScoped(const QCursor& cursor);
+        
+        void restoreCursor();
+        
+        virtual ~CursorDisplayScoped();
+        
+    private:
+        CursorDisplayScoped(const CursorDisplayScoped&);
+
+        CursorDisplayScoped& operator=(const CursorDisplayScoped&);
+        
+    public:
+        virtual AString toString() const;
+        
+    private:
+    };
     
-/**
- * \class caret::CursorDisplay 
- * \brief Displays a cursor
- *
- * Displays a cursor that will remain displayed until this
- * instance goes out of scope or the method restoreCursor()
- * is called.
- */
+#ifdef __CURSOR_DISPLAY_SCOPED_DECLARE__
+    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+#endif __CURSOR_DISPLAY_SCOPED_DECLARE__
 
-/**
- * Constructor.
- *
- * @param cursorShape
- *   Cursor that is displayed.
- */
-CursorDisplay::CursorDisplay(const Qt::CursorShape cursorShape)
-: CaretObject()
-{
-    QApplication::setOverrideCursor(QCursor(cursorShape));
-    QApplication::processEvents();
-}
-
-/**
- * Destructor.
- */
-CursorDisplay::~CursorDisplay()
-{
-    this->restoreCursor();
-}
-
-/**
- * Restore the default cursor.
- */
-void 
-CursorDisplay::restoreCursor()
-{
-    QApplication::restoreOverrideCursor();
-}
-
-
-/**
- * Get a description of this object's content.
- * @return String describing this object's content.
- */
-AString 
-CursorDisplay::toString() const
-{
-    return "CursorDisplay";
-}
+} // namespace
+#endif  //__CURSOR_DISPLAY_SCOPED__H_

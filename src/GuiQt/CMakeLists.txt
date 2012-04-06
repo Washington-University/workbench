@@ -104,7 +104,8 @@ ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
-CursorDisplay.h
+CursorDisplayScoped.h
+CursorManager.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
 DisplayGroupEnumComboBox.h
@@ -177,7 +178,8 @@ ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
 ConnectomeDBBrowserWindow.cxx
-CursorDisplay.cxx
+CursorDisplayScoped.cxx
+CursorManager.cxx
 DisplayControlDialog.cxx
 DisplayControlVolumeSurfaceOutlinePage.cxx
 DisplayGroupEnumComboBox.cxx

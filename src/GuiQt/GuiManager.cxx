@@ -35,6 +35,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
+#include "CursorManager.h"
 #include "DisplayControlDialog.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
@@ -72,6 +73,8 @@ GuiManager::GuiManager(QObject* parent)
     this->preferencesDialog = NULL;    
     this->scalarDataColorMappingEditor = NULL;
     
+    this->cursorManager = new CursorManager();
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
@@ -83,6 +86,8 @@ GuiManager::GuiManager(QObject* parent)
 GuiManager::~GuiManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    delete this->cursorManager;
     
 //    if (this->brainOpenGL != NULL) {
 //        delete this->brainOpenGL;
@@ -796,3 +801,15 @@ GuiManager::captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowI
 
     return valid;
 }
+
+/**
+ * @return The cursor manager.
+ */
+const 
+CursorManager* 
+GuiManager::getCursorManager() const
+{
+    return this->cursorManager;
+}
+
+
