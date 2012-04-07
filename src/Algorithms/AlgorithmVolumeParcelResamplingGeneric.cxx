@@ -132,11 +132,25 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
     LevelProgress myProgress(myProgObj);
     float kernBox = kernel * 3.0f;
     float kernelMult = -1.0f / kernel / kernel / 2.0f;//precompute the part of the kernel function that doesn't change
+    vector<vector<float> > newVolSpace = newLabel->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
+    Vector3D ivecnew, jvecnew, kvecnew, ijorthnew, jkorthnew, kiorthnew;
+    ivecnew[0] = newVolSpace[0][0]; jvecnew[0] = newVolSpace[0][1]; kvecnew[0] = newVolSpace[0][2];
+    ivecnew[1] = newVolSpace[1][0]; jvecnew[1] = newVolSpace[1][1]; kvecnew[1] = newVolSpace[1][2];
+    ivecnew[2] = newVolSpace[2][0]; jvecnew[2] = newVolSpace[2][1]; kvecnew[2] = newVolSpace[2][2];
+    ijorthnew = ivecnew.cross(jvecnew).normal();//find the bounding box that encloses a sphere of radius kernBox
+    jkorthnew = jvecnew.cross(kvecnew).normal();
+    kiorthnew = kvecnew.cross(ivecnew).normal();
+    float irangenew = abs(kernBox / ivecnew.dot(jkorthnew));//note, these are in index space
+    float jrangenew = abs(kernBox / jvecnew.dot(kiorthnew));
+    float krangenew = abs(kernBox / kvecnew.dot(ijorthnew));
+    if (irangenew < 1.0f) irangenew = 1.0f;//don't underflow, always use at least a 3x3x3 box
+    if (jrangenew < 1.0f) jrangenew = 1.0f;
+    if (krangenew < 1.0f) krangenew = 1.0f;
     vector<vector<float> > volSpace = inVol->getVolumeSpace();//copied from volume smoothing, perhaps this should be in a convenience method in VolumeFile
-    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
-    ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];//needs to be this verbose because the axis and origin vectors are column vectors
-    ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];//while vector<vector<> > is a column of row vectors
-    ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2]; origin[2] = volSpace[2][3];
+    Vector3D ivec, jvec, kvec, ijorth, jkorth, kiorth;
+    ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2];//needs to be this verbose because the axis and origin vectors are column vectors
+    ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2];//while vector<vector<> > is a column of row vectors
+    ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2];
     ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
     jkorth = jvec.cross(kvec).normal();
     kiorth = kvec.cross(ivec).normal();
@@ -166,10 +180,12 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
     }
     outVol->setValueAllVoxels(0.0f);
     const float* labelFrame = curLabel->getFrame();
+    const float* newLabelFrame = newLabel->getFrame();
     CaretArray<float> scratchFrame(newDims[0] * newDims[1] * newDims[2]), scratchFrame2(newDims[0] * newDims[1] * newDims[2]), tempFrame;
     for (int whichList = 0; whichList < voxelListsSize; ++whichList)
     {
         int curLabelValue = matchedLabels[whichList].first;
+        int newLabelValue = matchedLabels[whichList].second;
         vector<int64_t>& thisList = voxelLists[whichList];
         int64_t listSize = (int64_t)thisList.size();
         if (subvolNum == -1)
@@ -179,7 +195,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                 for (int s = 0; s < myDims[3]; ++s)
                 {
                     const float* inFrame = inVol->getFrame(s, c);
-#pragma omp CARET_PARFOR schedule(dynamic)
+//#pragma omp CARET_PARFOR schedule(dynamic)
                     for (int64_t base = 0; base < listSize; base += 3)
                     {
                         float sum = 0.0f, weightsum = 0.0f;
@@ -198,11 +214,11 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                         if (kmax > myDims[2]) kmax = myDims[2];
                         for (int kkern = kmin; kkern < kmax; ++kkern)
                         {
-                            Vector3D kscratch = kvec * (kkern - k);
+                            Vector3D kscratch = kvec * (kkern - curijk[2]);
                             int64_t kindpart = kkern * myDims[1];
                             for (int jkern = jmin; jkern < jmax; ++jkern)
                             {
-                                Vector3D jscratch = kscratch + jvec * (jkern - j);
+                                Vector3D jscratch = kscratch + jvec * (jkern - curijk[1]);
                                 int64_t jindpart = (kindpart + jkern) * myDims[0];
                                 for (int ikern = imin; ikern < imax; ++ikern)
                                 {
@@ -211,7 +227,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                                     float dataVal = inFrame[thisIndex];
                                     if (curVal == curLabelValue && (!fixZeros || dataVal != 0.0f))
                                     {
-                                        Vector3D iscratch = jscratch + ivec * (ikern - i);
+                                        Vector3D iscratch = jscratch + ivec * (ikern - curijk[0]);
                                         float tempf = iscratch.length();
                                         float weight = exp(tempf * tempf * kernelMult);
                                         sum += weight * dataVal;
@@ -233,7 +249,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                         for (fixIter = 0; fixIter < FIX_ZEROS_POST_ITERATIONS; ++fixIter)
                         {
                             bool again = false;
-#pragma omp CARET_PARFOR schedule(dynamic)
+//#pragma omp CARET_PARFOR schedule(dynamic)
                             for (int64_t base = 0; base < listSize; base += 3)
                             {
                                 int i = thisList[base], j = thisList[base + 1], k = thisList[base + 2];
@@ -242,34 +258,31 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                                 if (dataVal == 0.0f)
                                 {
                                     float sum = 0.0f, weightsum = 0.0f;
-                                    float xyz[3], curijk[3];
-                                    newLabel->indexToSpace(i, j, k, xyz);
-                                    inVol->spaceToIndex(xyz, curijk);
-                                    int imin = (int)ceil(curijk[0] - irange), imax = (int)floor(curijk[0] + irange) + 1;
+                                    int imin = (int)ceil(i - irangenew), imax = (int)floor(i + irangenew) + 1;
                                     if (imin < 0) imin = 0;
-                                    if (imax > myDims[0]) imax = myDims[0];
-                                    int jmin = (int)ceil(curijk[1] - jrange), jmax = (int)floor(curijk[1] + jrange) + 1;
+                                    if (imax > newDims[0]) imax = newDims[0];
+                                    int jmin = (int)ceil(j - jrangenew), jmax = (int)floor(j + jrangenew) + 1;
                                     if (jmin < 0) jmin = 0;
-                                    if (jmax > myDims[1]) jmax = myDims[1];
-                                    int kmin = (int)ceil(curijk[2] - krange), kmax = (int)floor(curijk[2] + krange) + 1;
-                                    if (kmin < 0) imin = 0;
-                                    if (kmax > myDims[2]) kmax = myDims[2];
+                                    if (jmax > newDims[1]) jmax = newDims[1];
+                                    int kmin = (int)ceil(k - krangenew), kmax = (int)floor(k + krangenew) + 1;
+                                    if (kmin < 0) kmin = 0;
+                                    if (kmax > newDims[2]) kmax = newDims[2];
                                     for (int kkern = kmin; kkern < kmax; ++kkern)
                                     {
-                                        Vector3D kscratch = kvec * (kkern - k);
-                                        int64_t kindpart = kkern * myDims[1];
+                                        Vector3D kscratch = kvecnew * (kkern - k);
+                                        int64_t kindpart = kkern * newDims[1];
                                         for (int jkern = jmin; jkern < jmax; ++jkern)
                                         {
-                                            Vector3D jscratch = kscratch + jvec * (jkern - j);
-                                            int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                            Vector3D jscratch = kscratch + jvecnew * (jkern - j);
+                                            int64_t jindpart = (kindpart + jkern) * newDims[0];
                                             for (int ikern = imin; ikern < imax; ++ikern)
                                             {
                                                 int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
-                                                int curVal = (int)floor(labelFrame[thisIndex] + 0.5f);
+                                                int newVal = (int)floor(newLabelFrame[thisIndex] + 0.5f);
                                                 float dataVal = scratchFrame[thisIndex];
-                                                if (curVal == curLabelValue && (!fixZeros || dataVal != 0.0f))
+                                                if (newVal == newLabelValue && (!fixZeros || dataVal != 0.0f))
                                                 {
-                                                    Vector3D iscratch = jscratch + ivec * (ikern - i);
+                                                    Vector3D iscratch = jscratch + ivecnew * (ikern - i);
                                                     float tempf = iscratch.length();
                                                     float weight = exp(tempf * tempf * kernelMult);
                                                     sum += weight * dataVal;
@@ -331,20 +344,20 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                     if (kmax > myDims[2]) kmax = myDims[2];
                     for (int kkern = kmin; kkern < kmax; ++kkern)
                     {
-                        Vector3D kscratch = kvec * (kkern - k);
+                        Vector3D kscratch = kvec * (kkern - curijk[2]);
                         int64_t kindpart = kkern * myDims[1];
                         for (int jkern = jmin; jkern < jmax; ++jkern)
                         {
-                            Vector3D jscratch = kscratch + jvec * (jkern - j);
+                            Vector3D jscratch = kscratch + jvec * (jkern - curijk[1]);
                             int64_t jindpart = (kindpart + jkern) * myDims[0];
                             for (int ikern = imin; ikern < imax; ++ikern)
                             {
                                 int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
-                                int curVal = (int)floor(labelFrame[thisIndex] + 0.5f);
+                                int newVal = (int)floor(newLabelFrame[thisIndex] + 0.5f);
                                 float dataVal = inFrame[thisIndex];
-                                if (curVal == curLabelValue && (!fixZeros || dataVal != 0.0f))
+                                if (newVal == newLabelValue && (!fixZeros || dataVal != 0.0f))
                                 {
-                                    Vector3D iscratch = jscratch + ivec * (ikern - i);
+                                    Vector3D iscratch = jscratch + ivec * (ikern - curijk[0]);
                                     float tempf = iscratch.length();
                                     float weight = exp(tempf * tempf * kernelMult);
                                     sum += weight * dataVal;
@@ -375,26 +388,23 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                             if (dataVal == 0.0f)
                             {
                                 float sum = 0.0f, weightsum = 0.0f;
-                                float xyz[3], curijk[3];
-                                newLabel->indexToSpace(i, j, k, xyz);
-                                inVol->spaceToIndex(xyz, curijk);
-                                int imin = (int)ceil(curijk[0] - irange), imax = (int)floor(curijk[0] + irange) + 1;
+                                int imin = (int)ceil(i - irangenew), imax = (int)floor(i + irangenew) + 1;
                                 if (imin < 0) imin = 0;
-                                if (imax > myDims[0]) imax = myDims[0];
-                                int jmin = (int)ceil(curijk[1] - jrange), jmax = (int)floor(curijk[1] + jrange) + 1;
+                                if (imax > newDims[0]) imax = newDims[0];
+                                int jmin = (int)ceil(j - jrangenew), jmax = (int)floor(j + jrangenew) + 1;
                                 if (jmin < 0) jmin = 0;
-                                if (jmax > myDims[1]) jmax = myDims[1];
-                                int kmin = (int)ceil(curijk[2] - krange), kmax = (int)floor(curijk[2] + krange) + 1;
-                                if (kmin < 0) imin = 0;
-                                if (kmax > myDims[2]) kmax = myDims[2];
+                                if (jmax > newDims[1]) jmax = newDims[1];
+                                int kmin = (int)ceil(k - krangenew), kmax = (int)floor(k + krangenew) + 1;
+                                if (kmin < 0) kmin = 0;
+                                if (kmax > newDims[2]) kmax = newDims[2];
                                 for (int kkern = kmin; kkern < kmax; ++kkern)
                                 {
-                                    Vector3D kscratch = kvec * (kkern - k);
-                                    int64_t kindpart = kkern * myDims[1];
+                                    Vector3D kscratch = kvecnew * (kkern - k);
+                                    int64_t kindpart = kkern * newDims[1];
                                     for (int jkern = jmin; jkern < jmax; ++jkern)
                                     {
-                                        Vector3D jscratch = kscratch + jvec * (jkern - j);
-                                        int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                        Vector3D jscratch = kscratch + jvecnew * (jkern - j);
+                                        int64_t jindpart = (kindpart + jkern) * newDims[0];
                                         for (int ikern = imin; ikern < imax; ++ikern)
                                         {
                                             int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
@@ -402,7 +412,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                                             float dataVal = scratchFrame[thisIndex];
                                             if (curVal == curLabelValue && (!fixZeros || dataVal != 0.0f))
                                             {
-                                                Vector3D iscratch = jscratch + ivec * (ikern - i);
+                                                Vector3D iscratch = jscratch + ivecnew * (ikern - i);
                                                 float tempf = iscratch.length();
                                                 float weight = exp(tempf * tempf * kernelMult);
                                                 sum += weight * dataVal;
