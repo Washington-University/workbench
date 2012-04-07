@@ -152,7 +152,13 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
     newLabel->getDimensions(newDims);
     if (subvolNum == -1)
     {
-        outVol->reinitialize(newLabel->getOriginalDimensions(), newLabel->getVolumeSpace(), myDims[4], inVol->getType());
+        vector<int64_t> outDims = newLabel->getOriginalDimensions(), inDims = inVol->getOriginalDimensions();
+        outDims.resize(3);
+        for (int i = 3; i < (int)inDims.size(); ++i)
+        {
+            outDims.push_back(inDims[i]);
+        }
+        outVol->reinitialize(outDims, newLabel->getVolumeSpace(), myDims[4], inVol->getType());
     } else {
         vector<int64_t> outDims = newLabel->getOriginalDimensions();
         outDims.resize(3);//discard nonspatial dimentions
@@ -188,7 +194,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                         if (jmin < 0) jmin = 0;
                         if (jmax > myDims[1]) jmax = myDims[1];
                         int kmin = (int)ceil(curijk[2] - krange), kmax = (int)floor(curijk[2] + krange) + 1;
-                        if (kmin < 0) imin = 0;
+                        if (kmin < 0) kmin = 0;
                         if (kmax > myDims[2]) kmax = myDims[2];
                         for (int kkern = kmin; kkern < kmax; ++kkern)
                         {
@@ -321,7 +327,7 @@ AlgorithmVolumeParcelResamplingGeneric::AlgorithmVolumeParcelResamplingGeneric(P
                     if (jmin < 0) jmin = 0;
                     if (jmax > myDims[1]) jmax = myDims[1];
                     int kmin = (int)ceil(curijk[2] - krange), kmax = (int)floor(curijk[2] + krange) + 1;
-                    if (kmin < 0) imin = 0;
+                    if (kmin < 0) kmin = 0;
                     if (kmax > myDims[2]) kmax = myDims[2];
                     for (int kkern = kmin; kkern < kmax; ++kkern)
                     {
