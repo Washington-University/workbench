@@ -1184,13 +1184,10 @@ BrainOpenGLFixedPipeline::setProjectionModeData(const float screenDepth,
         barycentric->setTriangleNodes(barycentricNodes);
         barycentric->setValid(true);  
         
-        std::cout 
-        << "Projected to surface " 
-        << qPrintable(StructureEnum::toName(structure))
-        << " with depth "
-        << screenDepth
-        << std::endl;
-                                                           
+        CaretLogFiner("Projected to surface " 
+                      + StructureEnum::toName(structure)
+                      + " with depth "
+                      + screenDepth);
     }
 }
 
