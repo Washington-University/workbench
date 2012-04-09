@@ -25,7 +25,7 @@
  * 
  */ 
 
-#include <QCursor>
+#include "CursorEnum.h"
 
 class QWidget;
 
@@ -99,16 +99,9 @@ namespace caret {
         virtual QWidget* getWidgetForToolBar() = 0;
         
         /**
-         * Get the cursor display in the OpenGL widget.
-         * 
-         * @param cursorOut
-         *     Cursor that is to be displayed (output).
-         * @return
-         *     True if the cursor should be used, else false.
-         *     If false the cursor is 'unset' and Qt will display
-         *     the cursor of the parent widget, typically the arrow.
+         * @return The cursor for display in the OpenGL widget.
          */
-        virtual bool getCursor(QCursor& /*cursorOut*/) = 0;
+        virtual CursorEnum::Enum getCursor() const = 0;
         
     protected:
         UserInputReceiverInterface() { }

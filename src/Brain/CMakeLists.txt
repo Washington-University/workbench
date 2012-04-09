@@ -90,6 +90,7 @@ IdentificationTextGenerator.h
 IdentificationWithColor.h
 ModelDisplayController.h
 ModelDisplayControllerSurface.h
+ModelDisplayControllerSurfaceMontage.h
 ModelDisplayControllerSurfaceSelector.h
 ModelDisplayControllerTypeEnum.h
 ModelDisplayControllerVolume.h
@@ -153,6 +154,7 @@ IdentificationTextGenerator.cxx
 IdentificationWithColor.cxx
 ModelDisplayController.cxx
 ModelDisplayControllerSurface.cxx
+ModelDisplayControllerSurfaceMontage.cxx
 ModelDisplayControllerSurfaceSelector.cxx
 ModelDisplayControllerTypeEnum.cxx
 ModelDisplayControllerVolume.cxx

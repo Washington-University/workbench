@@ -73,8 +73,8 @@ namespace caret {
 
         QWidget* getWidgetForToolBar();
         
-        virtual bool getCursor(QCursor& cursorOut);
-        
+        virtual CursorEnum::Enum getCursor() const;
+
         Mode getMode() const;
         
         void setMode(const Mode mode);

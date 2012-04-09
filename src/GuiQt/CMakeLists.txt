@@ -105,6 +105,7 @@ ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
+CursorEnum.h
 CursorManager.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
@@ -179,6 +180,7 @@ ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
 ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
+CursorEnum.cxx
 CursorManager.cxx
 DisplayControlDialog.cxx
 DisplayControlVolumeSurfaceOutlinePage.cxx

@@ -386,19 +386,13 @@ UserInputModeView::finish()
 }
 
 /**
- * Get the cursor display in the OpenGL widget.
- * 
- * @param cursorOut
- *     Cursor that is to be displayed (output).
- * @return
- *     True if the cursor should be used, else false.
- *     If false the cursor is 'unset' and Qt will display
- *     the cursor of the parent widget, typically the arrow.
+ * @return The cursor for display in the OpenGL widget.
  */
-bool 
-UserInputModeView::getCursor(QCursor& /*cursorOut*/) 
-{ 
-    return false; 
+CursorEnum::Enum
+UserInputModeView::getCursor() const
+{
+    
+    return CursorEnum::CURSOR_DEFAULT;
 }
 
 /**

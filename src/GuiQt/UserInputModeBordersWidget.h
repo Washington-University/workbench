@@ -61,6 +61,7 @@ namespace caret {
                                                      Border* border);
         
     private slots:
+        void adjustViewActionTriggered();
         void modeActionTriggered(QAction*);
         void drawOperationActionTriggered(QAction*);
         void editOperationActionTriggered(QAction*);

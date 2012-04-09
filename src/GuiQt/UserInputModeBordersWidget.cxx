@@ -309,7 +309,9 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                                 "down the ALT key while moving the mouse\n"
                                                                 "will rotate the surface instead of drawing\n"
                                                                 "a border.", 
-                                                                this);
+                                                                this,
+                                                                this,
+                                                                SLOT(adjustViewActionTriggered()));
     this->drawModeTransformAction->setCheckable(true);
     QToolButton* transformToolButton = new QToolButton();
     transformToolButton->setDefaultAction(this->drawModeTransformAction);
@@ -561,6 +563,15 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         }
             break;
     }
+}
+
+/**
+ * Called when Adjust View button is pressed.
+ */
+void 
+UserInputModeBordersWidget::adjustViewActionTriggered()
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**

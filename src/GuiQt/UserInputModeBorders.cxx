@@ -421,6 +421,7 @@ UserInputModeBorders::setDrawOperation(const DrawOperation drawOperation)
 {
     this->drawOperation = drawOperation;
     this->borderToolsWidget->updateWidget();
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 /**
@@ -476,40 +477,30 @@ UserInputModeBorders::setEditOperation(const EditOperation editOperation)
 }
 
 /**
- * Get the cursor display in the OpenGL widget.
- * 
- * @param cursorOut
- *     Cursor that is to be displayed (output).
- * @return
- *     True if the cursor should be used, else false.
- *     If false the cursor is 'unset' and Qt will display
- *     the cursor of the parent widget, typically the arrow.
+ * @return The cursor for display in the OpenGL widget.
  */
-bool 
-UserInputModeBorders::getCursor(QCursor& cursorOut) 
-{ 
-    bool cursorValid = false;
+CursorEnum::Enum
+UserInputModeBorders::getCursor() const
+{
+
+    CursorEnum::Enum cursor = CursorEnum::CURSOR_DEFAULT;
     
     switch (this->mode) {
         case MODE_DRAW:
             if (this->borderToolsWidget->isDrawModeTransformSelected() == false) {
-                cursorOut = GuiManager::get()->getCursorManager()->getPenCursor();
-                cursorValid = true;
+                cursor = CursorEnum::CURSOR_DRAWING_PEN;
             }
             break;
         case MODE_EDIT:
-            cursorOut = GuiManager::get()->getCursorManager()->getPointingHandCursor();
-            cursorValid = true;
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
             break;
         case MODE_ROI:
-            cursorOut = GuiManager::get()->getCursorManager()->getPointingHandCursor();
-            cursorValid = true;
+            cursor = CursorEnum::CURSOR_POINTING_HAND;
             break;
         case MODE_SELECT:
             break;
     }
-    
-    return cursorValid;
+            
+    return cursor;
 }
-
 

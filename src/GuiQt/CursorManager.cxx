@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <QPixmap>
+#include <QWidget>
 
 #define __CURSOR_MANAGER_DECLARE__
 #include "CursorManager.h"
@@ -59,6 +60,7 @@ CursorManager::CursorManager()
 : CaretObject()
 {
     this->defaultCursor = QCursor();
+    this->arrowCursor = QCursor(Qt::ArrowCursor);
     this->penCursor     = this->loadCursor(":/cursor_pen_eraser_32x32.png", 
                                            6, 
                                            32 - 7, 
@@ -73,6 +75,36 @@ CursorManager::CursorManager()
 CursorManager::~CursorManager()
 {
     
+}
+
+/**
+ * Set the given cursor for the given widget.
+ * @param widget
+ *    Widget that has its cursor set.
+ * @param cursor
+ *    Cursor for the widget.
+ */
+void 
+CursorManager::setCursorForWidget(QWidget* widget,
+                                  const CursorEnum::Enum cursor) const
+{
+    switch (cursor) {
+        case CursorEnum::CURSOR_DEFAULT:
+            widget->unsetCursor();
+            break;
+        case CursorEnum::CURSOR_ARROW:
+            widget->setCursor(this->arrowCursor);
+            break;
+        case CursorEnum::CURSOR_DRAWING_PEN:
+            widget->setCursor(this->penCursor);
+            break;
+        case CursorEnum::CURSOR_POINTING_HAND:
+            widget->setCursor(this->pointingHandCursor);
+            break;
+        case CursorEnum::CURSOR_WAIT:
+            widget->setCursor(this->waitCursor);
+            break;
+    }
 }
 
 /**
@@ -107,40 +139,5 @@ CursorManager::loadCursor(const QString& filename,
 }
 
 
-/**
- * @return The default cursor.
- */
-const QCursor&
-CursorManager::getDefaultCursor() const
-{
-    return this->defaultCursor;
-}
-
-/**
- * @return The pen cursor.
- */
-const QCursor&
-CursorManager::getPenCursor() const
-{
-    return this->penCursor;
-}
-
-/**
- * @return The pointing hand cursor.
- */
-const QCursor&
-CursorManager::getPointingHandCursor() const
-{
-    return this->pointingHandCursor;
-}
-
-/**
- * @return The wait cursor.
- */
-const QCursor&
-CursorManager::getWaitCursor() const
-{
-    return this->waitCursor;
-}
 
 

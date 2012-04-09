@@ -37,6 +37,9 @@
 #include <QCursor>
 
 #include "CaretObject.h"
+#include "CursorEnum.h"
+
+class QWidget;
 
 namespace caret {
 
@@ -47,13 +50,8 @@ namespace caret {
         
         virtual ~CursorManager();
         
-        const QCursor& getDefaultCursor() const;
-        
-        const QCursor& getPenCursor() const;
-        
-        const QCursor& getPointingHandCursor() const;
-        
-        const QCursor& getWaitCursor() const;
+        void setCursorForWidget(QWidget* widget,
+                                const CursorEnum::Enum cursor) const;
         
     private:
         CursorManager(const CursorManager&);
@@ -65,6 +63,7 @@ namespace caret {
                            const int hotSpotY,
                            const Qt::CursorShape& cursorShapeIfImageLoadingFails) const;
         
+        QCursor arrowCursor;
         QCursor defaultCursor;
         QCursor penCursor;
         QCursor pointingHandCursor;

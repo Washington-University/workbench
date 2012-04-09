@@ -48,7 +48,7 @@ namespace caret {
         
         void finish();
 
-        virtual bool getCursor(QCursor& cursorOut);
+        virtual CursorEnum::Enum getCursor() const;
         
         QWidget* getWidgetForToolBar();
         

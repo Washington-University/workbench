@@ -44,6 +44,7 @@
 #include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
+#include "CursorManager.h"
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
@@ -193,13 +194,10 @@ BrainOpenGLWidget::paintGL()
     /*
      * Set the cursor to that requested by the user input processor
      */
-    QCursor userInputCursor;
-    if (this->selectedUserInputProcessor->getCursor(userInputCursor)) {
-        this->setCursor(userInputCursor);
-    }
-    else {
-        this->unsetCursor();
-    }
+    CursorEnum::Enum cursor = this->selectedUserInputProcessor->getCursor();
+    
+    GuiManager::get()->getCursorManager()->setCursorForWidget(this,
+                                                              cursor);
     
     this->clearDrawingViewportContents();
     
