@@ -63,7 +63,7 @@ using namespace caret;
 
     
 /**
- * \class SpecFileDialog 
+ * \class caret::SpecFileDialog 
  * \brief Dialog for selection of files in a spec file.
  *
  * Presents a dialog that allows the user to select data

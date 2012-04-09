@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class MouseEventTypeEnum 
+ * \class caret::MouseEventTypeEnum 
  * \brief Types of mouse events.
  *
  * Types of each mouse event.

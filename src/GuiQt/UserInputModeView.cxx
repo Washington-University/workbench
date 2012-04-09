@@ -61,7 +61,7 @@ using namespace caret;
 
     
 /**
- * \class UserInputModeView 
+ * \class caret::UserInputModeView 
  * \brief Processing user input for VIEW mode.
  *
  * Processes user input in VIEW mode which includes

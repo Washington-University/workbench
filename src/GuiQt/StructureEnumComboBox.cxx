@@ -32,7 +32,7 @@ using namespace caret;
 
     
 /**
- * \class StructureEnumComboBox 
+ * \class caret::StructureEnumComboBox 
  * \brief Control for selection of a structure.
  */
 

@@ -54,7 +54,7 @@ using namespace caret;
 
     
 /**
- * \class ManageLoadedFilesDialog 
+ * \class caret::ManageLoadedFilesDialog 
  *
  * 
  * \brief Dialog for managing loaded files.

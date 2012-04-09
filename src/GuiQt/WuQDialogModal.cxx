@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class WuQDialogModal 
+ * \class caret::WuQDialogModal 
  * \brief Base class for modal dialogs.
  *
  * A base class for modal dialogs.

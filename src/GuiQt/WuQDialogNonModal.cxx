@@ -35,7 +35,7 @@ using namespace caret;
 
     
 /**
- * \class WuQDialogNonModal 
+ * \class caret::WuQDialogNonModal 
  * \brief Base class for non-modal dialogs.
  *
  * A base class for non-modal dialogs.

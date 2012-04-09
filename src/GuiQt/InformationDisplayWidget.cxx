@@ -46,7 +46,7 @@ using namespace caret;
 
     
 /**
- * \class InformationDisplayWidget 
+ * \class caret::InformationDisplayWidget 
  * \brief Controls and displays information.
  */
 

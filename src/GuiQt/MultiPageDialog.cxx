@@ -40,7 +40,7 @@ using namespace caret;
 
     
 /**
- * \class MultiPageDialog 
+ * \class caret::MultiPageDialog 
  * \brief Dialog that contains multiple pages.
  *
  * Dialog that contains multiple pages.

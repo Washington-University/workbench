@@ -58,7 +58,7 @@ using namespace caret;
 
     
 /**
- * \class ImageCaptureDialog 
+ * \class caret::ImageCaptureDialog 
  * \brief Dialog for capturing images.
  *
  */

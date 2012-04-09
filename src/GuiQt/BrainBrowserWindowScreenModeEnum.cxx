@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class BrainBrowserWindowScreenModeEnum 
+ * \class caret::BrainBrowserWindowScreenModeEnum 
  * \brief Enumerated type for Browser Window Screen Mode
  *
  * Enumerated type for Browser Window Screen Mode

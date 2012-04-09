@@ -45,7 +45,7 @@ using namespace caret;
 
     
 /**
- * \class MultiPageDialogPage 
+ * \class caret::MultiPageDialogPage 
  * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
  *
  * <REPLACE-WITH-THOROUGH DESCRIPTION>

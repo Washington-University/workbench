@@ -36,7 +36,7 @@ namespace caret {
     class MouseEvent;
     
     /**
-     * \class UserInputReceiverInterface
+     * \class caret::UserInputReceiverInterface
      * \brief Provides an interface for user input events
      *
      * Classes implementing this interface receive

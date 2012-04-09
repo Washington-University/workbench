@@ -80,7 +80,7 @@ HideFilesProxyModel::filterAcceptsRow ( int sourceRow, const QModelIndex & sourc
 
 
 /**
- * \class CaretFileDialog 
+ * \class caret::CaretFileDialog 
  * \brief Adds additional functionality over Qt's QFileDialog.
  */
 

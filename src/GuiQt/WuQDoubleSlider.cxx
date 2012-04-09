@@ -33,7 +33,7 @@ using namespace caret;
 
     
 /**
- * \class WuQDoubleSlider 
+ * \class caret::WuQDoubleSlider 
  * \brief A slider for real values.
  *
  * Creates a slider for real values by encapsulating

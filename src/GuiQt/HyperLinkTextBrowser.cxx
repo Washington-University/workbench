@@ -32,7 +32,7 @@
 using namespace caret;
 
 /**
- * \class HyperLinkTextBrowser
+ * \class caret::HyperLinkTextBrowser
  * \brief Displays HTML text.
  *
  * Displays HTML text.  Input text may contain URLs

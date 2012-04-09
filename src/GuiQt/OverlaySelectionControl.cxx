@@ -56,7 +56,7 @@
 using namespace caret;
 
 /**
- * \class OverlaySelectionControl
+ * \class caret::OverlaySelectionControl
  * \brief Control for selection of overlay.
  */
 

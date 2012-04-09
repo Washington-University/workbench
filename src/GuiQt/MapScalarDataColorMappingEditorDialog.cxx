@@ -74,7 +74,7 @@ using namespace caret;
 
     
 /**
- * \class MapSettingsScalarDataEditorDialog 
+ * \class caret::MapSettingsScalarDataEditorDialog 
  * \brief Dialog for editing scalar data map settings
  *
  * Presents controls for setting palettes, and thresholding used to color

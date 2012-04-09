@@ -41,7 +41,7 @@
 using namespace caret;
 
 /**
- * \class WuQDialog 
+ * \class caret::WuQDialog 
  * \brief Base class for dialogs.
  *
  * A base class for dialogs.

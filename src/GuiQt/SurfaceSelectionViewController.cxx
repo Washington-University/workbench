@@ -37,7 +37,7 @@ using namespace caret;
 
     
 /**
- * \class SurfaceSelectionControl 
+ * \class caret::SurfaceSelectionControl 
  * \brief Control for selecting surfaces.
  *
  * Control for selecting surfaces.

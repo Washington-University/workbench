@@ -49,7 +49,7 @@ using namespace caret;
 
     
 /**
- * \class DisplayControlVolumeSurfaceOutlinePage 
+ * \class caret::DisplayControlVolumeSurfaceOutlinePage 
  * \brief Page for control of volume surface outlines.
  *
  * Page for control of volume surface outlines.

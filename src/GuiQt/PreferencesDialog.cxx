@@ -56,7 +56,7 @@ using namespace caret;
 
     
 /**
- * \class PreferencesDialog 
+ * \class caret::PreferencesDialog 
  * \brief Dialog for capturing images.
  *
  * Presents controls for editing palettes used to color

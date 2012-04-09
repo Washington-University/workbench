@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class DisplayControlDialog 
+ * \class caret::DisplayControlDialog 
  * \brief Dialog for controlling display of some data types.
  *
  * Dialog for controlling display of some data types.
