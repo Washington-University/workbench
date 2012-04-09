@@ -33,6 +33,7 @@
 #include "BrainOpenGLTextRenderInterface.h"
 #include "CaretVolumeExtension.h"
 #include "IdentificationItemDataTypeEnum.h"
+#include "StructureEnum.h"
 #include "SurfaceNodeColoring.h"
 #include "VolumeSliceViewPlaneEnum.h"
 
@@ -256,6 +257,13 @@ namespace caret {
         
         float modelSizeToPixelSize(const float modelSize);
         
+        void setProjectionModeData(const float screenDepth,
+                                          const float xyz[3],
+                                          const StructureEnum::Enum structure,
+                                          const float barycentricAreas[3],
+                                          const int barycentricNodes[3],
+                                          const int numberOfNodes);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         
@@ -278,6 +286,9 @@ namespace caret {
         IdentificationWithColor* colorIdentification;
 
         SurfaceProjectedItem* modeProjectionData;
+        
+        /** Screen depth when projecting to surface mode */
+        double modeProjectionScreenDepth;
         
         /** Performs node coloring */
         SurfaceNodeColoring* surfaceNodeColoring;

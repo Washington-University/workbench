@@ -222,7 +222,8 @@ IdentificationItem::setModelXYZ(const double modelXYZ[3])
 
 /**
  * Is the other screen depth closer to the viewer than the currently 
- * identified item?
+ * identified item?  So, if true is returned, then replace the
+ * current identification item
  *
  * (1) If there is no identified item, true is immediately returned.
  * (2) If there is an identified item and the other screen depth is closer

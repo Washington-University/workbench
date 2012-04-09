@@ -193,6 +193,7 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
     
     this->modeProjectionData = &projectionOut;
     this->modeProjectionData->reset();
+    this->modeProjectionScreenDepth = std::numeric_limits<double>::max();
     
     /*
      * For projection which uses colors for finding triangles, 
@@ -938,7 +939,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                     CaretLogFine("Selected Triangle: " + triangleID->toString());   
                 }
                 else {
-                    CaretLogFine("Rejecting Selected Triangle: " + triangleID->toString());   
+                    CaretLogFine("Rejecting Selected Triangle but still using: " + triangleID->toString());   
                 }
             }
             
@@ -1044,11 +1045,9 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                      * Getting projected position?
                      */
                     if (isProjection) {
-                        CaretAssert(this->modeProjectionData);
-                        
                         /*
                          * Place window coordinates of triangle's nodes
-                         * onto the screen
+                         * onto the screen by setting Z-coordinate to zero
                          */
                         wc1[2] = 0.0;
                         wc2[2] = 0.0;
@@ -1065,7 +1064,16 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                          * use a coordinate from the triangle
                          */
                         if (triangleDisplayArea < 0.001) {
-                            this->modeProjectionData->setStereotaxicXYZ(c1);
+                            //this->modeProjectionData->setStereotaxicXYZ(c1);
+                            float barycentricAreas[3] = { 1.0, 0.0, 0.0 };
+                            int barycentricNodes[3] = { n1, n1, n1 };
+                            
+                            this->setProjectionModeData(depth, 
+                                                        c1, 
+                                                        surface->getStructure(), 
+                                                        barycentricAreas, 
+                                                        barycentricNodes, 
+                                                        surface->getNumberOfNodes());
                         }
                         else {
                             /*
@@ -1099,7 +1107,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                     (dc1[1]*areaU + dc2[1]*areaV + dc3[1]*areaW) / totalArea,
                                     (dc1[2]*areaU + dc2[2]*areaV + dc3[2]*areaW) / totalArea
                                 };
-                                this->modeProjectionData->setStereotaxicXYZ(projectedXYZ);
+                                //this->modeProjectionData->setStereotaxicXYZ(projectedXYZ);
                                 
                                 const float barycentricAreas[3] = {
                                     areaU,
@@ -1113,6 +1121,13 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                     n3
                                 };
                             
+                                this->setProjectionModeData(depth, 
+                                                            projectedXYZ, 
+                                                            surface->getStructure(), 
+                                                            barycentricAreas, 
+                                                            barycentricNodes, 
+                                                            surface->getNumberOfNodes());
+                                /*
                                 this->modeProjectionData->setStructure(surface->getStructure());
                                 SurfaceProjectionBarycentric* barycentric =
                                     this->modeProjectionData->getBarycentricProjection();
@@ -1120,6 +1135,7 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
                                 barycentric->setTriangleAreas(barycentricAreas);
                                 barycentric->setTriangleNodes(barycentricNodes);
                                 barycentric->setValid(true);
+                                */
                             }
                         }
                     }
@@ -1127,6 +1143,54 @@ BrainOpenGLFixedPipeline::drawSurfaceTriangles(Surface* surface,
             CaretLogFine("Selected Triangle: " + QString::number(triangleIndex));
         }
         
+    }
+}
+
+/**
+ * During projection mode, set the projected data.  If the 
+ * projection data is already set, it will be overridden
+ * if the new data is closer, in screen depth, to the user.
+ *
+ * @param screenDepth
+ *    Screen depth of data.
+ * @param xyz
+ *    Stereotaxic coordinate of projected position.
+ * @param structure
+ *    Structure to which data projects.
+ * @param barycentricAreas
+ *    Barycentric areas of projection, if to surface with valid structure.
+ * @param barycentricNodes
+ *    Barycentric nodes of projection, if to surface with valid structure
+ * @param numberOfNodes
+ *    Number of nodes in surface, if to surface with valid structure.
+ */
+void 
+BrainOpenGLFixedPipeline::setProjectionModeData(const float screenDepth,
+                                  const float xyz[3],
+                                  const StructureEnum::Enum structure,
+                                  const float barycentricAreas[3],
+                                  const int barycentricNodes[3],
+                                  const int numberOfNodes)
+{
+    CaretAssert(this->modeProjectionData);
+    if (screenDepth < this->modeProjectionScreenDepth) {
+        this->modeProjectionScreenDepth = screenDepth;
+        this->modeProjectionData->setStructure(structure);
+        this->modeProjectionData->setStereotaxicXYZ(xyz);
+        SurfaceProjectionBarycentric* barycentric =
+        this->modeProjectionData->getBarycentricProjection();
+        barycentric->setProjectionSurfaceNumberOfNodes(numberOfNodes);
+        barycentric->setTriangleAreas(barycentricAreas);
+        barycentric->setTriangleNodes(barycentricNodes);
+        barycentric->setValid(true);  
+        
+        std::cout 
+        << "Projected to surface " 
+        << qPrintable(StructureEnum::toName(structure))
+        << " with depth "
+        << screenDepth
+        << std::endl;
+                                                           
     }
 }
 
