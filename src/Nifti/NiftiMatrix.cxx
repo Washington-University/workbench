@@ -26,6 +26,7 @@
 #include "QFile"
 #ifdef CARET_OS_WINDOWS
 #include <io.h>
+#define SSIZE_MAX 32767
 #else //not CARET_OS_WINDOWS
 #include <unistd.h>
 #endif //ifdef CARET_OS_WINDOWS

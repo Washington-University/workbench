@@ -24,6 +24,8 @@
 #ifndef NIFTIFILE_H
 #define NIFTIFILE_H
 
+#define _LARGEFILE64_SOURCE
+#define _LFS64_LARGEFILE 1
 #include <QtCore>
 #include "iostream"
 #include "NiftiException.h"
