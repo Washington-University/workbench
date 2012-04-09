@@ -202,6 +202,10 @@ void NiftiMatrix::readFile() throw (NiftiException)
     try {
         readMatrixBytes((char *)bytes,matrixSize);
     }
+    catch (NiftiException& e)
+    {
+        throw e;
+    }
     catch (...) {
         std::cout << "Exception reading matrix from file" << std::endl;
         //std::cout << file.FileError << std::endl;
@@ -294,9 +298,9 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size)
             throw NiftiException("failed to seek in file");
         }
         int64_t chunk_size = size;
-        if (chunk_size > numeric_limits<unsigned int>::max())
+        if (chunk_size > numeric_limits<int>::max())
         {
-            chunk_size = numeric_limits<unsigned int>::max();
+            chunk_size = numeric_limits<int>::max();
         }
         int64_t total = 0;
         while (total < size)
@@ -349,9 +353,9 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size)
             throw NiftiException("failed to seek in file");
         }
         int64_t chunk_size = size;
-        if (chunk_size > numeric_limits<unsigned int>::max())
+        if (chunk_size > numeric_limits<int>::max())
         {
-            chunk_size = numeric_limits<unsigned int>::max();
+            chunk_size = numeric_limits<int>::max();
         }
         int64_t total = 0;
         while (total < size)
