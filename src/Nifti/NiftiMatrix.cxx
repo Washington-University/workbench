@@ -24,6 +24,11 @@
 
 #include "NiftiMatrix.h"
 #include "QFile"
+#ifdef CARET_OS_WINDOWS
+#include <io.h>
+#else //not CARET_OS_WINDOWS
+#include <unistd.h>
+#endif //ifdef CARET_OS_WINDOWS
 
 using namespace caret;
 
@@ -286,8 +291,12 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size)
     }
     else
     {       
-        file->seek(matrixStartOffset);
-        file->read(bytes,size);
+        //file->seek(matrixStartOffset);
+        //file->read(bytes,size);
+        //QT can't read files over a certain size
+        int fh = file->handle();
+        lseek(fh,matrixStartOffset,0);
+        read(fh,bytes,size);
     }
 }
 
@@ -300,8 +309,11 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size)
     }
     else
     {
-        file->seek(matrixStartOffset);
-        file->write(bytes,size);
+        //file->seek(matrixStartOffset);
+        //file->write(bytes,size);
+        int fh = file->handle();
+        lseek(fh,matrixStartOffset,0);
+        write(fh,bytes,size);
     }
 }
 
