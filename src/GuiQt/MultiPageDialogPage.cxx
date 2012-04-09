@@ -32,7 +32,7 @@
 #include "MultiPageDialogPage.h"
 #undef __MULTI_PAGE_DIALOG_PAGE_DECLARE__
 
-#include "CaretColorEnumSelectionControl.h"
+#include "CaretColorEnumComboBox.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "SurfaceSelectionViewController.h"
@@ -170,8 +170,8 @@ MultiPageDialogPage::addWidget(QObject* widget,
                              this, SLOT(applyPage()));
         }
     }
-    else if (dynamic_cast<CaretColorEnumSelectionControl*>(widget) != NULL) {
-        CaretColorEnumSelectionControl* cc = dynamic_cast<CaretColorEnumSelectionControl*>(widget);
+    else if (dynamic_cast<CaretColorEnumComboBox*>(widget) != NULL) {
+        CaretColorEnumComboBox* cc = dynamic_cast<CaretColorEnumComboBox*>(widget);
         if (isValueChangedSignalConnectedToApplyPage) {
             QObject::connect(cc, SIGNAL(colorSelected(const CaretColorEnum::Enum)),
                              this, SLOT(applyPage()));

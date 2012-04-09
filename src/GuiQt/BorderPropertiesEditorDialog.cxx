@@ -39,7 +39,7 @@
 #include "Border.h"
 #include "BorderFile.h"
 #include "CaretAssert.h"
-#include "CaretColorEnumSelectionControl.h"
+#include "CaretColorEnumComboBox.h"
 #include "ClassAndNameHierarchyModel.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -186,10 +186,10 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
      * Color
      */
     QLabel* colorLabel = new QLabel("Color");
-    this->colorSelectionControl = new CaretColorEnumSelectionControl(this,
-                                                                     CaretColorEnum::OPTION_INCLUDE_CLASS);
-    this->colorSelectionControl->setSelectedColor(borderColor);
-    WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionControl->getWidget(), 
+    this->colorSelectionComboBox = new CaretColorEnumComboBox(this,
+                                                             CaretColorEnum::OPTION_INCLUDE_CLASS);
+    this->colorSelectionComboBox->setSelectedColor(borderColor);
+    WuQtUtilities::setToolTipAndStatusTip(this->colorSelectionComboBox->getWidget(), 
                                           "If the color is set to \"CLASS\", the border is colored\n"
                                           "using the color associated with the border's class.\n"
                                           "Otherwise, if a color name is selected, it is used\n"
@@ -250,7 +250,7 @@ BorderPropertiesEditorDialog::BorderPropertiesEditorDialog(const QString& title,
     gridLayout->addWidget(this->nameLineEdit, row, 1);
     row++;
     gridLayout->addWidget(colorLabel, row, 0);
-    gridLayout->addWidget(this->colorSelectionControl->getWidget(), row, 1);
+    gridLayout->addWidget(this->colorSelectionComboBox->getWidget(), row, 1);
     row++;
     gridLayout->addWidget(classLabel, row, 0);
     gridLayout->addWidget(this->classNameComboBox, row, 1);
@@ -451,7 +451,7 @@ BorderPropertiesEditorDialog::okButtonPressed()
         errorMessage += ("Name is invalid.\n");
     }
     const QString className = this->classNameComboBox->currentText().trimmed();
-    const CaretColorEnum::Enum color = this->colorSelectionControl->getSelectedColor();
+    const CaretColorEnum::Enum color = this->colorSelectionComboBox->getSelectedColor();
     
     if (color == CaretColorEnum::CLASS) {
         if (className.isEmpty()) {

@@ -38,7 +38,7 @@ namespace caret {
 
     class Border;
     class BorderFile;
-    class CaretColorEnumSelectionControl;
+    class CaretColorEnumComboBox;
     class SurfaceFile;
     
     class BorderPropertiesEditorDialog : public WuQDialogModal {
@@ -105,7 +105,7 @@ namespace caret {
 
         QCheckBox* reversePointOrderCheckBox;
         
-        CaretColorEnumSelectionControl* colorSelectionControl;
+        CaretColorEnumComboBox* colorSelectionComboBox;
         
         SurfaceFile* finishBorderSurfaceFile;
         

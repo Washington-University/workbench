@@ -1,5 +1,5 @@
-#ifndef __CARET_COLOR_ENUM_SELECTION_CONTROL__H_
-#define __CARET_COLOR_ENUM_SELECTION_CONTROL__H_
+#ifndef __CARET_COLOR_ENUM_COMBOBOX__H_
+#define __CARET_COLOR_ENUM_COMBOBOX__H_
 
 /*LICENSE_START*/
 /* 
@@ -34,15 +34,15 @@ class QComboBox;
 
 namespace caret {
 
-    class CaretColorEnumSelectionControl : public QObject {
+    class CaretColorEnumComboBox : public QObject {
         
         Q_OBJECT
 
     public:
-        CaretColorEnumSelectionControl(QObject* parent,
+        CaretColorEnumComboBox(QObject* parent,
                                        const uint64_t options = 0);
         
-        virtual ~CaretColorEnumSelectionControl();
+        virtual ~CaretColorEnumComboBox();
         
         CaretColorEnum::Enum getSelectedColor();
         
@@ -57,17 +57,17 @@ namespace caret {
         void colorComboBoxIndexChanged(int);
         
     private:
-        CaretColorEnumSelectionControl(const CaretColorEnumSelectionControl&);
+        CaretColorEnumComboBox(const CaretColorEnumComboBox&);
 
-        CaretColorEnumSelectionControl& operator=(const CaretColorEnumSelectionControl&);
+        CaretColorEnumComboBox& operator=(const CaretColorEnumComboBox&);
         
     private:
         QComboBox* colorComboBox;
     };
     
-#ifdef __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
+#ifdef __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
+#endif // __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
 
 } // namespace
-#endif  //__CARET_COLOR_ENUM_SELECTION_CONTROL__H_
+#endif  //__CARET_COLOR_ENUM_COMBOBOX__H_

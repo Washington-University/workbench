@@ -23,9 +23,9 @@
  * 
  */ 
 
-#define __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
-#include "CaretColorEnumSelectionControl.h"
-#undef __CARET_COLOR_ENUM_SELECTION_CONTROL_DECLARE__
+#define __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
+#include "CaretColorEnumComboBox.h"
+#undef __CARET_COLOR_ENUM_COMBOBOX_DECLARE__
 
 #include <QComboBox>
 
@@ -34,7 +34,7 @@ using namespace caret;
 
     
 /**
- * \class CaretColorEnumSelectionControl 
+ * \class caret::CaretColorEnumComboBox 
  * \brief Control for selection of Caret Color enumerated types.
  *
  * Control for selection of Caret Color enumerated types.
@@ -47,7 +47,7 @@ using namespace caret;
  *     Controls inclusion of special colors by bitwise or'ing the 
  *     CaretColorEnum::Options enumerated type values.
  */
-CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(QObject* parent,
+CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent,
                                                                const uint64_t options)
 : QObject(parent)
 {
@@ -75,7 +75,7 @@ CaretColorEnumSelectionControl::CaretColorEnumSelectionControl(QObject* parent,
 /**
  * Destructor.
  */
-CaretColorEnumSelectionControl::~CaretColorEnumSelectionControl()
+CaretColorEnumComboBox::~CaretColorEnumComboBox()
 {
     
 }
@@ -84,7 +84,7 @@ CaretColorEnumSelectionControl::~CaretColorEnumSelectionControl()
  * @return The actual widget.
  */
 QWidget* 
-CaretColorEnumSelectionControl::getWidget()
+CaretColorEnumComboBox::getWidget()
 {
     return this->colorComboBox;
 }
@@ -93,7 +93,7 @@ CaretColorEnumSelectionControl::getWidget()
  * @return The selected color.
  */
 CaretColorEnum::Enum 
-CaretColorEnumSelectionControl::getSelectedColor()
+CaretColorEnumComboBox::getSelectedColor()
 {
     const int32_t indx = this->colorComboBox->currentIndex();
     const int32_t integerCode = this->colorComboBox->itemData(indx).toInt();
@@ -107,7 +107,7 @@ CaretColorEnumSelectionControl::getSelectedColor()
  *   New color for selection.
  */
 void 
-CaretColorEnumSelectionControl::setSelectedColor(const CaretColorEnum::Enum color)
+CaretColorEnumComboBox::setSelectedColor(const CaretColorEnum::Enum color)
 {
     const int32_t numColors = static_cast<int32_t>(this->colorComboBox->count());
     for (int32_t i = 0; i < numColors; i++) {
@@ -126,7 +126,7 @@ CaretColorEnumSelectionControl::setSelectedColor(const CaretColorEnum::Enum colo
  *   Index of item selected.
  */
 void 
-CaretColorEnumSelectionControl::colorComboBoxIndexChanged(int indx)
+CaretColorEnumComboBox::colorComboBoxIndexChanged(int indx)
 {
     const int32_t integerCode = this->colorComboBox->itemData(indx).toInt();
     CaretColorEnum::Enum color = CaretColorEnum::fromIntegerCode(integerCode, NULL);

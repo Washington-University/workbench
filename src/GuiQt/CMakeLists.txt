@@ -33,7 +33,7 @@ BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
-CaretColorEnumSelectionControl.h
+CaretColorEnumComboBox.h
 CaretFileDialog.h
 CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
@@ -96,7 +96,7 @@ BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BrainOpenGLWidgetTextRenderer.h
-CaretColorEnumSelectionControl.h
+CaretColorEnumComboBox.h
 CaretFileDialog.h
 CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
@@ -171,7 +171,7 @@ BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx
 BrainOpenGLWidgetTextRenderer.cxx
-CaretColorEnumSelectionControl.cxx
+CaretColorEnumComboBox.cxx
 CaretFileDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
 ClassAndNameHierarchySelectedItem.cxx
