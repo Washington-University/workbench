@@ -58,7 +58,7 @@ using namespace caret;
  *    Parent object.
  */
 DisplayGroupEnumComboBox::DisplayGroupEnumComboBox(QObject* parent)
-: QObject(parent)
+: WuQWidget(parent)
 {
     std::vector<DisplayGroupEnum::Enum> allDisplayGroups;
     DisplayGroupEnum::getAllEnums(allDisplayGroups);

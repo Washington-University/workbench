@@ -86,16 +86,6 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
-    for (std::vector<StructureEnumComboBox*>::iterator iter = this->structureEnumComboBoxesToDelete.begin();
-         iter != this->structureEnumComboBoxesToDelete.end();
-         iter++) {
-        delete *iter;
-    }
-    for (std::vector<SurfaceSelectionViewController*>::iterator iter = this->surfaceSelectionViewControllersToDelete.begin();
-         iter != this->surfaceSelectionViewControllersToDelete.end();
-         iter++) {
-        delete *iter;
-    }
 }
 
 /**
@@ -420,7 +410,6 @@ WuQDataEntryDialog::addStructureEnumComboBox(const QString& labelText,
     
     this->addWidget(labelText,
                     structureEnumComboBox->getWidget());
-    this->structureEnumComboBoxesToDelete.push_back(structureEnumComboBox);
     
     return structureEnumComboBox;
 }
@@ -438,7 +427,6 @@ WuQDataEntryDialog::addSurfaceSelectionViewController(const QString& labelText,
     
     this->addWidget(labelText,
                     surfaceSelectionViewController->getWidget());
-    this->surfaceSelectionViewControllersToDelete.push_back(surfaceSelectionViewController);
     
     return surfaceSelectionViewController;
 }

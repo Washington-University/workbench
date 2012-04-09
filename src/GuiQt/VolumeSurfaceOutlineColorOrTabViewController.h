@@ -35,9 +35,8 @@
 /*LICENSE_END*/
 
 
-#include <QWidget>
-
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
+#include "WuQWidget.h"
 
 class QComboBox;
 
@@ -45,7 +44,7 @@ namespace caret {
 
     class VolumeSurfaceOutlineColorOrTabModel;
     
-    class VolumeSurfaceOutlineColorOrTabViewController : public QObject {
+    class VolumeSurfaceOutlineColorOrTabViewController : public WuQWidget {
         
         Q_OBJECT
 

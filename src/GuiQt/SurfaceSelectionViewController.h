@@ -26,7 +26,7 @@
  */ 
 
 
-#include <QObject>
+#include "WuQWidget.h"
 
 class QComboBox;
 
@@ -35,7 +35,7 @@ namespace caret {
     class Surface;
     class SurfaceSelectionModel;
 
-    class SurfaceSelectionViewController : public QObject {
+    class SurfaceSelectionViewController : public WuQWidget {
         
         Q_OBJECT
 

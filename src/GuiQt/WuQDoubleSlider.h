@@ -25,19 +25,19 @@
 ****************************************************************************/
 
 
-#include <QObject>
+#include "WuQWidget.h"
 
 class QSlider;
 
 namespace caret {
 
-    class WuQDoubleSlider : public QObject {
+    class WuQDoubleSlider : public WuQWidget {
         
         Q_OBJECT
 
     public:
         WuQDoubleSlider(Qt::Orientation orientation,
-                        QWidget* parent);
+                        QObject* parent);
         
         virtual ~WuQDoubleSlider();
         

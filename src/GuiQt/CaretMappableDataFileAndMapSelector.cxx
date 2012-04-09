@@ -88,7 +88,7 @@ using namespace caret;
  */
 CaretMappableDataFileAndMapSelector::CaretMappableDataFileAndMapSelector(BrainStructure* brainStructure,
                                                                          QObject* parent)
-: QObject(parent)
+: WuQWidget(parent)
 {
     CaretAssert(brainStructure);
     this->brainStructure = brainStructure;

@@ -37,11 +37,10 @@
 #include <map>
 #include <vector>
 
-#include <QObject>
-
 #include "AString.h"
 #include "DataFileTypeEnum.h"
 #include "StructureEnum.h"
+#include "WuQWidget.h"
 
 class QComboBox;
 class QDoubleSpinBox;
@@ -56,7 +55,7 @@ namespace caret {
     class MetricFile;
     class WuQWidgetObjectGroup;
     
-    class CaretMappableDataFileAndMapSelector : public QObject {
+    class CaretMappableDataFileAndMapSelector : public WuQWidget {
         
         Q_OBJECT
 

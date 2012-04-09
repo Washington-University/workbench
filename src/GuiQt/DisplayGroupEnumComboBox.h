@@ -35,15 +35,14 @@
 /*LICENSE_END*/
 
 
-#include <QWidget>
-
 #include "DisplayGroupEnum.h"
+#include "WuQWidget.h"
 
 class QComboBox;
 
 namespace caret {
 
-    class DisplayGroupEnumComboBox : public QObject {
+    class DisplayGroupEnumComboBox : public WuQWidget {
         Q_OBJECT
     public:
         DisplayGroupEnumComboBox(QObject* parent);

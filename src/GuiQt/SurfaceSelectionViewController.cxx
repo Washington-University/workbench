@@ -51,7 +51,7 @@ using namespace caret;
  */
 SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                  SurfaceSelectionModel* surfaceSelectionModel)
-: QObject(parent)
+: WuQWidget(parent)
 {
     this->initializeControl(surfaceSelectionModel);
     this->thisInstanceOwnsSurfaceSelection = false;
@@ -66,7 +66,7 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
  */
 SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                  BrainStructure* brainStructure)
-: QObject(parent)
+: WuQWidget(parent)
 {
     SurfaceSelectionModel* ss = new SurfaceSelectionModel(brainStructure);
     this->initializeControl(ss);

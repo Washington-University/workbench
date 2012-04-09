@@ -145,9 +145,6 @@ namespace caret {
         
         /// button group for radio buttons
         QButtonGroup* radioButtonGroup;
-        
-        std::vector<StructureEnumComboBox*> structureEnumComboBoxesToDelete;
-        std::vector<SurfaceSelectionViewController*> surfaceSelectionViewControllersToDelete;
     };
 } // namespace
 

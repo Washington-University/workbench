@@ -49,7 +49,7 @@ using namespace caret;
  */
 CaretColorEnumComboBox::CaretColorEnumComboBox(QObject* parent,
                                                                const uint64_t options)
-: QObject(parent)
+: WuQWidget(parent)
 {
     this->colorComboBox = new QComboBox();
     

@@ -52,7 +52,7 @@ using namespace caret;
  */
 VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabViewController(QObject* parent,
                                                                                            VolumeSurfaceOutlineColorOrTabModel* model)
-: QObject(parent)
+: WuQWidget(parent)
 {
     this->modelComboBox = new QComboBox();
     QObject::connect(this->modelComboBox, 

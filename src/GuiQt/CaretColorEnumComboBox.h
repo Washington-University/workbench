@@ -26,15 +26,14 @@
  */ 
 
 
-#include <QObject>
-
 #include "CaretColorEnum.h"
+#include "WuQWidget.h"
 
 class QComboBox;
 
 namespace caret {
 
-    class CaretColorEnumComboBox : public QObject {
+    class CaretColorEnumComboBox : public WuQWidget {
         
         Q_OBJECT
 

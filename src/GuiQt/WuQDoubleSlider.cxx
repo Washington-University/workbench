@@ -49,11 +49,10 @@ using namespace caret;
  *   optional parent
  */
 WuQDoubleSlider::WuQDoubleSlider(Qt::Orientation orientation,
-                                 QWidget* parent)
-: QObject(parent)
+                                 QObject* parent)
+: WuQWidget(parent)
 {
-    this->slider = new QSlider(orientation,
-                               parent);
+    this->slider = new QSlider(orientation);
     this->slider->setRange(0, 1000);
     QObject::connect(this->slider, SIGNAL(valueChanged(int)),
                      this, SLOT(qSliderValueChanged(int)));

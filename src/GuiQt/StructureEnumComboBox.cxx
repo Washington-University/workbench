@@ -42,7 +42,7 @@ using namespace caret;
  *   The parent.
  */
 StructureEnumComboBox::StructureEnumComboBox(QObject* parent)
-: QObject(parent)
+: WuQWidget(parent)
 {
     std::vector<StructureEnum::Enum> allStructures;
     StructureEnum::getAllEnums(allStructures);

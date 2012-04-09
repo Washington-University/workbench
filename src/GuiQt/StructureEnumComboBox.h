@@ -26,15 +26,15 @@
  */ 
 
 #include <QComboBox>
-#include <QObject>
 
 #include "StructureEnum.h"
+#include "WuQWidget.h"
 
 namespace caret {
 
     class Surface;
     
-    class StructureEnumComboBox : public QObject {
+    class StructureEnumComboBox : public WuQWidget {
         
         Q_OBJECT
 
