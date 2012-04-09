@@ -46,7 +46,7 @@ class QTextEdit;
 
 namespace caret {
     class BrainStructure;
-    class StructureSelectionControl;
+    class StructureEnumComboBox;
     class SurfaceSelectionViewController;
     
     /// class for a modal data entry dialog
@@ -116,7 +116,7 @@ namespace caret {
                                const bool readOnlyFlag);
         
         // add a structure selection control
-        StructureSelectionControl* addStructureSelectionControl(const QString& labelText,
+        StructureEnumComboBox* addStructureEnumComboBox(const QString& labelText,
                                                                 const StructureEnum::Enum defaultStructure = StructureEnum::INVALID);
         
         
@@ -146,7 +146,7 @@ namespace caret {
         /// button group for radio buttons
         QButtonGroup* radioButtonGroup;
         
-        std::vector<StructureSelectionControl*> structureSelectionControlsToDelete;
+        std::vector<StructureEnumComboBox*> structureEnumComboBoxesToDelete;
         std::vector<SurfaceSelectionViewController*> surfaceSelectionViewControllersToDelete;
     };
 } // namespace

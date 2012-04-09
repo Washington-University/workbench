@@ -43,7 +43,7 @@ namespace caret {
     class SpecFileDataFile;
     class SpecFileDataFileTypeGroup;
     class SpecFile;
-    class StructureSelectionControl;
+    class StructureEnumComboBox;
     class WuQWidgetObjectGroup;
     
     class SpecFileDialog : public WuQDialogModal {
@@ -143,7 +143,7 @@ namespace caret {
         QToolButton*      metadataToolButton;
         QAction*          removeAction;
         QToolButton*      removeToolButton;
-        StructureSelectionControl* structureSelectionControl;
+        StructureEnumComboBox* structureEnumComboBox;
         QLabel*           nameLabel;
         WuQWidgetObjectGroup* widgetGroup;
         

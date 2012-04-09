@@ -37,7 +37,7 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QTextEdit>
-#include "StructureSelectionControl.h"
+#include "StructureEnumComboBox.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 
@@ -86,8 +86,8 @@ WuQDataEntryDialog::WuQDataEntryDialog(const QString& title,
  */
 WuQDataEntryDialog::~WuQDataEntryDialog()
 {
-    for (std::vector<StructureSelectionControl*>::iterator iter = this->structureSelectionControlsToDelete.begin();
-         iter != this->structureSelectionControlsToDelete.end();
+    for (std::vector<StructureEnumComboBox*>::iterator iter = this->structureEnumComboBoxesToDelete.begin();
+         iter != this->structureEnumComboBoxesToDelete.end();
          iter++) {
         delete *iter;
     }
@@ -410,19 +410,19 @@ WuQDataEntryDialog::addTextEdit(const QString& labelText,
 /**
  * Add a structure selection control.
  */
-StructureSelectionControl* 
-WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
+StructureEnumComboBox* 
+WuQDataEntryDialog::addStructureEnumComboBox(const QString& labelText,
                                                  const StructureEnum::Enum defaultStructure)
 {
-    StructureSelectionControl* structureSelectionControl = 
-    new StructureSelectionControl(this);
-    structureSelectionControl->setSelectedStructure(defaultStructure);
+    StructureEnumComboBox* structureEnumComboBox = 
+    new StructureEnumComboBox(this);
+    structureEnumComboBox->setSelectedStructure(defaultStructure);
     
     this->addWidget(labelText,
-                    structureSelectionControl->getWidget());
-    this->structureSelectionControlsToDelete.push_back(structureSelectionControl);
+                    structureEnumComboBox->getWidget());
+    this->structureEnumComboBoxesToDelete.push_back(structureEnumComboBox);
     
-    return structureSelectionControl;
+    return structureEnumComboBox;
 }
 
 /**

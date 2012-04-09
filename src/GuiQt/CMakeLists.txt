@@ -60,7 +60,7 @@ PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SpecFileDialog.h
-StructureSelectionControl.h
+StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
@@ -138,7 +138,7 @@ PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SpecFileDialog.h
-StructureSelectionControl.h
+StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
@@ -213,7 +213,7 @@ PlotMagnifier.cxx
 PlotPanner.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SpecFileDialog.cxx
-StructureSelectionControl.cxx
+StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx

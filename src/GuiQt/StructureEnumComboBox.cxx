@@ -23,16 +23,16 @@
  * 
  */ 
 
-#define __STRUCTURE_SELECTION_CONTROL_DECLARE__
-#include "StructureSelectionControl.h"
-#undef __STRUCTURE_SELECTION_CONTROL_DECLARE__
+#define __STRUCTURE_ENUM_COMBOBOX_DECLARE__
+#include "StructureEnumComboBox.h"
+#undef __STRUCTURE_ENUM_COMBOBOX_DECLARE__
 
 using namespace caret;
 
 
     
 /**
- * \class StructureSelectionControl 
+ * \class StructureEnumComboBox 
  * \brief Control for selection of a structure.
  */
 
@@ -41,7 +41,7 @@ using namespace caret;
  * @param parent
  *   The parent.
  */
-StructureSelectionControl::StructureSelectionControl(QObject* parent)
+StructureEnumComboBox::StructureEnumComboBox(QObject* parent)
 : QObject(parent)
 {
     std::vector<StructureEnum::Enum> allStructures;
@@ -62,7 +62,7 @@ StructureSelectionControl::StructureSelectionControl(QObject* parent)
 /**
  * Destructor.
  */
-StructureSelectionControl::~StructureSelectionControl()
+StructureEnumComboBox::~StructureEnumComboBox()
 {
     
 }
@@ -73,7 +73,7 @@ StructureSelectionControl::~StructureSelectionControl()
  *    New value for structure.
  */
 void 
-StructureSelectionControl::setSelectedStructure(const StructureEnum::Enum structure)
+StructureEnumComboBox::setSelectedStructure(const StructureEnum::Enum structure)
 {
     const int32_t structureIntegerCode = StructureEnum::toIntegerCode(structure);
     
@@ -98,7 +98,7 @@ StructureSelectionControl::setSelectedStructure(const StructureEnum::Enum struct
  * @return  The selected structure.
  */
 StructureEnum::Enum 
-StructureSelectionControl::getSelectedStructure() const
+StructureEnumComboBox::getSelectedStructure() const
 {
     StructureEnum::Enum structure = StructureEnum::INVALID;
     const int32_t indx = this->structureComboBox->currentIndex();
@@ -113,7 +113,7 @@ StructureSelectionControl::getSelectedStructure() const
  * @return The widget for this control.
  */
 QWidget* 
-StructureSelectionControl::getWidget()
+StructureEnumComboBox::getWidget()
 {
     return this->structureComboBox;
 }
@@ -124,7 +124,7 @@ StructureSelectionControl::getWidget()
  *   Index of selection.
  */
 void 
-StructureSelectionControl::structureComboBoxSelection(int indx)
+StructureEnumComboBox::structureComboBoxSelection(int indx)
 {
     if (this->signalsBlocked() == false) {
         const int32_t integerCode = this->structureComboBox->itemData(indx).toInt();

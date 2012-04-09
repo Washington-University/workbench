@@ -1,5 +1,5 @@
-#ifndef __STRUCTURE_SELECTION_CONTROL__H_
-#define __STRUCTURE_SELECTION_CONTROL__H_
+#ifndef __STRUCTURE_ENUM_COMBOBOX__H_
+#define __STRUCTURE_ENUM_COMBOBOX__H_
 
 /*LICENSE_START*/
 /* 
@@ -34,14 +34,14 @@ namespace caret {
 
     class Surface;
     
-    class StructureSelectionControl : public QObject {
+    class StructureEnumComboBox : public QObject {
         
         Q_OBJECT
 
     public:
-        StructureSelectionControl(QObject* parent);
+        StructureEnumComboBox(QObject* parent);
         
-        virtual ~StructureSelectionControl();
+        virtual ~StructureEnumComboBox();
         
         StructureEnum::Enum getSelectedStructure() const;
         
@@ -57,9 +57,9 @@ namespace caret {
         void structureComboBoxSelection(int);
         
     private:
-        StructureSelectionControl(const StructureSelectionControl&);
+        StructureEnumComboBox(const StructureEnumComboBox&);
 
-        StructureSelectionControl& operator=(const StructureSelectionControl&);
+        StructureEnumComboBox& operator=(const StructureEnumComboBox&);
         
         QComboBox* structureComboBox;
         
@@ -67,9 +67,9 @@ namespace caret {
     private:
     };
     
-#ifdef __STRUCTURE_SELECTION_CONTROL_DECLARE__
+#ifdef __STRUCTURE_ENUM_COMBOBOX_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __STRUCTURE_SELECTION_CONTROL_DECLARE__
+#endif // __STRUCTURE_ENUM_COMBOBOX_DECLARE__
 
 } // namespace
-#endif  //__STRUCTURE_SELECTION_CONTROL__H_
+#endif  //__STRUCTURE_ENUM_COMBOBOX__H_

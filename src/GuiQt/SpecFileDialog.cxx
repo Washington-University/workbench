@@ -53,7 +53,7 @@
 #include "SpecFileDataFile.h"
 #include "SpecFileDataFileTypeGroup.h"
 #include "StructureEnum.h"
-#include "StructureSelectionControl.h"
+#include "StructureEnumComboBox.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -435,14 +435,14 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
         gridLayout->addWidget(dfi->selectionCheckBox, iRow, COLUMN_CHECKBOX);
         gridLayout->addWidget(dfi->metadataToolButton, iRow, COLUMN_METADATA);
         gridLayout->addWidget(dfi->removeToolButton, iRow, COLUMN_REMOVE);
-        gridLayout->addWidget(dfi->structureSelectionControl->getWidget(), iRow, COLUMN_STRUCTURE);
+        gridLayout->addWidget(dfi->structureEnumComboBox->getWidget(), iRow, COLUMN_STRUCTURE);
         gridLayout->addWidget(dfi->nameLabel, iRow, COLUMN_NAME);
         
         switch (this->mode) {
             case MODE_FAST_OPEN:
                 dfi->selectionCheckBox->setVisible(false);
                 dfi->removeToolButton->setVisible(false);
-                dfi->structureSelectionControl->getWidget()->blockSignals(true); // do not allow spec to change
+                dfi->structureEnumComboBox->getWidget()->blockSignals(true); // do not allow spec to change
                 QObject::connect(dfi, SIGNAL(signalFileWasLoaded()),
                                  this, SLOT(fastOpenDataFileWasLoaded()));
                 break;
@@ -587,13 +587,13 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     this->removeToolButton = new QToolButton();
     this->removeToolButton->setDefaultAction(this->removeAction);
     
-    this->structureSelectionControl = new StructureSelectionControl(this);
-    this->structureSelectionControl->setSelectedStructure(dataFileInfo->getStructure());
-    QObject::connect(this->structureSelectionControl, SIGNAL(structureSelected(const StructureEnum::Enum)),
+    this->structureEnumComboBox = new StructureEnumComboBox(this);
+    this->structureEnumComboBox->setSelectedStructure(dataFileInfo->getStructure());
+    QObject::connect(this->structureEnumComboBox, SIGNAL(structureSelected(const StructureEnum::Enum)),
                      this, SLOT(structureSelectionChanged(const StructureEnum::Enum)));
     if (isStructureFile == false) {
-        this->structureSelectionControl->getWidget()->setVisible(false);
-        this->structureSelectionControl->getWidget()->blockSignals(true);
+        this->structureEnumComboBox->getWidget()->setVisible(false);
+        this->structureEnumComboBox->getWidget()->blockSignals(true);
     }
     
     this->nameLabel = new QLabel(dataFileInfo->getFileName());
@@ -602,7 +602,7 @@ GuiSpecDataFileInfo::GuiSpecDataFileInfo(QObject* parent,
     this->widgetGroup->add(this->selectionCheckBox);
     this->widgetGroup->add(this->metadataToolButton);
     if (isStructureFile) {
-        this->widgetGroup->add(this->structureSelectionControl->getWidget());
+        this->widgetGroup->add(this->structureEnumComboBox->getWidget());
     }
     this->widgetGroup->add(this->nameLabel);
 }
@@ -625,7 +625,7 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
     const AString name = this->dataFileInfo->getFileName();
     bool isValidType = false;
     DataFileTypeEnum::Enum fileType = DataFileTypeEnum::fromFileExtension(name, &isValidType);
-    StructureEnum::Enum structure = this->structureSelectionControl->getSelectedStructure();
+    StructureEnum::Enum structure = this->structureEnumComboBox->getSelectedStructure();
     if (isValidType) {
         EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
                                         structure,

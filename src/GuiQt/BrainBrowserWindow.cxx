@@ -61,7 +61,7 @@
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
-#include "StructureSelectionControl.h"
+#include "StructureEnumComboBox.h"
 #include "Surface.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
@@ -1168,7 +1168,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                         
                         WuQDataEntryDialog ded("Structure",
                                                this);
-                        StructureSelectionControl* ssc = ded.addStructureSelectionControl("");
+                        StructureEnumComboBox* ssc = ded.addStructureEnumComboBox("");
                         ded.setTextAtTop(("File \""
                                           + FileInformation(name).getFileName()
                                           + "\"\nhas missing or invalid structure, select it's structure."
