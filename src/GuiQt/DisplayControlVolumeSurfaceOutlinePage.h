@@ -37,7 +37,7 @@ class QDoubleSpinBox;
 
 namespace caret {
     class OutlineWidget;
-    class SurfaceSelectionControl;
+    class SurfaceSelectionViewController;
     class VolumeSurfaceOutlineColorOrTabViewController;
     
     class DisplayControlVolumeSurfaceOutlinePage : public MultiPageDialogPage, public EventListenerInterface {
@@ -89,7 +89,7 @@ namespace caret {
         
         QDoubleSpinBox* thicknessSpinBox;
         
-        SurfaceSelectionControl* surfaceSelectionControl;
+        SurfaceSelectionViewController* surfaceSelectionViewController;
         
         friend class DisplayControlVolumeSurfaceOutlinePage;
         

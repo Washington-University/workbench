@@ -24,13 +24,13 @@
  */ 
 
 #define __SURFACE_SELECTION_CONTROL_DECLARE__
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #undef __SURFACE_SELECTION_CONTROL_DECLARE__
 
 #include <QComboBox>
 
 #include "Surface.h"
-#include "SurfaceSelection.h"
+#include "SurfaceSelectionModel.h"
 
 using namespace caret;
 
@@ -49,11 +49,11 @@ using namespace caret;
  * @param surfaceSelection
  *    Surface selection that is controlled through this control.
  */
-SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
-                                                 SurfaceSelection* surfaceSelection)
+SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
+                                                 SurfaceSelectionModel* surfaceSelectionModel)
 : QObject(parent)
 {
-    this->initializeControl(surfaceSelection);
+    this->initializeControl(surfaceSelectionModel);
     this->thisInstanceOwnsSurfaceSelection = false;
 }
 
@@ -64,11 +64,11 @@ SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
  * @param brainStructure
  *   Allows selection of any surface with the specified brain structure.
  */
-SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
+SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                  BrainStructure* brainStructure)
 : QObject(parent)
 {
-    SurfaceSelection* ss = new SurfaceSelection(brainStructure);
+    SurfaceSelectionModel* ss = new SurfaceSelectionModel(brainStructure);
     this->initializeControl(ss);
     this->thisInstanceOwnsSurfaceSelection = true;
 }
@@ -77,21 +77,21 @@ SurfaceSelectionControl::SurfaceSelectionControl(QObject* parent,
  * Help initialize an instance.
  */
 void 
-SurfaceSelectionControl::initializeControl(SurfaceSelection* surfaceSelection)
+SurfaceSelectionViewController::initializeControl(SurfaceSelectionModel* surfaceSelectionModel)
 {
     this->surfaceComboBox = new QComboBox();
     QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(comboBoxCurrentIndexChanged(int)));
-    this->surfaceSelection = surfaceSelection;
+    this->surfaceSelectionModel = surfaceSelectionModel;
 }
 
 /**
  * Destructor.
  */
-SurfaceSelectionControl::~SurfaceSelectionControl()
+SurfaceSelectionViewController::~SurfaceSelectionViewController()
 {
     if (this->thisInstanceOwnsSurfaceSelection) {
-        delete this->surfaceSelection;
+        delete this->surfaceSelectionModel;
     }
 }
 
@@ -99,10 +99,10 @@ SurfaceSelectionControl::~SurfaceSelectionControl()
  * Update the control.
  */
 void 
-SurfaceSelectionControl::updateControl()
+SurfaceSelectionViewController::updateControl()
 {
-    std::vector<Surface*> surfaces = this->surfaceSelection->getAvailableSurfaces();
-    const Surface* selectedSurface = this->surfaceSelection->getSurface();
+    std::vector<Surface*> surfaces = this->surfaceSelectionModel->getAvailableSurfaces();
+    const Surface* selectedSurface = this->surfaceSelectionModel->getSurface();
     
     this->surfaceComboBox->blockSignals(true);
 
@@ -131,7 +131,7 @@ SurfaceSelectionControl::updateControl()
  * @return the actual widget.
  */
 QWidget* 
-SurfaceSelectionControl::getWidget()
+SurfaceSelectionViewController::getWidget()
 {
     return this->surfaceComboBox;
 }
@@ -140,9 +140,9 @@ SurfaceSelectionControl::getWidget()
  * @return the selected surface.
  */
 Surface* 
-SurfaceSelectionControl::getSurface()
+SurfaceSelectionViewController::getSurface()
 {
-    return this->surfaceSelection->getSurface();
+    return this->surfaceSelectionModel->getSurface();
 }
 
 /**
@@ -151,9 +151,9 @@ SurfaceSelectionControl::getSurface()
  *    The selected surface.
  */
 void 
-SurfaceSelectionControl::setSurface(Surface* surface)
+SurfaceSelectionViewController::setSurface(Surface* surface)
 {
-    this->surfaceSelection->setSurface(surface);
+    this->surfaceSelectionModel->setSurface(surface);
     
     this->updateControl();
 }
@@ -164,11 +164,11 @@ SurfaceSelectionControl::setSurface(Surface* surface)
  *    Index of item that was selected.
  */
 void 
-SurfaceSelectionControl::comboBoxCurrentIndexChanged(int indx)
+SurfaceSelectionViewController::comboBoxCurrentIndexChanged(int indx)
 {
     void* pointer = this->surfaceComboBox->itemData(indx).value<void*>();
     Surface* s = (Surface*)pointer;
-    this->surfaceSelection->setSurface(s);
+    this->surfaceSelectionModel->setSurface(s);
     
     emit surfaceSelected(s);
 }

@@ -41,7 +41,7 @@
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
 #include "VolumeSurfaceOutlineSelection.h"
 
@@ -145,7 +145,7 @@ DisplayControlVolumeSurfaceOutlinePage::createPageContent()
         layout->addWidget(outlineWidget->selectionCheckBox, row, COLUMN_SHOW);
         layout->addWidget(outlineWidget->colorOrTabSelectionControl->getWidget(), row, COLUMN_COLOR);
         layout->addWidget(outlineWidget->thicknessSpinBox, row, COLUMN_THICKNESS);
-        layout->addWidget(outlineWidget->surfaceSelectionControl->getWidget(), row, COLUMN_SURFACE);
+        layout->addWidget(outlineWidget->surfaceSelectionViewController->getWidget(), row, COLUMN_SURFACE);
         
     }
     
@@ -221,9 +221,9 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->thicknessSpinBox, 
                           true);
     
-    this->surfaceSelectionControl = new SurfaceSelectionControl(parentPage,
-                                                                vsos->getSurfaceSelection());
-    parentPage->addWidget(this->surfaceSelectionControl, 
+    this->surfaceSelectionViewController = new SurfaceSelectionViewController(parentPage,
+                                                                vsos->getSurfaceSelectionModel());
+    parentPage->addWidget(this->surfaceSelectionViewController, 
                           true);
     
 }
@@ -263,6 +263,6 @@ OutlineWidget::updateWidget()
     this->selectionCheckBox->setChecked(vsos->isDisplayed());
     this->colorOrTabSelectionControl->updateViewController();
     this->thicknessSpinBox->setValue(vsos->getThickness());
-    this->surfaceSelectionControl->updateControl();
+    this->surfaceSelectionViewController->updateControl();
 }
 

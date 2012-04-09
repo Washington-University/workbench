@@ -63,7 +63,7 @@
 #include "SpecFileDialog.h"
 #include "StructureSelectionControl.h"
 #include "Surface.h"
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -710,11 +710,11 @@ BrainBrowserWindow::processSurfaceMenuVolumeInteraction()
     
     WuQDataEntryDialog ded("Volume Interaction Surfaces",
                            this);
-    std::vector<SurfaceSelectionControl*> surfaceSelectionControls;
+    std::vector<SurfaceSelectionViewController*> surfaceSelectionControls;
     for (int32_t i = 0; i < numBrainStructures; i++) {
         BrainStructure* bs = brain->getBrainStructure(i);
-        SurfaceSelectionControl* ssc = ded.addSurfaceSelectionControl(StructureEnum::toGuiName(bs->getStructure()), 
-                                                                      bs);
+        SurfaceSelectionViewController* ssc = ded.addSurfaceSelectionViewController(StructureEnum::toGuiName(bs->getStructure()), 
+                                                                                    bs);
         ssc->setSurface(bs->getVolumeInteractionSurface());
         surfaceSelectionControls.push_back(ssc);
     }

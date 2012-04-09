@@ -35,7 +35,7 @@
 #include "CaretColorEnumSelectionControl.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
 
 #include "CaretAssert.h"
@@ -177,8 +177,8 @@ MultiPageDialogPage::addWidget(QObject* widget,
                              this, SLOT(applyPage()));
         }
     }
-    else if (dynamic_cast<SurfaceSelectionControl*>(widget) != NULL) {
-        SurfaceSelectionControl* ss = dynamic_cast<SurfaceSelectionControl*>(widget);
+    else if (dynamic_cast<SurfaceSelectionViewController*>(widget) != NULL) {
+        SurfaceSelectionViewController* ss = dynamic_cast<SurfaceSelectionViewController*>(widget);
         if (isValueChangedSignalConnectedToApplyPage) {
             QObject::connect(ss, SIGNAL(surfaceSelected(Surface*)),
                              this, SLOT(applyPage()));

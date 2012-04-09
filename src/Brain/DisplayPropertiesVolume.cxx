@@ -37,7 +37,7 @@
 #include "ModelDisplayControllerSurface.h"
 #include "StructureEnum.h"
 #include "Surface.h"
-#include "SurfaceSelection.h"
+#include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineSelection.h"
@@ -279,7 +279,7 @@ DisplayPropertiesVolume::addSurfaceOutline(Surface* surface,
         if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
             if (outlineIndex < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES) {
                 VolumeSurfaceOutlineSelection* vsos = this->volumeSurfaceOutlineSelections[outlineIndex];
-                vsos->getSurfaceSelection()->setSurface(surface);
+                vsos->getSurfaceSelectionModel()->setSurface(surface);
                 vsos->setThickness(thickness);
                 if (browserTabIndex >= 0) {
                     vsos->getColorOrTabModel()->setBrowserTabIndex(browserTabIndex);

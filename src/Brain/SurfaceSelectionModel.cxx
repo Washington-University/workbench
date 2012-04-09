@@ -25,9 +25,9 @@
 
 #include <algorithm>
 
-#define __SURFACE_SELECTION_DECLARE__
-#include "SurfaceSelection.h"
-#undef __SURFACE_SELECTION_DECLARE__
+#define __SURFACE_SELECTION_MODEL_DECLARE__
+#include "SurfaceSelectionModel.h"
+#undef __SURFACE_SELECTION_MODEL_DECLARE__
 
 #include "BrainStructure.h"
 #include "EventManager.h"
@@ -49,7 +49,7 @@ using namespace caret;
 /**
  * Constructor for surfaces in any structure.
  */
-SurfaceSelection::SurfaceSelection()
+SurfaceSelectionModel::SurfaceSelectionModel()
 : CaretObject()
 {
     this->mode = MODE_STRUCTURE;
@@ -60,7 +60,7 @@ SurfaceSelection::SurfaceSelection()
  * @param structure
  *   Limit to surfaces from this structure.
  */
-SurfaceSelection::SurfaceSelection(const StructureEnum::Enum structure)
+SurfaceSelectionModel::SurfaceSelectionModel(const StructureEnum::Enum structure)
 : CaretObject()
 {
     this->allowableStructures.push_back(structure);
@@ -75,7 +75,7 @@ SurfaceSelection::SurfaceSelection(const StructureEnum::Enum structure)
  * @param brainStructure
  *   Only surfaces in brain structure are available.
  */
-SurfaceSelection::SurfaceSelection(BrainStructure* brainStructure)
+SurfaceSelectionModel::SurfaceSelectionModel(BrainStructure* brainStructure)
 {
     this->brainStructure = brainStructure;
     this->mode = MODE_BRAIN_STRUCTURE;
@@ -86,7 +86,7 @@ SurfaceSelection::SurfaceSelection(BrainStructure* brainStructure)
  * @param surfaceType
  *   Limit to surfaces from this of these types.
  */
-SurfaceSelection::SurfaceSelection(const SurfaceTypeEnum::Enum surfaceType)
+SurfaceSelectionModel::SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType)
 {
     this->allowableSurfaceTypes.push_back(surfaceType);
     this->mode = MODE_SURFACE_TYPE;
@@ -95,7 +95,7 @@ SurfaceSelection::SurfaceSelection(const SurfaceTypeEnum::Enum surfaceType)
 /**
  * Destructor.
  */
-SurfaceSelection::~SurfaceSelection()
+SurfaceSelectionModel::~SurfaceSelectionModel()
 {
     
 }
@@ -104,7 +104,7 @@ SurfaceSelection::~SurfaceSelection()
  * @return The selected surface (NULL if none)
  */
 Surface* 
-SurfaceSelection::getSurface()
+SurfaceSelectionModel::getSurface()
 {
     this->updateSelection();
     return this->selectedSurface;
@@ -114,7 +114,7 @@ SurfaceSelection::getSurface()
  * @return The selected surface (NULL if none)
  */
 const Surface* 
-SurfaceSelection::getSurface() const
+SurfaceSelectionModel::getSurface() const
 {
     this->updateSelection();
     return this->selectedSurface;
@@ -126,7 +126,7 @@ SurfaceSelection::getSurface() const
  *   New seleted surface.
  */
 void 
-SurfaceSelection::setSurface(Surface* surface)
+SurfaceSelectionModel::setSurface(Surface* surface)
 {
     this->selectedSurface = surface;
 }
@@ -136,7 +136,7 @@ SurfaceSelection::setSurface(Surface* surface)
  * for selection.
  */
 std::vector<Surface*> 
-SurfaceSelection::getAvailableSurfaces() const
+SurfaceSelectionModel::getAvailableSurfaces() const
 {
     std::vector<Surface*> surfaces;
     
@@ -188,7 +188,7 @@ SurfaceSelection::getAvailableSurfaces() const
  * Update the selected surface.
  */
 void 
-SurfaceSelection::updateSelection() const
+SurfaceSelectionModel::updateSelection() const
 {
     std::vector<Surface*> surfaces = this->getAvailableSurfaces();
     

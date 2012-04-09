@@ -31,7 +31,7 @@
 
 namespace caret {
 
-    class SurfaceSelection;
+    class SurfaceSelectionModel;
     
     /// Controls the display of a surface montage
     class ModelDisplayControllerSurfaceMontage : public ModelDisplayController, public EventListenerInterface  {
@@ -51,13 +51,13 @@ namespace caret {
         
         void initializeOverlays();
         
-        SurfaceSelection* getLeftSurfaceSelection();
+        SurfaceSelectionModel* getLeftSurfaceSelectionModel();
         
-        SurfaceSelection* getLeftSecondSurfaceSelection();
+        SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel();
         
-        SurfaceSelection* getRightSurfaceSelection();
+        SurfaceSelectionModel* getRightSurfaceSelectionModel();
         
-        SurfaceSelection* getRightSecondSurfaceSelection();
+        SurfaceSelectionModel* getRightSecondSurfaceSelectionModel();
         
         AString getNameForGUI(const bool includeStructureFlag) const;
         
@@ -76,13 +76,13 @@ namespace caret {
         
         void initializeMembersModelDisplayControllerSurfaceMontage();
 
-        SurfaceSelection* leftSurfaceSelection;
+        SurfaceSelectionModel* leftSurfaceSelectionModel;
         
-        SurfaceSelection* leftSecondSurfaceSelection;
+        SurfaceSelectionModel* leftSecondSurfaceSelectionModel;
         
-        SurfaceSelection* rightSurfaceSelection;
+        SurfaceSelectionModel* rightSurfaceSelectionModel;
         
-        SurfaceSelection* rightSecondSurfaceSelection;
+        SurfaceSelectionModel* rightSecondSurfaceSelectionModel;
         
         bool dualConfigurationEnabled;
     };

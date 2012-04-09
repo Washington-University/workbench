@@ -103,7 +103,7 @@ OverlaySet.h
 SessionManager.h
 SphereOpenGL.h
 Surface.h
-SurfaceSelection.h
+SurfaceSelectionModel.h
 SurfaceNodeColoring.h
 VolumeSliceCoordinateSelection.h
 VolumeSliceViewModeEnum.h
@@ -167,7 +167,7 @@ OverlaySet.cxx
 SessionManager.cxx
 SphereOpenGL.cxx
 Surface.cxx
-SurfaceSelection.cxx
+SurfaceSelectionModel.cxx
 SurfaceNodeColoring.cxx
 VolumeSliceCoordinateSelection.cxx
 VolumeSliceViewModeEnum.cxx

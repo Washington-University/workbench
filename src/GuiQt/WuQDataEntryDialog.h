@@ -47,7 +47,7 @@ class QTextEdit;
 namespace caret {
     class BrainStructure;
     class StructureSelectionControl;
-    class SurfaceSelectionControl;
+    class SurfaceSelectionViewController;
     
     /// class for a modal data entry dialog
     class WuQDataEntryDialog : public WuQDialogModal {
@@ -120,7 +120,7 @@ namespace caret {
                                                                 const StructureEnum::Enum defaultStructure = StructureEnum::INVALID);
         
         
-        SurfaceSelectionControl* addSurfaceSelectionControl(const QString& labelText,
+        SurfaceSelectionViewController* addSurfaceSelectionViewController(const QString& labelText,
                                                             BrainStructure* brainStructure);
         
         // set text at top of dialog 
@@ -147,7 +147,7 @@ namespace caret {
         QButtonGroup* radioButtonGroup;
         
         std::vector<StructureSelectionControl*> structureSelectionControlsToDelete;
-        std::vector<SurfaceSelectionControl*> surfaceSelectionControlsToDelete;
+        std::vector<SurfaceSelectionViewController*> surfaceSelectionViewControllersToDelete;
     };
 } // namespace
 

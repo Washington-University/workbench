@@ -38,7 +38,7 @@
 #include <QSpinBox>
 #include <QTextEdit>
 #include "StructureSelectionControl.h"
-#include "SurfaceSelectionControl.h"
+#include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
 
 using namespace caret;
@@ -91,8 +91,8 @@ WuQDataEntryDialog::~WuQDataEntryDialog()
          iter++) {
         delete *iter;
     }
-    for (std::vector<SurfaceSelectionControl*>::iterator iter = this->surfaceSelectionControlsToDelete.begin();
-         iter != this->surfaceSelectionControlsToDelete.end();
+    for (std::vector<SurfaceSelectionViewController*>::iterator iter = this->surfaceSelectionViewControllersToDelete.begin();
+         iter != this->surfaceSelectionViewControllersToDelete.end();
          iter++) {
         delete *iter;
     }
@@ -428,19 +428,19 @@ WuQDataEntryDialog::addStructureSelectionControl(const QString& labelText,
 /**
  * Add a surface selection control
  */
-SurfaceSelectionControl* 
-WuQDataEntryDialog::addSurfaceSelectionControl(const QString& labelText,
+SurfaceSelectionViewController* 
+WuQDataEntryDialog::addSurfaceSelectionViewController(const QString& labelText,
                                                BrainStructure* brainStructure)
 {
-    SurfaceSelectionControl* surfaceSelectionControl =
-    new SurfaceSelectionControl(this,
+    SurfaceSelectionViewController* surfaceSelectionViewController =
+    new SurfaceSelectionViewController(this,
                                 brainStructure);
     
     this->addWidget(labelText,
-                    surfaceSelectionControl->getWidget());
-    this->surfaceSelectionControlsToDelete.push_back(surfaceSelectionControl);
+                    surfaceSelectionViewController->getWidget());
+    this->surfaceSelectionViewControllersToDelete.push_back(surfaceSelectionViewController);
     
-    return surfaceSelectionControl;
+    return surfaceSelectionViewController;
 }
 
 

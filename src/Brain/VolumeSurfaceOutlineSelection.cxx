@@ -27,7 +27,7 @@
 #include "VolumeSurfaceOutlineSelection.h"
 #undef __VOLUME_SURFACE_OUTLINE_SELECTION_DECLARE__
 
-#include "SurfaceSelection.h"
+#include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 
@@ -49,7 +49,7 @@ VolumeSurfaceOutlineSelection::VolumeSurfaceOutlineSelection()
 {
     this->displayed = false;
     this->thickness = 5.0;
-    this->surfaceSelection = new SurfaceSelection(SurfaceTypeEnum::ANATOMICAL);
+    this->surfaceSelectionModel = new SurfaceSelectionModel(SurfaceTypeEnum::ANATOMICAL);
     this->colorOrTabModel = new VolumeSurfaceOutlineColorOrTabModel();
 }
 
@@ -58,7 +58,7 @@ VolumeSurfaceOutlineSelection::VolumeSurfaceOutlineSelection()
  */
 VolumeSurfaceOutlineSelection::~VolumeSurfaceOutlineSelection()
 {
-    delete this->surfaceSelection;
+    delete this->surfaceSelectionModel;
     delete this->colorOrTabModel;
 }
 
@@ -115,10 +115,10 @@ VolumeSurfaceOutlineSelection::setThickness(const float thickness)
 /**
  * @return  The surface selector used to select the surface.
  */
-SurfaceSelection* 
-VolumeSurfaceOutlineSelection::getSurfaceSelection()
+SurfaceSelectionModel* 
+VolumeSurfaceOutlineSelection::getSurfaceSelectionModel()
 {
-    return this->surfaceSelection;
+    return this->surfaceSelectionModel;
 }
 
 /**
@@ -127,7 +127,7 @@ VolumeSurfaceOutlineSelection::getSurfaceSelection()
 const Surface* 
 VolumeSurfaceOutlineSelection::getSurface() const
 {
-    return this->surfaceSelection->getSurface();
+    return this->surfaceSelectionModel->getSurface();
 }
 
 /**
@@ -136,7 +136,7 @@ VolumeSurfaceOutlineSelection::getSurface() const
 Surface* 
 VolumeSurfaceOutlineSelection::getSurface()
 {
-    return this->surfaceSelection->getSurface();
+    return this->surfaceSelectionModel->getSurface();
 }
 
 /**

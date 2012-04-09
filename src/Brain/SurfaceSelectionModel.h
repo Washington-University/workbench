@@ -1,5 +1,5 @@
-#ifndef __SURFACE_SELECTION__H_
-#define __SURFACE_SELECTION__H_
+#ifndef __SURFACE_SELECTION_MODEL_H__
+#define __SURFACE_SELECTION_MODEL_H__
 
 /*LICENSE_START*/
 /* 
@@ -36,18 +36,18 @@ namespace caret {
     class BrainStructure;
     class Surface;
     
-    class SurfaceSelection : public CaretObject {
+    class SurfaceSelectionModel : public CaretObject {
         
     public:
-        SurfaceSelection();
+        SurfaceSelectionModel();
         
-        SurfaceSelection(const StructureEnum::Enum structure);
+        SurfaceSelectionModel(const StructureEnum::Enum structure);
         
-        SurfaceSelection(BrainStructure* brainStructure);
+        SurfaceSelectionModel(BrainStructure* brainStructure);
         
-        SurfaceSelection(const SurfaceTypeEnum::Enum surfaceType);
+        SurfaceSelectionModel(const SurfaceTypeEnum::Enum surfaceType);
         
-        virtual ~SurfaceSelection();
+        virtual ~SurfaceSelectionModel();
         
         Surface* getSurface();
         
@@ -64,9 +64,9 @@ namespace caret {
             MODE_SURFACE_TYPE
         };
         
-        SurfaceSelection(const SurfaceSelection&);
+        SurfaceSelectionModel(const SurfaceSelectionModel&);
 
-        SurfaceSelection& operator=(const SurfaceSelection&);
+        SurfaceSelectionModel& operator=(const SurfaceSelectionModel&);
         
         void updateSelection() const;
         
@@ -83,9 +83,9 @@ namespace caret {
         std::vector<SurfaceTypeEnum::Enum> allowableSurfaceTypes;
     };
     
-#ifdef __SURFACE_SELECTION_DECLARE__
+#ifdef __SURFACE_SELECTION_MODEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __SURFACE_SELECTION_DECLARE__
+#endif // __SURFACE_SELECTION_MODEL_DECLARE__
 
 } // namespace
-#endif  //__SURFACE_SELECTION__H_
+#endif  //__SURFACE_SELECTION_MODEL_H__

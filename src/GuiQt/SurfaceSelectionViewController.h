@@ -33,20 +33,20 @@ class QComboBox;
 namespace caret {
     class BrainStructure;
     class Surface;
-    class SurfaceSelection;
+    class SurfaceSelectionModel;
 
-    class SurfaceSelectionControl : public QObject {
+    class SurfaceSelectionViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        SurfaceSelectionControl(QObject* parent,
-                                SurfaceSelection* surfaceSelection);
+        SurfaceSelectionViewController(QObject* parent,
+                                SurfaceSelectionModel* surfaceSelectionModel);
         
-        SurfaceSelectionControl(QObject* parent,
+        SurfaceSelectionViewController(QObject* parent,
                                 BrainStructure* brainStructure);
         
-        virtual ~SurfaceSelectionControl();
+        virtual ~SurfaceSelectionViewController();
         
         QWidget* getWidget();
         
@@ -64,14 +64,14 @@ namespace caret {
         void comboBoxCurrentIndexChanged(int);
         
     private:
-        SurfaceSelectionControl(const SurfaceSelectionControl&);
+        SurfaceSelectionViewController(const SurfaceSelectionViewController&);
 
-        SurfaceSelectionControl& operator=(const SurfaceSelectionControl&);
+        SurfaceSelectionViewController& operator=(const SurfaceSelectionViewController&);
         
     private:
-        void initializeControl(SurfaceSelection* surfaceSelection);
+        void initializeControl(SurfaceSelectionModel* surfaceSelectionModel);
         
-        SurfaceSelection* surfaceSelection;
+        SurfaceSelectionModel* surfaceSelectionModel;
         
         QComboBox* surfaceComboBox;
         

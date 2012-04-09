@@ -62,7 +62,7 @@ RegionOfInterestCreateFromBorderDialog.h
 SpecFileDialog.h
 StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
-SurfaceSelectionControl.h
+SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
@@ -140,7 +140,7 @@ RegionOfInterestCreateFromBorderDialog.h
 SpecFileDialog.h
 StructureSelectionControl.h
 StructureSurfaceSelectionControl.h
-SurfaceSelectionControl.h
+SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBorders.h
@@ -215,7 +215,7 @@ RegionOfInterestCreateFromBorderDialog.cxx
 SpecFileDialog.cxx
 StructureSelectionControl.cxx
 StructureSurfaceSelectionControl.cxx
-SurfaceSelectionControl.cxx
+SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx
 TimeSeriesManager.cxx
 UserInputModeBorders.cxx

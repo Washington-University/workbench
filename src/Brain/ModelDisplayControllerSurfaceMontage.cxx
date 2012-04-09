@@ -36,7 +36,7 @@
 #include "Brain.h"
 #include "BrainOpenGL.h"
 #include "OverlaySet.h"
-#include "SurfaceSelection.h"
+#include "SurfaceSelectionModel.h"
 
 using namespace caret;
 
@@ -63,10 +63,10 @@ ModelDisplayControllerSurfaceMontage::ModelDisplayControllerSurfaceMontage(Brain
 ModelDisplayControllerSurfaceMontage::~ModelDisplayControllerSurfaceMontage()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    delete this->leftSurfaceSelection;
-    delete this->leftSecondSurfaceSelection;
-    delete this->rightSurfaceSelection;
-    delete this->rightSecondSurfaceSelection;
+    delete this->leftSurfaceSelectionModel;
+    delete this->leftSecondSurfaceSelectionModel;
+    delete this->rightSurfaceSelectionModel;
+    delete this->rightSecondSurfaceSelectionModel;
 }
 
 /**
@@ -83,10 +83,10 @@ ModelDisplayControllerSurfaceMontage::receiveEvent(Event* event)
 void
 ModelDisplayControllerSurfaceMontage::initializeMembersModelDisplayControllerSurfaceMontage()
 {
-    this->leftSurfaceSelection = new SurfaceSelection(StructureEnum::CORTEX_LEFT);
-    this->leftSecondSurfaceSelection = new SurfaceSelection(StructureEnum::CORTEX_LEFT);
-    this->rightSurfaceSelection = new SurfaceSelection(StructureEnum::CORTEX_RIGHT);
-    this->rightSecondSurfaceSelection = new SurfaceSelection(StructureEnum::CORTEX_RIGHT);
+    this->leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+    this->leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+    this->rightSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+    this->rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
     this->dualConfigurationEnabled = false;
 }
 
@@ -113,37 +113,37 @@ ModelDisplayControllerSurfaceMontage::setDualConfigurationEnabled(const bool ena
 /**
  * @return the left surface selection in this controller.
  */
-SurfaceSelection*
-ModelDisplayControllerSurfaceMontage::getLeftSurfaceSelection()
+SurfaceSelectionModel*
+ModelDisplayControllerSurfaceMontage::getLeftSurfaceSelectionModel()
 {
-    return this->leftSurfaceSelection;
+    return this->leftSurfaceSelectionModel;
 }
 
 /**
  * @return the left second surface selection in this controller.
  */
-SurfaceSelection*
-ModelDisplayControllerSurfaceMontage::getLeftSecondSurfaceSelection()
+SurfaceSelectionModel*
+ModelDisplayControllerSurfaceMontage::getLeftSecondSurfaceSelectionModel()
 {
-    return this->leftSecondSurfaceSelection;
+    return this->leftSecondSurfaceSelectionModel;
 }
 
 /**
  * @return the right surface selection in this controller.
  */
-SurfaceSelection*
-ModelDisplayControllerSurfaceMontage::getRightSurfaceSelection()
+SurfaceSelectionModel*
+ModelDisplayControllerSurfaceMontage::getRightSurfaceSelectionModel()
 {
-    return this->rightSurfaceSelection;
+    return this->rightSurfaceSelectionModel;
 }
 
 /**
  * @return the right second surface selection in this controller.
  */
-SurfaceSelection*
-ModelDisplayControllerSurfaceMontage::getRightSecondSurfaceSelection()
+SurfaceSelectionModel*
+ModelDisplayControllerSurfaceMontage::getRightSecondSurfaceSelectionModel()
 {
-    return this->rightSecondSurfaceSelection;
+    return this->rightSecondSurfaceSelectionModel;
 }
 
 /**

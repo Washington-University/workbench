@@ -30,7 +30,7 @@
 namespace caret {
 
     class Surface;
-    class SurfaceSelection;
+    class SurfaceSelectionModel;
     class VolumeSurfaceOutlineColorOrTabModel;
     
     class VolumeSurfaceOutlineSelection : public CaretObject {
@@ -48,7 +48,7 @@ namespace caret {
         
         void setThickness(const float thickness);
         
-        SurfaceSelection* getSurfaceSelection();
+        SurfaceSelectionModel* getSurfaceSelectionModel();
         
         const Surface* getSurface() const;
         
@@ -69,7 +69,7 @@ namespace caret {
     private:
         bool displayed;
         float thickness;
-        SurfaceSelection* surfaceSelection;
+        SurfaceSelectionModel* surfaceSelectionModel;
         VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel;
     };
     
