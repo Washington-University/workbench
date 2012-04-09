@@ -75,6 +75,7 @@ WuQDoubleSlider.h
 WuQFileDialog.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
+WuQWidget.h
 WuQWidgetObjectGroup.h
 )
 
@@ -158,6 +159,7 @@ WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
+WuQWidget.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
@@ -231,6 +233,7 @@ WuQDoubleSlider.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
+WuQWidget.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx
 )
