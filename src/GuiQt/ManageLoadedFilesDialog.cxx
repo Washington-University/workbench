@@ -34,6 +34,7 @@
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventSurfaceColoringInvalidate.h"
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
 #include "WuQMessageBox.h"
@@ -238,6 +239,7 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 void 
 ManageLoadedFilesDialog::updateUserInterfaceAndGraphics()
 {
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
@@ -383,6 +385,7 @@ ManageFileRow::fileNameToolButtonPressed()
     if (filename.isEmpty() == false) {
         this->fileNameLineEdit->setText(filename);
     }
+    this->parentWidget->updateUserInterfaceAndGraphics();
 }
 
 /**
