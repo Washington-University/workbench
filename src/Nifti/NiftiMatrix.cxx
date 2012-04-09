@@ -29,6 +29,8 @@
 #else //not CARET_OS_WINDOWS
 #include <unistd.h>
 #endif //ifdef CARET_OS_WINDOWS
+#include <limits>
+using namespace std;
 
 using namespace caret;
 
@@ -286,8 +288,27 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size)
 {
     if(isCompressed())
     {
-        gzseek(zFile,matrixStartOffset, 0);
-        gzread(zFile,bytes,size);
+        if (gzseek(zFile,matrixStartOffset, 0) != matrixStartOffset)
+        {
+            throw NiftiException("failed to seek in file");
+        }
+        int64_t chunk_size = size;
+        if (chunk_size > numeric_limits<unsigned int>::max())
+        {
+            chunk_size = numeric_limits<unsigned int>::max();
+        }
+        int64_t total = 0;
+        while (total < size)
+        {
+            int64_t request = min(chunk_size, size - total);
+            int64_t ret = gzread(zFile,bytes + total,request);
+            if (ret < 1)
+            {
+                throw NiftiException("failed to read bytes");
+            }
+            total += ret;
+        }
+        
     }
     else
     {       
@@ -295,8 +316,26 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size)
         //file->read(bytes,size);
         //QT can't read files over a certain size
         int fh = file->handle();
-        lseek(fh,matrixStartOffset,0);
-        read(fh,bytes,size);
+        if (lseek(fh,matrixStartOffset,0) != matrixStartOffset)
+        {
+            throw NiftiException("failed to seek in file");
+        }
+        int64_t chunk_size = size;
+        if (chunk_size > SSIZE_MAX)
+        {
+            chunk_size = SSIZE_MAX;
+        }
+        int64_t total = 0;
+        while (total < size)
+        {
+            int64_t request = min(chunk_size, size - total);
+            int64_t ret = read(fh,bytes + total,request);
+            if (ret < 1)
+            {
+                throw NiftiException("failed to read bytes");
+            }
+            total += ret;
+        }
     }
 }
 
@@ -304,16 +343,52 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size)
 {
     if(isCompressed())
     {
-        gzseek(zFile,matrixStartOffset, 0);
-        gzwrite(zFile,bytes,size);
+        if (gzseek(zFile,matrixStartOffset, 0) != matrixStartOffset)
+        {
+            throw NiftiException("failed to seek in file");
+        }
+        int64_t chunk_size = size;
+        if (chunk_size > numeric_limits<unsigned int>::max())
+        {
+            chunk_size = numeric_limits<unsigned int>::max();
+        }
+        int64_t total = 0;
+        while (total < size)
+        {
+            int64_t request = min(chunk_size, size - total);
+            int64_t ret = gzwrite(zFile,bytes + total,request);
+            if (ret < 1)
+            {
+                throw NiftiException("failed to write bytes");
+            }
+            total += ret;
+        }
     }
     else
     {
         //file->seek(matrixStartOffset);
         //file->write(bytes,size);
         int fh = file->handle();
-        lseek(fh,matrixStartOffset,0);
-        write(fh,bytes,size);
+        if (lseek(fh,matrixStartOffset,0) != matrixStartOffset)
+        {
+            throw NiftiException("failed to seek in file");
+        }
+        int64_t chunk_size = size;
+        if (chunk_size > SSIZE_MAX)
+        {
+            chunk_size = SSIZE_MAX;
+        }
+        int64_t total = 0;
+        while (total < size)
+        {
+            int64_t request = min(chunk_size, size - total);
+            int64_t ret = write(fh,bytes + total,request);
+            if (ret < 1)
+            {
+                throw NiftiException("failed to write bytes");
+            }
+            total += ret;
+        }
     }
 }
 
