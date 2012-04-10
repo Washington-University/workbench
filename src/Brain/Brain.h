@@ -47,6 +47,7 @@ namespace caret {
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
+    class ModelDisplayControllerSurfaceMontage;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
     class PaletteFile;
@@ -192,6 +193,8 @@ namespace caret {
         
         void updateWholeBrainController();
         
+        void updateSurfaceMontageController();
+        
         std::vector<BrainStructure*> brainStructures;
         
         std::vector<BorderFile*> borderFiles;
@@ -207,6 +210,8 @@ namespace caret {
         ModelDisplayControllerVolume* volumeSliceController;
         
         ModelDisplayControllerWholeBrain* wholeBrainController;
+        
+        ModelDisplayControllerSurfaceMontage* surfaceMontageController;
         
         ConnectivityLoaderManager* connectivityLoaderManager;
         

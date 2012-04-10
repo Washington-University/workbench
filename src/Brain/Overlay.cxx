@@ -37,6 +37,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "RgbaFile.h"
@@ -63,6 +64,7 @@ Overlay::Overlay(BrainStructure* brainStructure)
     
     this->volumeController  = NULL;
     this->wholeBrainController  = NULL;
+    this->surfaceMontageController = NULL;
     
     this->initializeOverlay(NULL,
                             brainStructure);
@@ -80,6 +82,7 @@ Overlay::Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume)
     
     this->volumeController  = modelDisplayControllerVolume;
     this->wholeBrainController  = NULL;
+    this->surfaceMontageController = NULL;
     
     this->initializeOverlay(this->volumeController,
                             NULL);
@@ -97,8 +100,27 @@ Overlay::Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBr
     
     this->volumeController  = NULL;
     this->wholeBrainController  = modelDisplayControllerWholeBrain;
+    this->surfaceMontageController = NULL;
     
     this->initializeOverlay(this->wholeBrainController,
+                            NULL);
+}
+
+/**
+ * Constructor for surface montage controllers.
+ * @param modelDisplayControllerSurfaceMontage
+ *    Controller that is for surface montage.
+ */
+Overlay::Overlay(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage)
+: CaretObject()
+{
+    CaretAssert(modelDisplayControllerSurfaceMontage);
+    
+    this->volumeController  = NULL;
+    this->wholeBrainController  = NULL;
+    this->surfaceMontageController = modelDisplayControllerSurfaceMontage;
+    
+    this->initializeOverlay(this->surfaceMontageController,
                             NULL);
 }
 
@@ -114,6 +136,7 @@ Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking
     
     this->volumeController  = NULL;
     this->wholeBrainController  = NULL;
+    this->surfaceMontageController = NULL;
     
     this->initializeOverlay(NULL,
                             NULL);
@@ -248,6 +271,7 @@ Overlay::copyData(const Overlay* overlay)
     this->brainStructure = brainStructure;
     this->volumeController  = overlay->volumeController;
     this->wholeBrainController = overlay->wholeBrainController;
+    this->surfaceMontageController = overlay->surfaceMontageController;
     
     this->opacity = overlay->opacity;
     this->enabled = overlay->enabled;
@@ -276,6 +300,9 @@ Overlay::swapData(Overlay* overlay)
     }
     else if (this->wholeBrainController != NULL) {
         swapOverlay = new Overlay(this->wholeBrainController);
+    }
+    else if (this->surfaceMontageController != NULL) {
+        swapOverlay = new Overlay(this->surfaceMontageController);
     }
     else {
         CaretAssertMessage(0, "Unknown overlay type");
@@ -399,6 +426,13 @@ Overlay::getSelectionData(std::vector<CaretMappableDataFile*>& mapFilesOut,
     if (this->wholeBrainController != NULL) {
         showSurfaceMapFiles = true;
         showVolumeMapFiles = true;
+    }
+    
+    /*
+     * If surface montage is selected, show surface files
+     */
+    if (this->surfaceMontageController != NULL) {
+        showSurfaceMapFiles = true;
     }
     
     /*

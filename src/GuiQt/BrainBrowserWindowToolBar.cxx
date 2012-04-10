@@ -75,6 +75,7 @@
 #include "GuiManager.h"
 #include "ModelDisplayController.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
@@ -510,6 +511,7 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     ModelDisplayControllerSurface* cerebellumSurfaceController = NULL;
     int32_t cerebellumSurfaceTypeCode = 1000000;
     
+    ModelDisplayControllerSurfaceMontage* surfaceMontageController = NULL;
     ModelDisplayControllerVolume* volumeController = NULL;
     ModelDisplayControllerWholeBrain* wholeBrainController = NULL;
     
@@ -547,6 +549,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                     break;
             }
         }
+        else if (dynamic_cast<ModelDisplayControllerSurfaceMontage*>(*iter) != NULL) {
+            surfaceMontageController = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(*iter);
+        }
         else if (dynamic_cast<ModelDisplayControllerVolume*>(*iter) != NULL) {
             volumeController = dynamic_cast<ModelDisplayControllerVolume*>(*iter);
         }
@@ -568,6 +573,9 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     if (cerebellumSurfaceController != NULL) {
         numberOfTabsNeeded++;
     }
+    if (surfaceMontageController != NULL) {
+        numberOfTabsNeeded++;
+    }
     if (volumeController != NULL) {
         numberOfTabsNeeded++;
     }
@@ -587,6 +595,8 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
                            rightSurfaceController);
     tabIndex = loadIntoTab(tabIndex,
                            cerebellumSurfaceController);
+    tabIndex = loadIntoTab(tabIndex, 
+                           surfaceMontageController);
     tabIndex = loadIntoTab(tabIndex,
                            volumeController);
     tabIndex = loadIntoTab(tabIndex,
@@ -955,6 +965,10 @@ BrainBrowserWindowToolBar::updateToolBar()
             showSingleSurfaceOptionsWidget = true;
             singleSurfaceWidgetStretchFactor = 100;
             break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            showOrientationWidget = true;
+            spacerWidgetStretchFactor = 100;
+            break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             showVolumeIndicesWidget = true;
             showVolumePlaneWidget = true;
@@ -1092,19 +1106,22 @@ QWidget*
 BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
+    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surftage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("Whole Brain");
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 4, 2);
     layout->addWidget(this->viewModeSurfaceRadioButton);
+    layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addStretch();
 
     QButtonGroup* viewModeRadioButtonGroup = new QButtonGroup(this);
     viewModeRadioButtonGroup->addButton(this->viewModeSurfaceRadioButton);
+    viewModeRadioButtonGroup->addButton(this->viewModeSurfaceMontageRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeVolumeRadioButton);
     viewModeRadioButtonGroup->addButton(this->viewModeWholeBrainRadioButton);
     QObject::connect(viewModeRadioButtonGroup, SIGNAL(buttonClicked(QAbstractButton*)),
@@ -1112,6 +1129,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     
     this->viewWidgetGroup = new WuQWidgetObjectGroup(this);
     this->viewWidgetGroup->add(this->viewModeSurfaceRadioButton);
+    this->viewWidgetGroup->add(this->viewModeSurfaceMontageRadioButton);
     this->viewWidgetGroup->add(this->viewModeVolumeRadioButton);
     this->viewWidgetGroup->add(this->viewModeWholeBrainRadioButton);
     
@@ -1148,6 +1166,7 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
      */
     if (browserTabContent != NULL) {
         this->viewModeSurfaceRadioButton->setEnabled(browserTabContent->isSurfaceModelValid());
+        this->viewModeSurfaceMontageRadioButton->setEnabled(browserTabContent->isSurfaceMontageModelValid());
         this->viewModeVolumeRadioButton->setEnabled(browserTabContent->isVolumeSliceModelValid());
         this->viewModeWholeBrainRadioButton->setEnabled(browserTabContent->isWholeBrainModelValid());
     }
@@ -1157,6 +1176,9 @@ BrainBrowserWindowToolBar::updateViewWidget(BrowserTabContent* browserTabContent
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
             this->viewModeSurfaceRadioButton->setChecked(true);
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            this->viewModeSurfaceMontageRadioButton->setChecked(true);
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             this->viewModeVolumeRadioButton->setChecked(true);
@@ -1401,6 +1423,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
     const ModelDisplayController* mdc = this->getDisplayedModelController();
     if (mdc != NULL) {
         const ModelDisplayControllerSurface* mdcs = dynamic_cast<const ModelDisplayControllerSurface*>(mdc);
+        const ModelDisplayControllerSurfaceMontage* mdcsm = dynamic_cast<const ModelDisplayControllerSurfaceMontage*>(mdc);
         const ModelDisplayControllerVolume* mdcv = dynamic_cast<const ModelDisplayControllerVolume*>(mdc);
         const ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<const ModelDisplayControllerWholeBrain*>(mdc);
         
@@ -1419,6 +1442,9 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
             else {
                 leftRightFlag = true;
             }
+        }
+        else if (mdcsm != NULL) {
+            leftRightFlag = true;
         }
         else if (mdcv != NULL) {
             // nothing
@@ -2771,6 +2797,9 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
     if (this->viewModeSurfaceRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE);
+    }
+    else if (this->viewModeSurfaceMontageRadioButton->isChecked()) {
+        btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE);
     }
     else if (this->viewModeVolumeRadioButton->isChecked()) {
         btc->setSelectedModelType(ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES);

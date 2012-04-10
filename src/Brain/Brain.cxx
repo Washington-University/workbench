@@ -46,6 +46,7 @@
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "MetricFile.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "LabelFile.h"
@@ -70,6 +71,7 @@ Brain::Brain()
     this->connectivityLoaderManager = new ConnectivityLoaderManager(this);
     this->paletteFile = new PaletteFile();
     this->specFile = new SpecFile();
+    this->surfaceMontageController = NULL;
     this->volumeSliceController = NULL;
     this->wholeBrainController = NULL;
     
@@ -111,6 +113,9 @@ Brain::~Brain()
     delete this->connectivityLoaderManager;
     delete this->paletteFile;
     delete this->specFile;
+    if (this->surfaceMontageController != NULL) {
+        delete this->surfaceMontageController;
+    }
     if (this->volumeSliceController != NULL) {
         delete this->volumeSliceController;
     }
@@ -237,6 +242,7 @@ Brain::resetBrain()
     
     this->updateVolumeSliceController();
     this->updateWholeBrainController();
+    this->updateSurfaceMontageController();
 }
 
 /**
@@ -974,8 +980,39 @@ Brain::updateWholeBrainController()
             delete this->wholeBrainController;
             this->wholeBrainController = NULL;
         }
+    }    
+}
+
+/**
+ * Update the surface montage controller
+ */
+void 
+Brain::updateSurfaceMontageController()
+{
+    bool isValid = false;
+    if (this->getNumberOfBrainStructures() > 0) {
+        isValid = true;
     }
     
+    if (isValid) {
+        if (this->surfaceMontageController == NULL) {
+            this->surfaceMontageController = new ModelDisplayControllerSurfaceMontage(this);
+            EventModelDisplayControllerAdd eventAddModel(this->surfaceMontageController);
+            EventManager::get()->sendEvent(eventAddModel.getPointer());
+            
+            if (this->isSpecFileBeingRead == false) {
+                this->surfaceMontageController->initializeOverlays();
+            }
+        }
+    }
+    else {
+        if (this->surfaceMontageController != NULL) {
+            EventModelDisplayControllerDelete eventDeleteModel(this->surfaceMontageController);
+            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+            delete this->surfaceMontageController;
+            this->surfaceMontageController = NULL;
+        }
+    }
 }
 
 /**
@@ -1073,6 +1110,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     
     this->updateVolumeSliceController();
     this->updateWholeBrainController();
+    this->updateSurfaceMontageController();
 }
 
 /**
@@ -1387,6 +1425,7 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (wasRemoved) {
         this->updateVolumeSliceController();
         this->updateWholeBrainController();
+        this->updateSurfaceMontageController();
     }
 
     return wasRemoved;

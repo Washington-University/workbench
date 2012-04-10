@@ -84,18 +84,23 @@ ModelDisplayControllerTypeEnum::initialize()
                                     "MODEL_TYPE_SURFACE", 
                                     "Surface"));
     
+    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_SURFACE_MONTAGE, 
+                                                      2, 
+                                                      "MODEL_TYPE_SURFACE_MONTAGE", 
+                                                      "Surface Montage"));
+    
     enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_VOLUME_SLICES, 
-                                    2, 
+                                    3, 
                                     "MODEL_TYPE_VOLUME_SLICES", 
                                     "Volume"));
     
     enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_WHOLE_BRAIN, 
-                                    3, 
+                                    4, 
                                     "MODEL_TYPE_WHOLE_BRAIN", 
                                     "Whole Brain"));
     
     enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_YOKING, 
-                                                      4, 
+                                                      5, 
                                                       "MODEL_TYPE_YOKING", 
                                                       "Yoking"));
     

@@ -35,6 +35,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
+    class ModelDisplayControllerSurfaceMontage;
     class ModelDisplayControllerSurfaceSelector;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
@@ -92,6 +93,10 @@ namespace caret {
         
         ModelDisplayControllerWholeBrain* getSelectedWholeBrainModel();
         
+        ModelDisplayControllerSurfaceMontage* getDisplayedSurfaceMontageModel();
+        
+        ModelDisplayControllerSurfaceMontage* getSelectedSurfaceMontageModel();
+        
         const std::vector<ModelDisplayControllerSurface*> getAllSurfaceModels() const;
         
         ModelDisplayControllerSurfaceSelector* getSurfaceModelSelector();
@@ -104,6 +109,8 @@ namespace caret {
         
         bool isWholeBrainModelValid() const;
 
+        bool isSurfaceMontageModelValid() const;
+        
         void updateTransformationsForYoking();
         
         bool isDisplayedModelSurfaceRightLateralMedialYoked() const;
@@ -133,6 +140,9 @@ namespace caret {
         
         /** The whole brain model */
         ModelDisplayControllerWholeBrain* wholeBrainModel;
+        
+        /** The surface montage model */
+        ModelDisplayControllerSurfaceMontage* surfaceMontageModel;
         
         /** 
          * Name requested by user interface - reflects contents 

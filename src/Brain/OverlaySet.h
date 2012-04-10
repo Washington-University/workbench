@@ -49,6 +49,8 @@ namespace caret {
         
         OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
         
+        OverlaySet(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage);
+        
         virtual ~OverlaySet();
         
         Overlay* getPrimaryOverlay();

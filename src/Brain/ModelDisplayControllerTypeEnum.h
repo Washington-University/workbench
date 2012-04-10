@@ -44,6 +44,8 @@ public:
         MODEL_TYPE_INVALID,
         /** Surface */
         MODEL_TYPE_SURFACE,
+        /** Surface Montage */
+        MODEL_TYPE_SURFACE_MONTAGE,
         /** Volume Slices */
         MODEL_TYPE_VOLUME_SLICES,
         /** Whole Brain */

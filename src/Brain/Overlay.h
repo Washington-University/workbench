@@ -33,6 +33,7 @@ namespace caret {
     class CaretMappableDataFile;
     class ModelDisplayController;
     class ModelDisplayControllerSurface;
+    class ModelDisplayControllerSurfaceMontage;
     class ModelDisplayControllerVolume;
     class ModelDisplayControllerWholeBrain;
     class ModelDisplayControllerYokingGroup;
@@ -47,6 +48,8 @@ namespace caret {
         Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
         
         Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
+        
+        Overlay(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~Overlay();
         
@@ -102,6 +105,9 @@ namespace caret {
         
         /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
         ModelDisplayControllerWholeBrain* wholeBrainController;
+        
+        /** Surfaced Montage controller using this overlay (NULL if this overlay is not assigned to a surface montage controller) */
+        ModelDisplayControllerSurfaceMontage* surfaceMontageController;
         
         /** Name of overlay (DO NOT COPY)*/
         AString name;

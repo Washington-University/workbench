@@ -39,6 +39,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "ModelDisplayControllerYokingGroup.h"
@@ -107,6 +108,22 @@ OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolum
     
     for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         this->overlays[i] = new Overlay(modelDisplayControllerVolume);
+    }
+}
+
+/**
+ * Constructor for surface montage controller.
+ * @param modelDisplayControllerSurfaceMontage
+ *     surface montage controller that uses this overlay set.
+ */
+OverlaySet::OverlaySet(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage)
+: CaretObject()
+{
+    this->initializeOverlaySet(modelDisplayControllerSurfaceMontage,
+                               NULL);
+    
+    for (int i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+        this->overlays[i] = new Overlay(modelDisplayControllerSurfaceMontage);
     }
 }
 
@@ -443,7 +460,8 @@ OverlaySet::initializeOverlays()
     
     ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
     ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
-    
+    ModelDisplayControllerSurfaceMontage* mdcsm = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->modelDisplayController);
+
     if (this->brainStructure != NULL) {
         /*
          * Look for a shape map in metric
@@ -489,7 +507,8 @@ OverlaySet::initializeOverlays()
             }
         }
     }
-    else if (mdcwb != NULL) {
+    else if ((mdcwb != NULL)
+             || (mdcsm != NULL)){
         BrainStructure* leftBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_LEFT, false);
         BrainStructure* rightBrainStructure = brain->getBrainStructure(StructureEnum::CORTEX_RIGHT, false);
         
@@ -561,21 +580,23 @@ OverlaySet::initializeOverlays()
             }
         }
         
-        const int32_t numVolumes = brain->getNumberOfVolumeFiles();
-        for (int32_t i = 0; i < numVolumes; i++) {
-            VolumeFile* vf = brain->getVolumeFile(i);
-            if ((vf->getType() == SubvolumeAttributes::ANATOMY)
-                || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
-                shapeMapFiles.push_back(vf);
-                shapeMapFileIndices.push_back(0);
-            }
-            else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
-                overlayMapFiles.push_back(vf);
-                overlayMapFileIndices.push_back(0);
-            }
-            else if (vf->getType() == SubvolumeAttributes::LABEL) {
-                overlayMapFiles.push_back(vf);
-                overlayMapFileIndices.push_back(0);
+        if (mdcwb != NULL) {
+            const int32_t numVolumes = brain->getNumberOfVolumeFiles();
+            for (int32_t i = 0; i < numVolumes; i++) {
+                VolumeFile* vf = brain->getVolumeFile(i);
+                if ((vf->getType() == SubvolumeAttributes::ANATOMY)
+                    || (vf->getType() == SubvolumeAttributes::UNKNOWN)) {
+                    shapeMapFiles.push_back(vf);
+                    shapeMapFileIndices.push_back(0);
+                }
+                else if (vf->getType() == SubvolumeAttributes::FUNCTIONAL) {
+                    overlayMapFiles.push_back(vf);
+                    overlayMapFileIndices.push_back(0);
+                }
+                else if (vf->getType() == SubvolumeAttributes::LABEL) {
+                    overlayMapFiles.push_back(vf);
+                    overlayMapFileIndices.push_back(0);
+                }
             }
         }
     }

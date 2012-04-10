@@ -85,6 +85,10 @@ namespace caret {
         SurfaceSelectionModel* rightSecondSurfaceSelectionModel;
         
         bool dualConfigurationEnabled;
+
+        /** Overlays sets for this model and for each tab */
+        OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
     };
 
 } // namespace

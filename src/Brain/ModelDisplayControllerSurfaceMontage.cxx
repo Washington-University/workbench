@@ -46,12 +46,15 @@ using namespace caret;
  *
  */
 ModelDisplayControllerSurfaceMontage::ModelDisplayControllerSurfaceMontage(Brain* brain)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE,
+: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          brain)
 {
     this->initializeMembersModelDisplayControllerSurfaceMontage();
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i] = new OverlaySet(this);
+    }
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->leftView(i);
     }
@@ -63,6 +66,11 @@ ModelDisplayControllerSurfaceMontage::ModelDisplayControllerSurfaceMontage(Brain
 ModelDisplayControllerSurfaceMontage::~ModelDisplayControllerSurfaceMontage()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+    
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        delete this->overlaySet[i];
+    }
+    
     delete this->leftSurfaceSelectionModel;
     delete this->leftSecondSurfaceSelectionModel;
     delete this->rightSurfaceSelectionModel;
@@ -227,15 +235,10 @@ ModelDisplayControllerSurfaceMontage::resetView(const int32_t windowTabNumber)
 OverlaySet* 
 ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex)
 {
-/*
-    if (this->surface != NULL) {
-        BrainStructure* brainStructure = this->surface->getBrainStructure();
-        if (brainStructure != NULL) {
-            return brainStructure->getOverlaySet(tabIndex);
-        }
-    }
- */   
-    return NULL;
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
 }
 
 /**
@@ -248,15 +251,10 @@ ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex)
 const OverlaySet* 
 ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex) const
 {
-    /*
-    if (this->surface != NULL) {
-        const BrainStructure* brainStructure = this->surface->getBrainStructure();
-        if (brainStructure != NULL) {
-            return brainStructure->getOverlaySet(tabIndex);
-        }
-    }
-    */
-    return NULL;
+    CaretAssertArrayIndex(this->overlaySet, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->overlaySet[tabIndex];
 }
 
 /**
@@ -265,8 +263,7 @@ ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex) const
 void 
 ModelDisplayControllerSurfaceMontage::initializeOverlays()
 {
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->overlaySet[i]->initializeOverlays();
+    }
 }
-
-
-
-

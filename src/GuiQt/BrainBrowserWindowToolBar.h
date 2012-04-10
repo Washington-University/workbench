@@ -210,6 +210,7 @@ namespace caret {
         void removeTab(int index);
         
         QRadioButton* viewModeSurfaceRadioButton;
+        QRadioButton* viewModeSurfaceMontageRadioButton;
         QRadioButton* viewModeVolumeRadioButton;
         QRadioButton* viewModeWholeBrainRadioButton;
         

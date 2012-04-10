@@ -77,6 +77,7 @@
 #include "IdentificationManager.h"
 #include "MathFunctions.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
@@ -269,10 +270,14 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
         CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
                 
         ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
+        ModelDisplayControllerSurfaceMontage* surfaceMontageController = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(modelDisplayController);
         ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
         ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
         if (surfaceController != NULL) {
             this->drawSurfaceController(surfaceController, viewport);
+        }
+        else if (surfaceMontageController != NULL) {
+            
         }
         else if (volumeController != NULL) {
             this->drawVolumeController(browserTabContent,

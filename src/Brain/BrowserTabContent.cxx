@@ -33,6 +33,7 @@
 #include "EventModelDisplayControllerGetAll.h"
 #include "EventManager.h"
 #include "ModelDisplayControllerSurface.h"
+#include "ModelDisplayControllerSurfaceMontage.h"
 #include "ModelDisplayControllerSurfaceSelector.h"
 #include "ModelDisplayControllerVolume.h"
 #include "ModelDisplayControllerWholeBrain.h"
@@ -59,6 +60,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
+    this->surfaceMontageModel = NULL;
     this->guiName = "";
     this->userName = "";
     this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
@@ -194,6 +196,9 @@ BrowserTabContent::getModelControllerForDisplay()
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
             mdc = this->surfaceModelSelector->getSelectedSurfaceController();
             break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            mdc = this->surfaceMontageModel;
+            break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
             break;
@@ -226,6 +231,9 @@ BrowserTabContent::getModelControllerForDisplay() const
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
             mdc = this->surfaceModelSelector->getSelectedSurfaceController();
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            mdc = this->surfaceMontageModel;
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
@@ -367,7 +375,7 @@ BrowserTabContent::getSelectedVolumeModel()
 }
 
 /**
- * Get the displayed whole brain model.
+ * Get the selected whole brain model.
  * 
  * @return  Pointer to displayed whole brain model or 
  *          NULL if the displayed model is not a 
@@ -379,6 +387,32 @@ BrowserTabContent::getSelectedWholeBrainModel()
     ModelDisplayControllerWholeBrain* mdcwb =
         dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getModelControllerForDisplay());
     return mdcwb;
+}
+
+/**
+ * @return Pointer to displayed surface montage model
+ * or NULL if the displayed model is not a surface
+ * montage model.
+ */
+ModelDisplayControllerSurfaceMontage* 
+BrowserTabContent::getDisplayedSurfaceMontageModel()
+{
+    ModelDisplayControllerSurfaceMontage* mdcsm =
+    dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->getModelControllerForDisplay());
+    return mdcsm;
+}
+
+/**
+ * @return Pointer to selected surface montage model
+ * or NULL if the displayed model is not a surface
+ * montage model.
+ */
+ModelDisplayControllerSurfaceMontage* 
+BrowserTabContent::getSelectedSurfaceMontageModel()
+{
+    ModelDisplayControllerSurfaceMontage* mdcsm =
+    dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->getModelControllerForDisplay());
+    return mdcsm;
 }
 
 /**
@@ -451,6 +485,7 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
     this->surfaceModelSelector->getSelectableSurfaceControllers(allSurfaceModels);
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
+    this->surfaceMontageModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
         ModelDisplayController* mdc = modelDisplayControllers[i];
@@ -458,6 +493,7 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
         ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
         ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
         ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+        ModelDisplayControllerSurfaceMontage* mdcsm = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(mdc);
         
         if (mdcs != NULL) {
             /* nothing to do since the surface model selector handles surfaces */
@@ -470,6 +506,10 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
             CaretAssertMessage((this->wholeBrainModel == NULL), "There is more than one whole brain model.");
             this->wholeBrainModel = mdcwb;
         }
+        else if (mdcsm != NULL) {
+            CaretAssertMessage((this->surfaceMontageModel == NULL), "There is more than one surface montage model.");
+            this->surfaceMontageModel = mdcsm;
+        }
         else {
             CaretAssertMessage(0, (AString("Unknown type of brain model.") + mdc->getNameForGUI(true)));
         }
@@ -480,6 +520,11 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
             break;
         case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
             if (this->surfaceModelSelector->getSelectedSurfaceController() == NULL) {
+                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+            }
+            break;
+        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+            if (this->surfaceMontageModel == NULL) {
                 this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
@@ -507,6 +552,9 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
         }
         else if (this->wholeBrainModel != NULL) {
             this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
+        }
+        else if (this->surfaceMontageModel != NULL) {
+            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
         }
     }
 }
@@ -544,6 +592,18 @@ bool
 BrowserTabContent::isWholeBrainModelValid() const
 {
     bool valid = (this->wholeBrainModel != NULL);
+    return valid;
+}
+
+/**
+ * Is the surface montage model selection valid?
+ *
+ * @return bool indicating validity.
+ */
+bool 
+BrowserTabContent::isSurfaceMontageModelValid() const
+{
+    bool valid = (this->surfaceMontageModel != NULL);
     return valid;
 }
 
