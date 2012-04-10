@@ -94,6 +94,7 @@
 #include "SurfaceNodeColoring.h"
 #include "SurfaceProjectedItem.h"
 #include "SurfaceProjectionBarycentric.h"
+#include "SurfaceSelectionModel.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
 #include "VolumeSurfaceOutlineSelection.h"
@@ -277,7 +278,9 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
             this->drawSurfaceController(surfaceController, viewport);
         }
         else if (surfaceMontageController != NULL) {
-            
+            this->drawSurfaceMontageModel(browserTabContent, 
+                                          surfaceMontageController, 
+                                          viewport);
         }
         else if (volumeController != NULL) {
             this->drawVolumeController(browserTabContent,
@@ -3421,6 +3424,114 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     
     this->disableLineAntiAliasing();
 }
+
+/**
+ * Draw the surface montage controller.
+ * @param browserTabContent
+ *   Content of the window.
+ * @param surfaceMontageModel
+ *   The surface montage displayed in the window.
+ * @param viewport
+ *   Region for drawing.
+ */
+void 
+BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
+                                                  ModelSurfaceMontage* surfaceMontageModel,
+                                                  const int32_t viewport[4])
+{
+    GLint savedVP[4];
+    glGetIntegerv(GL_VIEWPORT, savedVP);
+    
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    Surface* leftSurface = surfaceMontageModel->getLeftSurfaceSelectionModel(tabIndex)->getSurface();
+    Surface* rightSurface = surfaceMontageModel->getRightSurfaceSelectionModel(tabIndex)->getSurface();
+
+    int vpSizeX = (viewport[2] - viewport[0]) / 2;
+    int vpSizeY = (viewport[3] - viewport[1]) / 2;
+    if (surfaceMontageModel->isDualConfigurationEnabled(tabIndex)) {
+        vpSizeX /= 2;
+    }
+
+    if (leftSurface != NULL) {
+        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                     leftSurface, 
+                                                                                     this->windowTabIndex);
+        int vp[4] = {
+            viewport[0],
+            viewport[1] + vpSizeY,
+            vpSizeX,
+            vpSizeY
+        };
+
+        float center[3];
+        leftSurface->getBoundingBox()->getCenter(center);
+        
+        this->setViewportAndOrthographicProjection(vp,
+                                                   false);
+        
+        this->applyViewingTransformations(surfaceMontageModel, 
+                                          this->windowTabIndex,
+                                          center,
+                                          false);
+        this->drawSurface(leftSurface,
+                          nodeColoringRGBA);
+        
+        
+        vp[0] += vpSizeX;
+        
+        this->setViewportAndOrthographicProjection(vp,
+                                                   true);
+        
+        this->applyViewingTransformations(surfaceMontageModel, 
+                                          this->windowTabIndex,
+                                          center,
+                                          true);
+        this->drawSurface(leftSurface,
+                          nodeColoringRGBA);
+    }
+    
+    if (rightSurface != NULL) {
+        const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
+                                                                                     rightSurface, 
+                                                                                     this->windowTabIndex);
+        int vp[4] = {
+            viewport[0],
+            viewport[1],
+            vpSizeX,
+            vpSizeY
+        };
+        float center[3];
+        rightSurface->getBoundingBox()->getCenter(center);
+        
+        this->setViewportAndOrthographicProjection(vp,
+                                                   true);
+        
+        this->applyViewingTransformations(surfaceMontageModel, 
+                                          this->windowTabIndex,
+                                          center,
+                                          true);
+        this->drawSurface(rightSurface,
+                          nodeColoringRGBA);
+        
+        vp[0] += vpSizeX;
+        
+        this->setViewportAndOrthographicProjection(vp,
+                                                   false);
+        
+        this->applyViewingTransformations(surfaceMontageModel, 
+                                          this->windowTabIndex,
+                                          center,
+                                          false);
+        this->drawSurface(rightSurface,
+                          nodeColoringRGBA);
+    }
+    
+    glViewport(savedVP[0], 
+               savedVP[1], 
+               savedVP[2], 
+               savedVP[3]);
+}
+
 
 /**
  * Draw the whole brain.

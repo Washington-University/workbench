@@ -56,6 +56,8 @@ namespace caret {
     class BrowserTabContent;
     class Model;
     class ModelSurface;
+    class Surface;
+    class SurfaceSelectionViewController;
     class StructureSurfaceSelectionControl;
     class WuQWidgetObjectGroup;
     
@@ -111,6 +113,7 @@ namespace caret {
         QWidget* createToolsWidget();
         QWidget* createWindowWidget();
         QWidget* createSingleSurfaceOptionsWidget();
+        QWidget* createSurfaceMontageOptionsWidget();
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         
@@ -121,6 +124,7 @@ namespace caret {
         void updateToolsWidget(BrowserTabContent* browserTabContent);
         void updateWindowWidget(BrowserTabContent* browserTabContent);
         void updateSingleSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
+        void updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeMontageWidget(BrowserTabContent* browserTabContent);
         void updateVolumePlaneWidget(BrowserTabContent* browserTabContent);
         
@@ -137,6 +141,7 @@ namespace caret {
         QWidget* toolsWidget;
         QWidget* windowWidget;
         QWidget* singleSurfaceSelectionWidget;
+        QWidget* surfaceMontageSelectionWidget;
         QWidget* volumeMontageWidget;
         QWidget* volumePlaneWidget;
         //QWidget* spacerWidget;
@@ -148,6 +153,7 @@ namespace caret {
         WuQWidgetObjectGroup* toolsWidgetGroup;
         WuQWidgetObjectGroup* windowWidgetGroup;
         WuQWidgetObjectGroup* singleSurfaceSelectionWidgetGroup;
+        WuQWidgetObjectGroup* surfaceMontageSelectionWidgetGroup;
         WuQWidgetObjectGroup* volumeMontageWidgetGroup;
         WuQWidgetObjectGroup* volumePlaneWidgetGroup;
         
@@ -315,6 +321,14 @@ namespace caret {
     private slots:
         void surfaceSelectionControlChanged(const StructureEnum::Enum,
                                             ModelSurface*);
+        
+    private:
+        SurfaceSelectionViewController* surfaceMontageLeftSurfaceViewController;
+        SurfaceSelectionViewController* surfaceMontageRightSurfaceViewController;
+        
+    private slots:
+        void surfaceMontageLeftSurfaceSelected(Surface*);
+        void surfaceMontageRightSurfaceSelected(Surface*);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;

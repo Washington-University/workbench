@@ -53,8 +53,8 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
                                                  SurfaceSelectionModel* surfaceSelectionModel)
 : WuQWidget(parent)
 {
-    this->initializeControl(surfaceSelectionModel);
-    this->thisInstanceOwnsSurfaceSelection = false;
+    this->initializeControl(MODE_SELECTION_MODEL_STATIC,
+                            surfaceSelectionModel);
 }
 
 /**
@@ -69,20 +69,8 @@ SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent,
 : WuQWidget(parent)
 {
     SurfaceSelectionModel* ss = new SurfaceSelectionModel(brainStructure);
-    this->initializeControl(ss);
-    this->thisInstanceOwnsSurfaceSelection = true;
-}
-
-/**
- * Help initialize an instance.
- */
-void 
-SurfaceSelectionViewController::initializeControl(SurfaceSelectionModel* surfaceSelectionModel)
-{
-    this->surfaceComboBox = new QComboBox();
-    QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
-                     this, SLOT(comboBoxCurrentIndexChanged(int)));
-    this->surfaceSelectionModel = surfaceSelectionModel;
+    this->initializeControl(MODE_BRAIN_STRUCTURE,
+                            ss);
 }
 
 /**
@@ -90,22 +78,73 @@ SurfaceSelectionViewController::initializeControl(SurfaceSelectionModel* surface
  */
 SurfaceSelectionViewController::~SurfaceSelectionViewController()
 {
-    if (this->thisInstanceOwnsSurfaceSelection) {
+    bool isDeleteSelectionModel = false;
+    switch (this->mode) {
+        case MODE_BRAIN_STRUCTURE:
+            isDeleteSelectionModel = true;
+            break;
+        case MODE_SELECTION_MODEL_DYNAMIC:
+            break;
+        case MODE_SELECTION_MODEL_STATIC:
+            break;
+    }
+    
+    if (isDeleteSelectionModel) {
         delete this->surfaceSelectionModel;
     }
 }
 
 /**
- * Update the control.
+ * Constructor.  Creates a selection control.  User MUST call updateControl(SurfaceSelectionModel*)
+ * so that surfaces get loaded.  A instance created this way will NEVER use the selection
+ * model this is passed to updateControl() anywhere outside of updateControl().  Thus,
+ * slots in the model are NEVER called.
+ *
+ * @param parent
+ *   The parent.
+ */
+SurfaceSelectionViewController::SurfaceSelectionViewController(QObject* parent)
+: WuQWidget(parent)
+{
+    this->initializeControl(MODE_SELECTION_MODEL_DYNAMIC,
+                            NULL);
+}
+
+/**
+ * Help initialize an instance.
  */
 void 
-SurfaceSelectionViewController::updateControl()
+SurfaceSelectionViewController::initializeControl(const Mode mode,
+                                                  SurfaceSelectionModel* surfaceSelectionModel)
 {
-    std::vector<Surface*> surfaces = this->surfaceSelectionModel->getAvailableSurfaces();
-    const Surface* selectedSurface = this->surfaceSelectionModel->getSurface();
+    this->mode = mode;
+    this->surfaceComboBox = new QComboBox();
+    QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
+                     this, SLOT(comboBoxCurrentIndexChanged(int)));
+    this->surfaceSelectionModel = surfaceSelectionModel;
+}
+
+/**
+ * Update the control using the given selection model.  The model is NEVER
+ * used outside this method so slots in the model are NEVER called.
+ *
+ * @param selectionModel
+ *    Selection model used to update this control.  If this parameter is NULL
+ *    all selections are removed from the control.
+ */
+void 
+SurfaceSelectionViewController::updateControl(SurfaceSelectionModel* selectionModel)
+{
+    std::vector<Surface*> surfaces;
+    Surface* selectedSurface = NULL;
+    
+    if (selectionModel != NULL) {
+        surfaces = selectionModel->getAvailableSurfaces();
+        selectedSurface = selectionModel->getSurface();
+    }
     
     this->surfaceComboBox->blockSignals(true);
-
+    
     int32_t selectedIndex = 0;
     
     this->surfaceComboBox->clear();
@@ -125,6 +164,19 @@ SurfaceSelectionViewController::updateControl()
     }
     
     this->surfaceComboBox->blockSignals(false);
+    
+}
+
+/**
+ * Update the control.
+ */
+void 
+SurfaceSelectionViewController::updateControl()
+{
+    CaretAssertMessage(this->surfaceSelectionModel,
+                       "The surface selection model is NULL, you should have called "
+                       "updateControl(SurfaceSelectionModel*)");
+    this->updateControl(this->surfaceSelectionModel);
 }
 
 /**
@@ -137,12 +189,23 @@ SurfaceSelectionViewController::getWidget()
 }
 
 /**
- * @return the selected surface.
+ * @return the selected surface.  NULL if no surface selected.
  */
 Surface* 
 SurfaceSelectionViewController::getSurface()
 {
-    return this->surfaceSelectionModel->getSurface();
+    //return this->surfaceSelectionModel->getSurface();
+    
+    Surface* s = NULL;
+    
+    const int indx = this->surfaceComboBox->currentIndex();
+    if ((indx >= 0)
+        && (indx < this->surfaceComboBox->count())) {
+        void* pointer = this->surfaceComboBox->itemData(indx).value<void*>();
+        s = (Surface*)pointer;
+    }
+    
+    return s;
 }
 
 /**
@@ -153,9 +216,23 @@ SurfaceSelectionViewController::getSurface()
 void 
 SurfaceSelectionViewController::setSurface(Surface* surface)
 {
-    this->surfaceSelectionModel->setSurface(surface);
-    
-    this->updateControl();
+    if (this->surfaceSelectionModel != NULL) {
+        this->surfaceSelectionModel->setSurface(surface);
+        this->updateControl();
+    }
+    else {
+        const int32_t numItems = this->surfaceComboBox->count();
+        for (int32_t i = 0; i < numItems; i++) {
+            void* pointer = this->surfaceComboBox->itemData(i).value<void*>();
+            Surface* s = (Surface*)pointer;
+            if (surface == s) {
+                this->surfaceComboBox->blockSignals(true);
+                this->surfaceComboBox->setCurrentIndex(i);
+                this->surfaceComboBox->blockSignals(false);
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -168,7 +245,10 @@ SurfaceSelectionViewController::comboBoxCurrentIndexChanged(int indx)
 {
     void* pointer = this->surfaceComboBox->itemData(indx).value<void*>();
     Surface* s = (Surface*)pointer;
-    this->surfaceSelectionModel->setSurface(s);
+    
+    if (this->surfaceSelectionModel != NULL) {
+        this->surfaceSelectionModel->setSurface(s);
+    }
     
     emit surfaceSelected(s);
 }

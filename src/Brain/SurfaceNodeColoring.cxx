@@ -39,6 +39,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
 #include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
@@ -100,6 +101,7 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     CaretAssert(surface);
 
     ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
+    ModelSurfaceMontage* surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(modelDisplayController);
     ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
     ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
     
@@ -124,6 +126,10 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     if (surfaceController != NULL) {
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
         overlaySet = surfaceController->getOverlaySet(browserTabIndex);
+    }
+    else if (surfaceMontageController != NULL) {
+        rgba = surface->getSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex);
+        overlaySet = surfaceMontageController->getOverlaySet(browserTabIndex);
     }
     else if (wholeBrainController != NULL) {
         rgba = surface->getWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex);
@@ -154,6 +160,11 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
         surface->setSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex, 
                                                          rgbaColor);
         rgba = surface->getSurfaceNodeColoringRgbaForBrowserTab(browserTabIndex);
+    }
+    else if (surfaceMontageController != NULL) {
+        surface->setSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex, 
+                                                                rgbaColor);
+        rgba = surface->getSurfaceMontageNodeColoringRgbaForBrowserTab(browserTabIndex);
     }
     else if (wholeBrainController != NULL) {
         surface->setWholeBrainNodeColoringRgbaForBrowserTab(browserTabIndex, 

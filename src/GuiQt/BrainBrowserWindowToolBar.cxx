@@ -83,6 +83,8 @@
 #include "OverlaySet.h"
 #include "SessionManager.h"
 #include "Surface.h"
+#include "SurfaceSelectionModel.h"
+#include "SurfaceSelectionViewController.h"
 #include "StructureSurfaceSelectionControl.h"
 #include "UserInputReceiverInterface.h"
 #include "UserView.h"
@@ -239,6 +241,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolsWidget = this->createToolsWidget();
     this->windowWidget = this->createWindowWidget();
     this->singleSurfaceSelectionWidget = this->createSingleSurfaceOptionsWidget();
+    this->surfaceMontageSelectionWidget = this->createSurfaceMontageOptionsWidget();
     this->volumeMontageWidget = this->createVolumeMontageWidget();
     this->volumePlaneWidget = this->createVolumePlaneWidget();
     //this->spacerWidget = new QWidget;
@@ -258,6 +261,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     this->toolbarWidgetLayout->addWidget(this->wholeBrainSurfaceOptionsWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->singleSurfaceSelectionWidget, 0, Qt::AlignLeft);
+    
+    this->toolbarWidgetLayout->addWidget(this->surfaceMontageSelectionWidget, 0, Qt::AlignLeft);
     
     this->toolbarWidgetLayout->addWidget(this->volumePlaneWidget, 0, Qt::AlignLeft);
     
@@ -379,6 +384,7 @@ BrainBrowserWindowToolBar::~BrainBrowserWindowToolBar()
     this->toolsWidgetGroup->clear();
     this->windowWidgetGroup->clear();
     this->singleSurfaceSelectionWidgetGroup->clear();
+    this->surfaceMontageSelectionWidgetGroup->clear();
     this->volumeMontageWidgetGroup->clear();
     this->volumePlaneWidgetGroup->clear();
     
@@ -947,6 +953,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     bool showOrientationWidget = false;
     bool showWholeBrainSurfaceOptionsWidget = false;
     bool showSingleSurfaceOptionsWidget = false;
+    bool showSurfaceMontageOptionsWidget = false;
     bool showVolumeIndicesWidget = false;
     bool showVolumePlaneWidget = false;
     bool showVolumeMontageWidget = false;
@@ -967,6 +974,7 @@ BrainBrowserWindowToolBar::updateToolBar()
             break;
         case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             showOrientationWidget = true;
+            showSurfaceMontageOptionsWidget = true;
             spacerWidgetStretchFactor = 100;
             break;
         case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
@@ -995,6 +1003,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->orientationWidget->setVisible(false);
     this->wholeBrainSurfaceOptionsWidget->setVisible(false);
     this->singleSurfaceSelectionWidget->setVisible(false);
+    this->surfaceMontageSelectionWidget->setVisible(false);
     this->volumeIndicesWidget->setVisible(false);
     this->volumePlaneWidget->setVisible(false);
     this->volumeMontageWidget->setVisible(false);
@@ -1009,6 +1018,7 @@ BrainBrowserWindowToolBar::updateToolBar()
     this->orientationWidget->setVisible(showOrientationWidget);
     this->wholeBrainSurfaceOptionsWidget->setVisible(showWholeBrainSurfaceOptionsWidget);
     this->singleSurfaceSelectionWidget->setVisible(showSingleSurfaceOptionsWidget);
+    this->surfaceMontageSelectionWidget->setVisible(showSurfaceMontageOptionsWidget);
     this->singleSurfaceSelectionWidget->updateGeometry();
     this->volumeIndicesWidget->setVisible(showVolumeIndicesWidget);
     this->volumePlaneWidget->setVisible(showVolumePlaneWidget);
@@ -1021,6 +1031,7 @@ BrainBrowserWindowToolBar::updateToolBar()
         this->updateWholeBrainSurfaceOptionsWidget(browserTabContent);
         this->updateVolumeIndicesWidget(browserTabContent);
         this->updateSingleSurfaceOptionsWidget(browserTabContent);
+        this->updateSurfaceMontageOptionsWidget(browserTabContent);
         this->updateVolumeMontageWidget(browserTabContent);
         this->updateVolumePlaneWidget(browserTabContent);
         this->updateToolsWidget(browserTabContent);
@@ -1106,7 +1117,7 @@ QWidget*
 BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
-    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surftage");
+    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surf-tage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("Whole Brain");
     
@@ -1114,7 +1125,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2);
     layout->addWidget(this->viewModeSurfaceRadioButton);
-//    layout->addWidget(this->viewModeSurfaceMontageRadioButton);
+    layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addStretch();
@@ -2352,11 +2363,10 @@ BrainBrowserWindowToolBar::createSingleSurfaceOptionsWidget()
     w->setVisible(false);
     return w;
 }
-
 /**
  * Update the single surface options widget.
  * 
- * @param modelDisplayController
+ * @param browserTabContent
  *   The active model display controller (may be NULL).
  */
 void 
@@ -2376,6 +2386,126 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
     
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
+
+/**
+ * @return Create and return the surface montage options widget.
+ */
+QWidget* 
+BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
+{
+    QLabel* leftLabel = new QLabel("Left:");
+    this->surfaceMontageLeftSurfaceViewController = new SurfaceSelectionViewController(this);
+    QObject::connect(this->surfaceMontageLeftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(surfaceMontageLeftSurfaceSelected(Surface*)));
+    this->surfaceMontageLeftSurfaceViewController->getWidget()->setFixedWidth(200);
+    
+    QLabel* rightLabel = new QLabel("Right:");
+    this->surfaceMontageRightSurfaceViewController = new SurfaceSelectionViewController(this);
+    QObject::connect(this->surfaceMontageRightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(surfaceMontageRightSurfaceSelected(Surface*)));
+    this->surfaceMontageRightSurfaceViewController->getWidget()->setFixedWidth(200);
+
+    QWidget* widget = new QWidget();
+    QGridLayout* layout = new QGridLayout(widget);
+    layout->setColumnStretch(0, 0);
+    layout->setColumnStretch(1, 100);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    int row = layout->rowCount();
+    layout->addWidget(leftLabel, row, 0);
+    layout->addWidget(this->surfaceMontageLeftSurfaceViewController->getWidget(), row, 1);
+    row = layout->rowCount();
+    layout->addWidget(rightLabel, row, 0);
+    layout->addWidget(this->surfaceMontageRightSurfaceViewController->getWidget(), row, 1);
+    
+    this->surfaceMontageSelectionWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageLeftSurfaceViewController->getWidget());
+    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageRightSurfaceViewController->getWidget());
+    
+    QWidget* w = this->createToolWidget("Montage Selection", 
+                                        widget, 
+                                        WIDGET_PLACEMENT_LEFT, 
+                                        WIDGET_PLACEMENT_TOP, 
+                                        100);
+    w->setVisible(false);
+    return w;
+}
+
+
+/**
+ * Update the surface montage options widget.
+ * 
+ * @param browserTabContent
+ *   The active model display controller (may be NULL).
+ */
+void 
+BrainBrowserWindowToolBar::updateSurfaceMontageOptionsWidget(BrowserTabContent* browserTabContent)
+{
+    if (this->surfaceMontageSelectionWidget->isHidden()) {
+        return;
+    }
+
+    this->incrementUpdateCounter(__CARET_FUNCTION_NAME__);
+    
+    this->surfaceMontageSelectionWidgetGroup->blockAllSignals(true);
+    
+    ModelSurfaceMontage* msm = browserTabContent->getSelectedSurfaceMontageModel();
+    const int32_t tabIndex = browserTabContent->getTabNumber();
+    SurfaceSelectionModel* leftSurfaceSelectionModel = NULL;
+    SurfaceSelectionModel* rightSurfaceSelectionModel = NULL;
+    if (msm != NULL) {
+        leftSurfaceSelectionModel = msm->getLeftSurfaceSelectionModel(tabIndex);
+        rightSurfaceSelectionModel = msm->getRightSurfaceSelectionModel(tabIndex);
+    }
+    this->surfaceMontageLeftSurfaceViewController->updateControl(leftSurfaceSelectionModel);
+    this->surfaceMontageRightSurfaceViewController->updateControl(rightSurfaceSelectionModel);
+    
+    this->surfaceMontageSelectionWidgetGroup->blockAllSignals(false);
+    
+    this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
+}
+
+/** 
+ * Called when montage left surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void 
+BrainBrowserWindowToolBar::surfaceMontageLeftSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
+        if (msm != NULL) {
+            msm->getLeftSurfaceSelectionModel(tabIndex)->setSurface(surface);
+        }
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        this->updateUserInterface();
+        this->updateGraphicsWindow();
+    }
+}
+
+/** 
+ * Called when montage left surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void 
+BrainBrowserWindowToolBar::surfaceMontageRightSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
+        if (msm != NULL) {
+            msm->getRightSurfaceSelectionModel(tabIndex)->setSurface(surface);
+        }
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        this->updateUserInterface();
+        this->updateGraphicsWindow();
+    }
+}
+
 
 /**
  * Create the volume montage widget.

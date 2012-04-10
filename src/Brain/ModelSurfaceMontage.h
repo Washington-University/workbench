@@ -51,13 +51,13 @@ namespace caret {
         
         void initializeOverlays();
         
-        SurfaceSelectionModel* getLeftSurfaceSelectionModel();
+        SurfaceSelectionModel* getLeftSurfaceSelectionModel(const int tabIndex);
         
-        SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel();
+        SurfaceSelectionModel* getLeftSecondSurfaceSelectionModel(const int tabIndex);
         
-        SurfaceSelectionModel* getRightSurfaceSelectionModel();
+        SurfaceSelectionModel* getRightSurfaceSelectionModel(const int tabIndex);
         
-        SurfaceSelectionModel* getRightSecondSurfaceSelectionModel();
+        SurfaceSelectionModel* getRightSecondSurfaceSelectionModel(const int tabIndex);
         
         AString getNameForGUI(const bool includeStructureFlag) const;
         
@@ -65,9 +65,10 @@ namespace caret {
         
         void setDefaultScalingToFitWindow();
         
-        bool isDualConfigurationEnabled() const;
+        bool isDualConfigurationEnabled(const int tabIndex) const;
         
-        void setDualConfigurationEnabled(const bool enabled);
+        void setDualConfigurationEnabled(const int tabIndex,
+                                         const bool enabled);
         
     private:
         ModelSurfaceMontage(const ModelSurfaceMontage&);
@@ -76,15 +77,15 @@ namespace caret {
         
         void initializeMembersModelSurfaceMontage();
 
-        SurfaceSelectionModel* leftSurfaceSelectionModel;
+        SurfaceSelectionModel* leftSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* leftSecondSurfaceSelectionModel;
+        SurfaceSelectionModel* leftSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* rightSurfaceSelectionModel;
+        SurfaceSelectionModel* rightSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        SurfaceSelectionModel* rightSecondSurfaceSelectionModel;
+        SurfaceSelectionModel* rightSecondSurfaceSelectionModel[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
-        bool dualConfigurationEnabled;
+        bool dualConfigurationEnabled[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
 
         /** Overlays sets for this model and for each tab */
         OverlaySet* overlaySet[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

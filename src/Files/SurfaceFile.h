@@ -118,6 +118,11 @@ namespace caret {
         void setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
         
+        float* getSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
+        
+        void setSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents);
+        
         float* getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex);
         
         void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
@@ -141,6 +146,9 @@ namespace caret {
         void allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIndex,
                                                       const bool zeroizeColorsFlag);
         
+        void allocateSurfaceMontageNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                      const bool zeroizeColorsFlag);
+        
         void allocateWholeBrainNodeColoringForBrowserTab(const int32_t browserTabIndex,
                                                          const bool zeroizeColorsFlag);
         
@@ -154,6 +162,14 @@ namespace caret {
          * for a browser tab with the corresponding index.
          */
         std::vector<float> surfaceNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        /** 
+         * This coloring is used when a surface montage is displayed.
+         * Node color components Red, Green, Blue, Alpha for each browser tab.
+         * Each element of the vector points to the coloring
+         * for a browser tab with the corresponding index.
+         */
+        std::vector<float> surfaceMontageNodeColoringForBrowserTabs[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         /** 
          * This coloring is used when a Whole Brain is displayed.

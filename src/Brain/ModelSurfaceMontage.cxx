@@ -69,12 +69,11 @@ ModelSurfaceMontage::~ModelSurfaceMontage()
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         delete this->overlaySet[i];
-    }
-    
-    delete this->leftSurfaceSelectionModel;
-    delete this->leftSecondSurfaceSelectionModel;
-    delete this->rightSurfaceSelectionModel;
-    delete this->rightSecondSurfaceSelectionModel;
+        delete this->leftSurfaceSelectionModel[i];
+        delete this->leftSecondSurfaceSelectionModel[i];
+        delete this->rightSurfaceSelectionModel[i];
+        delete this->rightSecondSurfaceSelectionModel[i];
+    }    
 }
 
 /**
@@ -91,67 +90,99 @@ ModelSurfaceMontage::receiveEvent(Event* event)
 void
 ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
 {
-    this->leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-    this->leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
-    this->rightSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-    this->rightSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
-    this->dualConfigurationEnabled = false;
+    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
+        this->leftSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        this->leftSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
+        this->rightSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        this->rightSecondSurfaceSelectionModel[i] = new SurfaceSelectionModel(StructureEnum::CORTEX_RIGHT);
+        this->dualConfigurationEnabled[i] = false;
+    }
 }
 
 /**
  * @return Is dual configuration enabled?
  */
 bool 
-ModelSurfaceMontage::isDualConfigurationEnabled() const
+ModelSurfaceMontage::isDualConfigurationEnabled(const int tabIndex) const
 {
-    return this->dualConfigurationEnabled;
+    CaretAssertArrayIndex(this->dualConfigurationEnabled, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->dualConfigurationEnabled[tabIndex];
 }
 
 /**
  * Set dual configuration enabled
+ * @param tabIndex
+ *    Index of tab.
  * @param enabled
  *    New dual configuration status
  */
 void 
-ModelSurfaceMontage::setDualConfigurationEnabled(const bool enabled)
+ModelSurfaceMontage::setDualConfigurationEnabled(const int tabIndex,
+                                                 const bool enabled)
 {
-    this->dualConfigurationEnabled = enabled;
+    CaretAssertArrayIndex(this->dualConfigurationEnabled, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+
+    this->dualConfigurationEnabled[tabIndex] = enabled;
 }
 
 /**
+ * @param tabIndex
+ *    Index of tab.
  * @return the left surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelSurfaceMontage::getLeftSurfaceSelectionModel()
+ModelSurfaceMontage::getLeftSurfaceSelectionModel(const int tabIndex)
 {
-    return this->leftSurfaceSelectionModel;
+    CaretAssertArrayIndex(this->leftSurfaceSelectionModel, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->leftSurfaceSelectionModel[tabIndex];
 }
 
 /**
+ * @param tabIndex
+ *    Index of tab.
  * @return the left second surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel()
+ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel(const int tabIndex)
 {
-    return this->leftSecondSurfaceSelectionModel;
+    CaretAssertArrayIndex(this->leftSecondSurfaceSelectionModel, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->leftSecondSurfaceSelectionModel[tabIndex];
 }
 
 /**
+ * @param tabIndex
+ *    Index of tab.
  * @return the right surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelSurfaceMontage::getRightSurfaceSelectionModel()
+ModelSurfaceMontage::getRightSurfaceSelectionModel(const int tabIndex)
 {
-    return this->rightSurfaceSelectionModel;
+    CaretAssertArrayIndex(this->rightSurfaceSelectionModel, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->rightSurfaceSelectionModel[tabIndex];
 }
 
 /**
+ * @param tabIndex
+ *    Index of tab.
  * @return the right second surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelSurfaceMontage::getRightSecondSurfaceSelectionModel()
+ModelSurfaceMontage::getRightSecondSurfaceSelectionModel(const int tabIndex)
 {
-    return this->rightSecondSurfaceSelectionModel;
+    CaretAssertArrayIndex(this->rightSecondSurfaceSelectionModel, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          tabIndex);
+    return this->rightSecondSurfaceSelectionModel[tabIndex];
 }
 
 /**
@@ -167,10 +198,6 @@ ModelSurfaceMontage::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
     AString name = "Surface Montage";
     
-    if (this->dualConfigurationEnabled) {
-        name = "Dual Surface Montage";
-    }
-
     return name;
 }
 
@@ -182,10 +209,6 @@ AString
 ModelSurfaceMontage::getNameForBrowserTab() const
 {
     AString name = "Surface Montage";
-    
-    if (this->dualConfigurationEnabled) {
-        name = "Dual Surface Montage";
-    }
     
     return name;
 }

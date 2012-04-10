@@ -52,6 +52,7 @@ namespace caret {
     class Surface;
     class Model;
     class ModelSurface;
+    class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
     class Palette;
@@ -185,6 +186,10 @@ namespace caret {
         void drawWholeBrainController(BrowserTabContent* browserTabContent,
                                       ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4]);
+        
+        void drawSurfaceMontageModel(BrowserTabContent* browserTabContent,
+                                     ModelSurfaceMontage* surfaceMontageModel,
+                                     const int32_t viewport[4]);
         
         void setOrthographicProjection(const int32_t viewport[4],
                                        const bool isRightSurfaceLateralMedialYoked);

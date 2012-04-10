@@ -828,6 +828,7 @@ SurfaceFile::invalidateNodeColoringForBrowserTabs()
      */
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->surfaceNodeColoringForBrowserTabs[i].clear();
+        this->surfaceMontageNodeColoringForBrowserTabs[i].clear();
         this->wholeBrainNodeColoringForBrowserTabs[i].clear();
     }    
 }
@@ -855,6 +856,33 @@ SurfaceFile::allocateSurfaceNodeColoringForBrowserTab(const int32_t browserTabIn
         }
         else {
             this->surfaceNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
+        }
+    }
+}
+
+/**
+ * Allocate node coloring for a surface montage in a browser tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param zeroizeColorsFlag
+ *    If true and memory is allocated for colors, the color components
+ *    are set to all zeros, otherwise the memory may be left unitialized.
+ */
+void 
+SurfaceFile::allocateSurfaceMontageNodeColoringForBrowserTab(const int32_t browserTabIndex,
+                                                             const bool zeroizeColorsFlag)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    const uint64_t numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    if (this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].size() != numberOfComponentsRGBA) {
+        if (zeroizeColorsFlag) {
+            this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA, 0.0);
+        }
+        else {
+            this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex].resize(numberOfComponentsRGBA);
         }
     }
 }
@@ -934,6 +962,54 @@ SurfaceFile::setSurfaceNodeColoringRgbaForBrowserTab(const int32_t browserTabInd
 }
 
 /**
+ * Get the RGBA color components for this surface montage in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return
+ *    Coloring for the tab or NULL if coloring is invalid and needs to be 
+ *    set.
+ */
+float* 
+SurfaceFile::getSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    std::vector<float>& rgba = this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex];
+    if (rgba.empty()) {
+        return NULL;
+    }
+    
+    return &rgba[0];
+}
+
+/**
+ * Set the RGBA color components for this a surface montage in the given tab.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param rgbaNodeColorComponents
+ *    RGBA color components for this surface montage in the given tab.
+ */
+void 
+SurfaceFile::setSurfaceMontageNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
+                                                     const float* rgbaNodeColorComponents)
+{
+    CaretAssertArrayIndex(this->surfaceMontageNodeColoringForBrowserTabs, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
+                          browserTabIndex);
+    
+    this->allocateSurfaceMontageNodeColoringForBrowserTab(browserTabIndex, 
+                                                   false);
+    const int numberOfComponentsRGBA = this->getNumberOfNodes() * 4;
+    std::vector<float>& rgba = this->surfaceMontageNodeColoringForBrowserTabs[browserTabIndex];
+    for (int32_t i = 0; i < numberOfComponentsRGBA; i++) {
+        rgba[i] = rgbaNodeColorComponents[i];
+    }
+}
+
+
+/**
  * Get the RGBA color components for this whole brain surface in the given tab.
  * @param browserTabIndex
  *    Index of browser tab.
@@ -953,6 +1029,7 @@ SurfaceFile::getWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTab
     }
     return &rgba[0];
 }
+
 
 /**
  * Set the RGBA color components for this a whole brain surface in the given tab.

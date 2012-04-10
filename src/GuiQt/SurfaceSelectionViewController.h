@@ -25,7 +25,6 @@
  * 
  */ 
 
-
 #include "WuQWidget.h"
 
 class QComboBox;
@@ -46,6 +45,8 @@ namespace caret {
         SurfaceSelectionViewController(QObject* parent,
                                 BrainStructure* brainStructure);
         
+        SurfaceSelectionViewController(QObject* parent);
+        
         virtual ~SurfaceSelectionViewController();
         
         QWidget* getWidget();
@@ -53,6 +54,8 @@ namespace caret {
         Surface* getSurface();
         
         void updateControl();
+        
+        void updateControl(SurfaceSelectionModel* surfaceSelectionModel);
         
     signals:
         void surfaceSelected(Surface*);
@@ -69,13 +72,23 @@ namespace caret {
         SurfaceSelectionViewController& operator=(const SurfaceSelectionViewController&);
         
     private:
-        void initializeControl(SurfaceSelectionModel* surfaceSelectionModel);
+        enum Mode {
+            /** Use all surfaces from a brain structure */
+            MODE_BRAIN_STRUCTURE,
+            /** Selection mode NOT passed to constructor, user must use updateControl(SurfaceSelectionModel*) */
+            MODE_SELECTION_MODEL_DYNAMIC,
+            /** Selection model passed to constructor, and use it */
+            MODE_SELECTION_MODEL_STATIC
+        };
+        
+        void initializeControl(const Mode mode,
+                               SurfaceSelectionModel* surfaceSelectionModel);
+        
+        Mode mode;
         
         SurfaceSelectionModel* surfaceSelectionModel;
         
         QComboBox* surfaceComboBox;
-        
-        bool thisInstanceOwnsSurfaceSelection;
     };
     
 #ifdef __SURFACE_SELECTION_CONTROL_DECLARE__
