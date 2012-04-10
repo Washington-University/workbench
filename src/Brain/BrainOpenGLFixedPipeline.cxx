@@ -3445,6 +3445,8 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     const int32_t tabIndex = browserTabContent->getTabNumber();
     Surface* leftSurface = surfaceMontageModel->getLeftSurfaceSelectionModel(tabIndex)->getSurface();
     Surface* rightSurface = surfaceMontageModel->getRightSurfaceSelectionModel(tabIndex)->getSurface();
+    Surface* leftSecondSurface = surfaceMontageModel->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface();
+    Surface* rightSecondSurface = surfaceMontageModel->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface();
 
     int vpSizeX = (viewport[2] - viewport[0]) / 2;
     int vpSizeY = (viewport[3] - viewport[1]) / 2;
@@ -3452,6 +3454,8 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         vpSizeX /= 2;
     }
 
+    const bool isDualSurfaceEnabled = surfaceMontageModel->isDualConfigurationEnabled(tabIndex);
+    
     if (leftSurface != NULL) {
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
                                                                                      leftSurface, 
@@ -3466,6 +3470,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         float center[3];
         leftSurface->getBoundingBox()->getCenter(center);
         
+        /*
+         * Left surfce view
+         */
         this->setViewportAndOrthographicProjection(vp,
                                                    false);
         
@@ -3477,6 +3484,9 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                           nodeColoringRGBA);
         
         
+        /*
+         * Left Surface lateral/medial view
+         */
         vp[0] += vpSizeX;
         
         this->setViewportAndOrthographicProjection(vp,
@@ -3488,6 +3498,39 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                           true);
         this->drawSurface(leftSurface,
                           nodeColoringRGBA);
+        
+        if (leftSecondSurface != NULL) {
+            /*
+             * Left surface view
+             */
+            leftSecondSurface->getBoundingBox()->getCenter(center);
+            vp[0] += vpSizeX;
+            this->setViewportAndOrthographicProjection(vp,
+                                                       false);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              false);
+            this->drawSurface(leftSecondSurface,
+                              nodeColoringRGBA);
+            
+            
+            /*
+             * Left Surface lateral/medial view
+             */
+            vp[0] += vpSizeX;
+            
+            this->setViewportAndOrthographicProjection(vp,
+                                                       true);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              true);
+            this->drawSurface(leftSecondSurface,
+                              nodeColoringRGBA);
+        }
     }
     
     if (rightSurface != NULL) {
@@ -3500,6 +3543,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             vpSizeX,
             vpSizeY
         };
+        
+        /*
+         * Right Surface
+         */
         float center[3];
         rightSurface->getBoundingBox()->getCenter(center);
         
@@ -3513,8 +3560,10 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         this->drawSurface(rightSurface,
                           nodeColoringRGBA);
         
+        /*
+         * Right Surface lateral/medial view
+         */
         vp[0] += vpSizeX;
-        
         this->setViewportAndOrthographicProjection(vp,
                                                    false);
         
@@ -3524,6 +3573,39 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
                                           false);
         this->drawSurface(rightSurface,
                           nodeColoringRGBA);
+        
+        if (rightSecondSurface != NULL) {
+            /*
+             * Left surface view
+             */
+            rightSecondSurface->getBoundingBox()->getCenter(center);
+            vp[0] += vpSizeX;
+            this->setViewportAndOrthographicProjection(vp,
+                                                       false);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              false);
+            this->drawSurface(rightSecondSurface,
+                              nodeColoringRGBA);
+            
+            
+            /*
+             * Left Surface lateral/medial view
+             */
+            vp[0] += vpSizeX;
+            
+            this->setViewportAndOrthographicProjection(vp,
+                                                       true);
+            
+            this->applyViewingTransformations(surfaceMontageModel, 
+                                              this->windowTabIndex,
+                                              center,
+                                              true);
+            this->drawSurface(rightSecondSurface,
+                              nodeColoringRGBA);
+        }
     }
     
     glViewport(savedVP[0], 

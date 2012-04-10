@@ -2393,33 +2393,57 @@ BrainBrowserWindowToolBar::updateSingleSurfaceOptionsWidget(BrowserTabContent* b
 QWidget* 
 BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
 {
+    this->surfaceMontageDualConfigurationCheckBox = new QCheckBox("Enable Dual Configuration");
+    QObject::connect(this->surfaceMontageDualConfigurationCheckBox, SIGNAL(toggled(bool)),
+                     this, SLOT(surfaceMontageDualConfigurationCheckBoxSelected(bool)));
+    
+    const int comboWidth = 150;
+    
     QLabel* leftLabel = new QLabel("Left:");
     this->surfaceMontageLeftSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageLeftSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageLeftSurfaceSelected(Surface*)));
-    this->surfaceMontageLeftSurfaceViewController->getWidget()->setFixedWidth(200);
+    this->surfaceMontageLeftSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+    
+    this->surfaceMontageLeftSecondSurfaceViewController = new SurfaceSelectionViewController(this);
+    QObject::connect(this->surfaceMontageLeftSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(surfaceMontageLeftSecondSurfaceSelected(Surface*)));
+    this->surfaceMontageLeftSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
     
     QLabel* rightLabel = new QLabel("Right:");
     this->surfaceMontageRightSurfaceViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceMontageRightSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceMontageRightSurfaceSelected(Surface*)));
-    this->surfaceMontageRightSurfaceViewController->getWidget()->setFixedWidth(200);
+    this->surfaceMontageRightSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
 
+    this->surfaceMontageRightSecondSurfaceViewController = new SurfaceSelectionViewController(this);
+    QObject::connect(this->surfaceMontageRightSecondSurfaceViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(surfaceMontageRightSecondSurfaceSelected(Surface*)));
+    this->surfaceMontageRightSecondSurfaceViewController->getWidget()->setFixedWidth(comboWidth);
+    
     QWidget* widget = new QWidget();
     QGridLayout* layout = new QGridLayout(widget);
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
+    layout->setColumnStretch(2, 100);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     int row = layout->rowCount();
     layout->addWidget(leftLabel, row, 0);
     layout->addWidget(this->surfaceMontageLeftSurfaceViewController->getWidget(), row, 1);
+    layout->addWidget(this->surfaceMontageLeftSecondSurfaceViewController->getWidget(), row, 2);
     row = layout->rowCount();
     layout->addWidget(rightLabel, row, 0);
     layout->addWidget(this->surfaceMontageRightSurfaceViewController->getWidget(), row, 1);
+    layout->addWidget(this->surfaceMontageRightSecondSurfaceViewController->getWidget(), row, 2);
+    row = layout->rowCount();
+    layout->addWidget(this->surfaceMontageDualConfigurationCheckBox, row, 0, 1, 3, Qt::AlignHCenter);
     
     this->surfaceMontageSelectionWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageDualConfigurationCheckBox);
     this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageLeftSurfaceViewController->getWidget());
+    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageLeftSecondSurfaceViewController->getWidget());
     this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageRightSurfaceViewController->getWidget());
+    this->surfaceMontageSelectionWidgetGroup->add(this->surfaceMontageRightSecondSurfaceViewController->getWidget());
     
     QWidget* w = this->createToolWidget("Montage Selection", 
                                         widget, 
@@ -2430,6 +2454,25 @@ BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
     return w;
 }
 
+/**
+ * Called when surface montage dual configuration is toggled.
+ * @param status
+ *    New status of dual configuration (true if dual).
+ */
+void 
+BrainBrowserWindowToolBar::surfaceMontageDualConfigurationCheckBoxSelected(bool status)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    const int32_t tabIndex = btc->getTabNumber();
+    ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
+    if (msm != NULL) {
+        msm->setDualConfigurationEnabled(tabIndex, 
+                                         status);
+    }
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    this->updateUserInterface();
+    this->updateGraphicsWindow();
+}
 
 /**
  * Update the surface montage options widget.
@@ -2451,13 +2494,20 @@ BrainBrowserWindowToolBar::updateSurfaceMontageOptionsWidget(BrowserTabContent* 
     ModelSurfaceMontage* msm = browserTabContent->getSelectedSurfaceMontageModel();
     const int32_t tabIndex = browserTabContent->getTabNumber();
     SurfaceSelectionModel* leftSurfaceSelectionModel = NULL;
+    SurfaceSelectionModel* leftSecondSurfaceSelectionModel = NULL;
     SurfaceSelectionModel* rightSurfaceSelectionModel = NULL;
+    SurfaceSelectionModel* rightSecondSurfaceSelectionModel = NULL;
     if (msm != NULL) {
+        this->surfaceMontageDualConfigurationCheckBox->setChecked(msm->isDualConfigurationEnabled(tabIndex));
         leftSurfaceSelectionModel = msm->getLeftSurfaceSelectionModel(tabIndex);
+        leftSecondSurfaceSelectionModel = msm->getLeftSecondSurfaceSelectionModel(tabIndex);
         rightSurfaceSelectionModel = msm->getRightSurfaceSelectionModel(tabIndex);
+        rightSecondSurfaceSelectionModel = msm->getRightSecondSurfaceSelectionModel(tabIndex);
     }
     this->surfaceMontageLeftSurfaceViewController->updateControl(leftSurfaceSelectionModel);
+    this->surfaceMontageLeftSecondSurfaceViewController->updateControl(leftSecondSurfaceSelectionModel);
     this->surfaceMontageRightSurfaceViewController->updateControl(rightSurfaceSelectionModel);
+    this->surfaceMontageRightSecondSurfaceViewController->updateControl(rightSecondSurfaceSelectionModel);
     
     this->surfaceMontageSelectionWidgetGroup->blockAllSignals(false);
     
@@ -2486,7 +2536,28 @@ BrainBrowserWindowToolBar::surfaceMontageLeftSurfaceSelected(Surface* surface)
 }
 
 /** 
- * Called when montage left surface is selected.
+ * Called when montage left second surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void 
+BrainBrowserWindowToolBar::surfaceMontageLeftSecondSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
+        if (msm != NULL) {
+            msm->getLeftSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
+        }
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        this->updateUserInterface();
+        this->updateGraphicsWindow();
+    }
+}
+
+/** 
+ * Called when montage right surface is selected.
  * @param surface
  *    Surface that was selected.
  */
@@ -2499,6 +2570,27 @@ BrainBrowserWindowToolBar::surfaceMontageRightSurfaceSelected(Surface* surface)
         ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
         if (msm != NULL) {
             msm->getRightSurfaceSelectionModel(tabIndex)->setSurface(surface);
+        }
+        EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+        this->updateUserInterface();
+        this->updateGraphicsWindow();
+    }
+}
+
+/** 
+ * Called when montage right second surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void 
+BrainBrowserWindowToolBar::surfaceMontageRightSecondSurfaceSelected(Surface* surface)
+{
+    if (surface != NULL) {
+        BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+        const int32_t tabIndex = btc->getTabNumber();
+        ModelSurfaceMontage* msm = btc->getSelectedSurfaceMontageModel();
+        if (msm != NULL) {
+            msm->getRightSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
         }
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
         this->updateUserInterface();
