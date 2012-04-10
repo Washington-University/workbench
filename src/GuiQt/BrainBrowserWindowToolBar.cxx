@@ -1114,7 +1114,7 @@ BrainBrowserWindowToolBar::createViewWidget()
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 4, 2);
     layout->addWidget(this->viewModeSurfaceRadioButton);
-    layout->addWidget(this->viewModeSurfaceMontageRadioButton);
+//    layout->addWidget(this->viewModeSurfaceMontageRadioButton);
     layout->addWidget(this->viewModeVolumeRadioButton);
     layout->addWidget(this->viewModeWholeBrainRadioButton);
     layout->addStretch();
