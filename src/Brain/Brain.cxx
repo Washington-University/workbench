@@ -989,30 +989,31 @@ Brain::updateWholeBrainController()
 void 
 Brain::updateSurfaceMontageController()
 {
-    bool isValid = false;
-    if (this->getNumberOfBrainStructures() > 0) {
-        isValid = true;
-    }
-    
-    if (isValid) {
-        if (this->surfaceMontageController == NULL) {
-            this->surfaceMontageController = new ModelSurfaceMontage(this);
-            EventModelAdd eventAddModel(this->surfaceMontageController);
-            EventManager::get()->sendEvent(eventAddModel.getPointer());
-            
-            if (this->isSpecFileBeingRead == false) {
-                this->surfaceMontageController->initializeOverlays();
-            }
-        }
-    }
-    else {
-        if (this->surfaceMontageController != NULL) {
-            EventModelDelete eventDeleteModel(this->surfaceMontageController);
-            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
-            delete this->surfaceMontageController;
-            this->surfaceMontageController = NULL;
-        }
-    }
+    return;
+//    bool isValid = false;
+//    if (this->getNumberOfBrainStructures() > 0) {
+//        isValid = true;
+//    }
+//    
+//    if (isValid) {
+//        if (this->surfaceMontageController == NULL) {
+//            this->surfaceMontageController = new ModelSurfaceMontage(this);
+//            EventModelAdd eventAddModel(this->surfaceMontageController);
+//            EventManager::get()->sendEvent(eventAddModel.getPointer());
+//            
+//            if (this->isSpecFileBeingRead == false) {
+//                this->surfaceMontageController->initializeOverlays();
+//            }
+//        }
+//    }
+//    else {
+//        if (this->surfaceMontageController != NULL) {
+//            EventModelDelete eventDeleteModel(this->surfaceMontageController);
+//            EventManager::get()->sendEvent(eventDeleteModel.getPointer());
+//            delete this->surfaceMontageController;
+//            this->surfaceMontageController = NULL;
+//        }
+//    }
 }
 
 /**
