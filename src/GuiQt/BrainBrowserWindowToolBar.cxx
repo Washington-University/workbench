@@ -2426,7 +2426,7 @@ BrainBrowserWindowToolBar::createSurfaceMontageOptionsWidget()
     layout->setColumnStretch(0, 0);
     layout->setColumnStretch(1, 100);
     layout->setColumnStretch(2, 100);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    WuQtUtilities::setLayoutMargins(layout, 4, 2);
     int row = layout->rowCount();
     layout->addWidget(leftLabel, row, 0);
     layout->addWidget(this->surfaceMontageLeftSurfaceViewController->getWidget(), row, 1);
@@ -2530,7 +2530,6 @@ BrainBrowserWindowToolBar::surfaceMontageLeftSurfaceSelected(Surface* surface)
             msm->getLeftSurfaceSelectionModel(tabIndex)->setSurface(surface);
         }
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
 }
@@ -2551,7 +2550,6 @@ BrainBrowserWindowToolBar::surfaceMontageLeftSecondSurfaceSelected(Surface* surf
             msm->getLeftSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
         }
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
 }
@@ -2572,7 +2570,6 @@ BrainBrowserWindowToolBar::surfaceMontageRightSurfaceSelected(Surface* surface)
             msm->getRightSurfaceSelectionModel(tabIndex)->setSurface(surface);
         }
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
 }
@@ -2593,7 +2590,6 @@ BrainBrowserWindowToolBar::surfaceMontageRightSecondSurfaceSelected(Surface* sur
             msm->getRightSecondSurfaceSelectionModel(tabIndex)->setSurface(surface);
         }
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
-        this->updateUserInterface();
         this->updateGraphicsWindow();
     }
 }
