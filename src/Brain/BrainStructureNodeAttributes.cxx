@@ -76,12 +76,10 @@ BrainStructureNodeAttributes::update(const int32_t numberOfNodes)
 {
     if (numberOfNodes > 0) {
         this->identificationType.resize(numberOfNodes);
-        this->identificationRGBA.resize(numberOfNodes * 4);
         this->setAllIdentificationNone();
     }
     else {
         this->identificationType.clear();
-        this->identificationRGBA.clear();
     }
 }
 
@@ -118,63 +116,5 @@ BrainStructureNodeAttributes::setIdentificationType(const int32_t nodeIndex,
                                                     const NodeIdentificationTypeEnum::Enum identificationType)
 {
     CaretAssertVectorIndex(this->identificationType, nodeIndex);
-    this->identificationType[nodeIndex] = identificationType;
-    
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    switch (identificationType) {
-        case NodeIdentificationTypeEnum::NONE:
-            break;
-        case NodeIdentificationTypeEnum::NORMAL:
-            this->identificationRGBA[rgbaIndex]   = 0.0;
-            this->identificationRGBA[rgbaIndex+1] = 1.0;
-            this->identificationRGBA[rgbaIndex+2] = 0.0;
-            this->identificationRGBA[rgbaIndex+3] = 1.0;
-            break;
-        case NodeIdentificationTypeEnum::CONTRALATERAL:
-            this->identificationRGBA[rgbaIndex]   = 0.0;
-            this->identificationRGBA[rgbaIndex+1] = 0.0;
-            this->identificationRGBA[rgbaIndex+2] = 1.0;
-            this->identificationRGBA[rgbaIndex+3] = 1.0;
-            break;
-    }
+    this->identificationType[nodeIndex] = identificationType;    
 }
-
-/**
- * Get the RGBA color for node's identification symbol.
- * @param nodeIndex
- *    Index of the node.
- * @return
- *    RGBA color for symbol.
- */
-const float* 
-BrainStructureNodeAttributes::getIdentificationRGBA(const int32_t nodeIndex) const
-{
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    return &this->identificationRGBA[rgbaIndex];
-}
-
-/**
- * Set the RGBA color for node's identification symbol.
- * NOTE: setIdentificationType() will set the color for the symbol
- * so this method must be called AFTER setIdentificationType() to
- * override the symbol's color.
- *
- * @param nodeIndex
- *    Index of the node.
- * @param rgba
- *    RGB color for symbol.
- */
-void 
-BrainStructureNodeAttributes::setIdentificationRGBA(const int32_t nodeIndex,
-                                                   const float rgba[3])
-{
-    const int32_t rgbaIndex = nodeIndex * 4;
-    CaretAssertVectorIndex(this->identificationRGBA, (rgbaIndex + 3));
-    this->identificationRGBA[rgbaIndex]   = rgba[0];
-    this->identificationRGBA[rgbaIndex+1] = rgba[1];
-    this->identificationRGBA[rgbaIndex+2] = rgba[2];
-    this->identificationRGBA[rgbaIndex+3] = rgba[3];
-}
-
