@@ -1117,7 +1117,7 @@ QWidget*
 BrainBrowserWindowToolBar::createViewWidget()
 {
     this->viewModeSurfaceRadioButton = new QRadioButton("Surface");
-    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surf-tage");
+    this->viewModeSurfaceMontageRadioButton = new QRadioButton("Surface Montage");
     this->viewModeVolumeRadioButton = new QRadioButton("Volume");
     this->viewModeWholeBrainRadioButton = new QRadioButton("Whole Brain");
     
