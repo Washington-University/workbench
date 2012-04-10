@@ -31,7 +31,7 @@
 #include <QToolBar>
 
 #include "EventListenerInterface.h"
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
 #include "StructureEnum.h"
 
 class QAbstractButton;
@@ -54,8 +54,8 @@ namespace caret {
     class BrainBrowserWindow;
     class BrainBrowserWindowToolBox;
     class BrowserTabContent;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
+    class Model;
+    class ModelSurface;
     class StructureSurfaceSelectionControl;
     class WuQWidgetObjectGroup;
     
@@ -95,10 +95,10 @@ namespace caret {
         BrowserTabContent* getTabContentFromSelectedTab();
         BrowserTabContent* getTabContentFromTab(const int tabIndex);
         
-        ModelDisplayController* getDisplayedModelController();
+        Model* getDisplayedModelController();
         
         int32_t loadIntoTab(const int32_t tabIndex,
-                            ModelDisplayController* controller);
+                            Model* controller);
 
         void updateGraphicsWindow();
         void updateUserInterface();
@@ -114,7 +114,7 @@ namespace caret {
         QWidget* createVolumeMontageWidget();
         QWidget* createVolumePlaneWidget();
         
-        ModelDisplayControllerTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
+        ModelTypeEnum::Enum updateViewWidget(BrowserTabContent* browserTabContent);
         void updateOrientationWidget(BrowserTabContent* browserTabContent);
         void updateWholeBrainSurfaceOptionsWidget(BrowserTabContent* browserTabContent);
         void updateVolumeIndicesWidget(BrowserTabContent* browserTabContent);
@@ -314,7 +314,7 @@ namespace caret {
         
     private slots:
         void surfaceSelectionControlChanged(const StructureEnum::Enum,
-                                            ModelDisplayControllerSurface*);
+                                            ModelSurface*);
         
     private:
         QAction* volumePlaneParasagittalToolButtonAction;

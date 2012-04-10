@@ -56,8 +56,8 @@
 #include "FileInformation.h"
 #include "GuiManager.h"
 #include "ManageLoadedFilesDialog.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelWholeBrain.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileDialog.h"
@@ -737,13 +737,13 @@ BrainBrowserWindow::processSurfaceMenuInformation()
     if (btc != NULL) {
         AString txt = "";
         
-        ModelDisplayController* mdc = btc->getModelControllerForDisplay();
-        ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
+        Model* mdc = btc->getModelControllerForDisplay();
+        ModelSurface* mdcs = dynamic_cast<ModelSurface*>(mdc);
         if (mdcs != NULL) {
             txt += mdcs->getSurface()->getInformation();
         }
         
-        ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
+        ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(mdc);
         if (mdcwb != NULL) {
             std::vector<StructureEnum::Enum> allStructures;
             StructureEnum::getAllEnums(allStructures);

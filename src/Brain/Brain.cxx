@@ -39,16 +39,16 @@
 #include "ElapsedTimer.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
-#include "EventModelDisplayControllerAdd.h"
-#include "EventModelDisplayControllerDelete.h"
-#include "EventModelDisplayControllerGetAll.h"
+#include "EventModelAdd.h"
+#include "EventModelDelete.h"
+#include "EventModelGetAll.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FileInformation.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "LabelFile.h"
 #include "PaletteFile.h"
 #include "RgbaFile.h"
@@ -931,8 +931,8 @@ Brain::updateVolumeSliceController()
     
     if (isValid) {
         if (this->volumeSliceController == NULL) {
-            this->volumeSliceController = new ModelDisplayControllerVolume(this);
-            EventModelDisplayControllerAdd eventAddModel(this->volumeSliceController);
+            this->volumeSliceController = new ModelVolume(this);
+            EventModelAdd eventAddModel(this->volumeSliceController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
 
             if (this->isSpecFileBeingRead == false) {
@@ -942,7 +942,7 @@ Brain::updateVolumeSliceController()
     }
     else {
         if (this->volumeSliceController != NULL) {
-            EventModelDisplayControllerDelete eventDeleteModel(this->volumeSliceController);
+            EventModelDelete eventDeleteModel(this->volumeSliceController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
             delete this->volumeSliceController;
             this->volumeSliceController = NULL;
@@ -964,8 +964,8 @@ Brain::updateWholeBrainController()
      
     if (isValid) {
         if (this->wholeBrainController == NULL) {
-            this->wholeBrainController = new ModelDisplayControllerWholeBrain(this);
-            EventModelDisplayControllerAdd eventAddModel(this->wholeBrainController);
+            this->wholeBrainController = new ModelWholeBrain(this);
+            EventModelAdd eventAddModel(this->wholeBrainController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
             if (this->isSpecFileBeingRead == false) {
@@ -975,7 +975,7 @@ Brain::updateWholeBrainController()
     }
     else {
         if (this->wholeBrainController != NULL) {
-            EventModelDisplayControllerDelete eventDeleteModel(this->wholeBrainController);
+            EventModelDelete eventDeleteModel(this->wholeBrainController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
             delete this->wholeBrainController;
             this->wholeBrainController = NULL;
@@ -996,8 +996,8 @@ Brain::updateSurfaceMontageController()
     
     if (isValid) {
         if (this->surfaceMontageController == NULL) {
-            this->surfaceMontageController = new ModelDisplayControllerSurfaceMontage(this);
-            EventModelDisplayControllerAdd eventAddModel(this->surfaceMontageController);
+            this->surfaceMontageController = new ModelSurfaceMontage(this);
+            EventModelAdd eventAddModel(this->surfaceMontageController);
             EventManager::get()->sendEvent(eventAddModel.getPointer());
             
             if (this->isSpecFileBeingRead == false) {
@@ -1007,7 +1007,7 @@ Brain::updateSurfaceMontageController()
     }
     else {
         if (this->surfaceMontageController != NULL) {
-            EventModelDisplayControllerDelete eventDeleteModel(this->surfaceMontageController);
+            EventModelDelete eventDeleteModel(this->surfaceMontageController);
             EventManager::get()->sendEvent(eventDeleteModel.getPointer());
             delete this->surfaceMontageController;
             this->surfaceMontageController = NULL;
@@ -1183,13 +1183,13 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     /*
      * Initialize the overlay for ALL models
      */
-    EventModelDisplayControllerGetAll getAllModels;
+    EventModelGetAll getAllModels;
     EventManager::get()->sendEvent(getAllModels.getPointer());
-    std::vector<ModelDisplayController*> allModels = getAllModels.getModelDisplayControllers();
-    for (std::vector<ModelDisplayController*>::iterator iter = allModels.begin();
+    std::vector<Model*> allModels = getAllModels.getModels();
+    for (std::vector<Model*>::iterator iter = allModels.begin();
          iter != allModels.end();
          iter++) {
-        ModelDisplayController* mdc = *iter;
+        Model* mdc = *iter;
         mdc->initializeOverlays();
     }
     

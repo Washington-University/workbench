@@ -31,27 +31,27 @@
 
 namespace caret {
 
-    class ModelDisplayControllerYokingGroup;
+    class ModelYokingGroup;
     
     
     /// Event for getting model display controllers
-    class EventModelDisplayControllerYokingGroupGetAll : public Event {
+    class EventModelYokingGroupGetAll : public Event {
         
     public:
-        EventModelDisplayControllerYokingGroupGetAll();
+        EventModelYokingGroupGetAll();
         
-        virtual ~EventModelDisplayControllerYokingGroupGetAll();
+        virtual ~EventModelYokingGroupGetAll();
         
-        void addYokingGroup(ModelDisplayControllerYokingGroup* yokingGroup);
+        void addYokingGroup(ModelYokingGroup* yokingGroup);
 
-        void getYokingGroups(std::vector<ModelDisplayControllerYokingGroup*>& yokingGroupsOut) const;        
+        void getYokingGroups(std::vector<ModelYokingGroup*>& yokingGroupsOut) const;        
         
     private:
-        EventModelDisplayControllerYokingGroupGetAll(const EventModelDisplayControllerYokingGroupGetAll&);
+        EventModelYokingGroupGetAll(const EventModelYokingGroupGetAll&);
         
-        EventModelDisplayControllerYokingGroupGetAll& operator=(const EventModelDisplayControllerYokingGroupGetAll&);
+        EventModelYokingGroupGetAll& operator=(const EventModelYokingGroupGetAll&);
         
-        std::vector<ModelDisplayControllerYokingGroup*> yokingGroups;
+        std::vector<ModelYokingGroup*> yokingGroups;
     };
 
 } // namespace

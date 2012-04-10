@@ -46,8 +46,8 @@
 #include "GuiManager.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationManager.h"
-#include "ModelDisplayController.h"
-#include "ModelDisplayControllerSurface.h"
+#include "Model.h"
+#include "ModelSurface.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "SurfaceProjectedItem.h"
@@ -171,7 +171,7 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                        BrowserTabContent* browserTabContent,
                        BrainOpenGLWidget* openGLWidget)
 {
-    ModelDisplayController* modelController = browserTabContent->getModelControllerForDisplay();
+    Model* modelController = browserTabContent->getModelControllerForDisplay();
     if (modelController != NULL) {
         //const int32_t tabIndex = browserTabContent->getTabNumber();
         //const float dx = mouseEvent->getDx();

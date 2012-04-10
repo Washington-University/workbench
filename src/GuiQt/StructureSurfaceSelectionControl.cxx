@@ -31,7 +31,7 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventModelDisplayControllerGetAll.h"
+#include "EventModelGetAll.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
 
@@ -39,8 +39,8 @@
 #include "StructureSurfaceSelectionControl.h"
 #undef __STRUCTURE_SURFACE_SELECTION_CONTROL_DECLARE__
 
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerSurfaceSelector.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceSelector.h"
 #include "Surface.h"
 
 using namespace caret;
@@ -105,7 +105,7 @@ StructureSurfaceSelectionControl::surfaceControllerSelected(int currentIndex)
     CaretAssert((currentIndex >= 0) 
                 && (currentIndex < this->surfaceControllerSelectionComboBox->count()));
     void* pointer = this->surfaceControllerSelectionComboBox->itemData(currentIndex).value<void*>();
-    ModelDisplayControllerSurface* surfaceController = (ModelDisplayControllerSurface*)pointer;
+    ModelSurface* surfaceController = (ModelSurface*)pointer;
     this->surfaceControllerSelector->setSelectedSurfaceController(surfaceController);
     
     emit selectionChanged(this->surfaceControllerSelector->getSelectedStructure(),
@@ -113,7 +113,7 @@ StructureSurfaceSelectionControl::surfaceControllerSelected(int currentIndex)
 }
 
 
-ModelDisplayControllerSurface* 
+ModelSurface* 
 StructureSurfaceSelectionControl::getSelectedSurfaceController()
 {
     return this->surfaceControllerSelector->getSelectedSurfaceController();
@@ -128,7 +128,7 @@ StructureSurfaceSelectionControl::getSelectedStructure()
 /*
 void 
 StructureSurfaceSelectionControl::setSelectedSurfaceController(
-                        ModelDisplayControllerSurface* surfaceController)
+                        ModelSurface* surfaceController)
 {
     this->surfaceControllerSelector->setSelectedSurfaceController(surfaceController);
     this->updateControl();
@@ -143,7 +143,7 @@ StructureSurfaceSelectionControl::setSelectedStructure(const StructureEnum::Enum
 */
 
 void 
-StructureSurfaceSelectionControl::updateControl(ModelDisplayControllerSurfaceSelector* surfaceControllerSelector)
+StructureSurfaceSelectionControl::updateControl(ModelSurfaceSelector* surfaceControllerSelector)
 {
     this->surfaceControllerSelector = surfaceControllerSelector;
     this->updateControlAfterSelection();
@@ -165,7 +165,7 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
         return;
     }
     
-    std::vector<ModelDisplayControllerSurface*> availableSurfaceControllers;
+    std::vector<ModelSurface*> availableSurfaceControllers;
     std::vector<StructureEnum::Enum> availableStructures;
     
     this->surfaceControllerSelector->getSelectableStructures(availableStructures);
@@ -201,14 +201,14 @@ StructureSurfaceSelectionControl::updateControlAfterSelection()
     /*
      * Update the surface selection.
      */
-    ModelDisplayControllerSurface* selectedSurfaceController =
+    ModelSurface* selectedSurfaceController =
         this->surfaceControllerSelector->getSelectedSurfaceController();
     int32_t defaultSurfaceIndex = -1;
     int32_t volumeInteractionSurfaceIndex = -1;
-    for (std::vector<ModelDisplayControllerSurface*>::const_iterator iter = availableSurfaceControllers.begin();
+    for (std::vector<ModelSurface*>::const_iterator iter = availableSurfaceControllers.begin();
          iter != availableSurfaceControllers.end();
          iter++) {
-        ModelDisplayControllerSurface* surfaceController = *iter;
+        ModelSurface* surfaceController = *iter;
         this->surfaceControllerSelectionComboBox->addItem(surfaceController->getNameForGUI(allSelected),
                                                           qVariantFromValue((void*)surfaceController));
         if (selectedSurfaceController == surfaceController) {

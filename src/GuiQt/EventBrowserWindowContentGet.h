@@ -31,7 +31,7 @@
 namespace caret {
 
     class BrowserTabContent;
-    class ModelDisplayController;
+    class Model;
     
     /// Get the content of a browser window
     class EventBrowserWindowContentGet : public Event {

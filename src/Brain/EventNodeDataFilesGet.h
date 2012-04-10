@@ -32,7 +32,7 @@ namespace caret {
     class GiftiTypeFile;
     class LabelFile;
     class MetricFile;
-    class ModelDisplayController;
+    class Model;
     class RgbaFile;
     class Surface;
     

@@ -24,21 +24,21 @@
  */ 
 
 #define __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__
-#include "ModelDisplayControllerSurfaceSelector.h"
+#include "ModelSurfaceSelector.h"
 #undef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__
 
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "EventManager.h"
-#include "EventModelDisplayControllerGetAll.h"
-#include "ModelDisplayControllerSurface.h"
+#include "EventModelGetAll.h"
+#include "ModelSurface.h"
 #include "Surface.h"
 #include <algorithm>
 
 using namespace caret;
 
 /**
- * \class ModelDisplayControllerSurfaceSelector
+ * \class ModelSurfaceSelector
  * \brief Maintains selection of surface controller
  *
  * Maintains selection of a surface controller with the ability to limit the
@@ -48,7 +48,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-ModelDisplayControllerSurfaceSelector::ModelDisplayControllerSurfaceSelector()
+ModelSurfaceSelector::ModelSurfaceSelector()
 : CaretObject()
 {
     this->defaultStructure = StructureEnum::ALL;
@@ -59,7 +59,7 @@ ModelDisplayControllerSurfaceSelector::ModelDisplayControllerSurfaceSelector()
 /**
  * Destructor.
  */
-ModelDisplayControllerSurfaceSelector::~ModelDisplayControllerSurfaceSelector()
+ModelSurfaceSelector::~ModelSurfaceSelector()
 {
     
 }
@@ -67,8 +67,8 @@ ModelDisplayControllerSurfaceSelector::~ModelDisplayControllerSurfaceSelector()
 /**
  * @return The selected surface controller.
  */
-ModelDisplayControllerSurface* 
-ModelDisplayControllerSurfaceSelector::getSelectedSurfaceController()
+ModelSurface* 
+ModelSurfaceSelector::getSelectedSurfaceController()
 {
     this->updateSelector();
     return this->selectedSurfaceController;
@@ -78,7 +78,7 @@ ModelDisplayControllerSurfaceSelector::getSelectedSurfaceController()
  * @return The selected structure.
  */
 StructureEnum::Enum 
-ModelDisplayControllerSurfaceSelector::getSelectedStructure()
+ModelSurfaceSelector::getSelectedStructure()
 {
     this->updateSelector();
     return this->selectedStructure;
@@ -91,8 +91,8 @@ ModelDisplayControllerSurfaceSelector::getSelectedStructure()
  *    Controller that is selected.
  */
 void 
-ModelDisplayControllerSurfaceSelector::setSelectedSurfaceController(
-                                                               ModelDisplayControllerSurface* surfaceController)
+ModelSurfaceSelector::setSelectedSurfaceController(
+                                                               ModelSurface* surfaceController)
 {
     this->selectedSurfaceController = surfaceController;
     if (this->selectedStructure != StructureEnum::ALL) {
@@ -108,7 +108,7 @@ ModelDisplayControllerSurfaceSelector::setSelectedSurfaceController(
  *    Structure that is selected.
  */
 void 
-ModelDisplayControllerSurfaceSelector::setSelectedStructure(const StructureEnum::Enum selectedStructure)
+ModelSurfaceSelector::setSelectedStructure(const StructureEnum::Enum selectedStructure)
 {
     this->selectedStructure = selectedStructure;
     this->updateSelector();
@@ -121,7 +121,7 @@ ModelDisplayControllerSurfaceSelector::setSelectedStructure(const StructureEnum:
  *    Output containing structures that can be selected.
  */ 
 void 
-ModelDisplayControllerSurfaceSelector::getSelectableStructures(
+ModelSurfaceSelector::getSelectableStructures(
                              std::vector<StructureEnum::Enum>& selectableStructuresOut) const
 {
     selectableStructuresOut.clear();
@@ -137,8 +137,8 @@ ModelDisplayControllerSurfaceSelector::getSelectableStructures(
  *    Output containing surface controllers that can be selected.
  */ 
 void 
-ModelDisplayControllerSurfaceSelector::getSelectableSurfaceControllers(
-                        std::vector<ModelDisplayControllerSurface*>& selectableSurfaceControllersOut) const
+ModelSurfaceSelector::getSelectableSurfaceControllers(
+                        std::vector<ModelSurface*>& selectableSurfaceControllersOut) const
 {
     selectableSurfaceControllersOut.clear();
     selectableSurfaceControllersOut.insert(selectableSurfaceControllersOut.end(),
@@ -150,14 +150,14 @@ ModelDisplayControllerSurfaceSelector::getSelectableSurfaceControllers(
  * Update the selector with the available surface controllers.
  */
 void 
-ModelDisplayControllerSurfaceSelector::updateSelector(const std::vector<ModelDisplayController*> modelDisplayControllers)
+ModelSurfaceSelector::updateSelector(const std::vector<Model*> modelDisplayControllers)
 {
     this->allSurfaceControllers.clear();
-    for (std::vector<ModelDisplayController*>::const_iterator iter = modelDisplayControllers.begin();
+    for (std::vector<Model*>::const_iterator iter = modelDisplayControllers.begin();
          iter != modelDisplayControllers.end();
          iter++) {
-        ModelDisplayControllerSurface* surfaceController =
-        dynamic_cast<ModelDisplayControllerSurface*>(*iter);
+        ModelSurface* surfaceController =
+        dynamic_cast<ModelSurface*>(*iter);
         if (surfaceController != NULL) {
             this->allSurfaceControllers.push_back(surfaceController);
         }
@@ -170,7 +170,7 @@ ModelDisplayControllerSurfaceSelector::updateSelector(const std::vector<ModelDis
  * Update the selector with the available surface controllers.
  */
 void 
-ModelDisplayControllerSurfaceSelector::updateSelector()
+ModelSurfaceSelector::updateSelector()
 {
     bool haveCortexLeft = false;
     bool haveCortexRight = false;
@@ -179,10 +179,10 @@ ModelDisplayControllerSurfaceSelector::updateSelector()
     /*
      * Find the ALL surface controllers and structures
      */
-    for (std::vector<ModelDisplayControllerSurface*>::const_iterator iter = allSurfaceControllers.begin();
+    for (std::vector<ModelSurface*>::const_iterator iter = allSurfaceControllers.begin();
          iter != allSurfaceControllers.end();
          iter++) {
-        ModelDisplayControllerSurface* surfaceController = *iter;
+        ModelSurface* surfaceController = *iter;
         const Surface* surface = surfaceController->getSurface();
         const StructureEnum::Enum structure = surface->getStructure();
         
@@ -234,10 +234,10 @@ ModelDisplayControllerSurfaceSelector::updateSelector()
      * Update the available surface controllers.
      */
     this->availableSurfaceControllers.clear();
-    for (std::vector<ModelDisplayControllerSurface*>::iterator iter = allSurfaceControllers.begin();
+    for (std::vector<ModelSurface*>::iterator iter = allSurfaceControllers.begin();
          iter != allSurfaceControllers.end();
          iter++) {
-        ModelDisplayControllerSurface* surfaceController = *iter;
+        ModelSurface* surfaceController = *iter;
         const Surface* surface = surfaceController->getSurface();
         const StructureEnum::Enum structure = surface->getStructure();
         
@@ -268,10 +268,10 @@ ModelDisplayControllerSurfaceSelector::updateSelector()
         /*
          * First, see if a previous controller for structure still exists, if so, use it.
          */
-        std::map<StructureEnum::Enum, ModelDisplayControllerSurface*>::iterator iter =
+        std::map<StructureEnum::Enum, ModelSurface*>::iterator iter =
         this->previousSelectedSurfaceController.find(this->selectedStructure);
         if (iter != this->previousSelectedSurfaceController.end()) {
-            ModelDisplayControllerSurface* previousController = iter->second;
+            ModelSurface* previousController = iter->second;
             if (std::find(this->availableSurfaceControllers.begin(),
                           this->availableSurfaceControllers.end(),
                           previousController) != this->availableSurfaceControllers.end()) {
@@ -324,7 +324,7 @@ ModelDisplayControllerSurfaceSelector::updateSelector()
  * @return String describing this object's content.
  */
 AString 
-ModelDisplayControllerSurfaceSelector::toString() const
+ModelSurfaceSelector::toString() const
 {
     AString msg = "selectedStructure="
     + StructureEnum::toName(this->selectedStructure)

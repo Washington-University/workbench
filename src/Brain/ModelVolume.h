@@ -27,7 +27,7 @@
 
 
 #include "EventListenerInterface.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 
 #include "VolumeSliceCoordinateSelection.h"
 #include "VolumeSliceViewPlaneEnum.h"
@@ -39,12 +39,12 @@ namespace caret {
     class VolumeFile;
     
     /// Controls the display of a volumes.
-    class ModelDisplayControllerVolume : public ModelDisplayController, public EventListenerInterface {
+    class ModelVolume : public Model, public EventListenerInterface {
         
     public:        
-        ModelDisplayControllerVolume(Brain* brain);
+        ModelVolume(Brain* brain);
         
-        virtual ~ModelDisplayControllerVolume();
+        virtual ~ModelVolume();
         
         VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
@@ -90,12 +90,12 @@ namespace caret {
         void initializeOverlays();
         
     private:
-        ModelDisplayControllerVolume(const ModelDisplayControllerVolume&);
+        ModelVolume(const ModelVolume&);
         
-        ModelDisplayControllerVolume& operator=(const ModelDisplayControllerVolume&);
+        ModelVolume& operator=(const ModelVolume&);
         
     private:
-        void initializeMembersModelDisplayControllerVolume();
+        void initializeMembersModelVolume();
         
     public:
         AString getNameForGUI(const bool includeStructureFlag) const;

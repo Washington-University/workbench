@@ -30,8 +30,8 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventModelDisplayControllerSurfaceGet.h"
-#include "ModelDisplayControllerSurface.h"
+#include "EventModelSurfaceGet.h"
+#include "ModelSurface.h"
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
@@ -45,15 +45,15 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
+ModelSurface::ModelSurface(Brain* brain,
                                                              Surface* surface)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE,
+: Model(ModelTypeEnum::MODEL_TYPE_SURFACE,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          brain)
 {
     CaretAssert(surface);
-    this->initializeMembersModelDisplayControllerSurface();
+    this->initializeMembersModelSurface();
     this->surface = surface;
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->lateralView(i);
@@ -66,7 +66,7 @@ ModelDisplayControllerSurface::ModelDisplayControllerSurface(Brain* brain,
 /**
  * Destructor
  */
-ModelDisplayControllerSurface::~ModelDisplayControllerSurface()
+ModelSurface::~ModelSurface()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
@@ -78,11 +78,11 @@ ModelDisplayControllerSurface::~ModelDisplayControllerSurface()
  *     The event that the receive can respond to.
  */
 void 
-ModelDisplayControllerSurface::receiveEvent(Event* event)
+ModelSurface::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET) {
-        EventModelDisplayControllerSurfaceGet* getSurfaceControllerEvent =
-        dynamic_cast<EventModelDisplayControllerSurfaceGet*>(event);
+        EventModelSurfaceGet* getSurfaceControllerEvent =
+        dynamic_cast<EventModelSurfaceGet*>(event);
         CaretAssert(getSurfaceControllerEvent);
         
         
@@ -90,7 +90,7 @@ ModelDisplayControllerSurface::receiveEvent(Event* event)
          * Looking this controller?
          */
         if (getSurfaceControllerEvent->getSurface() == this->getSurface()) {
-            getSurfaceControllerEvent->setModelDisplayControllerSurface(this);
+            getSurfaceControllerEvent->setModelSurface(this);
             getSurfaceControllerEvent->setEventProcessed();
         }
     }
@@ -100,7 +100,7 @@ ModelDisplayControllerSurface::receiveEvent(Event* event)
 }
 
 void
-ModelDisplayControllerSurface::initializeMembersModelDisplayControllerSurface()
+ModelSurface::initializeMembersModelSurface()
 {
     this->surface = NULL;
 }
@@ -110,7 +110,7 @@ ModelDisplayControllerSurface::initializeMembersModelDisplayControllerSurface()
  * @return  Surface in this controller.
  */
 Surface*
-ModelDisplayControllerSurface::getSurface()
+ModelSurface::getSurface()
 {
     return this->surface;
 }
@@ -120,7 +120,7 @@ ModelDisplayControllerSurface::getSurface()
  * @return  Surface in this controller.
  */
 const Surface*
-ModelDisplayControllerSurface::getSurface() const
+ModelSurface::getSurface() const
 {
     return this->surface;
 }
@@ -134,7 +134,7 @@ ModelDisplayControllerSurface::getSurface() const
  *
  */
 AString
-ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) const
+ModelSurface::getNameForGUI(const bool includeStructureFlag) const
 {
     AString name;
     if (includeStructureFlag) {
@@ -151,7 +151,7 @@ ModelDisplayControllerSurface::getNameForGUI(const bool includeStructureFlag) co
  * displaying this model controller.
  */
 AString 
-ModelDisplayControllerSurface::getNameForBrowserTab() const
+ModelSurface::getNameForBrowserTab() const
 {
     const StructureEnum::Enum structure = this->surface->getStructure();
     const AString name = StructureEnum::toGuiName(structure);
@@ -163,7 +163,7 @@ ModelDisplayControllerSurface::getNameForBrowserTab() const
  *
  */
 void
-ModelDisplayControllerSurface::setDefaultScalingToFitWindow()
+ModelSurface::setDefaultScalingToFitWindow()
 {
     BoundingBox bounds;
     this->surface->getBounds(bounds);
@@ -185,9 +185,9 @@ ModelDisplayControllerSurface::setDefaultScalingToFitWindow()
  * reset the view.
  */
 void
-ModelDisplayControllerSurface::resetView(const int32_t windowTabNumber)
+ModelSurface::resetView(const int32_t windowTabNumber)
 {
-    ModelDisplayController::resetView(windowTabNumber);
+    Model::resetView(windowTabNumber);
     this->lateralView(windowTabNumber);    
 }
 
@@ -200,7 +200,7 @@ ModelDisplayControllerSurface::resetView(const int32_t windowTabNumber)
  * reset the view.
  */
 void
-ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
+ModelSurface::lateralView(const int32_t windowTabNumber)
 {
     if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
         switch (this->surface->getStructure()) {
@@ -225,7 +225,7 @@ ModelDisplayControllerSurface::lateralView(const int32_t windowTabNumber)
  * reset the view.
  */
 void
-ModelDisplayControllerSurface::medialView(const int32_t windowTabNumber)
+ModelSurface::medialView(const int32_t windowTabNumber)
 {
     if (this->surface->getSurfaceType() != SurfaceTypeEnum::FLAT) {
         switch (this->surface->getStructure()) {
@@ -249,7 +249,7 @@ ModelDisplayControllerSurface::medialView(const int32_t windowTabNumber)
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelDisplayControllerSurface::getOverlaySet(const int tabIndex)
+ModelSurface::getOverlaySet(const int tabIndex)
 {
     if (this->surface != NULL) {
         BrainStructure* brainStructure = this->surface->getBrainStructure();
@@ -269,7 +269,7 @@ ModelDisplayControllerSurface::getOverlaySet(const int tabIndex)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelDisplayControllerSurface::getOverlaySet(const int tabIndex) const
+ModelSurface::getOverlaySet(const int tabIndex) const
 {
     if (this->surface != NULL) {
         const BrainStructure* brainStructure = this->surface->getBrainStructure();
@@ -285,7 +285,7 @@ ModelDisplayControllerSurface::getOverlaySet(const int tabIndex) const
  * Initilize the overlays for this controller.
  */
 void 
-ModelDisplayControllerSurface::initializeOverlays()
+ModelSurface::initializeOverlays()
 {
 }
 

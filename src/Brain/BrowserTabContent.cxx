@@ -30,14 +30,14 @@
 #include "BrowserTabYoking.h"
 #include "CaretAssert.h"
 #include "CaretLogger.h"
-#include "EventModelDisplayControllerGetAll.h"
+#include "EventModelGetAll.h"
 #include "EventManager.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
-#include "ModelDisplayControllerSurfaceSelector.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelSurfaceSelector.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
+#include "ModelYokingGroup.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
 #include "Surface.h"
@@ -52,12 +52,12 @@ using namespace caret;
  *    Number for this tab.
  */
 BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
-                                     ModelDisplayControllerYokingGroup* defaultYokingGroup)
+                                     ModelYokingGroup* defaultYokingGroup)
 : CaretObject()
 {
     this->tabNumber = tabNumber;
-    this->surfaceModelSelector = new ModelDisplayControllerSurfaceSelector();
-    this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+    this->surfaceModelSelector = new ModelSurfaceSelector();
+    this->selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
     this->volumeModel = NULL;
     this->wholeBrainModel = NULL;
     this->surfaceMontageModel = NULL;
@@ -96,7 +96,7 @@ BrowserTabContent::getName() const
         s += userName;
     }
     else {
-        const ModelDisplayController* displayedController =
+        const Model* displayedController =
             this->getModelControllerForDisplay();
         if (displayedController != NULL) {
             const AString name = displayedController->getNameForBrowserTab();
@@ -159,7 +159,7 @@ BrowserTabContent::toString() const
  * 
  * @return The selected model type.
  */   
-ModelDisplayControllerTypeEnum::Enum 
+ModelTypeEnum::Enum 
 BrowserTabContent::getSelectedModelType() const
 {
     return this->selectedModelType;
@@ -172,7 +172,7 @@ BrowserTabContent::getSelectedModelType() const
  *    New selected model type. 
  */   
 void 
-BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType)
+BrowserTabContent::setSelectedModelType(ModelTypeEnum::Enum selectedModelType)
 {
     this->selectedModelType = selectedModelType;
 }
@@ -185,27 +185,27 @@ BrowserTabContent::setSelectedModelType(ModelDisplayControllerTypeEnum::Enum sel
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
  */   
-ModelDisplayController* 
+Model* 
 BrowserTabContent::getModelControllerForDisplay()
 {
-    ModelDisplayController* mdc = NULL;
+    Model* mdc = NULL;
     
     switch (this->selectedModelType) {
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
             mdc = this->surfaceModelSelector->getSelectedSurfaceController();
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             mdc = this->surfaceMontageModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = this->wholeBrainModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+        case ModelTypeEnum::MODEL_TYPE_YOKING:
             CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
             break;
     }
@@ -221,27 +221,27 @@ BrowserTabContent::getModelControllerForDisplay()
  * @return  Pointer to displayed controller or NULL
  *          if none are available.
  */   
-const ModelDisplayController* 
+const Model* 
 BrowserTabContent::getModelControllerForDisplay() const
 {
-    ModelDisplayController* mdc = NULL;
+    Model* mdc = NULL;
     
     switch (this->selectedModelType) {
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
             mdc = this->surfaceModelSelector->getSelectedSurfaceController();
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             mdc = this->surfaceMontageModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             mdc = this->volumeModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             mdc = this->wholeBrainModel;
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+        case ModelTypeEnum::MODEL_TYPE_YOKING:
             CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
             break;
     }
@@ -257,16 +257,16 @@ BrowserTabContent::getModelControllerForDisplay() const
  * @return  Pointer to transformation controller or NULL
  *          if none are available.
  */   
-ModelDisplayController* 
+Model* 
 BrowserTabContent::getModelControllerForTransformation()
 {
-    ModelDisplayController* mdc = this->getModelControllerForDisplay();
+    Model* mdc = this->getModelControllerForDisplay();
     if (mdc == NULL) {
         return NULL;
     }
     
     if (mdc->isYokeable()) {
-        ModelDisplayControllerYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
+        ModelYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
         if (mdcyg->getYokingType() != YokingTypeEnum::OFF) {
             mdc = mdcyg;
         }
@@ -283,11 +283,11 @@ BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
 {
     bool itIs = false;
     
-    const ModelDisplayControllerSurface* surfaceController = this->getDisplayedSurfaceModel();
+    const ModelSurface* surfaceController = this->getDisplayedSurfaceModel();
     if (surfaceController != NULL) {
         const Surface* surface = surfaceController->getSurface();
         if (surface->getStructure() == StructureEnum::CORTEX_RIGHT) {
-            ModelDisplayControllerYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
+            ModelYokingGroup* mdcyg = this->browserTabYoking->getSelectedYokingGroup();
             if (mdcyg->getYokingType() == YokingTypeEnum::ON_LATERAL_MEDIAL) {
                 itIs = true;
             }
@@ -305,11 +305,11 @@ BrowserTabContent::isDisplayedModelSurfaceRightLateralMedialYoked() const
  *          NULL if the displayed model is NOT a 
  *          surface.
  */   
-ModelDisplayControllerSurface* 
+ModelSurface* 
 BrowserTabContent::getDisplayedSurfaceModel()
 {
-    ModelDisplayControllerSurface* mdcs =
-        dynamic_cast<ModelDisplayControllerSurface*>(this->getModelControllerForDisplay());
+    ModelSurface* mdcs =
+        dynamic_cast<ModelSurface*>(this->getModelControllerForDisplay());
     return mdcs;
 }
 
@@ -320,11 +320,11 @@ BrowserTabContent::getDisplayedSurfaceModel()
  *          NULL if the displayed model is NOT a 
  *          surface.
  */   
-const ModelDisplayControllerSurface* 
+const ModelSurface* 
 BrowserTabContent::getDisplayedSurfaceModel() const
 {
-    const ModelDisplayControllerSurface* mdcs =
-    dynamic_cast<const ModelDisplayControllerSurface*>(this->getModelControllerForDisplay());
+    const ModelSurface* mdcs =
+    dynamic_cast<const ModelSurface*>(this->getModelControllerForDisplay());
     return mdcs;
 }
 
@@ -335,11 +335,11 @@ BrowserTabContent::getDisplayedSurfaceModel() const
  *          NULL if the displayed model is NOT a 
  *          volume.
  */   
-ModelDisplayControllerVolume* 
+ModelVolume* 
 BrowserTabContent::getDisplayedVolumeModel()
 {
-    ModelDisplayControllerVolume* mdcv =
-        dynamic_cast<ModelDisplayControllerVolume*>(this->getModelControllerForDisplay());
+    ModelVolume* mdcv =
+        dynamic_cast<ModelVolume*>(this->getModelControllerForDisplay());
     return mdcv;
 }
 
@@ -350,11 +350,11 @@ BrowserTabContent::getDisplayedVolumeModel()
  *          NULL if the displayed model is NOT a 
  *          whole brain.
  */   
-ModelDisplayControllerWholeBrain* 
+ModelWholeBrain* 
 BrowserTabContent::getDisplayedWholeBrainModel()
 {
-    ModelDisplayControllerWholeBrain* mdcwb =
-        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getModelControllerForDisplay());
+    ModelWholeBrain* mdcwb =
+        dynamic_cast<ModelWholeBrain*>(this->getModelControllerForDisplay());
     return mdcwb;
 
 }
@@ -366,11 +366,11 @@ BrowserTabContent::getDisplayedWholeBrainModel()
  *          NULL if the displayed model is not a 
  *          volume.
  */   
-ModelDisplayControllerVolume* 
+ModelVolume* 
 BrowserTabContent::getSelectedVolumeModel()
 {
-    ModelDisplayControllerVolume* mdcv =
-        dynamic_cast<ModelDisplayControllerVolume*>(this->getModelControllerForDisplay());
+    ModelVolume* mdcv =
+        dynamic_cast<ModelVolume*>(this->getModelControllerForDisplay());
     return mdcv;
 }
 
@@ -381,11 +381,11 @@ BrowserTabContent::getSelectedVolumeModel()
  *          NULL if the displayed model is not a 
  *          whole brain.
  */   
-ModelDisplayControllerWholeBrain* 
+ModelWholeBrain* 
 BrowserTabContent::getSelectedWholeBrainModel()
 {
-    ModelDisplayControllerWholeBrain* mdcwb =
-        dynamic_cast<ModelDisplayControllerWholeBrain*>(this->getModelControllerForDisplay());
+    ModelWholeBrain* mdcwb =
+        dynamic_cast<ModelWholeBrain*>(this->getModelControllerForDisplay());
     return mdcwb;
 }
 
@@ -394,11 +394,11 @@ BrowserTabContent::getSelectedWholeBrainModel()
  * or NULL if the displayed model is not a surface
  * montage model.
  */
-ModelDisplayControllerSurfaceMontage* 
+ModelSurfaceMontage* 
 BrowserTabContent::getDisplayedSurfaceMontageModel()
 {
-    ModelDisplayControllerSurfaceMontage* mdcsm =
-    dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->getModelControllerForDisplay());
+    ModelSurfaceMontage* mdcsm =
+    dynamic_cast<ModelSurfaceMontage*>(this->getModelControllerForDisplay());
     return mdcsm;
 }
 
@@ -407,11 +407,11 @@ BrowserTabContent::getDisplayedSurfaceMontageModel()
  * or NULL if the displayed model is not a surface
  * montage model.
  */
-ModelDisplayControllerSurfaceMontage* 
+ModelSurfaceMontage* 
 BrowserTabContent::getSelectedSurfaceMontageModel()
 {
-    ModelDisplayControllerSurfaceMontage* mdcsm =
-    dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->getModelControllerForDisplay());
+    ModelSurfaceMontage* mdcsm =
+    dynamic_cast<ModelSurfaceMontage*>(this->getModelControllerForDisplay());
     return mdcsm;
 }
 
@@ -420,7 +420,7 @@ BrowserTabContent::getSelectedSurfaceMontageModel()
  * 
  * @return Vector containing all surface models.
  */   
-const std::vector<ModelDisplayControllerSurface*> 
+const std::vector<ModelSurface*> 
 BrowserTabContent::getAllSurfaceModels() const
 {
     return this->allSurfaceModels;
@@ -430,7 +430,7 @@ BrowserTabContent::getAllSurfaceModels() const
  * @return The surface model selector used to 
  * select a surface and structure.
  */
-ModelDisplayControllerSurfaceSelector* 
+ModelSurfaceSelector* 
 BrowserTabContent::getSurfaceModelSelector()
 {
     return this->surfaceModelSelector;
@@ -444,7 +444,7 @@ BrowserTabContent::getSurfaceModelSelector()
 OverlaySet* 
 BrowserTabContent::getOverlaySet()
 {
-    ModelDisplayController* modelDisplayController = this->getModelControllerForDisplay();
+    Model* modelDisplayController = this->getModelControllerForDisplay();
     if (modelDisplayController != NULL) {
        return modelDisplayController->getOverlaySet(this->tabNumber);
     }
@@ -475,7 +475,7 @@ BrowserTabContent::getTabNumber() const
  * Update the selected models.
  */
 void 
-BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDisplayControllers)
+BrowserTabContent::update(const std::vector<Model*> modelDisplayControllers)
 {
     this->surfaceModelSelector->updateSelector(modelDisplayControllers);
     
@@ -488,12 +488,12 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
     this->surfaceMontageModel = NULL;
     
     for (int i = 0; i < numModels; i++) {
-        ModelDisplayController* mdc = modelDisplayControllers[i];
+        Model* mdc = modelDisplayControllers[i];
         
-        ModelDisplayControllerSurface* mdcs = dynamic_cast<ModelDisplayControllerSurface*>(mdc);
-        ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(mdc);
-        ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(mdc);
-        ModelDisplayControllerSurfaceMontage* mdcsm = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(mdc);
+        ModelSurface* mdcs = dynamic_cast<ModelSurface*>(mdc);
+        ModelVolume* mdcv = dynamic_cast<ModelVolume*>(mdc);
+        ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(mdc);
+        ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(mdc);
         
         if (mdcs != NULL) {
             /* nothing to do since the surface model selector handles surfaces */
@@ -516,45 +516,45 @@ BrowserTabContent::update(const std::vector<ModelDisplayController*> modelDispla
     }
     
     switch (this->selectedModelType) {
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID:
+        case ModelTypeEnum::MODEL_TYPE_INVALID:
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE:
             if (this->surfaceModelSelector->getSelectedSurfaceController() == NULL) {
-                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+                this->selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
+        case ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE:
             if (this->surfaceMontageModel == NULL) {
-                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+                this->selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES:
+        case ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES:
             if (this->volumeModel == NULL) {
-                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+                this->selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
+        case ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN:
             if (this->wholeBrainModel == NULL) {
-                this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID;
+                this->selectedModelType = ModelTypeEnum::MODEL_TYPE_INVALID;
             }
             break;
-        case ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING:
+        case ModelTypeEnum::MODEL_TYPE_YOKING:
             CaretAssertMessage(0, "Request model display yoking controller for display! Should never happend.");
             break;
     }
     
-    if (this->selectedModelType == ModelDisplayControllerTypeEnum::MODEL_TYPE_INVALID) {
+    if (this->selectedModelType == ModelTypeEnum::MODEL_TYPE_INVALID) {
         if (this->surfaceModelSelector->getSelectedSurfaceController() != NULL) {
-            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE;
+            this->selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE;
         }
         else if (this->volumeModel != NULL) {
-            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES;
+            this->selectedModelType = ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES;
         }
         else if (this->wholeBrainModel != NULL) {
-            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
+            this->selectedModelType = ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN;
         }
         else if (this->surfaceMontageModel != NULL) {
-            this->selectedModelType = ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
+            this->selectedModelType = ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE;
         }
     }
 }
@@ -625,11 +625,11 @@ BrowserTabContent::receiveEvent(Event* /*event*/)
 void 
 BrowserTabContent::updateTransformationsForYoking()
 {
-    ModelDisplayController* transformController = this->getModelControllerForTransformation();
-    ModelDisplayControllerYokingGroup* yokingController = 
-    dynamic_cast<ModelDisplayControllerYokingGroup*>(transformController);
+    Model* transformController = this->getModelControllerForTransformation();
+    ModelYokingGroup* yokingController = 
+    dynamic_cast<ModelYokingGroup*>(transformController);
     if (yokingController != NULL) {
-        ModelDisplayController* mdc = this->getModelControllerForDisplay();
+        Model* mdc = this->getModelControllerForDisplay();
         if (mdc != NULL) {
             mdc->copyTransformations(*yokingController, 
                                      0, // always used window 0  

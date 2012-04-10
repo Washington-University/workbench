@@ -45,7 +45,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CursorManager.h"
-#include "EventModelDisplayControllerGetAll.h"
+#include "EventModelGetAll.h"
 #include "EventManager.h"
 #include "EventBrowserWindowContentGet.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -58,8 +58,8 @@
 #include "IdentificationItemSurfaceNode.h"
 #include "MathFunctions.h"
 #include "Matrix4x4.h"
-#include "ModelDisplayController.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "Model.h"
+#include "ModelYokingGroup.h"
 #include "MouseEvent.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
@@ -660,9 +660,9 @@ BrainOpenGLWidget::receiveEvent(Event* event)
             if (numItemsToDraw > 0) {
                 for (int32_t i = 0; i < numItemsToDraw; i++) {
                     BrowserTabContent* btc = getModelEvent.getTabContentToDraw(0);
-                    ModelDisplayController* mdc = btc->getModelControllerForDisplay();
+                    Model* mdc = btc->getModelControllerForDisplay();
                     if (mdc != NULL) {
-                        ModelDisplayControllerYokingGroup* mdcyg = btc->getBrowserTabYoking()->getSelectedYokingGroup();
+                        ModelYokingGroup* mdcyg = btc->getBrowserTabYoking()->getSelectedYokingGroup();
                         if (mdcyg != NULL) {
                             const YokingTypeEnum::Enum yokingType = mdcyg->getYokingType();
                             if (yokingType != YokingTypeEnum::OFF) {

@@ -32,7 +32,7 @@
 namespace caret {
 
     class BrowserTabContent;
-    class ModelDisplayControllerYokingGroup;
+    class ModelYokingGroup;
     
     /**
      * \class BrowserTabYoking 
@@ -45,15 +45,15 @@ namespace caret {
 
     public:
         BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
-                         ModelDisplayControllerYokingGroup* selectedYokingGroup);
+                         ModelYokingGroup* selectedYokingGroup);
         
         virtual ~BrowserTabYoking();
         
         BrowserTabContent* getParentBrowserTabContent();
         
-        ModelDisplayControllerYokingGroup* getSelectedYokingGroup();
+        ModelYokingGroup* getSelectedYokingGroup();
         
-        void setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup);
+        void setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup);
         
     private:
         BrowserTabYoking(const BrowserTabYoking&);
@@ -66,7 +66,7 @@ namespace caret {
     private:
         BrowserTabContent* parentBrowserTabContent;
         
-        ModelDisplayControllerYokingGroup* selectedYokingGroup;
+        ModelYokingGroup* selectedYokingGroup;
     };
     
 #ifdef __BROWSER_TAB_YOKING_DECLARE__

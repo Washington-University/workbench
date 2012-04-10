@@ -31,25 +31,25 @@
 namespace caret {
     class BrainStructure;
     class CaretMappableDataFile;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerSurfaceMontage;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
-    class ModelDisplayControllerYokingGroup;
+    class Model;
+    class ModelSurface;
+    class ModelSurfaceMontage;
+    class ModelVolume;
+    class ModelWholeBrain;
+    class ModelYokingGroup;
     
     class Overlay : public CaretObject {
         
     public:
         Overlay(BrainStructure* brainStructure);
         
-        Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume);
+        Overlay(ModelVolume* modelDisplayControllerVolume);
         
-        Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain);
+        Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain);
         
-        Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup);
+        Overlay(ModelYokingGroup* modelDisplayControllerYokingGroup);
         
-        Overlay(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage);
+        Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage);
         
         virtual ~Overlay();
         
@@ -94,20 +94,20 @@ namespace caret {
 
         Overlay& operator=(const Overlay&);
 
-        void initializeOverlay(ModelDisplayController* modelDisplayController,
+        void initializeOverlay(Model* modelDisplayController,
                                BrainStructure* brainStructure);
         
         /** Brain structure in this overlay (NULL if this overlay is not assigned to a brain structure */
         BrainStructure* brainStructure;
         
         /** Volume controller using this overlay (NULL if this overlay is not assigned to a volume controller) */
-        ModelDisplayControllerVolume* volumeController;
+        ModelVolume* volumeController;
         
         /** Whole brain controller using this overlay (NULL if this overlay is not assigned to a whole brain controller) */
-        ModelDisplayControllerWholeBrain* wholeBrainController;
+        ModelWholeBrain* wholeBrainController;
         
         /** Surfaced Montage controller using this overlay (NULL if this overlay is not assigned to a surface montage controller) */
-        ModelDisplayControllerSurfaceMontage* surfaceMontageController;
+        ModelSurfaceMontage* surfaceMontageController;
         
         /** Name of overlay (DO NOT COPY)*/
         AString name;

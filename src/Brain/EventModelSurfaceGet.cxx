@@ -23,36 +23,50 @@
  */ 
 
 #include "CaretAssert.h"
-#include "EventModelDisplayControllerDelete.h"
+#include "EventModelSurfaceGet.h"
 
 using namespace caret;
 
 /**
  * Constructor.
  */
-EventModelDisplayControllerDelete::EventModelDisplayControllerDelete(ModelDisplayController* modelDisplayController)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE)
+EventModelSurfaceGet::EventModelSurfaceGet(const Surface* surface)
+: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET),
+  surface(surface)
 {
-    this->modelDisplayController = modelDisplayController;
-    CaretAssert(this->modelDisplayController);
+    CaretAssert(surface);
 }
 
 /**
  * Destructor.
  */
-EventModelDisplayControllerDelete::~EventModelDisplayControllerDelete()
+EventModelSurfaceGet::~EventModelSurfaceGet()
 {
     
 }
 
 /**
- * Get the model display controller that is to be deleted.
- * 
- * @return Model display controller that is to be deleted.
+ * @return The model display controller surface that was found.
  */
-ModelDisplayController* 
-EventModelDisplayControllerDelete::getModelDisplayController()
+ModelSurface* 
+EventModelSurfaceGet::getModelSurface()
 {
-    return this->modelDisplayController;
+    return this->modelDisplayControllerSurface;
 }
+
+void 
+EventModelSurfaceGet::setModelSurface(ModelSurface* modelDisplayControllerSurface)
+{
+    this->modelDisplayControllerSurface = modelDisplayControllerSurface;
+}
+
+/**
+ * @return Returns the surface for which the model display controller surface is requested.
+ */
+const Surface* 
+EventModelSurfaceGet::getSurface() const
+{
+    return this->surface;
+}
+
 

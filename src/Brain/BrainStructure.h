@@ -45,7 +45,7 @@ namespace caret {
     class CaretDataFile;
     class LabelFile;
     class MetricFile;
-    class ModelDisplayControllerSurface;
+    class ModelSurface;
     class OverlaySet;
     class RgbaFile;
     class Surface;
@@ -171,7 +171,7 @@ namespace caret {
         std::vector<RgbaFile*> rgbaFiles;
         
         /** Maps a surface to its model controller */
-        std::map<Surface*, ModelDisplayControllerSurface*> surfaceControllerMap; 
+        std::map<Surface*, ModelSurface*> surfaceControllerMap; 
         
         /** Unique number assigned to each brain structure. */
         int64_t brainStructureIdentifier;

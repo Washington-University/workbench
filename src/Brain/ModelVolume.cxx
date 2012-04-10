@@ -29,7 +29,7 @@
 #include "EventManager.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
-#include "ModelDisplayControllerVolume.h"
+#include "ModelVolume.h"
 #include "VolumeFile.h"
 
 using namespace caret;
@@ -39,13 +39,13 @@ using namespace caret;
  * @param brain - brain to which this volume controller belongs.
  *
  */
-ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_VOLUME_SLICES,
+ModelVolume::ModelVolume(Brain* brain)
+: Model(ModelTypeEnum::MODEL_TYPE_VOLUME_SLICES,
                          YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_NO,
                          brain)
 {
-    this->initializeMembersModelDisplayControllerVolume();
+    this->initializeMembersModelVolume();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -56,7 +56,7 @@ ModelDisplayControllerVolume::ModelDisplayControllerVolume(Brain* brain)
 /**
  * Destructor
  */
-ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
+ModelVolume::~ModelVolume()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -65,7 +65,7 @@ ModelDisplayControllerVolume::~ModelDisplayControllerVolume()
 }
 
 void
-ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
+ModelVolume::initializeMembersModelVolume()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
@@ -87,7 +87,7 @@ ModelDisplayControllerVolume::initializeMembersModelDisplayControllerVolume()
  *
  */
 AString
-ModelDisplayControllerVolume::getNameForGUI(const bool /*includeStructureFlag*/) const
+ModelVolume::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
     return "Volume";
 }
@@ -97,7 +97,7 @@ ModelDisplayControllerVolume::getNameForGUI(const bool /*includeStructureFlag*/)
  * displaying this model controller.
  */
 AString 
-ModelDisplayControllerVolume::getNameForBrowserTab() const
+ModelVolume::getNameForBrowserTab() const
 {
     return "Volume";
 }
@@ -112,7 +112,7 @@ ModelDisplayControllerVolume::getNameForBrowserTab() const
  *    Bottom-most volume or NULL if no volumes available.
  */
 VolumeFile* 
-ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
+ModelVolume::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
     VolumeFile* vf = NULL;
     
@@ -138,7 +138,7 @@ ModelDisplayControllerVolume::getUnderlayVolumeFile(const int32_t windowTabNumbe
  *   
  */
 VolumeSliceViewPlaneEnum::Enum 
-ModelDisplayControllerVolume::getSliceViewPlane(const int32_t windowTabNumber) const
+ModelVolume::getSliceViewPlane(const int32_t windowTabNumber) const
 {    
     return this->sliceViewPlane[windowTabNumber];
 }
@@ -151,7 +151,7 @@ ModelDisplayControllerVolume::getSliceViewPlane(const int32_t windowTabNumber) c
  *    New value for slice plane.
  */
 void 
-ModelDisplayControllerVolume::setSliceViewPlane(const int32_t windowTabNumber,
+ModelVolume::setSliceViewPlane(const int32_t windowTabNumber,
                       VolumeSliceViewPlaneEnum::Enum slicePlane)
 {   
     this->sliceViewPlane[windowTabNumber] = slicePlane;
@@ -165,7 +165,7 @@ ModelDisplayControllerVolume::setSliceViewPlane(const int32_t windowTabNumber,
  *   View mode.
  */
 VolumeSliceViewModeEnum::Enum 
-ModelDisplayControllerVolume::getSliceViewMode(const int32_t windowTabNumber) const
+ModelVolume::getSliceViewMode(const int32_t windowTabNumber) const
 {    
     return this->sliceViewMode[windowTabNumber];
 }
@@ -178,7 +178,7 @@ ModelDisplayControllerVolume::getSliceViewMode(const int32_t windowTabNumber) co
  *    New value for view mode
  */
 void 
-ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
+ModelVolume::setSliceViewMode(const int32_t windowTabNumber,
                       VolumeSliceViewModeEnum::Enum sliceViewMode)
 {    
     this->sliceViewMode[windowTabNumber] = sliceViewMode;
@@ -192,7 +192,7 @@ ModelDisplayControllerVolume::setSliceViewMode(const int32_t windowTabNumber,
  *   Volume slice selection for tab.
  */
 VolumeSliceCoordinateSelection* 
-ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
+ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
     this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
@@ -207,7 +207,7 @@ ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNum
  *   Volume slice selection for tab.
  */
 const VolumeSliceCoordinateSelection* 
-ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
+ModelVolume::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
     this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
@@ -224,7 +224,7 @@ ModelDisplayControllerVolume::getSelectedVolumeSlices(const int32_t windowTabNum
  *   Montage number of columns 
  */
 int32_t 
-ModelDisplayControllerVolume::getMontageNumberOfColumns(const int32_t windowTabNumber) const
+ModelVolume::getMontageNumberOfColumns(const int32_t windowTabNumber) const
 {    
     return this->montageNumberOfColumns[windowTabNumber];
 }
@@ -238,7 +238,7 @@ ModelDisplayControllerVolume::getMontageNumberOfColumns(const int32_t windowTabN
  *    New value for montage number of columns 
  */
 void 
-ModelDisplayControllerVolume::setMontageNumberOfColumns(const int32_t windowTabNumber,
+ModelVolume::setMontageNumberOfColumns(const int32_t windowTabNumber,
                                const int32_t montageNumberOfColumns)
 {    
     this->montageNumberOfColumns[windowTabNumber] = montageNumberOfColumns;
@@ -252,7 +252,7 @@ ModelDisplayControllerVolume::setMontageNumberOfColumns(const int32_t windowTabN
  *   Montage number of rows
  */
 int32_t 
-ModelDisplayControllerVolume::getMontageNumberOfRows(const int32_t windowTabNumber) const
+ModelVolume::getMontageNumberOfRows(const int32_t windowTabNumber) const
 {
     return this->montageNumberOfRows[windowTabNumber];
 }
@@ -265,7 +265,7 @@ ModelDisplayControllerVolume::getMontageNumberOfRows(const int32_t windowTabNumb
  *    New value for montage number of rows 
  */
 void 
-ModelDisplayControllerVolume::setMontageNumberOfRows(const int32_t windowTabNumber,
+ModelVolume::setMontageNumberOfRows(const int32_t windowTabNumber,
                             const int32_t montageNumberOfRows)
 {    
     this->montageNumberOfRows[windowTabNumber] = montageNumberOfRows;
@@ -279,7 +279,7 @@ ModelDisplayControllerVolume::setMontageNumberOfRows(const int32_t windowTabNumb
  *   Montage slice spacing.
  */
 int32_t 
-ModelDisplayControllerVolume::getMontageSliceSpacing(const int32_t windowTabNumber) const
+ModelVolume::getMontageSliceSpacing(const int32_t windowTabNumber) const
 {    
     return this->montageSliceSpacing[windowTabNumber];
 }
@@ -292,7 +292,7 @@ ModelDisplayControllerVolume::getMontageSliceSpacing(const int32_t windowTabNumb
  *    New value for montage slice spacing 
  */
 void 
-ModelDisplayControllerVolume::setMontageSliceSpacing(const int32_t windowTabNumber,
+ModelVolume::setMontageSliceSpacing(const int32_t windowTabNumber,
                             const int32_t montageSliceSpacing)
 {
     this->montageSliceSpacing[windowTabNumber] = montageSliceSpacing;
@@ -304,7 +304,7 @@ ModelDisplayControllerVolume::setMontageSliceSpacing(const int32_t windowTabNumb
  *    Tab number of window.
  */
 void 
-ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
+ModelVolume::updateController(const int32_t windowTabNumber)
 {
     VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
     if (vf != NULL) {
@@ -317,7 +317,7 @@ ModelDisplayControllerVolume::updateController(const int32_t windowTabNumber)
  * @param  windowTabNumber  Window for which slices set to origin is requested.
  */
 void
-ModelDisplayControllerVolume::setSlicesToOrigin(const int32_t windowTabNumber)
+ModelVolume::setSlicesToOrigin(const int32_t windowTabNumber)
 {
     this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
@@ -329,7 +329,7 @@ ModelDisplayControllerVolume::setSlicesToOrigin(const int32_t windowTabNumber)
  *   The event.
  */
 void 
-ModelDisplayControllerVolume::receiveEvent(Event* event)
+ModelVolume::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
         EventIdentificationHighlightLocation* idLocationEvent =
@@ -356,7 +356,7 @@ ModelDisplayControllerVolume::receiveEvent(Event* event)
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelDisplayControllerVolume::getOverlaySet(const int tabIndex)
+ModelVolume::getOverlaySet(const int tabIndex)
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -372,7 +372,7 @@ ModelDisplayControllerVolume::getOverlaySet(const int tabIndex)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelDisplayControllerVolume::getOverlaySet(const int tabIndex) const
+ModelVolume::getOverlaySet(const int tabIndex) const
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -384,7 +384,7 @@ ModelDisplayControllerVolume::getOverlaySet(const int tabIndex) const
  * Initilize the overlays for this controller.
  */
 void 
-ModelDisplayControllerVolume::initializeOverlays()
+ModelVolume::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->overlaySet[i]->initializeOverlays();

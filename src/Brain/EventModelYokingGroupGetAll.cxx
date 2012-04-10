@@ -24,15 +24,15 @@
 
 #include <algorithm>
 
-#include "EventModelDisplayControllerYokingGroupGetAll.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "EventModelYokingGroupGetAll.h"
+#include "ModelYokingGroup.h"
 
 using namespace caret;
 
 /**
  * Constructor.
  */
-EventModelDisplayControllerYokingGroupGetAll::EventModelDisplayControllerYokingGroupGetAll()
+EventModelYokingGroupGetAll::EventModelYokingGroupGetAll()
 : Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL)
 {
 }
@@ -40,7 +40,7 @@ EventModelDisplayControllerYokingGroupGetAll::EventModelDisplayControllerYokingG
 /**
  * Destructor.
  */
-EventModelDisplayControllerYokingGroupGetAll::~EventModelDisplayControllerYokingGroupGetAll()
+EventModelYokingGroupGetAll::~EventModelYokingGroupGetAll()
 {
     
 }
@@ -51,7 +51,7 @@ EventModelDisplayControllerYokingGroupGetAll::~EventModelDisplayControllerYoking
  *     Yoking groups that are added.
  */
 void 
-EventModelDisplayControllerYokingGroupGetAll::addYokingGroup(ModelDisplayControllerYokingGroup* yokingGroup)
+EventModelYokingGroupGetAll::addYokingGroup(ModelYokingGroup* yokingGroup)
 {
     this->yokingGroups.push_back(yokingGroup);
 }
@@ -62,7 +62,7 @@ EventModelDisplayControllerYokingGroupGetAll::addYokingGroup(ModelDisplayControl
  *     Yoking groups in which groups are loaded..
  */
 void 
-EventModelDisplayControllerYokingGroupGetAll::getYokingGroups(std::vector<ModelDisplayControllerYokingGroup*>& yokingGroupsOut) const
+EventModelYokingGroupGetAll::getYokingGroups(std::vector<ModelYokingGroup*>& yokingGroupsOut) const
 {
     yokingGroupsOut = this->yokingGroups;
 }

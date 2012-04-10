@@ -32,21 +32,21 @@
 
 namespace caret {
     
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
+    class Model;
+    class ModelSurface;
     
-    class ModelDisplayControllerSurfaceSelector : public CaretObject {
+    class ModelSurfaceSelector : public CaretObject {
         
     public:
-        ModelDisplayControllerSurfaceSelector();
+        ModelSurfaceSelector();
         
-        virtual ~ModelDisplayControllerSurfaceSelector();
+        virtual ~ModelSurfaceSelector();
         
-        ModelDisplayControllerSurface* getSelectedSurfaceController();
+        ModelSurface* getSelectedSurfaceController();
         
         StructureEnum::Enum getSelectedStructure();
         
-        void setSelectedSurfaceController(ModelDisplayControllerSurface* surfaceController);
+        void setSelectedSurfaceController(ModelSurface* surfaceController);
         
         void setSelectedStructure(const StructureEnum::Enum selectedStructure);
         
@@ -54,15 +54,15 @@ namespace caret {
                         std::vector<StructureEnum::Enum>& selectableSructuresOut) const;
                                      
         void getSelectableSurfaceControllers(
-                        std::vector<ModelDisplayControllerSurface*>& selectableSurfaceControllersOut) const;
+                        std::vector<ModelSurface*>& selectableSurfaceControllersOut) const;
         
-        void updateSelector(const std::vector<ModelDisplayController*> modelDisplayControllers);
+        void updateSelector(const std::vector<Model*> modelDisplayControllers);
         
         AString toString() const;
     private:
-        ModelDisplayControllerSurfaceSelector(const ModelDisplayControllerSurfaceSelector&);
+        ModelSurfaceSelector(const ModelSurfaceSelector&);
 
-        ModelDisplayControllerSurfaceSelector& operator=(const ModelDisplayControllerSurfaceSelector&);
+        ModelSurfaceSelector& operator=(const ModelSurfaceSelector&);
         
         void updateSelector();
         
@@ -73,13 +73,13 @@ namespace caret {
         
         StructureEnum::Enum defaultStructure;
         
-        std::vector<ModelDisplayControllerSurface*> allSurfaceControllers;
+        std::vector<ModelSurface*> allSurfaceControllers;
                             
-        std::vector<ModelDisplayControllerSurface*> availableSurfaceControllers;
+        std::vector<ModelSurface*> availableSurfaceControllers;
         
-        ModelDisplayControllerSurface* selectedSurfaceController;
+        ModelSurface* selectedSurfaceController;
         
-        std::map<StructureEnum::Enum, ModelDisplayControllerSurface*> previousSelectedSurfaceController;
+        std::map<StructureEnum::Enum, ModelSurface*> previousSelectedSurfaceController;
     };
     
 #ifdef __MODEL_DISPLAY_CONTROLLER_SURFACE_SELECTOR_DECLARE__

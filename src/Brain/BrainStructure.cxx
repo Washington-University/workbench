@@ -42,14 +42,14 @@
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventManager.h"
 #include "EventNodeDataFilesGet.h"
-#include "EventModelDisplayControllerAdd.h"
-#include "EventModelDisplayControllerDelete.h"
+#include "EventModelAdd.h"
+#include "EventModelDelete.h"
 #include "EventSurfacesGet.h"
 #include "IdentificationManager.h"
 #include "LabelFile.h"
 #include "MathFunctions.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
+#include "ModelSurface.h"
 #include "OverlaySet.h"
 #include "RgbaFile.h"
 #include "SessionManager.h"
@@ -340,7 +340,7 @@ BrainStructure::addSurface(Surface* surface,
     /*
      * Create a model controller for the surface.
      */
-    ModelDisplayControllerSurface* mdcs = new ModelDisplayControllerSurface(this->brain,
+    ModelSurface* mdcs = new ModelSurface(this->brain,
                                                                             surface);
     this->surfaceControllerMap.insert(std::make_pair(surface, mdcs));
     
@@ -351,7 +351,7 @@ BrainStructure::addSurface(Surface* surface,
     /*
      * Send the controller added event.
      */
-    EventModelDisplayControllerAdd addEvent(mdcs);
+    EventModelAdd addEvent(mdcs);
     EventManager::get()->sendEvent(addEvent.getPointer());
 }
 
@@ -368,13 +368,13 @@ BrainStructure::deleteSurface(Surface* surface)
     CaretAssertMessage((iter != this->surfaces.end()),
                        "Trying to delete surface not in brain structure.");
     
-    std::map<Surface*, ModelDisplayControllerSurface*>::iterator controllerIter = 
+    std::map<Surface*, ModelSurface*>::iterator controllerIter = 
         this->surfaceControllerMap.find(surface);
 
     CaretAssertMessage((controllerIter != this->surfaceControllerMap.end()),
                        "Surface does not map to a model controller");
 
-    ModelDisplayControllerSurface* mdcs = controllerIter->second;
+    ModelSurface* mdcs = controllerIter->second;
     
     /*
      * Remove from surface to controller map.
@@ -389,7 +389,7 @@ BrainStructure::deleteSurface(Surface* surface)
     /*
      * Send the controller deleted event.
      */
-    EventModelDisplayControllerDelete deleteEvent(mdcs);
+    EventModelDelete deleteEvent(mdcs);
     EventManager::get()->sendEvent(deleteEvent.getPointer());
     
     /*

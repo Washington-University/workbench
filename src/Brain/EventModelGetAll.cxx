@@ -24,15 +24,15 @@
 
 #include <algorithm>
 
-#include "EventModelDisplayControllerGetAll.h"
-#include "ModelDisplayControllerSurface.h"
+#include "EventModelGetAll.h"
+#include "ModelSurface.h"
 
 using namespace caret;
 
 /**
  * Constructor.
  */
-EventModelDisplayControllerGetAll::EventModelDisplayControllerGetAll()
+EventModelGetAll::EventModelGetAll()
 : Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL)
 {
 }
@@ -40,7 +40,7 @@ EventModelDisplayControllerGetAll::EventModelDisplayControllerGetAll()
 /**
  * Destructor.
  */
-EventModelDisplayControllerGetAll::~EventModelDisplayControllerGetAll()
+EventModelGetAll::~EventModelGetAll()
 {
     
 }
@@ -52,8 +52,8 @@ EventModelDisplayControllerGetAll::~EventModelDisplayControllerGetAll()
  *    These model display controllers are added.
  */
 void 
-EventModelDisplayControllerGetAll::addModelDisplayControllers(
-        const std::vector<ModelDisplayController*>& modelDisplayControllersToAdd)
+EventModelGetAll::addModels(
+        const std::vector<Model*>& modelDisplayControllersToAdd)
 {
     this->modelDisplayControllers.insert(this->modelDisplayControllers.end(),
                                          modelDisplayControllersToAdd.begin(),
@@ -65,8 +65,8 @@ EventModelDisplayControllerGetAll::addModelDisplayControllers(
  *
  * @return vector containing the model display controllers.
  */
-const std::vector<ModelDisplayController*> 
-EventModelDisplayControllerGetAll::getModelDisplayControllers() const
+const std::vector<Model*> 
+EventModelGetAll::getModels() const
 {
     return this->modelDisplayControllers;
 }
@@ -80,8 +80,8 @@ EventModelDisplayControllerGetAll::getModelDisplayControllers() const
  * @return true if valid, else false.
  */
 bool 
-EventModelDisplayControllerGetAll::isModelDisplayControllerValid(
-        const ModelDisplayController* modelDisplayController) const
+EventModelGetAll::isModelValid(
+        const Model* modelDisplayController) const
 {
     if (std::find(this->modelDisplayControllers.begin(), 
                   this->modelDisplayControllers.end(), 
@@ -98,8 +98,8 @@ EventModelDisplayControllerGetAll::isModelDisplayControllerValid(
  * @return Pointer to first model controller or
  *    NULL if there are no model controllers.
  */
-ModelDisplayController* 
-EventModelDisplayControllerGetAll::getFirstModelDisplayController() const
+Model* 
+EventModelGetAll::getFirstModel() const
 {
     if (this->modelDisplayControllers.empty() == false) {
         return this->modelDisplayControllers[0];
@@ -114,14 +114,14 @@ EventModelDisplayControllerGetAll::getFirstModelDisplayController() const
  * @return Pointer to first model controller surface or
  *    NULL if there are no model controller surfaces.
  */
-ModelDisplayControllerSurface* 
-EventModelDisplayControllerGetAll::getFirstModelDisplayControllerSurface() const
+ModelSurface* 
+EventModelGetAll::getFirstModelSurface() const
 {
-    ModelDisplayControllerSurface* surfaceModelOut = NULL;
+    ModelSurface* surfaceModelOut = NULL;
     
     const int32_t numModels = static_cast<int32_t>(this->modelDisplayControllers.size());
     for (int32_t i = 0; i < numModels; i++) {
-        surfaceModelOut = dynamic_cast<ModelDisplayControllerSurface*>(this->modelDisplayControllers[i]);
+        surfaceModelOut = dynamic_cast<ModelSurface*>(this->modelDisplayControllers[i]);
         if (surfaceModelOut != NULL) {
             break;
         }

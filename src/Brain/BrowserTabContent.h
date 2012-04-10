@@ -27,19 +27,19 @@
 
 #include "CaretObject.h"
 #include "EventListenerInterface.h"
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
 
 namespace caret {
 
     class BrowserTabYoking;
     class CaretMappableDataFile;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerSurfaceMontage;
-    class ModelDisplayControllerSurfaceSelector;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
-    class ModelDisplayControllerYokingGroup;
+    class Model;
+    class ModelSurface;
+    class ModelSurfaceMontage;
+    class ModelSurfaceSelector;
+    class ModelVolume;
+    class ModelWholeBrain;
+    class ModelYokingGroup;
     class OverlaySet;
     class Palette;
     class Surface;
@@ -49,7 +49,7 @@ namespace caret {
         
     public:
         BrowserTabContent(const int32_t tabNumber,
-                          ModelDisplayControllerYokingGroup* defaultYokingGroup);
+                          ModelYokingGroup* defaultYokingGroup);
         
         virtual ~BrowserTabContent();
         
@@ -71,37 +71,37 @@ namespace caret {
         
         int32_t getTabNumber() const;
         
-        ModelDisplayControllerTypeEnum::Enum getSelectedModelType() const;
+        ModelTypeEnum::Enum getSelectedModelType() const;
         
-        void setSelectedModelType(ModelDisplayControllerTypeEnum::Enum selectedModelType);
+        void setSelectedModelType(ModelTypeEnum::Enum selectedModelType);
         
-        const ModelDisplayController* getModelControllerForDisplay() const;
+        const Model* getModelControllerForDisplay() const;
         
-        ModelDisplayController* getModelControllerForDisplay();
+        Model* getModelControllerForDisplay();
         
-        ModelDisplayController* getModelControllerForTransformation();
+        Model* getModelControllerForTransformation();
         
-        ModelDisplayControllerSurface* getDisplayedSurfaceModel();
+        ModelSurface* getDisplayedSurfaceModel();
         
-        const ModelDisplayControllerSurface* getDisplayedSurfaceModel() const;
+        const ModelSurface* getDisplayedSurfaceModel() const;
         
-        ModelDisplayControllerVolume* getDisplayedVolumeModel();
+        ModelVolume* getDisplayedVolumeModel();
         
-        ModelDisplayControllerWholeBrain* getDisplayedWholeBrainModel();
+        ModelWholeBrain* getDisplayedWholeBrainModel();
         
-        ModelDisplayControllerVolume* getSelectedVolumeModel();
+        ModelVolume* getSelectedVolumeModel();
         
-        ModelDisplayControllerWholeBrain* getSelectedWholeBrainModel();
+        ModelWholeBrain* getSelectedWholeBrainModel();
         
-        ModelDisplayControllerSurfaceMontage* getDisplayedSurfaceMontageModel();
+        ModelSurfaceMontage* getDisplayedSurfaceMontageModel();
         
-        ModelDisplayControllerSurfaceMontage* getSelectedSurfaceMontageModel();
+        ModelSurfaceMontage* getSelectedSurfaceMontageModel();
         
-        const std::vector<ModelDisplayControllerSurface*> getAllSurfaceModels() const;
+        const std::vector<ModelSurface*> getAllSurfaceModels() const;
         
-        ModelDisplayControllerSurfaceSelector* getSurfaceModelSelector();
+        ModelSurfaceSelector* getSurfaceModelSelector();
         
-        void update(const std::vector<ModelDisplayController*> modelDisplayControllers);
+        void update(const std::vector<Model*> modelDisplayControllers);
         
         bool isSurfaceModelValid() const;
         
@@ -127,22 +127,22 @@ namespace caret {
         int32_t tabNumber;
         
         /** Selected surface model */
-        ModelDisplayControllerSurfaceSelector* surfaceModelSelector;
+        ModelSurfaceSelector* surfaceModelSelector;
         
         /** Selected model type */
-        ModelDisplayControllerTypeEnum::Enum selectedModelType;
+        ModelTypeEnum::Enum selectedModelType;
         
         /** All surface models */
-        std::vector<ModelDisplayControllerSurface*> allSurfaceModels;
+        std::vector<ModelSurface*> allSurfaceModels;
         
         /** The volume model */
-        ModelDisplayControllerVolume* volumeModel;
+        ModelVolume* volumeModel;
         
         /** The whole brain model */
-        ModelDisplayControllerWholeBrain* wholeBrainModel;
+        ModelWholeBrain* wholeBrainModel;
         
         /** The surface montage model */
-        ModelDisplayControllerSurfaceMontage* surfaceMontageModel;
+        ModelSurfaceMontage* surfaceMontageModel;
         
         /** 
          * Name requested by user interface - reflects contents 

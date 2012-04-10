@@ -38,11 +38,11 @@
 #include "ConnectivityLoaderManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
+#include "ModelYokingGroup.h"
 #include "Overlay.h"
 #include "Surface.h"
 #include "VolumeFile.h"
@@ -100,7 +100,7 @@ OverlaySet::OverlaySet(BrainStructure* brainStructure)
  * @param modelDisplayControllerVolume
  *     Volume controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolume)
+OverlaySet::OverlaySet(ModelVolume* modelDisplayControllerVolume)
 : CaretObject()
 {
     this->initializeOverlaySet(modelDisplayControllerVolume,
@@ -116,7 +116,7 @@ OverlaySet::OverlaySet(ModelDisplayControllerVolume* modelDisplayControllerVolum
  * @param modelDisplayControllerSurfaceMontage
  *     surface montage controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage)
+OverlaySet::OverlaySet(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
 : CaretObject()
 {
     this->initializeOverlaySet(modelDisplayControllerSurfaceMontage,
@@ -132,7 +132,7 @@ OverlaySet::OverlaySet(ModelDisplayControllerSurfaceMontage* modelDisplayControl
  * @param modelDisplayControllerWholeBrain
  *     Whole brain controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
+OverlaySet::OverlaySet(ModelWholeBrain* modelDisplayControllerWholeBrain)
 : CaretObject()
 {
     this->initializeOverlaySet(modelDisplayControllerWholeBrain,
@@ -148,7 +148,7 @@ OverlaySet::OverlaySet(ModelDisplayControllerWholeBrain* modelDisplayControllerW
  * @param modelDisplayControllerYoking
  *     Yoking controller that uses this overlay set.
  */
-OverlaySet::OverlaySet(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking)
+OverlaySet::OverlaySet(ModelYokingGroup* modelDisplayControllerYoking)
 : CaretObject()
 {
     this->initializeOverlaySet(modelDisplayControllerYoking,
@@ -175,7 +175,7 @@ OverlaySet::~OverlaySet()
  *     Controller that uses this overlay set.
  */
 void 
-OverlaySet::initializeOverlaySet(ModelDisplayController* modelDisplayController,
+OverlaySet::initializeOverlaySet(Model* modelDisplayController,
                                  BrainStructure* brainStructure)
 {
     this->modelDisplayController = modelDisplayController;
@@ -458,9 +458,9 @@ OverlaySet::initializeOverlays()
     std::deque<CaretMappableDataFile*> overlayMapFiles;
     std::deque<int32_t> overlayMapFileIndices;
     
-    ModelDisplayControllerVolume* mdcv = dynamic_cast<ModelDisplayControllerVolume*>(this->modelDisplayController);
-    ModelDisplayControllerWholeBrain* mdcwb = dynamic_cast<ModelDisplayControllerWholeBrain*>(this->modelDisplayController);
-    ModelDisplayControllerSurfaceMontage* mdcsm = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(this->modelDisplayController);
+    ModelVolume* mdcv = dynamic_cast<ModelVolume*>(this->modelDisplayController);
+    ModelWholeBrain* mdcwb = dynamic_cast<ModelWholeBrain*>(this->modelDisplayController);
+    ModelSurfaceMontage* mdcsm = dynamic_cast<ModelSurfaceMontage*>(this->modelDisplayController);
 
     if (this->brainStructure != NULL) {
         /*

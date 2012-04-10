@@ -31,34 +31,34 @@
 
 namespace caret {
 
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
+    class Model;
+    class ModelSurface;
     
     
     /// Event for getting model display controllers
-    class EventModelDisplayControllerGetAll : public Event {
+    class EventModelGetAll : public Event {
         
     public:
-        EventModelDisplayControllerGetAll();
+        EventModelGetAll();
         
-        virtual ~EventModelDisplayControllerGetAll();
+        virtual ~EventModelGetAll();
         
-        void addModelDisplayControllers(const std::vector<ModelDisplayController*>& modelDisplayControllers);
+        void addModels(const std::vector<Model*>& modelDisplayControllers);
 
-        const std::vector<ModelDisplayController*> getModelDisplayControllers() const;
+        const std::vector<Model*> getModels() const;
         
-        bool isModelDisplayControllerValid(const ModelDisplayController* modelDisplayController) const;
+        bool isModelValid(const Model* modelDisplayController) const;
         
-        ModelDisplayController* getFirstModelDisplayController() const;
+        Model* getFirstModel() const;
         
-        ModelDisplayControllerSurface* getFirstModelDisplayControllerSurface() const;
+        ModelSurface* getFirstModelSurface() const;
         
     private:
-        EventModelDisplayControllerGetAll(const EventModelDisplayControllerGetAll&);
+        EventModelGetAll(const EventModelGetAll&);
         
-        EventModelDisplayControllerGetAll& operator=(const EventModelDisplayControllerGetAll&);
+        EventModelGetAll& operator=(const EventModelGetAll&);
         
-        std::vector<ModelDisplayController*> modelDisplayControllers;
+        std::vector<Model*> modelDisplayControllers;
     };
 
 } // namespace

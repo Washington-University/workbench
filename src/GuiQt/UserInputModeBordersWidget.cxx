@@ -53,8 +53,8 @@
 #include "GuiManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelWholeBrain.h"
 #include "RegionOfInterestCreateFromBorderDialog.h"
 #include "Surface.h"
 #include "UserInputModeBorders.h"
@@ -479,8 +479,8 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
         return;
     }
     
-    ModelDisplayControllerSurface* surfaceController = btc->getDisplayedSurfaceModel();
-    ModelDisplayControllerWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    ModelSurface* surfaceController = btc->getDisplayedSurfaceModel();
+    ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
     
     Surface* surface = NULL;
     if (surfaceController != NULL) {

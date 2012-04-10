@@ -50,10 +50,10 @@ namespace caret {
     class IdentificationManager;
     class IdentificationWithColor;
     class Surface;
-    class ModelDisplayController;
-    class ModelDisplayControllerSurface;
-    class ModelDisplayControllerVolume;
-    class ModelDisplayControllerWholeBrain;
+    class Model;
+    class ModelSurface;
+    class ModelVolume;
+    class ModelWholeBrain;
     class Palette;
     class PaletteColorMapping;
     class PaletteFile;
@@ -125,7 +125,7 @@ namespace caret {
         
         void initializeMembersBrainOpenGL();
         
-        void drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
+        void drawSurfaceController(ModelSurface* surfaceController,
                                    const int32_t viewport[4]);
         
         void drawSurface(Surface* surface,
@@ -154,7 +154,7 @@ namespace caret {
                         const bool isContralateralEnabled);
         
         void drawVolumeController(BrowserTabContent* browserTabContent,
-                                  ModelDisplayControllerVolume* volumeController,
+                                  ModelVolume* volumeController,
                                   const int32_t viewport[4]);
         
         void drawVolumeAxesCrosshairs(
@@ -173,7 +173,7 @@ namespace caret {
                                        std::vector<VolumeDrawInfo>& volumeDrawInfo);
         
         void drawVolumeSurfaceOutlines(Brain* brain,
-                                       ModelDisplayController* modelDisplayController,
+                                       Model* modelDisplayController,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        VolumeFile* underlayVolume);
@@ -183,13 +183,13 @@ namespace caret {
                                  std::vector<VolumeDrawInfo>& volumeDrawInfoOut);
         
         void drawWholeBrainController(BrowserTabContent* browserTabContent,
-                                      ModelDisplayControllerWholeBrain* wholeBrainController,
+                                      ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4]);
         
         void setOrthographicProjection(const int32_t viewport[4],
                                        const bool isRightSurfaceLateralMedialYoked);
         
-        void checkForOpenGLError(const ModelDisplayController* modelController,
+        void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
         
         void enableLighting();
@@ -219,12 +219,12 @@ namespace caret {
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
                                                   const bool isRightSurfaceLateralMedialYoked = false);
         
-        void applyViewingTransformations(const ModelDisplayController* modelDisplayController,
+        void applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
                                          const bool isRightSurfaceLateralMedialYoked);
         
-        void applyViewingTransformationsVolumeSlice(const ModelDisplayControllerVolume* modelDisplayControllerVolume,
+        void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,
                                          const VolumeSliceViewPlaneEnum::Enum viewPlane);
         

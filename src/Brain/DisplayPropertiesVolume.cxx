@@ -34,7 +34,7 @@
 #include "CaretColorEnum.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventManager.h"
-#include "ModelDisplayControllerSurface.h"
+#include "ModelSurface.h"
 #include "StructureEnum.h"
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
@@ -151,7 +151,7 @@ DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded(const bool searchForT
     if (searchForTabs) {
         for (int32_t i = 0; i < numTabs; i++) {
             BrowserTabContent* tabContent = getAllTabs.getBrowserTab(i);
-            ModelDisplayControllerSurface* surfaceModel = tabContent->getDisplayedSurfaceModel();
+            ModelSurface* surfaceModel = tabContent->getDisplayedSurfaceModel();
             if (surfaceModel != NULL) {
                 const StructureEnum::Enum structure = surfaceModel->getSurface()->getStructure();
                 switch (structure) {

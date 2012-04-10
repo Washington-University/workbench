@@ -33,7 +33,7 @@
 namespace caret {
 
 /// Enumerated type for 
-class ModelDisplayControllerTypeEnum {
+class ModelTypeEnum {
 
 public:
     /**
@@ -55,7 +55,7 @@ public:
     };
 
 
-    ~ModelDisplayControllerTypeEnum();
+    ~ModelTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -72,15 +72,15 @@ public:
     static void getAllEnums(std::vector<Enum>& allEnums);
 
 private:
-    ModelDisplayControllerTypeEnum(const Enum enumValue, 
+    ModelTypeEnum(const Enum enumValue, 
                  const int32_t integerCode, 
                  const AString& name,
                  const AString& guiName);
 
-    static const ModelDisplayControllerTypeEnum* findData(const Enum enumValue);
+    static const ModelTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<ModelDisplayControllerTypeEnum> enumData;
+    static std::vector<ModelTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -102,8 +102,8 @@ private:
 };
 
 #ifdef __MODEL_DISPLAY_CONTROLLER_TYPE_ENUM_DECLARE__
-std::vector<ModelDisplayControllerTypeEnum> ModelDisplayControllerTypeEnum::enumData;
-bool ModelDisplayControllerTypeEnum::initializedFlag = false;
+std::vector<ModelTypeEnum> ModelTypeEnum::enumData;
+bool ModelTypeEnum::initializedFlag = false;
 #endif // __MODEL_DISPLAY_CONTROLLER_TYPE_ENUM_DECLARE__
 
 } // namespace

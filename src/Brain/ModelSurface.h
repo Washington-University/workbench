@@ -27,20 +27,20 @@
 
 
 #include "EventListenerInterface.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 
 namespace caret {
 
     class Surface;
     
     /// Controls the display of a surface.
-    class ModelDisplayControllerSurface : public ModelDisplayController, public EventListenerInterface  {
+    class ModelSurface : public Model, public EventListenerInterface  {
         
     public:
-        ModelDisplayControllerSurface(Brain* brain,
+        ModelSurface(Brain* brain,
                                       Surface* surface);
         
-        virtual ~ModelDisplayControllerSurface();
+        virtual ~ModelSurface();
         
         virtual void resetView(const int32_t windowTabNumber);
         
@@ -57,12 +57,12 @@ namespace caret {
         void initializeOverlays();
         
     private:
-        ModelDisplayControllerSurface(const ModelDisplayControllerSurface&);
+        ModelSurface(const ModelSurface&);
         
-        ModelDisplayControllerSurface& operator=(const ModelDisplayControllerSurface&);
+        ModelSurface& operator=(const ModelSurface&);
         
     private:
-        void initializeMembersModelDisplayControllerSurface();
+        void initializeMembersModelSurface();
         
     public:
         Surface* getSurface();

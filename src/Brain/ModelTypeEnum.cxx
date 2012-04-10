@@ -24,7 +24,7 @@
  */ 
 
 #define __MODEL_DISPLAY_CONTROLLER_TYPE_ENUM_DECLARE__
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
 #undef __MODEL_DISPLAY_CONTROLLER_TYPE_ENUM_DECLARE__
 
 #include "CaretAssert.h"
@@ -45,7 +45,7 @@ using namespace caret;
  * @param guiName
  *    User-friendly name for use in user-interface.
  */
-ModelDisplayControllerTypeEnum::ModelDisplayControllerTypeEnum(const Enum enumValue,
+ModelTypeEnum::ModelTypeEnum(const Enum enumValue,
                            const int32_t integerCode,
                            const AString& name,
                            const AString& guiName)
@@ -59,7 +59,7 @@ ModelDisplayControllerTypeEnum::ModelDisplayControllerTypeEnum(const Enum enumVa
 /**
  * Destructor.
  */
-ModelDisplayControllerTypeEnum::~ModelDisplayControllerTypeEnum()
+ModelTypeEnum::~ModelTypeEnum()
 {
 }
 
@@ -67,39 +67,39 @@ ModelDisplayControllerTypeEnum::~ModelDisplayControllerTypeEnum()
  * Initialize the enumerated metadata.
  */
 void
-ModelDisplayControllerTypeEnum::initialize()
+ModelTypeEnum::initialize()
 {
     if (initializedFlag) {
         return;
     }
     initializedFlag = true;
 
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_INVALID, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_INVALID, 
                                     0, 
                                     "MODEL_TYPE_INVALID", 
                                     "Invalid"));
     
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_SURFACE, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_SURFACE, 
                                     1, 
                                     "MODEL_TYPE_SURFACE", 
                                     "Surface"));
     
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_SURFACE_MONTAGE, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_SURFACE_MONTAGE, 
                                                       2, 
                                                       "MODEL_TYPE_SURFACE_MONTAGE", 
                                                       "Surface Montage"));
     
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_VOLUME_SLICES, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_VOLUME_SLICES, 
                                     3, 
                                     "MODEL_TYPE_VOLUME_SLICES", 
                                     "Volume"));
     
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_WHOLE_BRAIN, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_WHOLE_BRAIN, 
                                     4, 
                                     "MODEL_TYPE_WHOLE_BRAIN", 
                                     "Whole Brain"));
     
-    enumData.push_back(ModelDisplayControllerTypeEnum(MODEL_TYPE_YOKING, 
+    enumData.push_back(ModelTypeEnum(MODEL_TYPE_YOKING, 
                                                       5, 
                                                       "MODEL_TYPE_YOKING", 
                                                       "Yoking"));
@@ -113,14 +113,14 @@ ModelDisplayControllerTypeEnum::initialize()
  * @return Pointer to data for this enumerated type
  * or NULL if no data for type or if type is invalid.
  */
-const ModelDisplayControllerTypeEnum*
-ModelDisplayControllerTypeEnum::findData(const Enum enumValue)
+const ModelTypeEnum*
+ModelTypeEnum::findData(const Enum enumValue)
 {
     if (initializedFlag == false) initialize();
 
     size_t num = enumData.size();
     for (size_t i = 0; i < num; i++) {
-        const ModelDisplayControllerTypeEnum* d = &enumData[i];
+        const ModelTypeEnum* d = &enumData[i];
         if (d->enumValue == enumValue) {
             return d;
         }
@@ -137,10 +137,10 @@ ModelDisplayControllerTypeEnum::findData(const Enum enumValue)
  *     String representing enumerated value.
  */
 AString 
-ModelDisplayControllerTypeEnum::toName(Enum enumValue) {
+ModelTypeEnum::toName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ModelDisplayControllerTypeEnum* enumInstance = findData(enumValue);
+    const ModelTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->name;
 }
 
@@ -154,18 +154,18 @@ ModelDisplayControllerTypeEnum::toName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ModelDisplayControllerTypeEnum::Enum 
-ModelDisplayControllerTypeEnum::fromName(const AString& name, bool* isValidOut)
+ModelTypeEnum::Enum 
+ModelTypeEnum::fromName(const AString& name, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = MODEL_TYPE_INVALID;
     
-    for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ModelTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ModelDisplayControllerTypeEnum& d = *iter;
+        const ModelTypeEnum& d = *iter;
         if (d.name == name) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -177,7 +177,7 @@ ModelDisplayControllerTypeEnum::fromName(const AString& name, bool* isValidOut)
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
+        CaretAssertMessage(0, AString("Name " + name + "failed to match enumerated value for type ModelTypeEnum"));
     }
     return enumValue;
 }
@@ -190,10 +190,10 @@ ModelDisplayControllerTypeEnum::fromName(const AString& name, bool* isValidOut)
  *     String representing enumerated value.
  */
 AString 
-ModelDisplayControllerTypeEnum::toGuiName(Enum enumValue) {
+ModelTypeEnum::toGuiName(Enum enumValue) {
     if (initializedFlag == false) initialize();
     
-    const ModelDisplayControllerTypeEnum* enumInstance = findData(enumValue);
+    const ModelTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->guiName;
 }
 
@@ -207,18 +207,18 @@ ModelDisplayControllerTypeEnum::toGuiName(Enum enumValue) {
  * @return 
  *     Enumerated value.
  */
-ModelDisplayControllerTypeEnum::Enum 
-ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
+ModelTypeEnum::Enum 
+ModelTypeEnum::fromGuiName(const AString& guiName, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = MODEL_TYPE_INVALID;
     
-    for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ModelTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ModelDisplayControllerTypeEnum& d = *iter;
+        const ModelTypeEnum& d = *iter;
         if (d.guiName == guiName) {
             enumValue = d.enumValue;
             validFlag = true;
@@ -230,7 +230,7 @@ ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isVali
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
+        CaretAssertMessage(0, AString("guiName " + guiName + "failed to match enumerated value for type ModelTypeEnum"));
     }
     return enumValue;
 }
@@ -243,10 +243,10 @@ ModelDisplayControllerTypeEnum::fromGuiName(const AString& guiName, bool* isVali
  *    Integer code for data type.
  */
 int32_t
-ModelDisplayControllerTypeEnum::toIntegerCode(Enum enumValue)
+ModelTypeEnum::toIntegerCode(Enum enumValue)
 {
     if (initializedFlag == false) initialize();
-    const ModelDisplayControllerTypeEnum* enumInstance = findData(enumValue);
+    const ModelTypeEnum* enumInstance = findData(enumValue);
     return enumInstance->integerCode;
 }
 
@@ -261,18 +261,18 @@ ModelDisplayControllerTypeEnum::toIntegerCode(Enum enumValue)
  * @return
  *     Enum for integer code.
  */
-ModelDisplayControllerTypeEnum::Enum
-ModelDisplayControllerTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
+ModelTypeEnum::Enum
+ModelTypeEnum::fromIntegerCode(const int32_t integerCode, bool* isValidOut)
 {
     if (initializedFlag == false) initialize();
     
     bool validFlag = false;
     Enum enumValue = MODEL_TYPE_INVALID;
     
-    for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ModelTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
-        const ModelDisplayControllerTypeEnum& enumInstance = *iter;
+        const ModelTypeEnum& enumInstance = *iter;
         if (enumInstance.integerCode == integerCode) {
             enumValue = enumInstance.enumValue;
             validFlag = true;
@@ -284,7 +284,7 @@ ModelDisplayControllerTypeEnum::fromIntegerCode(const int32_t integerCode, bool*
         *isValidOut = validFlag;
     }
     else if (validFlag == false) {
-        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ModelDisplayControllerTypeEnum"));
+        CaretAssertMessage(0, AString("Integer code " + AString::number(integerCode) + "failed to match enumerated value for type ModelTypeEnum"));
     }
     return enumValue;
 }
@@ -297,13 +297,13 @@ ModelDisplayControllerTypeEnum::fromIntegerCode(const int32_t integerCode, bool*
  *     A vector that is OUTPUT containing all of the enumerated values.
  */
 void
-ModelDisplayControllerTypeEnum::getAllEnums(std::vector<ModelDisplayControllerTypeEnum::Enum>& allEnums)
+ModelTypeEnum::getAllEnums(std::vector<ModelTypeEnum::Enum>& allEnums)
 {
     if (initializedFlag == false) initialize();
     
     allEnums.clear();
     
-    for (std::vector<ModelDisplayControllerTypeEnum>::iterator iter = enumData.begin();
+    for (std::vector<ModelTypeEnum>::iterator iter = enumData.begin();
          iter != enumData.end();
          iter++) {
         allEnums.push_back(iter->enumValue);

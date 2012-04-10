@@ -36,10 +36,10 @@
 #include "EventManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "RgbaFile.h"
 #include "Surface.h"
 #include "VolumeFile.h"
@@ -75,7 +75,7 @@ Overlay::Overlay(BrainStructure* brainStructure)
  * @param modelDisplayControllerVolume
  *    Controller that is for volumes.
  */
-Overlay::Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume)
+Overlay::Overlay(ModelVolume* modelDisplayControllerVolume)
 : CaretObject()
 {
     CaretAssert(modelDisplayControllerVolume);
@@ -93,7 +93,7 @@ Overlay::Overlay(ModelDisplayControllerVolume* modelDisplayControllerVolume)
  * @param modelDisplayControllerWholeBrain
  *    Controller that is for whole brains.
  */
-Overlay::Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBrain)
+Overlay::Overlay(ModelWholeBrain* modelDisplayControllerWholeBrain)
 : CaretObject()
 {
     CaretAssert(modelDisplayControllerWholeBrain);
@@ -111,7 +111,7 @@ Overlay::Overlay(ModelDisplayControllerWholeBrain* modelDisplayControllerWholeBr
  * @param modelDisplayControllerSurfaceMontage
  *    Controller that is for surface montage.
  */
-Overlay::Overlay(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSurfaceMontage)
+Overlay::Overlay(ModelSurfaceMontage* modelDisplayControllerSurfaceMontage)
 : CaretObject()
 {
     CaretAssert(modelDisplayControllerSurfaceMontage);
@@ -129,7 +129,7 @@ Overlay::Overlay(ModelDisplayControllerSurfaceMontage* modelDisplayControllerSur
  * @param
  *    Controller that is for 
  */
-Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYokingGroup)
+Overlay::Overlay(ModelYokingGroup* modelDisplayControllerYokingGroup)
 : CaretObject()
 {
     CaretAssert(modelDisplayControllerYokingGroup);
@@ -148,7 +148,7 @@ Overlay::Overlay(ModelDisplayControllerYokingGroup* modelDisplayControllerYoking
  *    Controller that uses this overlay.
  */
 void
-Overlay::initializeOverlay(ModelDisplayController* modelDisplayController,
+Overlay::initializeOverlay(Model* modelDisplayController,
                            BrainStructure* brainStructure)
 {
     this->brainStructure = brainStructure;

@@ -31,29 +31,29 @@
 
 namespace caret {
 
-    class ModelDisplayControllerSurface;
+    class ModelSurface;
     class Surface;
     
     /// Find the Surface Controller that contains a specific Surface.
-    class EventModelDisplayControllerSurfaceGet : public Event {
+    class EventModelSurfaceGet : public Event {
         
     public:
-        EventModelDisplayControllerSurfaceGet(const Surface* surface);
+        EventModelSurfaceGet(const Surface* surface);
         
-        virtual ~EventModelDisplayControllerSurfaceGet();
+        virtual ~EventModelSurfaceGet();
         
-        ModelDisplayControllerSurface* getModelDisplayControllerSurface();
+        ModelSurface* getModelSurface();
         
-        void setModelDisplayControllerSurface(ModelDisplayControllerSurface* modelDisplayControllerSurface);
+        void setModelSurface(ModelSurface* modelDisplayControllerSurface);
         
         const Surface* getSurface() const;
         
     private:
-        EventModelDisplayControllerSurfaceGet(const EventModelDisplayControllerSurfaceGet&);
+        EventModelSurfaceGet(const EventModelSurfaceGet&);
         
-        EventModelDisplayControllerSurfaceGet& operator=(const EventModelDisplayControllerSurfaceGet&);
+        EventModelSurfaceGet& operator=(const EventModelSurfaceGet&);
         
-        ModelDisplayControllerSurface* modelDisplayControllerSurface;
+        ModelSurface* modelDisplayControllerSurface;
         
         const Surface* surface;
     };

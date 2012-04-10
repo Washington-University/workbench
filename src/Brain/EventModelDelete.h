@@ -29,24 +29,24 @@
 
 namespace caret {
     
-    class ModelDisplayController;
+    class Model;
     
     /// Event for deleting model display controllers
-    class EventModelDisplayControllerDelete : public Event {
+    class EventModelDelete : public Event {
         
     public:
-        EventModelDisplayControllerDelete(ModelDisplayController* modelDisplayController);
+        EventModelDelete(Model* modelDisplayController);
         
-        virtual ~EventModelDisplayControllerDelete();
+        virtual ~EventModelDelete();
         
-        ModelDisplayController* getModelDisplayController();
+        Model* getModel();
         
     private:
-        EventModelDisplayControllerDelete(const EventModelDisplayControllerDelete&);
+        EventModelDelete(const EventModelDelete&);
         
-        EventModelDisplayControllerDelete& operator=(const EventModelDisplayControllerDelete&);
+        EventModelDelete& operator=(const EventModelDelete&);
         
-        ModelDisplayController* modelDisplayController;
+        Model* modelDisplayController;
     };
     
 } // namespace

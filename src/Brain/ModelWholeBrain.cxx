@@ -30,9 +30,9 @@
 #include "EventBrowserTabGet.h"
 #include "EventManager.h"
 #include "EventIdentificationHighlightLocation.h"
-#include "EventModelDisplayControllerGetAll.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "EventModelGetAll.h"
+#include "ModelSurface.h"
+#include "ModelWholeBrain.h"
 #include "OverlaySet.h"
 #include "Surface.h"
 
@@ -43,13 +43,13 @@ using namespace caret;
  * @param brain - brain to which this whole brain controller belongs.
  *
  */
-ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
+ModelWholeBrain::ModelWholeBrain(Brain* brain)
+: Model(ModelTypeEnum::MODEL_TYPE_WHOLE_BRAIN,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    this->initializeMembersModelDisplayControllerWholeBrain();
+    this->initializeMembersModelWholeBrain();
     EventManager::get()->addEventListener(this, 
                                           EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION);
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -60,7 +60,7 @@ ModelDisplayControllerWholeBrain::ModelDisplayControllerWholeBrain(Brain* brain)
 /**
  * Destructor
  */
-ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
+ModelWholeBrain::~ModelWholeBrain()
 {
     EventManager::get()->removeAllEventsFromListener(this);    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
@@ -72,7 +72,7 @@ ModelDisplayControllerWholeBrain::~ModelDisplayControllerWholeBrain()
  * Initialize members of this class.
  */
 void
-ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBrain()
+ModelWholeBrain::initializeMembersModelWholeBrain()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->selectedSurfaceType[i] = SurfaceTypeEnum::ANATOMICAL;
@@ -91,7 +91,7 @@ ModelDisplayControllerWholeBrain::initializeMembersModelDisplayControllerWholeBr
  *    Output loaded with the available surface types.
  */
 void 
-ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut)
+ModelWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTypeEnum::Enum>& surfaceTypesOut)
 {
     this->updateController();
     
@@ -105,7 +105,7 @@ ModelDisplayControllerWholeBrain::getAvailableSurfaceTypes(std::vector<SurfaceTy
  */
 
 SurfaceTypeEnum::Enum 
-ModelDisplayControllerWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
+ModelWholeBrain::getSelectedSurfaceType(const int32_t windowTabNumber)
 {
     this->updateController();
     return this->selectedSurfaceType[windowTabNumber];    
@@ -115,15 +115,15 @@ ModelDisplayControllerWholeBrain::getSelectedSurfaceType(const int32_t windowTab
  * Update this controller.
  */
 void 
-ModelDisplayControllerWholeBrain::updateController()
+ModelWholeBrain::updateController()
 {
     /*
      * Get all model controllers to find loaded surface types.
      */
-    EventModelDisplayControllerGetAll eventGetControllers;
+    EventModelGetAll eventGetControllers;
     EventManager::get()->sendEvent(eventGetControllers.getPointer());
-    const std::vector<ModelDisplayController*> allControllers =
-        eventGetControllers.getModelDisplayControllers();
+    const std::vector<Model*> allControllers =
+        eventGetControllers.getModels();
 
     /*
      * Get ALL possible surface types.
@@ -136,11 +136,11 @@ ModelDisplayControllerWholeBrain::updateController()
     /*
      * Find surface types that are actually used.
      */
-    for (std::vector<ModelDisplayController*>::const_iterator iter = allControllers.begin();
+    for (std::vector<Model*>::const_iterator iter = allControllers.begin();
          iter != allControllers.end();
          iter++) {
-        ModelDisplayControllerSurface* surfaceController = 
-            dynamic_cast<ModelDisplayControllerSurface*>(*iter);
+        ModelSurface* surfaceController = 
+            dynamic_cast<ModelSurface*>(*iter);
         if (surfaceController != NULL) {
             SurfaceTypeEnum::Enum surfaceType = surfaceController->getSurface()->getSurfaceType();
             
@@ -195,7 +195,7 @@ ModelDisplayControllerWholeBrain::updateController()
  *    New surface type.
  */
 void 
-ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
+ModelWholeBrain::setSelectedSurfaceType(const int32_t windowTabNumber,
                                                          const SurfaceTypeEnum::Enum surfaceType)
 {
     this->selectedSurfaceType[windowTabNumber] = surfaceType;
@@ -222,7 +222,7 @@ ModelDisplayControllerWholeBrain::setSelectedSurfaceType(const int32_t windowTab
  * @return Enabled status for left cerebral cortex.
  */
 bool 
-ModelDisplayControllerWholeBrain::isLeftEnabled(const int32_t windowTabNumber) const
+ModelWholeBrain::isLeftEnabled(const int32_t windowTabNumber) const
 {
     return this->leftEnabled[windowTabNumber];
 }
@@ -235,7 +235,7 @@ ModelDisplayControllerWholeBrain::isLeftEnabled(const int32_t windowTabNumber) c
  *    New enabled status.
  */
 void 
-ModelDisplayControllerWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
+ModelWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
                                                  const bool enabled)
 {
     this->leftEnabled[windowTabNumber] = enabled;
@@ -245,7 +245,7 @@ ModelDisplayControllerWholeBrain::setLeftEnabled(const int32_t windowTabNumber,
  * @return Enabled status for right cerebral cortex.
  */
 bool 
-ModelDisplayControllerWholeBrain::isRightEnabled(const int32_t windowTabNumber) const
+ModelWholeBrain::isRightEnabled(const int32_t windowTabNumber) const
 {
     return this->rightEnabled[windowTabNumber];    
 }
@@ -258,7 +258,7 @@ ModelDisplayControllerWholeBrain::isRightEnabled(const int32_t windowTabNumber) 
  *    New enabled status.
  */
 void 
-ModelDisplayControllerWholeBrain::setRightEnabled(const int32_t windowTabNumber,
+ModelWholeBrain::setRightEnabled(const int32_t windowTabNumber,
                                                   const bool enabled)
 {
     this->rightEnabled[windowTabNumber] = enabled;
@@ -268,7 +268,7 @@ ModelDisplayControllerWholeBrain::setRightEnabled(const int32_t windowTabNumber,
  * @return Enabled status for cerebellum.
  */
 bool 
-ModelDisplayControllerWholeBrain::isCerebellumEnabled(const int32_t windowTabNumber) const
+ModelWholeBrain::isCerebellumEnabled(const int32_t windowTabNumber) const
 {
     return this->cerebellumEnabled[windowTabNumber];
 }
@@ -281,7 +281,7 @@ ModelDisplayControllerWholeBrain::isCerebellumEnabled(const int32_t windowTabNum
  *    New enabled status.
  */
 void 
-ModelDisplayControllerWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
+ModelWholeBrain::setCerebellumEnabled(const int32_t windowTabNumber,
                                                        const bool enabled)
 {
     this->cerebellumEnabled[windowTabNumber] = enabled;
@@ -291,7 +291,7 @@ ModelDisplayControllerWholeBrain::setCerebellumEnabled(const int32_t windowTabNu
  * @return The separation between the left and right surfaces.
  */
 float 
-ModelDisplayControllerWholeBrain::getLeftRightSeparation(const int32_t windowTabNumber) const
+ModelWholeBrain::getLeftRightSeparation(const int32_t windowTabNumber) const
 {
     return this->leftRightSeparation[windowTabNumber];
 }
@@ -304,7 +304,7 @@ ModelDisplayControllerWholeBrain::getLeftRightSeparation(const int32_t windowTab
  *     New value for separation.
  */
 void 
-ModelDisplayControllerWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
+ModelWholeBrain::setLeftRightSeparation(const int32_t windowTabNumber,
                             const float separation)
 {
     this->leftRightSeparation[windowTabNumber] = separation;
@@ -314,7 +314,7 @@ ModelDisplayControllerWholeBrain::setLeftRightSeparation(const int32_t windowTab
  * @return The separation between the left/right surfaces.
  */
 float 
-ModelDisplayControllerWholeBrain::getCerebellumSeparation(const int32_t windowTabNumber) const
+ModelWholeBrain::getCerebellumSeparation(const int32_t windowTabNumber) const
 {
     return this->cerebellumSeparation[windowTabNumber];
 }
@@ -327,7 +327,7 @@ ModelDisplayControllerWholeBrain::getCerebellumSeparation(const int32_t windowTa
  *     New value for separation.
  */
 void 
-ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
+ModelWholeBrain::setCerebellumSeparation(const int32_t windowTabNumber,
                                                          const float separation)
 {
     this->cerebellumSeparation[windowTabNumber] = separation;
@@ -341,7 +341,7 @@ ModelDisplayControllerWholeBrain::setCerebellumSeparation(const int32_t windowTa
  *   Volume slice selection for tab.
  */
 VolumeSliceCoordinateSelection* 
-ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
+ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber)
 {
     this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(this->getUnderlayVolumeFile(windowTabNumber));
     return &this->volumeSlicesSelected[windowTabNumber];
@@ -355,7 +355,7 @@ ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTa
  *   Volume slice selection for tab.
  */
 const VolumeSliceCoordinateSelection* 
-ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
+ModelWholeBrain::getSelectedVolumeSlices(const int32_t windowTabNumber) const
 {
     const VolumeFile* vf = this->getUnderlayVolumeFile(windowTabNumber);
     this->volumeSlicesSelected[windowTabNumber].updateForVolumeFile(vf);
@@ -372,7 +372,7 @@ ModelDisplayControllerWholeBrain::getSelectedVolumeSlices(const int32_t windowTa
  *
  */
 AString
-ModelDisplayControllerWholeBrain::getNameForGUI(const bool /*includeStructureFlag*/) const
+ModelWholeBrain::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
     return "Whole Brain";
 }
@@ -382,7 +382,7 @@ ModelDisplayControllerWholeBrain::getNameForGUI(const bool /*includeStructureFla
  * displaying this model controller.
  */
 AString 
-ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
+ModelWholeBrain::getNameForBrowserTab() const
 {
     return "Whole Brain";
 }
@@ -396,7 +396,7 @@ ModelDisplayControllerWholeBrain::getNameForBrowserTab() const
  *    when all overlay are not volumes or they are disabled).
  */
 VolumeFile* 
-ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
+ModelWholeBrain::getUnderlayVolumeFile(const int32_t windowTabNumber) const
 {
     VolumeFile* vf = NULL;
     
@@ -416,7 +416,7 @@ ModelDisplayControllerWholeBrain::getUnderlayVolumeFile(const int32_t windowTabN
  * @param  windowTabNumber  Window for which slices set to origin is requested.
  */
 void
-ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
+ModelWholeBrain::setSlicesToOrigin(const int32_t windowTabNumber)
 {
     this->volumeSlicesSelected[windowTabNumber].selectSlicesAtOrigin();
 }
@@ -432,7 +432,7 @@ ModelDisplayControllerWholeBrain::setSlicesToOrigin(const int32_t windowTabNumbe
  * @param Pointer to selected surface for given structure or NULL if not available.
  */
 Surface* 
-ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
+ModelWholeBrain::getSelectedSurface(const StructureEnum::Enum structure,
                                                      const int32_t windowTabNumber)
 
 {
@@ -491,7 +491,7 @@ ModelDisplayControllerWholeBrain::getSelectedSurface(const StructureEnum::Enum s
  *    Newly selected surface.
  */
 void 
-ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
+ModelWholeBrain::setSelectedSurface(const StructureEnum::Enum structure,
                                                           const int32_t windowTabNumber,
                                                           Surface* surface)
 {
@@ -510,7 +510,7 @@ ModelDisplayControllerWholeBrain::setSelectedSurface(const StructureEnum::Enum s
  *   The event.
  */
 void 
-ModelDisplayControllerWholeBrain::receiveEvent(Event* event)
+ModelWholeBrain::receiveEvent(Event* event)
 {
     if (event->getEventType() == EventTypeEnum::EVENT_IDENTIFICATION_HIGHLIGHT_LOCATION) {
         EventIdentificationHighlightLocation* idLocationEvent =
@@ -537,7 +537,7 @@ ModelDisplayControllerWholeBrain::receiveEvent(Event* event)
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelDisplayControllerWholeBrain::getOverlaySet(const int tabIndex)
+ModelWholeBrain::getOverlaySet(const int tabIndex)
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -553,7 +553,7 @@ ModelDisplayControllerWholeBrain::getOverlaySet(const int tabIndex)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelDisplayControllerWholeBrain::getOverlaySet(const int tabIndex) const
+ModelWholeBrain::getOverlaySet(const int tabIndex) const
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -565,7 +565,7 @@ ModelDisplayControllerWholeBrain::getOverlaySet(const int tabIndex) const
  * Initilize the overlays for this controller.
  */
 void 
-ModelDisplayControllerWholeBrain::initializeOverlays()
+ModelWholeBrain::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->overlaySet[i]->initializeOverlays();

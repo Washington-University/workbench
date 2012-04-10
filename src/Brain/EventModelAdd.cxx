@@ -23,50 +23,36 @@
  */ 
 
 #include "CaretAssert.h"
-#include "EventModelDisplayControllerSurfaceGet.h"
+#include "EventModelAdd.h"
 
 using namespace caret;
 
 /**
  * Constructor.
  */
-EventModelDisplayControllerSurfaceGet::EventModelDisplayControllerSurfaceGet(const Surface* surface)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_SURFACE_GET),
-  surface(surface)
+EventModelAdd::EventModelAdd(Model* modelDisplayController)
+: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD)
 {
-    CaretAssert(surface);
+    this->modelDisplayController = modelDisplayController;
+    CaretAssert(this->modelDisplayController);
 }
 
 /**
  * Destructor.
  */
-EventModelDisplayControllerSurfaceGet::~EventModelDisplayControllerSurfaceGet()
+EventModelAdd::~EventModelAdd()
 {
     
 }
 
 /**
- * @return The model display controller surface that was found.
+ * Get the model display controller that is to be added.
+ * 
+ * @return Model display controller that is to be added.
  */
-ModelDisplayControllerSurface* 
-EventModelDisplayControllerSurfaceGet::getModelDisplayControllerSurface()
+Model* 
+EventModelAdd::getModel()
 {
-    return this->modelDisplayControllerSurface;
+    return this->modelDisplayController;
 }
-
-void 
-EventModelDisplayControllerSurfaceGet::setModelDisplayControllerSurface(ModelDisplayControllerSurface* modelDisplayControllerSurface)
-{
-    this->modelDisplayControllerSurface = modelDisplayControllerSurface;
-}
-
-/**
- * @return Returns the surface for which the model display controller surface is requested.
- */
-const Surface* 
-EventModelDisplayControllerSurfaceGet::getSurface() const
-{
-    return this->surface;
-}
-
 

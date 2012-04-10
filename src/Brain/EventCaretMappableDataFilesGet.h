@@ -33,7 +33,7 @@ namespace caret {
     class ConnectivityLoaderFile;
     class LabelFile;
     class MetricFile;
-    class ModelDisplayController;
+    class Model;
     class RgbaFile;
     class Surface;
     class VolumeFile;

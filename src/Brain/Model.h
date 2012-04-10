@@ -27,7 +27,7 @@
 
 #include "BrainConstants.h"
 #include "CaretObject.h"
-#include "ModelDisplayControllerTypeEnum.h"
+#include "ModelTypeEnum.h"
 #include "Matrix4x4.h"
 
 namespace caret {
@@ -36,7 +36,7 @@ namespace caret {
     class OverlaySet;
     
     /// Base class for controlling a model
-    class ModelDisplayController : public CaretObject {
+    class Model : public CaretObject {
         
     protected:
         enum YokingAllowedType {
@@ -49,25 +49,25 @@ namespace caret {
             ROTATION_ALLOWED_NO
         };
         
-        ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
+        Model(const ModelTypeEnum::Enum controllerType,
                                const YokingAllowedType allowsYokingStatus,
                                const RotationAllowedType allowsRotationStatus,
                                Brain* brain);
         
-        virtual ~ModelDisplayController();
+        virtual ~Model();
         
     private:        
-        ModelDisplayController(const ModelDisplayController& o);
-        ModelDisplayController& operator=(const ModelDisplayController& o);
+        Model(const Model& o);
+        Model& operator=(const Model& o);
         
-        void initializeMembersModelDisplayController();
+        void initializeMembersModel();
         
     public:
         virtual void initializeOverlays() = 0;
         
         Brain* getBrain();
         
-        ModelDisplayControllerTypeEnum::Enum getControllerType() const;
+        ModelTypeEnum::Enum getControllerType() const;
         
         virtual AString getNameForGUI(const bool includeStructureFlag) const = 0;
         
@@ -77,7 +77,7 @@ namespace caret {
         
         bool isYokeable() const;
         
-        void copyTransformations(const ModelDisplayController& controller,
+        void copyTransformations(const Model& controller,
                                  const int32_t windowTabNumberSource,
                                  const int32_t windowTabNumberTarget);
         
@@ -153,7 +153,7 @@ namespace caret {
         float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
     private:
-        ModelDisplayControllerTypeEnum::Enum controllerType;
+        ModelTypeEnum::Enum controllerType;
         
         YokingAllowedType allowsYokingStatus;
         

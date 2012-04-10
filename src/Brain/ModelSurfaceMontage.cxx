@@ -30,8 +30,8 @@
 #include "BoundingBox.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
-#include "EventModelDisplayControllerSurfaceGet.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
+#include "EventModelSurfaceGet.h"
+#include "ModelSurfaceMontage.h"
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
@@ -45,13 +45,13 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerSurfaceMontage::ModelDisplayControllerSurfaceMontage(Brain* brain)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
+ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
+: Model(ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          brain)
 {
-    this->initializeMembersModelDisplayControllerSurfaceMontage();
+    this->initializeMembersModelSurfaceMontage();
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->overlaySet[i] = new OverlaySet(this);
     }
@@ -63,7 +63,7 @@ ModelDisplayControllerSurfaceMontage::ModelDisplayControllerSurfaceMontage(Brain
 /**
  * Destructor
  */
-ModelDisplayControllerSurfaceMontage::~ModelDisplayControllerSurfaceMontage()
+ModelSurfaceMontage::~ModelSurfaceMontage()
 {
     EventManager::get()->removeAllEventsFromListener(this);
     
@@ -84,12 +84,12 @@ ModelDisplayControllerSurfaceMontage::~ModelDisplayControllerSurfaceMontage()
  *     The event that the receive can respond to.
  */
 void 
-ModelDisplayControllerSurfaceMontage::receiveEvent(Event* event)
+ModelSurfaceMontage::receiveEvent(Event* event)
 {
 }
 
 void
-ModelDisplayControllerSurfaceMontage::initializeMembersModelDisplayControllerSurfaceMontage()
+ModelSurfaceMontage::initializeMembersModelSurfaceMontage()
 {
     this->leftSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
     this->leftSecondSurfaceSelectionModel = new SurfaceSelectionModel(StructureEnum::CORTEX_LEFT);
@@ -102,7 +102,7 @@ ModelDisplayControllerSurfaceMontage::initializeMembersModelDisplayControllerSur
  * @return Is dual configuration enabled?
  */
 bool 
-ModelDisplayControllerSurfaceMontage::isDualConfigurationEnabled() const
+ModelSurfaceMontage::isDualConfigurationEnabled() const
 {
     return this->dualConfigurationEnabled;
 }
@@ -113,7 +113,7 @@ ModelDisplayControllerSurfaceMontage::isDualConfigurationEnabled() const
  *    New dual configuration status
  */
 void 
-ModelDisplayControllerSurfaceMontage::setDualConfigurationEnabled(const bool enabled)
+ModelSurfaceMontage::setDualConfigurationEnabled(const bool enabled)
 {
     this->dualConfigurationEnabled = enabled;
 }
@@ -122,7 +122,7 @@ ModelDisplayControllerSurfaceMontage::setDualConfigurationEnabled(const bool ena
  * @return the left surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelDisplayControllerSurfaceMontage::getLeftSurfaceSelectionModel()
+ModelSurfaceMontage::getLeftSurfaceSelectionModel()
 {
     return this->leftSurfaceSelectionModel;
 }
@@ -131,7 +131,7 @@ ModelDisplayControllerSurfaceMontage::getLeftSurfaceSelectionModel()
  * @return the left second surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelDisplayControllerSurfaceMontage::getLeftSecondSurfaceSelectionModel()
+ModelSurfaceMontage::getLeftSecondSurfaceSelectionModel()
 {
     return this->leftSecondSurfaceSelectionModel;
 }
@@ -140,7 +140,7 @@ ModelDisplayControllerSurfaceMontage::getLeftSecondSurfaceSelectionModel()
  * @return the right surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelDisplayControllerSurfaceMontage::getRightSurfaceSelectionModel()
+ModelSurfaceMontage::getRightSurfaceSelectionModel()
 {
     return this->rightSurfaceSelectionModel;
 }
@@ -149,7 +149,7 @@ ModelDisplayControllerSurfaceMontage::getRightSurfaceSelectionModel()
  * @return the right second surface selection in this controller.
  */
 SurfaceSelectionModel*
-ModelDisplayControllerSurfaceMontage::getRightSecondSurfaceSelectionModel()
+ModelSurfaceMontage::getRightSecondSurfaceSelectionModel()
 {
     return this->rightSecondSurfaceSelectionModel;
 }
@@ -163,7 +163,7 @@ ModelDisplayControllerSurfaceMontage::getRightSecondSurfaceSelectionModel()
  *
  */
 AString
-ModelDisplayControllerSurfaceMontage::getNameForGUI(const bool /*includeStructureFlag*/) const
+ModelSurfaceMontage::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
     AString name = "Surface Montage";
     
@@ -179,7 +179,7 @@ ModelDisplayControllerSurfaceMontage::getNameForGUI(const bool /*includeStructur
  * displaying this model controller.
  */
 AString 
-ModelDisplayControllerSurfaceMontage::getNameForBrowserTab() const
+ModelSurfaceMontage::getNameForBrowserTab() const
 {
     AString name = "Surface Montage";
     
@@ -195,7 +195,7 @@ ModelDisplayControllerSurfaceMontage::getNameForBrowserTab() const
  *
  */
 void
-ModelDisplayControllerSurfaceMontage::setDefaultScalingToFitWindow()
+ModelSurfaceMontage::setDefaultScalingToFitWindow()
 {
     /*
     BoundingBox bounds;
@@ -219,9 +219,9 @@ ModelDisplayControllerSurfaceMontage::setDefaultScalingToFitWindow()
  * reset the view.
  */
 void
-ModelDisplayControllerSurfaceMontage::resetView(const int32_t windowTabNumber)
+ModelSurfaceMontage::resetView(const int32_t windowTabNumber)
 {
-    ModelDisplayController::resetView(windowTabNumber);
+    Model::resetView(windowTabNumber);
     this->leftView(windowTabNumber);    
 }
 
@@ -233,7 +233,7 @@ ModelDisplayControllerSurfaceMontage::resetView(const int32_t windowTabNumber)
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex)
+ModelSurfaceMontage::getOverlaySet(const int tabIndex)
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -249,7 +249,7 @@ ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex) const
+ModelSurfaceMontage::getOverlaySet(const int tabIndex) const
 {
     CaretAssertArrayIndex(this->overlaySet, 
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
@@ -261,7 +261,7 @@ ModelDisplayControllerSurfaceMontage::getOverlaySet(const int tabIndex) const
  * Initilize the overlays for this controller.
  */
 void 
-ModelDisplayControllerSurfaceMontage::initializeOverlays()
+ModelSurfaceMontage::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->overlaySet[i]->initializeOverlays();

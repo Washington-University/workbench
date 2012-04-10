@@ -76,10 +76,10 @@
 #include "IdentificationWithColor.h"
 #include "IdentificationManager.h"
 #include "MathFunctions.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerSurfaceMontage.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -250,7 +250,7 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
                                BrainOpenGLViewportContent* viewportContent)
 {
     this->browserTabContent= viewportContent->getBrowserTabContent();
-    ModelDisplayController* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
+    Model* modelDisplayController = this->browserTabContent->getModelControllerForDisplay();
     this->windowTabIndex = this->browserTabContent->getTabNumber();
     int viewport[4];
     viewportContent->getViewport(viewport);
@@ -269,10 +269,10 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
     if(modelDisplayController != NULL) {
         CaretAssert((this->windowTabIndex >= 0) && (this->windowTabIndex < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS));
                 
-        ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
-        ModelDisplayControllerSurfaceMontage* surfaceMontageController = dynamic_cast<ModelDisplayControllerSurfaceMontage*>(modelDisplayController);
-        ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
-        ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
+        ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
+        ModelSurfaceMontage* surfaceMontageController = dynamic_cast<ModelSurfaceMontage*>(modelDisplayController);
+        ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
+        ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
         if (surfaceController != NULL) {
             this->drawSurfaceController(surfaceController, viewport);
         }
@@ -349,7 +349,7 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
  *    lateral/medial yoked.
  */
 void 
-BrainOpenGLFixedPipeline::applyViewingTransformations(const ModelDisplayController* modelDisplayController,
+BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
                                          const bool isRightSurfaceLateralMedialYoked)
@@ -386,7 +386,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const ModelDisplayControll
  * Apply the viewing transformations for the model controller 
  * in the given tab for viewing a volume slice in a plane.
  *
- * @param ModelDisplayControllerVolume
+ * @param ModelVolume
  *    Volume model controller being viewed.
  * @param tabIndex
  *    Index of tab containing the controller.
@@ -394,7 +394,7 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const ModelDisplayControll
  *    View plane of slice.
  */
 void 
-BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelDisplayControllerVolume* modelDisplayControllerVolume,
+BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                             const int32_t tabIndex,
                                             const VolumeSliceViewPlaneEnum::Enum viewPlane)
 {
@@ -750,7 +750,7 @@ BrainOpenGLFixedPipeline::disableLineAntiAliasing()
  *    Viewport for drawing region.
  */
 void 
-BrainOpenGLFixedPipeline::drawSurfaceController(ModelDisplayControllerSurface* surfaceController,
+BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
                                    const int32_t viewport[4])
 {
     Surface* surface = surfaceController->getSurface();
@@ -1729,7 +1729,7 @@ BrainOpenGLFixedPipeline::setupVolumeDrawInfo(BrowserTabContent* browserTabConte
  */
 void 
 BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabContent,
-                                  ModelDisplayControllerVolume* volumeController,
+                                  ModelVolume* volumeController,
                                   const int32_t viewport[4])
 {
     glDisable(GL_DEPTH_TEST);
@@ -3268,7 +3268,7 @@ BrainOpenGLFixedPipeline::colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
  */
 void 
 BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
-                                                    ModelDisplayController* modelDisplayController,
+                                                    Model* modelDisplayController,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,
                                                     VolumeFile* underlayVolume)
@@ -3433,7 +3433,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
  */
 void 
 BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTabContent,
-                                      ModelDisplayControllerWholeBrain* wholeBrainController,
+                                      ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4])
 {
     this->setViewportAndOrthographicProjection(viewport);
@@ -3591,7 +3591,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
  * check for an OpenGL Error.
  */
 void 
-BrainOpenGLFixedPipeline::checkForOpenGLError(const ModelDisplayController* modelController,
+BrainOpenGLFixedPipeline::checkForOpenGLError(const Model* modelController,
                                       const AString& msgIn)
 {
     GLenum errorCode = glGetError();

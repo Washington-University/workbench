@@ -43,7 +43,7 @@ namespace caret {
     class BrainOpenGLViewportContent;
     class BrowserTabContent;
     class IdentificationManager;
-    class ModelDisplayController;
+    class Model;
     class MouseEvent;
     class SurfaceProjectedItem;
     class UserInputModeBorders;
@@ -59,7 +59,7 @@ namespace caret {
         
         ~BrainOpenGLWidget();
         
-        //ModelDisplayController* getDisplayedModelController();
+        //Model* getDisplayedModelController();
         
         void receiveEvent(Event* event);
         
@@ -108,7 +108,7 @@ namespace caret {
         
         //int32_t windowTabIndex;
         
-        //ModelDisplayController* modelController;
+        //Model* modelController;
         
         std::vector<BrainOpenGLViewportContent*> drawingViewportContents;
         

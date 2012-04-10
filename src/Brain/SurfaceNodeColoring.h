@@ -33,7 +33,7 @@ namespace caret {
     class BrainStructure;
     class BrowserTabContent;
     class ConnectivityLoaderFile;
-    class ModelDisplayController;
+    class Model;
     class LabelFile;
     class MetricFile;
     class Palette;
@@ -50,7 +50,7 @@ namespace caret {
         
         virtual ~SurfaceNodeColoring();
         
-        float* colorSurfaceNodes(ModelDisplayController* modelDisplayController,
+        float* colorSurfaceNodes(Model* modelDisplayController,
                                  Surface* surface,
                                  const int32_t browserTabIndex);
         

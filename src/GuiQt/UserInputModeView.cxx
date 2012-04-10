@@ -50,7 +50,7 @@
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
 #include "MouseEvent.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 #include "Surface.h"
 #include "TimeLine.h"
 #include "TimeCourseDialog.h"
@@ -289,7 +289,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrowserTabContent* browserTabContent,
                                                   BrainOpenGLWidget* /*openGLWidget*/)
 {
-    ModelDisplayController* modelController = browserTabContent->getModelControllerForTransformation();
+    Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
         const float dx = mouseEvent->getDx();

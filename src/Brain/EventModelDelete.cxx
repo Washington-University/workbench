@@ -1,6 +1,3 @@
-#ifndef __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
-#define __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
-
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -25,30 +22,37 @@
  * 
  */ 
 
-#include "Event.h"
+#include "CaretAssert.h"
+#include "EventModelDelete.h"
 
-namespace caret {
+using namespace caret;
 
-    class ModelDisplayController;
+/**
+ * Constructor.
+ */
+EventModelDelete::EventModelDelete(Model* modelDisplayController)
+: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE)
+{
+    this->modelDisplayController = modelDisplayController;
+    CaretAssert(this->modelDisplayController);
+}
+
+/**
+ * Destructor.
+ */
+EventModelDelete::~EventModelDelete()
+{
     
-    /// Event for adding model display controllers
-    class EventModelDisplayControllerAdd : public Event {
-        
-    public:
-        EventModelDisplayControllerAdd(ModelDisplayController* modelDisplayController);
-        
-        virtual ~EventModelDisplayControllerAdd();
-        
-        ModelDisplayController* getModelDisplayController();
+}
 
-    private:
-        EventModelDisplayControllerAdd(const EventModelDisplayControllerAdd&);
-        
-        EventModelDisplayControllerAdd& operator=(const EventModelDisplayControllerAdd&);
-        
-        ModelDisplayController* modelDisplayController;
-    };
+/**
+ * Get the model display controller that is to be deleted.
+ * 
+ * @return Model display controller that is to be deleted.
+ */
+Model* 
+EventModelDelete::getModel()
+{
+    return this->modelDisplayController;
+}
 
-} // namespace
-
-#endif // __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__

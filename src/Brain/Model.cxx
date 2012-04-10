@@ -24,7 +24,7 @@
 
 #include <QStringList>
 
-#include "ModelDisplayController.h"
+#include "Model.h"
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
@@ -41,14 +41,14 @@ using namespace caret;
  * @param allowsRotationStatus This controller can be rotated.
  *
  */
-ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeEnum::Enum controllerType,
+Model::Model(const ModelTypeEnum::Enum controllerType,
                                                const YokingAllowedType allowsYokingStatus,
                                                const RotationAllowedType allowsRotationStatus,
                                                Brain* brain)
     : CaretObject()
 {
     this->brain = brain;
-    this->initializeMembersModelDisplayController();
+    this->initializeMembersModel();
     this->controllerType = controllerType;
     this->allowsYokingStatus = allowsYokingStatus;
     this->allowsRotationStatus   = allowsRotationStatus;
@@ -62,18 +62,18 @@ ModelDisplayController::ModelDisplayController(const ModelDisplayControllerTypeE
      * not function correctly.
      */
     this->isYokingController = (controllerType ==
-                                ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING);
+                                ModelTypeEnum::MODEL_TYPE_YOKING);
 }
 
 /**
  * Destructor
  */
-ModelDisplayController::~ModelDisplayController()
+Model::~Model()
 {
 }
 
 void
-ModelDisplayController::initializeMembersModelDisplayController()
+Model::initializeMembersModel()
 {
     this->isYokingController = false;
     this->defaultModelScaling = 1.0f;
@@ -82,8 +82,8 @@ ModelDisplayController::initializeMembersModelDisplayController()
 /**
  * @return The type of model controller.
  */
-ModelDisplayControllerTypeEnum::Enum 
-ModelDisplayController::getControllerType() const
+ModelTypeEnum::Enum 
+Model::getControllerType() const
 {
     return this->controllerType; 
 }
@@ -95,7 +95,7 @@ ModelDisplayController::getControllerType() const
  *
  */
 bool
-ModelDisplayController::isRotationAllowed() const
+Model::isRotationAllowed() const
 {
     return (this->allowsRotationStatus == ROTATION_ALLOWED_YES);
 }
@@ -108,7 +108,7 @@ ModelDisplayController::isRotationAllowed() const
  *
  */
 bool
-ModelDisplayController::isYokeable() const
+Model::isYokeable() const
 {
     return (this->allowsYokingStatus == YOKING_ALLOWED_YES);
 }
@@ -123,8 +123,8 @@ ModelDisplayController::isYokeable() const
  *
  */
 void
-ModelDisplayController::copyTransformations(
-                   const ModelDisplayController& controllerSource,
+Model::copyTransformations(
+                   const Model& controllerSource,
                    const int32_t windowTabNumberSource,
                    const int32_t windowTabNumberTarget)
 {
@@ -165,7 +165,7 @@ ModelDisplayController::copyTransformations(
  *
  */
 const Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn,
+Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
                                                  const int32_t matrixIndex) const
 {
     /*
@@ -194,7 +194,7 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn
  *
  */
 Matrix4x4*
-ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn,
+Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
                                                  const int32_t matrixIndex)
 {
     /*
@@ -219,7 +219,7 @@ ModelDisplayController::getViewingRotationMatrix(const int32_t windowTabNumberIn
  *
  */
 const float*
-ModelDisplayController::getTranslation(const int32_t windowTabNumberIn) const
+Model::getTranslation(const int32_t windowTabNumberIn) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -243,7 +243,7 @@ ModelDisplayController::getTranslation(const int32_t windowTabNumberIn) const
  *
  */
 void
-ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
+Model::setTranslation(const int32_t windowTabNumberIn,
                           const float t[3])
 {
     /*
@@ -272,7 +272,7 @@ ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
  *
  */
 void
-ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
+Model::setTranslation(const int32_t windowTabNumberIn,
                           const float tx,
                           const float ty,
                           const float tz)
@@ -301,7 +301,7 @@ ModelDisplayController::setTranslation(const int32_t windowTabNumberIn,
  *
  */
 float
-ModelDisplayController::getScaling(const int32_t windowTabNumberIn) const
+Model::getScaling(const int32_t windowTabNumberIn) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -325,7 +325,7 @@ ModelDisplayController::getScaling(const int32_t windowTabNumberIn) const
  *
  */
 void
-ModelDisplayController::setScaling(
+Model::setScaling(
                    const int32_t windowTabNumberIn,
                    const float s)
 {
@@ -355,7 +355,7 @@ ModelDisplayController::setScaling(
  * reset the view.
  */
 void 
-ModelDisplayController::resetViewPrivate(const int windowTabNumberIn)
+Model::resetViewPrivate(const int windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -381,7 +381,7 @@ ModelDisplayController::resetViewPrivate(const int windowTabNumberIn)
  * reset the view.
  */
 void
-ModelDisplayController::resetView(const int32_t windowTabNumberIn)
+Model::resetView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -400,7 +400,7 @@ ModelDisplayController::resetView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::rightView(const int32_t windowTabNumberIn)
+Model::rightView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -427,7 +427,7 @@ ModelDisplayController::rightView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::leftView(const int32_t windowTabNumberIn)
+Model::leftView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -454,7 +454,7 @@ ModelDisplayController::leftView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::anteriorView(const int32_t windowTabNumberIn)
+Model::anteriorView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -480,7 +480,7 @@ ModelDisplayController::anteriorView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::posteriorView(const int32_t windowTabNumberIn)
+Model::posteriorView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -506,7 +506,7 @@ ModelDisplayController::posteriorView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::dorsalView(const int32_t windowTabNumberIn)
+Model::dorsalView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -530,7 +530,7 @@ ModelDisplayController::dorsalView(const int32_t windowTabNumberIn)
  *
  */
 void
-ModelDisplayController::ventralView(const int32_t windowTabNumberIn)
+Model::ventralView(const int32_t windowTabNumberIn)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -557,7 +557,7 @@ ModelDisplayController::ventralView(const int32_t windowTabNumberIn)
  *    View into which transformations are loaded.
  */
 void 
-ModelDisplayController::getTransformationsInUserView(const int32_t windowTabNumber,
+Model::getTransformationsInUserView(const int32_t windowTabNumber,
                                                      UserView& userView) const
 {
     CaretAssertArrayIndex(this->scaling, 
@@ -580,7 +580,7 @@ ModelDisplayController::getTransformationsInUserView(const int32_t windowTabNumb
  *    View into which transformations are retrieved.
  */
 void 
-ModelDisplayController::setTransformationsFromUserView(const int32_t windowTabNumber,
+Model::setTransformationsFromUserView(const int32_t windowTabNumber,
                                                        const UserView& userView)
 {
     CaretAssertArrayIndex(this->scaling, 
@@ -603,7 +603,7 @@ ModelDisplayController::setTransformationsFromUserView(const int32_t windowTabNu
  *
  */
 AString
-ModelDisplayController::toString() const
+Model::toString() const
 {
        return this->getNameForGUI(true);
 }
@@ -615,7 +615,7 @@ ModelDisplayController::toString() const
  *
  */
 AString
-ModelDisplayController::toDescriptiveString() const
+Model::toDescriptiveString() const
 {
     AString s = CaretObject::toString();
     
@@ -627,7 +627,7 @@ ModelDisplayController::toDescriptiveString() const
  * @return The brain.
  */
 Brain*
-ModelDisplayController::getBrain()
+Model::getBrain()
 {
     return this->brain;
 }

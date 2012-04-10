@@ -26,7 +26,7 @@
  */ 
 
 
-#include "ModelDisplayController.h"
+#include "Model.h"
 
 #include "YokingTypeEnum.h"
 
@@ -36,14 +36,14 @@ namespace caret {
     class Surface;
     
     /// Model Controller for a yoking group
-    class ModelDisplayControllerYokingGroup : public ModelDisplayController {
+    class ModelYokingGroup : public Model {
         
     public:
-        ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+        ModelYokingGroup(const int32_t yokingGroupIndex,
                                           const AString& yokingGroupName,
                                           const YokingTypeEnum::Enum yokingType);
         
-        virtual ~ModelDisplayControllerYokingGroup();
+        virtual ~ModelYokingGroup();
         
         YokingTypeEnum::Enum getYokingType() const;
         
@@ -60,12 +60,12 @@ namespace caret {
         void initializeOverlays();
         
     private:
-        ModelDisplayControllerYokingGroup(const ModelDisplayControllerYokingGroup&);
+        ModelYokingGroup(const ModelYokingGroup&);
         
-        ModelDisplayControllerYokingGroup& operator=(const ModelDisplayControllerYokingGroup&);
+        ModelYokingGroup& operator=(const ModelYokingGroup&);
         
     private:
-        void initializeMembersModelDisplayControllerYokingGroup();
+        void initializeMembersModelYokingGroup();
         
         YokingTypeEnum::Enum yokingType;
          

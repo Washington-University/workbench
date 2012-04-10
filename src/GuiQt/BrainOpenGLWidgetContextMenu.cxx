@@ -61,7 +61,7 @@
 #include "LabelFile.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 #include "Surface.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
@@ -176,7 +176,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
         const int32_t nodeNumber = surfaceID->getNodeNumber();
         ConnectivityLoaderManager* clm = this->getConnectivityLoaderManager(brain);
         if (clm != NULL) {
-            ModelDisplayController* model = this->browserTabContent->getModelControllerForDisplay();
+            Model* model = this->browserTabContent->getModelControllerForDisplay();
             if (model != NULL) {
                 OverlaySet* overlaySet = model->getOverlaySet(this->browserTabContent->getTabNumber());
                 

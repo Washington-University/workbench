@@ -33,14 +33,14 @@
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventManager.h"
-#include "EventModelDisplayControllerSurfaceGet.h"
+#include "EventModelSurfaceGet.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
-#include "ModelDisplayControllerSurface.h"
-#include "ModelDisplayControllerVolume.h"
-#include "ModelDisplayControllerWholeBrain.h"
+#include "ModelSurface.h"
+#include "ModelVolume.h"
+#include "ModelWholeBrain.h"
 #include "NodeAndVoxelColoring.h"
 #include "Overlay.h"
 #include "OverlaySet.h"
@@ -92,16 +92,16 @@ SurfaceNodeColoring::toString() const
  *     Index of tab in which model is displayed.
  */
 float* 
-SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayController,
+SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
                                        Surface* surface,
                                        const int32_t browserTabIndex)
 {
     CaretAssert(modelDisplayController);
     CaretAssert(surface);
 
-    ModelDisplayControllerSurface* surfaceController = dynamic_cast<ModelDisplayControllerSurface*>(modelDisplayController);
-    ModelDisplayControllerVolume* volumeController = dynamic_cast<ModelDisplayControllerVolume*>(modelDisplayController);
-    ModelDisplayControllerWholeBrain* wholeBrainController = dynamic_cast<ModelDisplayControllerWholeBrain*>(modelDisplayController);
+    ModelSurface* surfaceController = dynamic_cast<ModelSurface*>(modelDisplayController);
+    ModelVolume* volumeController = dynamic_cast<ModelVolume*>(modelDisplayController);
+    ModelWholeBrain* wholeBrainController = dynamic_cast<ModelWholeBrain*>(modelDisplayController);
     
     OverlaySet* overlaySet = NULL;
     float* rgba = NULL;
@@ -112,9 +112,9 @@ SurfaceNodeColoring::colorSurfaceNodes(ModelDisplayController* modelDisplayContr
      * occurs when the volume surface outline is drawn over a volume slice.
      */
     if (volumeController != NULL) {
-        EventModelDisplayControllerSurfaceGet surfaceGet(surface);
+        EventModelSurfaceGet surfaceGet(surface);
         EventManager::get()->sendEvent(surfaceGet.getPointer());
-        surfaceController = surfaceGet.getModelDisplayControllerSurface();
+        surfaceController = surfaceGet.getModelSurface();
         CaretAssert(surfaceController);
     }
     

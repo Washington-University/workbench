@@ -27,7 +27,7 @@
 
 #include "BrainConstants.h"
 #include "EventListenerInterface.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSliceCoordinateSelection.h"
 
@@ -38,12 +38,12 @@ namespace caret {
     class VolumeFile;
     
     /// Controls the display of a whole brain.
-    class ModelDisplayControllerWholeBrain : public ModelDisplayController, public EventListenerInterface {
+    class ModelWholeBrain : public Model, public EventListenerInterface {
         
     public:
-        ModelDisplayControllerWholeBrain(Brain* brain);
+        ModelWholeBrain(Brain* brain);
         
-        virtual ~ModelDisplayControllerWholeBrain();
+        virtual ~ModelWholeBrain();
         
         VolumeFile* getUnderlayVolumeFile(const int32_t windowTabNumber) const;
         
@@ -101,12 +101,12 @@ namespace caret {
         void initializeOverlays();
                                             
     private:
-        ModelDisplayControllerWholeBrain(const ModelDisplayControllerWholeBrain&);
+        ModelWholeBrain(const ModelWholeBrain&);
         
-        ModelDisplayControllerWholeBrain& operator=(const ModelDisplayControllerWholeBrain&);
+        ModelWholeBrain& operator=(const ModelWholeBrain&);
         
     private:
-        void initializeMembersModelDisplayControllerWholeBrain();
+        void initializeMembersModelWholeBrain();
         
         void updateController();
         

@@ -38,13 +38,13 @@
 #include "EventBrowserTabGet.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
-#include "EventModelDisplayControllerAdd.h"
-#include "EventModelDisplayControllerDelete.h"
-#include "EventModelDisplayControllerGetAll.h"
-#include "EventModelDisplayControllerYokingGroupGetAll.h"
+#include "EventModelAdd.h"
+#include "EventModelDelete.h"
+#include "EventModelGetAll.h"
+#include "EventModelYokingGroupGetAll.h"
 #include "LogManager.h"
-#include "ModelDisplayControllerWholeBrain.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelWholeBrain.h"
+#include "ModelYokingGroup.h"
 
 using namespace caret;
 
@@ -79,7 +79,7 @@ SessionManager::SessionManager()
             }
             yokingGroupName += YokingTypeEnum::toGuiName(yokingTypes[i]);
             
-            this->yokingGroups.push_back(new ModelDisplayControllerYokingGroup(yokingGroupIndex,
+            this->yokingGroups.push_back(new ModelYokingGroup(yokingGroupIndex,
                                                                                yokingGroupName,
                                                                                yokingTypes[i]));
             yokingGroupIndex++;
@@ -316,26 +316,26 @@ SessionManager::receiveEvent(Event* event)
         }
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD) {
-        EventModelDisplayControllerAdd* addModelsEvent =
-        dynamic_cast<EventModelDisplayControllerAdd*>(event);
+        EventModelAdd* addModelsEvent =
+        dynamic_cast<EventModelAdd*>(event);
         CaretAssert(addModelsEvent);
         
         addModelsEvent->setEventProcessed();
         
-        this->modelDisplayControllers.push_back(addModelsEvent->getModelDisplayController());
+        this->modelDisplayControllers.push_back(addModelsEvent->getModel());
 
         this->updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_DELETE) {
-        EventModelDisplayControllerDelete* deleteModelsEvent =
-        dynamic_cast<EventModelDisplayControllerDelete*>(event);
+        EventModelDelete* deleteModelsEvent =
+        dynamic_cast<EventModelDelete*>(event);
         CaretAssert(deleteModelsEvent);
         
         deleteModelsEvent->setEventProcessed();
         
-        ModelDisplayController* model = deleteModelsEvent->getModelDisplayController();
+        Model* model = deleteModelsEvent->getModel();
         
-        std::vector<ModelDisplayController*>::iterator iter =
+        std::vector<Model*>::iterator iter =
         std::find(this->modelDisplayControllers.begin(),
                   this->modelDisplayControllers.end(),
                   model);
@@ -348,17 +348,17 @@ SessionManager::receiveEvent(Event* event)
         this->updateBrowserTabContents();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_GET_ALL) {
-        EventModelDisplayControllerGetAll* getModelsEvent =
-        dynamic_cast<EventModelDisplayControllerGetAll*>(event);
+        EventModelGetAll* getModelsEvent =
+        dynamic_cast<EventModelGetAll*>(event);
         CaretAssert(getModelsEvent);
         
         getModelsEvent->setEventProcessed();
         
-        getModelsEvent->addModelDisplayControllers(this->modelDisplayControllers);
+        getModelsEvent->addModels(this->modelDisplayControllers);
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_YOKING_GROUP_GET_ALL) {
-        EventModelDisplayControllerYokingGroupGetAll* getYokingEvent =
-            dynamic_cast<EventModelDisplayControllerYokingGroupGetAll*>(event);
+        EventModelYokingGroupGetAll* getYokingEvent =
+            dynamic_cast<EventModelYokingGroupGetAll*>(event);
         CaretAssert(getYokingEvent);
         
         getYokingEvent->setEventProcessed();

@@ -28,7 +28,7 @@
 #include "BrowserTabContent.h"
 #include "BoundingBox.h"
 #include "CaretAssert.h"
-#include "ModelDisplayControllerYokingGroup.h"
+#include "ModelYokingGroup.h"
 
 #include "Brain.h"
 #include "BrainOpenGL.h"
@@ -41,15 +41,15 @@ using namespace caret;
  * @param surface - surface for this controller.
  *
  */
-ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32_t yokingGroupIndex,
+ModelYokingGroup::ModelYokingGroup(const int32_t yokingGroupIndex,
                                                                      const AString& yokingGroupName,
                                                                      const YokingTypeEnum::Enum yokingType)
-: ModelDisplayController(ModelDisplayControllerTypeEnum::MODEL_TYPE_YOKING,
+: Model(ModelTypeEnum::MODEL_TYPE_YOKING,
                          YOKING_ALLOWED_YES,
                          ROTATION_ALLOWED_YES,
                          NULL)
 {
-    this->initializeMembersModelDisplayControllerYokingGroup();
+    this->initializeMembersModelYokingGroup();
     this->yokingType = yokingType;
     this->yokingGroupIndex = yokingGroupIndex;
     this->yokingGroupName  = yokingGroupName;
@@ -62,12 +62,12 @@ ModelDisplayControllerYokingGroup::ModelDisplayControllerYokingGroup(const int32
 /**
  * Destructor
  */
-ModelDisplayControllerYokingGroup::~ModelDisplayControllerYokingGroup()
+ModelYokingGroup::~ModelYokingGroup()
 {
 }
 
 void
-ModelDisplayControllerYokingGroup::initializeMembersModelDisplayControllerYokingGroup()
+ModelYokingGroup::initializeMembersModelYokingGroup()
 {
     this->yokingGroupIndex = -1;
 }
@@ -76,7 +76,7 @@ ModelDisplayControllerYokingGroup::initializeMembersModelDisplayControllerYoking
  * @return Type of yoking this yoking controller performs.
  */
 YokingTypeEnum::Enum 
-ModelDisplayControllerYokingGroup::getYokingType() const
+ModelYokingGroup::getYokingType() const
 {
     return this->yokingType;
 }
@@ -90,7 +90,7 @@ ModelDisplayControllerYokingGroup::getYokingType() const
  *
  */
 AString
-ModelDisplayControllerYokingGroup::getNameForGUI(const bool /*includeStructureFlag*/) const
+ModelYokingGroup::getNameForGUI(const bool /*includeStructureFlag*/) const
 {
     return this->yokingGroupName;
 }
@@ -100,7 +100,7 @@ ModelDisplayControllerYokingGroup::getNameForGUI(const bool /*includeStructureFl
  * displaying this model controller.
  */
 AString 
-ModelDisplayControllerYokingGroup::getNameForBrowserTab() const
+ModelYokingGroup::getNameForBrowserTab() const
 {
     return this->yokingGroupName;
 }
@@ -109,7 +109,7 @@ ModelDisplayControllerYokingGroup::getNameForBrowserTab() const
  * @return The index of this yoking group.
  */
 int32_t 
-ModelDisplayControllerYokingGroup::getYokingGroupIndex() const
+ModelYokingGroup::getYokingGroupIndex() const
 {
     return this->yokingGroupIndex;
 }
@@ -122,7 +122,7 @@ ModelDisplayControllerYokingGroup::getYokingGroupIndex() const
  *   Overlay set at the given tab index.
  */
 OverlaySet* 
-ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/)
+ModelYokingGroup::getOverlaySet(const int /*tabIndex*/)
 {
     CaretAssertMessage(0, "NEVER should be called.");
     return NULL;
@@ -136,7 +136,7 @@ ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/)
  *   Overlay set at the given tab index.
  */
 const OverlaySet* 
-ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/) const
+ModelYokingGroup::getOverlaySet(const int /*tabIndex*/) const
 {
     CaretAssertMessage(0, "NEVER should be called.");
     return NULL;
@@ -146,7 +146,7 @@ ModelDisplayControllerYokingGroup::getOverlaySet(const int /*tabIndex*/) const
  * Initilize the overlays for this controller.
  */
 void 
-ModelDisplayControllerYokingGroup::initializeOverlays()
+ModelYokingGroup::initializeOverlays()
 {
 }
 

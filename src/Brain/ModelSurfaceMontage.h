@@ -27,19 +27,19 @@
 
 
 #include "EventListenerInterface.h"
-#include "ModelDisplayController.h"
+#include "Model.h"
 
 namespace caret {
 
     class SurfaceSelectionModel;
     
     /// Controls the display of a surface montage
-    class ModelDisplayControllerSurfaceMontage : public ModelDisplayController, public EventListenerInterface  {
+    class ModelSurfaceMontage : public Model, public EventListenerInterface  {
         
     public:
-        ModelDisplayControllerSurfaceMontage(Brain* brain);
+        ModelSurfaceMontage(Brain* brain);
         
-        virtual ~ModelDisplayControllerSurfaceMontage();
+        virtual ~ModelSurfaceMontage();
         
         virtual void resetView(const int32_t windowTabNumber);
         
@@ -70,11 +70,11 @@ namespace caret {
         void setDualConfigurationEnabled(const bool enabled);
         
     private:
-        ModelDisplayControllerSurfaceMontage(const ModelDisplayControllerSurfaceMontage&);
+        ModelSurfaceMontage(const ModelSurfaceMontage&);
         
-        ModelDisplayControllerSurfaceMontage& operator=(const ModelDisplayControllerSurfaceMontage&);
+        ModelSurfaceMontage& operator=(const ModelSurfaceMontage&);
         
-        void initializeMembersModelDisplayControllerSurfaceMontage();
+        void initializeMembersModelSurfaceMontage();
 
         SurfaceSelectionModel* leftSurfaceSelectionModel;
         

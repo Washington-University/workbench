@@ -1,3 +1,6 @@
+#ifndef __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
+#define __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__
+
 /*LICENSE_START*/ 
 /* 
  *  Copyright 1995-2002 Washington University School of Medicine 
@@ -22,37 +25,30 @@
  * 
  */ 
 
-#include "CaretAssert.h"
-#include "EventModelDisplayControllerAdd.h"
+#include "Event.h"
 
-using namespace caret;
+namespace caret {
 
-/**
- * Constructor.
- */
-EventModelDisplayControllerAdd::EventModelDisplayControllerAdd(ModelDisplayController* modelDisplayController)
-: Event(EventTypeEnum::EVENT_MODEL_DISPLAY_CONTROLLER_ADD)
-{
-    this->modelDisplayController = modelDisplayController;
-    CaretAssert(this->modelDisplayController);
-}
-
-/**
- * Destructor.
- */
-EventModelDisplayControllerAdd::~EventModelDisplayControllerAdd()
-{
+    class Model;
     
-}
+    /// Event for adding model display controllers
+    class EventModelAdd : public Event {
+        
+    public:
+        EventModelAdd(Model* modelDisplayController);
+        
+        virtual ~EventModelAdd();
+        
+        Model* getModel();
 
-/**
- * Get the model display controller that is to be added.
- * 
- * @return Model display controller that is to be added.
- */
-ModelDisplayController* 
-EventModelDisplayControllerAdd::getModelDisplayController()
-{
-    return this->modelDisplayController;
-}
+    private:
+        EventModelAdd(const EventModelAdd&);
+        
+        EventModelAdd& operator=(const EventModelAdd&);
+        
+        Model* modelDisplayController;
+    };
 
+} // namespace
+
+#endif // __EVENT_MODEL_DISPLAY_CONTROLLER_ADD_H__

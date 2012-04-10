@@ -38,7 +38,7 @@ using namespace caret;
  * Constructor.
  */
 BrowserTabYoking::BrowserTabYoking(BrowserTabContent* parentBrowserTabContent,
-                                   ModelDisplayControllerYokingGroup* selectedYokingGroup)
+                                   ModelYokingGroup* selectedYokingGroup)
 : CaretObject()
 {
     this->parentBrowserTabContent = parentBrowserTabContent;
@@ -71,14 +71,14 @@ BrowserTabYoking::getParentBrowserTabContent()
     return this->parentBrowserTabContent;
 }
 
-ModelDisplayControllerYokingGroup* 
+ModelYokingGroup* 
 BrowserTabYoking::getSelectedYokingGroup()
 {
     return this->selectedYokingGroup;
 }
 
 void 
-BrowserTabYoking::setSelectedYokingGroup(ModelDisplayControllerYokingGroup* selectedYokingGroup)
+BrowserTabYoking::setSelectedYokingGroup(ModelYokingGroup* selectedYokingGroup)
 {
     this->selectedYokingGroup = selectedYokingGroup;
 }
