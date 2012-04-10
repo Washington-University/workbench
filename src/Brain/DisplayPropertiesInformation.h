@@ -25,7 +25,7 @@
  * 
  */ 
 
-
+#include "CaretColorEnum.h"
 #include "DisplayProperties.h"
 
 namespace caret {
@@ -45,12 +45,31 @@ namespace caret {
         
         void setContralateralIdentificationEnabled(const bool enabled);
 
+        float getIdentificationSymbolSize() const;
+        
+        void setIdentificationSymbolSize(const float symbolSize);
+        
+        CaretColorEnum::Enum getIdentificationSymbolColor() const;
+        
+        void setIdentificationSymbolColor(const CaretColorEnum::Enum color);
+        
+        CaretColorEnum::Enum getIdentificationContralateralSymbolColor() const;
+        
+        void setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color);
+        
     private:
         DisplayPropertiesInformation(const DisplayPropertiesInformation&);
 
         DisplayPropertiesInformation& operator=(const DisplayPropertiesInformation&);
         
         bool contralateralIdentificationEnabled;
+        
+        float identifcationSymbolSize;
+        
+        CaretColorEnum::Enum identificationSymbolColor;
+        
+        CaretColorEnum::Enum identificationContralateralSymbolColor;
+        
 
     };
     

@@ -28,6 +28,7 @@
 #include <QStringList>
 #include <QVariant>
 
+#include "CaretColorEnum.h"
 #include "StructureEnum.h"
 #include "WuQDialogModal.h"
 
@@ -46,6 +47,7 @@ class QTextEdit;
 
 namespace caret {
     class BrainStructure;
+    class CaretColorEnumComboBox;
     class StructureEnumComboBox;
     class SurfaceSelectionViewController;
     
@@ -118,6 +120,10 @@ namespace caret {
         // add a structure selection control
         StructureEnumComboBox* addStructureEnumComboBox(const QString& labelText,
                                                                 const StructureEnum::Enum defaultStructure = StructureEnum::INVALID);
+        
+        // add a caret color selection control
+        CaretColorEnumComboBox* addCaretColorEnumComboBox(const QString& labelText,
+                                                        const CaretColorEnum::Enum defaultColor = CaretColorEnum::BLACK);
         
         
         SurfaceSelectionViewController* addSurfaceSelectionViewController(const QString& labelText,

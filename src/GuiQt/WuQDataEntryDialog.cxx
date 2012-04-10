@@ -37,6 +37,8 @@
 #include <QRadioButton>
 #include <QSpinBox>
 #include <QTextEdit>
+
+#include "CaretColorEnumComboBox.h"
 #include "StructureEnumComboBox.h"
 #include "SurfaceSelectionViewController.h"
 #include "WuQDataEntryDialog.h"
@@ -395,6 +397,23 @@ WuQDataEntryDialog::addTextEdit(const QString& labelText,
    addWidget(labelText, te);
    
    return te;
+}
+
+/**
+ * Add a caret color selection control.
+ */
+CaretColorEnumComboBox* 
+WuQDataEntryDialog::addCaretColorEnumComboBox(const QString& labelText,
+                                              const CaretColorEnum::Enum defaultColor)
+{
+    CaretColorEnumComboBox* caretColorComboBox =
+    new CaretColorEnumComboBox(this);
+    caretColorComboBox->setSelectedColor(defaultColor);
+    
+    this->addWidget(labelText,
+                    caretColorComboBox->getWidget());
+    
+    return caretColorComboBox;
 }
 
 /**

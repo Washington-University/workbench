@@ -43,6 +43,9 @@ DisplayPropertiesInformation::DisplayPropertiesInformation(Brain* brain)
 : DisplayProperties(brain)
 {
     this->contralateralIdentificationEnabled = false;
+    this->identificationSymbolColor = CaretColorEnum::GREEN;
+    this->identificationContralateralSymbolColor = CaretColorEnum::BLUE;
+    this->identifcationSymbolSize = 3.5;
 }
 
 /**
@@ -89,4 +92,65 @@ DisplayPropertiesInformation::setContralateralIdentificationEnabled(const bool e
 {
     this->contralateralIdentificationEnabled = enabled;
 }
+
+/**
+ * @return The size of the identification symbol
+ */
+float 
+DisplayPropertiesInformation::getIdentificationSymbolSize() const
+{
+    return this->identifcationSymbolSize;
+}
+
+/**
+ * Set the size of the identification symbol
+ * @param symbolSize
+ *    New size of symbol.
+ */
+void 
+DisplayPropertiesInformation::setIdentificationSymbolSize(const float symbolSize)
+{
+    this->identifcationSymbolSize = symbolSize;
+}
+
+/**
+ * @return The color of the identification symbol.
+ */
+CaretColorEnum::Enum 
+DisplayPropertiesInformation::getIdentificationSymbolColor() const
+{
+    return this->identificationSymbolColor;
+}
+
+/**
+ * Set the color of the identification symbol.
+ * @param color
+ *    New color.
+ */
+void 
+DisplayPropertiesInformation::setIdentificationSymbolColor(const CaretColorEnum::Enum color)
+{
+    this->identificationSymbolColor = color;
+}
+
+/**
+ * @return The color of the contralateral identification symbol.
+ */
+CaretColorEnum::Enum 
+DisplayPropertiesInformation::getIdentificationContralateralSymbolColor() const
+{
+    return this->identificationContralateralSymbolColor;
+}
+
+/**
+ * Set the color of the contralateral identification symbol.
+ * @param color
+ *    New color.
+ */
+void 
+DisplayPropertiesInformation::setIdentificationContralateralSymbolColor(const CaretColorEnum::Enum color)
+{
+    this->identificationContralateralSymbolColor = color;
+}
+
 

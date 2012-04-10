@@ -29,9 +29,11 @@
 
 #include <QAction>
 #include <QBoxLayout>
+#include <QDoubleSpinBox>
 #include <QToolBar>
 
 #include "Brain.h"
+#include "CaretColorEnumComboBox.h"
 #include "DisplayPropertiesInformation.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventIdentificationSymbolRemoval.h"
@@ -40,6 +42,7 @@
 #include "GuiManager.h"
 #include "HyperLinkTextBrowser.h"
 #include "WuQtUtilities.h"
+#include "WuQDataEntryDialog.h"
 
 using namespace caret;
 
@@ -83,6 +86,12 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
                                                                this, 
                                                                SLOT(removeIdSymbols()));
     
+    QAction* settingsAction = WuQtUtilities::createAction("Properties",
+                                                          "Displays dialog for changing ID symbol colors and size",
+                                                          this,
+                                                          this,
+                                                          SLOT(showPropertiesDialog()));
+    
     QObject::connect(this->informationTextBrowser, SIGNAL(copyAvailable(bool)),
                      copyAction, SLOT(setEnabled(bool)));
     copyAction->setEnabled(false);
@@ -103,6 +112,8 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     idToolBarRight->addAction(removeIdSymbolAction);
     idToolBarRight->addSeparator();
     idToolBarRight->addAction(this->contralateralIdentificationAction);
+    idToolBarRight->addSeparator();
+    idToolBarRight->addAction(settingsAction);
     idToolBarRight->addSeparator();
     
     QHBoxLayout* layout = new QHBoxLayout(this);
@@ -206,3 +217,35 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
         }
     }
 }
+
+/**
+ * Show the symbol properties dialog
+ */
+void 
+InformationDisplayWidget::showPropertiesDialog()
+{
+    Brain* brain = GuiManager::get()->getBrain();
+    DisplayPropertiesInformation* info = brain->getDisplayPropertiesInformation();
+    
+    WuQDataEntryDialog ded("Symbol Properties",
+                           this);
+    CaretColorEnumComboBox* idColorComboBox = ded.addCaretColorEnumComboBox("ID Symbol Color:",
+                                                                             info->getIdentificationSymbolColor());
+                                                                             
+    CaretColorEnumComboBox* idContraColorComboBox = ded.addCaretColorEnumComboBox("ID Contralateral Symbol Color:",
+                                                                             info->getIdentificationContralateralSymbolColor());
+    QDoubleSpinBox* sizeSpinBox = ded.addDoubleSpinBox("Symbol Size:", 
+                                                        info->getIdentificationSymbolSize(),
+                                                       0.5,
+                                                       100000.0,
+                                                       0.5);
+    
+    if (ded.exec() == WuQDataEntryDialog::Accepted) {
+        info->setIdentificationSymbolColor(idColorComboBox->getSelectedColor());
+        info->setIdentificationContralateralSymbolColor(idContraColorComboBox->getSelectedColor());
+        info->setIdentificationSymbolSize(sizeSpinBox->value());
+        EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    }
+}
+
+

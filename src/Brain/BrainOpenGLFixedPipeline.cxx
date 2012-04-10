@@ -63,6 +63,7 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "FastStatistics.h"
@@ -1330,11 +1331,18 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
 {
     BrainStructure* brainStructure = surface->getBrainStructure();
     CaretAssert(brainStructure);
+    Brain* brain = brainStructure->getBrain();
+    CaretAssert(brain);
     
     const int numNodes = surface->getNumberOfNodes();
     
     const float* coordinates = surface->getCoordinate(0);
 
+    DisplayPropertiesInformation* infoProp = brain->getDisplayPropertiesInformation();
+    const CaretColorEnum::Enum idColor = infoProp->getIdentificationSymbolColor();
+    const CaretColorEnum::Enum idContralateralColor = infoProp->getIdentificationContralateralSymbolColor();
+    const float symbolSize = infoProp->getIdentificationSymbolSize();
+    
     IdentificationItemSurfaceNodeIdentificationSymbol* symbolID = 
         this->getIdentificationManager()->getSurfaceNodeIdentificationSymbol();
     
@@ -1359,9 +1367,11 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
             break;
     }
     
-    uint8_t idRGB[3];
-    
     BrainStructureNodeAttributes* nodeAttributes = brainStructure->getNodeAttributes();
+    const float* symbolRGB = CaretColorEnum::toRGB(idColor);
+    const float* symbolContraRGB = CaretColorEnum::toRGB(idContralateralColor);
+    
+    uint8_t idRGB[4];
     for (int32_t i = 0; i < numNodes; i++) {
         if (nodeAttributes->getIdentificationType(i) != NodeIdentificationTypeEnum::NONE) {
             if (isSelect) {
@@ -1371,12 +1381,22 @@ BrainOpenGLFixedPipeline::drawSurfaceNodeAttributes(Surface* surface)
                 glColor3ubv(idRGB);
             }
             else {
-                glColor4fv(nodeAttributes->getIdentificationRGBA(i));
+                switch (nodeAttributes->getIdentificationType(i)) {
+                    case NodeIdentificationTypeEnum::CONTRALATERAL:
+                        glColor3fv(symbolContraRGB);
+                        break;
+                    case NodeIdentificationTypeEnum::NONE:
+                        break;
+                    case NodeIdentificationTypeEnum::NORMAL:
+                        glColor3fv(symbolRGB);
+                        break;
+                }
             }
+            
             const int32_t i3 = i * 3;
             glPushMatrix();
             glTranslatef(coordinates[i3], coordinates[i3+1], coordinates[i3+2]);
-            this->drawSphere(3.5);
+            this->drawSphere(symbolSize);
             glPopMatrix();
         }
     }

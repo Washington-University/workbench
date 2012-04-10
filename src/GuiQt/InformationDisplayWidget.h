@@ -57,6 +57,8 @@ namespace caret {
         
         void contralateralIdentificationToggled(bool);
         
+        void showPropertiesDialog();
+        
     private:
         InformationDisplayWidget(const InformationDisplayWidget&);
 
