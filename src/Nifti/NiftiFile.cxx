@@ -92,7 +92,14 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
     gzFile zFile;
     if(isCompressed())
     {
+        /*
+         * Mac does not seem to have off64_t
+         */
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#else  // CARET_OS_MACOSX
         zFile = gzopen64(m_fileName.toAscii().data(), "rb");
+#endif // CARET_OS_MACOSX
     }
     else
     {
@@ -303,7 +310,11 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
     gzFile zFile;
     if(isCompressed())
     {
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "wb");
+#else  // CARET_OS_MACOSX
         zFile = gzopen64(m_fileName.toAscii().data(), "wb");
+#endif  // CARET_OS_MACOSX
         headerIO.writeFile(zFile,byteOrder);
         if (gzwrite(zFile, extensionBytes.constData(), extensionBytes.size()) != extensionBytes.size())
         {

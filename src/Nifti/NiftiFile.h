@@ -24,6 +24,14 @@
 #ifndef NIFTIFILE_H
 #define NIFTIFILE_H
 
+/*
+ * Mac does not seem to have off64_t
+ * Apparently, off_t is 64-bit on mac: http://sourceforge.net/mailarchive/forum.php?set=custom&viewmonth=&viewday=&forum_name=stlport-devel&style=nested&max_rows=75&submit=Change+View
+ */
+#ifdef CARET_OS_MACOSX
+#define off64_t off_t
+#endif // CARET_OS_MACOSX
+
 #ifndef _LARGEFILE64_SOURCE 
 #define _LARGEFILE64_SOURCE
 #define _LFS64_LARGEFILE 1
