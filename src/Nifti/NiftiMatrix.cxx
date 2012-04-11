@@ -373,6 +373,7 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size)
     {
         //file->seek(matrixStartOffset);
         //file->write(bytes,size);
+        file->flush();//need to make QFile write its buffer to the handle before we use the handle, or else its buffered data can end up AFTER the matrix data, for unexpected results
         int fh = file->handle();
         if (lseek(fh,matrixStartOffset,0) != matrixStartOffset)
         {
