@@ -114,6 +114,16 @@ namespace caret {
             float opacity;
         };
         
+        /** Viewing mode including transformations and viewport */
+        enum ViewingMode {
+            /** Normal Viewing */
+            VIEWING_MODE_NORMAL,
+            /** Montage Yoked Column */
+            VIEWING_MODE_MONTAGE_YOKED,
+            /** Right Surface Lateral/Medial Yoked */
+            VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED
+        };
+        
         void colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
                             const float* scalarValues,
                             const float* thresholdValues,
@@ -192,7 +202,7 @@ namespace caret {
                                      const int32_t viewport[4]);
         
         void setOrthographicProjection(const int32_t viewport[4],
-                                       const bool isRightSurfaceLateralMedialYoked);
+                                       const ViewingMode viewingMode);
         
         void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
@@ -220,14 +230,14 @@ namespace caret {
         
         void setIdentifiedItemScreenXYZ(IdentificationItem* item,
                                         const float itemXYZ[3]);
-        
+
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
-                                                  const bool isRightSurfaceLateralMedialYoked = false);
+                                                  const ViewingMode viewingMode);
         
         void applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
-                                         const bool isRightSurfaceLateralMedialYoked);
+                                         const ViewingMode viewingMode);
         
         void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,

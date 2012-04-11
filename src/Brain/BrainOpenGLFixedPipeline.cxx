@@ -317,13 +317,12 @@ BrainOpenGLFixedPipeline::drawModelInternal(Mode mode,
  * Set the viewport.
  * @param viewport
  *   Values for viewport (x, y, x-size, y-size)
- * @param isRightSurfaceLateralMedialYoked
- *    True if the displayed model is a right surface that is 
- *    lateral/medial yoked.
+ * @param viewingMode
+ *    Type of viewing.
  */
 void 
 BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t viewport[4],
-                                                  const bool isRightSurfaceLateralMedialYoked)
+                                                               const ViewingMode viewingMode)
 {
     glViewport(viewport[0], 
                viewport[1], 
@@ -333,7 +332,7 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     this->setOrthographicProjection(viewport,
-                                    isRightSurfaceLateralMedialYoked);
+                                    viewingMode);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -348,15 +347,14 @@ BrainOpenGLFixedPipeline::setViewportAndOrthographicProjection(const int32_t vie
  * @param objectCenterXYZ
  *    If not NULL, contains center of object about
  *    which rotation should take place.
- * @param isRightSurfaceLateralMedialYoked
- *    True if the displayed model is a right surface that is 
- *    lateral/medial yoked.
+ * @param viewingMode
+ *    Type of viewing.
  */
 void 
 BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
-                                         const bool isRightSurfaceLateralMedialYoked)
+                                         const ViewingMode viewingMode)
 {
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
@@ -366,7 +364,18 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayC
                  translation[1], 
                  translation[2]);
     
-    const int32_t matrixIndex = (isRightSurfaceLateralMedialYoked ? 1 : 0);
+    int32_t matrixIndex = 0;
+    switch (viewingMode) {
+        case VIEWING_MODE_NORMAL:
+            matrixIndex = 0;
+            break;
+        case VIEWING_MODE_MONTAGE_YOKED:
+            matrixIndex = 1;
+            break;
+        case VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED:
+            matrixIndex = 1;
+            break;
+    }
     const Matrix4x4* rotationMatrix = modelDisplayController->getViewingRotationMatrix(tabIndex,
                                                                                        matrixIndex);
     double rotationMatrixElements[16];
@@ -761,15 +770,20 @@ BrainOpenGLFixedPipeline::drawSurfaceController(ModelSurface* surfaceController,
     float center[3];
     surface->getBoundingBox()->getCenter(center);
 
+    ViewingMode viewingMode = VIEWING_MODE_NORMAL;
     const bool isRightSurfaceLateralMedialYoked = 
         this->browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked();
+    if (isRightSurfaceLateralMedialYoked) {
+        viewingMode = VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED;
+    }
+    
     this->setViewportAndOrthographicProjection(viewport,
-                                               isRightSurfaceLateralMedialYoked);
+                                               viewingMode);
     
     this->applyViewingTransformations(surfaceController, 
                                       this->windowTabIndex,
                                       center,
-                                      isRightSurfaceLateralMedialYoked);
+                                      viewingMode);
     
     const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceController, 
                                                                                  surface, 
@@ -1826,7 +1840,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                     vpSizeX, 
                                     vpSizeY };
                                 
-                                this->setViewportAndOrthographicProjection(vp);
+                                this->setViewportAndOrthographicProjection(vp,
+                                                                           VIEWING_MODE_NORMAL);
                                 this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                              this->windowTabIndex, 
                                                                              slicePlane);
@@ -1866,7 +1881,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         const int halfY = viewport[3] / 2;
                         
                         const int axialVP[4] = { viewport[0], viewport[1] + halfY, halfX, halfY };
-                        this->setViewportAndOrthographicProjection(axialVP);
+                        this->setViewportAndOrthographicProjection(axialVP,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
@@ -1884,7 +1900,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                    axialVP);
                         
                         const int coronalVP[4] = { viewport[0] + halfX, viewport[1] + halfY, halfX, halfY };
-                        this->setViewportAndOrthographicProjection(coronalVP);
+                        this->setViewportAndOrthographicProjection(coronalVP,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
@@ -1902,7 +1919,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                    coronalVP);
                         
                         const int parasagittalVP[4] = { viewport[0] + halfX, viewport[1], halfX, halfY };
-                        this->setViewportAndOrthographicProjection(parasagittalVP);
+                        this->setViewportAndOrthographicProjection(parasagittalVP,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
@@ -1922,7 +1940,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                     }
                         break;
                     case VolumeSliceViewPlaneEnum::AXIAL:
-                        this->setViewportAndOrthographicProjection(viewport);
+                        this->setViewportAndOrthographicProjection(viewport,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::AXIAL);
@@ -1940,7 +1959,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                    viewport);
                         break;
                     case VolumeSliceViewPlaneEnum::CORONAL:
-                        this->setViewportAndOrthographicProjection(viewport);
+                        this->setViewportAndOrthographicProjection(viewport,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::CORONAL);
@@ -1958,7 +1978,8 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                                    viewport);
                         break;
                     case VolumeSliceViewPlaneEnum::PARASAGITTAL:
-                        this->setViewportAndOrthographicProjection(viewport);
+                        this->setViewportAndOrthographicProjection(viewport,
+                                                                   VIEWING_MODE_NORMAL);
                         this->applyViewingTransformationsVolumeSlice(volumeController, 
                                                                      this->windowTabIndex, 
                                                                      VolumeSliceViewPlaneEnum::PARASAGITTAL);
@@ -3496,12 +3517,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
          * Left surfce view
          */
         this->setViewportAndOrthographicProjection(vp,
-                                                   false);
+                                                   VIEWING_MODE_NORMAL);
         
         this->applyViewingTransformations(surfaceMontageModel, 
                                           this->windowTabIndex,
                                           center,
-                                          false);
+                                          VIEWING_MODE_NORMAL);
         this->drawSurface(leftSurface,
                           nodeColoringRGBA);
         
@@ -3512,12 +3533,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         vp[0] += vpSizeX;
         
         this->setViewportAndOrthographicProjection(vp,
-                                                   true);
+                                                   VIEWING_MODE_MONTAGE_YOKED); //   VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
         
         this->applyViewingTransformations(surfaceMontageModel, 
                                           this->windowTabIndex,
                                           center,
-                                          true);
+                                          VIEWING_MODE_MONTAGE_YOKED); //VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
         this->drawSurface(leftSurface,
                           nodeColoringRGBA);
         
@@ -3528,12 +3549,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             leftSecondSurface->getBoundingBox()->getCenter(center);
             vp[0] += vpSizeX;
             this->setViewportAndOrthographicProjection(vp,
-                                                       false);
+                                                       VIEWING_MODE_NORMAL);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              false);
+                                              VIEWING_MODE_NORMAL);
             this->drawSurface(leftSecondSurface,
                               nodeColoringRGBA);
             
@@ -3544,12 +3565,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             vp[0] += vpSizeX;
             
             this->setViewportAndOrthographicProjection(vp,
-                                                       true);
+                                                       VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              true);
+                                              VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
             this->drawSurface(leftSecondSurface,
                               nodeColoringRGBA);
         }
@@ -3573,12 +3594,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
         rightSurface->getBoundingBox()->getCenter(center);
         
         this->setViewportAndOrthographicProjection(vp,
-                                                   true);
+                                                   VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
         
         this->applyViewingTransformations(surfaceMontageModel, 
                                           this->windowTabIndex,
                                           center,
-                                          true);
+                                          VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
         this->drawSurface(rightSurface,
                           nodeColoringRGBA);
         
@@ -3587,12 +3608,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
          */
         vp[0] += vpSizeX;
         this->setViewportAndOrthographicProjection(vp,
-                                                   false);
+                                                   VIEWING_MODE_NORMAL);
         
         this->applyViewingTransformations(surfaceMontageModel, 
                                           this->windowTabIndex,
                                           center,
-                                          false);
+                                          VIEWING_MODE_NORMAL);
         this->drawSurface(rightSurface,
                           nodeColoringRGBA);
         
@@ -3603,12 +3624,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             rightSecondSurface->getBoundingBox()->getCenter(center);
             vp[0] += vpSizeX;
             this->setViewportAndOrthographicProjection(vp,
-                                                       true);
+                                                       VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              true);
+                                              VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED);
             this->drawSurface(rightSecondSurface,
                               nodeColoringRGBA);
             
@@ -3619,12 +3640,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             vp[0] += vpSizeX;
             
             this->setViewportAndOrthographicProjection(vp,
-                                                       false);
+                                                       VIEWING_MODE_NORMAL);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              false);
+                                              VIEWING_MODE_NORMAL);
             this->drawSurface(rightSecondSurface,
                               nodeColoringRGBA);
         }
@@ -3651,11 +3672,12 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
                                       ModelWholeBrain* wholeBrainController,
                                       const int32_t viewport[4])
 {
-    this->setViewportAndOrthographicProjection(viewport);
+    this->setViewportAndOrthographicProjection(viewport,
+                                               VIEWING_MODE_NORMAL);
     this->applyViewingTransformations(wholeBrainController, 
                                       this->windowTabIndex,
                                       NULL,
-                                      false);
+                                      VIEWING_MODE_NORMAL);
     
     const int32_t tabNumberIndex = browserTabContent->getTabNumber();
     const SurfaceTypeEnum::Enum surfaceType = wholeBrainController->getSelectedSurfaceType(tabNumberIndex);
@@ -3777,7 +3799,7 @@ BrainOpenGLFixedPipeline::drawWholeBrainController(BrowserTabContent* browserTab
  */
 void 
 BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
-                                       const bool isRightSurfaceLateralMedialYoked)
+                                       const ViewingMode viewingMode)
 {
     double defaultOrthoWindowSize = BrainOpenGLFixedPipeline::getModelViewingHalfWindowHeight();
     double width = viewport[2];
@@ -3790,15 +3812,22 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
     this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
-    if (isRightSurfaceLateralMedialYoked) {
-        glOrtho(this->orthographicRight, this->orthographicLeft, 
-                this->orthographicBottom, this->orthographicTop, 
-                this->orthographicFar, this->orthographicNear);    
-    }
-    else {
-        glOrtho(this->orthographicLeft, this->orthographicRight, 
-                this->orthographicBottom, this->orthographicTop, 
-                this->orthographicNear, this->orthographicFar);            
+    switch (viewingMode) {
+        case VIEWING_MODE_NORMAL:
+            glOrtho(this->orthographicLeft, this->orthographicRight, 
+                    this->orthographicBottom, this->orthographicTop, 
+                    this->orthographicNear, this->orthographicFar);            
+            break;
+        case VIEWING_MODE_MONTAGE_YOKED:
+            glOrtho(this->orthographicRight, this->orthographicLeft, 
+                    this->orthographicBottom, this->orthographicTop, 
+                    this->orthographicFar, this->orthographicNear);    
+            break;
+        case VIEWING_MODE_RIGHT_LATERAL_MEDIAL_YOKED:
+            glOrtho(this->orthographicRight, this->orthographicLeft, 
+                    this->orthographicBottom, this->orthographicTop, 
+                    this->orthographicFar, this->orthographicNear);    
+            break;
     }
 }
 
