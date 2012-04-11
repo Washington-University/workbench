@@ -994,6 +994,8 @@ void CiftiXML::applyDimensionHelper(const int& from, const int& to)
         if (myMap.m_appliesToMatrixDimension.size() == 0)
         {
             myMatrix.m_matrixIndicesMap.erase(myMatrix.m_matrixIndicesMap.begin() + i);
+            if (m_rowMapIndex > i) --m_rowMapIndex;
+            if (m_colMapIndex > i) --m_colMapIndex;
             --i;//make sure we don't skip a map due to an erase
         }
     }

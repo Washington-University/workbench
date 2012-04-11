@@ -70,7 +70,7 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
         AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.  ") +
         "Restricting the memory usage will make it calculate in chunks, causing multiple scans through the file, " +
         "resulting in longer runtime due to more IO bandwidth.  " +
-        "Memory limit does not need to be an integer, you may also specify 0 to read every single row from the filesystem every time it is needed."
+        "Memory limit does not need to be an integer, you may also specify 0 to calculate a single output row at a time."
     );
     return ret;
 }
@@ -168,9 +168,9 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             for (int i = startrow; i < endrow; ++i)
             {
                 cacheRow(i);//preload the rows in a range which we will reuse as much as possible during one row by row scan
-                if (outRows[i].size() != numRows)
+                if (outRows[i - startrow].size() != numRows)
                 {
-                    outRows[i] = CaretArray<float>(numRows);
+                    outRows[i - startrow] = CaretArray<float>(numRows);
                 }
             }
             for (int i = 0; i < numRows; ++i)
@@ -179,9 +179,14 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 CaretArray<float> movingRow = getRow(i, movingMean, movingDev);
                 for (int j = startrow; j < endrow; ++j)
                 {
-                    float cacheMean, cacheDev;
-                    CaretArray<float> cacheRow = getRow(j, cacheMean, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                    outRows[j - startrow][i] = correlate(movingRow, movingMean, movingDev, cacheRow, cacheMean, cacheDev, fisherZ);
+                    if (j < i && i >= startrow && i < endrow)//if on the upper triangle, and i is within the current caching range, so we have the outRow allocated 
+                    {
+                        outRows[j - startrow][i] = outRows[i - startrow][j];//copy from other half of the triangle
+                    } else {
+                        float cacheMean, cacheDev;
+                        CaretArray<float> cacheRow = getRow(j, cacheMean, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                        outRows[j - startrow][i] = correlate(movingRow, movingMean, movingDev, cacheRow, cacheMean, cacheDev, fisherZ);
+                    }
                 }
             }
             for (int i = startrow; i < endrow; ++i)
@@ -323,9 +328,9 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             for (int i = startrow; i < endrow; ++i)
             {
                 cacheRow(ciftiIndexList[i].first);//preload the rows in a range which we will reuse as much as possible during one row by row scan
-                if (outRows[i].size() != numRows)
+                if (outRows[i - startrow].size() != numRows)
                 {
-                    outRows[i] = CaretArray<float>(numRows);
+                    outRows[i - startrow] = CaretArray<float>(numRows);
                 }
             }
             for (int i = 0; i < numRows; ++i)
@@ -405,7 +410,7 @@ CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float
     {
         ret = m_rowCache[m_rowInfo[ciftiIndex].m_cacheIndex].m_row;
     } else {
-        CaretArray<float> ret = getTempRow();
+        ret = getTempRow();
         m_inputCifti->getRow(ret, ciftiIndex);
     }
     if (!m_rowInfo[ciftiIndex].m_haveCalculated)

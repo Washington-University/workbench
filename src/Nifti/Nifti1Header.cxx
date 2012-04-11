@@ -179,7 +179,7 @@ void Nifti1Header::initHeaderStruct(nifti_1_header &header)
     header.pixdim[2] = 1.0;header.pixdim[3] = 1.0;
     header.pixdim[4] = 1.0;header.pixdim[5] = 1.0;
     header.pixdim[6] = 1.0;header.pixdim[7] = 1.0;
-    header.vox_offset = 544;//TODO, currently set to minimum value
+    header.vox_offset = 352;//TODO, currently set to minimum value
     header.scl_slope = 1;
     header.scl_inter = 0;
     header.cal_max = 0;
