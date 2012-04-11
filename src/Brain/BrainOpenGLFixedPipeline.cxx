@@ -3468,13 +3468,15 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
     Surface* leftSecondSurface = surfaceMontageModel->getLeftSecondSurfaceSelectionModel(tabIndex)->getSurface();
     Surface* rightSecondSurface = surfaceMontageModel->getRightSecondSurfaceSelectionModel(tabIndex)->getSurface();
 
-    int vpSizeX = (viewport[2] - viewport[0]) / 2;
-    int vpSizeY = (viewport[3] - viewport[1]) / 2;
+    int vpSizeX = viewport[2] / 2;
+    int vpSizeY = viewport[3] / 2;
     if (surfaceMontageModel->isDualConfigurationEnabled(tabIndex)) {
         vpSizeX /= 2;
     }
-
-    const bool isDualSurfaceEnabled = surfaceMontageModel->isDualConfigurationEnabled(tabIndex);
+    else {
+        leftSecondSurface  = NULL;
+        rightSecondSurface = NULL;
+    }
     
     if (leftSurface != NULL) {
         const float* nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(surfaceMontageModel, 
@@ -3601,12 +3603,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             rightSecondSurface->getBoundingBox()->getCenter(center);
             vp[0] += vpSizeX;
             this->setViewportAndOrthographicProjection(vp,
-                                                       false);
+                                                       true);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              false);
+                                              true);
             this->drawSurface(rightSecondSurface,
                               nodeColoringRGBA);
             
@@ -3617,12 +3619,12 @@ BrainOpenGLFixedPipeline::drawSurfaceMontageModel(BrowserTabContent* browserTabC
             vp[0] += vpSizeX;
             
             this->setViewportAndOrthographicProjection(vp,
-                                                       true);
+                                                       false);
             
             this->applyViewingTransformations(surfaceMontageModel, 
                                               this->windowTabIndex,
                                               center,
-                                              true);
+                                              false);
             this->drawSurface(rightSecondSurface,
                               nodeColoringRGBA);
         }
