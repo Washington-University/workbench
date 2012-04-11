@@ -29,6 +29,7 @@ AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
+BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
@@ -55,6 +56,8 @@ MultiPageDialog.h
 MultiPageDialogPage.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+OverlaySetViewController.h
+OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
@@ -67,6 +70,7 @@ TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -91,6 +95,7 @@ AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
+BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
 BrainBrowserWindowToolBox.h
@@ -134,6 +139,8 @@ MultiPageDialog.h
 MultiPageDialogPage.h
 OverlaySelectionControl.h
 OverlaySelectionControlLayer.h
+OverlaySetViewController.h
+OverlayViewController.h
 PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
@@ -150,6 +157,7 @@ UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
 WuQDialogModal.h
@@ -168,6 +176,7 @@ BorderPropertiesEditorDialog.cxx
 BrainBrowserSelectionToolBox.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
+BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
 BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
@@ -210,6 +219,8 @@ MultiPageDialog.cxx
 MultiPageDialogPage.cxx
 OverlaySelectionControl.cxx
 OverlaySelectionControlLayer.cxx
+OverlaySetViewController.cxx
+OverlayViewController.cxx
 PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
@@ -225,6 +236,7 @@ UserInputModeBordersWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
+WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx
 WuQDialogModal.cxx

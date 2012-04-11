@@ -28,6 +28,7 @@
 #include <QObject>
 #include <QVector>
 
+class QLayout;
 class QObject;
 
 namespace caret {
@@ -46,6 +47,8 @@ namespace caret {
         ~WuQWidgetObjectGroup();
         
         void add(QObject* w);
+        
+        void addLayout(QLayout* layout);
         
         void clear();
         

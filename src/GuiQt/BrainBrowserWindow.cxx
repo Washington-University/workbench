@@ -33,6 +33,7 @@
 #include "BrainBrowserSelectionToolBox.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
+#include "BrainBrowserWindowOrientedToolBox.h"
 #include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
@@ -126,6 +127,12 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->addDockWidget(Qt::RightDockWidgetArea,
                         this->selectionToolBox);
 
+    BrainBrowserWindowOrientedToolBox* newToolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
+                                                                                          ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
+                                                                                          Qt::Horizontal,
+                                                                                          this);
+    this->addDockWidget(Qt::LeftDockWidgetArea, newToolBox);
+    
     this->createActionsUsedByToolBar();
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,

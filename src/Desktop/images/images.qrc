@@ -17,6 +17,7 @@
 <file>toolbar.png</file>
 <file>toolbox.png</file>
 <file>cursor_pen_eraser_32x32.png</file>
+<file>overlay_wrench.png</file>
 </qresource>
 </RCC>
 
