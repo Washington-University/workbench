@@ -230,7 +230,7 @@ bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
     return true;
 }
 
-bool VolumeFile::matchesVolumeSpace(const vector<vector<float> >& sform, const int64_t dims[3]) const
+bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<float> >& sform) const
 {
     for (int i = 0; i < 3; ++i)//only check the spatial dimensions
     {

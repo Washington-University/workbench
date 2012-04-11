@@ -73,8 +73,8 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     
     ret->setHelpText(
         AString("Performs gradient calculation on each component of the cifti file, and optionally averages the resulting gradients.  ") +
-        "You must specify a surface for each surface structure in the cifti file.  The COLUMN direction should be faster, and is usually " +
-        "the desired direction."
+        "You must specify a surface for each surface structure in the cifti file.  The COLUMN direction should be faster, and is the " +
+        "direction that works on dtseries.  For dconn, you probably want ROW."
     );
     return ret;
 }

@@ -49,6 +49,9 @@ public:
     virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
     /// Write the Cifti File
     virtual void writeFile(const AString &fileName);
+    
+    //check if it is in memory or not
+    bool isInMemory() const;
 
     //get/set Nifti2/CiftiHeader
     /// set CiftiHeader

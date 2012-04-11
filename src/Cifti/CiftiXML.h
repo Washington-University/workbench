@@ -240,6 +240,12 @@ namespace caret {
         ///add a surface brain model to the list of brain models for columns
         bool addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi = NULL);
         
+        ///add a surface brain model to the list of brain models for rows
+        bool addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
+        
+        ///add a surface brain model to the list of brain models for columns
+        bool addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
+        
         ///add a volume brain model to the list of brain models for rows
         bool addVolumeModelToRows(const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         
@@ -315,6 +321,7 @@ namespace caret {
         bool hasVolumeData(const int& myMapIndex) const;
         
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
+        bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
         bool addVolumeModel(const int& myMapIndex, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
         void applyDimensionHelper(const int& from, const int& to);
         int getNewRangeStart(const int& myMapIndex) const;

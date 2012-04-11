@@ -154,7 +154,7 @@ void CiftiMatrix::getMatrixDimensions(vector<int64_t> &dimensions) const
     m_caching = e;
 }*/
 
-void CiftiMatrix::getCaching(CacheEnum &e)
+void CiftiMatrix::getCaching(CacheEnum &e) const
 {
     if(!m_beenInitialized) throw CiftiFileException("Matrix needs to be initialized before using, or after the file name has been changed.");
     e = m_caching;

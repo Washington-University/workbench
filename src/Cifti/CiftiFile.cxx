@@ -273,6 +273,13 @@ void CiftiFile::writeFile(const AString &fileName)
     m_matrix.writeToNewFile(fileName,vox_offset, false);
 }
 
+bool CiftiFile::isInMemory() const
+{
+    CacheEnum test;
+    m_matrix.getCaching(test);
+    return (test == IN_MEMORY);
+}
+
 /**
  * destructor
  */

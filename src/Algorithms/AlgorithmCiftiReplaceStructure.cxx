@@ -60,7 +60,7 @@ OperationParameters* AlgorithmCiftiReplaceStructure::getParameters()
     volumeOpt->createOptionalParameter(3, "-from-cropped", "interpret the input as a volume cropped to the size of the parcel");
 
     AString helpText = AString("You must specify -metric or -volume for this command to do anything.  Input volumes must line up with the ") +
-        "output of -cifti-separate.  For dtseries, use COLUMN, and if your matrix is fully symmetric, COLUMN is " +
+        "output of -cifti-separate.  For dtseries, use COLUMN, and if your matrix will be fully symmetric, COLUMN is " +
         "more efficient.  The structure argument must be one of the following:\n";
     vector<StructureEnum::Enum> myStructureEnums;
     StructureEnum::getAllEnums(myStructureEnums);
@@ -246,7 +246,7 @@ AlgorithmCiftiReplaceStructure::AlgorithmCiftiReplaceStructure(ProgressObject* m
         offset[1] = 0;
         offset[2] = 0;
     }
-    if (!volIn->matchesVolumeSpace(mySform, newdims.data()))
+    if (!volIn->matchesVolumeSpace(newdims.data(), mySform))
     {
         throw AlgorithmException("input volume doesn't match volume space and dimensions in CIFTI");
     }

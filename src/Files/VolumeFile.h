@@ -94,7 +94,7 @@ namespace caret {
         bool matchesVolumeSpace(const VolumeFile* right) const;
         
         ///returns true if volume space matches in spatial dimensions and sform
-        bool matchesVolumeSpace(const std::vector<std::vector<float> >& sform, const int64_t dims[3]) const;
+        bool matchesVolumeSpace(const int64_t dims[3], const std::vector<std::vector<float> >& sform) const;
         
         void readFile(const AString& filename) throw (DataFileException);
 

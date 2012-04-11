@@ -872,6 +872,54 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
     return true;
 }
 
+bool CiftiXML::addSurfaceModelToColumns(const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
+{
+    separateMaps();
+    return addSurfaceModel(m_colMapIndex, numberOfNodes, structure, nodeList);
+}
+
+bool CiftiXML::addSurfaceModelToRows(const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
+{
+    separateMaps();
+    return addSurfaceModel(m_rowMapIndex, numberOfNodes, structure, nodeList);
+}
+
+bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const vector<int64_t>& nodeList)
+{
+    if (myMapIndex == -1 || m_root.m_matrices.size() == 0)
+    {
+        return false;
+    }
+    CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
+    CiftiBrainModelElement tempModel;
+    tempModel.m_brainStructure = structure;
+    tempModel.m_modelType = CIFTI_MODEL_TYPE_SURFACE;
+    tempModel.m_indexOffset = getNewRangeStart(myMapIndex);
+    tempModel.m_surfaceNumberOfNodes = numberOfNodes;
+    tempModel.m_indexCount = (int64_t)nodeList.size();
+    if ((int)nodeList.size() == numberOfNodes)
+    {
+        bool sequential = true;
+        for (int i = 0; i < numberOfNodes; ++i)
+        {
+            if (nodeList[i] != i)
+            {
+                sequential = false;
+                break;
+            }
+        }
+        if (!sequential)
+        {
+            tempModel.m_nodeIndices = nodeList;
+        }
+    } else {
+        tempModel.m_nodeIndices = nodeList;
+    }
+    return true;
+}
+
 bool CiftiXML::addVolumeModelToColumns(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
 {
     separateMaps();

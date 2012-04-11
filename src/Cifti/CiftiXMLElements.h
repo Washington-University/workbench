@@ -54,15 +54,15 @@ class CiftiBrainModelElement {
 public:
     //CiftiBrainModelElement();
 
-    unsigned long long m_indexOffset; /*!< Index of first element in dimension of the matrix for this brain structure. The value is the number of elements, NOT the number of bytes. */
-    unsigned long long m_indexCount; /*!< Number of elements in this brain model. */
+    int64_t m_indexOffset; /*!< Index of first element in dimension of the matrix for this brain structure. The value is the number of elements, NOT the number of bytes. */
+    int64_t m_indexCount; /*!< Number of elements in this brain model. */
     ModelType m_modelType; /*!< Type of model representing the brain structure. */
     StructureEnum::Enum m_brainStructure; /*!<  Identifies the brain structure. Valid values are contained in nifti2.h */
-    unsigned long long m_surfaceNumberOfNodes; /*!< This attribute contains the actual (or true) number of nodes in the surface that is associated with this BrainModel.*/
+    int64_t m_surfaceNumberOfNodes; /*!< This attribute contains the actual (or true) number of nodes in the surface that is associated with this BrainModel.*/
     //children
-    std::vector<unsigned long long> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
+    std::vector<int64_t> m_nodeIndices; /*!< Contains a list of nodes indices for a BrainModel with ModelType equal to CIFTI_MODEL_TYPE_SURFACE.*/
     std::vector<voxelIndexType> m_voxelIndicesIJK; /*!<  Identifies the voxels that model a brain structure. */
-    std::vector<unsigned long long> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
+    std::vector<int64_t> m_nodeToIndexLookup;//used by CiftiXML to quickly lookup indexes by node number
     void setupLookup();//convenience function to populate lookup
 };
 

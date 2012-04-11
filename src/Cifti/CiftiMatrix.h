@@ -56,7 +56,7 @@ public:
     void getMatrixFile(AString &fileNameOut);
     void getMatrixDimensions(vector <int64_t> &dimensions) const;
     //void setCaching(const CacheEnum &e);
-    void getCaching(CacheEnum &e);
+    void getCaching(CacheEnum &e) const;
     void getMatrixOffset(int64_t &offsetOut);
     void getNeedsSwapping(bool &needsSwappingOut);
 
