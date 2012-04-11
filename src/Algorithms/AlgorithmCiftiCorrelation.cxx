@@ -28,6 +28,8 @@
 #include "MetricFile.h"
 #include "VolumeFile.h"
 #include "CaretLogger.h"
+#include "MathFunctions.h"
+#include "CaretOMP.h"
 #include <utility>
 #include <algorithm>
 
@@ -132,69 +134,79 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     init(myCifti);
     int numRows = myCifti->getNumberOfRows();
     CiftiXML newXML = myCifti->getCiftiXML();
-    newXML.applyRowMapToColumns();
+    newXML.applyColumnMapToRows();
     myCiftiOut->setCiftiXML(newXML);
-    if (myCifti->isInMemory())
+    int numCacheRows;
+    bool cacheFullInput;
+    if (memLimitGB >= 0.0f)
     {
-        CaretArray<float> outrow(numRows);
+        numCacheRows = numRowsForMem(memLimitGB, cacheFullInput);
+    } else {
+        numCacheRows = numRows;
+    }
+    if (numCacheRows > numRows) numCacheRows = numRows;
+    if (numCacheRows != numRows) CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
+    vector<CaretArray<float> > outRows;
+    if (cacheFullInput)
+    {
         for (int i = 0; i < numRows; ++i)
         {
-            float fixedMean, fixedDev;
-            CaretArray<float> fixedRow = getRow(i, fixedMean, fixedDev);
-            for (int j = 0; j < numRows; ++j)
-            {
-                float movingMean, movingDev;
-                CaretArray<float> movingRow = getRow(j, movingMean, movingDev);
-                outrow[j] = correlate(movingRow, movingMean, movingDev, fixedRow, fixedMean, fixedDev, fisherZ);
-            }
-            myCiftiOut->setRow(outrow, i);
+            cacheRow(i);
         }
-    } else {
-        int numCacheRows;
-        if (memLimitGB >= 0.0f)
+    }
+    for (int startrow = 0; startrow < numRows; startrow += numCacheRows)
+    {
+        int endrow = startrow + numCacheRows;
+        if (endrow > numRows) endrow = numRows;
+        outRows.resize(endrow - startrow);
+        for (int i = startrow; i < endrow; ++i)
         {
-            numCacheRows = numRowsForMem(memLimitGB);
-        } else {
-            numCacheRows = numRows;
-        }
-        if (numCacheRows > numRows) numCacheRows = numRows;
-        CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
-        vector<CaretArray<float> > outRows;
-        for (int startrow = 0; startrow < numRows; startrow += numCacheRows)
-        {
-            int endrow = startrow + numCacheRows;
-            if (endrow > numRows) endrow = numRows;
-            outRows.resize(endrow - startrow);
-            for (int i = startrow; i < endrow; ++i)
+            if (!cacheFullInput)
             {
                 cacheRow(i);//preload the rows in a range which we will reuse as much as possible during one row by row scan
-                if (outRows[i - startrow].size() != numRows)
+            }
+            if (outRows[i - startrow].size() != numRows)
+            {
+                outRows[i - startrow] = CaretArray<float>(numRows);
+            }
+        }
+        int curRow = 0;//because we can't trust the order threads hit the critical section
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int i = 0; i < numRows; ++i)
+        {
+            float movingDev;
+            int myrow;
+            CaretArray<float> movingRow;
+#pragma omp critical
+            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                myrow = curRow;//so, manually force it to read sequentially
+                ++curRow;
+                movingRow = getRow(myrow, movingDev);
+            }
+            for (int j = startrow; j < endrow; ++j)
+            {
+                if (j < myrow && myrow >= startrow && myrow < endrow)//if on the upper triangle, and i is within the current caching range, so we have the outRow allocated 
                 {
-                    outRows[i - startrow] = CaretArray<float>(numRows);
+                    outRows[j - startrow][myrow] = outRows[myrow - startrow][j];//copy from other half of the triangle
+                } else {
+                    float cacheDev;
+                    CaretArray<float> cacheRow = getRow(j, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                    outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
                 }
             }
-            for (int i = 0; i < numRows; ++i)
-            {
-                float movingMean, movingDev;
-                CaretArray<float> movingRow = getRow(i, movingMean, movingDev);
-                for (int j = startrow; j < endrow; ++j)
-                {
-                    if (j < i && i >= startrow && i < endrow)//if on the upper triangle, and i is within the current caching range, so we have the outRow allocated 
-                    {
-                        outRows[j - startrow][i] = outRows[i - startrow][j];//copy from other half of the triangle
-                    } else {
-                        float cacheMean, cacheDev;
-                        CaretArray<float> cacheRow = getRow(j, cacheMean, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                        outRows[j - startrow][i] = correlate(movingRow, movingMean, movingDev, cacheRow, cacheMean, cacheDev, fisherZ);
-                    }
-                }
-            }
-            for (int i = startrow; i < endrow; ++i)
-            {
-                myCiftiOut->setRow(outRows[i - startrow], i);
-            }
+        }
+        for (int i = startrow; i < endrow; ++i)
+        {
+            myCiftiOut->setRow(outRows[i - startrow], i);
+        }
+        if (!cacheFullInput)
+        {
             clearCache();//tell the cache we are going to preload a different set of rows now
         }
+    }
+    if (cacheFullInput)
+    {
+        clearCache();//don't currently need to do this, its just for completeness
     }
 }
 
@@ -212,8 +224,8 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     CiftiXML newXML = origXML;
     vector<StructureEnum::Enum> surfList, volList;
     newXML.getStructureListsForRows(surfList, volList);
-    newXML.applyRowMapToColumns();
-    newXML.resetRowsToBrainModels();
+    newXML.applyColumnMapToRows();
+    newXML.resetColumnsToBrainModels();
     vector<pair<int, int> > ciftiIndexList;
     int newCiftiIndex = 0;
     for (int i = 0; i < (int)surfList.size(); ++i)
@@ -256,7 +268,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             }
             if (tempNodeList.size() > 0)//don't add it if it is empty
             {
-                newXML.addSurfaceModelToRows(numNodes, surfList[i], tempNodeList);
+                newXML.addSurfaceModelToColumns(numNodes, surfList[i], tempNodeList);
             }
         }
     }
@@ -288,84 +300,97 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             }
             if (tempVoxList.size() > 0)
             {
-                newXML.addVolumeModelToRows(tempVoxList, volList[i]);
+                newXML.addVolumeModelToColumns(tempVoxList, volList[i]);
             }
         }
     }
     myCiftiOut->setCiftiXML(newXML);
     int numSelected = (int)ciftiIndexList.size(), numRows = myCifti->getNumberOfRows();
-    if (myCifti->isInMemory())
+    int numCacheRows;
+    bool cacheFullInput;
+    if (memLimitGB >= 0.0f)
     {
-        CaretArray<float> outrow(numRows);
-        for (int i = 0; i < numSelected; ++i)
-        {
-            float fixedMean, fixedDev;
-            CaretArray<float> fixedRow = getRow(ciftiIndexList[i].first, fixedMean, fixedDev);
-            for (int j = 0; j < numRows; ++j)
-            {
-                float movingMean, movingDev;
-                CaretArray<float> movingRow = getRow(j, movingMean, movingDev);
-                outrow[j] = correlate(movingRow, movingMean, movingDev, fixedRow, fixedMean, fixedDev, fisherZ);
-            }
-            myCiftiOut->setRow(outrow, ciftiIndexList[i].second);
-        }
+        numCacheRows = numRowsForMem(memLimitGB, cacheFullInput);
     } else {
-        int numCacheRows;
-        if (memLimitGB >= 0.0f)
+        numCacheRows = numSelected;
+    }
+    if (numCacheRows > numSelected) numCacheRows = numSelected;
+    if (numCacheRows != numSelected) CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
+    vector<CaretArray<float> > outRows;
+    if (cacheFullInput)
+    {
+        for (int i = 0; i < numRows; ++i)
         {
-            numCacheRows = numRowsForMem(memLimitGB);
-        } else {
-            numCacheRows = numSelected;
+            cacheRow(i);
         }
-        if (numCacheRows > numSelected) numCacheRows = numSelected;
-        CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
-        vector<CaretArray<float> > outRows;
-        for (int startrow = 0; startrow < numRows; startrow += numCacheRows)
+    }
+    for (int startrow = 0; startrow < numRows; startrow += numCacheRows)
+    {
+        int endrow = startrow + numCacheRows;
+        if (endrow > numSelected) endrow = numSelected;
+        outRows.resize(endrow - startrow);
+        int curRow = 0;//because we can't trust the order threads hit the critical section
+        for (int i = startrow; i < endrow; ++i)
         {
-            int endrow = startrow + numCacheRows;
-            if (endrow > numSelected) endrow = numSelected;
-            outRows.resize(endrow - startrow);
-            for (int i = startrow; i < endrow; ++i)
+            if (!cacheFullInput)
             {
                 cacheRow(ciftiIndexList[i].first);//preload the rows in a range which we will reuse as much as possible during one row by row scan
-                if (outRows[i - startrow].size() != numRows)
-                {
-                    outRows[i - startrow] = CaretArray<float>(numRows);
-                }
             }
-            for (int i = 0; i < numRows; ++i)
+            if (outRows[i - startrow].size() != numRows)
             {
-                float movingMean, movingDev;
-                CaretArray<float> movingRow = getRow(i, movingMean, movingDev);
-                for (int j = startrow; j < endrow; ++j)
-                {
-                    float cacheMean, cacheDev;
-                    CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheMean, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                    outRows[j - startrow][i] = correlate(movingRow, movingMean, movingDev, cacheRow, cacheMean, cacheDev, fisherZ);
-                }
+                outRows[i - startrow] = CaretArray<float>(numRows);
             }
-            for (int i = startrow; i < endrow; ++i)
+        }
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int i = 0; i < numRows; ++i)
+        {
+            float movingDev;
+            int myrow;
+            CaretArray<float> movingRow;
+#pragma omp critical
+            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                myrow = curRow;//so, manually force it to read sequentially
+                ++curRow;
+                movingRow = getRow(myrow, movingDev);
+            }
+            for (int j = startrow; j < endrow; ++j)//TODO: add reverse lookup to be able to get the symmetric parts without recalculating
             {
-                myCiftiOut->setRow(outRows[i - startrow], ciftiIndexList[i].second);
+                float cacheDev;
+                CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
             }
+        }
+        for (int i = startrow; i < endrow; ++i)
+        {
+            myCiftiOut->setRow(outRows[i - startrow], ciftiIndexList[i].second);
+        }
+        if (!cacheFullInput)
+        {
             clearCache();//tell the cache we are going to preload a different set of rows now
         }
     }
+    if (cacheFullInput)
+    {
+        clearCache();//don't currently need to do this, its just for completeness
+    }
 }
 
-float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& mean1, const float& dev1, const float* row2, const float& mean2, const float& dev2, const bool& fisherZ)
+float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& dev1, const float* row2, const float& dev2, const bool& fisherZ)
 {
+    if (row1 == row2) return 1.0;//short circuit for same row
     double accum = 0.0;
     for (int i = 0; i < m_numCols; ++i)
     {
-        accum += (row1[i] - mean1) * (row2[i] - mean2);
+        accum += row1[i] * row2[i];//these have already had the row means subtracted out
     }
+    double r = accum / m_numCols / dev1 / dev2;
+    if (r > 1.0) r = 1.0;//don't output anything silly
+    if (r < -1.0) r = -1.0;
     if (fisherZ)
     {
-        double r = accum / m_numCols / dev1 / dev2;
         return 0.5 * log((1 + r) / (1 - r));
     } else {
-        return accum / m_numCols / dev1 / dev2;
+        return r;
     }
 }
 
@@ -388,6 +413,7 @@ void AlgorithmCiftiCorrelation::cacheRow(const int& ciftiIndex)
         m_rowCache[m_cacheUsed].m_row = CaretArray<float>(m_numCols);
     }
     m_rowCache[m_cacheUsed].m_ciftiIndex = ciftiIndex;
+    m_rowCache[m_cacheUsed].m_haveSubtracted = false;
     m_inputCifti->getRow(m_rowCache[m_cacheUsed].m_row, ciftiIndex);
     m_rowInfo[ciftiIndex].m_cacheIndex = m_cacheUsed;
     ++m_cacheUsed;
@@ -402,16 +428,20 @@ void AlgorithmCiftiCorrelation::clearCache()
     m_cacheUsed = 0;
 }
 
-CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float& mean, float& stdev)
+CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float& stdev)
 {
     CaretAssertVectorIndex(m_rowInfo, ciftiIndex);
     CaretArray<float> ret;
+    bool subtract = false;
     if (m_rowInfo[ciftiIndex].m_cacheIndex != -1)
     {
         ret = m_rowCache[m_rowInfo[ciftiIndex].m_cacheIndex].m_row;
+        subtract = !(m_rowCache[m_rowInfo[ciftiIndex].m_cacheIndex].m_haveSubtracted);
+        m_rowCache[m_rowInfo[ciftiIndex].m_cacheIndex].m_haveSubtracted = true;
     } else {
         ret = getTempRow();
         m_inputCifti->getRow(ret, ciftiIndex);
+        subtract = true;
     }
     if (!m_rowInfo[ciftiIndex].m_haveCalculated)
     {
@@ -431,7 +461,14 @@ CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float
         m_rowInfo[ciftiIndex].m_stddev = sqrt(accum / datasize);//should this be sample standard deviation?
         m_rowInfo[ciftiIndex].m_haveCalculated = true;
     }
-    mean = m_rowInfo[ciftiIndex].m_mean;
+    if (subtract)//subtract out the mean before handing it back, so that correlation doesn't have to subtract
+    {
+        float mean = m_rowInfo[ciftiIndex].m_mean;
+        for (int i = 0; i < m_numCols; ++i)
+        {
+            ret[i] -= mean;
+        }
+    }
     stdev = m_rowInfo[ciftiIndex].m_stddev;
     return ret;
 }
@@ -462,14 +499,23 @@ CaretArray<float> AlgorithmCiftiCorrelation::getTempRow()
     return ret;
 }
 
-int AlgorithmCiftiCorrelation::numRowsForMem(const float& memLimitGB)
+int AlgorithmCiftiCorrelation::numRowsForMem(const float& memLimitGB, bool& cacheFullInput)
 {
     int numRows = m_inputCifti->getNumberOfRows();
     int inrowBytes = m_numCols * sizeof(float), outrowBytes = numRows * sizeof(float);
     int64_t targetBytes = (int64_t)(memLimitGB * 1024 * 1024 * 1024);
+    if (m_inputCifti->isInMemory()) targetBytes -= numRows * m_numCols * 4;//count in-memory input against the total too
     targetBytes -= inrowBytes;//1 row in memory that isn't a reference to cache
     targetBytes -= numRows * sizeof(RowInfo);//storage for mean, stdev, and info about caching
     int64_t perRowBytes = inrowBytes + outrowBytes;//cache and memory collation for output rows
+    if (numRows * m_numCols * 4 < targetBytes * 0.7f)//if caching the entire input file would take less than 70% of remaining allotted memory, do it to reduce IO
+    {
+        cacheFullInput = true;//precache the entire input file, rather than caching it synchronously with the in-memory output rows
+        targetBytes -= numRows * m_numCols * 4;//reduce the remaining total by the memory used
+        perRowBytes = outrowBytes;//don't need to count input rows against the remaining memory total
+    } else {
+        cacheFullInput = false;
+    }
     if (perRowBytes == 0) return 1;//protect against integer div by zero
     int ret = targetBytes / perRowBytes;//integer divide rounds down
     if (ret < 1) return 1;//always return at least one

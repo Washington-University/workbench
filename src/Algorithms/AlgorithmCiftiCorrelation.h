@@ -77,6 +77,7 @@ namespace caret {
         struct CacheRow
         {
             int m_ciftiIndex;
+            bool m_haveSubtracted;
             CaretArray<float> m_row;
         };
         struct RowInfo
@@ -99,11 +100,11 @@ namespace caret {
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
         void cacheRow(const int& ciftiIndex);
         void clearCache();
-        CaretArray<float> getRow(const int& ciftiIndex, float& mean, float& stdev);
+        CaretArray<float> getRow(const int& ciftiIndex, float& stdev);
         CaretArray<float> getTempRow();
-        float correlate(const float* row1, const float& mean1, const float& dev1, const float* row2, const float& mean2, const float& dev2, const bool& fisherZ);
+        float correlate(const float* row1, const float& dev1, const float* row2, const float& dev2, const bool& fisherZ);
         void init(const CiftiFile* input);
-        int numRowsForMem(const float& memLimitGB);
+        int numRowsForMem(const float& memLimitGB, bool& cacheFullInput);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
