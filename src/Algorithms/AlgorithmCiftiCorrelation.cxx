@@ -185,9 +185,15 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             }
             for (int j = startrow; j < endrow; ++j)
             {
-                if (j < myrow && myrow >= startrow && myrow < endrow)//if on the upper triangle, and i is within the current caching range, so we have the outRow allocated 
+                if (myrow >= startrow && myrow < endrow)//check whether we are in the output memory area
                 {
-                    outRows[j - startrow][myrow] = outRows[myrow - startrow][j];//copy from other half of the triangle
+                    if (j >= myrow)//if so, only compute one half, and store both places
+                    {
+                        float cacheDev;
+                        CaretArray<float> cacheRow = getRow(j, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                        outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                        outRows[myrow - startrow][j] = outRows[j - startrow][myrow];
+                    }
                 } else {
                     float cacheDev;
                     CaretArray<float> cacheRow = getRow(j, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
@@ -357,9 +363,15 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             }
             for (int j = startrow; j < endrow; ++j)
             {
-                if (indexReverse[myrow] != -1 && indexReverse[myrow] > j)//if our moving row lies within our in-memory output rows, and this j has been calculated previously as part of another output row
-                {//use the value from the symmetric location (after accounting for index reorganization)
-                    outRows[j - startrow][myrow] = outRows[indexReverse[myrow] - startrow][ciftiIndexList[j].first];
+                if (indexReverse[myrow] != -1)//check if we are on a row that is in the output memory range
+                {
+                    if (indexReverse[myrow] <= j)//if so, only compute one of the elements, then store it both places
+                    {
+                        float cacheDev;
+                        CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                        outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                        outRows[indexReverse[myrow] - startrow][ciftiIndexList[j].first] = outRows[j - startrow][myrow];
+                    }
                 } else {
                     float cacheDev;
                     CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
