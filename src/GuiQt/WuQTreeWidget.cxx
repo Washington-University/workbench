@@ -59,6 +59,7 @@ using namespace caret;
 WuQTreeWidget::WuQTreeWidget(QWidget* parent)
 : QTreeWidget(parent)
 {
+    this->setHeaderHidden(true);
     this->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     this->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
