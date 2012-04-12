@@ -45,7 +45,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->toggleViewAction()->setText("Toolbox");
     this->setWindowTitle(title);
     
-    this->overlaySetViewController = new OverlaySetViewController(this);    
+    this->overlaySetViewController = new OverlaySetViewController(browserWindowIndex,
+                                                                  this);    
     
     this->connectivityLoaderControl = this->createConnectivityWidget(orientation);
     

@@ -38,15 +38,22 @@
 #include <QFrame>
 #include <QGridLayout>
 #include <QLabel>
+#include <QMessageBox>
 #include <QToolButton>
-#include "WuQtUtilities.h"
-#include "WuQWidgetObjectGroup.h"
 
 #define __OVERLAY_VIEW_CONTROLLER_DECLARE__
 #include "OverlayViewController.h"
 #undef __OVERLAY_VIEW_CONTROLLER_DECLARE__
 
+#include "CaretMappableDataFile.h"
+#include "EventGraphicsUpdateOneWindow.h"
+#include "EventManager.h"
+#include "EventMapScalarDataColorMappingEditor.h"
+#include "EventSurfaceColoringInvalidate.h"
+#include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
+#include "WuQtUtilities.h"
+#include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
 
@@ -60,6 +67,8 @@ using namespace caret;
 /**
  * Constructor.
  *
+ * @param browserWindowIndex
+ *    Index of browser window in which this view controller resides.
  * @param parent
  *    Parent object.  An instance of this should be attached
  *    to a parent, such as a QWidget or one of its subclasses so
@@ -70,11 +79,13 @@ using namespace caret;
  * @param showTopHorizontalLine
  *    If true, display a horizontal line above the controls.
  */
-OverlayViewController::OverlayViewController(QObject* parent,
+OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
+                                             QObject* parent,
                                              QGridLayout* gridLayout,
                                              const bool showTopHorizontalLine)
 : QObject(parent)
 {
+    this->browserWindowIndex = browserWindowIndex;
     this->overlay = NULL;
     
     QFrame* topHorizontalLineWidget = NULL;
@@ -102,23 +113,23 @@ OverlayViewController::OverlayViewController(QObject* parent,
     
     QLabel* mapLabel = new QLabel("Map");
     this->mapComboBox = new QComboBox();
-    QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
+    QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
     
     QIcon settingsIcon;
     const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
                                                            settingsIcon);
 
-    QAction* settingsAction = WuQtUtilities::createAction("S", 
+    this->settingsAction = WuQtUtilities::createAction("S", 
                                                           "", 
                                                           this, 
                                                           this, 
                                                           SLOT(settingsToolButtonSelected()));
     if (settingsIconValid) {
-        settingsAction->setIcon(settingsIcon);
+        this->settingsAction->setIcon(settingsIcon);
     }
     QToolButton* settingsToolButton = new QToolButton();
-    settingsToolButton->setDefaultAction(settingsAction);
+    settingsToolButton->setDefaultAction(this->settingsAction);
     
     int row = gridLayout->rowCount();
     if (topHorizontalLineWidget != NULL) {
@@ -148,7 +159,16 @@ OverlayViewController::OverlayViewController(QObject* parent,
                           row, 3);
     
     this->widgetsGroup = new WuQWidgetObjectGroup(this);
-    this->widgetsGroup->addLayout(gridLayout);
+    if (topHorizontalLineWidget != NULL) {
+        this->widgetsGroup->add(topHorizontalLineWidget);
+        this->widgetsGroup->add(this->enabledCheckBox);
+        this->widgetsGroup->add(fileLabel);
+        this->widgetsGroup->add(this->fileComboBox);
+        this->widgetsGroup->add(verticalLineWidget);
+        this->widgetsGroup->add(settingsToolButton);
+        this->widgetsGroup->add(mapLabel);
+        this->widgetsGroup->add(this->mapComboBox);
+    }
 }
 
 /**
@@ -177,7 +197,13 @@ OverlayViewController::setVisible(bool visible)
 void 
 OverlayViewController::fileComboBoxSelected(int indx)
 {
+    void* pointer = this->fileComboBox->itemData(indx).value<void*>();
+    CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
+    overlay->setSelectionData(file, 0);
     
+    this->updateViewController(this->overlay);
+    
+    this->updateUserInterfaceAndGraphicsWindow();    
 }
 
 /**
@@ -188,7 +214,12 @@ OverlayViewController::fileComboBoxSelected(int indx)
 void 
 OverlayViewController::mapComboBoxSelected(int indx)
 {
+    const int32_t fileIndex = this->fileComboBox->currentIndex();
+    void* pointer = this->fileComboBox->itemData(fileIndex).value<void*>();
+    CaretMappableDataFile* file = (CaretMappableDataFile*)pointer;
+    overlay->setSelectionData(file, indx);
     
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -199,7 +230,10 @@ OverlayViewController::mapComboBoxSelected(int indx)
 void 
 OverlayViewController::enabledCheckBoxStateChanged(int state)
 {
+    const bool selected = (state == Qt::Checked);
+    overlay->setEnabled(selected);
     
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -208,7 +242,23 @@ OverlayViewController::enabledCheckBoxStateChanged(int state)
 void 
 OverlayViewController::settingsToolButtonSelected()
 {
-    
+    CaretMappableDataFile* mapFile;
+    int32_t mapIndex = -1;
+    this->overlay->getSelectionData(mapFile, 
+                                    mapIndex);
+    if (mapFile != NULL) {
+        if (mapFile->isMappedWithPalette()) {
+            if (mapFile != NULL) {
+                EventMapScalarDataColorMappingEditor pcme(this->browserWindowIndex,
+                                                          mapFile,
+                                                          mapIndex);
+                EventManager::get()->sendEvent(pcme.getPointer());
+            }
+        }
+        else if (mapFile->isMappedWithLabelTable()) {
+            QMessageBox::information(this->enabledCheckBox, "", "File is not mapped with palette");
+        }
+    }
 }
 
 /**
@@ -219,11 +269,95 @@ OverlayViewController::settingsToolButtonSelected()
 void 
 OverlayViewController::updateViewController(Overlay* overlay)
 {
+    this->overlay = overlay;
+
     this->widgetsGroup->blockAllSignals(true);
     
-    this->overlay = overlay;
+    this->fileComboBox->clear();
+    this->mapComboBox->clear();
+    
+    /*
+     * Get the selection information for the overlay.
+     */
+    std::vector<CaretMappableDataFile*> dataFiles;
+    CaretMappableDataFile* selectedFile = NULL;
+    AString selectedMapUniqueID = "";
+    int32_t selectedMapIndex = -1;
+    if (this->overlay != NULL) {
+        this->overlay->getSelectionData(dataFiles, 
+                                  selectedFile, 
+                                  selectedMapUniqueID, 
+                                  selectedMapIndex);
+    }
+    
+    /*
+     * Load the file selection combo box.
+     */
+    int32_t selectedFileIndex = -1;
+    const int32_t numFiles = static_cast<int32_t>(dataFiles.size());
+    for (int32_t i = 0; i < numFiles; i++) {
+        CaretMappableDataFile* dataFile = dataFiles[i];
+        
+        AString dataTypeName = DataFileTypeEnum::toName(dataFile->getDataFileType());
+        switch (dataFile->getDataFileType()) {
+            case DataFileTypeEnum::CONNECTIVITY_DENSE:
+                dataTypeName = "CONNECTIVITY";
+                break;
+            case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+                dataTypeName = "TIME_SERIES";
+                break;
+            default:
+                break;
+        }
+        AString name = dataTypeName
+        + " "
+        + dataFile->getFileNameNoPath();
+        this->fileComboBox->addItem(name,
+                                    qVariantFromValue((void*)dataFile));
+        if (dataFile == selectedFile) {
+            selectedFileIndex = i;
+        }
+    }
+    if (selectedFileIndex >= 0) {
+        this->fileComboBox->setCurrentIndex(selectedFileIndex);
+    }
+    
+    /*
+     * Load the column selection combo box.
+     */
+    if (selectedFile != NULL) {
+        const int32_t numMaps = selectedFile->getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            this->mapComboBox->addItem(selectedFile->getMapName(i));
+        }
+        this->mapComboBox->setCurrentIndex(selectedMapIndex);
+    }
+    
+    Qt::CheckState checkState = Qt::Unchecked;
+    if (this->overlay != NULL) {
+        if (this->overlay->isEnabled()) {
+            checkState = Qt::Checked;
+        }
+    }
+    
+    this->enabledCheckBox->setCheckState(checkState);
     
     this->widgetsGroup->blockAllSignals(false);
+    this->widgetsGroup->setEnabled(this->overlay != NULL);
+    if (selectedFile != NULL) {
+        this->settingsAction->setEnabled(selectedFile->isMappedWithPalette());
+    }
+}
+
+/**
+ * Update graphics and GUI after 
+ */
+void 
+OverlayViewController::updateUserInterfaceAndGraphicsWindow()
+{
+    EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+    EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
+    EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
 
 

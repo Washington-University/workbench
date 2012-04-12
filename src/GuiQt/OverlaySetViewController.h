@@ -38,30 +38,37 @@
 
 #include <QWidget>
 
+#include "EventListenerInterface.h"
+
 namespace caret {
 
     class OverlaySet;
     class OverlayViewController;
     
-    class OverlaySetViewController : public QWidget {
+    class OverlaySetViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        OverlaySetViewController(QWidget* parent = 0);
+        OverlaySetViewController(const int32_t browserWindowIndex,
+                                 QWidget* parent = 0);
         
         virtual ~OverlaySetViewController();
         
-        void updateViewController(OverlaySet* overlaySet);
+        void receiveEvent(Event* event);
         
     private:
         OverlaySetViewController(const OverlaySetViewController&);
 
         OverlaySetViewController& operator=(const OverlaySetViewController&);
 
+        void updateViewController();
+        
         OverlaySet* overlaySet;
         
         std::vector<OverlayViewController*> overlayViewControllers;
+        
+        int32_t browserWindowIndex;
     };
     
 #ifdef __OVERLAY_SET_VIEW_CONTROLLER_DECLARE__

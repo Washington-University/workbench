@@ -40,6 +40,11 @@
 #undef __OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
 
 #include "BrainConstants.h"
+#include "BrowserTabContent.h"
+#include "CaretAssert.h"
+#include "EventManager.h"
+#include "EventUserInterfaceUpdate.h"
+#include "GuiManager.h"
 #include "OverlaySet.h"
 #include "OverlayViewController.h"
 #include "WuQtUtilities.h"
@@ -59,9 +64,11 @@ using namespace caret;
  * @param parent
  *    Parent widget.
  */
-OverlaySetViewController::OverlaySetViewController(QWidget* parent)
+OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIndex,
+                                                   QWidget* parent)
 : QWidget(parent)
 {
+    this->browserWindowIndex = browserWindowIndex;
     this->overlaySet = NULL;
     
     QGridLayout* gridLayout = new QGridLayout(this);
@@ -74,11 +81,14 @@ OverlaySetViewController::OverlaySetViewController(QWidget* parent)
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         const bool showTopHorizontalBar = (i > 0);
         
-        OverlayViewController* ovc = new OverlayViewController(this,
+        OverlayViewController* ovc = new OverlayViewController(browserWindowIndex,
+                                                               this,
                                                                gridLayout,
                                                                showTopHorizontalBar);
         this->overlayViewControllers.push_back(ovc);
     }
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
 }
 
 /**
@@ -86,26 +96,59 @@ OverlaySetViewController::OverlaySetViewController(QWidget* parent)
  */
 OverlaySetViewController::~OverlaySetViewController()
 {
-    
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
  * Update this overlay set view controller using the given overlay set.
- * @param overlaySet
- *     Overlay set used in this view controller.
  */
 void 
-OverlaySetViewController::updateViewController(OverlaySet* overlaySet)
+OverlaySetViewController::updateViewController()
 {
-    this->overlaySet = overlaySet;
+    BrowserTabContent* browserTabContent = 
+        GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
     
-    for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
+    OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    const int32_t numberOfOverlays = static_cast<int32_t>(this->overlayViewControllers.size());
+    const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
+    
+    for (int32_t i = 0; i < numberOfOverlays; i++) {
         Overlay* overlay = NULL;
-        if (this->overlaySet != NULL) {
+        if (overlaySet != NULL) {
             overlay = overlaySet->getOverlay(i);
         }
         this->overlayViewControllers[i]->updateViewController(overlay);
+        
+        bool displayOverlay = (overlay != NULL);
+        if (i >= numberOfDisplayedOverlays) {
+            displayOverlay = false;
+        }
+        this->overlayViewControllers[i]->setVisible(displayOverlay);
     }
 }
 
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+OverlaySetViewController::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
+        EventUserInterfaceUpdate* uiEvent =
+            dynamic_cast<EventUserInterfaceUpdate*>(event);
+        CaretAssert(uiEvent);
+        
+        this->updateViewController();
+        
+        uiEvent->setEventProcessed();
+    }
+    else {
+    }
+}
 

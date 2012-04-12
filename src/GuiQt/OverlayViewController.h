@@ -37,6 +37,7 @@
 
 #include <QObject>
 
+class QAction;
 class QCheckBox;
 class QComboBox;
 class QGridLayout;
@@ -51,7 +52,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        OverlayViewController(QObject* parent,
+        OverlayViewController(const int32_t browserWindowIndex,
+                              QObject* parent,
                               QGridLayout* gridLayout,
                               const bool showTopHorizontalLine);
         
@@ -75,6 +77,10 @@ namespace caret {
 
         OverlayViewController& operator=(const OverlayViewController&);
 
+        void updateUserInterfaceAndGraphicsWindow();
+        
+        int32_t browserWindowIndex;
+        
         Overlay* overlay;
         
         QCheckBox* enabledCheckBox;
@@ -82,6 +88,8 @@ namespace caret {
         QComboBox* fileComboBox;
         
         QComboBox* mapComboBox;
+        
+        QAction* settingsAction;
         
         WuQWidgetObjectGroup* widgetsGroup;
         

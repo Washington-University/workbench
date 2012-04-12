@@ -24,7 +24,6 @@
 #include <iostream>
 
 #include <QCheckBox>
-#include <QLayout>
 #include <QWidget>
 
 #include "WuQWidgetObjectGroup.h"
@@ -73,24 +72,6 @@ void
 WuQWidgetObjectGroup::add(QObject* o)
 {
    this->objects.push_back(o);
-}
-
-/**
- * Add all children of the layout that are 
- * derived from QWidget.
- */
-void 
-WuQWidgetObjectGroup::addLayout(QLayout* layout)
-{
-    const int numItems = layout->count();
-    for (int i = 0; i < numItems; i++) {
-        QLayoutItem* item = layout->itemAt(i);
-        QWidget* widget = item->widget();
-        if (widget != NULL) {
-            std::cout << "Adding from layout to widget group: " << qPrintable(widget->objectName()) << std::endl;
-            this->add(widget);
-        }
-    }
 }
 
 /**

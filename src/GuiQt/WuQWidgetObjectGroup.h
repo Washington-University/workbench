@@ -48,8 +48,6 @@ namespace caret {
         
         void add(QObject* w);
         
-        void addLayout(QLayout* layout);
-        
         void clear();
         
         QObject* getObject() { return dynamic_cast<QObject*>(this); }
