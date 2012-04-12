@@ -385,17 +385,24 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 
 float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& dev1, const float* row2, const float& dev2, const bool& fisherZ)
 {
-    if (row1 == row2) return 1.0;//short circuit for same row
-    double accum = 0.0;
-    for (int i = 0; i < m_numCols; ++i)
+    double r;
+    if (row1 == row2)
     {
-        accum += row1[i] * row2[i];//these have already had the row means subtracted out
+        r = 1.0;//short circuit for same row
+    } else {
+        double accum = 0.0;
+        for (int i = 0; i < m_numCols; ++i)
+        {
+            accum += row1[i] * row2[i];//these have already had the row means subtracted out
+        }
+        r = accum / m_numCols / dev1 / dev2;
     }
-    double r = accum / m_numCols / dev1 / dev2;
     if (r > 1.0) r = 1.0;//don't output anything silly
     if (r < -1.0) r = -1.0;
     if (fisherZ)
     {
+        if (r == 1.0) r = 0.999999;//prevent inf
+        if (r == -1.0) r = -0.999999;//prevent -inf
         return 0.5 * log((1 + r) / (1 - r));
     } else {
         return r;
