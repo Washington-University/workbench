@@ -217,13 +217,13 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     LevelProgress myProgress(myProgObj);
     init(myCifti);
     const CiftiXML& origXML = myCifti->getCiftiXML();
-    if (origXML.getRowMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
+    if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
-        throw AlgorithmException("cannot use ROIs on this cifti, rows are not brain models");
+        throw AlgorithmException("cannot use ROIs on this cifti, columns are not brain models");
     }
     CiftiXML newXML = origXML;
     vector<StructureEnum::Enum> surfList, volList;
-    newXML.getStructureListsForRows(surfList, volList);
+    origXML.getStructureListsForColumns(surfList, volList);
     newXML.applyColumnMapToRows();
     newXML.resetColumnsToBrainModels();
     vector<pair<int, int> > ciftiIndexList;
@@ -252,8 +252,8 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 throw AlgorithmException("surface roi has the wrong number of nodes for structure " + StructureEnum::toName(surfList[i]));
             }
             vector<CiftiSurfaceMap> myMap;
-            myCifti->getSurfaceMapForRows(myMap, surfList[i]);
-            int numNodes = myCifti->getRowSurfaceNumberOfNodes(surfList[i]);
+            myCifti->getSurfaceMapForColumns(myMap, surfList[i]);
+            int numNodes = myCifti->getColumnSurfaceNumberOfNodes(surfList[i]);
             int mapsize = (int)myMap.size();
             vector<int64_t> tempNodeList;
             for (int j = 0; j < mapsize; ++j)
@@ -284,7 +284,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         for (int i = 0; i < (int)volList.size(); ++i)
         {
             vector<CiftiVolumeMap> myMap;
-            origXML.getVolumeStructureMapForRows(myMap, volList[i]);
+            origXML.getVolumeStructureMapForColumns(myMap, volList[i]);
             vector<voxelIndexType> tempVoxList;
             int64_t numVoxels = (int64_t)myMap.size();
             for (int64_t j = 0; j < numVoxels; ++j)
@@ -324,7 +324,8 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             cacheRow(i);
         }
     }
-    for (int startrow = 0; startrow < numRows; startrow += numCacheRows)
+    CaretArray<int> indexReverse(numRows, -1);
+    for (int startrow = 0; startrow < numSelected; startrow += numCacheRows)
     {
         int endrow = startrow + numCacheRows;
         if (endrow > numSelected) endrow = numSelected;
@@ -340,6 +341,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
             {
                 outRows[i - startrow] = CaretArray<float>(numRows);
             }
+            indexReverse[ciftiIndexList[i].first] = i;
         }
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int i = 0; i < numRows; ++i)
@@ -353,16 +355,22 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 ++curRow;
                 movingRow = getRow(myrow, movingDev);
             }
-            for (int j = startrow; j < endrow; ++j)//TODO: add reverse lookup to be able to get the symmetric parts without recalculating
+            for (int j = startrow; j < endrow; ++j)
             {
-                float cacheDev;
-                CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                if (indexReverse[myrow] != -1 && indexReverse[myrow] > j)//if our moving row lies within our in-memory output rows, and this j has been calculated previously as part of another output row
+                {//use the value from the symmetric location (after accounting for index reorganization)
+                    outRows[j - startrow][myrow] = outRows[indexReverse[myrow] - startrow][ciftiIndexList[j].first];
+                } else {
+                    float cacheDev;
+                    CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                    outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                }
             }
         }
         for (int i = startrow; i < endrow; ++i)
         {
             myCiftiOut->setRow(outRows[i - startrow], ciftiIndexList[i].second);
+            indexReverse[ciftiIndexList[i].first] = -1;
         }
         if (!cacheFullInput)
         {
