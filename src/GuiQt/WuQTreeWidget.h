@@ -1,5 +1,5 @@
-#ifndef __WU_Q_COLLAPSIBLE_WIDGET__H_
-#define __WU_Q_COLLAPSIBLE_WIDGET__H_
+#ifndef __WU_Q_TREE_WIDGET__H_
+#define __WU_Q_TREE_WIDGET__H_
 
 /*LICENSE_START*/
 /*
@@ -35,47 +35,37 @@
 /*LICENSE_END*/
 
 
-#include <QVector>
-#include <QWidget>
-
-class QAction;
-class QActionGroup;
-class QVBoxLayout;
+#include <QTreeWidget>
 
 namespace caret {
 
-    class WuQCollapsibleWidget : public QWidget {
+    class WuQTreeWidget : public QTreeWidget {
         
         Q_OBJECT
 
     public:
-        WuQCollapsibleWidget(QWidget* parent = 0);
+        WuQTreeWidget(QWidget* parent = 0);
         
-        virtual ~WuQCollapsibleWidget();
+        virtual ~WuQTreeWidget();
         
-        void addWidget(QWidget* page,
-                       const QString& label);
-        
-        virtual QSize sizeHint() const;
+        void resizeToFitContent();
         
     private slots:
-        void showHideActionGroupTriggered(QAction*);
+        void itemExpandedOrCollapsed(QTreeWidgetItem*);
         
     private:
-        WuQCollapsibleWidget(const WuQCollapsibleWidget&);
+        WuQTreeWidget(const WuQTreeWidget&);
 
-        WuQCollapsibleWidget& operator=(const WuQCollapsibleWidget&);
+        WuQTreeWidget& operator=(const WuQTreeWidget&);
+
+        int calculateHeight() const;
         
-        QVBoxLayout* collapsibleLayout;
-        
-        QActionGroup* showHideActionGroup;
-        
-        QVector<QWidget*> pageWidgets;
+        int calculateHeightRec(QTreeWidgetItem* treeItem) const;
     };
     
-#ifdef __WU_Q_COLLAPSIBLE_WIDGET_DECLARE__
+#ifdef __WU_Q_TREE_WIDGET_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_COLLAPSIBLE_WIDGET_DECLARE__
+#endif // __WU_Q_TREE_WIDGET_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_COLLAPSIBLE_WIDGET__H_
+#endif  //__WU_Q_TREE_WIDGET__H_

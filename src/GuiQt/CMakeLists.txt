@@ -27,6 +27,7 @@ INCLUDE(${QT_USE_FILE})
 SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
+BorderSelectionViewController.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowOrientedToolBox.h
@@ -79,6 +80,7 @@ WuQDoubleSlider.h
 WuQFileDialog.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
+WuQTreeWidget.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 )
@@ -93,6 +95,7 @@ WuQWidgetObjectGroup.h
 SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
+BorderSelectionViewController.h
 BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowOrientedToolBox.h
@@ -167,12 +170,14 @@ WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
+WuQTreeWidget.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
 
 AboutWorkbenchDialog.cxx
 BorderPropertiesEditorDialog.cxx
+BorderSelectionViewController.cxx
 BrainBrowserSelectionToolBox.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
@@ -245,6 +250,7 @@ WuQDoubleSlider.cxx
 WuQFileDialog.cxx
 WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
+WuQTreeWidget.cxx
 WuQWidget.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx

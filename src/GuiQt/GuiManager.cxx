@@ -23,6 +23,8 @@
  *
  */
 
+#include <algorithm>
+
 #include <QApplication>
 
 #define __GUI_MANAGER_DEFINE__
@@ -504,6 +506,17 @@ GuiManager::receiveEvent(Event* event)
         eventNewBrowser->setBrowserWindowCreated(bbw);
         
         eventNewBrowser->setEventProcessed();
+        
+        /*
+         * Initialize the size of the window
+         */
+        const int w = bbw->width();
+        const int preferredMaxHeight = (WuQtUtilities::isSmallDisplay()
+                                        ? 550
+                                        : 850);
+        const int h = std::min(bbw->height(), 
+                               preferredMaxHeight);
+        bbw->resize(w, h);
     }
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();

@@ -1,5 +1,5 @@
-#ifndef __WU_Q_COLLAPSIBLE_WIDGET__H_
-#define __WU_Q_COLLAPSIBLE_WIDGET__H_
+#ifndef __BORDER_SELECTION_VIEW_CONTROLLER__H_
+#define __BORDER_SELECTION_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -34,48 +34,68 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+#include <set>
 
-#include <QVector>
 #include <QWidget>
 
-class QAction;
-class QActionGroup;
-class QVBoxLayout;
+#include "DisplayGroupEnum.h"
+#include "EventListenerInterface.h"
+
+class QCheckBox;
 
 namespace caret {
 
-    class WuQCollapsibleWidget : public QWidget {
+    class ClassAndNameHierarchySelectedItem;
+    class ClassAndNameHierarchyViewController;
+    class DisplayGroupEnumComboBox;
+    
+    class BorderSelectionViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        WuQCollapsibleWidget(QWidget* parent = 0);
+        BorderSelectionViewController(const int32_t browserWindowIndex,
+                              QWidget* parent = 0);
         
-        virtual ~WuQCollapsibleWidget();
+        virtual ~BorderSelectionViewController();
         
-        void addWidget(QWidget* page,
-                       const QString& label);
-        
-        virtual QSize sizeHint() const;
+        void receiveEvent(Event* event);
         
     private slots:
-        void showHideActionGroupTriggered(QAction*);
+        void bordersSelectionsChanged(ClassAndNameHierarchySelectedItem* selectedItem);
+        
+        void processBorderSelectionChanges();
+        
+        void processSelectionChanges();
+        
+        void borderDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
     private:
-        WuQCollapsibleWidget(const WuQCollapsibleWidget&);
+        BorderSelectionViewController(const BorderSelectionViewController&);
 
-        WuQCollapsibleWidget& operator=(const WuQCollapsibleWidget&);
+        BorderSelectionViewController& operator=(const BorderSelectionViewController&);
+
+        int32_t browserWindowIndex;
         
-        QVBoxLayout* collapsibleLayout;
+        void updateBorderSelectionViewController();
         
-        QActionGroup* showHideActionGroup;
+        void updateOtherBorderSelectionViewControllers();
         
-        QVector<QWidget*> pageWidgets;
+        static std::set<BorderSelectionViewController*> allBorderSelectionViewControllers;
+        
+        ClassAndNameHierarchyViewController* borderClassNameHierarchyViewController;
+        
+        QCheckBox* bordersDisplayCheckBox;
+        
+        QCheckBox* bordersContralateralCheckBox;
+        
+        DisplayGroupEnumComboBox* bordersDisplayGroupComboBox;
     };
     
-#ifdef __WU_Q_COLLAPSIBLE_WIDGET_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __WU_Q_COLLAPSIBLE_WIDGET_DECLARE__
+#ifdef __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
+    std::set<BorderSelectionViewController*> BorderSelectionViewController::allBorderSelectionViewControllers;
+#endif // __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__WU_Q_COLLAPSIBLE_WIDGET__H_
+#endif  //__BORDER_SELECTION_VIEW_CONTROLLER__H_

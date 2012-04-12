@@ -5,6 +5,7 @@
 #include <QAction>
 #include <QLayout>
 
+#include "BorderSelectionViewController.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderControl.h"
@@ -48,17 +49,24 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->overlaySetViewController = new OverlaySetViewController(browserWindowIndex,
                                                                   this);    
     
-    this->connectivityLoaderControl = this->createConnectivityWidget(orientation);
+    //this->connectivityLoaderControl = this->createConnectivityWidget(orientation);
+    
+    this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
+                                                                            this);
     
     this->collapsibleWidget = new WuQCollapsibleWidget(this);
     this->collapsibleWidget->addWidget(this->overlaySetViewController, 
                                        "Overlays");
+    this->collapsibleWidget->addWidget(this->borderSelectionViewController,
+                                       "Borders");
+    //this->collapsibleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(this->collapsibleWidget);
-    layout->addStretch();
+    layout->addWidget(this->collapsibleWidget,
+                      0); // stretch
+    //layout->addStretch();
     
     this->setWidget(widget);
 
@@ -69,6 +77,19 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * @return The recommended size for this widget.
+ */
+QSize 
+BrainBrowserWindowOrientedToolBox::sizeHint() const
+{
+    std::cout << "Tool box minimum size: "
+    << this->minimumWidth() << ", " << this->minimumHeight() << std::endl;
+    QSize sz = QWidget::sizeHint();
+    sz.setHeight(500);
+    return sz;
 }
 
 ConnectivityLoaderControl* 

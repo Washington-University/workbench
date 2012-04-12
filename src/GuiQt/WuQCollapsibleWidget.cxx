@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <iostream>
+
 #include <QAction>
 #include <QActionGroup>
 #include <QFrame>
@@ -94,6 +96,22 @@ WuQCollapsibleWidget::~WuQCollapsibleWidget()
 {
     
 }
+
+/**
+ * @return The recommended size for this widget.
+ */
+QSize 
+WuQCollapsibleWidget::sizeHint() const
+{
+    QSize minSize = this->minimumSize();
+    std::cout << "Collapse Min Size: "
+    << minSize.width() << ", " << minSize.width() << std::endl;
+    
+    QSize sz = QWidget::sizeHint();
+    sz.setHeight(500);
+    return sz;
+}
+
 
 /**
  * Add a widget to this collapsible widget with the

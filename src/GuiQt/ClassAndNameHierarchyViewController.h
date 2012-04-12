@@ -41,7 +41,7 @@
 #include "AString.h"
 
 class QCheckBox;
-class QTreeWidget;
+//class QTreeWidget;
 class QTreeWidgetItem;
 
 namespace caret {
@@ -49,6 +49,7 @@ namespace caret {
     class BorderFile;
     class ClassAndNameHierarchyModel;
     class ClassAndNameHierarchySelectedItem;
+    class WuQTreeWidget;
     
     class ClassAndNameHierarchyViewController : public QWidget {
         
@@ -85,7 +86,7 @@ namespace caret {
         
         std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
         
-        QTreeWidget* treeWidget;
+        WuQTreeWidget* treeWidget;
         
         std::vector<ClassAndNameHierarchySelectedItem*> itemSelectionInfo;
 

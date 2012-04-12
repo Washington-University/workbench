@@ -7,6 +7,7 @@
 #include "EventListenerInterface.h"
 
 namespace caret {
+    class BorderSelectionViewController;
     class ConnectivityLoaderControl;
     class OverlaySetViewController;
     class WuQCollapsibleWidget;
@@ -24,6 +25,8 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+        virtual QSize sizeHint() const;
+        
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
@@ -33,6 +36,8 @@ namespace caret {
         WuQCollapsibleWidget* collapsibleWidget;
         
         OverlaySetViewController* overlaySetViewController;
+        
+        BorderSelectionViewController* borderSelectionViewController;
         
         ConnectivityLoaderControl* connectivityLoaderControl;
         

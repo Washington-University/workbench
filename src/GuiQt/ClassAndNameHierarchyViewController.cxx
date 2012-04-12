@@ -51,6 +51,7 @@
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "WuQtUtilities.h"
+#include "WuQTreeWidget.h"
 
 using namespace caret;
 
@@ -74,7 +75,7 @@ ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const i
 : QWidget(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->treeWidget = new QTreeWidget();
+    this->treeWidget = new WuQTreeWidget();
     this->treeWidget->setColumnCount(1);
     QObject::connect(this->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
                      this, SLOT(treeWidgetItemChanged(QTreeWidgetItem*,int)));
@@ -136,6 +137,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
         }
             break;
     }
+    
     emit itemSelected(selectionInfo);
 }
 
@@ -159,6 +161,8 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> bor
     }
     
     this->updateContents(classAndNameHierarchyModels);
+    
+    this->treeWidget->resizeToFitContent();
 }
 
 void 
