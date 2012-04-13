@@ -116,17 +116,22 @@ WuQCollapsibleWidget::sizeHint() const
 /**
  * Add a widget to this collapsible widget with the
  * given label in the titlebar.
+ * @param widget
+ *   Widget that is added.
+ * @param text
+ *   Text displayed for collapsing/expanding view
+ *   of widget.
  */
 void 
-WuQCollapsibleWidget::addWidget(QWidget* page,
-                                const QString& labelText)
+WuQCollapsibleWidget::addItem(QWidget* widget,
+                                const QString& text)
 {
-    CaretAssert(page);
+    CaretAssert(widget);
     
-    QLabel* label = new QLabel(labelText);
+    QLabel* label = new QLabel(text);
     
     QAction* showHideAction = this->showHideActionGroup->addAction("-");
-    showHideAction->setData(qVariantFromValue((void*)page));
+    showHideAction->setData(qVariantFromValue((void*)widget));
     QToolButton* showHideToolButton = new QToolButton();
     showHideToolButton->setDefaultAction(showHideAction);
     
@@ -145,9 +150,9 @@ WuQCollapsibleWidget::addWidget(QWidget* page,
     controlFrame->setFixedHeight(controlFrame->sizeHint().height());
 
     this->collapsibleLayout->addWidget(controlFrame);
-    this->collapsibleLayout->addWidget(page);
+    this->collapsibleLayout->addWidget(widget);
     
-    this->pageWidgets.push_back(page);
+    this->widgets.push_back(widget);
 }
 
 /**
@@ -160,12 +165,16 @@ WuQCollapsibleWidget::showHideActionGroupTriggered(QAction* action)
         void* pointer = action->data().value<void*>();
         CaretAssert(pointer);
         QWidget* widget = (QWidget*)pointer;
+        QString collapseExpandText = "";
         if (widget->isVisible()) {
             widget->setVisible(false);
+            collapseExpandText = "+";
         }
         else {
             widget->setVisible(true);
+            collapseExpandText = "-";
         }
+        action->setText(collapseExpandText);
     }
 }
 

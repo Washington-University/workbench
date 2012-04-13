@@ -82,7 +82,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     const int32_t numContentWidgets = static_cast<int32_t>(contentWidgets.size());
     for (int32_t i = 0; i < numContentWidgets; i++) {
         if (collapsibleWidget != NULL) {
-            collapsibleWidget->addWidget(contentWidgets[i], 
+            collapsibleWidget->addItem(contentWidgets[i], 
                                          contentWidgetNames[i]);
         }
         else if (toolBoxWidget != NULL) {

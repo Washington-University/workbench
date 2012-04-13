@@ -53,8 +53,8 @@ namespace caret {
         
         virtual ~WuQCollapsibleWidget();
         
-        void addWidget(QWidget* page,
-                       const QString& label);
+        void addItem(QWidget* widget,
+                     const QString& text);
         
         virtual QSize sizeHint() const;
         
@@ -70,7 +70,7 @@ namespace caret {
         
         QActionGroup* showHideActionGroup;
         
-        QVector<QWidget*> pageWidgets;
+        QVector<QWidget*> widgets;
     };
     
 #ifdef __WU_Q_COLLAPSIBLE_WIDGET_DECLARE__
