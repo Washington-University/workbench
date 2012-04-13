@@ -345,6 +345,24 @@ OverlaySet::getNumberOfDisplayedOverlays() const
 }
 
 /**
+ * Sets the number of displayed overlays.
+ * @param numberOfDisplayedOverlays
+ *   Number of overlays for display.
+ */
+void 
+OverlaySet::setNumberOfDisplayedOverlays(const int32_t numberOfDisplayedOverlays)
+{
+    this->numberOfDisplayedOverlays = numberOfDisplayedOverlays;
+    if (this->numberOfDisplayedOverlays < BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS) {
+        this->numberOfDisplayedOverlays = BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS;
+    }
+    if (this->numberOfDisplayedOverlays > BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS) {
+        this->numberOfDisplayedOverlays = BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS;
+    }
+}
+
+
+/**
  * Remove a displayed overlay.  This method will have
  * no effect if the minimum number of overlays are
  * displayed

@@ -42,6 +42,8 @@
 
 #include "EventListenerInterface.h"
 
+class QSpinBox;
+
 namespace caret {
 
     class OverlaySet;
@@ -59,14 +61,19 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+    private slots:
+        void overlayCountSpinBoxValueChanged(int);
+        
     private:
         OverlaySetViewController(const OverlaySetViewController&);
 
         OverlaySetViewController& operator=(const OverlaySetViewController&);
 
+        OverlaySet* getOverlaySet();
+        
         void updateViewController();
         
-        OverlaySet* overlaySet;
+        QSpinBox* overlayCountSpinBox;
         
         std::vector<OverlayViewController*> overlayViewControllers;
         

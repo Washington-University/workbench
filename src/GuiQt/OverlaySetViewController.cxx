@@ -34,6 +34,10 @@
 
 
 #include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QSpinBox>
+#include <QVBoxLayout>
 
 #define __OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
 #include "OverlaySetViewController.h"
@@ -70,9 +74,8 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
 : QWidget(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->overlaySet = NULL;
     
-    QGridLayout* gridLayout = new QGridLayout(this);
+    QGridLayout* gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 0);
@@ -89,6 +92,23 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
         this->overlayViewControllers.push_back(ovc);
     }
     
+    QLabel* overlayCountLabel = new QLabel("Number of Overlays: ");
+    this->overlayCountSpinBox = new QSpinBox();
+    this->overlayCountSpinBox->setRange(BrainConstants::MINIMUM_NUMBER_OF_OVERLAYS,
+                                        BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS);
+    this->overlayCountSpinBox->setSingleStep(1);
+    QObject::connect(this->overlayCountSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(overlayCountSpinBoxValueChanged(int)));
+    
+    QHBoxLayout* overlayCountLayout = new QHBoxLayout();
+    overlayCountLayout->addWidget(overlayCountLabel);
+    overlayCountLayout->addWidget(this->overlayCountSpinBox);
+    overlayCountLayout->addStretch();
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addLayout(gridLayout);
+    layout->addLayout(overlayCountLayout);
+    
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
 }
@@ -102,11 +122,43 @@ OverlaySetViewController::~OverlaySetViewController()
 }
 
 /**
+ * Called when overlay count spin box value changed.
+ * @param value
+ *    New value.
+ */
+void 
+OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
+{
+    OverlaySet* overlaySet = this->getOverlaySet();
+    if (overlaySet != NULL) {
+        overlaySet->setNumberOfDisplayedOverlays(value);
+        this->updateViewController();
+    }
+}
+
+/**
+ * @return The overlay set in this view controller.
+ */
+OverlaySet* 
+OverlaySetViewController::getOverlaySet()
+{
+    OverlaySet* overlaySet = NULL;
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
+    if (browserTabContent != NULL) {
+        overlaySet = browserTabContent->getOverlaySet();
+    }
+    
+    return overlaySet;
+}
+
+/**
  * Update this overlay set view controller using the given overlay set.
  */
 void 
 OverlaySetViewController::updateViewController()
 {
+    /*
     BrowserTabContent* browserTabContent = 
         GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, true);
     if (browserTabContent == NULL) {
@@ -114,8 +166,18 @@ OverlaySetViewController::updateViewController()
     }
     
     OverlaySet* overlaySet = browserTabContent->getOverlaySet();
+    */
+    OverlaySet* overlaySet = this->getOverlaySet();
+    if (overlaySet == NULL) {
+        return;
+    }
+    
     const int32_t numberOfOverlays = static_cast<int32_t>(this->overlayViewControllers.size());
     const int32_t numberOfDisplayedOverlays = overlaySet->getNumberOfDisplayedOverlays();
+
+    this->overlayCountSpinBox->blockSignals(true);
+    this->overlayCountSpinBox->setValue(numberOfDisplayedOverlays);
+    this->overlayCountSpinBox->blockSignals(false);
     
     for (int32_t i = 0; i < numberOfOverlays; i++) {
         Overlay* overlay = NULL;
