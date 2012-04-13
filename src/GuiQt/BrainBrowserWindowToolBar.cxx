@@ -72,6 +72,7 @@
 #include "EventModelGetAll.h"
 #include "EventModelYokingGroupGetAll.h"
 #include "EventSurfaceColoringInvalidate.h"
+#include "EventToolBoxUpdate.h"
 #include "GuiManager.h"
 #include "Model.h"
 #include "ModelSurface.h"
@@ -884,6 +885,7 @@ BrainBrowserWindowToolBar::selectedTabChanged(int indx)
 //    this->updateGraphicsWindow();
 //    this->updateUserInterface();
     this->updateToolBar();
+    this->updateToolBox();
     emit viewedModelChanged();
     this->updateGraphicsWindow(); // yes, do a second time
 }
@@ -895,6 +897,7 @@ BrainBrowserWindowToolBar::tabClosed(int tabIndex)
     this->removeTab(tabIndex);
     
     this->updateToolBar();
+    this->updateToolBox();
     emit viewedModelChanged();
 }
 
@@ -3006,6 +3009,16 @@ BrainBrowserWindowToolBar::updateUserInterface()
 }
 
 /**
+ * Update the toolbox for the window
+ */
+void 
+BrainBrowserWindowToolBar::updateToolBox()
+{
+    EventToolBoxUpdate toolBoxUpdate(this->browserWindowIndex);
+    EventManager::get()->sendEvent(toolBoxUpdate.getPointer());
+}
+
+/**
  * Called when a view mode is selected.
  */
 void 
@@ -3032,6 +3045,7 @@ BrainBrowserWindowToolBar::viewModeRadioButtonClicked(QAbstractButton*)
     this->checkUpdateCounter();
     this->updateToolBar();
     this->updateTabName(-1);
+    this->updateToolBox();
     emit viewedModelChanged();
 
 //    this->updateToolBar();   

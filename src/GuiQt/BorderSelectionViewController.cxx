@@ -48,6 +48,7 @@
 #include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
+#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 
@@ -101,6 +102,7 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     layout->addWidget(this->borderClassNameHierarchyViewController, 100);  
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
     
     BorderSelectionViewController::allBorderSelectionViewControllers.insert(this);
 }
@@ -255,6 +257,23 @@ BorderSelectionViewController::receiveEvent(Event* event)
         
         this->updateBorderSelectionViewController();
         event->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
+        EventToolBoxUpdate* tbEvent =
+        dynamic_cast<EventToolBoxUpdate*>(event);
+        bool doUpdate = false;
+        if (tbEvent->isUpdateAllWindows()) {
+            doUpdate = true;
+        }
+        else if (tbEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
+            doUpdate = true;
+        }
+        
+        if (doUpdate) {
+            this->updateBorderSelectionViewController();
+        }
+        
+        tbEvent->setEventProcessed();
     }
 }
 

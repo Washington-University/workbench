@@ -126,6 +126,7 @@ EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
 EventToolBoxSelectionDisplay.h
+EventToolBoxUpdate.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
@@ -208,6 +209,7 @@ EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
 EventToolBoxSelectionDisplay.cxx
+EventToolBoxUpdate.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx

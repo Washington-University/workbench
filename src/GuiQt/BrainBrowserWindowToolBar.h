@@ -104,6 +104,7 @@ namespace caret {
 
         void updateGraphicsWindow();
         void updateUserInterface();
+        void updateToolBox();
         void updateTabName(const int32_t tabIndex);
         
         QWidget* createViewWidget();

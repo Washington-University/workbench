@@ -92,6 +92,8 @@ public:
         EVENT_SURFACES_GET,
         /** Display/Hide the selection toolbox */
         EVENT_TOOLBOX_SELECTION_DISPLAY,
+        /** Update the  toolbox */
+        EVENT_TOOLBOX_UPDATE,
         /** Update the User-Interface */
         EVENT_USER_INTERFACE_UPDATE,
         /** Update the progress amount, text, or finished status */

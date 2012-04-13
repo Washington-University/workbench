@@ -43,6 +43,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "EventManager.h"
+#include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "OverlaySet.h"
@@ -89,6 +90,7 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
     }
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
 }
 
 /**
@@ -147,6 +149,23 @@ OverlaySetViewController::receiveEvent(Event* event)
         this->updateViewController();
         
         uiEvent->setEventProcessed();
+    }
+    else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
+        EventToolBoxUpdate* tbEvent =
+        dynamic_cast<EventToolBoxUpdate*>(event);
+        bool doUpdate = false;
+        if (tbEvent->isUpdateAllWindows()) {
+            doUpdate = true;
+        }
+        else if (tbEvent->getBrowserWindowIndex() == this->browserWindowIndex) {
+            doUpdate = true;
+        }
+        
+        if (doUpdate) {
+            this->updateViewController();
+        }
+        
+        tbEvent->setEventProcessed();
     }
     else {
     }
