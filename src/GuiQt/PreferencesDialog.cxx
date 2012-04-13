@@ -87,6 +87,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     
     QTabWidget* tabWidget = new QTabWidget();
     tabWidget->addTab(this->createColorsWidget(), "Colors");
+    tabWidget->addTab(this->createDeveloperWidget(), "Developer");
 //    tabWidget->addTab(this->createIdentificationWidget(), "ID");
     tabWidget->addTab(this->createLoggingWidget(), "Logging");
     tabWidget->addTab(this->createVolumeWidget(), "Volume");
@@ -138,6 +139,8 @@ PreferencesDialog::updateDialog()
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
     
 //    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
+    
+    this->toolBoxTypeSpinBox->setValue(prefs->getToolBoxType());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -390,6 +393,41 @@ PreferencesDialog::createIdentificationWidget()
     QGridLayout* gridLayout = new QGridLayout(w);
     gridLayout->addWidget(this->identificationContralateralCheckBox, 0, 0);
     return w;
+}
+
+/**
+ * Creates developer widget.
+ * @return
+ *    Its widget.
+ */
+QWidget* 
+PreferencesDialog::createDeveloperWidget()
+{
+    QLabel* toolBoxLabel = new QLabel("ToolBox Type");
+    this->toolBoxTypeSpinBox = new QSpinBox();
+    this->toolBoxTypeSpinBox->setRange(0, 100);
+    this->toolBoxTypeSpinBox->setSingleStep(1);    
+    QObject::connect(this->toolBoxTypeSpinBox, SIGNAL(valueChanged(int)),
+                     this, SLOT(toolBoxTypeSpinBoxChanged(int)));
+    
+    
+    this->allWidgets->add(this->toolBoxTypeSpinBox);
+    
+    QWidget* w = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(w);
+    gridLayout->addWidget(toolBoxLabel, 0, 0);
+    gridLayout->addWidget(this->toolBoxTypeSpinBox, 0, 1);
+    return w;
+}
+
+/**
+ * Called when toolbox type changed.
+ */
+void 
+PreferencesDialog::toolBoxTypeSpinBoxChanged(int value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setToolBoxType(value);
 }
 
 /**

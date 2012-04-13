@@ -35,6 +35,7 @@
 #include "StructureEnum.h"
 
 class QAbstractButton;
+class QAction;
 class QActionGroup;
 class QButtonGroup;
 class QCheckBox;
@@ -52,7 +53,7 @@ class QToolButton;
 namespace caret {
     
     class BrainBrowserWindow;
-    class BrainBrowserWindowToolBox;
+    //class BrainBrowserWindowToolBox;
     class BrowserTabContent;
     class Model;
     class ModelSurface;
@@ -68,7 +69,7 @@ namespace caret {
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                   BrowserTabContent* initialBrowserTabContent,
-                                  BrainBrowserWindowToolBox* toolBox,
+                                  QAction* toolBoxToggleAction,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();
@@ -384,7 +385,7 @@ namespace caret {
         QAction* toolsInputModeViewAction;
         
     private:
-        BrainBrowserWindowToolBox* toolBox;
+        //BrainBrowserWindowToolBox* toolBox;
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     

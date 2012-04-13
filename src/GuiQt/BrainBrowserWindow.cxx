@@ -112,32 +112,44 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->setCentralWidget(this->openGLWidget);
     
-    this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    const int32_t toolBoxType = prefs->getToolBoxType();
+    QAction* toolBoxToggleAction = NULL;
+    
+    this->toolBox = NULL;
+    
+    if (toolBoxType == 1) {
+        this->toolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
+                                                                                              ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
+                                                                                              Qt::Horizontal,
+                                                                                              this);
+        this->addDockWidget(Qt::LeftDockWidgetArea, this->toolBox);
+    }
+    else {
+        this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
                                                   ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
                                                   Qt::Horizontal,
                                                   this);
-    this->addDockWidget(Qt::BottomDockWidgetArea,
+        this->addDockWidget(Qt::BottomDockWidgetArea,
                         this->toolBox,
                         Qt::Horizontal);
-    QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
+        QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
                      this, SLOT(shrinkToolbox()));
-    
-    this->selectionToolBox = new BrainBrowserSelectionToolBox(this->browserWindowIndex);
-    this->selectionToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
-    this->addDockWidget(Qt::RightDockWidgetArea,
-                        this->selectionToolBox);
+        
+        toolBoxToggleAction = this->toolBox->toggleViewAction();
 
-    BrainBrowserWindowOrientedToolBox* newToolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
-                                                                                          ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                                                          Qt::Horizontal,
-                                                                                          this);
-    this->addDockWidget(Qt::LeftDockWidgetArea, newToolBox);
+        BrainBrowserSelectionToolBox* selectionToolBox = new BrainBrowserSelectionToolBox(this->browserWindowIndex);
+        selectionToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
+        this->addDockWidget(Qt::RightDockWidgetArea,
+                            selectionToolBox);
+        
+    }
     
     this->createActionsUsedByToolBar();
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
-                                                  this->toolBox,
+                                                  this->toolBox->toggleViewAction(),
                                                   this);
     this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
     this->addToolBar(this->toolbar);
@@ -153,8 +165,10 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     }
     
     
-    QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
-                     this->toolBox, SLOT(updateDisplayedPanel()));
+    if (dynamic_cast<BrainBrowserWindowToolBox*>(this->toolBox) != NULL) {
+        QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
+                         this->toolBox, SLOT(updateDisplayedPanel()));
+    }
 }
 
 /**

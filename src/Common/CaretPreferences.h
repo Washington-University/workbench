@@ -94,6 +94,10 @@ namespace caret {
         
         //void setContralateralIdentificationEnabled(const bool enabled);
         
+        int32_t getToolBoxType() const;
+        
+        void setToolBoxType(const int32_t toolBoxType);
+        
     private:
         CaretPreferences(const CaretPreferences&);
 
@@ -108,6 +112,12 @@ namespace caret {
         
         void setBoolean(const AString& name,
                         const bool value);
+        
+        int getInteger(const AString& name,
+                        const int defaultValue = false);
+        
+        void setInteger(const AString& name,
+                        const int value);
         
         void addToPrevious(std::vector<AString>& previousVector,
                            const AString& newName);
@@ -138,6 +148,8 @@ namespace caret {
         
         double animationStartTime;
         
+        int32_t toolBoxType;
+        
         //bool contralateralIdentificationEnabled;
         
         static const AString NAME_AXES_CROSSHAIRS;
@@ -150,6 +162,8 @@ namespace caret {
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_USER_VIEWS;
         static const AString NAME_ANIMATION_START_TIME;
+        
+        static const AString NAME_TOOLBOX_TYPE;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
@@ -163,6 +177,7 @@ namespace caret {
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
     const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
+    const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

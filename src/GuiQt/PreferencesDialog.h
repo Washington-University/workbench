@@ -31,6 +31,7 @@
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QSpinBox;
 
 namespace caret {
     
@@ -61,8 +62,11 @@ namespace caret {
 
         void animationStartChanged(double value);
         
+        void toolBoxTypeSpinBoxChanged(int value);
+        
     private:
         QWidget* createColorsWidget();
+        QWidget* createDeveloperWidget();
         QWidget* createIdentificationWidget();
         QWidget* createLoggingWidget();
         QWidget* createVolumeWidget();
@@ -83,6 +87,8 @@ namespace caret {
         QCheckBox* identificationContralateralCheckBox;
 
         QDoubleSpinBox* animationStartDoubleSpinBox;
+        
+        QSpinBox* toolBoxTypeSpinBox;
         
         WuQWidgetObjectGroup* allWidgets;
     };

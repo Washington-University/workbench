@@ -115,13 +115,14 @@ using namespace caret;
  */
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                                      BrowserTabContent* initialBrowserTabContent,
-                                                     BrainBrowserWindowToolBox* toolBox,
+                                                     QAction* toolBoxToggleAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
-    this->toolBox = toolBox;
-    this->toolBoxToolButtonAction = toolBox->toggleViewAction();
+    //this->toolBox = toolBox;
+    //this->toolBoxToolButtonAction = toolBox->toggleViewAction();
+    this->toolBoxToolButtonAction = toolBoxToggleAction;
     this->updateCounter = 0;
     
     this->indexOfNewestAddedOrInsertedTab = -1;
@@ -847,7 +848,7 @@ BrainBrowserWindowToolBar::updateTabName(const int32_t tabIndex)
     /*
      * Set title of toolbox
      */
-    this->toolBox->setWindowTitle(newName);
+    //this->toolBox->setWindowTitle(newName);
     /*
     QIcon coronalIcon;
     const bool coronalIconValid =

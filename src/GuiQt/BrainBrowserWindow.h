@@ -38,12 +38,13 @@
 
 class QAction;
 class QActionGroup;
+class QDockWidget;
 class QMenu;
 
 namespace caret {
-    class BrainBrowserSelectionToolBox;
+    //class BrainBrowserSelectionToolBox;
     class BrainBrowserWindowToolBar;
-    class BrainBrowserWindowToolBox;
+    //class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
 
@@ -170,7 +171,7 @@ namespace caret {
         
         BrainBrowserWindowToolBar* toolbar;
         
-        BrainBrowserSelectionToolBox* selectionToolBox;
+        //BrainBrowserSelectionToolBox* selectionToolBox;
         
         QAction* aboutWorkbenchAction;
         
@@ -228,7 +229,8 @@ namespace caret {
         
         QMenu* recentSpecFileMenu;
         
-        BrainBrowserWindowToolBox* toolBox;
+        //BrainBrowserWindowToolBox* toolBox;
+        QDockWidget* toolBox;
         
         AString previousOpenFileNameFilter;
         

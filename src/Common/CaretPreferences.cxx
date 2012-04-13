@@ -99,6 +99,34 @@ void CaretPreferences::setBoolean(const AString& name,
 }
 
 /**
+ * Get the boolean value for the given preference name.
+ * @param name
+ *    Name of the preference.
+ * @return
+ *    Integer value of preference or defaultValue if the
+ *    named preference is not found.
+ */
+int CaretPreferences::getInteger(const AString& name,
+                                  const int defaultValue)
+{
+    int b = this->qSettings->value(name, defaultValue).toInt();
+    return b;
+}
+
+/**
+ * Set the given preference name with the integer value.
+ * @param
+ *    Name of the preference.
+ * @param
+ *    New value for preference.
+ */
+void CaretPreferences::setInteger(const AString& name,
+                                  const int value)
+{
+    this->qSettings->setValue(name, value);
+}
+
+/**
  * Remove all user views.
  */
 void 
@@ -524,6 +552,29 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 }
 
 /**
+ * @return The toolbox type.
+ */
+int32_t 
+CaretPreferences::getToolBoxType() const
+{
+    return this->toolBoxType;
+}
+
+/**
+ * Set the toolbox type.
+ * @param toolBoxType
+ *    New toolbox type.
+ */
+void 
+CaretPreferences::setToolBoxType(const int32_t toolBoxType)
+{
+    this->toolBoxType = toolBoxType;
+    this->setInteger(CaretPreferences::NAME_TOOLBOX_TYPE, 
+                     this->toolBoxType);
+}
+
+
+/**
  * @return Is contralateral identification enabled?
  *
 bool 
@@ -617,8 +668,12 @@ CaretPreferences::readPreferences()
 
     this->animationStartTime = this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 
+    this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,
+                                         0);
+    
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);
+    
 }
 
 void CaretPreferences::getAnimationStartTime(double& time)
