@@ -140,7 +140,7 @@ void OperationVolumeLabelImport::useParameters(OperationParameters* myParams, Pr
         labelListFile >> blue;
         if (!(labelListFile >> alpha))//yes, that is seriously the correct way to check if input was successfully extracted...so much fail
         {
-            break;//ignore malformed lines
+            break;//stop at malformed lines
         }
         labelListFile.ignore();//drop the newline so that getline doesn't explode
         temp = AString(labelName.c_str());

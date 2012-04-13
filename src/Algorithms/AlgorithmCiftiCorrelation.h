@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-AlgorithmCiftiCorrelation     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_CIFTI_CORRELATION    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--cifti-correlation   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-GENERATE CORRELATION OF ROWS IN A CIFTI FILE : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the algorithm takes no parameters (???) uncomment the line below for takesParameters(), otherwise delete it
-
-next, make AlgorithmCiftiCorrelation.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-correlation/g' | sed 's/[S]HORT DESCRIPTION/GENERATE CORRELATION OF ROWS IN A CIFTI FILE/g' > AlgorithmCiftiCorrelation.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-correlation/g' | sed 's/[S]HORT DESCRIPTION/GENERATE CORRELATION OF ROWS IN A CIFTI FILE/g' > Algorithms/AlgorithmCiftiCorrelation.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiCorrelation/g' | sed 's/-[c]ommand-switch/-cifti-correlation/g' | sed 's/[S]HORT DESCRIPTION/GENERATE CORRELATION OF ROWS IN A CIFTI FILE/g' > src/Algorithms/AlgorithmCiftiCorrelation.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmCiftiCorrelation.h
-AlgorithmCiftiCorrelation.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmCiftiCorrelation.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiCorrelation()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include <vector>
 #include "AbstractAlgorithm.h"
 #include "CaretPointer.h"
@@ -83,7 +45,7 @@ namespace caret {
         struct RowInfo
         {
             bool m_haveCalculated;
-            float m_mean, m_stddev;
+            float m_mean, m_rootResidSqr;
             int m_cacheIndex;
             RowInfo()
             {
@@ -94,26 +56,30 @@ namespace caret {
         std::vector<CacheRow> m_rowCache;
         std::vector<RowInfo> m_rowInfo;
         std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
+        std::vector<float> m_weights;
+        std::vector<int> m_weightIndexes;
+        bool m_binaryWeights, m_weightedMode;
         int m_tempRowPos;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
         void cacheRow(const int& ciftiIndex);
         void clearCache();
-        CaretArray<float> getRow(const int& ciftiIndex, float& stdev);
+        CaretArray<float> getRow(const int& ciftiIndex, float& rootResidSqr);
         CaretArray<float> getTempRow();
-        float correlate(const float* row1, const float& dev1, const float* row2, const float& dev2, const bool& fisherZ);
-        void init(const CiftiFile* input);
+        float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ);
+        void init(const CiftiFile* input, const std::vector<float>* weights);
         int numRowsForMem(const float& memLimitGB, bool& cacheFullInput);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+        AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const std::vector<float>* weights = NULL,
                                                      const bool& fisherZ = false, const float& memLimitGB = -1.0f);
         AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                      const MetricFile* leftRoi, const MetricFile* rightRoi = NULL, const MetricFile* cerebRoi = NULL,
-                                                     const VolumeFile* volRoi = NULL, const bool& fisherZ = false, const float& memLimitGB = -1.0f);
+                                                     const VolumeFile* volRoi = NULL, const std::vector<float>* weights = NULL, const bool& fisherZ = false,
+                                                     const float& memLimitGB = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

@@ -30,6 +30,8 @@
 #include "CaretLogger.h"
 #include "MathFunctions.h"
 #include "CaretOMP.h"
+#include "FileInformation.h"
+#include <fstream>
 #include <utility>
 #include <algorithm>
 
@@ -63,9 +65,12 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     OptionalParameter* volRoiOpt = roiOverrideOpt->createOptionalParameter(4, "-vol-roi", "use an roi for volume");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
-    ret->createOptionalParameter(4, "-fisher-z", "apply fisher z transform to correlation");
+    OptionalParameter* weightsOpt = ret->createOptionalParameter(4, "-weights", "specify weights for elements in a row");
+    weightsOpt->addStringParameter(1, "weight-file", "text file containing one weight per column");
     
-    OptionalParameter* memLimitOpt = ret->createOptionalParameter(5, "-mem-limit", "restrict memory usage");
+    ret->createOptionalParameter(5, "-fisher-z", "apply fisher z transform to correlation");
+    
+    OptionalParameter* memLimitOpt = ret->createOptionalParameter(6, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default unlimited)");
     
     ret->setHelpText(
@@ -109,8 +114,34 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
         }
     }
     float memLimitGB = -1.0f;
-    bool fisherZ = myParams->getOptionalParameter(4)->m_present;
-    OptionalParameter* memLimitOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* weightsOpt = myParams->getOptionalParameter(4);
+    vector<float>* weights = NULL, realweights;//NOTE: realweights is NOT a pointer
+    if (weightsOpt->m_present)
+    {
+        weights = &realweights;//point it to the actual vector to signify the option is present
+        AString weightFileName = weightsOpt->getString(1);
+        FileInformation textFileInfo(weightFileName);
+        if (!textFileInfo.exists())
+        {
+            throw AlgorithmException("weight list file doesn't exist");
+        }
+        fstream labelListFile(weightFileName.toLocal8Bit().constData(), fstream::in);
+        if (!labelListFile.good())
+        {
+            throw AlgorithmException("error reading weight list file");
+        }
+        while (labelListFile.good())
+        {
+            float weight;
+            if (!(labelListFile >> weight))//yes, this is how you check fstream for successfully extracted output.  seriously.
+            {
+                break;
+            }
+            realweights.push_back(weight);
+        }
+    }
+    bool fisherZ = myParams->getOptionalParameter(5)->m_present;
+    OptionalParameter* memLimitOpt = myParams->getOptionalParameter(6);
     if (memLimitOpt->m_present)
     {
         memLimitGB = (float)memLimitOpt->getDouble(1);
@@ -121,17 +152,17 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
     }
     if (roiOverrideMode)
     {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, fisherZ, memLimitGB);
+        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, leftRoi, rightRoi, cerebRoi, volRoi, weights, fisherZ, memLimitGB);
     } else {
-        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, fisherZ, memLimitGB);
+        AlgorithmCiftiCorrelation(myProgObj, myCifti, myCiftiOut, weights, fisherZ, memLimitGB);
     }
 }
 
-AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut, const vector<float>* weights,
                                                      const bool& fisherZ, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti);
+    init(myCifti, weights);
     int numRows = myCifti->getNumberOfRows();
     CiftiXML newXML = myCifti->getCiftiXML();
     newXML.applyColumnMapToRows();
@@ -174,14 +205,14 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int i = 0; i < numRows; ++i)
         {
-            float movingDev;
+            float movingRrs;
             int myrow;
             CaretArray<float> movingRow;
 #pragma omp critical
             {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
                 myrow = curRow;//so, manually force it to read sequentially
                 ++curRow;
-                movingRow = getRow(myrow, movingDev);
+                movingRow = getRow(myrow, movingRrs);
             }
             for (int j = startrow; j < endrow; ++j)
             {
@@ -189,15 +220,15 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 {
                     if (j >= myrow)//if so, only compute one half, and store both places
                     {
-                        float cacheDev;
-                        CaretArray<float> cacheRow = getRow(j, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                        outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                        float cacheRrs;
+                        CaretArray<float> cacheRow = getRow(j, cacheRrs);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                        outRows[j - startrow][myrow] = correlate(movingRow, movingRrs, cacheRow, cacheRrs, fisherZ);
                         outRows[myrow - startrow][j] = outRows[j - startrow][myrow];
                     }
                 } else {
-                    float cacheDev;
-                    CaretArray<float> cacheRow = getRow(j, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                    outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                    float cacheRrs;
+                    CaretArray<float> cacheRow = getRow(j, cacheRrs);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                    outRows[j - startrow][myrow] = correlate(movingRow, movingRrs, cacheRow, cacheRrs, fisherZ);
                 }
             }
         }
@@ -218,10 +249,10 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 
 AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
                                                      const MetricFile* leftRoi, const MetricFile* rightRoi, const MetricFile* cerebRoi,
-                                                     const VolumeFile* volRoi, const bool& fisherZ, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                     const VolumeFile* volRoi, const vector<float>* weights, const bool& fisherZ, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti);
+    init(myCifti, weights);
     const CiftiXML& origXML = myCifti->getCiftiXML();
     if (origXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
     {
@@ -352,14 +383,14 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
 #pragma omp CARET_PARFOR schedule(dynamic)
         for (int i = 0; i < numRows; ++i)
         {
-            float movingDev;
+            float movingRrs;
             int myrow;
             CaretArray<float> movingRow;
 #pragma omp critical
             {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
                 myrow = curRow;//so, manually force it to read sequentially
                 ++curRow;
-                movingRow = getRow(myrow, movingDev);
+                movingRow = getRow(myrow, movingRrs);
             }
             for (int j = startrow; j < endrow; ++j)
             {
@@ -367,15 +398,15 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
                 {
                     if (indexReverse[myrow] <= j)//if so, only compute one of the elements, then store it both places
                     {
-                        float cacheDev;
-                        CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                        outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                        float cacheRrs;
+                        CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheRrs);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                        outRows[j - startrow][myrow] = correlate(movingRow, movingRrs, cacheRow, cacheRrs, fisherZ);
                         outRows[indexReverse[myrow] - startrow][ciftiIndexList[j].first] = outRows[j - startrow][myrow];
                     }
                 } else {
-                    float cacheDev;
-                    CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheDev);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
-                    outRows[j - startrow][myrow] = correlate(movingRow, movingDev, cacheRow, cacheDev, fisherZ);
+                    float cacheRrs;
+                    CaretArray<float> cacheRow = getRow(ciftiIndexList[j].first, cacheRrs);//this bit isn't obvious: CaretArray acts like a float*, so this isn't a copy
+                    outRows[j - startrow][myrow] = correlate(movingRow, movingRrs, cacheRow, cacheRrs, fisherZ);
                 }
             }
         }
@@ -395,19 +426,30 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     }
 }
 
-float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& dev1, const float* row2, const float& dev2, const bool& fisherZ)
+float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ)
 {
     double r;
     if (row1 == row2)
     {
         r = 1.0;//short circuit for same row
     } else {
-        double accum = 0.0;
-        for (int i = 0; i < m_numCols; ++i)
+        if (m_weightedMode)
         {
-            accum += row1[i] * row2[i];//these have already had the row means subtracted out
+            int numWeights = (int)m_weightIndexes.size();
+            double accum = 0.0;
+            for (int i = 0; i < numWeights; ++i)//because we compacted the data in the row to not include any zero weights
+            {
+                accum += row1[i] * row2[i];//these have already had the weighted row means subtracted out, and weights applied
+            }
+            r = accum / (rrs1 * rrs2);//as do these
+        } else {
+            double accum = 0.0;
+            for (int i = 0; i < m_numCols; ++i)
+            {
+                accum += row1[i] * row2[i];//these have already had the row means subtracted out
+            }
+            r = accum / (rrs1 * rrs2);
         }
-        r = accum / m_numCols / dev1 / dev2;
     }
     if (r > 1.0) r = 1.0;//don't output anything silly
     if (r < -1.0) r = -1.0;
@@ -421,13 +463,46 @@ float AlgorithmCiftiCorrelation::correlate(const float* row1, const float& dev1,
     }
 }
 
-void AlgorithmCiftiCorrelation::init(const CiftiFile* input)
+void AlgorithmCiftiCorrelation::init(const CiftiFile* input, const vector<float>* weights)
 {
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_tempRowPos = 0;
     m_cacheUsed = 0;
     m_numCols = m_inputCifti->getNumberOfColumns();
+    if (weights != NULL)
+    {
+        m_weightedMode = true;
+        int numWeights = (int)weights->size();
+        if (numWeights != m_numCols)
+        {
+            throw AlgorithmException("number of weights doesn't match length of a row, number of weights given: " + AString::number(weights->size()));
+        }
+        m_binaryWeights = true;
+        for (int i = 0; i < numWeights; ++i)
+        {
+            float val = (*weights)[i];
+            if (val != 0.0f)
+            {
+                if (val < 0.0f)
+                {
+                    throw AlgorithmException("weights cannot be negative");
+                }
+                m_weights.push_back(val);
+                m_weightIndexes.push_back(i);
+                if (val != 1.0f)
+                {
+                    m_binaryWeights = false;
+                }
+            }
+        }
+        if (m_binaryWeights && m_weights.size() == weights->size())
+        {
+            m_weightedMode = false;//all weights were 1, so switch back to normal mode
+        }
+    } else {
+        m_weightedMode = false;
+    }
 }
 
 void AlgorithmCiftiCorrelation::cacheRow(const int& ciftiIndex)
@@ -455,7 +530,7 @@ void AlgorithmCiftiCorrelation::clearCache()
     m_cacheUsed = 0;
 }
 
-CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float& stdev)
+CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float& rootResidSqr)
 {
     CaretAssertVectorIndex(m_rowInfo, ciftiIndex);
     CaretArray<float> ret;
@@ -473,30 +548,91 @@ CaretArray<float> AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float
     if (!m_rowInfo[ciftiIndex].m_haveCalculated)
     {
         int datasize = (int)ret.size();
-        double accum = 0.0f;//double, for numerical stability
-        for (int i = 0; i < datasize; ++i)//two pass, for numerical stability
+        double accum = 0.0;//double, for numerical stability
+        if (m_weightedMode)
         {
-            accum += ret[i];
+            int weightsize = (int)m_weightIndexes.size();
+            if (m_binaryWeights)//because should be a little faster without multiplies or a second sum
+            {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    accum += ret[m_weightIndexes[i]];
+                }
+                m_rowInfo[ciftiIndex].m_mean = accum / weightsize;
+            } else {
+                double accum2 = 0.0;
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    float weight = m_weights[i];
+                    accum += ret[m_weightIndexes[i]] * weight;
+                    accum2 += weight;
+                }
+                m_rowInfo[ciftiIndex].m_mean = accum / accum2;
+            }
+        } else {
+            for (int i = 0; i < datasize; ++i)//two pass, for numerical stability
+            {
+                accum += ret[i];
+            }
+            m_rowInfo[ciftiIndex].m_mean = accum / datasize;
         }
-        m_rowInfo[ciftiIndex].m_mean = accum / datasize;
         accum = 0.0;
-        for (int i = 0; i < datasize; ++i)
+        float mean = m_rowInfo[ciftiIndex].m_mean;
+        if (m_weightedMode)
         {
-            float tempf = ret[i] - m_rowInfo[ciftiIndex].m_mean;
-            accum += tempf * tempf;
+            int weightsize = (int)m_weightIndexes.size();
+            if (m_binaryWeights)
+            {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    float tempf = ret[m_weightIndexes[i]] - mean;
+                    accum += tempf * tempf;
+                }
+                m_rowInfo[ciftiIndex].m_rootResidSqr = sqrt(accum);
+            } else {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    float tempf = ret[m_weightIndexes[i]] - mean;
+                    accum += tempf * tempf * m_weights[i];
+                }
+                m_rowInfo[ciftiIndex].m_rootResidSqr = sqrt(accum);
+            }
+        } else {
+            for (int i = 0; i < datasize; ++i)
+            {
+                float tempf = ret[i] - mean;
+                accum += tempf * tempf;
+            }
+            m_rowInfo[ciftiIndex].m_rootResidSqr = sqrt(accum);
         }
-        m_rowInfo[ciftiIndex].m_stddev = sqrt(accum / datasize);//should this be sample standard deviation?
         m_rowInfo[ciftiIndex].m_haveCalculated = true;
     }
     if (subtract)//subtract out the mean before handing it back, so that correlation doesn't have to subtract
-    {
+    {//also, pack the nonzero weights contiguously so correlation() doesn't need an extra conditional, or multiply by zero
         float mean = m_rowInfo[ciftiIndex].m_mean;
-        for (int i = 0; i < m_numCols; ++i)
+        if (m_weightedMode)
         {
-            ret[i] -= mean;
+            int weightsize = (int)m_weightIndexes.size();
+            if (m_binaryWeights)
+            {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    ret[i] = ret[m_weightIndexes[i]] - mean;
+                }
+            } else {
+                for (int i = 0; i < weightsize; ++i)
+                {
+                    ret[i] = sqrt(m_weights[i]) * (ret[m_weightIndexes[i]] - mean);//multiply by square root of weight, so that the numerator of correlation doesn't get the square of the weight
+                }
+            }
+        } else {
+            for (int i = 0; i < m_numCols; ++i)
+            {
+                ret[i] -= mean;
+            }
         }
     }
-    stdev = m_rowInfo[ciftiIndex].m_stddev;
+    rootResidSqr = m_rowInfo[ciftiIndex].m_rootResidSqr;
     return ret;
 }
 
