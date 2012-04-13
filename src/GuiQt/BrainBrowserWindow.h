@@ -93,7 +93,8 @@ namespace caret {
         
     private slots:        
         void processAboutWorkbench();
-        void processDisplayControl();        
+        void processDisplayControl();  
+        void processInformationDialog();
         void processNewWindow();
         void processNewTab();
         void processDataFileOpen();
@@ -200,6 +201,8 @@ namespace caret {
         QAction* showToolBarAction;
         
         QAction* displayControlAction;
+        
+        QAction* informationDialogAction;
         
         QActionGroup* viewScreenActionGroup;
         QAction* viewScreenNormalAction;

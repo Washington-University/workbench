@@ -228,6 +228,14 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void 
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
+    this->informationDialogAction =
+    WuQtUtilities::createAction("Information...",
+                                "Show the Information Window",
+                                this,
+                                this,
+                                SLOT(processInformationDialog()));   
+    this->informationDialogAction->setIconText("Info");
+    
     this->displayControlAction = 
     WuQtUtilities::createAction("Display Control...",
                                 "Show the Display Control",
@@ -822,6 +830,7 @@ BrainBrowserWindow::createMenuWindow()
     menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
     menu->addAction(this->displayControlAction);
+    menu->addAction(this->informationDialogAction);
     menu->addSeparator();
     menu->addAction(this->bringAllToFrontAction);
     
@@ -868,6 +877,15 @@ void
 BrainBrowserWindow::processDisplayControl()
 {
     GuiManager::get()->processShowDisplayControlDialog(this);
+}
+
+/**
+ * Called when information dialog is selected.
+ */
+void 
+BrainBrowserWindow::processInformationDialog()
+{
+    GuiManager::get()->processShowInformationDisplayDialog(this);
 }
 
 /**

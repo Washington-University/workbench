@@ -14,7 +14,6 @@ class QTabWidget;
 
 namespace caret {
     class ConnectivityLoaderControl;
-    class InformationDisplayWidget;
     class OverlaySelectionControl;
     
     class BrainBrowserWindowToolBox : public QDockWidget, public EventListenerInterface {
@@ -73,8 +72,6 @@ namespace caret {
         Qt::Orientation orientation;
         
         int32_t browserWindowIndex;
-        
-        InformationDisplayWidget* informationWidget;        
     };    
 }
 

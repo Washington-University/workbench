@@ -28,6 +28,7 @@
 #include <set>
 
 #include <QWidget>
+#include "EventListenerInterface.h"
 
 class QAction;
 
@@ -36,7 +37,7 @@ namespace caret {
     class EventInformationTextDisplay;
     class HyperLinkTextBrowser;
     
-    class InformationDisplayWidget : public QWidget {
+    class InformationDisplayWidget : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -44,6 +45,8 @@ namespace caret {
         InformationDisplayWidget(QWidget* parent = 0);
         
         virtual ~InformationDisplayWidget();
+        
+        void receiveEvent(Event* event);
         
         void processTextEvent(EventInformationTextDisplay* informationEvent);
         

@@ -50,6 +50,7 @@ GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
+InformationDisplayDialog.h
 InformationDisplayWidget.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
@@ -134,6 +135,7 @@ GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
 ImageCaptureDialog.h
+InformationDisplayDialog.h
 InformationDisplayWidget.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
@@ -217,6 +219,7 @@ GiftiLabelTableEditor.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx
 ImageCaptureDialog.cxx
+InformationDisplayDialog.cxx
 InformationDisplayWidget.cxx
 ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx

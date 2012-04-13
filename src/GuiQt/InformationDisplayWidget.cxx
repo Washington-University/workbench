@@ -33,6 +33,7 @@
 #include <QToolBar>
 
 #include "Brain.h"
+#include "CaretAssert.h"
 #include "CaretColorEnumComboBox.h"
 #include "DisplayPropertiesInformation.h"
 #include "EventGraphicsUpdateAllWindows.h"
@@ -127,6 +128,14 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
     
     InformationDisplayWidget::allInformationDisplayWidgets.insert(this);
     this->updateInformationDisplayWidget();
+    
+    /*
+     * Use processed event listener since the text event
+     * is first processed by GuiManager which will create
+     * this dialog, if needed, and then display it.
+     */
+    EventManager::get()->addProcessedEventListener(this, 
+                                                   EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
 }
 
 /**
@@ -135,6 +144,7 @@ InformationDisplayWidget::InformationDisplayWidget(QWidget* parent)
 InformationDisplayWidget::~InformationDisplayWidget()
 {
     InformationDisplayWidget::allInformationDisplayWidgets.erase(this);
+    EventManager::get()->removeAllEventsFromListener(this);
 }
 
 /**
@@ -215,6 +225,32 @@ InformationDisplayWidget::processTextEvent(EventInformationTextDisplay* informat
                 this->informationTextBrowser->appendHtml(informationEvent->getText());
                 break;
         }
+    }
+}
+
+/**
+ * Receive events from the event manager.
+ * 
+ * @param event
+ *   Event sent by event manager.
+ */
+void 
+InformationDisplayWidget::receiveEvent(Event* event)
+{
+    if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
+        EventInformationTextDisplay* textEvent =
+        dynamic_cast<EventInformationTextDisplay*>(event);
+        CaretAssert(textEvent);
+        
+        textEvent->setEventProcessed();
+        
+        const AString text = textEvent->getText();
+        if (text.isEmpty() == false) {
+            this->processTextEvent(textEvent);
+            textEvent->setEventProcessed();
+        }
+    }
+    else {
     }
 }
 

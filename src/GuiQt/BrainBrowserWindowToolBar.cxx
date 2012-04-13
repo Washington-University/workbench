@@ -177,6 +177,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      */
     QToolButton* displayControlToolButton = new QToolButton();
     displayControlToolButton->setDefaultAction(parentBrainBrowserWindow->displayControlAction);
+    QToolButton* informationDialogToolButton = new QToolButton();
+    informationDialogToolButton->setDefaultAction(parentBrainBrowserWindow->informationDialogAction);
     
     /*
      * Toolbar action and tool button at right of the tab bar
@@ -230,6 +232,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
     tabBarLayout->addWidget(displayControlToolButton);
+    tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(toolBoxToolButton);
     

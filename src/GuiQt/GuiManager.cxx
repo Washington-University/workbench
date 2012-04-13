@@ -41,11 +41,13 @@
 #include "DisplayControlDialog.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
+#include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditor.h"
 #include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
+#include "InformationDisplayDialog.h"
 #include "ManageLoadedFilesDialog.h"
 #include "MapScalarDataColorMappingEditorDialog.h"
 #include "PreferencesDialog.h"
@@ -72,12 +74,14 @@ GuiManager::GuiManager(QObject* parent)
     
     this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
+    this->informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;    
     this->scalarDataColorMappingEditor = NULL;
     
     this->cursorManager = new CursorManager();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
 }
@@ -518,6 +522,20 @@ GuiManager::receiveEvent(Event* event)
                                preferredMaxHeight);
         bbw->resize(w, h);
     }
+    else if (event->getEventType() == EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY) {
+        EventInformationTextDisplay* infoEvent =
+        dynamic_cast<EventInformationTextDisplay*>(event);
+        CaretAssert(infoEvent);
+        
+        if (infoEvent->isImportant()) {
+            std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
+            if (bbws.empty() == false) {
+                this->processShowInformationDisplayDialog(bbws[0]);
+            }
+        }
+        
+        infoEvent->setEventProcessed();
+    }
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();
     }
@@ -654,6 +672,23 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
             }
         }
     }
+}
+
+/**
+ * Show the information display window.
+ */
+void 
+GuiManager::processShowInformationDisplayDialog(BrainBrowserWindow* browserWindow)
+{
+    if (this->informationDisplayDialog == NULL) {
+        this->informationDisplayDialog = new InformationDisplayDialog(browserWindow);
+        this->nonModalDialogs.push_back(this->informationDisplayDialog);
+
+        this->informationDisplayDialog->resize(600, 200);
+    }
+    this->informationDisplayDialog->setVisible(true);
+    this->informationDisplayDialog->show();
+    this->informationDisplayDialog->activateWindow();
 }
 
 /**
