@@ -40,6 +40,7 @@
 #include <QLabel>
 #include <QMessageBox>
 #include <QToolButton>
+#include <QVBoxLayout>
 
 #define __OVERLAY_VIEW_CONTROLLER_DECLARE__
 #include "OverlayViewController.h"

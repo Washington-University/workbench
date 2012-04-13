@@ -86,7 +86,7 @@ WuQCollapsibleWidget::WuQCollapsibleWidget(QWidget* parent)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(scrollArea);
-    //layout->addStretch();
+    layout->addStretch();
 }
 
 /**
