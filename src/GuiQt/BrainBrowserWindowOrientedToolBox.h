@@ -2,6 +2,8 @@
 #ifndef __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_H__
 #define __BRAIN_BROWSER_WINDOW_ORIENTED_TOOLBOX_H__
 
+#include <stdint.h>
+
 #include <QDockWidget>
 
 #include "EventListenerInterface.h"
