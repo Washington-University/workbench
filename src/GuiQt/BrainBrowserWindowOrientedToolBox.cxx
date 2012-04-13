@@ -95,19 +95,20 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     if (collapsibleWidget != NULL) {
-        layout->addWidget(collapsibleWidget,
-                          0); // stretch
+        layout->addWidget(collapsibleWidget);
+//0); // stretch
     }
     else if (toolBoxWidget != NULL) {
-        layout->addWidget(toolBoxWidget,
-                          0); // stretch
+        layout->addWidget(toolBoxWidget);
+                    //      0); // stretch
     }
     //layout->addStretch();
     
     this->setWidget(widget);
 
-    this->setMinimumWidth(250);
-    this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    this->setMinimumWidth(325);
+    this->setMaximumWidth(500);
+    //this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
 }
 
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()

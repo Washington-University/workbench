@@ -74,9 +74,12 @@ WuQCollapsibleWidget::WuQCollapsibleWidget(QWidget* parent)
                      this, SLOT(showHideActionGroupTriggered(QAction*)));
     
     
-    QWidget* widget = new QWidget();
-    this->collapsibleLayout = new QVBoxLayout(widget);
+    this->collapsibleLayout = new QVBoxLayout();
     WuQtUtilities::setLayoutMargins(this->collapsibleLayout, 2, 2);
+    QWidget* widget = new QWidget();
+    QVBoxLayout* widgetLayout = new QVBoxLayout(widget);
+    widgetLayout->addLayout(this->collapsibleLayout);
+    widgetLayout->addStretch();
     
     QScrollArea* scrollArea = new QScrollArea();
     scrollArea->setWidgetResizable(true);
@@ -86,7 +89,7 @@ WuQCollapsibleWidget::WuQCollapsibleWidget(QWidget* parent)
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(scrollArea);
-    layout->addStretch();
+    //layout->addStretch(); Using this will result in the widget too small vertically
 }
 
 /**
@@ -103,9 +106,9 @@ WuQCollapsibleWidget::~WuQCollapsibleWidget()
 QSize 
 WuQCollapsibleWidget::sizeHint() const
 {
-    QSize minSize = this->minimumSize();
-    std::cout << "Collapse Min Size: "
-    << minSize.width() << ", " << minSize.width() << std::endl;
+    //QSize minSize = this->minimumSize();
+    //std::cout << "Collapse Min Size: "
+    //<< minSize.width() << ", " << minSize.width() << std::endl;
     
     QSize sz = QWidget::sizeHint();
     sz.setHeight(500);

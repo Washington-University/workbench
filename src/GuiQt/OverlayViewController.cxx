@@ -70,21 +70,15 @@ using namespace caret;
  *
  * @param browserWindowIndex
  *    Index of browser window in which this view controller resides.
- * @param parent
- *    Parent object.  An instance of this should be attached
- *    to a parent, such as a QWidget or one of its subclasses so
- *    so that an instance of this is deleted when the parent is
- *    destroyed.
- * @param gridLayout
- *    Grid layout for the overlay controls.
  * @param showTopHorizontalLine
  *    If true, display a horizontal line above the controls.
+ * @param parent
+ *    The parent widget.
  */
 OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
-                                             QObject* parent,
-                                             QGridLayout* gridLayout,
-                                             const bool showTopHorizontalLine)
-: QObject(parent)
+                                             const bool showTopHorizontalLine,
+                                             QWidget* parent)
+: QWidget(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->overlay = NULL;
@@ -102,6 +96,7 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     verticalLineWidget->setLineWidth(1);
     verticalLineWidget->setMidLineWidth(2);
     verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
+    int comboBoxWidth = 200;
     
     this->enabledCheckBox = new QCheckBox("");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
@@ -109,11 +104,13 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     
     QLabel* fileLabel = new QLabel("File");
     this->fileComboBox = new QComboBox();
+    this->fileComboBox->setMinimumWidth(comboBoxWidth);
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
                      this, SLOT(fileComboBoxSelected(int)));
     
     QLabel* mapLabel = new QLabel("Map");
     this->mapComboBox = new QComboBox();
+    this->mapComboBox->setMinimumWidth(comboBoxWidth);
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
     
@@ -132,6 +129,12 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     QToolButton* settingsToolButton = new QToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
     
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 100);
     int row = gridLayout->rowCount();
     if (topHorizontalLineWidget != NULL) {
         gridLayout->addWidget(topHorizontalLineWidget,
@@ -170,6 +173,8 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
         this->widgetsGroup->add(mapLabel);
         this->widgetsGroup->add(this->mapComboBox);
     }
+    
+    this->setFixedHeight(this->sizeHint().height());
 }
 
 /**
@@ -182,13 +187,13 @@ OverlayViewController::~OverlayViewController()
 
 /**
  * Set the visiblity of this overlay view controller.
- */
+ *
 void 
 OverlayViewController::setVisible(bool visible)
 {
     this->widgetsGroup->setVisible(visible);
 }
-
+*/
 
 /**
  * Called when a selection is made from the file combo box.

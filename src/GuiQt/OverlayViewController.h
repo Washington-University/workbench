@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 
-#include <QObject>
+#include <QWidget>
 
 class QAction;
 class QCheckBox;
@@ -48,19 +48,18 @@ namespace caret {
     class Overlay;
     class WuQWidgetObjectGroup;
     
-    class OverlayViewController : public QObject {
+    class OverlayViewController : public QWidget {
         
         Q_OBJECT
 
     public:
         OverlayViewController(const int32_t browserWindowIndex,
-                              QObject* parent,
-                              QGridLayout* gridLayout,
-                              const bool showTopHorizontalLine);
+                              const bool showTopHorizontalLine,
+                              QWidget* parent = 0);
         
         virtual ~OverlayViewController();
         
-        void setVisible(bool visible);
+        //void setVisible(bool visible);
         
         void updateViewController(Overlay* overlay);
         

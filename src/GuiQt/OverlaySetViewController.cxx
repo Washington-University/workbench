@@ -75,19 +75,10 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
 {
     this->browserWindowIndex = browserWindowIndex;
     
-    QGridLayout* gridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 0);
-    gridLayout->setColumnStretch(2, 0);
-    gridLayout->setColumnStretch(3, 100);
-    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         const bool showTopHorizontalBar = (i > 0);
         
         OverlayViewController* ovc = new OverlayViewController(browserWindowIndex,
-                                                               this,
-                                                               gridLayout,
                                                                showTopHorizontalBar);
         this->overlayViewControllers.push_back(ovc);
     }
@@ -106,7 +97,12 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
     overlayCountLayout->addStretch();
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addLayout(gridLayout);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    for (std::vector<OverlayViewController*>::iterator iter = this->overlayViewControllers.begin();
+         iter != this->overlayViewControllers.end();
+         iter++) {
+        layout->addWidget(*iter);
+    }
     layout->addLayout(overlayCountLayout);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
