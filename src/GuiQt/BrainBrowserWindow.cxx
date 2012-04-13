@@ -118,11 +118,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->toolBox = NULL;
     
-    if (toolBoxType == 1) {
+    if (toolBoxType > 0) {
         this->toolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
-                                                                                              ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                                                              Qt::Horizontal,
-                                                                                              this);
+                                                              ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
+                                                              Qt::Horizontal,
+                                                              this);
         this->addDockWidget(Qt::LeftDockWidgetArea, this->toolBox);
     }
     else {

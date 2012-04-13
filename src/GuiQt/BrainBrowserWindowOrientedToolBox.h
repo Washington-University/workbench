@@ -10,7 +10,6 @@ namespace caret {
     class BorderSelectionViewController;
     class ConnectivityLoaderControl;
     class OverlaySetViewController;
-    class WuQCollapsibleWidget;
     
     class BrainBrowserWindowOrientedToolBox : public QDockWidget, public EventListenerInterface {
         Q_OBJECT
@@ -32,8 +31,6 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
         ConnectivityLoaderControl* createConnectivityWidget(const Qt::Orientation orientation);
-        
-        WuQCollapsibleWidget* collapsibleWidget;
         
         OverlaySetViewController* overlaySetViewController;
         

@@ -4,16 +4,19 @@
 
 #include <QAction>
 #include <QLayout>
+#include <QToolBox>
 
 #include "BorderSelectionViewController.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
+#include "CaretPreferences.h"
 #include "ConnectivityLoaderControl.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
 #include "OverlaySetViewController.h"
+#include "SessionManager.h"
 #include "WuQCollapsibleWidget.h"
 #include "WuQtUtilities.h"
 
@@ -53,19 +56,52 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
+    std::vector<QWidget*> contentWidgets;
+    std::vector<QString> contentWidgetNames;
     
-    this->collapsibleWidget = new WuQCollapsibleWidget(this);
-    this->collapsibleWidget->addWidget(this->overlaySetViewController, 
-                                       "Overlays");
-    this->collapsibleWidget->addWidget(this->borderSelectionViewController,
-                                       "Borders");
-    //this->collapsibleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    contentWidgets.push_back(this->overlaySetViewController);
+    contentWidgetNames.push_back("Overlay");
+    
+    contentWidgets.push_back(this->borderSelectionViewController);
+    contentWidgetNames.push_back("Borders");
+    
+    WuQCollapsibleWidget* collapsibleWidget = NULL;
+    QToolBox* toolBoxWidget = NULL;
+    
+    const int toolBoxType = SessionManager::get()->getCaretPreferences()->getToolBoxType();
+    switch (toolBoxType) {
+        case 2:
+            toolBoxWidget = new QToolBox();
+            break;
+        default:
+            collapsibleWidget = new WuQCollapsibleWidget(this);
+            //this->collapsibleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+            break;
+    }
+    
+    const int32_t numContentWidgets = static_cast<int32_t>(contentWidgets.size());
+    for (int32_t i = 0; i < numContentWidgets; i++) {
+        if (collapsibleWidget != NULL) {
+            collapsibleWidget->addWidget(contentWidgets[i], 
+                                         contentWidgetNames[i]);
+        }
+        else if (toolBoxWidget != NULL) {
+            toolBoxWidget->addItem(contentWidgets[i], 
+                                         contentWidgetNames[i]);
+        }
+    }
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(this->collapsibleWidget,
-                      0); // stretch
+    if (collapsibleWidget != NULL) {
+        layout->addWidget(collapsibleWidget,
+                          0); // stretch
+    }
+    else if (toolBoxWidget != NULL) {
+        layout->addWidget(toolBoxWidget,
+                          0); // stretch
+    }
     //layout->addStretch();
     
     this->setWidget(widget);
