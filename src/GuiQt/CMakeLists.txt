@@ -42,6 +42,8 @@ ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
+ConnectivityLoaderManagerViewController.h
+ConnectivityLoaderViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
@@ -72,6 +74,7 @@ TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+VolumeSurfaceOutlineViewController.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
@@ -113,6 +116,8 @@ ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
+ConnectivityLoaderManagerViewController.h
+ConnectivityLoaderViewController.h
 ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
 CursorEnum.h
@@ -163,6 +168,7 @@ UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+VolumeSurfaceOutlineViewController.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
 WuQDialog.h
@@ -197,6 +203,8 @@ ClassAndNameHierarchySelectedItem.cxx
 ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
+ConnectivityLoaderManagerViewController.cxx
+ConnectivityLoaderViewController.cxx
 ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
@@ -246,6 +254,7 @@ UserInputModeBordersWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
+VolumeSurfaceOutlineViewController.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx
 WuQDialog.cxx
