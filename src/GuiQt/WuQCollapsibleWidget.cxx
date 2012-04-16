@@ -140,10 +140,10 @@ WuQCollapsibleWidget::addItem(QWidget* widget,
     
     QHBoxLayout* controlLayout = new QHBoxLayout();
     WuQtUtilities::setLayoutMargins(controlLayout, 2, 2);
-    controlLayout->addWidget(label);
-    controlLayout->addStretch();
     controlLayout->addWidget(showHideToolButton);
     controlLayout->addSpacing(15);
+    controlLayout->addWidget(label);
+    controlLayout->addStretch();
   
     QFrame* controlFrame = new QFrame();
     controlFrame->setLineWidth(1);
