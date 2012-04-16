@@ -32,7 +32,7 @@
 namespace caret {
 
     class Surface;
-    class VolumeSurfaceOutlineSelection;
+    class VolumeSurfaceOutlineModel;
     
     class DisplayPropertiesVolume : public DisplayProperties {
         
@@ -47,9 +47,9 @@ namespace caret {
         
         static const int32_t MAXIMUM_NUMBER_OF_SURFACE_OUTLINES;
         
-        VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx);
+        VolumeSurfaceOutlineModel* getSurfaceOutlineSelection(const int32_t indx);
         
-        const VolumeSurfaceOutlineSelection* getSurfaceOutlineSelection(const int32_t indx) const;
+        const VolumeSurfaceOutlineModel* getSurfaceOutlineSelection(const int32_t indx) const;
         
         void selectSurfacesAfterSpecFileLoaded(const bool searchForTabs);
         
@@ -65,7 +65,7 @@ namespace caret {
                                const CaretColorEnum::Enum color,
                                int32_t& outlineIndex);
         
-        std::vector<VolumeSurfaceOutlineSelection*> volumeSurfaceOutlineSelections;
+        std::vector<VolumeSurfaceOutlineModel*> volumeSurfaceOutlineModels;
     };
     
 #ifdef __DISPLAY_PROPERTIES_VOLUME_DECLARE__

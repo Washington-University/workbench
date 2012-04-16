@@ -43,7 +43,7 @@
 #include "GuiManager.h"
 #include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
-#include "VolumeSurfaceOutlineSelection.h"
+#include "VolumeSurfaceOutlineModel.h"
 
 using namespace caret;
 
@@ -199,7 +199,7 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-    VolumeSurfaceOutlineSelection* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
+    VolumeSurfaceOutlineModel* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     
     this->selectionCheckBox = new QCheckBox(" ");
@@ -244,7 +244,7 @@ OutlineWidget::applyWidget()
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-    VolumeSurfaceOutlineSelection* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
+    VolumeSurfaceOutlineModel* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     vsos->setDisplayed(this->selectionCheckBox->isChecked());
     vsos->setThickness(this->thicknessSpinBox->value());
@@ -258,7 +258,7 @@ OutlineWidget::updateWidget()
 {
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesVolume* dpv = brain->getDisplayPropertiesVolume();
-    VolumeSurfaceOutlineSelection* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
+    VolumeSurfaceOutlineModel* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     this->selectionCheckBox->setChecked(vsos->isDisplayed());
     this->colorOrTabSelectionControl->updateViewController();

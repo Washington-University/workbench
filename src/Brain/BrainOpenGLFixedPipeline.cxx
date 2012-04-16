@@ -98,7 +98,7 @@
 #include "SurfaceSelectionModel.h"
 #include "VolumeFile.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
-#include "VolumeSurfaceOutlineSelection.h"
+#include "VolumeSurfaceOutlineModel.h"
 
 using namespace caret;
 
@@ -3375,7 +3375,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
     for (int io = 0; 
          io < DisplayPropertiesVolume::MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; 
          io++) {
-        VolumeSurfaceOutlineSelection* outline = dpv->getSurfaceOutlineSelection(io);
+        VolumeSurfaceOutlineModel* outline = dpv->getSurfaceOutlineSelection(io);
         if (outline->isDisplayed()) {
             Surface* surface = outline->getSurface();
             if (surface != NULL) {

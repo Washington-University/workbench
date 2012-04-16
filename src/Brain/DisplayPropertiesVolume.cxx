@@ -40,7 +40,7 @@
 #include "SurfaceSelectionModel.h"
 #include "SurfaceTypeEnum.h"
 #include "VolumeSurfaceOutlineColorOrTabModel.h"
-#include "VolumeSurfaceOutlineSelection.h"
+#include "VolumeSurfaceOutlineModel.h"
 
 using namespace caret;
     
@@ -60,7 +60,7 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
 {
     int32_t colorCounter = 0;
     for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        VolumeSurfaceOutlineSelection* vsos = new VolumeSurfaceOutlineSelection();
+        VolumeSurfaceOutlineModel* vsos = new VolumeSurfaceOutlineModel();
         bool validColor = false;
         CaretColorEnum::Enum color = CaretColorEnum::fromIntegerCode(colorCounter,
                                                                      &validColor);
@@ -70,7 +70,7 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
                                                     &validColor);
         }
         vsos->getColorOrTabModel()->setColor(color);
-        this->volumeSurfaceOutlineSelections.push_back(vsos);
+        this->volumeSurfaceOutlineModels.push_back(vsos);
         colorCounter++;
     }
 }
@@ -81,7 +81,7 @@ DisplayPropertiesVolume::DisplayPropertiesVolume(Brain* brain)
 DisplayPropertiesVolume::~DisplayPropertiesVolume()
 {
     for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        delete this->volumeSurfaceOutlineSelections[i];
+        delete this->volumeSurfaceOutlineModels[i];
     }
 }
 
@@ -110,11 +110,11 @@ DisplayPropertiesVolume::update()
  * @return
  *   Volume surface outline.
  */
-VolumeSurfaceOutlineSelection* 
+VolumeSurfaceOutlineModel* 
 DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx)
 {
-    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
-    return this->volumeSurfaceOutlineSelections[indx];
+    CaretAssertVectorIndex(this->volumeSurfaceOutlineModels, indx);
+    return this->volumeSurfaceOutlineModels[indx];
 }
 
 /**
@@ -124,11 +124,11 @@ DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx)
  * @return
  *   Volume surface outline.
  */
-const VolumeSurfaceOutlineSelection* 
+const VolumeSurfaceOutlineModel* 
 DisplayPropertiesVolume::getSurfaceOutlineSelection(const int32_t indx) const
 {
-    CaretAssertVectorIndex(this->volumeSurfaceOutlineSelections, indx);
-    return this->volumeSurfaceOutlineSelections[indx];
+    CaretAssertVectorIndex(this->volumeSurfaceOutlineModels, indx);
+    return this->volumeSurfaceOutlineModels[indx];
 }
 
 /**
@@ -208,8 +208,8 @@ DisplayPropertiesVolume::selectSurfacesAfterSpecFileLoaded(const bool searchForT
     
     
     for (int32_t i = 0; i < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES; i++) {
-        this->volumeSurfaceOutlineSelections[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
-        this->volumeSurfaceOutlineSelections[i]->setThickness(1);
+        this->volumeSurfaceOutlineModels[i]->getColorOrTabModel()->setColor(CaretColorEnum::BLACK);
+        this->volumeSurfaceOutlineModels[i]->setThickness(1);
     }
 
     int nextOutlineIndex = 0;
@@ -278,7 +278,7 @@ DisplayPropertiesVolume::addSurfaceOutline(Surface* surface,
     if (surface != NULL) {
         if (surface->getSurfaceType() == SurfaceTypeEnum::ANATOMICAL) {
             if (outlineIndex < MAXIMUM_NUMBER_OF_SURFACE_OUTLINES) {
-                VolumeSurfaceOutlineSelection* vsos = this->volumeSurfaceOutlineSelections[outlineIndex];
+                VolumeSurfaceOutlineModel* vsos = this->volumeSurfaceOutlineModels[outlineIndex];
                 vsos->getSurfaceSelectionModel()->setSurface(surface);
                 vsos->setThickness(thickness);
                 if (browserTabIndex >= 0) {
