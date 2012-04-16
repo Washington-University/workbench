@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+
 #include <QVBoxLayout>
 
 #include "WuQtUtilities.h"

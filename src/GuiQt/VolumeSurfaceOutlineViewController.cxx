@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
