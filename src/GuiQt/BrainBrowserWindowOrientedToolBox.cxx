@@ -10,7 +10,7 @@
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
-#include "ConnectivityLoaderControl.h"
+#include "ConnectivityLoaderManagerViewController.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -52,7 +52,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->overlaySetViewController = new OverlaySetViewController(browserWindowIndex,
                                                                   this);    
     
-    //this->connectivityLoaderControl = this->createConnectivityWidget(orientation);
+    this->connectivityViewController = this->createConnectivityWidget(orientation);
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
@@ -61,6 +61,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     contentWidgets.push_back(this->overlaySetViewController);
     contentWidgetNames.push_back("Overlay");
+    
+    contentWidgets.push_back(this->connectivityViewController);
+    contentWidgetNames.push_back("Connectivity");
     
     contentWidgets.push_back(this->borderSelectionViewController);
     contentWidgetNames.push_back("Borders");
@@ -116,10 +119,10 @@ BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
     EventManager::get()->removeAllEventsFromListener(this);
 }
 
-ConnectivityLoaderControl* 
+ConnectivityLoaderManagerViewController* 
 BrainBrowserWindowOrientedToolBox::createConnectivityWidget(const Qt::Orientation orientation)
 {
-    ConnectivityLoaderControl* clc = new ConnectivityLoaderControl(orientation);
+    ConnectivityLoaderManagerViewController* clc = new ConnectivityLoaderManagerViewController();
     return clc;
 /*
     QWidget* w = new QWidget();

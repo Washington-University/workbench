@@ -36,6 +36,7 @@ class QIcon;
 class QKeySequence;
 class QLayout;
 class QObject;
+class QPixmap;
 class QPushButton;
 class QString;
 class QWidget;

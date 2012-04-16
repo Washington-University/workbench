@@ -36,6 +36,18 @@
 #include "ConnectivityLoaderViewController.h"
 #undef __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
 
+#include <QAction>
+#include <QCheckBox>
+#include <QFrame>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QToolButton>
+#include <QSpinBox>
+
+#include "WuQtUtilities.h"
+
 using namespace caret;
 
 
@@ -48,10 +60,82 @@ using namespace caret;
 /**
  * Constructor.
  */
-ConnectivityLoaderViewController::ConnectivityLoaderViewController(QWidget* parent)
+ConnectivityLoaderViewController::ConnectivityLoaderViewController(const bool showTopHorizontalLine,
+                                                                   QWidget* parent)
 : QWidget(parent)
 {
+    QFrame* topHorizontalLineWidget = NULL;
+    if (showTopHorizontalLine) {
+        topHorizontalLineWidget = new QFrame();
+        topHorizontalLineWidget->setLineWidth(1);
+        topHorizontalLineWidget->setMidLineWidth(2);
+        topHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Plain);
+        
+    }
+    this->enabledCheckBox = new QCheckBox(" ");
+    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(enabledCheckBoxStateChanged(int)));
     
+    QLabel* fileNameLabel = new QLabel("File");
+    this->fileNameLineEdit = new QLineEdit("                 ");
+    
+    this->openAction = WuQtUtilities::createAction("Open...",
+                                                      "Open a Connectivity File",
+                                                      this,
+                                                      this,
+                                                      SLOT(openActionTriggered()));
+    
+    QToolButton* openToolButton = new QToolButton();
+    openToolButton->setDefaultAction(openAction);
+    
+    this->graphCheckBox = new QCheckBox("Graph");
+    QObject::connect(this->graphCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(graphCheckBoxStateChanged(int)));
+    
+    QLabel* timePointLabel = new QLabel("Timepoint: ");
+    this->timePointSpinBox = new QSpinBox();
+    
+    QAction* animateAction = WuQtUtilities::createAction("Animate",
+                                                         "Animate though time-series",
+                                                         this,
+                                                         this,
+                                                         SLOT(animateActionTriggered()));
+    QToolButton* animateToolButton = new QToolButton();
+    animateToolButton->setDefaultAction(animateAction);
+    
+    QFrame* verticalLineWidget = new QFrame();
+    verticalLineWidget->setLineWidth(1);
+    verticalLineWidget->setMidLineWidth(2);
+    verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
+    
+    QHBoxLayout* rowTwoLayout = new QHBoxLayout();
+    WuQtUtilities::setLayoutMargins(rowTwoLayout, 4, 2);
+    rowTwoLayout->addWidget(openToolButton);
+    rowTwoLayout->addWidget(animateToolButton);
+    rowTwoLayout->addWidget(timePointLabel);
+    rowTwoLayout->addWidget(this->timePointSpinBox);
+    rowTwoLayout->addWidget(this->graphCheckBox);
+    rowTwoLayout->addStretch();
+    
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 100);
+    
+    int row = gridLayout->rowCount();
+    if (topHorizontalLineWidget != NULL) {
+        gridLayout->addWidget(topHorizontalLineWidget,
+                              row, 0, 1, 4);
+    }
+    row = gridLayout->rowCount();
+    gridLayout->addWidget(this->enabledCheckBox, row, 0);
+    gridLayout->addWidget(verticalLineWidget, row, 1, 2, 1);
+    gridLayout->addWidget(fileNameLabel, row, 2);
+    gridLayout->addWidget(this->fileNameLineEdit, row, 3);
+    row = gridLayout->rowCount();
+    gridLayout->addLayout(rowTwoLayout, row, 3);
 }
 
 /**
@@ -61,4 +145,52 @@ ConnectivityLoaderViewController::~ConnectivityLoaderViewController()
 {
     
 }
+
+/**
+ * Update this view controller.
+ * @param connectivityLoaderFile
+ *    Connectivity loader file in this view controller.
+ */
+void 
+ConnectivityLoaderViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
+{
+    
+}
+
+/**
+ * Called when animate button is pressed.
+ */
+void
+ConnectivityLoaderViewController::animateActionTriggered()
+{
+    
+}
+
+/**
+ * Called when open button clicked.
+ */
+void 
+ConnectivityLoaderViewController::openActionTriggered()
+{
+    
+}
+
+/**
+ * Called when enabled check box changes state.
+ */
+void 
+ConnectivityLoaderViewController::enabledCheckBoxStateChanged(int state)
+{
+    
+}
+
+/**
+ * Called when graph check box state changes.
+ */
+void 
+ConnectivityLoaderViewController::graphCheckBoxStateChanged(int state)
+{
+    
+}
+
 

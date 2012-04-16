@@ -37,24 +37,55 @@
 
 #include <QWidget>
 
+class QAction;
+class QCheckBox;
+class QLineEdit;
+class QSpinBox;
+
 namespace caret {
 
+    class ConnectivityLoaderFile;
+    class WuQWidgetObjectGroup;
+    
     class ConnectivityLoaderViewController : public QWidget {
         
         Q_OBJECT
 
     public:
-        ConnectivityLoaderViewController(QWidget* parent = 0);
+        ConnectivityLoaderViewController(const bool showTopHorizontalBar,
+                                         QWidget* parent = 0);
         
         virtual ~ConnectivityLoaderViewController();
+        
+        void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
+        
+    private slots:
+        void animateActionTriggered();
+        
+        void openActionTriggered();
+        
+        void enabledCheckBoxStateChanged(int);
+
+        void graphCheckBoxStateChanged(int);
         
     private:
         ConnectivityLoaderViewController(const ConnectivityLoaderViewController&);
 
         ConnectivityLoaderViewController& operator=(const ConnectivityLoaderViewController&);
         
-    public:
-    private:
+        QAction* animateAction;
+
+        QAction* openAction;
+        
+        QCheckBox* enabledCheckBox;
+        
+        QCheckBox* graphCheckBox;
+        
+        QLineEdit* fileNameLineEdit;
+        
+        QSpinBox* timePointSpinBox;
+        
+        WuQWidgetObjectGroup* widgetsGroup;
     };
     
 #ifdef __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__

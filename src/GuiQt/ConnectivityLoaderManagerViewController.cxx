@@ -32,9 +32,15 @@
  */
 /*LICENSE_END*/
 
+#include <QVBoxLayout>
+
+#include "WuQtUtilities.h"
+
 #define __CONNECTIVITY_LOADER_MANAGER_VIEW_CONTROLLER_DECLARE__
 #include "ConnectivityLoaderManagerViewController.h"
 #undef __CONNECTIVITY_LOADER_MANAGER_VIEW_CONTROLLER_DECLARE__
+
+#include "ConnectivityLoaderViewController.h"
 
 using namespace caret;
 
@@ -51,7 +57,21 @@ using namespace caret;
 ConnectivityLoaderManagerViewController::ConnectivityLoaderManagerViewController(QWidget* parent)
 : QWidget(parent)
 {
+    for (int32_t i = 0; i < 3; i++) {
+        const bool showTopHorizontalBar = (i > 0);
+        
+        ConnectivityLoaderViewController* clvc = 
+            new ConnectivityLoaderViewController(showTopHorizontalBar);
+        this->loaderViewControllers.push_back(clvc);
+    }
     
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    WuQtUtilities::setLayoutMargins(layout, 2, 2);
+    for (std::vector<ConnectivityLoaderViewController*>::iterator iter = this->loaderViewControllers.begin();
+         iter != this->loaderViewControllers.end();
+         iter++) {
+        layout->addWidget(*iter);
+    }
 }
 
 /**

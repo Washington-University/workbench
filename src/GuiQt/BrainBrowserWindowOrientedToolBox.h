@@ -10,7 +10,7 @@
 
 namespace caret {
     class BorderSelectionViewController;
-    class ConnectivityLoaderControl;
+    class ConnectivityLoaderManagerViewController;
     class OverlaySetViewController;
     
     class BrainBrowserWindowOrientedToolBox : public QDockWidget, public EventListenerInterface {
@@ -30,13 +30,13 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
-        ConnectivityLoaderControl* createConnectivityWidget(const Qt::Orientation orientation);
+        ConnectivityLoaderManagerViewController* createConnectivityWidget(const Qt::Orientation orientation);
         
         OverlaySetViewController* overlaySetViewController;
         
         BorderSelectionViewController* borderSelectionViewController;
         
-        ConnectivityLoaderControl* connectivityLoaderControl;
+        ConnectivityLoaderManagerViewController* connectivityViewController;
         
         int32_t browserWindowIndex;
     };    

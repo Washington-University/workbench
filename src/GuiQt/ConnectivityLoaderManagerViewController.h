@@ -39,6 +39,9 @@
 
 namespace caret {
 
+    class ConnectivityLoaderManager;
+    class ConnectivityLoaderViewController;
+    
     class ConnectivityLoaderManagerViewController : public QWidget {
         
         Q_OBJECT
@@ -53,8 +56,7 @@ namespace caret {
 
         ConnectivityLoaderManagerViewController& operator=(const ConnectivityLoaderManagerViewController&);
         
-    public:
-    private:
+        std::vector<ConnectivityLoaderViewController*> loaderViewControllers;
     };
     
 #ifdef __CONNECTIVITY_LOADER_MANAGER_VIEW_CONTROLLER_DECLARE__
