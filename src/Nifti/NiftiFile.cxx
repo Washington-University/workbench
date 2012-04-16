@@ -442,7 +442,6 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     {
         vol.m_extensions.push_back(m_extensions[i]);
     }
-
     matrix.getVolume(vol);
 }
 

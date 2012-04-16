@@ -179,6 +179,7 @@ protected:
     NiftiMatrix matrix;
     std::vector<CaretPointer<NiftiAbstractVolumeExtension> > m_extensions;
     bool newFile;
+    VolumeBase *m_vol;
 };
 
 
