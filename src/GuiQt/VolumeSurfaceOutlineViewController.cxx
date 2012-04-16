@@ -32,9 +32,19 @@
  */
 /*LICENSE_END*/
 
+#include <QCheckBox>
+#include <QComboBox>
+#include <QDoubleSpinBox>
+#include <QGridLayout>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+
 #define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
 #include "VolumeSurfaceOutlineViewController.h"
 #undef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+
+#include "VolumeSurfaceOutlineColorOrTabViewController.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -42,17 +52,48 @@ using namespace caret;
     
 /**
  * \class caret::VolumeSurfaceOutlineViewController 
- * \brief <REPLACE-WITH-ONE-LINE-DESCRIPTION>
+ * \brief View controller for volume surface outline
  *
- * <REPLACE-WITH-THOROUGH DESCRIPTION>
  */
 /**
  * Constructor.
  */
-VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController()
-: QWidget()
+VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(QWidget* parent)
+: QWidget(parent)
 {
+    QGridLayout* gridLayout = new QGridLayout(this);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 100);
     
+    for (int32_t i = 0; i < 10; i++) {
+        QCheckBox* enabledCheckBox = new QCheckBox(" ");
+        
+        //VolumeSurfaceOutlineColorOrTabViewController* vsoc = new VolumeSurfaceOutlineColorOrTabViewController(parentPage,
+        //                                                                                    vsos->getColorOrTabModel());
+        
+        QComboBox* surfaceComboBox = new QComboBox();
+        surfaceComboBox->addItem("Surface");
+        QComboBox* colorComboBox = new QComboBox();
+        colorComboBox->addItem("Color");
+        
+        const float minLineWidth = 0.5;
+        const float maxLineWidth = 100.0;
+        const float stepSize = 0.5;
+        QDoubleSpinBox* thicknessSpinBox = new QDoubleSpinBox();
+        thicknessSpinBox->setRange(minLineWidth, 
+                                         maxLineWidth);
+        thicknessSpinBox->setSingleStep(stepSize);
+        thicknessSpinBox->setFixedWidth(100);
+        
+        int row = gridLayout->rowCount();
+        gridLayout->addWidget(enabledCheckBox, row, 0);
+        gridLayout->addWidget(surfaceComboBox, row, 1, 1, 2);
+        row = gridLayout->rowCount();
+        gridLayout->addWidget(colorComboBox, row, 1);        
+        gridLayout->addWidget(thicknessSpinBox, row, 2, Qt::AlignLeft);
+    }
 }
 
 /**

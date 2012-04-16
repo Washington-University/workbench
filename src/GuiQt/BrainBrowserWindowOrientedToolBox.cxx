@@ -17,6 +17,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "OverlaySetViewController.h"
 #include "SessionManager.h"
+#include "VolumeSurfaceOutlineViewController.h"
 #include "WuQCollapsibleWidget.h"
 #include "WuQtUtilities.h"
 
@@ -56,6 +57,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
+    
+    this->volumeSurfaceOutlineViewController = new VolumeSurfaceOutlineViewController(this);
+    
     std::vector<QWidget*> contentWidgets;
     std::vector<QString> contentWidgetNames;
     
@@ -67,6 +71,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     contentWidgets.push_back(this->borderSelectionViewController);
     contentWidgetNames.push_back("Borders");
+    
+    contentWidgets.push_back(this->volumeSurfaceOutlineViewController);
+    contentWidgetNames.push_back("Volume Surface Outline");
     
     WuQCollapsibleWidget* collapsibleWidget = NULL;
     QToolBox* toolBoxWidget = NULL;

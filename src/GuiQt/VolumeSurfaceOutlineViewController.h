@@ -44,7 +44,7 @@ namespace caret {
         Q_OBJECT
 
     public:
-        VolumeSurfaceOutlineViewController();
+        VolumeSurfaceOutlineViewController(QWidget* parent);
         
         virtual ~VolumeSurfaceOutlineViewController();
         

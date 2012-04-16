@@ -12,6 +12,7 @@ namespace caret {
     class BorderSelectionViewController;
     class ConnectivityLoaderManagerViewController;
     class OverlaySetViewController;
+    class VolumeSurfaceOutlineViewController;
     
     class BrainBrowserWindowOrientedToolBox : public QDockWidget, public EventListenerInterface {
         Q_OBJECT
@@ -37,6 +38,8 @@ namespace caret {
         BorderSelectionViewController* borderSelectionViewController;
         
         ConnectivityLoaderManagerViewController* connectivityViewController;
+        
+        VolumeSurfaceOutlineViewController* volumeSurfaceOutlineViewController;
         
         int32_t browserWindowIndex;
     };    
