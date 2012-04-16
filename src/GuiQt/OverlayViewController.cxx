@@ -96,7 +96,8 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     verticalLineWidget->setLineWidth(1);
     verticalLineWidget->setMidLineWidth(2);
     verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
-    int comboBoxWidth = 200;
+    int minComboBoxWidth = 200;
+    int maxComboBoxWidth = 400;
     
     this->enabledCheckBox = new QCheckBox("");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
@@ -104,13 +105,15 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     
     QLabel* fileLabel = new QLabel("File");
     this->fileComboBox = new QComboBox();
-    this->fileComboBox->setMinimumWidth(comboBoxWidth);
+    this->fileComboBox->setMinimumWidth(minComboBoxWidth);
+    this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
                      this, SLOT(fileComboBoxSelected(int)));
     
     QLabel* mapLabel = new QLabel("Map");
     this->mapComboBox = new QComboBox();
-    this->mapComboBox->setMinimumWidth(comboBoxWidth);
+    this->mapComboBox->setMinimumWidth(minComboBoxWidth);
+    this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
     

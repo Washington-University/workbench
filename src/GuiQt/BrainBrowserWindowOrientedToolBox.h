@@ -26,8 +26,6 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
-        virtual QSize sizeHint() const;
-        
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);

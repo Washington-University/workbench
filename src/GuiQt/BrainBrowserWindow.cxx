@@ -1690,6 +1690,10 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindow::shrinkToolbox()
 {
+    if (dynamic_cast<BrainBrowserWindowOrientedToolBox*>(this->toolBox) != NULL) {
+        return;
+    }
+    
     if (this->toolBox->isFloating() == false) {
         switch (this->dockWidgetArea(this->toolBox)) {
             case Qt::LeftDockWidgetArea:

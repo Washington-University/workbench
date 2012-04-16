@@ -96,37 +96,24 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     if (collapsibleWidget != NULL) {
         layout->addWidget(collapsibleWidget);
-//0); // stretch
     }
     else if (toolBoxWidget != NULL) {
         layout->addWidget(toolBoxWidget);
-                    //      0); // stretch
     }
-    //layout->addStretch();
     
     this->setWidget(widget);
 
-    this->setMinimumWidth(325);
-    this->setMaximumWidth(500);
-    //this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
+    this->setMinimumWidth(300);
+    this->setMaximumWidth(800);
+//    this->setMinimumWidth(325);
+//    this->setMaximumWidth(600);
+//    this->setSizePolicy(QSizePolicy::Minimum,
+//                          QSizePolicy::MinimumExpanding);
 }
 
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-}
-
-/**
- * @return The recommended size for this widget.
- */
-QSize 
-BrainBrowserWindowOrientedToolBox::sizeHint() const
-{
-    std::cout << "Tool box minimum size: "
-    << this->minimumWidth() << ", " << this->minimumHeight() << std::endl;
-    QSize sz = QWidget::sizeHint();
-    sz.setHeight(500);
-    return sz;
 }
 
 ConnectivityLoaderControl* 
