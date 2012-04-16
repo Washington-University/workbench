@@ -27,7 +27,6 @@
 
 #include <vector>
 #include "AbstractAlgorithm.h"
-#include "CaretPointer.h"
 
 namespace caret {
     
@@ -39,8 +38,7 @@ namespace caret {
         struct CacheRow
         {
             int m_ciftiIndex;
-            bool m_haveSubtracted;
-            CaretArray<float> m_row;
+            std::vector<float> m_row;
         };
         struct RowInfo
         {
@@ -55,18 +53,19 @@ namespace caret {
         };
         std::vector<CacheRow> m_rowCache;
         std::vector<RowInfo> m_rowInfo;
-        std::vector<CaretArray<float> > m_tempRows;//reuse return values in getRow instead of reallocating
+        std::vector<std::vector<float> > m_tempRows;//reuse return values in getRow instead of reallocating
         std::vector<float> m_weights;
         std::vector<int> m_weightIndexes;
         bool m_binaryWeights, m_weightedMode;
-        int m_tempRowPos;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
         void cacheRow(const int& ciftiIndex);
+        void computeRowStats(const float* row, float& mean, float& rootResidSqr);
+        void doSubtract(float* row, const float& mean);
         void clearCache();
-        CaretArray<float> getRow(const int& ciftiIndex, float& rootResidSqr);
-        CaretArray<float> getTempRow();
+        const float* getRow(const int& ciftiIndex, float& rootResidSqr, const bool& mustBeCached = false);
+        float* getTempRow();
         float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2, const bool& fisherZ);
         void init(const CiftiFile* input, const std::vector<float>* weights);
         int numRowsForMem(const float& memLimitGB, bool& cacheFullInput);
