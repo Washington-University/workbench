@@ -28,6 +28,7 @@
 #include <iosfwd>
 
 #include <QSize>
+#include <QString>
 
 class QAction;
 class QBoxLayout;
@@ -122,6 +123,9 @@ namespace caret {
         static QSize getMinimumScreenSize();
         
         static bool isSmallDisplay();
+        
+        static QString getLayoutContentDescription(QLayout* layout);
+        
         
     private:
         WuQtUtilities();

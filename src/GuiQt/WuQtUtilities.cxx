@@ -22,6 +22,7 @@
 ****************************************************************************/
 
 #include <limits>
+#include <typeinfo>
 
 #include <QAction>
 #include <QApplication>
@@ -589,6 +590,43 @@ WuQtUtilities::isSmallDisplay()
     }
     
     return false;
+}
+
+/**
+ * Get a String containing information about a layout' content.
+ * @param layout
+ *    The layout
+ * @return 
+ *    String with info.
+ */
+QString
+WuQtUtilities::getLayoutContentDescription(QLayout* layout)
+{
+    QString s;
+    s.reserve(25000);
+    
+    s += ("Layout  type : "
+          + QString(typeid(*layout).name())
+          + "\n");
+    
+    const int itemCount = layout->count();
+    for (int32_t i = 0; i < itemCount; i++) {
+        s += "   ";
+        QLayoutItem* layoutItem = layout->itemAt(i);
+        QLayout* layout = layoutItem->layout();
+        if (layout != NULL) {
+            s += QString(typeid(*layout).name());
+        }
+        QWidget* widget = layoutItem->widget();
+        if (widget != NULL) {
+            s += QString(typeid(*widget).name());
+        }
+        QSpacerItem* spacerItem = layoutItem->spacerItem();
+        if (spacerItem != NULL) {
+            s += "QSpacerItem";
+        }
+    }
+    return s;
 }
 
 
