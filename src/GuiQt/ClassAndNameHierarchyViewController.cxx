@@ -76,6 +76,7 @@ ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const i
 {
     this->browserWindowIndex = browserWindowIndex;
     this->treeWidget = new WuQTreeWidget();
+    this->treeWidget->setStyleSheet("background-color: rgba(125,125,125,0)");
     this->treeWidget->setColumnCount(1);
     QObject::connect(this->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
                      this, SLOT(treeWidgetItemChanged(QTreeWidgetItem*,int)));
