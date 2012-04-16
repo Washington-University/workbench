@@ -75,7 +75,8 @@ using namespace caret;
  * @param parent
  *    The parent widget.
  */
-OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
+OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
+                                             const int32_t browserWindowIndex,
                                              const bool showTopHorizontalLine,
                                              QWidget* parent)
 : QWidget(parent)
@@ -132,38 +133,43 @@ OverlayViewController::OverlayViewController(const int32_t browserWindowIndex,
     QToolButton* settingsToolButton = new QToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
     
-    QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 0);
-    gridLayout->setColumnStretch(2, 0);
-    gridLayout->setColumnStretch(3, 100);
-    int row = gridLayout->rowCount();
-    if (topHorizontalLineWidget != NULL) {
-        gridLayout->addWidget(topHorizontalLineWidget,
-                              row, 0, 1, 4);
-    }
+    if (orientation == Qt::Horizontal) {
         
-    row++;
-    gridLayout->addWidget(this->enabledCheckBox,
-                          row, 0,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(fileLabel,
-                          row, 2);
-    gridLayout->addWidget(this->fileComboBox,
-                          row, 3);
-    
-    gridLayout->addWidget(verticalLineWidget,
-                          row, 1, 2, 1);
-    
-    row++;
-    gridLayout->addWidget(settingsToolButton,
-                          row, 0,
-                          Qt::AlignHCenter);
-    gridLayout->addWidget(mapLabel,
-                          row, 2);
-    gridLayout->addWidget(this->mapComboBox,
-                          row, 3);
+    }
+    else {
+        QGridLayout* gridLayout = new QGridLayout(this);
+        WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+        gridLayout->setColumnStretch(0, 0);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 0);
+        gridLayout->setColumnStretch(3, 100);
+        int row = gridLayout->rowCount();
+        if (topHorizontalLineWidget != NULL) {
+            gridLayout->addWidget(topHorizontalLineWidget,
+                                  row, 0, 1, 4);
+        }
+        
+        row++;
+        gridLayout->addWidget(this->enabledCheckBox,
+                              row, 0,
+                              Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel,
+                              row, 2);
+        gridLayout->addWidget(this->fileComboBox,
+                              row, 3);
+        
+        gridLayout->addWidget(verticalLineWidget,
+                              row, 1, 2, 1);
+        
+        row++;
+        gridLayout->addWidget(settingsToolButton,
+                              row, 0,
+                              Qt::AlignHCenter);
+        gridLayout->addWidget(mapLabel,
+                              row, 2);
+        gridLayout->addWidget(this->mapComboBox,
+                              row, 3);
+    }
     
     this->widgetsGroup = new WuQWidgetObjectGroup(this);
     if (topHorizontalLineWidget != NULL) {

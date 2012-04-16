@@ -54,7 +54,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        OverlaySetViewController(const int32_t browserWindowIndex,
+        OverlaySetViewController(const Qt::Orientation orientation,
+                                 const int32_t browserWindowIndex,
                                  QWidget* parent = 0);
         
         virtual ~OverlaySetViewController();

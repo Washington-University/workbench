@@ -66,10 +66,16 @@ using namespace caret;
 
 /**
  * Constructor.
+ *
+ * @param orientation
+ *    Orientation for layout
+ * @param browserWindowIndex
+ *    Index of browser window that contains this view controller.
  * @param parent
  *    Parent widget.
  */
-OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIndex,
+OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orientation,
+                                                   const int32_t browserWindowIndex,
                                                    QWidget* parent)
 : QWidget(parent)
 {
@@ -78,7 +84,8 @@ OverlaySetViewController::OverlaySetViewController(const int32_t browserWindowIn
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         const bool showTopHorizontalBar = (i > 0);
         
-        OverlayViewController* ovc = new OverlayViewController(browserWindowIndex,
+        OverlayViewController* ovc = new OverlayViewController(orientation,
+                                                               browserWindowIndex,
                                                                showTopHorizontalBar);
         this->overlayViewControllers.push_back(ovc);
     }

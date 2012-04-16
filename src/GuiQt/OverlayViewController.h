@@ -53,7 +53,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        OverlayViewController(const int32_t browserWindowIndex,
+        OverlayViewController(const Qt::Orientation orientation,
+                              const int32_t browserWindowIndex,
                               const bool showTopHorizontalLine,
                               QWidget* parent = 0);
         

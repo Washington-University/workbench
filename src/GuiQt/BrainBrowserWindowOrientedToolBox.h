@@ -31,8 +31,6 @@ namespace caret {
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
-        ConnectivityLoaderManagerViewController* createConnectivityWidget(const Qt::Orientation orientation);
-        
         OverlaySetViewController* overlaySetViewController;
         
         BorderSelectionViewController* borderSelectionViewController;

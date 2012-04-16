@@ -50,10 +50,12 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->toggleViewAction()->setText("Toolbox");
     this->setWindowTitle(title);
     
-    this->overlaySetViewController = new OverlaySetViewController(browserWindowIndex,
+    
+    this->overlaySetViewController = new OverlaySetViewController(orientation,
+                                                                  browserWindowIndex,
                                                                   this);    
     
-    this->connectivityViewController = this->createConnectivityWidget(orientation);
+    this->connectivityViewController = new ConnectivityLoaderManagerViewController();
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
@@ -124,20 +126,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-}
-
-ConnectivityLoaderManagerViewController* 
-BrainBrowserWindowOrientedToolBox::createConnectivityWidget(const Qt::Orientation orientation)
-{
-    ConnectivityLoaderManagerViewController* clc = new ConnectivityLoaderManagerViewController();
-    return clc;
-/*
-    QWidget* w = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(w);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(this->connectivityLoaderControl);
-    return w;
-*/
 }
 
 /**
