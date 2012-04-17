@@ -229,7 +229,7 @@ float FastStatistics::getApproxNegativePercentile(const float& percent) const
     } else {
         curLower = 0;
     }
-    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || cumulative[highBound - 1] == cumulative[highBound - 2]))
+    if (highBound > 0 && ((highBound == 1 && cumulative[0] == 0) || (highBound > 1 && cumulative[highBound - 1] == cumulative[highBound - 2])))
     {//tweak the function a bit if there is a bin that collected zero to the immediate left, to reduce discontinuities
         if (rank - curLower >= 1.0f)
         {
