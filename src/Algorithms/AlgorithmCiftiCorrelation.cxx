@@ -169,7 +169,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     newXML.applyColumnMapToRows();
     myCiftiOut->setCiftiXML(newXML);
     int numCacheRows;
-    bool cacheFullInput;
+    bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
         numCacheRows = numRowsForMem(memLimitGB, cacheFullInput);
@@ -285,7 +285,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         }
         if (myRoi != NULL)
         {
-            if (myRoi->getNumberOfNodes() != origXML.getRowSurfaceNumberOfNodes(surfList[i]))
+            if (myRoi->getNumberOfNodes() != origXML.getColumnSurfaceNumberOfNodes(surfList[i]))
             {
                 throw AlgorithmException("surface roi has the wrong number of nodes for structure " + StructureEnum::toName(surfList[i]));
             }
@@ -345,7 +345,7 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
     myCiftiOut->setCiftiXML(newXML);
     int numSelected = (int)ciftiIndexList.size(), numRows = myCifti->getNumberOfRows();
     int numCacheRows;
-    bool cacheFullInput;
+    bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
         numCacheRows = numRowsForMem(memLimitGB, cacheFullInput);

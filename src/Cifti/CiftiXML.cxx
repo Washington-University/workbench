@@ -917,6 +917,8 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
     } else {
         tempModel.m_nodeIndices = nodeList;
     }
+    myMap->m_brainModels.push_back(tempModel);
+    myMap->m_brainModels.back().setupLookup();
     return true;
 }
 
