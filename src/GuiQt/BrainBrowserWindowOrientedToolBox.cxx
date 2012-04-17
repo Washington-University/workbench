@@ -55,7 +55,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                   browserWindowIndex,
                                                                   this);    
     
-    this->connectivityViewController = new ConnectivityLoaderManagerViewController();
+    this->connectivityViewController = NULL;
+//    this->connectivityViewController = new ConnectivityLoaderManagerViewController(orientation);
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
@@ -69,8 +70,10 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     contentWidgets.push_back(this->overlaySetViewController);
     contentWidgetNames.push_back("Overlay");
     
-    contentWidgets.push_back(this->connectivityViewController);
-    contentWidgetNames.push_back("Connectivity");
+    if (this->connectivityViewController != NULL) {
+        contentWidgets.push_back(this->connectivityViewController);
+        contentWidgetNames.push_back("Connectivity");
+    }
     
     contentWidgets.push_back(this->borderSelectionViewController);
     contentWidgetNames.push_back("Borders");

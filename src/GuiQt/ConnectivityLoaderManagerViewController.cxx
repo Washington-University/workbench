@@ -56,24 +56,30 @@ using namespace caret;
 /**
  * Constructor.
  */
-ConnectivityLoaderManagerViewController::ConnectivityLoaderManagerViewController(QWidget* parent)
+ConnectivityLoaderManagerViewController::ConnectivityLoaderManagerViewController(const Qt::Orientation orientation,
+                                                                                 QWidget* parent)
 : QWidget(parent)
 {
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 0);
+    gridLayout->setColumnStretch(2, 0);
+    gridLayout->setColumnStretch(3, 100);
+    
     for (int32_t i = 0; i < 3; i++) {
         const bool showTopHorizontalBar = (i > 0);
         
         ConnectivityLoaderViewController* clvc = 
-            new ConnectivityLoaderViewController(showTopHorizontalBar);
+            new ConnectivityLoaderViewController(orientation,
+                                                 gridLayout,
+                                                 showTopHorizontalBar,
+                                                 this);
         this->loaderViewControllers.push_back(clvc);
     }
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
-    for (std::vector<ConnectivityLoaderViewController*>::iterator iter = this->loaderViewControllers.begin();
-         iter != this->loaderViewControllers.end();
-         iter++) {
-        layout->addWidget(*iter);
-    }
+    layout->addLayout(gridLayout);
 }
 
 /**

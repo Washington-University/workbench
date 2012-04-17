@@ -47,7 +47,8 @@ namespace caret {
         Q_OBJECT
 
     public:
-        ConnectivityLoaderManagerViewController(QWidget* parent = 0);
+        ConnectivityLoaderManagerViewController(const Qt::Orientation orientation,
+                                                QWidget* parent = 0);
         
         virtual ~ConnectivityLoaderManagerViewController();
         

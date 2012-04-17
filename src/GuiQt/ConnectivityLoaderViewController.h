@@ -34,62 +34,72 @@
  */
 /*LICENSE_END*/
 
+#include <set>
 
-#include <QWidget>
+#include <QObject>
 
 class QAction;
 class QCheckBox;
+class QGridLayout;
 class QLineEdit;
 class QSpinBox;
 
 namespace caret {
 
     class ConnectivityLoaderFile;
-    class WuQWidgetObjectGroup;
+    class WuQGridLayoutGroup;
     
-    class ConnectivityLoaderViewController : public QWidget {
+    class ConnectivityLoaderViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        ConnectivityLoaderViewController(const bool showTopHorizontalBar,
-                                         QWidget* parent = 0);
+        ConnectivityLoaderViewController(const Qt::Orientation orientation,
+                                         QGridLayout* gridLayout,
+                                         const bool showTopHorizontalBar,
+                                         QObject* parent);
         
         virtual ~ConnectivityLoaderViewController();
         
         void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
         
-    private slots:
-        void animateActionTriggered();
+        void setVisible(bool visible);
         
-        void openActionTriggered();
+    private slots:
+        void openFileActionTriggered();
+
+        void openWebActionTriggered();
         
         void enabledCheckBoxStateChanged(int);
 
-        void graphCheckBoxStateChanged(int);
-        
     private:
         ConnectivityLoaderViewController(const ConnectivityLoaderViewController&);
 
         ConnectivityLoaderViewController& operator=(const ConnectivityLoaderViewController&);
         
-        QAction* animateAction;
-
-        QAction* openAction;
+        void updateUserInterfaceAndGraphicsWindow();
+        
+        void updateOtherConnectivityViewControllers();
+        
+        void updateViewController();
+        
+        ConnectivityLoaderFile* connectivityLoaderFile;
+        
+        QAction* openFileAction;
+        
+        QAction* openWebAction;
         
         QCheckBox* enabledCheckBox;
         
-        QCheckBox* graphCheckBox;
-        
         QLineEdit* fileNameLineEdit;
         
-        QSpinBox* timePointSpinBox;
+        WuQGridLayoutGroup* gridLayoutGroup;
         
-        WuQWidgetObjectGroup* widgetsGroup;
+        static std::set<ConnectivityLoaderViewController*> allConnectivityViewControllers;
     };
     
 #ifdef __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    std::set<ConnectivityLoaderViewController*> ConnectivityLoaderViewController::allConnectivityViewControllers;
 #endif // __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
