@@ -100,9 +100,9 @@ class NiftiFile
     friend class NiftiFileTest;
 public:
     /// Constructor
-    NiftiFile() throw (NiftiException);
+    NiftiFile(bool usingVolume = false) throw (NiftiException);
     /// Constructor
-    NiftiFile(const AString &fileName) throw (NiftiException);
+    NiftiFile(const AString &fileName, bool usingVolume = false) throw (NiftiException);
     /// Open the Nifti File
     virtual void openFile(const AString &fileName) throw (NiftiException);
     /// Write the Nifti File
@@ -180,6 +180,7 @@ protected:
     std::vector<CaretPointer<NiftiAbstractVolumeExtension> > m_extensions;
     bool newFile;
     VolumeBase *m_vol;
+    bool m_usingVolume;
 };
 
 

@@ -111,7 +111,7 @@ VolumeFile::~VolumeFile()
 void VolumeFile::readFile(const AString& filename) throw (DataFileException)
 {
     try {
-        NiftiFile myNifti;
+        NiftiFile myNifti(true);
         this->setFileName(filename);
         myNifti.readVolumeFile(*this, filename);
         parseExtensions();
@@ -135,7 +135,7 @@ VolumeFile::writeFile(const AString& filename) throw (DataFileException)
 {
     try {
         updateCaretExtension();
-        NiftiFile myNifti;
+        NiftiFile myNifti(true);
         myNifti.writeVolumeFile(*this, filename);
     }
     catch (const CaretException& e) {

@@ -22,14 +22,29 @@
  *
  */
 
-#include "NiftiMatrix.h"
-#include "QFile"
+
 #ifdef CARET_OS_WINDOWS
 #include <io.h>
 #define SSIZE_MAX 32767
 #else //not CARET_OS_WINDOWS
 #include <unistd.h>
 #endif //ifdef CARET_OS_WINDOWS
+
+/*
+ * Mac does not seem to have off64_t
+ * Apparently, off_t is 64-bit on mac: http://sourceforge.net/mailarchive/forum.php?set=custom&viewmonth=&viewday=&forum_name=stlport-devel&style=nested&max_rows=75&submit=Change+View
+ */
+#ifdef CARET_OS_MACOSX
+#define off64_t off_t
+#endif // CARET_OS_MACOSX
+
+#ifndef _LARGEFILE64_SOURCE 
+#define _LARGEFILE64_SOURCE
+#define _LFS64_LARGEFILE 1
+#endif
+
+#include "NiftiMatrix.h"
+#include "QFile"
 #include <limits>
 using namespace std;
 
@@ -53,6 +68,7 @@ void NiftiMatrix::init()
     file = NULL;
     zFile = NULL;
     timeLength = 0;
+    m_usingVolume = false;
 }
 
 bool NiftiMatrix::isCompressed()
@@ -145,6 +161,7 @@ void NiftiMatrix::clearMatrix()
 
 void NiftiMatrix::reAllocateMatrixIfNeeded()
 {
+    if(this->m_usingVolume) return;
     
     if(matrixLength != frameLength*componentDimensions*timeLength) {
         if(matrix) delete []matrix;
@@ -289,13 +306,29 @@ void NiftiMatrix::readFile() throw (NiftiException)
     delete [] bytes;
 }
 
+/* WARNING!!!
+   The function below currently canot seek when reading gz files, one must start at the beginning and
+   read a frame at a time.  This will hopefully be fixed by updating QT on windows.
+*/
 void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset)
 {
     if(isCompressed())
     {
-        if (gzseek(zFile,matrixStartOffset+frameOffset, 0) != (matrixStartOffset+frameOffset))
+        /*if((frameOffset+matrixStartOffset)!= gztell64(zFile))
         {
-            throw NiftiException("failed to seek in file");
+            int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+            if ( bytes_seeked != (matrixStartOffset+frameOffset))
+            {
+                throw NiftiException("failed to seek in file");
+            }
+        }*/
+        if(frameOffset==0)
+        {
+            int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+            if ( bytes_seeked != (matrixStartOffset+frameOffset))
+            {
+                throw NiftiException("failed to seek in file");
+            }
         }
         int64_t chunk_size = size;
         if (chunk_size > numeric_limits<int>::max())
@@ -344,14 +377,30 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset
     }
 }
 
+/* WARNING!!!
+   The function below currently canot seek when writing gz files, one must start at the beginning and
+   read a frame at a time.  This will hopefully be fixed by updating QT on windows.
+*/
 void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset)
 {
     if(isCompressed())
     {
-        if (gzseek(zFile,matrixStartOffset, 0) != matrixStartOffset)
+        /*if((frameOffset+matrixStartOffset)!= gztell64(zFile))
         {
-            throw NiftiException("failed to seek in file");
-        }
+            int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+            if ( bytes_seeked != (matrixStartOffset+frameOffset))
+            {
+                throw NiftiException("failed to seek in file");
+            }
+        }*/
+        if(frameOffset==0)
+        {
+            int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+            if ( bytes_seeked != (matrixStartOffset+frameOffset))
+            {
+                throw NiftiException("failed to seek in file");
+            }
+        }        
         int64_t chunk_size = size;
         if (chunk_size > numeric_limits<int>::max())
         {
@@ -605,7 +654,7 @@ void NiftiMatrix::convertBytes(char *&bytes, float *&frameOut, int64_t &size) th
     switch ((NiftiDataTypeEnum::toIntegerCode(niftiDataType))) {
     case NIFTI_TYPE_FLOAT32:
         if(needsSwapping) ByteSwapping::swapBytes((float *)bytes,size);
-        memcpy((void *)frameOut,(void *)bytes, size*sizeof(float));
+        memcpy((void *)frameOut,(void *)bytes, size);
         break;
     case NIFTI_TYPE_FLOAT64:
         if(needsSwapping) ByteSwapping::swapBytes((double *)bytes, size);
@@ -663,7 +712,7 @@ void NiftiMatrix::convertBytes(char *&bytes, float *&frameOut, int64_t &size) th
     //apply scaling
     if(sclSlope != 0.0)
     {
-        for(int64_t i =0;i<size;i++)
+        for(int64_t i =0;i<frameLength;i++)
         {
             frameOut[i] = sclSlope*frameOut[i]+sclIntercept;
         }
@@ -690,12 +739,13 @@ void NiftiMatrix::readVolume(gzFile fileIn, VolumeBase &vol) throw (NiftiExcepti
 
 void NiftiMatrix::readVolume(VolumeBase &vol) throw (NiftiException)
 {
+    m_usingVolume = true;
     //for the sake of clarity, the Size suffix refers to size of bytes in memory, and Length suffix refers to the length of an array
     int64_t size = frameSize*componentDimensions;
     char *bytes = NULL;
     bytes = new char[size];
     float *frame = NULL;
-    frame = new float[size];
+    frame = new float[frameLength*componentDimensions];
     if(!bytes) {
         throw NiftiException("There was an error allocating memory for reading.");
         return;
@@ -710,9 +760,12 @@ void NiftiMatrix::readVolume(VolumeBase &vol) throw (NiftiException)
             std::cout << "Exception reading matrix from file" << std::endl;            
         }
         convertBytes(bytes, frame, size);
+        
         for(int i=0;i<componentDimensions;i++)
         {
-            this->setFrame(vol.getFrame(t,i),frameLength,t,i);
+            //vol.setFrame(frame,
+            vol.setFrame(&frame[frameLength*i],t,i);
+            //this->setFrame(vol.getFrame(t,i),frameLength,t,i);
         }
     }
 
@@ -738,7 +791,7 @@ void NiftiMatrix::convertFrame(float *&frameIn, char *&bytesOut, int64_t &size) 
 {
     if(sclSlope != 0.0)
     {
-        for(int64_t i = 0;i<size;i++)
+        for(int64_t i = 0;i<frameLength;i++)
         {
             frameIn[i] = (frameIn[i]-sclIntercept)/sclSlope;
         }
@@ -846,7 +899,7 @@ void NiftiMatrix::writeVolume(QFile &fileOut, VolumeBase &vol) throw (NiftiExcep
 {
     file = &fileOut;
     zFile = NULL;
-    writeFile();
+    writeVolume(vol);
     file = NULL;
     zFile = NULL;
 }
@@ -855,7 +908,7 @@ void NiftiMatrix::writeVolume(gzFile fileOut, VolumeBase &vol) throw (NiftiExcep
 {
     file = NULL;
     zFile = fileOut;
-    writeFile();
+    writeVolume(vol);
     file = NULL;
     zFile = NULL;
 }
@@ -893,15 +946,20 @@ int8_t * NiftiMatrix::allocateFrame()
 //for in place editing of files, we need to respect the original layout
 void NiftiMatrix::writeVolume(VolumeBase &vol) throw (NiftiException)
 {
+    m_usingVolume = true;
     int64_t size = frameSize*componentDimensions;
     //remove scaling, TODO, make a copy of frame to avoid round off errors when we
     //reapply scaling at the end of this function
     char *frameOut = (char *)this->allocateFrame();
-    float * frameIn = new float[size];
+    float * frameIn = new float[frameLength*componentDimensions];
     for(int t = 0;t<this->timeLength;t++)
     {
-        const float * frame = vol.getFrame(t,0);
-        memcpy(frameIn,frame,size);
+        
+        for(int i = 0;i<componentDimensions;i++)
+        {
+            const float * frame = vol.getFrame(t,i);
+            memcpy(&frameIn[i*frameLength],frame,frameSize);
+        }
         convertFrame(frameIn,frameOut,size);
         writeMatrixBytes((char *)frameOut,size, t*size);
     }

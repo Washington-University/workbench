@@ -34,9 +34,11 @@ using namespace caret;
  * Default Constructor
  *
  */
-NiftiFile::NiftiFile() throw (NiftiException)
+NiftiFile::NiftiFile(bool usingVolume) throw (NiftiException)
 {
     init();
+    m_usingVolume = usingVolume;
+    matrix.setUsingVolume(usingVolume);    
 }
 
 /**
@@ -47,10 +49,13 @@ NiftiFile::NiftiFile() throw (NiftiException)
  * @param fileName name and path of the Nifti File
  * currently only IN_MEMORY is supported
  */
-NiftiFile::NiftiFile(const AString &fileName) throw (NiftiException)
+NiftiFile::NiftiFile(const AString &fileName, bool usingVolume) throw (NiftiException)
 {
     init();
+    m_usingVolume = usingVolume;
+    matrix.setUsingVolume(usingVolume);
     this->openFile(fileName);
+    
 }
 
 void NiftiFile::init()
@@ -205,10 +210,17 @@ void NiftiFile::openFile(const AString &fileName) throw (NiftiException)
         matrix.setMatrixLayoutOnDisk(header);
         matrix.setMatrixOffset((header.getVolumeOffset()));
     }
+    if(m_usingVolume) return;
     if(isCompressed())
+    {
         matrix.readFile(zFile);
+        gzclose(zFile);
+    }
     else
+    {
         matrix.readFile(file);
+        file.close();
+    }
 }
 
 /**
@@ -320,7 +332,9 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         {
             throw NiftiException("failed to write bytes to file");
         }
-        matrix.writeFile(zFile);
+        if(m_usingVolume && m_vol) matrix.writeVolume(zFile, *m_vol);
+        else matrix.writeFile(zFile);
+
         gzclose(zFile);
     }
     else
@@ -332,7 +346,8 @@ void NiftiFile::writeFile(const AString &fileName, NIFTI_BYTE_ORDER byteOrder) t
         {
             throw NiftiException("failed to write bytes to file");
         }
-        matrix.writeFile(file);
+        if(m_usingVolume && m_vol) matrix.writeVolume(file, *m_vol);
+        else matrix.writeFile(file);
         file.close();
     }
 
@@ -442,7 +457,30 @@ void NiftiFile::readVolumeFile(VolumeBase &vol, const AString &filename) throw (
     {
         vol.m_extensions.push_back(m_extensions[i]);
     }
-    matrix.getVolume(vol);
+
+    //load matrix into volume file
+    QFile file;
+    gzFile zFile;
+    if(isCompressed())
+    {
+        /*
+         * Mac does not seem to have off64_t
+         */
+#ifdef CARET_OS_MACOSX
+        zFile = gzopen(m_fileName.toAscii().data(), "rb");
+#else  // CARET_OS_MACOSX
+        zFile = gzopen64(m_fileName.toAscii().data(), "rb");
+#endif // CARET_OS_MACOSX
+        matrix.readVolume(zFile,vol);
+        gzclose(zFile);        
+    }
+    else
+    {
+        file.setFileName(m_fileName);
+        file.open(QIODevice::ReadOnly);
+        matrix.readVolume(file,vol);        
+        file.close();
+    }
 }
 
 void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw (NiftiException)
@@ -515,9 +553,11 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
     }
-    matrix.setVolume(vol);
+    //matrix.setVolume(vol);
     this->m_fileName = filename;
     QDir fpath(this->m_fileName);
     m_fileName = fpath.toNativeSeparators(this->m_fileName);
+    m_vol = &vol;
     writeFile(filename);
+    m_vol = NULL;
 }
