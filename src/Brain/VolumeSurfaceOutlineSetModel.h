@@ -1,5 +1,5 @@
-#ifndef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
-#define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#ifndef __VOLUME_SURFACE_OUTLINE_SET_MODEL__H_
+#define __VOLUME_SURFACE_OUTLINE_SET_MODEL__H_
 
 /*LICENSE_START*/
 /*
@@ -34,69 +34,53 @@
  */
 /*LICENSE_END*/
 
-#include <QObject>
-
-#include "VolumeSurfaceOutlineColorOrTabModel.h"
-class QCheckBox;
-class QDoubleSpinBox;
-class QGridLayout;
+#include "BrainConstants.h"
+#include "CaretColorEnum.h"
+#include "CaretObject.h"
 
 namespace caret {
 
+    class Brain;
     class Surface;
-    class SurfaceSelectionViewController;
     class VolumeSurfaceOutlineModel;
-    class VolumeSurfaceOutlineColorOrTabViewController;
-    class WuQGridLayoutGroup;
     
-    class VolumeSurfaceOutlineViewController : public QObject {
+    class VolumeSurfaceOutlineSetModel : public CaretObject {
         
-        Q_OBJECT
-
     public:
-        VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
-                                           QGridLayout* gridLayout,
-                                           const bool showTopHorizontalBar,
-                                           QObject* parent = 0);
+        VolumeSurfaceOutlineSetModel();
         
-        virtual ~VolumeSurfaceOutlineViewController();
+        virtual ~VolumeSurfaceOutlineSetModel();
         
-        void setVisible(bool visible);
+        int32_t getNumberOfDislayedVolumeSurfaceOutlines() const;
         
-        void updateViewController(VolumeSurfaceOutlineModel* outlineModel);
+        void setNumberOfDisplayedVolumeSurfaceOutlines(const int32_t numberDisplayed);
         
-    private slots:
-        void enabledCheckBoxStateChanged(int);
+        VolumeSurfaceOutlineModel* getVolumeSurfaceOutlineModel(const int32_t indx);
         
-        void thicknessSpinBoxValueChanged(double);
-
-        void surfaceSelected(Surface*);
+        const VolumeSurfaceOutlineModel* getVolumeSurfaceOutlineModel(const int32_t indx) const;
         
-        void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
+        void selectSurfacesAfterSpecFileLoaded(Brain* brain,
+                                               const bool searchForTabs);
         
     private:
-        VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
+        VolumeSurfaceOutlineSetModel(const VolumeSurfaceOutlineSetModel&);
 
-        VolumeSurfaceOutlineViewController& operator=(const VolumeSurfaceOutlineViewController&);
+        VolumeSurfaceOutlineSetModel& operator=(const VolumeSurfaceOutlineSetModel&);
         
-        void updateGraphics();
+        void addSurfaceOutline(Surface* surface,
+                               const float thickness,
+                               const int32_t browserTabIndex,
+                               const CaretColorEnum::Enum color,
+                               int32_t& outlineIndex);
         
-        VolumeSurfaceOutlineModel* outlineModel;
+        VolumeSurfaceOutlineModel* outlineModels[BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES];
         
-        WuQGridLayoutGroup* gridLayoutGroup;
-        
-        QCheckBox* enabledCheckBox;
-        
-        VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
-        
-        QDoubleSpinBox* thicknessSpinBox;
-        
-        SurfaceSelectionViewController* surfaceSelectionViewController;
+        int32_t numberOfDisplayedVolumeSurfaceOutlines;
     };
     
-#ifdef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#ifdef __VOLUME_SURFACE_OUTLINE_SET_MODEL_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#endif // __VOLUME_SURFACE_OUTLINE_SET_MODEL_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#endif  //__VOLUME_SURFACE_OUTLINE_SET_MODEL__H_

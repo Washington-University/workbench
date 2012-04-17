@@ -1,5 +1,5 @@
-#ifndef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
-#define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#ifndef __VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER__H_
+#define __VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -34,69 +34,55 @@
  */
 /*LICENSE_END*/
 
-#include <QObject>
+#include <stdint.h>
 
-#include "VolumeSurfaceOutlineColorOrTabModel.h"
-class QCheckBox;
-class QDoubleSpinBox;
-class QGridLayout;
+#include <vector>
+#include <QWidget>
+
+#include "EventListenerInterface.h"
+
+class QSpinBox;
 
 namespace caret {
 
-    class Surface;
-    class SurfaceSelectionViewController;
-    class VolumeSurfaceOutlineModel;
-    class VolumeSurfaceOutlineColorOrTabViewController;
-    class WuQGridLayoutGroup;
+    class VolumeSurfaceOutlineSetModel;
+    class VolumeSurfaceOutlineViewController;
     
-    class VolumeSurfaceOutlineViewController : public QObject {
+    class VolumeSurfaceOutlineSetViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
-                                           QGridLayout* gridLayout,
-                                           const bool showTopHorizontalBar,
-                                           QObject* parent = 0);
+        VolumeSurfaceOutlineSetViewController(const Qt::Orientation orientation,
+                                              const int32_t browserWindowIndex,
+                                              QWidget* parent = 0);
         
-        virtual ~VolumeSurfaceOutlineViewController();
+        virtual ~VolumeSurfaceOutlineSetViewController();
         
-        void setVisible(bool visible);
-        
-        void updateViewController(VolumeSurfaceOutlineModel* outlineModel);
+        void receiveEvent(Event* event);
         
     private slots:
-        void enabledCheckBoxStateChanged(int);
-        
-        void thicknessSpinBoxValueChanged(double);
-
-        void surfaceSelected(Surface*);
-        
-        void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
+        void outlineCountSpinBoxValueChanged(int);
         
     private:
-        VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
+        VolumeSurfaceOutlineSetViewController(const VolumeSurfaceOutlineSetViewController&);
 
-        VolumeSurfaceOutlineViewController& operator=(const VolumeSurfaceOutlineViewController&);
+        VolumeSurfaceOutlineSetViewController& operator=(const VolumeSurfaceOutlineSetViewController&);
+ 
+        VolumeSurfaceOutlineSetModel* getOutlineSet();
         
-        void updateGraphics();
+        void updateViewController();
         
-        VolumeSurfaceOutlineModel* outlineModel;
+        QSpinBox* outlineCountSpinBox;
+
+        int32_t browserWindowIndex;
         
-        WuQGridLayoutGroup* gridLayoutGroup;
-        
-        QCheckBox* enabledCheckBox;
-        
-        VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
-        
-        QDoubleSpinBox* thicknessSpinBox;
-        
-        SurfaceSelectionViewController* surfaceSelectionViewController;
+        std::vector<VolumeSurfaceOutlineViewController*> outlineViewControllers;
     };
     
-#ifdef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#ifdef __VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#endif // __VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#endif  //__VOLUME_SURFACE_OUTLINE_SET_VIEW_CONTROLLER__H_

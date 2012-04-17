@@ -49,14 +49,13 @@ namespace caret {
         Q_OBJECT
 
     public:
-        VolumeSurfaceOutlineColorOrTabViewController(QObject* parent,
-                                                     VolumeSurfaceOutlineColorOrTabModel* model);
+        VolumeSurfaceOutlineColorOrTabViewController(QObject* parent);
         
         virtual ~VolumeSurfaceOutlineColorOrTabViewController();
         
         QWidget* getWidget();
         
-        void updateViewController();
+        void updateViewController(VolumeSurfaceOutlineColorOrTabModel* model);
         
     signals:
         /**

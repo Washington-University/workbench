@@ -185,6 +185,7 @@ namespace caret {
         
         void drawVolumeSurfaceOutlines(Brain* brain,
                                        Model* modelDisplayController,
+                                       BrowserTabContent* browserTabContent,
                                        const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                        const int64_t sliceIndex,
                                        VolumeFile* underlayVolume);

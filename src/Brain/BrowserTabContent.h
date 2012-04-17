@@ -43,6 +43,7 @@ namespace caret {
     class OverlaySet;
     class Palette;
     class Surface;
+    class VolumeSurfaceOutlineSetModel;
     
     /// Maintains content in a brower's tab
     class BrowserTabContent : public CaretObject, public EventListenerInterface {
@@ -118,6 +119,10 @@ namespace caret {
         void getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile*>& mapFiles,
                                          std::vector<int32_t>& mapIndices);
         
+        VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet();
+        
+        const VolumeSurfaceOutlineSetModel* getVolumeSurfaceOutlineSet() const;
+        
     private:
         BrowserTabContent(const BrowserTabContent&);
         
@@ -156,7 +161,10 @@ namespace caret {
         AString userName;
         
         /** Controls yoking */
-        BrowserTabYoking* browserTabYoking;        
+        BrowserTabYoking* browserTabYoking;       
+        
+        /** Volume Surface Outlines */
+        VolumeSurfaceOutlineSetModel* volumeSurfaceOutlineSetModel;
     };
     
 #ifdef __BROWSER_TAB_CONTENT_DECLARE__

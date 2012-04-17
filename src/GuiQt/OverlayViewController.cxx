@@ -183,7 +183,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->widgetsGroup->add(this->mapComboBox);
     }
     
-    this->setFixedHeight(this->sizeHint().height());
+    //this->setFixedHeight(this->sizeHint().height());
 }
 
 /**

@@ -45,7 +45,13 @@
 #include "VolumeSurfaceOutlineViewController.h"
 #undef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
 
+#include "EventGraphicsUpdateAllWindows.h"
+#include "EventManager.h"
+#include "SurfaceSelectionModel.h"
+#include "SurfaceSelectionViewController.h"
 #include "VolumeSurfaceOutlineColorOrTabViewController.h"
+#include "VolumeSurfaceOutlineModel.h"
+#include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -60,41 +66,54 @@ using namespace caret;
 /**
  * Constructor.
  */
-VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(QWidget* parent)
-: QWidget(parent)
+VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
+                                                                       QGridLayout* gridLayout,
+                                                                       const bool showTopHorizontalBar,
+                                                                       QObject* parent)
+: QObject(parent)
 {
-    QGridLayout* gridLayout = new QGridLayout(this);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
-    gridLayout->setColumnStretch(0, 0);
-    gridLayout->setColumnStretch(1, 0);
-    gridLayout->setColumnStretch(2, 100);
+    this->outlineModel = NULL;
+    this->enabledCheckBox = new QCheckBox(" ");
+    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(enabledCheckBoxStateChanged(int)));
     
-    for (int32_t i = 0; i < 10; i++) {
-        QCheckBox* enabledCheckBox = new QCheckBox(" ");
-        
-        //VolumeSurfaceOutlineColorOrTabViewController* vsoc = new VolumeSurfaceOutlineColorOrTabViewController(parentPage,
-        //                                                                                    vsos->getColorOrTabModel());
-        
-        QComboBox* surfaceComboBox = new QComboBox();
-        surfaceComboBox->addItem("Surface");
-        QComboBox* colorComboBox = new QComboBox();
-        colorComboBox->addItem("Color");
-        
-        const float minLineWidth = 0.5;
-        const float maxLineWidth = 100.0;
-        const float stepSize = 0.5;
-        QDoubleSpinBox* thicknessSpinBox = new QDoubleSpinBox();
-        thicknessSpinBox->setRange(minLineWidth, 
-                                         maxLineWidth);
-        thicknessSpinBox->setSingleStep(stepSize);
-        thicknessSpinBox->setFixedWidth(100);
-        
-        int row = gridLayout->rowCount();
-        gridLayout->addWidget(enabledCheckBox, row, 0);
-        gridLayout->addWidget(surfaceComboBox, row, 1, 1, 2);
-        row = gridLayout->rowCount();
-        gridLayout->addWidget(colorComboBox, row, 1);        
-        gridLayout->addWidget(thicknessSpinBox, row, 2, Qt::AlignLeft);
+    
+    this->surfaceSelectionViewController = new SurfaceSelectionViewController(this);
+    QObject::connect(this->surfaceSelectionViewController, SIGNAL(surfaceSelected(Surface*)),
+                     this, SLOT(surfaceSelected(Surface*)));
+    
+    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(this);
+    QObject::connect(this->colorOrTabSelectionControl, SIGNAL(modelSelected(VolumeSurfaceOutlineColorOrTabModel::Item*)),
+                     this, SLOT(colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*)));
+    
+    const float minLineWidth = 0.5;
+    const float maxLineWidth = 100.0;
+    const float stepSize = 0.5;
+    this->thicknessSpinBox = new QDoubleSpinBox();
+    this->thicknessSpinBox->setRange(minLineWidth, 
+                               maxLineWidth);
+    this->thicknessSpinBox->setSingleStep(stepSize);
+    this->thicknessSpinBox->setFixedWidth(100);
+    QObject::connect(this->thicknessSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(thicknessSpinBoxValueChanged(double)));
+    
+    
+    if (orientation == Qt::Horizontal) {
+        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
+        int row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
+        this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
+        this->gridLayoutGroup->addWidget(this->thicknessSpinBox, row, 2);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 3);
+    }
+    else {
+        this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
+        int row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
+        this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 2);
+        row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
+        this->gridLayoutGroup->addWidget(this->thicknessSpinBox, row, 2, Qt::AlignLeft);
     }
 }
 
@@ -103,6 +122,105 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(QWidget* 
  */
 VolumeSurfaceOutlineViewController::~VolumeSurfaceOutlineViewController()
 {
-    
 }
+
+/**
+ * Set the visibility of widgets in this view controller.
+ */
+void 
+VolumeSurfaceOutlineViewController::setVisible(bool visible)
+{
+    this->gridLayoutGroup->setVisible(visible);
+}
+
+/**
+ * Called when a surface is selected.
+ * @param surface
+ *    Surface that was selected.
+ */
+void 
+VolumeSurfaceOutlineViewController::surfaceSelected(Surface* surface)
+{
+    if (this->outlineModel != NULL) {
+        this->outlineModel->getSurfaceSelectionModel()->setSurface(surface);
+    }
+    
+    this->updateGraphics();
+}
+
+/**
+ * Called when a color/tab is selected.
+ * @param colorTab
+ *    Value that was selected.
+ */
+void 
+VolumeSurfaceOutlineViewController::colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item* colorTab)
+{
+    this->updateGraphics();
+}
+
+/**
+ * Called when enabled checkbox is selected.
+ * @param state
+ *    New state of checkbox.
+ */
+void 
+VolumeSurfaceOutlineViewController::enabledCheckBoxStateChanged(int state)
+{
+    if (this->outlineModel != NULL) {
+        const bool selected = (state == Qt::Checked);
+        this->outlineModel->setDisplayed(selected);
+    }
+    this->updateGraphics();
+}
+
+/**
+ * Called when thickness value is changed.
+ * @param value
+ *    Value that was selected.
+ */
+void 
+VolumeSurfaceOutlineViewController::thicknessSpinBoxValueChanged(double value)
+{
+    if (this->outlineModel != NULL) {
+        this->outlineModel->setThickness(value);
+    }
+    this->updateGraphics();
+}
+
+/**
+ * Update this view controller.
+ * @param outlineModel
+ *    Outline model for use in this view controller.
+ */
+void 
+VolumeSurfaceOutlineViewController::updateViewController(VolumeSurfaceOutlineModel* outlineModel)
+{
+    this->outlineModel = outlineModel;
+    
+    if (this->outlineModel != NULL) {
+        Qt::CheckState state = Qt::Unchecked;
+        if (this->outlineModel->isDisplayed()) {
+            state = Qt::Checked;
+        }
+        this->enabledCheckBox->setCheckState(state);
+        
+        this->thicknessSpinBox->blockSignals(true);
+        this->thicknessSpinBox->setValue(outlineModel->getThickness());
+        this->thicknessSpinBox->blockSignals(false);
+        this->surfaceSelectionViewController->updateControl(outlineModel->getSurfaceSelectionModel());
+        //this->surfaceSelectionViewController->setSurface(outlineModel->getSurface());
+        this->colorOrTabSelectionControl->updateViewController(outlineModel->getColorOrTabModel());
+    }
+}
+
+/**
+ * Update the graphics.
+ */
+void 
+VolumeSurfaceOutlineViewController::updateGraphics()
+{
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+}
+
 

@@ -31,12 +31,14 @@
 #include "BorderFile.h"
 #include "Brain.h"
 #include "BrainStructure.h"
+#include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
+#include "EventBrowserTabGetAll.h"
 #include "EventCaretMappableDataFilesGet.h"
 #include "EventDataFileRead.h"
 #include "EventModelAdd.h"
@@ -60,6 +62,7 @@
 #include "SurfaceProjectedItem.h"
 #include "SystemUtilities.h"
 #include "VolumeFile.h"
+#include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
 
@@ -1178,8 +1181,6 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         readSpecFileDataFilesEvent->setErrorMessage(errorMessage);
     }
     
-    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded(false);
-    
     /*
      * Initialize the overlay for ALL models
      */
@@ -1203,6 +1204,17 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
         bs->initializeOverlays();
     }
     
+    this->displayPropertiesVolume->selectSurfacesAfterSpecFileLoaded(false);
+  
+/*
+    EventBrowserTabGetAll getAllTabs;
+    EventManager::get()->sendEvent(getAllTabs.getPointer());
+    const int32_t numTabs = getAllTabs.getNumberOfBrowserTabs();
+    for (int32_t i = 0; i < numTabs; i++) {
+        BrowserTabContent* btc = getAllTabs.getBrowserTab(i);
+        btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(this, false);
+    }
+*/    
     CaretLogInfo("Time to read files from spec file (in Brain) \""
                  + sf->getFileNameNoPath()
                  + "\" was "

@@ -68,8 +68,11 @@ namespace caret {
         
     private:
         bool displayed;
+        
         float thickness;
+        
         SurfaceSelectionModel* surfaceSelectionModel;
+        
         VolumeSurfaceOutlineColorOrTabModel* colorOrTabModel;
     };
     

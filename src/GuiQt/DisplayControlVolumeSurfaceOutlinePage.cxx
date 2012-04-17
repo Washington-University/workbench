@@ -206,8 +206,7 @@ OutlineWidget::OutlineWidget(DisplayControlVolumeSurfaceOutlinePage* parentPage,
     parentPage->addWidget(this->selectionCheckBox, 
                           true);
     
-    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(parentPage,
-                                                                                        vsos->getColorOrTabModel());
+    this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(parentPage);
     parentPage->addWidget(this->colorOrTabSelectionControl, 
                           true);
     
@@ -261,7 +260,7 @@ OutlineWidget::updateWidget()
     VolumeSurfaceOutlineModel* vsos = dpv->getSurfaceOutlineSelection(this->outlineIndex);
     
     this->selectionCheckBox->setChecked(vsos->isDisplayed());
-    this->colorOrTabSelectionControl->updateViewController();
+    this->colorOrTabSelectionControl->updateViewController(vsos->getColorOrTabModel());
     this->thicknessSpinBox->setValue(vsos->getThickness());
     this->surfaceSelectionViewController->updateControl();
 }

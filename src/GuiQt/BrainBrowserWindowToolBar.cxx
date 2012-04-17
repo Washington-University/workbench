@@ -92,6 +92,7 @@
 #include "VolumeFile.h"
 #include "VolumeSliceViewModeEnum.h"
 #include "VolumeSliceViewPlaneEnum.h"
+#include "VolumeSurfaceOutlineSetModel.h"
 #include "WuQDataEntryDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQWidgetObjectGroup.h"
@@ -416,6 +417,9 @@ BrainBrowserWindowToolBar::addNewTab()
     
     BrowserTabContent* tabContent = newTabEvent.getBrowserTab();
     
+    Brain* brain = GuiManager::get()->getBrain();
+    tabContent->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
+                                                                                false);
     this->addNewTab(tabContent);
 
     
@@ -613,9 +617,18 @@ BrainBrowserWindowToolBar::addDefaultTabsAfterLoadingSpecFile()
     tabIndex = loadIntoTab(tabIndex,
                            wholeBrainController);
     
-    if (this->tabBar->count() > 0) {
+    const int numTabs = this->tabBar->count();
+    if (numTabs > 0) {
         this->tabBar->setCurrentIndex(0);
+
+        Brain* brain = GuiManager::get()->getBrain();
+        for (int32_t i = 0; i < numTabs; i++) {
+            BrowserTabContent* btc = this->getTabContentFromTab(i);
+            btc->getVolumeSurfaceOutlineSet()->selectSurfacesAfterSpecFileLoaded(brain, 
+                                                                                 true);
+        }
     }
+    
     EventUserInterfaceUpdate f;
     EventManager::get()->sendEvent(f.getPointer());
     EventGraphicsUpdateAllWindows e;

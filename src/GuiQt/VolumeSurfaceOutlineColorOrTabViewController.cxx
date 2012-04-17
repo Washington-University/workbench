@@ -50,17 +50,16 @@ using namespace caret;
 /**
  * Constructor.
  */
-VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabViewController(QObject* parent,
-                                                                                           VolumeSurfaceOutlineColorOrTabModel* model)
+VolumeSurfaceOutlineColorOrTabViewController::VolumeSurfaceOutlineColorOrTabViewController(QObject* parent)
 : WuQWidget(parent)
 {
+    this->colorOrTabModel = NULL;
     this->modelComboBox = new QComboBox();
     QObject::connect(this->modelComboBox, 
                      SIGNAL(activated(int)), 
                      this, 
                      SLOT(itemActivated(int)));
     
-    this->colorOrTabModel = model;
 }
 
 /**
@@ -75,8 +74,9 @@ VolumeSurfaceOutlineColorOrTabViewController::~VolumeSurfaceOutlineColorOrTabVie
  * Update this view controller.
  */
 void 
-VolumeSurfaceOutlineColorOrTabViewController::updateViewController()
+VolumeSurfaceOutlineColorOrTabViewController::updateViewController(VolumeSurfaceOutlineColorOrTabModel* model)
 {
+    this->colorOrTabModel = model;
     this->modelComboBox->blockSignals(true);
     this->modelComboBox->clear();
     
@@ -120,6 +120,10 @@ VolumeSurfaceOutlineColorOrTabViewController::getWidget()
 void 
 VolumeSurfaceOutlineColorOrTabViewController::itemActivated(int indx)
 {
+    if (this->colorOrTabModel == NULL) {
+        return;
+    }
+    
     if (indx >= 0) {
         void* pointer = this->modelComboBox->itemData(indx).value<void*>();
         VolumeSurfaceOutlineColorOrTabModel::Item* item = (VolumeSurfaceOutlineColorOrTabModel::Item*)pointer;

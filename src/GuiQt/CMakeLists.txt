@@ -74,6 +74,7 @@ TimeCourseDialog.h
 TimeSeriesManager.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
@@ -82,6 +83,7 @@ WuQDialogModal.h
 WuQDialogNonModal.h
 WuQDoubleSlider.h
 WuQFileDialog.h
+WuQGridLayoutGroup.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
@@ -168,6 +170,7 @@ UserInputModeView.h
 UserInputReceiverInterface.h
 ViewModeEnum.h
 VolumeSurfaceOutlineColorOrTabViewController.h
+VolumeSurfaceOutlineSetViewController.h
 VolumeSurfaceOutlineViewController.h
 WuQCollapsibleWidget.h
 WuQDataEntryDialog.h
@@ -177,6 +180,7 @@ WuQDialogNonModal.h
 WuQDoubleSlider.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
+WuQGridLayoutGroup.h
 WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
@@ -254,6 +258,7 @@ UserInputModeBordersWidget.cxx
 UserInputModeView.cxx
 ViewModeEnum.cxx
 VolumeSurfaceOutlineColorOrTabViewController.cxx
+VolumeSurfaceOutlineSetViewController.cxx
 VolumeSurfaceOutlineViewController.cxx
 WuQCollapsibleWidget.cxx
 WuQDataEntryDialog.cxx
@@ -262,6 +267,7 @@ WuQDialogModal.cxx
 WuQDialogNonModal.cxx
 WuQDoubleSlider.cxx
 WuQFileDialog.cxx
+WuQGridLayoutGroup.cxx
 WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
 WuQTreeWidget.cxx

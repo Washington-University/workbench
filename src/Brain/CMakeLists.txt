@@ -110,6 +110,7 @@ VolumeSliceViewModeEnum.h
 VolumeSliceViewPlaneEnum.h
 VolumeSurfaceOutlineColorOrTabModel.h
 VolumeSurfaceOutlineModel.h
+VolumeSurfaceOutlineSetModel.h
 YokingTypeEnum.h
 
 Brain.cxx
@@ -174,6 +175,7 @@ VolumeSliceViewModeEnum.cxx
 VolumeSliceViewPlaneEnum.cxx
 VolumeSurfaceOutlineColorOrTabModel.cxx
 VolumeSurfaceOutlineModel.cxx
+VolumeSurfaceOutlineSetModel.cxx
 YokingTypeEnum.cxx
 ) 
 

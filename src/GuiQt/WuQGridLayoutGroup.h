@@ -1,5 +1,5 @@
-#ifndef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
-#define __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#ifndef __WU_Q_GRID_LAYOUT_GROUP__H_
+#define __WU_Q_GRID_LAYOUT_GROUP__H_
 
 /*LICENSE_START*/
 /*
@@ -34,69 +34,75 @@
  */
 /*LICENSE_END*/
 
+
 #include <QObject>
 
-#include "VolumeSurfaceOutlineColorOrTabModel.h"
-class QCheckBox;
-class QDoubleSpinBox;
+#include <QVector>
+
 class QGridLayout;
 
 namespace caret {
 
-    class Surface;
-    class SurfaceSelectionViewController;
-    class VolumeSurfaceOutlineModel;
-    class VolumeSurfaceOutlineColorOrTabViewController;
-    class WuQGridLayoutGroup;
-    
-    class VolumeSurfaceOutlineViewController : public QObject {
+    class WuQGridLayoutGroup : public QObject {
         
         Q_OBJECT
 
     public:
-        VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
-                                           QGridLayout* gridLayout,
-                                           const bool showTopHorizontalBar,
-                                           QObject* parent = 0);
+        WuQGridLayoutGroup(QGridLayout* gridLayout,
+                           QObject* parent = 0);
         
-        virtual ~VolumeSurfaceOutlineViewController();
+        virtual ~WuQGridLayoutGroup();
+        
+        void addWidget(QWidget* widget,
+                       int row,
+                       int column,
+                       Qt::Alignment alignment = 0);
+        
+        void addWidget(QWidget* widget,
+                       int fromRow,
+                       int fromColumn,
+                       int rowSpan,
+                       int columnSpan,
+                       Qt::Alignment alignment = 0);
+        
+        int rowCount() const;
+        
+        int columnCount() const;
         
         void setVisible(bool visible);
         
-        void updateViewController(VolumeSurfaceOutlineModel* outlineModel);
-        
-    private slots:
-        void enabledCheckBoxStateChanged(int);
-        
-        void thicknessSpinBoxValueChanged(double);
-
-        void surfaceSelected(Surface*);
-        
-        void colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*);
-        
     private:
-        VolumeSurfaceOutlineViewController(const VolumeSurfaceOutlineViewController&);
+        WuQGridLayoutGroup(const WuQGridLayoutGroup&);
 
-        VolumeSurfaceOutlineViewController& operator=(const VolumeSurfaceOutlineViewController&);
+        WuQGridLayoutGroup& operator=(const WuQGridLayoutGroup&);
         
-        void updateGraphics();
+        class ItemRowCol {
+        public:
+            ItemRowCol(QWidget *widget,
+                       int fromRow,
+                       int fromColumn,
+                       int rowSpan,
+                       int columnSpan,
+                       Qt::Alignment alignment);
+            
+            QWidget* widget;
+            int fromRow;
+            int fromColumn;
+            int rowSpan;
+            int columnSpan;
+            Qt::Alignment alignment;
+        };
         
-        VolumeSurfaceOutlineModel* outlineModel;
+        QGridLayout* gridLayout;
         
-        WuQGridLayoutGroup* gridLayoutGroup;
-        
-        QCheckBox* enabledCheckBox;
-        
-        VolumeSurfaceOutlineColorOrTabViewController* colorOrTabSelectionControl;
-        
-        QDoubleSpinBox* thicknessSpinBox;
-        
-        SurfaceSelectionViewController* surfaceSelectionViewController;
+        bool areWidgetsInLayout;
+      
+        QVector<ItemRowCol*> layoutItems;
     };
     
-#ifdef __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#ifdef __WU_Q_GRID_LAYOUT_GROUP_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
-#endif // __VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER_DECLARE__
+#endif // __WU_Q_GRID_LAYOUT_GROUP_DECLARE__
 
 } // namespace
-#endif  //__VOLUME_SURFACE_OUTLINE_VIEW_CONTROLLER__H_
+#endif  //__WU_Q_GRID_LAYOUT_GROUP__H_

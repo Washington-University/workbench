@@ -45,7 +45,13 @@ namespace caret {
             MAXIMUM_NUMBER_OF_OVERLAYS = 10,
             
             /// Minimum number of overlays
-            MINIMUM_NUMBER_OF_OVERLAYS = 3, 
+            MINIMUM_NUMBER_OF_OVERLAYS = 3,
+            
+            /// Minimum number of volume surface outlines 
+            MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 4,
+            
+            /// Maximum number of volume surface outlines 
+            MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES = 10
         };        
     private:
         BrainConstants();

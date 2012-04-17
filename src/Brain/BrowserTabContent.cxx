@@ -42,6 +42,7 @@
 #include "OverlaySet.h"
 #include "Surface.h"
 #include "StructureEnum.h"
+#include "VolumeSurfaceOutlineSetModel.h"
 
 using namespace caret;
 
@@ -64,6 +65,7 @@ BrowserTabContent::BrowserTabContent(const int32_t tabNumber,
     this->guiName = "";
     this->userName = "";
     this->browserTabYoking = new BrowserTabYoking(this, defaultYokingGroup);
+    this->volumeSurfaceOutlineSetModel = new VolumeSurfaceOutlineSetModel();
 }
 
 /**
@@ -78,6 +80,9 @@ BrowserTabContent::~BrowserTabContent()
 
     delete this->surfaceModelSelector;
     this->surfaceModelSelector = NULL;
+    
+    delete this->volumeSurfaceOutlineSetModel;
+    this->volumeSurfaceOutlineSetModel = NULL;
 }
 
 /**
@@ -678,5 +683,22 @@ BrowserTabContent::getDisplayedPaletteMapFiles(std::vector<CaretMappableDataFile
     }
 }
 
+/**
+ * @return The volume surface outline model for this tab.
+ */
+VolumeSurfaceOutlineSetModel* 
+BrowserTabContent::getVolumeSurfaceOutlineSet()
+{
+    return this->volumeSurfaceOutlineSetModel;
+}
+
+/**
+ * @return The volume surface outline model for this tab.
+ */
+const VolumeSurfaceOutlineSetModel* 
+BrowserTabContent::getVolumeSurfaceOutlineSet() const
+{
+    return this->volumeSurfaceOutlineSetModel;
+}
 
 
