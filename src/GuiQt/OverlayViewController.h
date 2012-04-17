@@ -46,21 +46,22 @@ class QGridLayout;
 namespace caret {
 
     class Overlay;
-    class WuQWidgetObjectGroup;
+    class WuQGridLayoutGroup;
     
-    class OverlayViewController : public QWidget {
+    class OverlayViewController : public QObject {
         
         Q_OBJECT
 
     public:
         OverlayViewController(const Qt::Orientation orientation,
+                              QGridLayout* gridLayout,
                               const int32_t browserWindowIndex,
                               const bool showTopHorizontalLine,
-                              QWidget* parent = 0);
+                              QObject* parent);
         
         virtual ~OverlayViewController();
         
-        //void setVisible(bool visible);
+        void setVisible(bool visible);
         
         void updateViewController(Overlay* overlay);
         
@@ -92,7 +93,7 @@ namespace caret {
         
         QAction* settingsAction;
         
-        WuQWidgetObjectGroup* widgetsGroup;
+        WuQGridLayoutGroup* gridLayoutGroup;
         
     friend class OverlaySetViewController;
         

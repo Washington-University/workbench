@@ -54,6 +54,7 @@
 #include "EventUserInterfaceUpdate.h"
 #include "Overlay.h"
 #include "WuQtUtilities.h"
+#include "WuQGridLayoutGroup.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -76,10 +77,11 @@ using namespace caret;
  *    The parent widget.
  */
 OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
+                                             QGridLayout* gridLayout,
                                              const int32_t browserWindowIndex,
                                              const bool showTopHorizontalLine,
-                                             QWidget* parent)
-: QWidget(parent)
+                                             QObject* parent)
+: QObject(parent)
 {
     this->browserWindowIndex = browserWindowIndex;
     this->overlay = NULL;
@@ -133,56 +135,39 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QToolButton* settingsToolButton = new QToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
     
+    this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout, this);
+    
     if (orientation == Qt::Horizontal) {
         
     }
     else {
-        QGridLayout* gridLayout = new QGridLayout(this);
-        WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
-        gridLayout->setColumnStretch(0, 0);
-        gridLayout->setColumnStretch(1, 0);
-        gridLayout->setColumnStretch(2, 0);
-        gridLayout->setColumnStretch(3, 100);
-        int row = gridLayout->rowCount();
+        int row = this->gridLayoutGroup->rowCount();
         if (topHorizontalLineWidget != NULL) {
-            gridLayout->addWidget(topHorizontalLineWidget,
+            this->gridLayoutGroup->addWidget(topHorizontalLineWidget,
                                   row, 0, 1, 4);
         }
         
         row++;
-        gridLayout->addWidget(this->enabledCheckBox,
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox,
                               row, 0,
                               Qt::AlignHCenter);
-        gridLayout->addWidget(fileLabel,
+        this->gridLayoutGroup->addWidget(fileLabel,
                               row, 2);
-        gridLayout->addWidget(this->fileComboBox,
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
                               row, 3);
         
-        gridLayout->addWidget(verticalLineWidget,
+        this->gridLayoutGroup->addWidget(verticalLineWidget,
                               row, 1, 2, 1);
         
         row++;
-        gridLayout->addWidget(settingsToolButton,
+        this->gridLayoutGroup->addWidget(settingsToolButton,
                               row, 0,
                               Qt::AlignHCenter);
-        gridLayout->addWidget(mapLabel,
+        this->gridLayoutGroup->addWidget(mapLabel,
                               row, 2);
-        gridLayout->addWidget(this->mapComboBox,
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
                               row, 3);
     }
-    
-    this->widgetsGroup = new WuQWidgetObjectGroup(this);
-    if (topHorizontalLineWidget != NULL) {
-        this->widgetsGroup->add(topHorizontalLineWidget);
-        this->widgetsGroup->add(this->enabledCheckBox);
-        this->widgetsGroup->add(fileLabel);
-        this->widgetsGroup->add(this->fileComboBox);
-        this->widgetsGroup->add(verticalLineWidget);
-        this->widgetsGroup->add(settingsToolButton);
-        this->widgetsGroup->add(mapLabel);
-        this->widgetsGroup->add(this->mapComboBox);
-    }
-    
     //this->setFixedHeight(this->sizeHint().height());
 }
 
@@ -196,13 +181,12 @@ OverlayViewController::~OverlayViewController()
 
 /**
  * Set the visiblity of this overlay view controller.
- *
+ */
 void 
 OverlayViewController::setVisible(bool visible)
 {
-    this->widgetsGroup->setVisible(visible);
+    this->gridLayoutGroup->setVisible(visible);
 }
-*/
 
 /**
  * Called when a selection is made from the file combo box.
@@ -286,7 +270,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
 {
     this->overlay = overlay;
 
-    this->widgetsGroup->blockAllSignals(true);
+//    this->widgetsGroup->blockAllSignals(true);
     
     this->fileComboBox->clear();
     this->mapComboBox->clear();
@@ -357,8 +341,8 @@ OverlayViewController::updateViewController(Overlay* overlay)
     
     this->enabledCheckBox->setCheckState(checkState);
     
-    this->widgetsGroup->blockAllSignals(false);
-    this->widgetsGroup->setEnabled(this->overlay != NULL);
+//    this->widgetsGroup->blockAllSignals(false);
+//    this->widgetsGroup->setEnabled(this->overlay != NULL);
     if (selectedFile != NULL) {
         this->settingsAction->setEnabled(selectedFile->isMappedWithPalette());
     }

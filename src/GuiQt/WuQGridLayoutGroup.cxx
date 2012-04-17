@@ -164,12 +164,12 @@ WuQGridLayoutGroup::setVisible(bool visible)
         const int numItems = this->layoutItems.size();
         for (int i = 0; i < numItems; i++) {
             ItemRowCol* irc = this->layoutItems[i];
-//            this->gridLayout->addWidget(irc->widget, 
-//                                        irc->fromRow, 
-//                                        irc->fromColumn, 
-//                                        irc->rowSpan, 
-//                                        irc->columnSpan, 
-//                                        irc->alignment);
+            this->gridLayout->addWidget(irc->widget, 
+                                        irc->fromRow, 
+                                        irc->fromColumn, 
+                                        irc->rowSpan, 
+                                        irc->columnSpan, 
+                                        irc->alignment);
             irc->widget->setVisible(true);
         }
         
@@ -182,7 +182,7 @@ WuQGridLayoutGroup::setVisible(bool visible)
             for (int i = 0; i < numItems; i++) {
                 ItemRowCol* irc = this->layoutItems[i];
                 irc->widget->setVisible(false);
-//                this->gridLayout->removeWidget(irc->widget);
+                this->gridLayout->removeWidget(irc->widget);
             }
             
             this->areWidgetsInLayout = false;

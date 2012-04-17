@@ -81,12 +81,27 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
 {
     this->browserWindowIndex = browserWindowIndex;
     
+    QWidget* gridWidget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    if (orientation == Qt::Horizontal) {
+        
+    }
+    else {
+        gridLayout->setColumnStretch(0, 0);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 0);
+        gridLayout->setColumnStretch(3, 100);
+    }
+    
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
         const bool showTopHorizontalBar = (i > 0);
         
         OverlayViewController* ovc = new OverlayViewController(orientation,
+                                                               gridLayout,
                                                                browserWindowIndex,
-                                                               showTopHorizontalBar);
+                                                               showTopHorizontalBar,
+                                                               this);
         this->overlayViewControllers.push_back(ovc);
     }
     
@@ -105,11 +120,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
-    for (std::vector<OverlayViewController*>::iterator iter = this->overlayViewControllers.begin();
-         iter != this->overlayViewControllers.end();
-         iter++) {
-        layout->addWidget(*iter);
-    }
+    layout->addWidget(gridWidget);
     layout->addLayout(overlayCountLayout);
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
