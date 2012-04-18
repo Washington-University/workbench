@@ -93,7 +93,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         maxComboBoxWidth = 100000;
     }
 
-    const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : "");
+    const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : " ");
     this->enabledCheckBox = new QCheckBox(checkboxText);
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
@@ -112,6 +112,21 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
     this->mapComboBox->setToolTip("Selects map within the selected file");
+    
+    QIcon colorBarIcon;
+    const bool colorBarIconValid = WuQtUtilities::loadIcon(":/overlay_colorbar.png",
+                                                           colorBarIcon);
+    this->colorBarAction = WuQtUtilities::createAction("CB", 
+                                                       "Display color bar for this overlay", 
+                                                       this, 
+                                                       this, 
+                                                       SLOT(colorBarActionTriggered(bool)));
+    this->colorBarAction->setCheckable(true);
+    if (colorBarIconValid) {
+        this->colorBarAction->setIcon(colorBarIcon);
+    }
+    QToolButton* colorBarToolButton = new QToolButton();
+    colorBarToolButton->setDefaultAction(this->colorBarAction);
     
     QIcon settingsIcon;
     const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
@@ -138,10 +153,12 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(settingsToolButton,
                                          row, 1,
                                          Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
+        this->gridLayoutGroup->addWidget(colorBarToolButton,
                                          row, 2);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
                                          row, 3);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                                         row, 4);
         
     }
     else {
@@ -155,25 +172,26 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
-                              row, 0,
-                              Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(fileLabel,
-                              row, 1);
-        this->gridLayoutGroup->addWidget(this->fileComboBox,
-                              row, 2);
-        
-        row = this->gridLayoutGroup->rowCount();
+                              row, 0, 2, 1,
+                              Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(settingsToolButton,
-                              row, 0,
-                              Qt::AlignHCenter);
-        this->gridLayoutGroup->addWidget(mapLabel,
-                              row, 1);
-        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                                         row, 1);
+        this->gridLayoutGroup->addWidget(fileLabel,
                               row, 2);
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
+                              row, 3);
         
-        row = this->gridLayoutGroup->rowCount();
+        row++;
+        this->gridLayoutGroup->addWidget(colorBarToolButton,
+                                         row, 1);
+        this->gridLayoutGroup->addWidget(mapLabel,
+                              row, 2);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                              row, 3);
+        
+        row++;
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
-                                         row, 0, 1, 3);
+                                         row, 0, 1, -1);
     }
     //this->setFixedHeight(this->sizeHint().height());
 }
@@ -241,6 +259,20 @@ OverlayViewController::enabledCheckBoxStateChanged(int state)
     
     this->updateUserInterfaceAndGraphicsWindow();
 }
+
+/**
+ * Called when colorbar toolbutton is toggled.
+ * @param status
+ *    New status.
+ */
+void 
+OverlayViewController::colorBarActionTriggered(bool status)
+{
+    this->overlay->setPaletteDisplayEnabled(status);
+    
+    this->updateUserInterfaceAndGraphicsWindow();
+}
+
 
 /**
  * Called when the settings tool button is selected.
@@ -347,6 +379,10 @@ OverlayViewController::updateViewController(Overlay* overlay)
     }
     
     this->enabledCheckBox->setCheckState(checkState);
+    
+    this->colorBarAction->blockSignals(true);
+    this->colorBarAction->setChecked(overlay->isPaletteDisplayEnabled());
+    this->colorBarAction->blockSignals(false);
     
 //    this->widgetsGroup->blockAllSignals(false);
 //    this->widgetsGroup->setEnabled(this->overlay != NULL);

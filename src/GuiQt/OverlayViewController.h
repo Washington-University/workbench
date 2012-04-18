@@ -72,6 +72,8 @@ namespace caret {
         
         void enabledCheckBoxStateChanged(int);
         
+        void colorBarActionTriggered(bool);
+        
         void settingsToolButtonSelected();
         
     private:
@@ -90,6 +92,8 @@ namespace caret {
         QComboBox* fileComboBox;
         
         QComboBox* mapComboBox;
+        
+        QAction* colorBarAction;
         
         QAction* settingsAction;
         
