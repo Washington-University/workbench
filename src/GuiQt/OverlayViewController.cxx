@@ -101,19 +101,21 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
     int minComboBoxWidth = 200;
     int maxComboBoxWidth = 400;
+    if (orientation == Qt::Horizontal) {
+        minComboBoxWidth = 50;
+        maxComboBoxWidth = 100000;
+    }
     
     this->enabledCheckBox = new QCheckBox("");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
     
-    QLabel* fileLabel = new QLabel("File");
     this->fileComboBox = new QComboBox();
     this->fileComboBox->setMinimumWidth(minComboBoxWidth);
     this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
                      this, SLOT(fileComboBoxSelected(int)));
     
-    QLabel* mapLabel = new QLabel("Map");
     this->mapComboBox = new QComboBox();
     this->mapComboBox->setMinimumWidth(minComboBoxWidth);
     this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
@@ -138,16 +140,30 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout, this);
     
     if (orientation == Qt::Horizontal) {
+        int row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox,
+                                         row, 0,
+                                         Qt::AlignHCenter);
+        this->gridLayoutGroup->addWidget(settingsToolButton,
+                                         row, 1,
+                                         Qt::AlignHCenter);
+        this->gridLayoutGroup->addWidget(this->fileComboBox,
+                                         row, 2);
+        this->gridLayoutGroup->addWidget(this->mapComboBox,
+                                         row, 3);
         
     }
     else {
+        QLabel* fileLabel = new QLabel("File");
+        QLabel* mapLabel = new QLabel("Map");
+        
         int row = this->gridLayoutGroup->rowCount();
         if (topHorizontalLineWidget != NULL) {
             this->gridLayoutGroup->addWidget(topHorizontalLineWidget,
                                   row, 0, 1, 4);
         }
         
-        row++;
+        row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
                               row, 0,
                               Qt::AlignHCenter);
@@ -159,7 +175,7 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         this->gridLayoutGroup->addWidget(verticalLineWidget,
                               row, 1, 2, 1);
         
-        row++;
+        row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(settingsToolButton,
                               row, 0,
                               Qt::AlignHCenter);

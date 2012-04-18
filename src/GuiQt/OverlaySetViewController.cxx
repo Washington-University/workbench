@@ -85,7 +85,10 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
     WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
     if (orientation == Qt::Horizontal) {
-        
+        gridLayout->setColumnStretch(0, 0);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 100);
+        gridLayout->setColumnStretch(3, 100);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
