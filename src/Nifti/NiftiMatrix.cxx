@@ -978,6 +978,7 @@ int8_t * NiftiMatrix::allocateFrame()
         throw NiftiException("Unsupported Data type for writes.");
         break;
     }
+    return frame;
 }
 //for in place editing of files, we need to respect the original layout
 void NiftiMatrix::writeVolume(VolumeBase &vol) throw (NiftiException)
