@@ -25,7 +25,8 @@
 
 #ifdef CARET_OS_WINDOWS
 #include <io.h>
-#define SSIZE_MAX 32767
+//#define SSIZE_MAX 32767
+#define SSIZE_MAX 2147483647
 #else //not CARET_OS_WINDOWS
 #include <unistd.h>
 #endif //ifdef CARET_OS_WINDOWS
@@ -358,8 +359,9 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset
         //file->read(bytes,size);
         //QT can't read files over a certain size
         int fh = file->handle();
-        //if(frameOffset == 0)
+        if(frameOffset == 0)
         {
+
 #ifdef CARET_OS_WINDOWS
             if (_lseeki64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
 #else
@@ -445,6 +447,8 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset
         //file->write(bytes,size);
         file->flush();//need to make QFile write its buffer to the handle before we use the handle, or else its buffered data can end up AFTER the matrix data, for unexpected results
         int fh = file->handle();
+        if(frameOffset == 0)
+        {
 #ifdef CARET_OS_WINDOWS
             if (_lseeki64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
 #else
@@ -457,11 +461,13 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset
         {
             throw NiftiException("failed to seek in file");
         }
+        }
         int64_t chunk_size = size;
         if (chunk_size > SSIZE_MAX)
         {
             chunk_size = SSIZE_MAX;
         }
+
         int64_t total = 0;
         while (total < size)
         {
