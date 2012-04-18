@@ -1,5 +1,5 @@
-#ifndef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_
-#define __CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_
+#ifndef __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER__H_
+#define __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -34,68 +34,64 @@
  */
 /*LICENSE_END*/
 
-#include <stdint.h>
-
 #include <set>
 
-#include <QWidget>
+#include <QObject>
 
-#include "DataFileTypeEnum.h"
-#include "EventListenerInterface.h"
-
+class QAction;
+class QCheckBox;
 class QGridLayout;
+class QLineEdit;
+class QSpinBox;
 
 namespace caret {
 
     class ConnectivityLoaderFile;
-    class ConnectivityLoaderManager;
-    class ConnectivityTimeSeriesViewController;
-    class ConnectivityViewController;
+    class WuQGridLayoutGroup;
     
-    class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
+    class ConnectivityTimeSeriesViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        ConnectivityManagerViewController(const Qt::Orientation orientation,
-                                          const int32_t browserWindowIndex,
-                                          const DataFileTypeEnum::Enum connectivityFileType,
-                                          QWidget* parent = 0);
+        ConnectivityTimeSeriesViewController(const Qt::Orientation orientation,
+                                         QGridLayout* gridLayout,
+                                         QObject* parent);
         
-        virtual ~ConnectivityManagerViewController();
+        virtual ~ConnectivityTimeSeriesViewController();
+        
+        void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
+        
+        void setVisible(bool visible);
+        
+    private slots:
+        void enabledCheckBoxStateChanged(int);
 
-        void receiveEvent(Event* event);
-        
     private:
-        ConnectivityManagerViewController(const ConnectivityManagerViewController&);
+        ConnectivityTimeSeriesViewController(const ConnectivityTimeSeriesViewController&);
 
-        ConnectivityManagerViewController& operator=(const ConnectivityManagerViewController&);
+        ConnectivityTimeSeriesViewController& operator=(const ConnectivityTimeSeriesViewController&);
         
-        void updateManagerViewController();
+        void updateUserInterfaceAndGraphicsWindow();
         
-        void updateForConnectivityFiles(const std::vector<ConnectivityLoaderFile*>& connectivityFiles);
+        void updateOtherConnectivityTimeSeriesViewControllers();
         
-        void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
+        void updateViewController();
         
-        Qt::Orientation orientation;
+        ConnectivityLoaderFile* connectivityLoaderFile;
         
-        int32_t browserWindowIndex;
+        QCheckBox* enabledCheckBox;
         
-        DataFileTypeEnum::Enum connectivityFileType;
+        QLineEdit* fileNameLineEdit;
         
-        QGridLayout* viewControllerGridLayout;
+        WuQGridLayoutGroup* gridLayoutGroup;
         
-        std::vector<ConnectivityViewController*> connectivityViewControllers;
-
-        std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
-        
-        static std::set<ConnectivityManagerViewController*> allManagerViewControllers;
-        
+        static std::set<ConnectivityTimeSeriesViewController*> allConnectivityTimeSeriesViewControllers;
     };
     
-#ifdef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
-    std::set<ConnectivityManagerViewController*> ConnectivityManagerViewController::allManagerViewControllers;
-#endif // __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
+#ifdef __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__
+    std::set<ConnectivityTimeSeriesViewController*> ConnectivityTimeSeriesViewController::allConnectivityTimeSeriesViewControllers;
+#endif // __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_
+#endif  //__CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER__H_

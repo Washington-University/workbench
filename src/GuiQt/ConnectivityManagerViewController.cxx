@@ -34,21 +34,21 @@
 
 #include <QVBoxLayout>
 
+#define __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
+#include "ConnectivityManagerViewController.h"
+#undef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
+
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
+#include "ConnectivityTimeSeriesViewController.h"
+#include "ConnectivityViewController.h"
 #include "EventManager.h"
 #include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
 #include "WuQtUtilities.h"
-
-#define __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
-#include "ConnectivityManagerViewController.h"
-#undef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
-
-#include "ConnectivityViewController.h"
 
 using namespace caret;
 
@@ -63,12 +63,14 @@ using namespace caret;
  * Constructor.
  */
 ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::Orientation orientation,
-                                                                                 const int32_t browserWindowIndex,
-                                                                                 QWidget* parent)
+                                                                     const int32_t browserWindowIndex,
+                                                                     const DataFileTypeEnum::Enum connectivityFileType,                                                                     
+                                                                     QWidget* parent)
 : QWidget(parent)
 {
     this->orientation = orientation;
     this->browserWindowIndex = browserWindowIndex;
+    this->connectivityFileType = connectivityFileType;
     
     this->viewControllerGridLayout = new QGridLayout();
     WuQtUtilities::setLayoutMargins(this->viewControllerGridLayout, 2, 2);
@@ -104,30 +106,42 @@ ConnectivityManagerViewController::updateManagerViewController()
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     for (int32_t i = 0; i < numberOfFiles; i++) {
         ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
-        if (clf->isDense()) {
+        if (clf->getDataFileType() == this->connectivityFileType) {
             connectivityFiles.push_back(clf);
-        }
-        else if (clf->isDenseTimeSeries()) {
-            // ignore
-        }
-        else {
-//            CaretAssertMessage(0, ("Unrecognized type of connectivity file: "
-//                                   + clf->getFileNameNoPath()));
         }
     }
     
+    switch (this->connectivityFileType) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            this->updateForConnectivityFiles(connectivityFiles);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            this->updateForTimeSeriesFiles(connectivityFiles);
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * Update for dense connectivity files.
+ * @param connectivityFiles
+ *    The connectivity files.
+ */
+void 
+ConnectivityManagerViewController::updateForConnectivityFiles(const std::vector<ConnectivityLoaderFile*>& connectivityFiles)
+{
     /*
      * Update, show (and possibly add) connectivity view controllers
      */
     const int32_t numConnectivityFiles = static_cast<int32_t>(connectivityFiles.size());
     for (int32_t i = 0; i < numConnectivityFiles; i++) {
-        if (i >= static_cast<int32_t>(this->viewControllers.size())) {
-            this->viewControllers.push_back(new ConnectivityViewController(this->orientation,
+        if (i >= static_cast<int32_t>(this->connectivityViewControllers.size())) {
+            this->connectivityViewControllers.push_back(new ConnectivityViewController(this->orientation,
                                                                            this->viewControllerGridLayout,
-                                                                           this));
- 
+                                                                           this));            
         }
-        ConnectivityViewController* cvc = this->viewControllers[i];
+        ConnectivityViewController* cvc = this->connectivityViewControllers[i];
         cvc->updateViewController(connectivityFiles[i]);
         cvc->setVisible(true);
     }
@@ -135,10 +149,42 @@ ConnectivityManagerViewController::updateManagerViewController()
     /*
      * Hide view controllers not needed
      */
-    const int32_t numViewControllers = static_cast<int32_t>(this->viewControllers.size());
+    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityViewControllers.size());
     for (int32_t i = numConnectivityFiles; i < numViewControllers; i++) {
-        this->viewControllers[i]->setVisible(false);
+        this->connectivityViewControllers[i]->setVisible(false);
+    }    
+}
+
+/**
+ * Update for time series files.
+ * @param timeSeriesFiles
+ *    The time series files.
+ */
+void 
+ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles)
+{
+    /*
+     * Update, show (and possibly add) time series view controllers
+     */
+    const int32_t numTimeSeriesFiles = static_cast<int32_t>(timeSeriesFiles.size());
+    for (int32_t i = 0; i < numTimeSeriesFiles; i++) {
+        if (i >= static_cast<int32_t>(this->timeSeriesViewControllers.size())) {
+            this->timeSeriesViewControllers.push_back(new ConnectivityTimeSeriesViewController(this->orientation,
+                                                                                       this->viewControllerGridLayout,
+                                                                                       this));            
+        }
+        ConnectivityTimeSeriesViewController* tsvc = this->timeSeriesViewControllers[i];
+        tsvc->updateViewController(timeSeriesFiles[i]);
+        tsvc->setVisible(true);
     }
+    
+    /*
+     * Hide view controllers not needed
+     */
+    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityViewControllers.size());
+    for (int32_t i = numTimeSeriesFiles; i < numViewControllers; i++) {
+        this->connectivityViewControllers[i]->setVisible(false);
+    }    
 }
 
 /**

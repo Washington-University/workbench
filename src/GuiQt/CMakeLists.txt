@@ -43,6 +43,7 @@ ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectivityManagerViewController.h
+ConnectivityTimeSeriesViewController.h
 ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
@@ -119,6 +120,7 @@ ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
 ConnectivityManagerViewController.h
+ConnectivityTimeSeriesViewController.h
 ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
@@ -208,6 +210,7 @@ ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
 ConnectivityManagerViewController.cxx
+ConnectivityTimeSeriesViewController.cxx
 ConnectivityViewController.cxx
 ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx

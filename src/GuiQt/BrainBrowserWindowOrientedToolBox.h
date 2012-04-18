@@ -45,6 +45,9 @@ namespace caret {
         ConnectivityManagerViewController* connectivityViewController;
         int connectivityTabIndex;
         
+        ConnectivityManagerViewController* timeSeriesViewController;
+        int timeSeriesTabIndex;
+        
         VolumeSurfaceOutlineSetViewController* volumeSurfaceOutlineSetViewController;
         int volumeSurfaceOutlineTabIndex;
         
