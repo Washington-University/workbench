@@ -44,9 +44,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
     this->browserWindowIndex = browserWindowIndex;
-    
-    this->setAllowedAreas(Qt::LeftDockWidgetArea);
-    
+        
     this->toggleViewAction()->setText("Toolbox");
     this->setWindowTitle(title);
     
@@ -81,46 +79,30 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     contentWidgets.push_back(this->volumeSurfaceOutlineSetViewController);
     contentWidgetNames.push_back("Volume Surface Outline");
     
-    WuQCollapsibleWidget* collapsibleWidget = NULL;
-    QToolBox* toolBoxWidget = NULL;
-    
-    const int toolBoxType = SessionManager::get()->getCaretPreferences()->getToolBoxType();
-    switch (toolBoxType) {
-        case 2:
-            toolBoxWidget = new QToolBox();
-            break;
-        default:
-            collapsibleWidget = new WuQCollapsibleWidget(this);
+    WuQCollapsibleWidget* collapsibleWidget = new WuQCollapsibleWidget(this);
             //this->collapsibleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-            break;
-    }
     
     const int32_t numContentWidgets = static_cast<int32_t>(contentWidgets.size());
     for (int32_t i = 0; i < numContentWidgets; i++) {
-        if (collapsibleWidget != NULL) {
             collapsibleWidget->addItem(contentWidgets[i], 
                                          contentWidgetNames[i]);
-        }
-        else if (toolBoxWidget != NULL) {
-            toolBoxWidget->addItem(contentWidgets[i], 
-                                         contentWidgetNames[i]);
-        }
     }
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    if (collapsibleWidget != NULL) {
-        layout->addWidget(collapsibleWidget);
-    }
-    else if (toolBoxWidget != NULL) {
-        layout->addWidget(toolBoxWidget);
-    }
+    layout->addWidget(collapsibleWidget);
     
     this->setWidget(widget);
 
-    this->setMinimumWidth(300);
-    this->setMaximumWidth(800);
+    if (orientation == Qt::Horizontal) {
+        this->setMinimumHeight(150);
+        this->setMaximumHeight(800);
+    }
+    else {
+        this->setMinimumWidth(300);
+        this->setMaximumWidth(800);
+    }
 //    this->setMinimumWidth(325);
 //    this->setMaximumWidth(600);
 //    this->setSizePolicy(QSizePolicy::Minimum,

@@ -76,16 +76,20 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->enabledCheckBox = new QCheckBox(" ");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
+    this->enabledCheckBox->setToolTip("Enables display of this volume surface outline");
     
     
     this->surfaceSelectionViewController = new SurfaceSelectionViewController(this);
     QObject::connect(this->surfaceSelectionViewController, SIGNAL(surfaceSelected(Surface*)),
                      this, SLOT(surfaceSelected(Surface*)));
+    this->surfaceSelectionViewController->getWidget()->setToolTip("Select surface drawn as outline over volume slices");
     
     this->colorOrTabSelectionControl = new VolumeSurfaceOutlineColorOrTabViewController(this);
     QObject::connect(this->colorOrTabSelectionControl, SIGNAL(modelSelected(VolumeSurfaceOutlineColorOrTabModel::Item*)),
                      this, SLOT(colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item*)));
-    
+    this->colorOrTabSelectionControl->getWidget()->setToolTip("Select coloring for surface outline.\n"
+                                                              "If tab, coloring assigned to selected surface\n"
+                                                              "in the selected tab is used.\n");
     const float minLineWidth = 0.5;
     const float maxLineWidth = 100.0;
     const float stepSize = 0.5;
@@ -96,6 +100,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->thicknessSpinBox->setFixedWidth(100);
     QObject::connect(this->thicknessSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(thicknessSpinBoxValueChanged(double)));
+    this->thicknessSpinBox->setToolTip("Thickness of surface outline");
     
     
     if (orientation == Qt::Horizontal) {

@@ -105,29 +105,33 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         minComboBoxWidth = 50;
         maxComboBoxWidth = 100000;
     }
-    
-    this->enabledCheckBox = new QCheckBox("");
+
+    const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : "");
+    this->enabledCheckBox = new QCheckBox(checkboxText);
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
+    this->enabledCheckBox->setToolTip("Enables display of this overlay");
     
     this->fileComboBox = new QComboBox();
     this->fileComboBox->setMinimumWidth(minComboBoxWidth);
     this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->fileComboBox, SIGNAL(activated(int)),
                      this, SLOT(fileComboBoxSelected(int)));
+    this->fileComboBox->setToolTip("Selects file for this overlay");
     
     this->mapComboBox = new QComboBox();
     this->mapComboBox->setMinimumWidth(minComboBoxWidth);
     this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
     QObject::connect(this->mapComboBox, SIGNAL(activated(int)),
                      this, SLOT(mapComboBoxSelected(int)));
+    this->mapComboBox->setToolTip("Selects map within the selected file");
     
     QIcon settingsIcon;
     const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
                                                            settingsIcon);
 
     this->settingsAction = WuQtUtilities::createAction("S", 
-                                                          "", 
+                                                          "Edit color mapping for this overlay", 
                                                           this, 
                                                           this, 
                                                           SLOT(settingsToolButtonSelected()));
