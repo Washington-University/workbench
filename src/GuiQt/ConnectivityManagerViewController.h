@@ -1,5 +1,5 @@
-#ifndef __CONNECTIVITY_LOADER_VIEW_CONTROLLER__H_
-#define __CONNECTIVITY_LOADER_VIEW_CONTROLLER__H_
+#ifndef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_
+#define __CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -34,73 +34,55 @@
  */
 /*LICENSE_END*/
 
+#include <stdint.h>
+
 #include <set>
 
-#include <QObject>
+#include <QWidget>
 
-class QAction;
-class QCheckBox;
+#include "EventListenerInterface.h"
+
 class QGridLayout;
-class QLineEdit;
-class QSpinBox;
 
 namespace caret {
 
-    class ConnectivityLoaderFile;
-    class WuQGridLayoutGroup;
+    class ConnectivityLoaderManager;
+    class ConnectivityViewController;
     
-    class ConnectivityLoaderViewController : public QObject {
+    class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
         
         Q_OBJECT
 
     public:
-        ConnectivityLoaderViewController(const Qt::Orientation orientation,
-                                         QGridLayout* gridLayout,
-                                         const bool showTopHorizontalBar,
-                                         QObject* parent);
+        ConnectivityManagerViewController(const Qt::Orientation orientation,
+                                                const int32_t browserWindowIndex,
+                                                QWidget* parent = 0);
         
-        virtual ~ConnectivityLoaderViewController();
-        
-        void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
-        
-        void setVisible(bool visible);
-        
-    private slots:
-        void openFileActionTriggered();
+        virtual ~ConnectivityManagerViewController();
 
-        void openWebActionTriggered();
+        void receiveEvent(Event* event);
         
-        void enabledCheckBoxStateChanged(int);
-
     private:
-        ConnectivityLoaderViewController(const ConnectivityLoaderViewController&);
+        ConnectivityManagerViewController(const ConnectivityManagerViewController&);
 
-        ConnectivityLoaderViewController& operator=(const ConnectivityLoaderViewController&);
+        ConnectivityManagerViewController& operator=(const ConnectivityManagerViewController&);
         
-        void updateUserInterfaceAndGraphicsWindow();
+        void updateManagerViewController();
         
-        void updateOtherConnectivityViewControllers();
+        Qt::Orientation orientation;
         
-        void updateViewController();
+        int32_t browserWindowIndex;
         
-        ConnectivityLoaderFile* connectivityLoaderFile;
+        QGridLayout* viewControllerGridLayout;
         
-        QAction* openFileAction;
+        std::vector<ConnectivityViewController*> viewControllers;
         
-        QAction* openWebAction;
-        
-        QCheckBox* enabledCheckBox;
-        
-        QLineEdit* fileNameLineEdit;
-        
-        WuQGridLayoutGroup* gridLayoutGroup;
-        
-        static std::set<ConnectivityLoaderViewController*> allConnectivityViewControllers;
+        static std::set<ConnectivityManagerViewController*> allManagerViewControllers;
     };
     
-#ifdef __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
-    std::set<ConnectivityLoaderViewController*> ConnectivityLoaderViewController::allConnectivityViewControllers;
-#endif // __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
+#ifdef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
+    std::set<ConnectivityManagerViewController*> ConnectivityManagerViewController::allManagerViewControllers;
+#endif // __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CONNECTIVITY_LOADER_VIEW_CONTROLLER__H_
+#endif  //__CONNECTIVITY_MANAGER_VIEW_CONTROLLER__H_

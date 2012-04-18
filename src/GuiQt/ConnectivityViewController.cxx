@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
-#include "ConnectivityLoaderViewController.h"
-#undef __CONNECTIVITY_LOADER_VIEW_CONTROLLER_DECLARE__
+#define __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
+#include "ConnectivityViewController.h"
+#undef __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
 #include <QCheckBox>
@@ -59,84 +59,38 @@ using namespace caret;
 
     
 /**
- * \class caret::ConnectivityLoaderViewController 
+ * \class caret::ConnectivityViewController 
  * \brief View-Controller for one connectivity loader
  *
  */
 /**
  * Constructor.
  */
-ConnectivityLoaderViewController::ConnectivityLoaderViewController(const Qt::Orientation orientation,
+ConnectivityViewController::ConnectivityViewController(const Qt::Orientation orientation,
                                                                    QGridLayout* gridLayout,
-                                                                   const bool showTopHorizontalBar,
                                                                    QObject* parent)
 : QObject(parent)
 {
     this->connectivityLoaderFile = NULL;
     
-    QFrame* topHorizontalLineWidget = NULL;
-    if (showTopHorizontalBar) {
-        topHorizontalLineWidget = new QFrame();
-        topHorizontalLineWidget->setLineWidth(1);
-        topHorizontalLineWidget->setMidLineWidth(2);
-        topHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Plain);
-        
-    }
     this->enabledCheckBox = new QCheckBox(" ");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
     
-    QLabel* fileNameLabel = new QLabel("File");
     this->fileNameLineEdit = new QLineEdit("                 ");
-    
-    this->openFileAction = WuQtUtilities::createAction("Open...",
-                                                      "Open a Connectivity File on Disk",
-                                                      this,
-                                                      this,
-                                                      SLOT(openFileActionTriggered()));
-    
-    QToolButton* openFileToolButton = new QToolButton();
-    openFileToolButton->setDefaultAction(openFileAction);
-    
-    this->openWebAction = WuQtUtilities::createAction("Web",
-                                                       "Open a Connectivity File from Web",
-                                                       this,
-                                                       this,
-                                                       SLOT(openWebActionTriggered()));
-    
-    QToolButton* openWebToolButton = new QToolButton();
-    openWebToolButton->setDefaultAction(openWebAction);
-    
-    QFrame* verticalLineWidget = new QFrame();
-    verticalLineWidget->setLineWidth(1);
-    verticalLineWidget->setMidLineWidth(2);
-    verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
-    
-    QWidget* rowTwoWidget = new QWidget();
-    QHBoxLayout* rowTwoLayout = new QHBoxLayout(rowTwoWidget);
-    WuQtUtilities::setLayoutMargins(rowTwoLayout, 4, 2);
-    rowTwoLayout->addWidget(openFileToolButton);
-    rowTwoLayout->addWidget(openWebToolButton);
-    rowTwoLayout->addStretch();
+    this->fileNameLineEdit->setReadOnly(true);
     
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
                                                    this);
     if (orientation == Qt::Horizontal) {
-        
+        int row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
+        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
     }
     else {
         int row = this->gridLayoutGroup->rowCount();
-        if (topHorizontalLineWidget != NULL) {
-            this->gridLayoutGroup->addWidget(topHorizontalLineWidget,
-                                             row, 0, 1, 4);
-        }
-        row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(verticalLineWidget, row, 1, 2, 1);
-        this->gridLayoutGroup->addWidget(fileNameLabel, row, 2);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 3);
-        row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(rowTwoWidget, row, 3);
+        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
     }
     
     allConnectivityViewControllers.insert(this);
@@ -145,7 +99,7 @@ ConnectivityLoaderViewController::ConnectivityLoaderViewController(const Qt::Ori
 /**
  * Destructor.
  */
-ConnectivityLoaderViewController::~ConnectivityLoaderViewController()
+ConnectivityViewController::~ConnectivityViewController()
 {
     allConnectivityViewControllers.erase(this);
 }
@@ -156,7 +110,7 @@ ConnectivityLoaderViewController::~ConnectivityLoaderViewController()
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityLoaderViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
+ConnectivityViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
 {
     this->connectivityLoaderFile = connectivityLoaderFile;
     if (this->connectivityLoaderFile != NULL) {
@@ -175,38 +129,22 @@ ConnectivityLoaderViewController::updateViewController(ConnectivityLoaderFile* c
  * Update the view controller.
  */
 void 
-ConnectivityLoaderViewController::updateViewController()
+ConnectivityViewController::updateViewController()
 {
     this->updateViewController(this->connectivityLoaderFile);    
-}
-
-/**
- * Called when open file button clicked.
- */
-void 
-ConnectivityLoaderViewController::openFileActionTriggered()
-{
-    
-    this->updateUserInterfaceAndGraphicsWindow();
-}
-
-/**
- * Called when open web button clicked.
- */
-void 
-ConnectivityLoaderViewController::openWebActionTriggered()
-{
-    
-    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
  * Called when enabled check box changes state.
  */
 void 
-ConnectivityLoaderViewController::enabledCheckBoxStateChanged(int state)
+ConnectivityViewController::enabledCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
+    if (this->connectivityLoaderFile != NULL) {
+        this->connectivityLoaderFile->setDataLoadingEnabled(selected);
+        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
+    }
     
     this->updateUserInterfaceAndGraphicsWindow();
 }
@@ -215,7 +153,7 @@ ConnectivityLoaderViewController::enabledCheckBoxStateChanged(int state)
  * Set the visiblity of this overlay view controller.
  */
 void 
-ConnectivityLoaderViewController::setVisible(bool visible)
+ConnectivityViewController::setVisible(bool visible)
 {
     this->gridLayoutGroup->setVisible(visible);
     
@@ -226,7 +164,7 @@ ConnectivityLoaderViewController::setVisible(bool visible)
  * Update graphics and GUI after 
  */
 void 
-ConnectivityLoaderViewController::updateUserInterfaceAndGraphicsWindow()
+ConnectivityViewController::updateUserInterfaceAndGraphicsWindow()
 {
     this->updateOtherConnectivityViewControllers();
     
@@ -239,12 +177,12 @@ ConnectivityLoaderViewController::updateUserInterfaceAndGraphicsWindow()
  * Update other connectivity view controllers other than 'this' instance.
  */
 void 
-ConnectivityLoaderViewController::updateOtherConnectivityViewControllers()
+ConnectivityViewController::updateOtherConnectivityViewControllers()
 {
-    for (std::set<ConnectivityLoaderViewController*>::iterator iter = allConnectivityViewControllers.begin();
+    for (std::set<ConnectivityViewController*>::iterator iter = allConnectivityViewControllers.begin();
          iter != allConnectivityViewControllers.end();
          iter++) {
-        ConnectivityLoaderViewController* clvc = *iter;
+        ConnectivityViewController* clvc = *iter;
         if (clvc != this) {
             clvc->updateViewController();
         }

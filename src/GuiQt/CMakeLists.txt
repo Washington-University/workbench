@@ -42,8 +42,8 @@ ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
-ConnectivityLoaderManagerViewController.h
-ConnectivityLoaderViewController.h
+ConnectivityManagerViewController.h
+ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayControlDialog.h
 DisplayControlVolumeSurfaceOutlinePage.h
@@ -118,8 +118,8 @@ ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
 ConnectivityLoaderControl.h
-ConnectivityLoaderManagerViewController.h
-ConnectivityLoaderViewController.h
+ConnectivityManagerViewController.h
+ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
 CursorEnum.h
@@ -207,8 +207,8 @@ ClassAndNameHierarchySelectedItem.cxx
 ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
 ConnectivityLoaderControl.cxx
-ConnectivityLoaderManagerViewController.cxx
-ConnectivityLoaderViewController.cxx
+ConnectivityManagerViewController.cxx
+ConnectivityViewController.cxx
 ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx

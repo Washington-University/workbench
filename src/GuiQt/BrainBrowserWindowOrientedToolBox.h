@@ -12,7 +12,7 @@ class QStackedWidget;
 
 namespace caret {
     class BorderSelectionViewController;
-    class ConnectivityLoaderManagerViewController;
+    class ConnectivityManagerViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
@@ -42,7 +42,7 @@ namespace caret {
         BorderSelectionViewController* borderSelectionViewController;
         int borderSelectionTabIndex;
         
-        ConnectivityLoaderManagerViewController* connectivityViewController;
+        ConnectivityManagerViewController* connectivityViewController;
         int connectivityTabIndex;
         
         VolumeSurfaceOutlineSetViewController* volumeSurfaceOutlineSetViewController;

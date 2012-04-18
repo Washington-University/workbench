@@ -13,7 +13,7 @@
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
-#include "ConnectivityLoaderManagerViewController.h"
+#include "ConnectivityManagerViewController.h"
 #include "ConnectivityLoaderFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
@@ -55,8 +55,8 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
                                                                   browserWindowIndex,
                                                                   this);    
     
-    this->connectivityViewController = NULL;
-//    this->connectivityViewController = new ConnectivityLoaderManagerViewController(orientation);
+    this->connectivityViewController = new ConnectivityManagerViewController(orientation,
+                                                                             browserWindowIndex);
     
     this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                             this);
@@ -66,9 +66,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 
     this->stackedWidget = new QStackedWidget();
     this->stackedWidget->addWidget(this->overlaySetViewController);
-    if (this->connectivityViewController != NULL) {
-        this->stackedWidget->addWidget(this->connectivityViewController);
-    }
+    this->stackedWidget->addWidget(this->connectivityViewController);
     this->stackedWidget->addWidget(this->borderSelectionViewController);
     this->stackedWidget->addWidget(this->volumeSurfaceOutlineSetViewController);
     QScrollArea* scrollArea = new QScrollArea();
@@ -77,10 +75,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     QTabBar* tabBar = new QTabBar();
     this->overlaySetTabIndex           = tabBar->addTab("Overlay");
-    this->connectivityTabIndex = -1;
-    if (this->connectivityViewController != NULL) {
-        this->connectivityTabIndex         = tabBar->addTab("Connectivity");
-    }
+    this->connectivityTabIndex         = tabBar->addTab("Connectivity");
     this->borderSelectionTabIndex      = tabBar->addTab("Borders");
     this->volumeSurfaceOutlineTabIndex = tabBar->addTab("Vol/Surf Outline");
     QObject::connect(tabBar, SIGNAL(currentChanged(int)),
