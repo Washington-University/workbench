@@ -324,7 +324,11 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset
         }*/
         if(frameOffset==0)
         {
-            int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+#ifdef CARET_OS_MACOSX
+        int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
+#else
+        int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+#endif
             if ( bytes_seeked != (matrixStartOffset+frameOffset))
             {
                 throw NiftiException("failed to seek in file");
@@ -408,7 +412,11 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset
         }*/
         if(frameOffset==0)
         {
+#ifdef CARET_OS_MACOSX
+            int64_t bytes_seeked = gzseek(zFile,matrixStartOffset+frameOffset, 0);
+#else
             int64_t bytes_seeked = gzseek64(zFile,matrixStartOffset+frameOffset, 0);
+#endif
             if ( bytes_seeked != (matrixStartOffset+frameOffset))
             {
                 throw NiftiException("failed to seek in file");
