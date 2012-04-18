@@ -117,6 +117,7 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     WuQtUtilities::setLayoutMargins(layout, 2, 2);
     layout->addWidget(gridWidget);
     layout->addLayout(overlayCountLayout);
+    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);

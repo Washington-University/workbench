@@ -96,10 +96,11 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     
     
     QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(this->bordersDisplayCheckBox, 0);  
-    layout->addWidget(this->bordersContralateralCheckBox, 0);  
-    layout->addLayout(groupLayout, 0);  
-    layout->addWidget(this->borderClassNameHierarchyViewController, 100);  
+    layout->addWidget(this->bordersDisplayCheckBox);  
+    layout->addWidget(this->bordersContralateralCheckBox);  
+    layout->addLayout(groupLayout);  
+    layout->addWidget(this->borderClassNameHierarchyViewController);
+    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);

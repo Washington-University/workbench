@@ -8,6 +8,8 @@
 
 #include "EventListenerInterface.h"
 
+class QStackedWidget;
+
 namespace caret {
     class BorderSelectionViewController;
     class ConnectivityLoaderManagerViewController;
@@ -27,17 +29,26 @@ namespace caret {
         
         void receiveEvent(Event* event);
         
+    private slots:
+        void tabIndexSelected(int indx);
+        
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
         BrainBrowserWindowOrientedToolBox& operator=(const BrainBrowserWindowOrientedToolBox&);
         
         OverlaySetViewController* overlaySetViewController;
+        int overlaySetTabIndex;
         
         BorderSelectionViewController* borderSelectionViewController;
+        int borderSelectionTabIndex;
         
         ConnectivityLoaderManagerViewController* connectivityViewController;
+        int connectivityTabIndex;
         
         VolumeSurfaceOutlineSetViewController* volumeSurfaceOutlineSetViewController;
+        int volumeSurfaceOutlineTabIndex;
+        
+        QStackedWidget* stackedWidget;
         
         int32_t browserWindowIndex;
     };    

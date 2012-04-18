@@ -4,7 +4,10 @@
 
 #include <QAction>
 #include <QLayout>
+#include <QScrollArea>
+#include <QStackedWidget>
 #include <QToolBox>
+#include <QTabBar>
 
 #include "BorderSelectionViewController.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
@@ -18,7 +21,6 @@
 #include "OverlaySetViewController.h"
 #include "SessionManager.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
-#include "WuQCollapsibleWidget.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -61,37 +63,34 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     this->volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
                                                                                             this->browserWindowIndex);
-    
-    std::vector<QWidget*> contentWidgets;
-    std::vector<QString> contentWidgetNames;
-    
-    contentWidgets.push_back(this->overlaySetViewController);
-    contentWidgetNames.push_back("Overlay");
-    
+
+    this->stackedWidget = new QStackedWidget();
+    this->stackedWidget->addWidget(this->overlaySetViewController);
     if (this->connectivityViewController != NULL) {
-        contentWidgets.push_back(this->connectivityViewController);
-        contentWidgetNames.push_back("Connectivity");
+        this->stackedWidget->addWidget(this->connectivityViewController);
     }
+    this->stackedWidget->addWidget(this->borderSelectionViewController);
+    this->stackedWidget->addWidget(this->volumeSurfaceOutlineSetViewController);
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(this->stackedWidget);
+    scrollArea->setWidgetResizable(true);    
     
-    contentWidgets.push_back(this->borderSelectionViewController);
-    contentWidgetNames.push_back("Borders");
-    
-    contentWidgets.push_back(this->volumeSurfaceOutlineSetViewController);
-    contentWidgetNames.push_back("Volume Surface Outline");
-    
-    WuQCollapsibleWidget* collapsibleWidget = new WuQCollapsibleWidget(this);
-            //this->collapsibleWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    
-    const int32_t numContentWidgets = static_cast<int32_t>(contentWidgets.size());
-    for (int32_t i = 0; i < numContentWidgets; i++) {
-            collapsibleWidget->addItem(contentWidgets[i], 
-                                         contentWidgetNames[i]);
+    QTabBar* tabBar = new QTabBar();
+    this->overlaySetTabIndex           = tabBar->addTab("Overlay");
+    this->connectivityTabIndex = -1;
+    if (this->connectivityViewController != NULL) {
+        this->connectivityTabIndex         = tabBar->addTab("Connectivity");
     }
+    this->borderSelectionTabIndex      = tabBar->addTab("Borders");
+    this->volumeSurfaceOutlineTabIndex = tabBar->addTab("Vol/Surf Outline");
+    QObject::connect(tabBar, SIGNAL(currentChanged(int)),
+                     this, SLOT(tabIndexSelected(int)));
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(collapsibleWidget);
+    layout->addWidget(tabBar);
+    layout->addWidget(scrollArea);
     
     this->setWidget(widget);
 
@@ -103,6 +102,9 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         this->setMinimumWidth(300);
         this->setMaximumWidth(800);
     }
+
+    this->tabIndexSelected(tabBar->currentIndex());
+    
 //    this->setMinimumWidth(325);
 //    this->setMaximumWidth(600);
 //    this->setSizePolicy(QSizePolicy::Minimum,
@@ -112,6 +114,31 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
 BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Called when a tab is selected.
+ * @param indx
+ *    Index of selected tab.
+ */
+void 
+BrainBrowserWindowOrientedToolBox::tabIndexSelected(int indx)
+{
+    if (indx == this->borderSelectionTabIndex) {
+        this->stackedWidget->setCurrentWidget(this->borderSelectionViewController);
+    }
+    else if (indx == this->connectivityTabIndex) {
+        this->stackedWidget->setCurrentWidget(this->connectivityViewController);
+    }
+    else if (indx == this->overlaySetTabIndex) {
+        this->stackedWidget->setCurrentWidget(this->overlaySetViewController);
+    }
+    else if (indx == this->volumeSurfaceOutlineTabIndex) {
+        this->stackedWidget->setCurrentWidget(this->volumeSurfaceOutlineSetViewController);
+    }
+    else {
+        CaretAssertMessage(0, "Widget index is invalid!");
+    }
 }
 
 /**
