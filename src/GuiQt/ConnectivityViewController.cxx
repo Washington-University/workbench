@@ -174,17 +174,22 @@ ConnectivityViewController::updateUserInterfaceAndGraphicsWindow()
 }
 
 /**
- * Update other connectivity view controllers other than 'this' instance.
+ * Update other connectivity view controllers other than 'this' instance
+ * that contain the same connectivity file.
  */
 void 
 ConnectivityViewController::updateOtherConnectivityViewControllers()
 {
-    for (std::set<ConnectivityViewController*>::iterator iter = allConnectivityViewControllers.begin();
-         iter != allConnectivityViewControllers.end();
-         iter++) {
-        ConnectivityViewController* clvc = *iter;
-        if (clvc != this) {
-            clvc->updateViewController();
+    if (this->connectivityLoaderFile != NULL) {
+        for (std::set<ConnectivityViewController*>::iterator iter = allConnectivityViewControllers.begin();
+             iter != allConnectivityViewControllers.end();
+             iter++) {
+            ConnectivityViewController* clvc = *iter;
+            if (clvc != this) {
+                if (clvc->connectivityLoaderFile == this->connectivityLoaderFile) {
+                    clvc->updateViewController();
+                }
+            }
         }
     }
 }
