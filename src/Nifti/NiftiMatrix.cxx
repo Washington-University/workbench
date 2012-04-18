@@ -354,9 +354,22 @@ void NiftiMatrix::readMatrixBytes(char *bytes, int64_t size, int64_t frameOffset
         //file->read(bytes,size);
         //QT can't read files over a certain size
         int fh = file->handle();
-        if (lseek(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+        //if(frameOffset == 0)
         {
-            throw NiftiException("failed to seek in file");
+#ifdef CARET_OS_WINDOWS
+            if (_lseeki64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#else
+#ifdef CARET_OS_LINUX
+            if (lseek64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#else //Fallback to lseek for MAC which doesn't have lseek64, and others
+            if (lseek(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#endif //CARET_OS_LINUX
+#endif //CARET_OS_WINDOWS
+
+
+            {
+                throw NiftiException("failed to seek in file");
+            }
         }
         int64_t chunk_size = size;
         if (chunk_size > SSIZE_MAX)
@@ -424,7 +437,15 @@ void NiftiMatrix::writeMatrixBytes(char *bytes, int64_t size,int64_t frameOffset
         //file->write(bytes,size);
         file->flush();//need to make QFile write its buffer to the handle before we use the handle, or else its buffered data can end up AFTER the matrix data, for unexpected results
         int fh = file->handle();
-        if (lseek(fh,matrixStartOffset,0) != matrixStartOffset)
+#ifdef CARET_OS_WINDOWS
+            if (_lseeki64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#else
+#ifdef CARET_OS_LINUX
+            if (lseek64(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#else //Fallback to lseek for MAC which doesn't have lseek64, and others
+            if (lseek(fh,matrixStartOffset+frameOffset,0) != (matrixStartOffset+frameOffset))
+#endif //CARET_OS_LINUX
+#endif //CARET_OS_WINDOWS
         {
             throw NiftiException("failed to seek in file");
         }
@@ -653,20 +674,20 @@ void NiftiMatrix::convertBytes(char *&bytes, float *&frameOut, int64_t &size) th
     
     switch ((NiftiDataTypeEnum::toIntegerCode(niftiDataType))) {
     case NIFTI_TYPE_FLOAT32:
-        if(needsSwapping) ByteSwapping::swapBytes((float *)bytes,size);
+        if(needsSwapping) ByteSwapping::swapBytes((float *)bytes,frameLength);
         memcpy((void *)frameOut,(void *)bytes, size);
         break;
     case NIFTI_TYPE_FLOAT64:
-        if(needsSwapping) ByteSwapping::swapBytes((double *)bytes, size);
-        for(int i=0;i<matrixLength;i++) frameOut[i] = ((double *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((double *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((double *)bytes)[i];
         break;
     case NIFTI_TYPE_RGB24:
     {
-        if(size%3) throw NiftiException("Reading RGB type but frame bytes aren't divisible by 3.");
-        int64_t GFrameOffset = size;
-        int64_t BFrameOffset = size*2;
+        if(frameLength%3) throw NiftiException("Reading RGB type but frame bytes aren't divisible by 3.");
+        int64_t GFrameOffset = frameLength;
+        int64_t BFrameOffset = frameLength*2;
                 
-        for(int i=0;i<size;i+=3)
+        for(int i=0;i<frameLength*3;i+=3)
         {
             frameOut[i] = bytes[i];
             frameOut[GFrameOffset+i]=bytes[i+1];
@@ -676,34 +697,34 @@ void NiftiMatrix::convertBytes(char *&bytes, float *&frameOut, int64_t &size) th
     }
         break;
     case NIFTI_TYPE_INT8:
-        for(int i=0;i<size;i++) frameOut[i] = ((int8_t *)bytes)[i];
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((int8_t *)bytes)[i];
         break;
     case NIFTI_TYPE_INT16:
-        if(needsSwapping) ByteSwapping::swapBytes((int16_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((int16_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((int16_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((int16_t *)bytes)[i];
         break;
     case NIFTI_TYPE_INT32:
-        if(needsSwapping) ByteSwapping::swapBytes((int32_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((int32_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((int32_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((int32_t *)bytes)[i];
         break;
     case NIFTI_TYPE_INT64:
-        if(needsSwapping) ByteSwapping::swapBytes((int64_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((int64_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((int64_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((int64_t *)bytes)[i];
         break;
     case NIFTI_TYPE_UINT8:
-        for(int i=0;i<size;i++) frameOut[i] = ((uint8_t *)bytes)[i];
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((uint8_t *)bytes)[i];
         break;
     case NIFTI_TYPE_UINT16:
-        if(needsSwapping) ByteSwapping::swapBytes((uint16_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((uint16_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((uint16_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((uint16_t *)bytes)[i];
         break;
     case NIFTI_TYPE_UINT32:
-        if(needsSwapping) ByteSwapping::swapBytes((uint32_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((uint32_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((uint32_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((uint32_t *)bytes)[i];
         break;
     case NIFTI_TYPE_UINT64:
-        if(needsSwapping) ByteSwapping::swapBytes((uint64_t *)bytes, size);
-        for(int i=0;i<size;i++) frameOut[i] = ((uint64_t *)bytes)[i];
+        if(needsSwapping) ByteSwapping::swapBytes((uint64_t *)bytes, frameLength);
+        for(int i=0;i<frameLength;i++) frameOut[i] = ((uint64_t *)bytes)[i];
         break;
     default:
         throw NiftiException("Unrecognized Nifti Data Type found when reading frame.");
@@ -796,20 +817,21 @@ void NiftiMatrix::convertFrame(float *&frameIn, char *&bytesOut, int64_t &size) 
             frameIn[i] = (frameIn[i]-sclIntercept)/sclSlope;
         }
     }
-
+    
     switch(NiftiDataTypeEnum::toIntegerCode(this->niftiDataType))
     {
     case NIFTI_TYPE_FLOAT32:
     {
-        float *frameOut = (float *)bytesOut;
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut,size);
+        memcpy(bytesOut,(char *)frameIn,size);
+        float *frameOut = (float *)bytesOut;        
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut,frameLength);
     }
         break;
     case NIFTI_TYPE_FLOAT64:
     {
         double *frameOut = (double *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);    
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);    
     }
         break;
     case NIFTI_TYPE_RGB24:
@@ -829,55 +851,55 @@ void NiftiMatrix::convertFrame(float *&frameIn, char *&bytesOut, int64_t &size) 
     case NIFTI_TYPE_INT8:
     {
         int8_t *frameOut = (int8_t *)bytesOut;
-        for(int i=0;i<size;i++) frameOut[i]=frameIn[i];
+        for(int i=0;i<frameLength;i++) frameOut[i]=frameIn[i];
     }
         break;
     case NIFTI_TYPE_INT16:
     {
         int16_t *frameOut = (int16_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     case NIFTI_TYPE_INT32:
     {
         int32_t *frameOut = (int32_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     case NIFTI_TYPE_INT64:
     {
         int64_t *frameOut = (int64_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     case NIFTI_TYPE_UINT8:   
     {
         uint8_t *frameOut = (uint8_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
     }
         break;
     case NIFTI_TYPE_UINT16:
     {
         uint16_t *frameOut = (uint16_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     case NIFTI_TYPE_UINT32:
     {
         uint32_t *frameOut = (uint32_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     case NIFTI_TYPE_UINT64:
     {
         uint64_t *frameOut = (uint64_t *)bytesOut;
-        for(int i = 0;i<size;i++) frameOut[i]=frameIn[i];
-        if(needsSwapping) ByteSwapping::swapBytes(frameOut, size);
+        for(int i = 0;i<frameLength;i++) frameOut[i]=frameIn[i];
+        if(needsSwapping) ByteSwapping::swapBytes(frameOut, frameLength);
     }
         break;
     default:
@@ -888,7 +910,7 @@ void NiftiMatrix::convertFrame(float *&frameIn, char *&bytesOut, int64_t &size) 
     //reapply scaling
     if(sclSlope != 0.0)
     {
-        for(int64_t i =0;i<size;i++)
+        for(int64_t i =0;i<frameLength;i++)
         {
             frameIn[i] = sclSlope*frameIn[i]+sclIntercept;
         }
@@ -916,7 +938,7 @@ void NiftiMatrix::writeVolume(gzFile fileOut, VolumeBase &vol) throw (NiftiExcep
 int8_t * NiftiMatrix::allocateFrame()
 {
     int8_t *frame = NULL;
-    int64_t size = frameSize*componentDimensions;
+    int64_t size = frameLength*componentDimensions;
     switch(NiftiDataTypeEnum::toIntegerCode(this->niftiDataType))
     {
     case NIFTI_TYPE_INT8:
@@ -963,6 +985,8 @@ void NiftiMatrix::writeVolume(VolumeBase &vol) throw (NiftiException)
         convertFrame(frameIn,frameOut,size);
         writeMatrixBytes((char *)frameOut,size, t*size);
     }
+    delete [] frameOut;
+    delete [] frameIn;
    
 }
 
