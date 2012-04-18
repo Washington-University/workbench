@@ -38,6 +38,7 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QDoubleSpinBox>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -80,17 +81,65 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     this->fileNameLineEdit = new QLineEdit("                 ");
     this->fileNameLineEdit->setReadOnly(true);
     
+    this->animateAction = WuQtUtilities::createAction("Animate",
+                                                      "Start/stop animation",
+                                                      this,
+                                                      this,
+                                                      SLOT(animateActionTriggered(bool)));
+    this->animateAction->setCheckable(true);
+    QToolButton* animateToolButton = new QToolButton();
+    animateToolButton->setDefaultAction(this->animateAction);
+    
+    QIcon graphIcon;
+    const bool graphIconValid = WuQtUtilities::loadIcon(":/time_series_graph.png",
+                                                           graphIcon);
+    this->graphDisplayAction = WuQtUtilities::createAction("Graph",
+                                                           "Display time-series graph for selected brainordinate", 
+                                                           this, 
+                                                           this, 
+                                                           SLOT(graphDisplayActionTriggered(bool)));
+    if (graphIconValid) {
+        this->graphDisplayAction->setIcon(graphIcon);
+    }
+    this->graphDisplayAction->setCheckable(true);
+    QToolButton* graphToolButton = new QToolButton();
+    graphToolButton->setDefaultAction(this->graphDisplayAction);
+    
+    this->timeSpinBox = new QDoubleSpinBox();
+    this->timeSpinBox->setMinimum(0);
+    this->timeSpinBox->setMaximum(std::numeric_limits<double>::max());
+    this->timeSpinBox->setSingleStep(1.0);
+    this->timeSpinBox->setMaximumWidth(80);
+    WuQtUtilities::setToolTipAndStatusTip(this->timeSpinBox,
+                                          "Select timepoint for display on brainordinates");
+    QObject::connect(this->timeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(timeSpinBoxValueChanged(double)));
+    
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout,
                                                    this);
     if (orientation == Qt::Horizontal) {
         int row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
+        this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
+        this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
+        this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3);
+        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 4);
     }
     else {
+        QFrame* bottomHorizontalLineWidget = new QFrame();
+        bottomHorizontalLineWidget->setLineWidth(0);
+        bottomHorizontalLineWidget->setMidLineWidth(1);
+        bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
+        
         int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
-        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
+        this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1, 1, 3);
+        row++;
+        this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
+        this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
+        this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3, Qt::AlignLeft);
+        row++;
+        this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
     
     allConnectivityTimeSeriesViewControllers.insert(this);
@@ -102,6 +151,34 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
 ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
 {
     allConnectivityTimeSeriesViewControllers.erase(this);
+}
+
+/**
+ * Create the grid layout for this view controller using the given orientation.
+ * @param orientation
+ *    Orientation in toolbox.
+ * @return
+ *    GridLayout setup for this view controller.
+ */
+QGridLayout* 
+ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation orientation)
+{
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    if (orientation == Qt::Horizontal) {
+        gridLayout->setColumnStretch(0, 0);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 0);
+        gridLayout->setColumnStretch(3, 0);
+        gridLayout->setColumnStretch(4, 100);
+    }
+    else {
+        gridLayout->setColumnStretch(0, 0);
+        gridLayout->setColumnStretch(1, 0);
+        gridLayout->setColumnStretch(2, 0);
+        gridLayout->setColumnStretch(3, 100);
+    }
+    return gridLayout;
 }
 
 /**
@@ -192,6 +269,39 @@ ConnectivityTimeSeriesViewController::updateOtherConnectivityTimeSeriesViewContr
             }
         }
     }
+}
+
+/**
+ * Called when graph display tool button is triggered.
+ * @param status
+ *    New status.
+ */
+void 
+ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
+{
+    
+}
+
+/**
+ * Called when animate tool button is triggered.
+ * @param status
+ *    New status.
+ */
+void 
+ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
+{
+    
+}
+
+/**
+ * Called when animate time spin box value is changed.
+ * @param value
+ *    New value.
+ */
+void 
+ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
+{
+    
 }
 
 

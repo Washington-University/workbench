@@ -40,6 +40,7 @@
 
 class QAction;
 class QCheckBox;
+class QDoubleSpinBox;
 class QGridLayout;
 class QLineEdit;
 class QSpinBox;
@@ -64,9 +65,17 @@ namespace caret {
         
         void setVisible(bool visible);
         
+        static QGridLayout* createGridLayout(const Qt::Orientation orientation);
+        
     private slots:
         void enabledCheckBoxStateChanged(int);
 
+        void graphDisplayActionTriggered(bool);
+        
+        void animateActionTriggered(bool);
+        
+        void timeSpinBoxValueChanged(double);
+        
     private:
         ConnectivityTimeSeriesViewController(const ConnectivityTimeSeriesViewController&);
 
@@ -83,6 +92,12 @@ namespace caret {
         QCheckBox* enabledCheckBox;
         
         QLineEdit* fileNameLineEdit;
+        
+        QAction* graphDisplayAction;
+        
+        QAction* animateAction;
+        
+        QDoubleSpinBox* timeSpinBox;
         
         WuQGridLayoutGroup* gridLayoutGroup;
         

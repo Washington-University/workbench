@@ -64,6 +64,8 @@ namespace caret {
         
         void setVisible(bool visible);
         
+        static QGridLayout* createGridLayout(const Qt::Orientation orientation);
+        
     private slots:
         void enabledCheckBoxStateChanged(int);
 

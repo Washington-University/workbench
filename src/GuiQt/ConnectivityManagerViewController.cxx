@@ -72,10 +72,21 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     this->browserWindowIndex = browserWindowIndex;
     this->connectivityFileType = connectivityFileType;
     
-    this->viewControllerGridLayout = new QGridLayout();
-    WuQtUtilities::setLayoutMargins(this->viewControllerGridLayout, 2, 2);
-    this->viewControllerGridLayout->setColumnStretch(0, 0);
-    this->viewControllerGridLayout->setColumnStretch(1, 100);
+    this->viewControllerGridLayout = NULL;
+    
+    switch (this->connectivityFileType) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            this->viewControllerGridLayout = ConnectivityViewController::createGridLayout(orientation);
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);
+            break;
+        default:
+            CaretAssertMessage(0, ("Unrecognized connectivity file type "
+                                   + DataFileTypeEnum::toName(this->connectivityFileType)));
+            return;
+            break;
+    }
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(this->viewControllerGridLayout);

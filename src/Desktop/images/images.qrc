@@ -19,6 +19,7 @@
 <file>cursor_pen_eraser_32x32.png</file>
 <file>overlay_wrench.png</file>
 <file>overlay_colorbar.png</file>
+<file>time_series_graph.png</file>
 </qresource>
 </RCC>
 

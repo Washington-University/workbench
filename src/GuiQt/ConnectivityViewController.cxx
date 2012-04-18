@@ -105,6 +105,23 @@ ConnectivityViewController::~ConnectivityViewController()
 }
 
 /**
+ * Create the grid layout for this view controller using the given orientation.
+ * @param orientation
+ *    Orientation in toolbox.
+ * @return
+ *    GridLayout setup for this view controller.
+ */
+QGridLayout* 
+ConnectivityViewController::createGridLayout(const Qt::Orientation /*orientation*/)
+{
+    QGridLayout* gridLayout = new QGridLayout();
+    WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
+    gridLayout->setColumnStretch(0, 0);
+    gridLayout->setColumnStretch(1, 100);
+    return gridLayout;
+}
+
+/**
  * Update this view controller.
  * @param connectivityLoaderFile
  *    Connectivity loader file in this view controller.
