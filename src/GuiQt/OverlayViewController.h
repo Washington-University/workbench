@@ -74,7 +74,15 @@ namespace caret {
         
         void colorBarActionTriggered(bool);
         
-        void settingsToolButtonSelected();
+        void settingsActionTriggered();
+        
+        void addActionTriggered();
+        
+        void moveUpActionTriggered();
+        
+        void moveDownActionTriggered();
+        
+        void removeActionTriggered();
         
     private:
         OverlayViewController(const OverlayViewController&);
@@ -96,6 +104,14 @@ namespace caret {
         QAction* colorBarAction;
         
         QAction* settingsAction;
+        
+        QAction* addAction;
+        
+        QAction* moveDownAction;
+        
+        QAction* moveUpAction;
+        
+        QAction* removeAction;
         
         WuQGridLayoutGroup* gridLayoutGroup;
         

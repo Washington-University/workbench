@@ -93,12 +93,18 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         maxComboBoxWidth = 100000;
     }
 
+    /*
+     * Enabled Check Box
+     */
     const QString checkboxText = ((orientation == Qt::Horizontal) ? " " : " ");
     this->enabledCheckBox = new QCheckBox(checkboxText);
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
     this->enabledCheckBox->setToolTip("Enables display of this overlay");
     
+    /*
+     * File Selection Check Box
+     */
     this->fileComboBox = new QComboBox();
     this->fileComboBox->setMinimumWidth(minComboBoxWidth);
     this->fileComboBox->setMaximumWidth(maxComboBoxWidth);
@@ -106,6 +112,9 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                      this, SLOT(fileComboBoxSelected(int)));
     this->fileComboBox->setToolTip("Selects file for this overlay");
     
+    /*
+     * Map Selection Check Box
+     */
     this->mapComboBox = new QComboBox();
     this->mapComboBox->setMinimumWidth(minComboBoxWidth);
     this->mapComboBox->setMaximumWidth(maxComboBoxWidth);
@@ -113,6 +122,9 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                      this, SLOT(mapComboBoxSelected(int)));
     this->mapComboBox->setToolTip("Selects map within the selected file");
     
+    /*
+     * ColorBar Tool Button
+     */
     QIcon colorBarIcon;
     const bool colorBarIconValid = WuQtUtilities::loadIcon(":/overlay_colorbar.png",
                                                            colorBarIcon);
@@ -128,6 +140,9 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     QToolButton* colorBarToolButton = new QToolButton();
     colorBarToolButton->setDefaultAction(this->colorBarAction);
     
+    /*
+     * Settings Tool Button
+     */
     QIcon settingsIcon;
     const bool settingsIconValid = WuQtUtilities::loadIcon(":/overlay_wrench.png",
                                                            settingsIcon);
@@ -136,13 +151,53 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
                                                           "Edit color mapping for this overlay", 
                                                           this, 
                                                           this, 
-                                                          SLOT(settingsToolButtonSelected()));
+                                                          SLOT(settingsActionTriggered()));
     if (settingsIconValid) {
         this->settingsAction->setIcon(settingsIcon);
     }
     QToolButton* settingsToolButton = new QToolButton();
     settingsToolButton->setDefaultAction(this->settingsAction);
     
+    /*
+     * Add Tool Button
+     */
+    this->addAction = WuQtUtilities::createAction("Add", 
+                                                  "Add an overlay", 
+                                                  this, 
+                                                  this, 
+                                                  SLOT(addActionTriggered()));
+    
+    /*
+     * Remove Tool Button
+     */
+    this->removeAction = WuQtUtilities::createAction("Remove", 
+                                                  "Remove this overlay", 
+                                                  this, 
+                                                  this, 
+                                                  SLOT(removeActionTriggered()));
+    
+    
+    /*
+     * Move Up Tool Button
+     */
+    this->moveUpAction = WuQtUtilities::createAction("Up", 
+                                                     "Move this overlay up", 
+                                                     this, 
+                                                     this, 
+                                                     SLOT(moveUpActionTriggered()));
+    
+    /*
+     * Move Down Tool Button
+     */
+    this->moveDownAction = WuQtUtilities::createAction("Down", 
+                                                     "Move this overlay down", 
+                                                     this, 
+                                                     this, 
+                                                     SLOT(moveUpActionTriggered()));
+    
+    /*
+     * Use layout group so that items can be shown/hidden
+     */
     this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout, this);
     
     if (orientation == Qt::Horizontal) {
@@ -275,10 +330,10 @@ OverlayViewController::colorBarActionTriggered(bool status)
 
 
 /**
- * Called when the settings tool button is selected.
+ * Called when the settings action is selected.
  */
 void 
-OverlayViewController::settingsToolButtonSelected()
+OverlayViewController::settingsActionTriggered()
 {
     CaretMappableDataFile* mapFile;
     int32_t mapIndex = -1;
@@ -392,7 +447,7 @@ OverlayViewController::updateViewController(Overlay* overlay)
 }
 
 /**
- * Update graphics and GUI after 
+ * Update graphics and GUI after selections made
  */
 void 
 OverlayViewController::updateUserInterfaceAndGraphicsWindow()
@@ -401,5 +456,43 @@ OverlayViewController::updateUserInterfaceAndGraphicsWindow()
     EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
 }
+
+/**
+ * Called when the add action is triggered.
+ */
+void 
+OverlayViewController::addActionTriggered()
+{
+    
+}
+
+/**
+ * Called when the add action is triggered.
+ */
+void 
+OverlayViewController::moveUpActionTriggered()
+{
+    
+}
+
+/**
+ * Called when the add action is triggered.
+ */
+void 
+OverlayViewController::moveDownActionTriggered()
+{
+    
+}
+
+/**
+ * Called when the add action is triggered.
+ */
+void 
+OverlayViewController::removeActionTriggered()
+{
+    
+}
+
+
 
 
