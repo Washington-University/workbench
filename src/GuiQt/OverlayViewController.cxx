@@ -86,19 +86,6 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
     this->browserWindowIndex = browserWindowIndex;
     this->overlay = NULL;
     
-    QFrame* topHorizontalLineWidget = NULL;
-    if (showTopHorizontalLine) {
-        topHorizontalLineWidget = new QFrame();
-        topHorizontalLineWidget->setLineWidth(1);
-        topHorizontalLineWidget->setMidLineWidth(2);
-        topHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Plain);
-
-    }
-    
-    QFrame* verticalLineWidget = new QFrame();
-    verticalLineWidget->setLineWidth(1);
-    verticalLineWidget->setMidLineWidth(2);
-    verticalLineWidget->setFrameStyle(QFrame::VLine | QFrame::Plain);
     int minComboBoxWidth = 200;
     int maxComboBoxWidth = 400;
     if (orientation == Qt::Horizontal) {
@@ -158,35 +145,35 @@ OverlayViewController::OverlayViewController(const Qt::Orientation orientation,
         
     }
     else {
+        QFrame* bottomHorizontalLineWidget = new QFrame();
+        bottomHorizontalLineWidget->setLineWidth(0);
+        bottomHorizontalLineWidget->setMidLineWidth(1);
+        bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
+        
         QLabel* fileLabel = new QLabel("File");
         QLabel* mapLabel = new QLabel("Map");
         
         int row = this->gridLayoutGroup->rowCount();
-        if (topHorizontalLineWidget != NULL) {
-            this->gridLayoutGroup->addWidget(topHorizontalLineWidget,
-                                  row, 0, 1, 4);
-        }
-        
-        row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(this->enabledCheckBox,
                               row, 0,
                               Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(fileLabel,
-                              row, 2);
+                              row, 1);
         this->gridLayoutGroup->addWidget(this->fileComboBox,
-                              row, 3);
-        
-        this->gridLayoutGroup->addWidget(verticalLineWidget,
-                              row, 1, 2, 1);
+                              row, 2);
         
         row = this->gridLayoutGroup->rowCount();
         this->gridLayoutGroup->addWidget(settingsToolButton,
                               row, 0,
                               Qt::AlignHCenter);
         this->gridLayoutGroup->addWidget(mapLabel,
-                              row, 2);
+                              row, 1);
         this->gridLayoutGroup->addWidget(this->mapComboBox,
-                              row, 3);
+                              row, 2);
+        
+        row = this->gridLayoutGroup->rowCount();
+        this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget,
+                                         row, 0, 1, 3);
     }
     //this->setFixedHeight(this->sizeHint().height());
 }

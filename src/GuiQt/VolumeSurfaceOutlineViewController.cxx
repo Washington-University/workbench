@@ -73,6 +73,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
 : QObject(parent)
 {
     this->outlineModel = NULL;
+    
     this->enabledCheckBox = new QCheckBox(" ");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
                      this, SLOT(enabledCheckBoxStateChanged(int)));
@@ -112,13 +113,20 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
         this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 3);
     }
     else {
+        QFrame* bottomHorizontalLineWidget = new QFrame();
+        bottomHorizontalLineWidget->setLineWidth(0);
+        bottomHorizontalLineWidget->setMidLineWidth(1);
+        bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
+        
         this->gridLayoutGroup = new WuQGridLayoutGroup(gridLayout);
         int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
+        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->surfaceSelectionViewController->getWidget(), row, 1, 1, 2);
-        row = this->gridLayoutGroup->rowCount();
+        row++;
         this->gridLayoutGroup->addWidget(this->colorOrTabSelectionControl->getWidget(), row, 1);        
         this->gridLayoutGroup->addWidget(this->thicknessSpinBox, row, 2, Qt::AlignLeft);
+        row++;
+        this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
 }
 
