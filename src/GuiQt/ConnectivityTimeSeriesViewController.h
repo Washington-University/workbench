@@ -38,6 +38,8 @@
 
 #include <QObject>
 
+#include "EventListenerInterface.h"
+
 class QAction;
 class QCheckBox;
 class QDoubleSpinBox;
@@ -48,9 +50,10 @@ class QSpinBox;
 namespace caret {
 
     class ConnectivityLoaderFile;
+    class TimeSeriesManagerForViewController;
     class WuQGridLayoutGroup;
     
-    class ConnectivityTimeSeriesViewController : public QObject {
+    class ConnectivityTimeSeriesViewController : public QObject, public EventListenerInterface {
         
         Q_OBJECT
 
@@ -66,6 +69,14 @@ namespace caret {
         void setVisible(bool visible);
         
         static QGridLayout* createGridLayout(const Qt::Orientation orientation);
+        
+        void receiveEvent(Event* event);
+        
+        QDoubleSpinBox *getTimeSpinBox();
+        
+        void setAnimationStartTime(const double &value);
+        
+        ConnectivityLoaderFile* getConnectivityLoaderFile();
         
     private slots:
         void enabledCheckBoxStateChanged(int);
@@ -87,7 +98,11 @@ namespace caret {
         
         void updateViewController();
         
+        void deleteAnimator();
+        
         ConnectivityLoaderFile* connectivityLoaderFile;
+        
+        ConnectivityLoaderFile* previousConnectivityLoaderFile;
         
         QCheckBox* enabledCheckBox;
         
@@ -97,8 +112,12 @@ namespace caret {
         
         QAction* animateAction;
         
+        TimeSeriesManagerForViewController* animator;
+        
         QDoubleSpinBox* timeSpinBox;
         
+        double animationStartTime;
+
         WuQGridLayoutGroup* gridLayoutGroup;
         
         static std::set<ConnectivityTimeSeriesViewController*> allConnectivityTimeSeriesViewControllers;

@@ -73,6 +73,7 @@ StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeSeriesManager.h
+TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
 VolumeSurfaceOutlineSetViewController.h
@@ -166,6 +167,7 @@ StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
 TimeSeriesManager.h
+TimeSeriesManagerForViewController.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
 UserInputModeView.h
@@ -256,6 +258,7 @@ StructureSurfaceSelectionControl.cxx
 SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx
 TimeSeriesManager.cxx
+TimeSeriesManagerForViewController.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx
 UserInputModeView.cxx

@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <cmath>
+
 #define __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__
 #include "ConnectivityTimeSeriesViewController.h"
 #undef __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__
@@ -47,11 +49,21 @@
 #include <QToolButton>
 #include <QSpinBox>
 
+#include "Brain.h"
+#include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderManager.h"
+#include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventUserInterfaceUpdate.h"
+#include "EventUpdateAnimationStartTime.h"
+#include "GuiManager.h"
+#include "SessionManager.h"
+#include "TimeCourseDialog.h"
+#include "TimeSeriesManagerForViewController.h"
 #include "WuQGridLayoutGroup.h"
 #include "WuQtUtilities.h"
 
@@ -73,6 +85,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
 : QObject(parent)
 {
     this->connectivityLoaderFile = NULL;
+    this->previousConnectivityLoaderFile = NULL;
     
     this->enabledCheckBox = new QCheckBox(" ");
     QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
@@ -142,6 +155,15 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->gridLayoutGroup->addWidget(bottomHorizontalLineWidget, row, 0, 1, -1);
     }
     
+    this->animator = NULL;
+    
+    double time = 0.0f;
+    CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+    prefs->getAnimationStartTime(time);
+    this->setAnimationStartTime(time);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME);
+
+    
     allConnectivityTimeSeriesViewControllers.insert(this);
 }
 
@@ -150,7 +172,33 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
  */
 ConnectivityTimeSeriesViewController::~ConnectivityTimeSeriesViewController()
 {
+    this->deleteAnimator();
+    
     allConnectivityTimeSeriesViewControllers.erase(this);
+    EventManager::get()->removeAllEventsFromListener(this);
+}
+
+/**
+ * Delete the animator.
+ */
+void 
+ConnectivityTimeSeriesViewController::deleteAnimator()
+{
+    if (this->animator != NULL) {
+        this->animator->stop();
+        delete this->animator;
+        this->animator = NULL;
+    }
+}
+
+/**
+ * @return The connectivity loader file in this view controller.
+ * NULL if not valid.
+ */
+ConnectivityLoaderFile* 
+ConnectivityTimeSeriesViewController::getConnectivityLoaderFile()
+{
+    return this->connectivityLoaderFile;
 }
 
 /**
@@ -191,6 +239,13 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
 {
     this->connectivityLoaderFile = connectivityLoaderFile;
     if (this->connectivityLoaderFile != NULL) {
+        if (this->connectivityLoaderFile != this->previousConnectivityLoaderFile) {
+            this->deleteAnimator();
+        }
+        if (this->animator == NULL) {
+            this->animator = new TimeSeriesManagerForViewController(this);            
+        }
+        
         Qt::CheckState enabledState = Qt::Unchecked;
         if (this->connectivityLoaderFile->isDataLoadingEnabled()) {
             enabledState = Qt::Checked;
@@ -198,8 +253,12 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         this->enabledCheckBox->setCheckState(enabledState);
         
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
-        
     }
+    else {
+        this->deleteAnimator();
+    }
+    
+    this->previousConnectivityLoaderFile = this->connectivityLoaderFile;
 }
 
 /**
@@ -263,9 +322,7 @@ ConnectivityTimeSeriesViewController::updateOtherConnectivityTimeSeriesViewContr
              iter++) {
             ConnectivityTimeSeriesViewController* clvc = *iter;
             if (clvc != this) {
-                if (clvc->connectivityLoaderFile == this->connectivityLoaderFile) {
-                    clvc->updateViewController();
-                }
+                clvc->updateViewController();
             }
         }
     }
@@ -279,7 +336,12 @@ ConnectivityTimeSeriesViewController::updateOtherConnectivityTimeSeriesViewContr
 void 
 ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 {
-    
+    if (this->connectivityLoaderFile != NULL) {
+        if (this->connectivityLoaderFile->isDenseTimeSeries()) {
+            this->connectivityLoaderFile->setTimeSeriesGraphEnabled(status);
+            GuiManager::get()->getTimeCourseDialog((void *)this->connectivityLoaderFile)->setTimeSeriesGraphEnabled(status);
+        }
+    }
 }
 
 /**
@@ -290,7 +352,9 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
 void 
 ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
 {
-    
+    if (this->connectivityLoaderFile != NULL) {
+        this->animator->toggleAnimation();
+    }
 }
 
 /**
@@ -301,8 +365,78 @@ ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
 void 
 ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
 {
-    
+    if (this->connectivityLoaderFile != NULL) {
+        const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
+        if (std::fabs(currentValue - value) < 0.001) {
+            std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
+            return;
+        }
+        
+        ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
+        ElapsedTimer et;
+        et.start();
+        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+        double timeStepOffset;
+        prefs->getAnimationStartTime(timeStepOffset);
+        
+        bool dataLoadedFlag = false;
+        if (manager->loadTimePointAtTime(this->connectivityLoaderFile, 
+                                         this->timeSpinBox->value()-timeStepOffset)) {
+            dataLoadedFlag = true;
+        }
+        const float loadTime = et.getElapsedTimeSeconds();
+        
+        if (dataLoadedFlag) {
+            this->updateOtherConnectivityTimeSeriesViewControllers();
+            const float guiUpdateTime = et.getElapsedTimeSeconds() - loadTime;
+            
+            EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
+            const float invalidateTime = et.getElapsedTimeSeconds() - guiUpdateTime;
+            
+            EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows(true).getPointer());   
+            const float graphicsTime= et.getElapsedTimeSeconds() - invalidateTime;
+            
+            const float totalTime = et.getElapsedTimeSeconds();
+            
+            CaretLogFiner("Time load/conngui/invalidate/graphics/total " 
+                          + AString::number(loadTime) + " "
+                          + AString::number(guiUpdateTime) + " "
+                          + AString::number(invalidateTime) + " "
+                          + AString::number(graphicsTime) + " "
+                          + AString::number(totalTime));
+        }
+    }
 }
+
+void 
+ConnectivityTimeSeriesViewController::receiveEvent(Event* event)
+{    
+    if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_ANIMATION_START_TIME) {
+        EventUpdateAnimationStartTime *e = (EventUpdateAnimationStartTime *)event->getPointer();
+        double time = e->getStartTime();
+        this->setAnimationStartTime(time);
+        e->setEventProcessed();
+    }
+}
+
+QDoubleSpinBox *
+ConnectivityTimeSeriesViewController::getTimeSpinBox()
+{
+    return this->timeSpinBox;
+}
+
+void 
+ConnectivityTimeSeriesViewController::setAnimationStartTime(const double &value)
+{
+    if (this->connectivityLoaderFile != NULL) {
+        if (this->connectivityLoaderFile->isDenseTimeSeries()) {
+            if(animator) animator->setAnimationStartTime(value);
+            TimeCourseDialog * dialog = GuiManager::get()->getTimeCourseDialog(this->connectivityLoaderFile);
+            dialog->setAnimationStartTime(value);
+        }
+    }
+}
+
 
 
 
