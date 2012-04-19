@@ -173,8 +173,6 @@ void
 ConnectivityViewController::setVisible(bool visible)
 {
     this->gridLayoutGroup->setVisible(visible);
-    
-    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**

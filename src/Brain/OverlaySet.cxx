@@ -35,7 +35,6 @@
 #include "CaretLogger.h"
 #include "CaretMappableDataFile.h"
 #include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
@@ -437,28 +436,11 @@ OverlaySet::initializeOverlays()
     /*
      * Find connectivity files giving preferense to dense over dense time series
      */
-    std::vector<CaretMappableDataFile*> denseConnectivityFiles;
-    std::vector<CaretMappableDataFile*> denseTimeSeriesConnectivityFiles;
+    std::vector<ConnectivityLoaderFile*> denseConnectivityFiles;
+    std::vector<ConnectivityLoaderFile*> denseTimeSeriesConnectivityFiles;
     if (brain != NULL) {
-        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-            if (clf->isEmpty() == false) {
-                switch (clf->getDataFileType()) {
-                    case DataFileTypeEnum::CONNECTIVITY_DENSE:
-                        denseConnectivityFiles.push_back(clf);
-                        break;
-                    case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-                        denseTimeSeriesConnectivityFiles.push_back(clf);
-                        break;
-                    default:
-                        CaretLogWarning("Update this code for new connecivity files type: "
-                                        + DataFileTypeEnum::toName(clf->getDataFileType()));
-                        break;
-                }
-            }
-        }
+        brain->getConnectivityFiles(denseConnectivityFiles);
+        brain->getConnectivityTimeSeriesFiles(denseTimeSeriesConnectivityFiles);
     }
     std::vector<CaretMappableDataFile*> connFiles;
     connFiles.insert(connFiles.end(),

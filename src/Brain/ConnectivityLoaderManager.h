@@ -46,21 +46,6 @@ namespace caret {
         
         virtual ~ConnectivityLoaderManager();
         
-        ConnectivityLoaderFile* addConnectivityLoaderFile(const AString& path,
-                                       const DataFileTypeEnum::Enum connectivityFileType)  throw (DataFileException);
-        
-        int32_t getNumberOfConnectivityLoaderFiles() const;
-        
-        ConnectivityLoaderFile* getConnectivityLoaderFile(const int32_t indx);
-        
-        const ConnectivityLoaderFile* getConnectivityLoaderFile(const int32_t indx) const;
-        
-        ConnectivityLoaderFile* addConnectivityLoaderFile();
-        
-        void removeConnectivityLoaderFile(const int32_t indx);
-        
-        void removeConnectivityLoaderFile(const ConnectivityLoaderFile* clf);
-        
         bool loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                                     const int32_t nodeIndex) throw (DataFileException);
         
@@ -76,7 +61,6 @@ namespace caret {
         bool loadTimePointAtTime(ConnectivityLoaderFile* clf,
                                  const float seconds) throw (DataFileException);
         
-        static const int32_t MINIMUM_NUMBER_OF_LOADERS;
         void getVolumeTimeLines(QList<TimeLine> &tlV);
         void getSurfaceTimeLines(QList<TimeLine> &tlV);
 
@@ -97,17 +81,9 @@ namespace caret {
         void colorConnectivityData();
         
         Brain* brain;
-        
-        typedef std::vector<ConnectivityLoaderFile*> LoaderContainer;
-        typedef LoaderContainer::iterator LoaderContainerIterator;
-        typedef LoaderContainer::const_iterator LoaderContainerConstIterator;
-        
-        LoaderContainer connectivityLoaderFiles;
-        
     };
     
 #ifdef __CONNECTIVITY_LOADER_MANAGER_DECLARE__
-    const int32_t ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS = 2;
 #endif // __CONNECTIVITY_LOADER_MANAGER_DECLARE__
 
 } // namespace

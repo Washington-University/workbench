@@ -651,7 +651,7 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
         clf->loadTimePointAtTime(0.0);
     }
     
-    this->connectivityFiles.push_back(clf);
+    this->connectivityTimeSeriesFiles.push_back(clf);
 }
 
 /**
@@ -697,6 +697,23 @@ Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
 }
 
 /**
+ * Get connectivity files of ALL Types
+ * @param connectivityFilesOut
+ *   Contains all connectivity files on exit.
+ */
+void 
+Brain::getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const
+{
+    connectivityFilesOfAllTypes.clear();
+    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
+                                       this->connectivityFiles.begin(),
+                                       this->connectivityFiles.end());
+    connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
+                                       this->connectivityTimeSeriesFiles.begin(),
+                                       this->connectivityTimeSeriesFiles.end());
+}
+
+/**
  * @return Number of connectivity files.
  */
 int32_t 
@@ -732,6 +749,17 @@ Brain::getConnectivityFile(int32_t indx) const
 }
 
 /**
+ * Get ALL connectivity files.
+ * @param connectivityFilesOut
+ *   Contains all connectivity files on exit.
+ */
+void 
+Brain::getConnectivityFiles(std::vector<ConnectivityLoaderFile*>& connectivityFilesOut) const
+{
+    connectivityFilesOut = this->connectivityFiles;
+}
+
+/**
  * @return Number of connectivity time series files.
  */
 int32_t 
@@ -764,6 +792,17 @@ Brain::getConnectivityTimeSeriesFile(int32_t indx) const
 {
     CaretAssertVectorIndex(this->connectivityTimeSeriesFiles, indx);
     return this->connectivityTimeSeriesFiles[indx];
+}
+
+/**
+ * Get ALL connectivity time series files.
+ * @param connectivityTimeSeriesFilesOut
+ *   Contains all connectivity time series files on exit.
+ */
+void 
+Brain::getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const
+{
+    connectivityTimeSeriesFilesOut = this->connectivityTimeSeriesFiles;
 }
 
 
@@ -1421,6 +1460,19 @@ Brain::receiveEvent(Event* event)
         EventCaretMappableDataFilesGet* dataFilesEvent =
         dynamic_cast<EventCaretMappableDataFilesGet*>(event);
         CaretAssert(dataFilesEvent);
+        
+
+        for (std::vector<ConnectivityLoaderFile*>::iterator icf = this->connectivityFiles.begin();
+             icf != this->connectivityFiles.end();
+             icf++) {
+            dataFilesEvent->addFile(*icf);
+        }
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator ictsf = this->connectivityTimeSeriesFiles.begin();
+             ictsf != this->connectivityTimeSeriesFiles.end();
+             ictsf++) {
+            dataFilesEvent->addFile(*ictsf);
+        }
         
         for (std::vector<VolumeFile*>::iterator volumeIter = this->volumeFiles.begin();
              volumeIter != this->volumeFiles.end();

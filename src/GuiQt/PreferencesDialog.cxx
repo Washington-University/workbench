@@ -42,7 +42,6 @@
 #include "Brain.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
-#include "ConnectivityLoaderManager.h"
 #include "EventUpdateAnimationStartTime.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"

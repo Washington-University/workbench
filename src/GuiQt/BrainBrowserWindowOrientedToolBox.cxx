@@ -14,7 +14,6 @@
 #include "CaretAssert.h"
 #include "CaretPreferences.h"
 #include "ConnectivityManagerViewController.h"
-#include "ConnectivityLoaderFile.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"

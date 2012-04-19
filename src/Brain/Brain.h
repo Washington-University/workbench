@@ -135,17 +135,23 @@ namespace caret {
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
         
+        void getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
+        
         int32_t getNumberOfConnectivityFiles() const;
         
         ConnectivityLoaderFile* getConnectivityFile(int32_t indx);
         
         const ConnectivityLoaderFile* getConnectivityFile(int32_t indx) const;
         
+        void getConnectivityFiles(std::vector<ConnectivityLoaderFile*>& connectivityFilesOut) const;
+        
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
         ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx);
         
         const ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx) const;
+        
+        void getConnectivityTimeSeriesFiles(std::vector<ConnectivityLoaderFile*>& connectivityTimeSeriesFilesOut) const;
         
         AString getCurrentDirectory() const;
         

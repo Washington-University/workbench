@@ -44,7 +44,6 @@
 #include "Brain.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
-#include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "CursorDisplayScoped.h"
 #include "EventManager.h"
@@ -245,28 +244,20 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
 }
 
 /**
- * @return connectivity loader manager if there are dense loaders.
+ * @param brain
+ *   Brain containing connectivity loader manager.
+ * @return connectivity loader manager if there are dense loaders or 
+ * NULL if no dense files.
  */
 ConnectivityLoaderManager*
 BrainOpenGLWidgetContextMenu::getConnectivityLoaderManager(Brain* brain)
 {
-    bool haveIt = false;
-    ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-    const int32_t numConnLoaders = clm->getNumberOfConnectivityLoaderFiles();
-    for (int32_t i = 0; i < numConnLoaders; i++) {
-        ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
-        if (clf->isDense()) {
-            if (clf->isEmpty() == false) {
-                haveIt = true;
-            }
-        }
+    if (brain->getNumberOfConnectivityFiles()) {
+        ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
+        return clm;
     }
     
-    if (haveIt == false) {
-        clm = NULL;
-    }
-    
-    return clm;
+    return NULL;
 }
 
 

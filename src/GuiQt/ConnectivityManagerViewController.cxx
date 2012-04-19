@@ -41,7 +41,6 @@
 #include "Brain.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "ConnectivityTimeSeriesViewController.h"
 #include "ConnectivityViewController.h"
 #include "EventManager.h"
@@ -108,26 +107,21 @@ void
 ConnectivityManagerViewController::updateManagerViewController()
 {
     Brain* brain = GuiManager::get()->getBrain();
-    ConnectivityLoaderManager* manager = brain->getConnectivityLoaderManager();
-    const int numberOfFiles = manager->getNumberOfConnectivityLoaderFiles();
-    
-    /*
-     * Find connectivity files
-     */
-    std::vector<ConnectivityLoaderFile*> connectivityFiles;
-    for (int32_t i = 0; i < numberOfFiles; i++) {
-        ConnectivityLoaderFile* clf = manager->getConnectivityLoaderFile(i);
-        if (clf->getDataFileType() == this->connectivityFileType) {
-            connectivityFiles.push_back(clf);
-        }
-    }
     
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->updateForConnectivityFiles(connectivityFiles);
+        {
+            std::vector<ConnectivityLoaderFile*> files;
+            brain->getConnectivityFiles(files);
+            this->updateForConnectivityFiles(files);
+        }
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            this->updateForTimeSeriesFiles(connectivityFiles);
+        {
+            std::vector<ConnectivityLoaderFile*> files;
+            brain->getConnectivityTimeSeriesFiles(files);
+            this->updateForTimeSeriesFiles(files);
+        }
             break;
         default:
             break;
@@ -192,9 +186,9 @@ ConnectivityManagerViewController::updateForTimeSeriesFiles(const std::vector<Co
     /*
      * Hide view controllers not needed
      */
-    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityViewControllers.size());
-    for (int32_t i = numTimeSeriesFiles; i < numViewControllers; i++) {
-        this->connectivityViewControllers[i]->setVisible(false);
+    const int32_t numTimeSeriesViewControllers = static_cast<int32_t>(this->timeSeriesViewControllers.size());
+    for (int32_t i = numTimeSeriesFiles; i < numTimeSeriesViewControllers; i++) {
+        this->timeSeriesViewControllers[i]->setVisible(false);
     }    
 }
 

@@ -34,7 +34,6 @@ using namespace caret;
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
 #include "DescriptiveStatistics.h"
-#include "EventCaretMappableDataFilesGet.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
 #include "NodeAndVoxelColoring.h"
@@ -70,142 +69,6 @@ ConnectivityLoaderManager::ConnectivityLoaderManager(Brain* brain)
 ConnectivityLoaderManager::~ConnectivityLoaderManager()
 {
     EventManager::get()->removeAllEventsFromListener(this);
-    
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        delete *iter;
-    }
-    this->connectivityLoaderFiles.clear();
-}
-
-/**
- * @return Number of connectivity loader files.
- */
-int32_t 
-ConnectivityLoaderManager::getNumberOfConnectivityLoaderFiles() const
-{
-    return this->connectivityLoaderFiles.size();
-}
-
-/**
- * Get the connectivity loader file at the given index.
- * @param indx
- *    Index of file.
- * @return
- *    File at given index.
- *    loader has not been setup.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::getConnectivityLoaderFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    return this->connectivityLoaderFiles[indx];
-}
-
-/**
- * Get the connectivity loader file at the given index.
- * @param indx
- *    Index of file.
- * @return
- *    File at given index.
- *    loader has not been setup.
- */
-const ConnectivityLoaderFile* 
-ConnectivityLoaderManager::getConnectivityLoaderFile(const int32_t indx) const
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    return this->connectivityLoaderFiles[indx];
-}
-
-/**
- * Add a connectivity loader.
- * @return 
- *    Connectivity loader file that was created.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::addConnectivityLoaderFile(const AString& path,
-                                                     const DataFileTypeEnum::Enum connectivityFileType)  throw (DataFileException)
-{  
-    ConnectivityLoaderFile* newConnectivityLoaderFile = NULL;
-    const int32_t numLoaders = this->getNumberOfConnectivityLoaderFiles();
-    for (int32_t i = 0; i < numLoaders; i++) {
-        ConnectivityLoaderFile* clf = this->getConnectivityLoaderFile(i);
-        if (clf->isEmpty()) {
-            newConnectivityLoaderFile = clf;
-            break;
-        }
-    }
-    
-    if (newConnectivityLoaderFile == NULL) {
-        newConnectivityLoaderFile = this->addConnectivityLoaderFile();
-    }
-    newConnectivityLoaderFile->setupLocalFile(path, connectivityFileType);
-    if(newConnectivityLoaderFile->isDenseTimeSeries()&& !newConnectivityLoaderFile->isEmpty())
-    {
-        newConnectivityLoaderFile->loadTimePointAtTime(0.0);
-    }
-    return newConnectivityLoaderFile;
-}
-
-/**
- * Add a connectivity loader.
- * @return 
- *    Connectivity loader file that was created.
- */
-ConnectivityLoaderFile* 
-ConnectivityLoaderManager::addConnectivityLoaderFile()
-{
-    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
-    this->connectivityLoaderFiles.push_back(clf);
-    return clf;
-}
-
-/**
- * Remove the connectivity loader at the given index.
- * @param indx
- *    Index of connectivity loader for removal.
- */
-void 
-ConnectivityLoaderManager::removeConnectivityLoaderFile(const int32_t indx)
-{
-    CaretAssertVectorIndex(this->connectivityLoaderFiles, indx);
-    
-    if (this->getNumberOfConnectivityLoaderFiles() <=
-        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
-        return;
-    }
-
-    delete this->connectivityLoaderFiles[indx];
-    this->connectivityLoaderFiles.erase(this->connectivityLoaderFiles.begin() + indx);
-    
-}
-
-/**
- * Remove the given connectivity loader.
- * Do not use the pointer after calling this method!!
- * @param clf
- *    Connectivity loader for removal.
- */
-void 
-ConnectivityLoaderManager::removeConnectivityLoaderFile(const ConnectivityLoaderFile* clf)
-{    
-    if (this->getNumberOfConnectivityLoaderFiles() <=
-        ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS) {
-        return;
-    }
-    
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        if (*iter == clf) {
-            delete clf;
-            this->connectivityLoaderFiles.erase(iter);
-            return;
-        }
-    }
-    CaretAssertMessage(0, "Trying to delete connectivity file that is not in the loader manager" 
-                       + clf->getFileName());
 }
 
 /**
@@ -221,9 +84,12 @@ bool
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
                             const int32_t nodeIndex) throw (DataFileException)
 {
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
@@ -253,9 +119,12 @@ bool
 ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
                                                 const std::vector<int32_t>& nodeIndices) throw (DataFileException)
 {
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
@@ -285,9 +154,12 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
 bool 
 ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
@@ -307,8 +179,11 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) thro
 void 
 ConnectivityLoaderManager::colorConnectivityData()
 {
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         
@@ -347,16 +222,6 @@ ConnectivityLoaderManager::colorConnectivityData()
 void 
 ConnectivityLoaderManager::reset()
 {
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
-         iter++) {
-        delete *iter;
-    }
-    this->connectivityLoaderFiles.clear();
-    
-    for (int32_t i = 0; i < ConnectivityLoaderManager::MINIMUM_NUMBER_OF_LOADERS; i++) {
-        this->addConnectivityLoaderFile();
-    }
 }
 
 
@@ -369,23 +234,7 @@ ConnectivityLoaderManager::reset()
 void 
 ConnectivityLoaderManager::receiveEvent(Event* event)
 {
-    if (event->getEventType() == EventTypeEnum::EVENT_CARET_MAPPABLE_DATA_FILES_GET) {
-        EventCaretMappableDataFilesGet* dataFilesEvent =
-        dynamic_cast<EventCaretMappableDataFilesGet*>(event);
-        CaretAssert(dataFilesEvent);
-        
-        for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-             iter != this->connectivityLoaderFiles.end();
-             iter++) {
-            ConnectivityLoaderFile* clf = *iter;
-            if (clf->isEmpty() == false) {
-                dataFilesEvent->addFile(*iter);
-            }
-        }
-        
-        dataFilesEvent->setEventProcessed();
-    } 
-    else if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
+    if (event->getEventType() == EventTypeEnum::EVENT_SURFACE_COLORING_INVALIDATE) {
         EventSurfaceColoringInvalidate* colorEvent =
         dynamic_cast<EventSurfaceColoringInvalidate*>(event);
         CaretAssert(colorEvent);
@@ -443,20 +292,26 @@ ConnectivityLoaderManager::loadTimePointAtTime(ConnectivityLoaderFile* clf,
 void
 ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
-    {
-        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    int indx = 0;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
         if(clf->isDenseTimeSeries() &&
            clf->isSurfaceMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
             TimeLine tl;            
             clf->getTimeLine(tl);
-            tl.clmID = i+1;
+            tl.clmID = indx+1;
             tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
             
         }
+        indx++;
     }
 
 }
@@ -467,19 +322,25 @@ ConnectivityLoaderManager::getSurfaceTimeLines(QList<TimeLine> &tlV)
 void
 ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
 {
-    for(int i = 0; i < (int)this->connectivityLoaderFiles.size(); i++)
-    {
-        ConnectivityLoaderFile *clf = this->connectivityLoaderFiles[i];
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    int indx = 0;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
         if(clf->isDenseTimeSeries() &&
            clf->isVolumeMappable() &&
            clf->isTimeSeriesGraphEnabled())
         {
             TimeLine tl;            
             clf->getTimeLine(tl);
-            tl.clmID = i+1;
+            tl.clmID = indx+1;
             tl.timeStep = clf->getTimeStep();
             tlV.push_back(tl);
         }
+        indx++;
     }
 }
 
@@ -497,8 +358,12 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
                             const int32_t nodeIndex) throw (DataFileException)
 {
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
@@ -526,8 +391,11 @@ bool
 ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     bool haveData = false;
-    for (LoaderContainerIterator iter = this->connectivityLoaderFiles.begin();
-         iter != this->connectivityLoaderFiles.end();
+    std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+    this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
+         iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {

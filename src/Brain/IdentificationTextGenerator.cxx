@@ -32,7 +32,6 @@
 #include "BrainStructure.h"
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
-#include "ConnectivityLoaderManager.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
 #include "GiftiLabel.h"
@@ -184,10 +183,23 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
             }            
         }
         
-        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+        std::vector<ConnectivityLoaderFile*> connectivityFiles;
+        brain->getConnectivityFiles(connectivityFiles);
+        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+        brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+        
+        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
+        allConnectivityFiles.insert(allConnectivityFiles.end(),
+                                    connectivityFiles.begin(),
+                                    connectivityFiles.end());
+        allConnectivityFiles.insert(allConnectivityFiles.end(),
+                                    connectivityTimeSeriesFiles.begin(),
+                                    connectivityTimeSeriesFiles.end());
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
+             connIter != allConnectivityFiles.end();
+             connIter++) {
+            const ConnectivityLoaderFile* clf = *connIter;
             if (clf->isEmpty() == false) {
                 float value = 0.0;
                 int64_t connIJK[3];
@@ -249,10 +261,24 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         const BrainStructure* brainStructure = surface->getBrainStructure();
         CaretAssert(brainStructure);
         
-        const ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
-        const int32_t numConnFiles = clm->getNumberOfConnectivityLoaderFiles();
-        for (int32_t i = 0; i < numConnFiles; i++) {
-            const ConnectivityLoaderFile* clf = clm->getConnectivityLoaderFile(i);
+        
+        std::vector<ConnectivityLoaderFile*> connectivityFiles;
+        brain->getConnectivityFiles(connectivityFiles);
+        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
+        brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+        
+        std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
+        allConnectivityFiles.insert(allConnectivityFiles.end(),
+                                    connectivityFiles.begin(),
+                                    connectivityFiles.end());
+        allConnectivityFiles.insert(allConnectivityFiles.end(),
+                                    connectivityTimeSeriesFiles.begin(),
+                                    connectivityTimeSeriesFiles.end());
+        
+        for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
+             connIter != allConnectivityFiles.end();
+             connIter++) {
+            const ConnectivityLoaderFile* clf = *connIter;
             if (clf->isEmpty() == false) {
                 float value = 0.0;
                 if (clf->getSurfaceNodeValue(surface->getStructure(),

@@ -48,7 +48,6 @@ class QGridLayout;
 namespace caret {
 
     class ConnectivityLoaderFile;
-    class ConnectivityLoaderManager;
     class ConnectivityTimeSeriesViewController;
     class ConnectivityViewController;
     

@@ -293,7 +293,7 @@ ConnectivityTimeSeriesViewController::setVisible(bool visible)
 {
     this->gridLayoutGroup->setVisible(visible);
     
-    this->updateUserInterfaceAndGraphicsWindow();
+//    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
