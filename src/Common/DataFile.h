@@ -82,6 +82,8 @@ namespace caret {
 
         virtual void clear();
         
+        static bool isFileOnNetwork(const AString& filename);
+        
     private:
         void copyHelperDataFile(const DataFile& df);
         

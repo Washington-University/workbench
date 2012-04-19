@@ -164,3 +164,21 @@ DataFile::isModified() const
 {
     return this->modifiedFlag;
 }
+
+/**
+ * Is the filename a path on the network (http:// etc)
+ * @param filename
+ *     Name of file.
+ * @return true if filename appears to be a network path.
+ */
+bool 
+DataFile::isFileOnNetwork(const AString& filename)
+{
+    if (filename.startsWith("http://")) {
+        return true;
+    }
+    
+    return false;
+}
+
+
