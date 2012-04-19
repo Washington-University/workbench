@@ -34,6 +34,8 @@
 #include "BrowserTabContent.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
@@ -95,6 +97,8 @@ Brain::Brain()
                                           EventTypeEnum::EVENT_SPEC_FILE_READ_DATA_FILES);
     
     this->isSpecFileBeingRead = false;
+    this->fileReadingUsername = "";
+    this->fileReadingPassword = "";
 }
 
 /**
@@ -230,6 +234,22 @@ Brain::resetBrain()
         delete bf;
     }
     this->borderFiles.clear();
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = this->connectivityFiles.begin();
+         clfi != this->connectivityFiles.end();
+         clfi++) {
+        ConnectivityLoaderFile* clf = *clfi;
+        delete clf;
+    }
+    this->connectivityFiles.clear();
+    
+    for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = this->connectivityTimeSeriesFiles.begin();
+         cltsfi != this->connectivityTimeSeriesFiles.end();
+         cltsfi++) {
+        ConnectivityLoaderFile* clf = *cltsfi;
+        delete clf;
+    }
+    this->connectivityTimeSeriesFiles.clear();
     
     this->paletteFile->clear();
     
@@ -584,17 +604,54 @@ Brain::readBorderProjectionFile(const AString& filename) throw (DataFileExceptio
  *
  * @param filename
  *    Name of the file.
- * @param connectivityFileType
- *    Type of connectivity file to read.
  * @throws DataFileException
  *    If reading failed.
  */
 void 
-Brain::readConnectivityFile(const AString& filename,
-                            const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException)
+Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
 {
-    this->connectivityLoaderManager->addConnectivityLoaderFile(filename,
-                                                               connectivityFileType);
+    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+
+    if (DataFile::isFileOnNetwork(filename)) {
+        clf->setupNetworkFile(filename,
+                              DataFileTypeEnum::CONNECTIVITY_DENSE,
+                              this->fileReadingUsername,
+                              this->fileReadingPassword);
+    }
+    else {
+        clf->setupLocalFile(filename, 
+                            DataFileTypeEnum::CONNECTIVITY_DENSE);
+    }
+    
+    this->connectivityFiles.push_back(clf);
+}
+
+/**
+ * Read a connectivity time series file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException)
+{
+    ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
+    
+    if (DataFile::isFileOnNetwork(filename)) {
+        clf->setupNetworkFile(filename,
+                              DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
+                              this->fileReadingUsername,
+                              this->fileReadingPassword);
+    }
+    else {
+        clf->setupLocalFile(filename, 
+                            DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
+        clf->loadTimePointAtTime(0.0);
+    }
+    
+    this->connectivityFiles.push_back(clf);
 }
 
 /**
@@ -639,6 +696,80 @@ Brain::readSceneFile(const AString& /*filename*/) throw (DataFileException)
     throw DataFileException("Reading not implemented for: scene");
 }
 
+/**
+ * @return Number of connectivity files.
+ */
+int32_t 
+Brain::getNumberOfConnectivityFiles() const
+{
+    return this->connectivityFiles.size(); 
+}
+
+/**
+ * Get the connectivity file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity file at index.
+ */
+ConnectivityLoaderFile* 
+Brain::getConnectivityFile(int32_t indx)
+{
+    CaretAssertVectorIndex(this->connectivityFiles, indx);
+    return this->connectivityFiles[indx];
+}
+
+/**
+ * Get the connectivity file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity file at index.
+ */
+const ConnectivityLoaderFile* 
+Brain::getConnectivityFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(this->connectivityFiles, indx);
+    return this->connectivityFiles[indx];
+}
+
+/**
+ * @return Number of connectivity time series files.
+ */
+int32_t 
+Brain::getNumberOfConnectivityTimeSeriesFiles() const
+{
+    return this->connectivityTimeSeriesFiles.size(); 
+}
+
+/**
+ * Get the connectivity time series file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity file at index.
+ */
+ConnectivityLoaderFile* 
+Brain::getConnectivityTimeSeriesFile(int32_t indx)
+{
+    CaretAssertVectorIndex(this->connectivityTimeSeriesFiles, indx);
+    return this->connectivityTimeSeriesFiles[indx];
+}
+
+/**
+ * Get the connectivity time series file at the given index.
+ * @param indx
+ *    Index of file.
+ * @return Conectivity file at index.
+ */
+const ConnectivityLoaderFile* 
+Brain::getConnectivityTimeSeriesFile(int32_t indx) const
+{
+    CaretAssertVectorIndex(this->connectivityTimeSeriesFiles, indx);
+    return this->connectivityTimeSeriesFiles[indx];
+}
+
+
+/**
+ * @return Number of border files.
+ */
 int32_t 
 Brain::getNumberOfBorderFiles() const
 {
@@ -1026,6 +1157,9 @@ Brain::updateSurfaceMontageController()
 void 
 Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 {
+    this->fileReadingUsername = readDataFileEvent->getUsername();
+    this->fileReadingPassword = readDataFileEvent->getPassword();
+    
     const AString filename = readDataFileEvent->getDataFileName();
     const DataFileTypeEnum::Enum dataFileType = readDataFileEvent->getDataFileType();
     const StructureEnum::Enum structure = readDataFileEvent->getStructure();
@@ -1039,6 +1173,9 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
         readDataFileEvent->setErrorMessage(e.whatString());
         readDataFileEvent->setErrorInvalidStructure(e.isErrorInvalidStructure());
     }    
+    
+    this->fileReadingUsername = "";
+    this->fileReadingPassword = "";
 }
 
 /**
@@ -1073,10 +1210,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readBorderProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->readConnectivityFile(dataFileName, dataFileType);
+            this->readConnectivityFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
-            this->readConnectivityFile(dataFileName, dataFileType);
+            this->readConnectivityTimeSeriesFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI:
             this->readFociProjectionFile(dataFileName);
@@ -1140,6 +1277,9 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
     this->specFile = new SpecFile(*sf);
     
     this->isSpecFileBeingRead = true;
+    
+    this->fileReadingUsername = readSpecFileDataFilesEvent->getUsername();
+    this->fileReadingPassword = readSpecFileDataFilesEvent->getPassword();
     
     FileInformation fileInfo(sf->getFileName());
     this->setCurrentDirectory(fileInfo.getPathName());
@@ -1222,6 +1362,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                  + " seconds.");
     
     this->isSpecFileBeingRead = false;
+    this->fileReadingUsername = "";
+    this->fileReadingPassword = "";
 }
 
 /**
@@ -1364,6 +1506,14 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
                            this->borderFiles.begin(),
                            this->borderFiles.end());
     
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->connectivityFiles.begin(),
+                           this->connectivityFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->connectivityTimeSeriesFiles.begin(),
+                           this->connectivityTimeSeriesFiles.end());
+    
     allDataFilesOut.push_back(this->paletteFile);
     
     allDataFilesOut.insert(allDataFilesOut.end(),
@@ -1417,6 +1567,24 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (borderIterator != this->borderFiles.end()) {
         delete caretDataFile;
         this->borderFiles.erase(borderIterator);
+        wasRemoved = true;
+    }
+    
+    std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(this->connectivityFiles.begin(),
+                                                                            this->connectivityFiles.end(),
+                                                                            caretDataFile);
+    if (connIterator != this->connectivityFiles.end()) {
+        delete caretDataFile;
+        this->connectivityFiles.erase(connIterator);
+        wasRemoved = true;
+    }
+
+    std::vector<ConnectivityLoaderFile*>::iterator timeIterator = std::find(this->connectivityTimeSeriesFiles.begin(),
+                                                                            this->connectivityTimeSeriesFiles.end(),
+                                                                            caretDataFile);
+    if (timeIterator != this->connectivityTimeSeriesFiles.end()) {
+        delete caretDataFile;
+        this->connectivityTimeSeriesFiles.erase(timeIterator);
         wasRemoved = true;
     }
     

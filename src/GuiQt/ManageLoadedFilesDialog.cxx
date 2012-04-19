@@ -327,6 +327,27 @@ ManageFileRow::ManageFileRow(ManageLoadedFilesDialog* parentWidget,
     this->widgetGroup->add(this->removeMapToolButton);
     this->widgetGroup->add(this->fileNameToolButton);
     this->widgetGroup->add(this->fileNameLineEdit);
+    
+    bool isFileSavable = true;
+    switch (caretDataFile->getDataFileType()) {
+        case DataFileTypeEnum::CONNECTIVITY_DENSE:
+            isFileSavable = false;
+            break;
+        case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
+            isFileSavable = false;
+            break;
+        default:
+            break;
+    }
+    
+    if (isFileSavable == false) {
+        this->saveCheckBox->setChecked(false);
+        this->saveCheckBox->setEnabled(false);
+        this->modifiedLabel->setText("   ");
+        removeMapAction->setEnabled(false);
+        fileNameAction->setEnabled(false);
+        this->fileNameLineEdit->setReadOnly(true);
+    }
 }
 
 /**

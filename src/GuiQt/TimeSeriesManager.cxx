@@ -24,6 +24,7 @@
 
 #include "TimeSeriesManager.h"
 #include "ConnectivityLoaderFile.h"
+#include "ConnectivityLoaderManager.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"

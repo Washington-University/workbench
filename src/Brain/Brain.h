@@ -29,7 +29,6 @@
 #include <stdint.h>
 
 #include "CaretObject.h"
-#include "ConnectivityLoaderManager.h"
 #include "DataFileTypeEnum.h"
 #include "DataFileException.h"
 #include "EventListenerInterface.h"
@@ -41,6 +40,8 @@ namespace caret {
     class BorderFile;
     class BrainStructure;
     class CaretDataFile;
+    class ConnectivityLoaderFile;
+    class ConnectivityLoaderManager;
     class DisplayProperties;
     class DisplayPropertiesBorders;
     class DisplayPropertiesInformation;
@@ -51,6 +52,7 @@ namespace caret {
     class ModelVolume;
     class ModelWholeBrain;
     class PaletteFile;
+    class SurfaceFile;
     class SurfaceProjectedItem;
     class SpecFile;
     class VolumeFile;
@@ -133,6 +135,18 @@ namespace caret {
         
         const ConnectivityLoaderManager* getConnectivityLoaderManager() const;
         
+        int32_t getNumberOfConnectivityFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityFile(int32_t indx) const;
+        
+        int32_t getNumberOfConnectivityTimeSeriesFiles() const;
+        
+        ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx);
+        
+        const ConnectivityLoaderFile* getConnectivityTimeSeriesFile(int32_t indx) const;
+        
         AString getCurrentDirectory() const;
         
         void setCurrentDirectory(const AString& currentDirectory);
@@ -178,8 +192,9 @@ namespace caret {
                             
         void readBorderProjectionFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityFile(const AString& filename,
-                                  const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
+        void readConnectivityFile(const AString& filename) throw (DataFileException);
+        
+        void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
         void readFociProjectionFile(const AString& filename) throw (DataFileException);
         
@@ -200,6 +215,10 @@ namespace caret {
         std::vector<BorderFile*> borderFiles;
         
         PaletteFile* paletteFile;
+        
+        std::vector<ConnectivityLoaderFile*> connectivityFiles;
+        
+        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
         
         mutable AString currentDirectory;
         
@@ -238,6 +257,10 @@ namespace caret {
         
         /** true when a spec file is being read */
         bool isSpecFileBeingRead;
+        
+        AString fileReadingUsername;
+        
+        AString fileReadingPassword;
     };
 
 } // namespace
