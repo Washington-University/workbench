@@ -42,6 +42,9 @@ EventSpecFileReadDataFiles::EventSpecFileReadDataFiles(Brain* loadIntoBrain,
     this->loadIntoBrain = loadIntoBrain;
     this->specFile  = specFile;
     
+    this->username = "";
+    this->password = "";
+    
     CaretAssert(this->loadIntoBrain);
     CaretAssert(this->specFile);
 }
@@ -72,4 +75,39 @@ EventSpecFileReadDataFiles::getLoadIntoBrain()
     return this->loadIntoBrain;
 }
                                      
+/**
+ * @return The username.
+ */
+AString 
+EventSpecFileReadDataFiles::getUsername() const
+{
+    return this->username;
+}
+
+/**
+ * @return The password.
+ */
+AString 
+EventSpecFileReadDataFiles::getPassword() const
+{
+    return this->password;
+}
+
+/**
+ * Set the username and password.
+ *
+ * @param username
+ *     Name of user account.
+ * @param password
+ *     Password of user account.
+ */
+void 
+EventSpecFileReadDataFiles::setUsernameAndPassword(const AString& username,
+                                          const AString& password)
+{
+    this->username = username;
+    this->password = password;
+}
+
+
 

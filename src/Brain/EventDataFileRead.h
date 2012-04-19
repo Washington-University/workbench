@@ -62,6 +62,13 @@ namespace caret {
         
         void setErrorInvalidStructure(const bool status);
         
+        AString getUsername() const;
+        
+        AString getPassword() const;
+        
+        void setUsernameAndPassword(const AString& username,
+                                    const AString& password);
+        
     private:
         EventDataFileRead(const EventDataFileRead&);
         
@@ -74,6 +81,10 @@ namespace caret {
         DataFileTypeEnum::Enum dataFileType;
         
         StructureEnum::Enum structure;
+        
+        AString username;
+        
+        AString password;
         
         bool errorInvalidStructure;
         

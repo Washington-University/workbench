@@ -47,6 +47,9 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
     
+    this->username = "";
+    this->password = "";
+    
     CaretAssert(this->loadIntoBrain);
     CaretAssert(this->dataFileType != DataFileTypeEnum::UNKNOWN);
     CaretAssert(this->dataFileName.isEmpty() == false);
@@ -75,6 +78,9 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
     this->errorInvalidStructure = false;
+    
+    this->username = "";
+    this->password = "";
     
     CaretAssert(this->loadIntoBrain);
     CaretAssert(this->dataFileType != DataFileTypeEnum::UNKNOWN);
@@ -150,6 +156,39 @@ void
 EventDataFileRead::setErrorInvalidStructure(const bool status)
 {
     this->errorInvalidStructure = status;
+}
+
+/**
+ * @return The username.
+ */
+AString 
+EventDataFileRead::getUsername() const
+{
+    return this->username;
+}
+
+/**
+ * @return The password.
+ */
+AString EventDataFileRead::getPassword() const
+{
+    return this->password;
+}
+
+/**
+ * Set the username and password.
+ *
+ * @param username
+ *     Name of user account.
+ * @param password
+ *     Password of user account.
+ */
+void 
+EventDataFileRead::setUsernameAndPassword(const AString& username,
+                                          const AString& password)
+{
+    this->username = username;
+    this->password = password;
 }
 
 

@@ -48,6 +48,13 @@ namespace caret {
         
         Brain* getLoadIntoBrain();
         
+        AString getUsername() const;
+        
+        AString getPassword() const;
+        
+        void setUsernameAndPassword(const AString& username,
+                                    const AString& password);
+        
     private:
         EventSpecFileReadDataFiles(const EventSpecFileReadDataFiles&);
         
@@ -56,6 +63,12 @@ namespace caret {
         Brain* loadIntoBrain;
         
         SpecFile* specFile;
+
+        AString username;
+        
+        AString password;
+        
+        bool errorInvalidStructure;
     };
 
 } // namespace
