@@ -38,13 +38,11 @@
 #include "CaretAssert.h"
 #include "CaretMappableDataFile.h"
 #include "CursorManager.h"
-#include "DisplayControlDialog.h"
 #include "EventBrowserWindowNew.h"
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventInformationTextDisplay.h"
 #include "EventManager.h"
 #include "EventMapScalarDataColorMappingEditor.h"
-#include "EventToolBoxSelectionDisplay.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -72,7 +70,6 @@ GuiManager::GuiManager(QObject* parent)
     //this->brainOpenGL = NULL;
     this->allowBrowserWindowsToCloseWithoutConfirmation = false;
     
-    this->displayControlDialog = NULL;
     this->imageCaptureDialog = NULL;
     this->informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;    
@@ -332,9 +329,6 @@ GuiManager::newBrainBrowserWindow(QWidget* parent,
     }
     
     bbw->show();
-    
-    EventManager::get()->sendEvent(EventToolBoxSelectionDisplay(windowIndex,
-                                                                EventToolBoxSelectionDisplay::DISPLAY_MODE_HIDE).getPointer());
     
     return bbw;
 }
@@ -721,22 +715,6 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
     this->preferencesDialog->setVisible(true);
     this->preferencesDialog->show();
     this->preferencesDialog->activateWindow();
-}
-
-/**
- * Show the preferences window.
- */
-void 
-GuiManager::processShowDisplayControlDialog(BrainBrowserWindow* browserWindow)
-{
-    if (this->displayControlDialog == NULL) {
-        this->displayControlDialog = new DisplayControlDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->displayControlDialog);
-    }
-    this->displayControlDialog->updateDialog();
-    this->displayControlDialog->setVisible(true);
-    this->displayControlDialog->show();
-    this->displayControlDialog->activateWindow();
 }
 
 /**

@@ -51,7 +51,6 @@
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "BrainBrowserWindowToolBar.h"
-#include "BrainBrowserWindowToolBox.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "BrowserTabYoking.h"
@@ -174,10 +173,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
                      this, SLOT(tabClosed(int)));
     
     /*
-     * Display control action at right side of toolbar
+     * Actions at right side of toolbar
      */
-    QToolButton* displayControlToolButton = new QToolButton();
-    displayControlToolButton->setDefaultAction(parentBrainBrowserWindow->displayControlAction);
     QToolButton* informationDialogToolButton = new QToolButton();
     informationDialogToolButton->setDefaultAction(parentBrainBrowserWindow->informationDialogAction);
     
@@ -232,7 +229,6 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     WuQtUtilities::setLayoutMargins(tabBarLayout, 2, 1);
     tabBarLayout->addWidget(this->tabBar);
     tabBarLayout->addStretch();
-    tabBarLayout->addWidget(displayControlToolButton);
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
     tabBarLayout->addWidget(toolBoxToolButton);

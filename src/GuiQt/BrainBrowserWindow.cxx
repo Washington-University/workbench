@@ -30,11 +30,9 @@
 
 #include "AboutWorkbenchDialog.h"
 #include "Brain.h"
-#include "BrainBrowserSelectionToolBox.h"
 #include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
-#include "BrainBrowserWindowToolBox.h"
 #include "BrainOpenGLWidget.h"
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
@@ -52,7 +50,6 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventSpecFileReadDataFiles.h"
 #include "EventSurfaceColoringInvalidate.h"
-#include "EventToolBoxSelectionDisplay.h"
 #include "EventUserInterfaceUpdate.h"
 #include "FileInformation.h"
 #include "GuiManager.h"
@@ -114,7 +111,6 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     const int32_t toolBoxType = prefs->getToolBoxType();
-    QAction* toolBoxToggleAction = NULL;
     
     this->toolBox = NULL;
     
@@ -126,34 +122,14 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
         this->toolBox->setAllowedAreas(Qt::LeftDockWidgetArea);
         this->addDockWidget(Qt::LeftDockWidgetArea, this->toolBox);
     }
-    else if (toolBoxType == 2) {
+    else {
         this->toolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
                                                               ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
                                                               Qt::Horizontal,
                                                               this);
         this->toolBox->setAllowedAreas(Qt::BottomDockWidgetArea);
         this->addDockWidget(Qt::BottomDockWidgetArea, this->toolBox);
-    }
-    else {
-        this->toolBox = new BrainBrowserWindowToolBox(this->browserWindowIndex,
-                                                  ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                  Qt::Horizontal,
-                                                  this);
-        this->addDockWidget(Qt::BottomDockWidgetArea,
-                        this->toolBox,
-                        Qt::Horizontal);
-        QObject::connect(this->toolBox, SIGNAL(controlRemoved()),
-                     this, SLOT(shrinkToolbox()));
-        
-        toolBoxToggleAction = this->toolBox->toggleViewAction();
-
-        BrainBrowserSelectionToolBox* selectionToolBox = new BrainBrowserSelectionToolBox(this->browserWindowIndex);
-        selectionToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
-        this->addDockWidget(Qt::RightDockWidgetArea,
-                            selectionToolBox);
-        
-    }
-    
+    }    
     this->createActionsUsedByToolBar();
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
@@ -166,17 +142,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     this->createActions();
     
     this->createMenus();
-    
+     
     this->toolbar->updateToolBar();
 
     if (browserTabContent == NULL) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
-    }
-    
-    
-    if (dynamic_cast<BrainBrowserWindowToolBox*>(this->toolBox) != NULL) {
-        QObject::connect(this->toolbar, SIGNAL(viewedModelChanged()),
-                         this->toolBox, SLOT(updateDisplayedPanel()));
     }
 }
 
@@ -243,16 +213,7 @@ BrainBrowserWindow::createActionsUsedByToolBar()
                                 this,
                                 this,
                                 SLOT(processInformationDialog()));   
-    this->informationDialogAction->setIconText("Info");
-    
-    this->displayControlAction = 
-    WuQtUtilities::createAction("Display Control...",
-                                "Show the Display Control",
-                                Qt::CTRL + Qt::Key_D,
-                                this,
-                                this,
-                                SLOT(processDisplayControl()));   
-    this->displayControlAction->setIconText("DC");
+    this->informationDialogAction->setIconText("Info");    
 }
 
 /**
@@ -838,7 +799,6 @@ BrainBrowserWindow::createMenuWindow()
     menu->addAction(this->moveTabsFromAllWindowsToOneWindowAction);
     menu->addMenu(this->moveSelectedTabToWindowMenu);
     menu->addSeparator();
-    menu->addAction(this->displayControlAction);
     menu->addAction(this->informationDialogAction);
     menu->addSeparator();
     menu->addAction(this->bringAllToFrontAction);
@@ -877,15 +837,6 @@ void
 BrainBrowserWindow::processEditPreferences()
 {
     GuiManager::get()->processShowPreferencesDialog(this);
-}
-
-/**
- * Called when display control is selected.
- */
-void 
-BrainBrowserWindow::processDisplayControl()
-{
-    GuiManager::get()->processShowDisplayControlDialog(this);
 }
 
 /**

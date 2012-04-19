@@ -53,7 +53,6 @@ class QToolButton;
 namespace caret {
     
     class BrainBrowserWindow;
-    //class BrainBrowserWindowToolBox;
     class BrowserTabContent;
     class Model;
     class ModelSurface;
@@ -385,7 +384,6 @@ namespace caret {
         QAction* toolsInputModeViewAction;
         
     private:
-        //BrainBrowserWindowToolBox* toolBox;
         QAction* toolBarToolButtonAction;
         QAction* toolBoxToolButtonAction;
     

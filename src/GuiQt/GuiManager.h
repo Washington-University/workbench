@@ -46,7 +46,6 @@ namespace caret {
     class BrainBrowserWindow;
     class BrowserTabContent;
     class CursorManager;
-    class DisplayControlDialog;
     class ImageFile;
     class ImageCaptureDialog;
     class InformationDisplayDialog;
@@ -101,7 +100,6 @@ namespace caret {
         
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
-        void processShowDisplayControlDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(BrainBrowserWindow* browserWindow);
                 
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
@@ -153,8 +151,6 @@ namespace caret {
         
         /* Editor for scalar color mapping. */
         MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
-        
-        DisplayControlDialog* displayControlDialog;
         
         ImageCaptureDialog* imageCaptureDialog;
         

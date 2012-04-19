@@ -28,11 +28,9 @@ SET(MOC_INPUT_HEADER_FILES
 AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
-BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowToolBar.h
-BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 CaretColorEnumComboBox.h
@@ -41,13 +39,10 @@ CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
-ConnectivityLoaderControl.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
-DisplayControlDialog.h
-DisplayControlVolumeSurfaceOutlinePage.h
 DisplayGroupEnumComboBox.h
 GiftiLabelTableEditor.h
 GuiManager.h
@@ -57,10 +52,6 @@ InformationDisplayDialog.h
 InformationDisplayWidget.h
 ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
-MultiPageDialog.h
-MultiPageDialogPage.h
-OverlaySelectionControl.h
-OverlaySelectionControlLayer.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -72,7 +63,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
-TimeSeriesManager.h
 TimeSeriesManagerForViewController.h
 UserInputModeBordersWidget.h
 VolumeSurfaceOutlineColorOrTabViewController.h
@@ -104,12 +94,10 @@ SET(SOURCE_FILES
 AboutWorkbenchDialog.h
 BorderPropertiesEditorDialog.h
 BorderSelectionViewController.h
-BrainBrowserSelectionToolBox.h
 BrainBrowserWindow.h
 BrainBrowserWindowOrientedToolBox.h
 BrainBrowserWindowScreenModeEnum.h
 BrainBrowserWindowToolBar.h
-BrainBrowserWindowToolBox.h
 BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 BrainOpenGLWidgetTextRenderer.h
@@ -119,7 +107,6 @@ CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
-ConnectivityLoaderControl.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 ConnectivityViewController.h
@@ -127,8 +114,6 @@ ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
 CursorEnum.h
 CursorManager.h
-DisplayControlDialog.h
-DisplayControlVolumeSurfaceOutlinePage.h
 DisplayGroupEnumComboBox.h
 EventBrowserWindowContentGet.h
 EventBrowserWindowNew.h
@@ -136,7 +121,6 @@ EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
 EventMapScalarDataColorMappingEditor.h
-EventToolBoxSelectionDisplay.h
 EventToolBoxUpdate.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
@@ -151,10 +135,6 @@ ManageLoadedFilesDialog.h
 MapScalarDataColorMappingEditorDialog.h
 MouseEvent.h
 MouseEventTypeEnum.h
-MultiPageDialog.h
-MultiPageDialogPage.h
-OverlaySelectionControl.h
-OverlaySelectionControlLayer.h
 OverlaySetViewController.h
 OverlayViewController.h
 PlotMagnifier.h
@@ -166,7 +146,6 @@ StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
 TimeCourseDialog.h
-TimeSeriesManager.h
 TimeSeriesManagerForViewController.h
 UserInputModeBorders.h
 UserInputModeBordersWidget.h
@@ -195,12 +174,10 @@ WuQtUtilities.h
 AboutWorkbenchDialog.cxx
 BorderPropertiesEditorDialog.cxx
 BorderSelectionViewController.cxx
-BrainBrowserSelectionToolBox.cxx
 BrainBrowserWindow.cxx
 BrainBrowserWindowScreenModeEnum.cxx
 BrainBrowserWindowOrientedToolBox.cxx
 BrainBrowserWindowToolBar.cxx
-BrainBrowserWindowToolBox.cxx
 BrainOpenGLWidget.cxx
 BrainOpenGLWidgetContextMenu.cxx
 BrainOpenGLWidgetTextRenderer.cxx
@@ -210,7 +187,6 @@ CaretMappableDataFileAndMapSelector.cxx
 ClassAndNameHierarchySelectedItem.cxx
 ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
-ConnectivityLoaderControl.cxx
 ConnectivityManagerViewController.cxx
 ConnectivityTimeSeriesViewController.cxx
 ConnectivityViewController.cxx
@@ -218,8 +194,6 @@ ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx
 CursorManager.cxx
-DisplayControlDialog.cxx
-DisplayControlVolumeSurfaceOutlinePage.cxx
 DisplayGroupEnumComboBox.cxx
 EventBrowserWindowContentGet.cxx
 EventBrowserWindowNew.cxx
@@ -227,7 +201,6 @@ EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
 EventMapScalarDataColorMappingEditor.cxx
-EventToolBoxSelectionDisplay.cxx
 EventToolBoxUpdate.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
@@ -242,10 +215,6 @@ ManageLoadedFilesDialog.cxx
 MapScalarDataColorMappingEditorDialog.cxx
 MouseEvent.cxx
 MouseEventTypeEnum.cxx
-MultiPageDialog.cxx
-MultiPageDialogPage.cxx
-OverlaySelectionControl.cxx
-OverlaySelectionControlLayer.cxx
 OverlaySetViewController.cxx
 OverlayViewController.cxx
 PreferencesDialog.cxx
@@ -257,7 +226,6 @@ StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionViewController.cxx
 TimeCourseDialog.cxx
-TimeSeriesManager.cxx
 TimeSeriesManagerForViewController.cxx
 UserInputModeBorders.cxx
 UserInputModeBordersWidget.cxx

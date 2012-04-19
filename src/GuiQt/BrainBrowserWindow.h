@@ -42,9 +42,7 @@ class QDockWidget;
 class QMenu;
 
 namespace caret {
-    //class BrainBrowserSelectionToolBox;
     class BrainBrowserWindowToolBar;
-    //class BrainBrowserWindowToolBox;
     class BrainOpenGLWidget;
     class BrowserTabContent;
 
@@ -93,7 +91,6 @@ namespace caret {
         
     private slots:        
         void processAboutWorkbench();
-        void processDisplayControl();  
         void processInformationDialog();
         void processNewWindow();
         void processNewTab();
@@ -172,8 +169,6 @@ namespace caret {
         
         BrainBrowserWindowToolBar* toolbar;
         
-        //BrainBrowserSelectionToolBox* selectionToolBox;
-        
         QAction* aboutWorkbenchAction;
         
         QAction* newWindowAction;
@@ -199,8 +194,6 @@ namespace caret {
         QAction* exitProgramAction;
         
         QAction* showToolBarAction;
-        
-        QAction* displayControlAction;
         
         QAction* informationDialogAction;
         
@@ -232,7 +225,6 @@ namespace caret {
         
         QMenu* recentSpecFileMenu;
         
-        //BrainBrowserWindowToolBox* toolBox;
         QDockWidget* toolBox;
         
         AString previousOpenFileNameFilter;

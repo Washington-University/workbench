@@ -106,8 +106,6 @@ namespace caret {
         
         void drawOperationReset();
         
-        void showHideBorderSelectionToolBox();
-        
         UserInputModeBordersWidget* borderToolsWidget;
         
         Mode mode;
