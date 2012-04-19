@@ -436,19 +436,10 @@ OverlaySet::initializeOverlays()
     /*
      * Find connectivity files giving preferense to dense over dense time series
      */
-    std::vector<ConnectivityLoaderFile*> denseConnectivityFiles;
-    std::vector<ConnectivityLoaderFile*> denseTimeSeriesConnectivityFiles;
+    std::vector<ConnectivityLoaderFile*> connFiles;
     if (brain != NULL) {
-        brain->getConnectivityFiles(denseConnectivityFiles);
-        brain->getConnectivityTimeSeriesFiles(denseTimeSeriesConnectivityFiles);
+        brain->getConnectivityFilesOfAllTypes(connFiles);
     }
-    std::vector<CaretMappableDataFile*> connFiles;
-    connFiles.insert(connFiles.end(),
-                     denseConnectivityFiles.begin(),
-                     denseConnectivityFiles.end());
-    connFiles.insert(connFiles.end(),
-                     denseTimeSeriesConnectivityFiles.begin(),
-                     denseTimeSeriesConnectivityFiles.end());
     const int32_t numConnFiles = static_cast<int32_t>(connFiles.size());
     
     

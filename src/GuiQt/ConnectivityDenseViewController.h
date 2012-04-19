@@ -1,5 +1,5 @@
-#ifndef __CONNECTIVITY_VIEW_CONTROLLER__H_
-#define __CONNECTIVITY_VIEW_CONTROLLER__H_
+#ifndef __CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_
+#define __CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_
 
 /*LICENSE_START*/
 /*
@@ -49,16 +49,16 @@ namespace caret {
     class ConnectivityLoaderFile;
     class WuQGridLayoutGroup;
     
-    class ConnectivityViewController : public QObject {
+    class ConnectivityDenseViewController : public QObject {
         
         Q_OBJECT
 
     public:
-        ConnectivityViewController(const Qt::Orientation orientation,
+        ConnectivityDenseViewController(const Qt::Orientation orientation,
                                          QGridLayout* gridLayout,
                                          QObject* parent);
         
-        virtual ~ConnectivityViewController();
+        virtual ~ConnectivityDenseViewController();
         
         void updateViewController(ConnectivityLoaderFile* connectivityLoaderFile);
         
@@ -70,13 +70,13 @@ namespace caret {
         void enabledCheckBoxStateChanged(int);
 
     private:
-        ConnectivityViewController(const ConnectivityViewController&);
+        ConnectivityDenseViewController(const ConnectivityDenseViewController&);
 
-        ConnectivityViewController& operator=(const ConnectivityViewController&);
+        ConnectivityDenseViewController& operator=(const ConnectivityDenseViewController&);
         
         void updateUserInterfaceAndGraphicsWindow();
         
-        void updateOtherConnectivityViewControllers();
+        void updateOtherConnectivityDenseViewControllers();
         
         void updateViewController();
         
@@ -88,12 +88,12 @@ namespace caret {
         
         WuQGridLayoutGroup* gridLayoutGroup;
         
-        static std::set<ConnectivityViewController*> allConnectivityViewControllers;
+        static std::set<ConnectivityDenseViewController*> allConnectivityDenseViewControllers;
     };
     
-#ifdef __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
-    std::set<ConnectivityViewController*> ConnectivityViewController::allConnectivityViewControllers;
-#endif // __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
+#ifdef __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
+    std::set<ConnectivityDenseViewController*> ConnectivityDenseViewController::allConnectivityDenseViewControllers;
+#endif // __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
-#endif  //__CONNECTIVITY_VIEW_CONTROLLER__H_
+#endif  //__CONNECTIVITY_DENSE_VIEW_CONTROLLER__H_

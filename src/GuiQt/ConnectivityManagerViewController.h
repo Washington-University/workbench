@@ -49,7 +49,7 @@ namespace caret {
 
     class ConnectivityLoaderFile;
     class ConnectivityTimeSeriesViewController;
-    class ConnectivityViewController;
+    class ConnectivityDenseViewController;
     
     class ConnectivityManagerViewController : public QWidget, public EventListenerInterface {
         
@@ -72,7 +72,7 @@ namespace caret {
         
         void updateManagerViewController();
         
-        void updateForConnectivityFiles(const std::vector<ConnectivityLoaderFile*>& connectivityFiles);
+        void updateForDenseFiles(const std::vector<ConnectivityLoaderFile*>& denseFiles);
         
         void updateForTimeSeriesFiles(const std::vector<ConnectivityLoaderFile*>& timeSeriesFiles);
         
@@ -84,7 +84,7 @@ namespace caret {
         
         QGridLayout* viewControllerGridLayout;
         
-        std::vector<ConnectivityViewController*> connectivityViewControllers;
+        std::vector<ConnectivityDenseViewController*> denseViewControllers;
 
         std::vector<ConnectivityTimeSeriesViewController*> timeSeriesViewControllers;
         

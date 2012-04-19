@@ -137,13 +137,13 @@ namespace caret {
         
         void getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& connectivityFilesOfAllTypes) const;
         
-        int32_t getNumberOfConnectivityFiles() const;
+        int32_t getNumberOfConnectivityDenseFiles() const;
         
-        ConnectivityLoaderFile* getConnectivityFile(int32_t indx);
+        ConnectivityLoaderFile* getConnectivityDenseFile(int32_t indx);
         
-        const ConnectivityLoaderFile* getConnectivityFile(int32_t indx) const;
+        const ConnectivityLoaderFile* getConnectivityDenseFile(int32_t indx) const;
         
-        void getConnectivityFiles(std::vector<ConnectivityLoaderFile*>& connectivityFilesOut) const;
+        void getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const;
         
         int32_t getNumberOfConnectivityTimeSeriesFiles() const;
         
@@ -198,7 +198,7 @@ namespace caret {
                             
         void readBorderProjectionFile(const AString& filename) throw (DataFileException);
         
-        void readConnectivityFile(const AString& filename) throw (DataFileException);
+        void readConnectivityDenseFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
@@ -222,7 +222,7 @@ namespace caret {
         
         PaletteFile* paletteFile;
         
-        std::vector<ConnectivityLoaderFile*> connectivityFiles;
+        std::vector<ConnectivityLoaderFile*> connectivityDenseFiles;
         
         std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
         

@@ -235,13 +235,13 @@ Brain::resetBrain()
     }
     this->borderFiles.clear();
     
-    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = this->connectivityFiles.begin();
-         clfi != this->connectivityFiles.end();
+    for (std::vector<ConnectivityLoaderFile*>::iterator clfi = this->connectivityDenseFiles.begin();
+         clfi != this->connectivityDenseFiles.end();
          clfi++) {
         ConnectivityLoaderFile* clf = *clfi;
         delete clf;
     }
-    this->connectivityFiles.clear();
+    this->connectivityDenseFiles.clear();
     
     for (std::vector<ConnectivityLoaderFile*>::iterator cltsfi = this->connectivityTimeSeriesFiles.begin();
          cltsfi != this->connectivityTimeSeriesFiles.end();
@@ -600,7 +600,7 @@ Brain::readBorderProjectionFile(const AString& filename) throw (DataFileExceptio
 }
 
 /**
- * Read a connectivity file.
+ * Read a connectivity dense file.
  *
  * @param filename
  *    Name of the file.
@@ -608,7 +608,7 @@ Brain::readBorderProjectionFile(const AString& filename) throw (DataFileExceptio
  *    If reading failed.
  */
 void 
-Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
+Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileException)
 {
     ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
 
@@ -623,7 +623,7 @@ Brain::readConnectivityFile(const AString& filename) throw (DataFileException)
                             DataFileTypeEnum::CONNECTIVITY_DENSE);
     }
     
-    this->connectivityFiles.push_back(clf);
+    this->connectivityDenseFiles.push_back(clf);
 }
 
 /**
@@ -706,57 +706,57 @@ Brain::getConnectivityFilesOfAllTypes(std::vector<ConnectivityLoaderFile*>& conn
 {
     connectivityFilesOfAllTypes.clear();
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
-                                       this->connectivityFiles.begin(),
-                                       this->connectivityFiles.end());
+                                       this->connectivityDenseFiles.begin(),
+                                       this->connectivityDenseFiles.end());
     connectivityFilesOfAllTypes.insert(connectivityFilesOfAllTypes.end(),
                                        this->connectivityTimeSeriesFiles.begin(),
                                        this->connectivityTimeSeriesFiles.end());
 }
 
 /**
- * @return Number of connectivity files.
+ * @return Number of connectivity dense files.
  */
 int32_t 
-Brain::getNumberOfConnectivityFiles() const
+Brain::getNumberOfConnectivityDenseFiles() const
 {
-    return this->connectivityFiles.size(); 
+    return this->connectivityDenseFiles.size(); 
 }
 
 /**
- * Get the connectivity file at the given index.
+ * Get the connectivity dense file at the given index.
  * @param indx
  *    Index of file.
- * @return Conectivity file at index.
+ * @return Conectivity dense file at index.
  */
 ConnectivityLoaderFile* 
-Brain::getConnectivityFile(int32_t indx)
+Brain::getConnectivityDenseFile(int32_t indx)
 {
-    CaretAssertVectorIndex(this->connectivityFiles, indx);
-    return this->connectivityFiles[indx];
+    CaretAssertVectorIndex(this->connectivityDenseFiles, indx);
+    return this->connectivityDenseFiles[indx];
 }
 
 /**
- * Get the connectivity file at the given index.
+ * Get the connectivity dense file at the given index.
  * @param indx
  *    Index of file.
- * @return Conectivity file at index.
+ * @return Conectivity dense file at index.
  */
 const ConnectivityLoaderFile* 
-Brain::getConnectivityFile(int32_t indx) const
+Brain::getConnectivityDenseFile(int32_t indx) const
 {
-    CaretAssertVectorIndex(this->connectivityFiles, indx);
-    return this->connectivityFiles[indx];
+    CaretAssertVectorIndex(this->connectivityDenseFiles, indx);
+    return this->connectivityDenseFiles[indx];
 }
 
 /**
- * Get ALL connectivity files.
+ * Get ALL connectivity dense files.
  * @param connectivityFilesOut
- *   Contains all connectivity files on exit.
+ *   Contains all connectivity dense files on exit.
  */
 void 
-Brain::getConnectivityFiles(std::vector<ConnectivityLoaderFile*>& connectivityFilesOut) const
+Brain::getConnectivityDenseFiles(std::vector<ConnectivityLoaderFile*>& connectivityDenseFilesOut) const
 {
-    connectivityFilesOut = this->connectivityFiles;
+    connectivityDenseFilesOut = this->connectivityDenseFiles;
 }
 
 /**
@@ -1249,7 +1249,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readBorderProjectionFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->readConnectivityFile(dataFileName);
+            this->readConnectivityDenseFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->readConnectivityTimeSeriesFile(dataFileName);
@@ -1462,8 +1462,8 @@ Brain::receiveEvent(Event* event)
         CaretAssert(dataFilesEvent);
         
 
-        for (std::vector<ConnectivityLoaderFile*>::iterator icf = this->connectivityFiles.begin();
-             icf != this->connectivityFiles.end();
+        for (std::vector<ConnectivityLoaderFile*>::iterator icf = this->connectivityDenseFiles.begin();
+             icf != this->connectivityDenseFiles.end();
              icf++) {
             dataFilesEvent->addFile(*icf);
         }
@@ -1559,8 +1559,8 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
                            this->borderFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
-                           this->connectivityFiles.begin(),
-                           this->connectivityFiles.end());
+                           this->connectivityDenseFiles.begin(),
+                           this->connectivityDenseFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
                            this->connectivityTimeSeriesFiles.begin(),
@@ -1622,12 +1622,12 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
         wasRemoved = true;
     }
     
-    std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(this->connectivityFiles.begin(),
-                                                                            this->connectivityFiles.end(),
+    std::vector<ConnectivityLoaderFile*>::iterator connIterator = std::find(this->connectivityDenseFiles.begin(),
+                                                                            this->connectivityDenseFiles.end(),
                                                                             caretDataFile);
-    if (connIterator != this->connectivityFiles.end()) {
+    if (connIterator != this->connectivityDenseFiles.end()) {
         delete caretDataFile;
-        this->connectivityFiles.erase(connIterator);
+        this->connectivityDenseFiles.erase(connIterator);
         wasRemoved = true;
     }
 

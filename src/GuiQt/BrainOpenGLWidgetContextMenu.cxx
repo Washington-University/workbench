@@ -246,13 +246,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
 /**
  * @param brain
  *   Brain containing connectivity loader manager.
- * @return connectivity loader manager if there are dense loaders or 
+ * @return connectivity loader manager if there are dense files or 
  * NULL if no dense files.
  */
 ConnectivityLoaderManager*
 BrainOpenGLWidgetContextMenu::getConnectivityLoaderManager(Brain* brain)
 {
-    if (brain->getNumberOfConnectivityFiles()) {
+    if (brain->getNumberOfConnectivityDenseFiles()) {
         ConnectivityLoaderManager* clm = brain->getConnectivityLoaderManager();
         return clm;
     }

@@ -183,18 +183,8 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
             }            
         }
         
-        std::vector<ConnectivityLoaderFile*> connectivityFiles;
-        brain->getConnectivityFiles(connectivityFiles);
-        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-        brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
-        
         std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        allConnectivityFiles.insert(allConnectivityFiles.end(),
-                                    connectivityFiles.begin(),
-                                    connectivityFiles.end());
-        allConnectivityFiles.insert(allConnectivityFiles.end(),
-                                    connectivityTimeSeriesFiles.begin(),
-                                    connectivityTimeSeriesFiles.end());
+        brain->getConnectivityFilesOfAllTypes(allConnectivityFiles);
         
         for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
              connIter != allConnectivityFiles.end();
@@ -262,18 +252,8 @@ IdentificationTextGenerator::generateSurfaceIdentificationText(IdentificationStr
         CaretAssert(brainStructure);
         
         
-        std::vector<ConnectivityLoaderFile*> connectivityFiles;
-        brain->getConnectivityFiles(connectivityFiles);
-        std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
-        brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
-        
         std::vector<ConnectivityLoaderFile*> allConnectivityFiles;
-        allConnectivityFiles.insert(allConnectivityFiles.end(),
-                                    connectivityFiles.begin(),
-                                    connectivityFiles.end());
-        allConnectivityFiles.insert(allConnectivityFiles.end(),
-                                    connectivityTimeSeriesFiles.begin(),
-                                    connectivityTimeSeriesFiles.end());
+        brain->getConnectivityFilesOfAllTypes(allConnectivityFiles);
         
         for (std::vector<ConnectivityLoaderFile*>::iterator connIter = allConnectivityFiles.begin();
              connIter != allConnectivityFiles.end();

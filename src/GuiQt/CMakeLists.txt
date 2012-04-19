@@ -39,9 +39,9 @@ CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
+ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
-ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
 GiftiLabelTableEditor.h
@@ -107,9 +107,9 @@ CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
 ColorEditorWidget.h
+ConnectivityDenseViewController.h
 ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
-ConnectivityViewController.h
 ConnectomeDBBrowserWindow.h
 CursorDisplayScoped.h
 CursorEnum.h
@@ -187,9 +187,9 @@ CaretMappableDataFileAndMapSelector.cxx
 ClassAndNameHierarchySelectedItem.cxx
 ClassAndNameHierarchyViewController.cxx
 ColorEditorWidget.cxx
+ConnectivityDenseViewController.cxx
 ConnectivityManagerViewController.cxx
 ConnectivityTimeSeriesViewController.cxx
-ConnectivityViewController.cxx
 ConnectomeDBBrowserWindow.cxx
 CursorDisplayScoped.cxx
 CursorEnum.cxx

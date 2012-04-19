@@ -42,7 +42,7 @@
 #include "CaretAssert.h"
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityTimeSeriesViewController.h"
-#include "ConnectivityViewController.h"
+#include "ConnectivityDenseViewController.h"
 #include "EventManager.h"
 #include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
@@ -75,7 +75,7 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
     
     switch (this->connectivityFileType) {
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
-            this->viewControllerGridLayout = ConnectivityViewController::createGridLayout(orientation);
+            this->viewControllerGridLayout = ConnectivityDenseViewController::createGridLayout(orientation);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
             this->viewControllerGridLayout = ConnectivityTimeSeriesViewController::createGridLayout(orientation);
@@ -112,8 +112,8 @@ ConnectivityManagerViewController::updateManagerViewController()
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
         {
             std::vector<ConnectivityLoaderFile*> files;
-            brain->getConnectivityFiles(files);
-            this->updateForConnectivityFiles(files);
+            brain->getConnectivityDenseFiles(files);
+            this->updateForDenseFiles(files);
         }
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES:
@@ -134,29 +134,29 @@ ConnectivityManagerViewController::updateManagerViewController()
  *    The connectivity files.
  */
 void 
-ConnectivityManagerViewController::updateForConnectivityFiles(const std::vector<ConnectivityLoaderFile*>& connectivityFiles)
+ConnectivityManagerViewController::updateForDenseFiles(const std::vector<ConnectivityLoaderFile*>& denseFiles)
 {
     /*
      * Update, show (and possibly add) connectivity view controllers
      */
-    const int32_t numConnectivityFiles = static_cast<int32_t>(connectivityFiles.size());
-    for (int32_t i = 0; i < numConnectivityFiles; i++) {
-        if (i >= static_cast<int32_t>(this->connectivityViewControllers.size())) {
-            this->connectivityViewControllers.push_back(new ConnectivityViewController(this->orientation,
+    const int32_t numDenseFiles = static_cast<int32_t>(denseFiles.size());
+    for (int32_t i = 0; i < numDenseFiles; i++) {
+        if (i >= static_cast<int32_t>(this->denseViewControllers.size())) {
+            this->denseViewControllers.push_back(new ConnectivityDenseViewController(this->orientation,
                                                                            this->viewControllerGridLayout,
                                                                            this));            
         }
-        ConnectivityViewController* cvc = this->connectivityViewControllers[i];
-        cvc->updateViewController(connectivityFiles[i]);
+        ConnectivityDenseViewController* cvc = this->denseViewControllers[i];
+        cvc->updateViewController(denseFiles[i]);
         cvc->setVisible(true);
     }
     
     /*
      * Hide view controllers not needed
      */
-    const int32_t numViewControllers = static_cast<int32_t>(this->connectivityViewControllers.size());
-    for (int32_t i = numConnectivityFiles; i < numViewControllers; i++) {
-        this->connectivityViewControllers[i]->setVisible(false);
+    const int32_t numViewControllers = static_cast<int32_t>(this->denseViewControllers.size());
+    for (int32_t i = numDenseFiles; i < numViewControllers; i++) {
+        this->denseViewControllers[i]->setVisible(false);
     }    
 }
 

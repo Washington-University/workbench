@@ -32,9 +32,9 @@
  */
 /*LICENSE_END*/
 
-#define __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
-#include "ConnectivityViewController.h"
-#undef __CONNECTIVITY_VIEW_CONTROLLER_DECLARE__
+#define __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
+#include "ConnectivityDenseViewController.h"
+#undef __CONNECTIVITY_DENSE_VIEW_CONTROLLER_DECLARE__
 
 #include <QAction>
 #include <QCheckBox>
@@ -59,14 +59,14 @@ using namespace caret;
 
     
 /**
- * \class caret::ConnectivityViewController 
+ * \class caret::ConnectivityDenseViewController 
  * \brief View-Controller for one connectivity loader
  *
  */
 /**
  * Constructor.
  */
-ConnectivityViewController::ConnectivityViewController(const Qt::Orientation orientation,
+ConnectivityDenseViewController::ConnectivityDenseViewController(const Qt::Orientation orientation,
                                                                    QGridLayout* gridLayout,
                                                                    QObject* parent)
 : QObject(parent)
@@ -93,15 +93,15 @@ ConnectivityViewController::ConnectivityViewController(const Qt::Orientation ori
         this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1);
     }
     
-    allConnectivityViewControllers.insert(this);
+    allConnectivityDenseViewControllers.insert(this);
 }
 
 /**
  * Destructor.
  */
-ConnectivityViewController::~ConnectivityViewController()
+ConnectivityDenseViewController::~ConnectivityDenseViewController()
 {
-    allConnectivityViewControllers.erase(this);
+    allConnectivityDenseViewControllers.erase(this);
 }
 
 /**
@@ -112,7 +112,7 @@ ConnectivityViewController::~ConnectivityViewController()
  *    GridLayout setup for this view controller.
  */
 QGridLayout* 
-ConnectivityViewController::createGridLayout(const Qt::Orientation /*orientation*/)
+ConnectivityDenseViewController::createGridLayout(const Qt::Orientation /*orientation*/)
 {
     QGridLayout* gridLayout = new QGridLayout();
     WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
@@ -127,7 +127,7 @@ ConnectivityViewController::createGridLayout(const Qt::Orientation /*orientation
  *    Connectivity loader file in this view controller.
  */
 void 
-ConnectivityViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
+ConnectivityDenseViewController::updateViewController(ConnectivityLoaderFile* connectivityLoaderFile)
 {
     this->connectivityLoaderFile = connectivityLoaderFile;
     if (this->connectivityLoaderFile != NULL) {
@@ -146,7 +146,7 @@ ConnectivityViewController::updateViewController(ConnectivityLoaderFile* connect
  * Update the view controller.
  */
 void 
-ConnectivityViewController::updateViewController()
+ConnectivityDenseViewController::updateViewController()
 {
     this->updateViewController(this->connectivityLoaderFile);    
 }
@@ -155,7 +155,7 @@ ConnectivityViewController::updateViewController()
  * Called when enabled check box changes state.
  */
 void 
-ConnectivityViewController::enabledCheckBoxStateChanged(int state)
+ConnectivityDenseViewController::enabledCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
     if (this->connectivityLoaderFile != NULL) {
@@ -170,7 +170,7 @@ ConnectivityViewController::enabledCheckBoxStateChanged(int state)
  * Set the visiblity of this overlay view controller.
  */
 void 
-ConnectivityViewController::setVisible(bool visible)
+ConnectivityDenseViewController::setVisible(bool visible)
 {
     this->gridLayoutGroup->setVisible(visible);
 }
@@ -179,9 +179,9 @@ ConnectivityViewController::setVisible(bool visible)
  * Update graphics and GUI after 
  */
 void 
-ConnectivityViewController::updateUserInterfaceAndGraphicsWindow()
+ConnectivityDenseViewController::updateUserInterfaceAndGraphicsWindow()
 {
-    this->updateOtherConnectivityViewControllers();
+    this->updateOtherConnectivityDenseViewControllers();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
@@ -193,13 +193,13 @@ ConnectivityViewController::updateUserInterfaceAndGraphicsWindow()
  * that contain the same connectivity file.
  */
 void 
-ConnectivityViewController::updateOtherConnectivityViewControllers()
+ConnectivityDenseViewController::updateOtherConnectivityDenseViewControllers()
 {
     if (this->connectivityLoaderFile != NULL) {
-        for (std::set<ConnectivityViewController*>::iterator iter = allConnectivityViewControllers.begin();
-             iter != allConnectivityViewControllers.end();
+        for (std::set<ConnectivityDenseViewController*>::iterator iter = allConnectivityDenseViewControllers.begin();
+             iter != allConnectivityDenseViewControllers.end();
              iter++) {
-            ConnectivityViewController* clvc = *iter;
+            ConnectivityDenseViewController* clvc = *iter;
             if (clvc != this) {
                 if (clvc->connectivityLoaderFile == this->connectivityLoaderFile) {
                     clvc->updateViewController();
