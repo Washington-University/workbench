@@ -5,9 +5,8 @@
 #include <QAction>
 #include <QLayout>
 #include <QScrollArea>
-#include <QStackedWidget>
 #include <QToolBox>
-#include <QTabBar>
+#include <QTabWidget>
 
 #include "BorderSelectionViewController.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
@@ -81,68 +80,52 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->borderSelectionTabIndex = -1;
     this->volumeSurfaceOutlineTabIndex = -1;
     
-    this->stackedWidget = new QStackedWidget();
-    QTabBar* tabBar = new QTabBar();
-
+    this->tabWidget = new QTabWidget();
+    
     if (isOverlayToolBox) {
         this->overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
-                                                                      this);    
-        this->stackedWidget->addWidget(this->overlaySetViewController);
-        this->overlaySetTabIndex           = tabBar->addTab("Overlay");
+                                                                      this);  
+        this->addToTabWidget(this->overlaySetViewController, 
+                             "Overlay");
     }
     if (isOverlayToolBox) {
         this->connectivityViewController = new ConnectivityManagerViewController(orientation,
                                                                                  browserWindowIndex,
                                                                                  DataFileTypeEnum::CONNECTIVITY_DENSE);
-        this->stackedWidget->addWidget(this->connectivityViewController);
-        this->connectivityTabIndex         = tabBar->addTab("Connectivity");
+        this->addToTabWidget(this->connectivityViewController, 
+                             "Connectivity");
     }
     if (isOverlayToolBox) {
         this->timeSeriesViewController = new ConnectivityManagerViewController(orientation,
                                                                                browserWindowIndex,
                                                                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-        
-        this->stackedWidget->addWidget(this->timeSeriesViewController);
-        this->timeSeriesTabIndex           = tabBar->addTab("Time-Series");
+        this->addToTabWidget(this->timeSeriesViewController, 
+                             "Time-Series");
     }
     if (isLayersToolBox) {
         this->borderSelectionViewController = new BorderSelectionViewController(browserWindowIndex,
                                                                                 this);
-        this->stackedWidget->addWidget(this->borderSelectionViewController);        
-        this->borderSelectionTabIndex      = tabBar->addTab("Borders");
+        this->addToTabWidget(this->borderSelectionViewController, 
+                             "Borders");
     }
     if (isOverlayToolBox) {
         this->volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
                                                                                                 this->browserWindowIndex);
-        this->stackedWidget->addWidget(this->volumeSurfaceOutlineSetViewController);
-        this->volumeSurfaceOutlineTabIndex = tabBar->addTab("Vol/Surf Outline");
+        this->addToTabWidget(this->volumeSurfaceOutlineSetViewController, 
+                             "Vol/Surf Outline");
     }
-    
-    /*
-     * Put the stacked widget in a scroll area
-     */ 
-    QScrollArea* scrollArea = new QScrollArea();
-    scrollArea->setWidget(this->stackedWidget);
-    scrollArea->setWidgetResizable(true);    
-    
-    /*
-     * Adding tabs causes signal to be emitted so setup 
-     * connection after adding tabs
-     */
-    QObject::connect(tabBar, SIGNAL(currentChanged(int)),
-                     this, SLOT(tabIndexSelected(int)));
     
     /*
      * Layout the widgets
      */
-    QWidget* widget = new QWidget();
-    QVBoxLayout* layout = new QVBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 0, 0);
-    layout->addWidget(tabBar);
-    layout->addWidget(scrollArea);
+//    QWidget* widget = new QWidget();
+//    QVBoxLayout* layout = new QVBoxLayout(widget);
+//    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+//    layout->addWidget(tabBar);
+//    layout->addWidget(scrollArea);
     
-    this->setWidget(widget);
+    this->setWidget(this->tabWidget);
 
     if (orientation == Qt::Horizontal) {
         this->setMinimumHeight(200);
@@ -159,8 +142,6 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         }
     }
 
-    this->tabIndexSelected(tabBar->currentIndex());
-    
     QObject::connect(this, SIGNAL(topLevelChanged(bool)),
                      this, SLOT(floatingStatusChanged(bool)));
 }
@@ -172,6 +153,27 @@ BrainBrowserWindowOrientedToolBox::~BrainBrowserWindowOrientedToolBox()
 {
     EventManager::get()->removeAllEventsFromListener(this);
 }
+
+/**
+ * Place widget into a scroll area and then into the tab widget.
+ * @param page
+ *    Widget that is added.
+ * @param label
+ *    Name corresponding to widget's tab.
+ */
+int 
+BrainBrowserWindowOrientedToolBox::addToTabWidget(QWidget* page,
+                                                  const QString& label)
+{
+    QScrollArea* scrollArea = new QScrollArea();
+    scrollArea->setWidget(page);
+    scrollArea->setWidgetResizable(true);    
+    
+    int indx = this->tabWidget->addTab(scrollArea,
+                                       label);
+    return indx;
+}
+
 
 /**
  * Called when floating status changes.
@@ -187,34 +189,6 @@ BrainBrowserWindowOrientedToolBox::floatingStatusChanged(bool status)
                   + QString::number(this->browserWindowIndex + 1));
     }
     this->setWindowTitle(title);
-}
-
-/**
- * Called when a tab is selected.
- * @param indx
- *    Index of selected tab.
- */
-void 
-BrainBrowserWindowOrientedToolBox::tabIndexSelected(int indx)
-{
-        if (indx == this->borderSelectionTabIndex) {
-            this->stackedWidget->setCurrentWidget(this->borderSelectionViewController);
-        }
-        else if (indx == this->connectivityTabIndex) {
-            this->stackedWidget->setCurrentWidget(this->connectivityViewController);
-        }
-        else if (indx == this->overlaySetTabIndex) {
-            this->stackedWidget->setCurrentWidget(this->overlaySetViewController);
-        }
-        else if (indx == this->timeSeriesTabIndex) {
-            this->stackedWidget->setCurrentWidget(this->timeSeriesViewController);
-        }
-        else if (indx == this->volumeSurfaceOutlineTabIndex) {
-            this->stackedWidget->setCurrentWidget(this->volumeSurfaceOutlineSetViewController);
-        }
-        else {
-            CaretAssertMessage(0, "Widget index is invalid!");
-        }
 }
 
 /**
