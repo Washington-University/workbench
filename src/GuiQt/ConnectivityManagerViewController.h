@@ -65,6 +65,9 @@ namespace caret {
 
         void receiveEvent(Event* event);
         
+    private slots:
+        void processLoadFileFromWeb();
+        
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
 
@@ -90,10 +93,14 @@ namespace caret {
         
         static std::set<ConnectivityManagerViewController*> allManagerViewControllers;
         
+        static AString previousNetworkUsername;
+        static AString previousNetworkPassword;
     };
     
 #ifdef __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
     std::set<ConnectivityManagerViewController*> ConnectivityManagerViewController::allManagerViewControllers;
+    AString ConnectivityManagerViewController::previousNetworkUsername = "";
+    AString ConnectivityManagerViewController::previousNetworkPassword = "";
 #endif // __CONNECTIVITY_MANAGER_VIEW_CONTROLLER_DECLARE__
 
 } // namespace
