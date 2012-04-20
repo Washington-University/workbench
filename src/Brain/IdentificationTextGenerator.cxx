@@ -141,7 +141,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                 
                 int64_t vfIJK[3];
                 vf->enclosingVoxel(xyz, 
-                                 vfIJK);
+                                   vfIJK);
                 
                 if (vf->indexValid(vfIJK[0], vfIJK[1], vfIJK[2])) {
                     AString boldText = vf->getFileNameNoPath();
@@ -155,13 +155,13 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                     
                     AString text;
                     const int32_t numMaps = vf->getNumberOfMaps();
-                    for (int j = 0; j < numMaps; j++) {
-                        if (j > 0) {
+                    for (int jMap = 0; jMap < numMaps; jMap++) {
+                        if (jMap > 0) {
                             text += " ";
                         }
                         if (vf->getType() == SubvolumeAttributes::LABEL) {
-                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfIJK));
-                            const GiftiLabelTable* glt = vf->getMapLabelTable(j);
+                            const int32_t labelIndex = static_cast<int32_t>(vf->getValue(vfIJK, jMap));
+                            const GiftiLabelTable* glt = vf->getMapLabelTable(jMap);
                             const GiftiLabel* gl = glt->getLabel(labelIndex);
                             if (gl != NULL) {
                                 text += gl->getName();
@@ -172,7 +172,7 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
                             }
                         }
                         else {
-                            text += AString::number(vf->getValue(vfIJK));
+                            text += AString::number(vf->getValue(vfIJK, jMap));
                         }
                     }
                     
