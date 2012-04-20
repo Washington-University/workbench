@@ -109,32 +109,53 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->setCentralWidget(this->openGLWidget);
     
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    const int32_t toolBoxType = prefs->getToolBoxType();
+    this->overlayVerticalToolBox = 
+    new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
+                                          "Overlay ToolBox",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_VERTICAL,
+                                          this);
+    this->overlayVerticalToolBox->setAllowedAreas(Qt::LeftDockWidgetArea);
     
-    this->toolBox = NULL;
-    
-    if (toolBoxType == 1) {
-        this->toolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
-                                                              ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                              Qt::Vertical,
-                                                              this);
-        this->toolBox->setAllowedAreas(Qt::LeftDockWidgetArea);
-        this->addDockWidget(Qt::LeftDockWidgetArea, this->toolBox);
+    this->overlayHorizontalToolBox = 
+    new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
+                                          "Overlay ToolBox ",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_OVERLAYS_HORIZONTAL,
+                                          this);
+    this->overlayHorizontalToolBox->setAllowedAreas(Qt::BottomDockWidgetArea);
+
+    if (WuQtUtilities::isSmallDisplay()) {
+        this->overlayActiveToolBox = this->overlayVerticalToolBox;
+        this->addDockWidget(Qt::LeftDockWidgetArea, this->overlayVerticalToolBox);
+        this->overlayHorizontalToolBox->setVisible(false);
+        //this->overlayHorizontalToolBox->toggleViewAction()->trigger();
     }
     else {
-        this->toolBox = new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
-                                                              ("ToolBox " + AString::number(this->browserWindowIndex + 1)),
-                                                              Qt::Horizontal,
-                                                              this);
-        this->toolBox->setAllowedAreas(Qt::BottomDockWidgetArea);
-        this->addDockWidget(Qt::BottomDockWidgetArea, this->toolBox);
-    }    
+        this->overlayActiveToolBox = this->overlayHorizontalToolBox;
+        this->addDockWidget(Qt::BottomDockWidgetArea, this->overlayHorizontalToolBox);
+        this->overlayVerticalToolBox->setVisible(false);
+        //this->overlayVerticalToolBox->toggleViewAction()->trigger();
+    }
+    
+    this->layersToolBox = 
+    new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
+                                          "Layers ToolBox",
+                                          BrainBrowserWindowOrientedToolBox::TOOL_BOX_LAYERS,
+                                          this);
+    this->layersToolBox->setAllowedAreas(Qt::RightDockWidgetArea);
+    this->addDockWidget(Qt::RightDockWidgetArea, this->layersToolBox);
+    
     this->createActionsUsedByToolBar();
+    this->overlayToolBoxAction->blockSignals(true);
+    this->overlayToolBoxAction->setChecked(true);
+    this->overlayToolBoxAction->blockSignals(false);
+    this->layersToolBoxAction->blockSignals(true);
+    this->layersToolBoxAction->setChecked(true);
+    this->layersToolBoxAction->blockSignals(false);
     
     this->toolbar = new BrainBrowserWindowToolBar(this->browserWindowIndex,
                                                   browserTabContent,
-                                                  this->toolBox->toggleViewAction(),
+                                                  this->overlayToolBoxAction,
+                                                  this->layersToolBoxAction,
                                                   this);
     this->showToolBarAction = this->toolbar->toolBarToolButtonAction;
     this->addToolBar(this->toolbar);
@@ -207,6 +228,53 @@ BrainBrowserWindow::closeEvent(QCloseEvent* event)
 void 
 BrainBrowserWindow::createActionsUsedByToolBar()
 {
+    QIcon toolBoxIcon;
+    const bool toolBoxIconValid =
+    WuQtUtilities::loadIcon(":/toolbox.png", 
+                            toolBoxIcon);
+    
+    /*
+     * Note: The name of a dock widget becomes its
+     * name in the toggleViewAction().  So, use
+     * a separate action here so that the name in 
+     * the menu is as set here.
+     */
+    this->overlayToolBoxAction = 
+    WuQtUtilities::createAction("Overlay ToolBox",
+                                "Show the Overlay ToolBox",
+                                this,
+                                this,
+                                SLOT(processShowOverlayToolBox(bool)));
+    this->overlayToolBoxAction->setCheckable(true);
+    if (toolBoxIconValid) {
+        this->overlayToolBoxAction->setIcon(toolBoxIcon);
+        this->overlayToolBoxAction->setIconVisibleInMenu(false);
+    }
+    else {
+        this->overlayToolBoxAction->setIconText("OT");
+    }
+
+    /*
+     * Note: The name of a dock widget becomes its
+     * name in the toggleViewAction().  So, use
+     * a separate action here so that the name in 
+     * the menu is as set here.
+     */
+    this->layersToolBoxAction = this->layersToolBox->toggleViewAction();
+//    WuQtUtilities::createAction("Layers ToolBox",
+//                                "Show the Layers ToolBox",
+//                                this,
+//                                this,
+//                                SLOT(processShowLayersToolBox(bool)));
+    this->layersToolBoxAction->setCheckable(true);
+    if (toolBoxIconValid) {
+        this->layersToolBoxAction->setIcon(toolBoxIcon);
+        this->layersToolBoxAction->setIconVisibleInMenu(false);
+    }
+    else {
+        this->layersToolBoxAction->setIconText("LT");
+    }
+    
     this->informationDialogAction =
     WuQtUtilities::createAction("Information...",
                                 "Show the Information Window",
@@ -319,17 +387,6 @@ BrainBrowserWindow::createActions()
                                 this,
                                 this,
                                 SLOT(processExitProgram()));
-    
-    /*
-     * Note the toolbox's toggleViewAction cannot be used directly since
-     * its text overrides the text in the menu.
-     */
-    this->viewMenuShowToolBoxAction = WuQtUtilities::createAction("Toolbox",
-                                                                  "Show or hide the toolbox",
-                                                                  this,
-                                                                  this->toolBox->toggleViewAction(),
-                                                                  SLOT(trigger()));
-    this->viewMenuShowToolBoxAction->setCheckable(true);
     
     this->viewScreenNormalAction = WuQtUtilities::createAction("Normal", 
                                                                "Normal Viewing", 
@@ -492,6 +549,18 @@ BrainBrowserWindow::createMenuFile()
 }
 
 /**
+ * Called to display the overlay toolbox.
+ */
+void 
+BrainBrowserWindow::processShowOverlayToolBox(bool status)
+{
+    this->overlayActiveToolBox->setVisible(status);
+    this->overlayToolBoxAction->blockSignals(true);
+    this->overlayToolBoxAction->setChecked(status);
+    this->overlayToolBoxAction->blockSignals(false);
+}
+
+/**
  * Called when File Menu is about to show.
  */
 void 
@@ -608,13 +677,6 @@ BrainBrowserWindow::processRecentSpecFileMenuSelection(QAction* itemAction)
 void 
 BrainBrowserWindow::processViewMenuAboutToShow()
 {
-    /*
-     * Update status of view toolbox action.
-     */
-    this->viewMenuShowToolBoxAction->setEnabled(this->toolBox->toggleViewAction()->isEnabled());
-    this->viewMenuShowToolBoxAction->blockSignals(true);
-    this->viewMenuShowToolBoxAction->setChecked(this->toolBox->toggleViewAction()->isChecked());
-    this->viewMenuShowToolBoxAction->blockSignals(false);
 }
 
 /**
@@ -629,8 +691,8 @@ BrainBrowserWindow::createMenuView()
                      this, SLOT(processViewMenuAboutToShow()));
     
     menu->addAction(this->showToolBarAction);
-    menu->addAction(this->viewMenuShowToolBoxAction);
-    menu->addMenu(this->createMenuViewMoveToolBox());
+    menu->addMenu(this->createMenuViewMoveLayersToolBox());
+    menu->addMenu(this->createMenuViewMoveOverlayToolBox());
     menu->addSeparator();
     
     QMenu* screenMenu = new QMenu("Screen");
@@ -645,20 +707,32 @@ BrainBrowserWindow::createMenuView()
 }
 
 /**
- * Create the toolbox menu.
- * @return the toolbox menu.
+ * @return Create and return the overlay toolbox menu.
  */
 QMenu* 
-BrainBrowserWindow::createMenuViewMoveToolBox()
+BrainBrowserWindow::createMenuViewMoveLayersToolBox()
 {
-    QMenu* menu = new QMenu("Move Toolbox", this);
+    QMenu* menu = new QMenu("Layers Toolbox", this);
     
-    menu->addAction("Float", this, SLOT(processMoveToolBoxToFloat()));
-    menu->addSeparator();
-    menu->addAction("Bottom", this, SLOT(processMoveToolBoxToBottom()));
-    //menu->addAction("Left", this, SLOT(processMoveToolBoxToLeft()));
-    //menu->addAction("Right", this, SLOT(processMoveToolBoxToRight()));
-    menu->addAction("Top", this, SLOT(processMoveToolBoxToTop()));
+    menu->addAction("Attach to Right", this, SLOT(processMoveLayersToolBoxToRight()));
+    menu->addAction("Detach", this, SLOT(processMoveLayersToolBoxToFloat()));
+    menu->addAction("Hide", this, SLOT(processHideLayersToolBox()));
+    
+    return menu;
+}
+
+/**
+ * @return Create and return the overlay toolbox menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
+{
+    QMenu* menu = new QMenu("Overlay Toolbox", this);
+    
+    menu->addAction("Attach to Bottom", this, SLOT(processMoveOverlayToolBoxToBottom()));
+    menu->addAction("Attach to Left", this, SLOT(processMoveOverlayToolBoxToLeft()));
+    menu->addAction("Detach", this, SLOT(processMoveOverlayToolBoxToFloat()));
+    menu->addAction("Hide", this, SLOT(processHideOverlayToolBox()));
     
     return menu;
 }
@@ -1348,7 +1422,7 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
     
     this->toolbar->updateToolBar();
     if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-        this->toolBox->setVisible(false);
+//        this->toolBox->setVisible(false);
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
@@ -1363,7 +1437,7 @@ void
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
     this->showToolBarAction->setEnabled(true);
-    this->toolBox->toggleViewAction()->setEnabled(true);
+//    this->toolBox->toggleViewAction()->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
         this->showToolBarAction->setChecked(false);
         this->showToolBarAction->trigger();
@@ -1373,12 +1447,12 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         this->showToolBarAction->trigger();
     }
     if (wcs.isToolBoxDisplayed) {
-        this->toolBox->toggleViewAction()->setChecked(false);
-        this->toolBox->toggleViewAction()->trigger();
+//        this->toolBox->toggleViewAction()->setChecked(false);
+//        this->toolBox->toggleViewAction()->trigger();
     }
     else {
-        this->toolBox->toggleViewAction()->setChecked(true);
-        this->toolBox->toggleViewAction()->trigger();
+//        this->toolBox->toggleViewAction()->setChecked(true);
+//        this->toolBox->toggleViewAction()->trigger();
     }
 }
 
@@ -1393,9 +1467,9 @@ void
 BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
-    wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
+//    wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
     this->showToolBarAction->setEnabled(false);
-    this->toolBox->toggleViewAction()->setEnabled(false);
+//    this->toolBox->toggleViewAction()->setEnabled(false);
 }
 
 /**
@@ -1522,89 +1596,169 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
 }
 
 /**
- * Called to move the toolbox to the left side of the window.
+ * Called to move the overlay toolbox to the left side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToLeft()
+BrainBrowserWindow::BrainBrowserWindow::processMoveOverlayToolBoxToLeft()
 {
-    this->moveToolBox(Qt::LeftDockWidgetArea);
+    this->moveOverlayToolBox(Qt::LeftDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the right side of the window.
+ * Called to move the overlay toolbox to the bottom side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToRight()
+BrainBrowserWindow::processMoveOverlayToolBoxToBottom()
 {
-    this->moveToolBox(Qt::RightDockWidgetArea);
+    this->moveOverlayToolBox(Qt::BottomDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the top side of the window.
+ * Called to move the overlay toolbox to float outside of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToTop()
+BrainBrowserWindow::processMoveOverlayToolBoxToFloat()
 {
-    this->moveToolBox(Qt::TopDockWidgetArea);
+    this->moveOverlayToolBox(Qt::NoDockWidgetArea);
 }
 
 /**
- * Called to move the toolbox to the bottom side of the window.
+ * Called to hide the overlay toolbox.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToBottom()
+BrainBrowserWindow::processHideOverlayToolBox()
 {
-    this->moveToolBox(Qt::BottomDockWidgetArea);
+    this->processShowOverlayToolBox(false);
 }
 
 /**
- * Called to move the toolbox to float outside of the window.
+ * Called to move the layers toolbox to the right side of the window.
  */
 void 
-BrainBrowserWindow::processMoveToolBoxToFloat()
+BrainBrowserWindow::processMoveLayersToolBoxToRight()
 {
-    this->moveToolBox(Qt::NoDockWidgetArea);
+    this->moveLayersToolBox(Qt::RightDockWidgetArea);
 }
 
+/**
+ * Called to move the layers toolbox to float outside of the window.
+ */
 void 
-BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
+BrainBrowserWindow::processMoveLayersToolBoxToFloat()
 {
-        switch (area) {
-            case Qt::LeftDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::RightDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::RightDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::TopDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::TopDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::BottomDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            default:
-                this->toolBox->setFloating(true);
-                break;
+    this->moveLayersToolBox(Qt::NoDockWidgetArea);
+}
+
+/**
+ * Called to hide the layers tool box.
+ */
+void 
+BrainBrowserWindow::processHideLayersToolBox()
+{
+    if (this->layersToolBoxAction->isChecked()) {
+        this->layersToolBoxAction->trigger();
     }
+}
 
-    if (this->toolBox->isVisible() == false) {
-        this->viewMenuShowToolBoxAction->trigger();
+/**
+ * Called to display the layers toolbox.
+ */
+//void 
+//BrainBrowserWindow::processShowLayersToolBox(bool status)
+//{
+//    if (status) {
+//        AString title = this->layersToolBoxTitle;
+//        if (this->layersToolBox->isFloating()) {
+//            title += (" "
+//                      + AString::number(this->browserWindowIndex + 1));
+//        }
+//        this->layersToolBox->setWindowTitle(title);
+//    }
+//}
+
+/**
+ * Move the overlay toolbox to the desired location.
+ * @param area
+ *    DockWidget location.
+ */
+void 
+BrainBrowserWindow::moveLayersToolBox(Qt::DockWidgetArea area)
+{
+    switch (area) {
+        case Qt::LeftDockWidgetArea:
+            CaretAssertMessage(0, "Layers toolbox not allowed on left");
+            break;
+        case Qt::RightDockWidgetArea:
+            this->layersToolBox->setFloating(false);
+            this->addDockWidget(Qt::RightDockWidgetArea, 
+                                this->layersToolBox);
+            if (this->layersToolBoxAction->isChecked() == false) {
+                this->layersToolBoxAction->trigger();
+            }
+            break;
+        case Qt::TopDockWidgetArea:
+            CaretAssertMessage(0, "Layers toolbox not allowed on top");
+            break;
+        case Qt::BottomDockWidgetArea:
+            CaretAssertMessage(0, "Layers toolbox not allowed on bottom");
+            break;
+        default:
+            this->layersToolBox->setFloating(true);
+            if (this->layersToolBoxAction->isChecked() == false) {
+                this->layersToolBoxAction->trigger();
+            }
+            break;
     }
-    if (this->toolBox->isFloating() == false) {
-        this->shrinkToolbox();
+    
+//    this->processShowLayersToolBox(true);
+}
+
+/**
+ * Move the overlay toolbox to the desired location.
+ * @param area
+ *    DockWidget location.
+ */
+void 
+BrainBrowserWindow::moveOverlayToolBox(Qt::DockWidgetArea area)
+{
+    bool isVisible = false;
+    switch (area) {
+        case Qt::LeftDockWidgetArea:
+            this->overlayHorizontalToolBox->setVisible(false);
+            this->overlayVerticalToolBox->setFloating(false);
+            this->addDockWidget(Qt::LeftDockWidgetArea, 
+                                this->overlayVerticalToolBox);
+            this->overlayVerticalToolBox->setVisible(true);
+            this->overlayActiveToolBox = this->overlayVerticalToolBox;
+            isVisible = true;
+            break;
+        case Qt::RightDockWidgetArea:
+            CaretAssertMessage(0, "Overlay toolbox not allowed on right");
+            break;
+        case Qt::TopDockWidgetArea:
+            CaretAssertMessage(0, "Overlay toolbox not allowed on top");
+            break;
+        case Qt::BottomDockWidgetArea:
+            this->overlayVerticalToolBox->setVisible(false);
+            this->overlayHorizontalToolBox->setFloating(false);
+            this->addDockWidget(Qt::BottomDockWidgetArea, 
+                                this->overlayHorizontalToolBox);
+            this->overlayHorizontalToolBox->setVisible(true);
+            this->overlayActiveToolBox = this->overlayHorizontalToolBox;
+            isVisible = true;
+            break;
+        default:
+            this->overlayActiveToolBox->setVisible(true);
+            this->overlayActiveToolBox->setFloating(true);
+            isVisible = true;
+            break;
     }
+    
+    this->processShowOverlayToolBox(isVisible);
+
+//    if (this->toolBox->isVisible() == false) {
+//        this->viewMenuShowToolBoxAction->trigger();
+//    }
     /*
      * This code will allow the region of the main window
      * containing the dock widget to shrink without changing 
@@ -1650,60 +1804,60 @@ BrainBrowserWindow::moveToolBox(Qt::DockWidgetArea area)
 void 
 BrainBrowserWindow::shrinkToolbox()
 {
-    if (dynamic_cast<BrainBrowserWindowOrientedToolBox*>(this->toolBox) != NULL) {
-        return;
-    }
-    
-    if (this->toolBox->isFloating() == false) {
-        switch (this->dockWidgetArea(this->toolBox)) {
-            case Qt::LeftDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::RightDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::LeftDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::TopDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::TopDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            case Qt::BottomDockWidgetArea:
-                this->toolBox->setFloating(false);
-                this->addDockWidget(Qt::BottomDockWidgetArea, 
-                                    this->toolBox,
-                                    Qt::Horizontal);
-                break;
-            default:
-                this->toolBox->setFloating(true);
-                break;
-        }
-    }
-     /*
-     * This code will allow the region of the main window
-     * containing the dock widget to shrink without changing 
-     * the vertical size of the OpenGL graphics widget
-     * and without changing the width of the main window.
-     */
-     const int centralMinHeight = this->centralWidget()->minimumHeight();
-     const int centralMaxHeight = this->centralWidget()->maximumHeight();
-     this->centralWidget()->setFixedHeight(this->centralWidget()->height());
-     const int minWidth = this->minimumWidth();
-     const int maxWidth = this->maximumWidth();
-     this->setFixedWidth(this->width());
-     this->toolBox->adjustSize();
-     this->setFixedWidth(this->width());
-     this->adjustSize();
-     this->setMinimumWidth(minWidth);
-     this->setMaximumWidth(maxWidth);
-     this->centralWidget()->setMinimumHeight(centralMinHeight);
-     this->centralWidget()->setMaximumHeight(centralMaxHeight);
+//    if (dynamic_cast<BrainBrowserWindowOrientedToolBox*>(this->toolBox) != NULL) {
+//        return;
+//    }
+//    
+//    if (this->toolBox->isFloating() == false) {
+//        switch (this->dockWidgetArea(this->toolBox)) {
+//            case Qt::LeftDockWidgetArea:
+//                this->toolBox->setFloating(false);
+//                this->addDockWidget(Qt::LeftDockWidgetArea, 
+//                                    this->toolBox,
+//                                    Qt::Horizontal);
+//                break;
+//            case Qt::RightDockWidgetArea:
+//                this->toolBox->setFloating(false);
+//                this->addDockWidget(Qt::LeftDockWidgetArea, 
+//                                    this->toolBox,
+//                                    Qt::Horizontal);
+//                break;
+//            case Qt::TopDockWidgetArea:
+//                this->toolBox->setFloating(false);
+//                this->addDockWidget(Qt::TopDockWidgetArea, 
+//                                    this->toolBox,
+//                                    Qt::Horizontal);
+//                break;
+//            case Qt::BottomDockWidgetArea:
+//                this->toolBox->setFloating(false);
+//                this->addDockWidget(Qt::BottomDockWidgetArea, 
+//                                    this->toolBox,
+//                                    Qt::Horizontal);
+//                break;
+//            default:
+//                this->toolBox->setFloating(true);
+//                break;
+//        }
+//    }
+//     /*
+//     * This code will allow the region of the main window
+//     * containing the dock widget to shrink without changing 
+//     * the vertical size of the OpenGL graphics widget
+//     * and without changing the width of the main window.
+//     */
+//     const int centralMinHeight = this->centralWidget()->minimumHeight();
+//     const int centralMaxHeight = this->centralWidget()->maximumHeight();
+//     this->centralWidget()->setFixedHeight(this->centralWidget()->height());
+//     const int minWidth = this->minimumWidth();
+//     const int maxWidth = this->maximumWidth();
+//     this->setFixedWidth(this->width());
+//     this->toolBox->adjustSize();
+//     this->setFixedWidth(this->width());
+//     this->adjustSize();
+//     this->setMinimumWidth(minWidth);
+//     this->setMaximumWidth(maxWidth);
+//     this->centralWidget()->setMinimumHeight(centralMinHeight);
+//     this->centralWidget()->setMaximumHeight(centralMaxHeight);
 }
 
 /**

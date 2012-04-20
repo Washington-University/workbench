@@ -103,17 +103,24 @@ namespace caret {
         void processExitProgram();
         void processViewScreenActionGroupSelection(QAction*);
         void processMoveAllTabsToOneWindow();
-        void processMoveToolBoxToLeft();
-        void processMoveToolBoxToRight();
-        void processMoveToolBoxToTop();
-        void processMoveToolBoxToBottom();
-        void processMoveToolBoxToFloat();
+        
+        void processMoveOverlayToolBoxToLeft();
+        void processMoveOverlayToolBoxToBottom();
+        void processMoveOverlayToolBoxToFloat();
+        void processHideOverlayToolBox();
+        
+        void processMoveLayersToolBoxToRight();
+        void processMoveLayersToolBoxToFloat();
+        void processHideLayersToolBox();
         
         void processMoveSelectedTabToWindowMenuAboutToBeDisplayed();
         void processMoveSelectedTabToWindowMenuSelection(QAction*);
         
         void processRecentSpecFileMenuAboutToBeDisplayed();
         void processRecentSpecFileMenuSelection(QAction*);
+        
+        void processShowOverlayToolBox(bool);
+//        void processShowLayersToolBox(bool);
         
         void shrinkToolbox();
         
@@ -148,14 +155,16 @@ namespace caret {
         
         QMenu* createMenuFile();
         QMenu* createMenuView();
-        QMenu* createMenuViewMoveToolBox();
+        QMenu* createMenuViewMoveOverlayToolBox();
+        QMenu* createMenuViewMoveLayersToolBox();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
         QMenu* createMenuVolume();
         QMenu* createMenuWindow();
         QMenu* createMenuHelp();
         
-        void moveToolBox(Qt::DockWidgetArea area);
+        void moveOverlayToolBox(Qt::DockWidgetArea area);
+        void moveLayersToolBox(Qt::DockWidgetArea area);
         
         void restoreWindowComponentStatus(const WindowComponentStatus& wcs);
         void saveWindowComponentStatus(WindowComponentStatus& wcs);
@@ -203,8 +212,6 @@ namespace caret {
         QAction* viewScreenMontageTabsAction;
         QAction* viewScreenFullMontageTabsAction;        
         
-        QAction* viewMenuShowToolBoxAction;
-        
         QAction* nextTabAction;
         
         QAction* previousTabAction;
@@ -221,11 +228,18 @@ namespace caret {
         
         QAction* searchHelpOnlineAction;
         
+        QAction* overlayToolBoxAction;
+        
+        QAction* layersToolBoxAction;
+        
         QMenu* moveSelectedTabToWindowMenu;
         
         QMenu* recentSpecFileMenu;
         
-        QDockWidget* toolBox;
+        QDockWidget* overlayHorizontalToolBox;
+        QDockWidget* overlayVerticalToolBox;
+        QDockWidget* overlayActiveToolBox;
+        QDockWidget* layersToolBox;
         
         AString previousOpenFileNameFilter;
         

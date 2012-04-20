@@ -115,14 +115,14 @@ using namespace caret;
  */
 BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                                      BrowserTabContent* initialBrowserTabContent,
-                                                     QAction* toolBoxToggleAction,
+                                                     QAction* overlayToolBoxAction,
+                                                     QAction* layersToolBoxAction,
                                                      BrainBrowserWindow* parentBrainBrowserWindow)
 : QToolBar(parentBrainBrowserWindow)
 {
     this->browserWindowIndex = browserWindowIndex;
     //this->toolBox = toolBox;
     //this->toolBoxToolButtonAction = toolBox->toggleViewAction();
-    this->toolBoxToolButtonAction = toolBoxToggleAction;
     this->updateCounter = 0;
     
     this->indexOfNewestAddedOrInsertedTab = -1;
@@ -207,19 +207,11 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     /*
      * Toolbox control at right of the tab bar
      */
-    QIcon toolBoxIcon;
-    const bool toolBoxIconValid =
-    WuQtUtilities::loadIcon(":/toolbox.png", 
-                            toolBoxIcon);
-    if (toolBoxIconValid) {
-        this->toolBoxToolButtonAction->setIcon(toolBoxIcon);
-        this->toolBoxToolButtonAction->setIconVisibleInMenu(false);
-    }
-    this->toolBoxToolButtonAction->setToolTip("Show or hide the toolbox");
-    this->toolBoxToolButtonAction->setStatusTip("Show or hide the toolbox");
+    QToolButton* overlayToolBoxToolButton = new QToolButton();
+    overlayToolBoxToolButton->setDefaultAction(overlayToolBoxAction);
     
-    QToolButton* toolBoxToolButton = new QToolButton();
-    toolBoxToolButton->setDefaultAction(this->toolBoxToolButtonAction);
+    QToolButton* layersToolBoxToolButton = new QToolButton();
+    layersToolBoxToolButton->setDefaultAction(layersToolBoxAction);
     
     /*
      * Tab bar and controls at far right side of toolbar
@@ -231,7 +223,8 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
     tabBarLayout->addStretch();
     tabBarLayout->addWidget(informationDialogToolButton);
     tabBarLayout->addWidget(toolBarToolButton);
-    tabBarLayout->addWidget(toolBoxToolButton);
+    tabBarLayout->addWidget(overlayToolBoxToolButton);
+    tabBarLayout->addWidget(layersToolBoxToolButton);
     
     /*
      * Create the toolbar's widgets.
@@ -1113,15 +1106,6 @@ BrainBrowserWindowToolBar::updateToolBar()
             this->toolBarToolButtonAction->setEnabled(enabledStatus);
         }
     }
-}
-
-/**
- * Get the action for showing the toolbox.
- */
-QAction* 
-BrainBrowserWindowToolBar::getShowToolBoxAction()
-{
-    return this->toolBoxToolButtonAction;
 }
 
 /**

@@ -20,9 +20,15 @@ namespace caret {
         Q_OBJECT
         
     public:
+        enum ToolBoxType {
+            TOOL_BOX_LAYERS,
+            TOOL_BOX_OVERLAYS_HORIZONTAL,
+            TOOL_BOX_OVERLAYS_VERTICAL
+        };
+        
         BrainBrowserWindowOrientedToolBox(const int32_t browserWindowIndex,
                                   const QString& title,
-                                  const Qt::Orientation orientation,
+                                  const ToolBoxType toolBoxType,
                                   QWidget* parent = 0);
         
         ~BrainBrowserWindowOrientedToolBox();
@@ -31,6 +37,8 @@ namespace caret {
         
     private slots:
         void tabIndexSelected(int indx);
+        
+        void floatingStatusChanged(bool);
         
     private:
         BrainBrowserWindowOrientedToolBox(const BrainBrowserWindowOrientedToolBox&);
@@ -52,6 +60,8 @@ namespace caret {
         int volumeSurfaceOutlineTabIndex;
         
         QStackedWidget* stackedWidget;
+        
+        QString toolBoxTitle;
         
         int32_t browserWindowIndex;
     };    

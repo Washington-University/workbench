@@ -68,12 +68,11 @@ namespace caret {
     public:
         BrainBrowserWindowToolBar(const int32_t browserWindowIndex,
                                   BrowserTabContent* initialBrowserTabContent,
-                                  QAction* toolBoxToggleAction,
+                                  QAction* overlayToolBoxAction,
+                                  QAction* layersToolBoxAction,
                                   BrainBrowserWindow* parentBrainBrowserWindow);
         
         ~BrainBrowserWindowToolBar();
-        
-        QAction* getShowToolBoxAction();
         
         void addDefaultTabsAfterLoadingSpecFile();
         
@@ -366,9 +365,6 @@ namespace caret {
         void montageColumnsSpinBoxValueChanged(int i);
         void montageSpacingSpinBoxValueChanged(int i);
         
-    private:
-        QAction* toolsToolBoxToolButtonAction;
-
     private slots:
         void toolsConnectToDatabaseActionTriggered(bool);
         void toolsInputModeActionTriggered(QAction*);
