@@ -1667,7 +1667,7 @@ BrainBrowserWindow::processMoveSelectedTabToWindowMenuSelection(QAction* action)
  * Called to move the overlay toolbox to the left side of the window.
  */
 void 
-BrainBrowserWindow::BrainBrowserWindow::processMoveOverlayToolBoxToLeft()
+BrainBrowserWindow::processMoveOverlayToolBoxToLeft()
 {
     this->moveOverlayToolBox(Qt::LeftDockWidgetArea);
 }
