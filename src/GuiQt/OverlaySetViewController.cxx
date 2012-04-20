@@ -99,12 +99,9 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_OVERLAYS; i++) {
-        const bool showTopHorizontalBar = (i > 0);
-        
         OverlayViewController* ovc = new OverlayViewController(orientation,
                                                                gridLayout,
                                                                browserWindowIndex,
-                                                               showTopHorizontalBar,
                                                                this);
         this->overlayViewControllers.push_back(ovc);
     }

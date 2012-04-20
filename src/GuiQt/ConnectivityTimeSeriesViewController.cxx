@@ -350,7 +350,7 @@ ConnectivityTimeSeriesViewController::graphDisplayActionTriggered(bool status)
  *    New status.
  */
 void 
-ConnectivityTimeSeriesViewController::animateActionTriggered(bool status)
+ConnectivityTimeSeriesViewController::animateActionTriggered(bool /*status*/)
 {
     if (this->connectivityLoaderFile != NULL) {
         this->animator->toggleAnimation();

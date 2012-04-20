@@ -56,7 +56,6 @@ namespace caret {
     public:
         VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
                                            QGridLayout* gridLayout,
-                                           const bool showTopHorizontalBar,
                                            QObject* parent = 0);
         
         virtual ~VolumeSurfaceOutlineViewController();

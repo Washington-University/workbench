@@ -92,11 +92,8 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
     }
     
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
-        const bool showTopHorizontalBar = (i > 0);
-        
         VolumeSurfaceOutlineViewController* ovc = new VolumeSurfaceOutlineViewController(orientation,
-                                                               gridLayout,
-                                                               showTopHorizontalBar);
+                                                               gridLayout);
         this->outlineViewControllers.push_back(ovc);
     }
     

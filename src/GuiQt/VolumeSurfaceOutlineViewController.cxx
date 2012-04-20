@@ -68,7 +68,6 @@ using namespace caret;
  */
 VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt::Orientation orientation,
                                                                        QGridLayout* gridLayout,
-                                                                       const bool showTopHorizontalBar,
                                                                        QObject* parent)
 : QObject(parent)
 {
@@ -167,7 +166,7 @@ VolumeSurfaceOutlineViewController::surfaceSelected(Surface* surface)
  *    Value that was selected.
  */
 void 
-VolumeSurfaceOutlineViewController::colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item* colorTab)
+VolumeSurfaceOutlineViewController::colorTabSelected(VolumeSurfaceOutlineColorOrTabModel::Item* /*colorTab*/)
 {
     this->updateGraphics();
 }

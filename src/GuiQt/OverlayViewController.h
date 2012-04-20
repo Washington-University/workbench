@@ -56,7 +56,6 @@ namespace caret {
         OverlayViewController(const Qt::Orientation orientation,
                               QGridLayout* gridLayout,
                               const int32_t browserWindowIndex,
-                              const bool showTopHorizontalLine,
                               QObject* parent);
         
         virtual ~OverlayViewController();
