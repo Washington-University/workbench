@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <cmath>
+#include <limits>
 
 #define __CONNECTIVITY_TIME_SERIES_VIEW_CONTROLLER_DECLARE__
 #include "ConnectivityTimeSeriesViewController.h"
