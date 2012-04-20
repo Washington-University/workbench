@@ -69,6 +69,9 @@ WuQDialogNonModal::WuQDialogNonModal(const AString& dialogTitle,
     this->getDialogButtonBox()->button(QDialogButtonBox::Apply)->setAutoDefault(false);
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setDefault(false);
     this->getDialogButtonBox()->button(QDialogButtonBox::Close)->setAutoDefault(false);
+    
+    this->isPositionRestoredWhenReopened = false;
+    this->positionWhenClosedValid = false;
 }
 
 /**
@@ -78,6 +81,38 @@ WuQDialogNonModal::~WuQDialogNonModal()
 {
     
 }
+
+/**
+ * Gets called when the dialog is closing.
+ * Overriden so that position of dialog 
+ * can be saved.
+ */
+void 
+WuQDialogNonModal::closeEvent(QCloseEvent* event)
+{
+    if (this->isPositionRestoredWhenReopened) {
+        this->positionWhenClosedValid = true;
+        this->positionWhenClosed = this->pos();
+    }
+    
+    WuQDialog::closeEvent(event);
+}
+
+/**
+ * Gets called when the dialog is to be displayed.
+ */
+void 
+WuQDialogNonModal::showEvent(QShowEvent* event)
+{
+    if (this->isPositionRestoredWhenReopened) {
+        if (this->positionWhenClosedValid) {
+            this->move(this->positionWhenClosed);
+        }
+    }
+    
+    WuQDialog::showEvent(event);
+}
+
 
 /**
  * This slot can be called and it simply calls
@@ -155,5 +190,19 @@ void
 WuQDialogNonModal::setCloseButtonText(const AString& text)
 {
     this->setStandardButtonText(QDialogButtonBox::Close, text);
+}
+
+/**
+ * If the given parameter is true, save the position of this
+ * dialog when it is closed.  Next time window is displayed 
+ * in the current session, use the position at the time the
+ * dialog was closed.
+ * @param saveIt
+ *   If true save the position for next time.
+ */
+void 
+WuQDialogNonModal::setSavePositionForNextTime(const bool saveIt)
+{
+    this->isPositionRestoredWhenReopened = saveIt;
 }
 

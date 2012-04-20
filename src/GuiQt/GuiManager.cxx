@@ -698,6 +698,7 @@ GuiManager::processShowInformationDisplayDialog(BrainBrowserWindow* browserWindo
         this->nonModalDialogs.push_back(this->informationDisplayDialog);
 
         this->informationDisplayDialog->resize(600, 200);
+        this->informationDisplayDialog->setSavePositionForNextTime(true);
     }
     this->informationDisplayDialog->setVisible(true);
     this->informationDisplayDialog->show();

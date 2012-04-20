@@ -45,6 +45,8 @@ namespace caret {
         /** May be called requesting the dialog to update its content */
         virtual void updateDialog() = 0;
         
+        void setSavePositionForNextTime(const bool saveIt);
+        
     protected slots:
         void apply();
         
@@ -53,6 +55,10 @@ namespace caret {
         
         virtual void closeButtonPressed();
 
+        virtual void closeEvent(QCloseEvent* event);
+        
+        virtual void showEvent(QShowEvent* event);
+        
     private slots:
         void clicked(QAbstractButton* button);
         
@@ -61,7 +67,9 @@ namespace caret {
 
         WuQDialogNonModal& operator=(const WuQDialogNonModal&);
         
-    private:
+        QPoint positionWhenClosed;
+        bool positionWhenClosedValid;
+        bool isPositionRestoredWhenReopened;
     };
     
 #ifdef __WU_Q_DIALOG_NON_MODAL_DECLARE__
