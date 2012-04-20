@@ -143,7 +143,7 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
     
     this->layersToolBox = 
     new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
-                                          "Layers ToolBox",
+                                          "Features ToolBox",
                                           BrainBrowserWindowOrientedToolBox::TOOL_BOX_LAYERS,
                                           this);
     this->layersToolBox->setAllowedAreas(Qt::RightDockWidgetArea);

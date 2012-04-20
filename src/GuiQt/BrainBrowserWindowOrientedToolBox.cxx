@@ -145,7 +145,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->setWidget(widget);
 
     if (orientation == Qt::Horizontal) {
-        this->setMinimumHeight(150);
+        this->setMinimumHeight(200);
         this->setMaximumHeight(800);
     }
     else {
