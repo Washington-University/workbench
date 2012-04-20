@@ -136,6 +136,11 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
         //this->overlayVerticalToolBox->toggleViewAction()->trigger();
     }
     
+    QObject::connect(this->overlayHorizontalToolBox, SIGNAL(visibilityChanged(bool)),
+                     this, SLOT(processOverlayHorizontalToolBoxVisibilityChanged(bool)));
+    QObject::connect(this->overlayVerticalToolBox, SIGNAL(visibilityChanged(bool)),
+                     this, SLOT(processOverlayVerticalToolBoxVisibilityChanged(bool)));
+    
     this->layersToolBox = 
     new BrainBrowserWindowOrientedToolBox(this->browserWindowIndex,
                                           "Layers ToolBox",
@@ -558,6 +563,40 @@ BrainBrowserWindow::processShowOverlayToolBox(bool status)
     this->overlayToolBoxAction->blockSignals(true);
     this->overlayToolBoxAction->setChecked(status);
     this->overlayToolBoxAction->blockSignals(false);
+}
+
+/**
+ * Called when visibility of horizontal overlay toolbox is changed.
+ * @param visible
+ *    New visibility status.
+ */
+void 
+BrainBrowserWindow::processOverlayHorizontalToolBoxVisibilityChanged(bool visible)
+{
+    if (visible == false) {
+        if (this->overlayActiveToolBox == this->overlayHorizontalToolBox) {
+            this->overlayToolBoxAction->blockSignals(true);
+            this->overlayToolBoxAction->setChecked(false);
+            this->overlayToolBoxAction->blockSignals(false);
+        }
+    }
+}
+
+/**
+ * Called when visibility of vertical overlay toolbox is changed.
+ * @param visible
+ *    New visibility status.
+ */
+void 
+BrainBrowserWindow::processOverlayVerticalToolBoxVisibilityChanged(bool visible)
+{
+    if (visible == false) {
+        if (this->overlayActiveToolBox == this->overlayVerticalToolBox) {
+            this->overlayToolBoxAction->blockSignals(true);
+            this->overlayToolBoxAction->setChecked(false);
+            this->overlayToolBoxAction->blockSignals(false);
+        }
+    }
 }
 
 /**
@@ -1422,7 +1461,15 @@ BrainBrowserWindow::processViewScreenActionGroupSelection(QAction* action)
     
     this->toolbar->updateToolBar();
     if (this->screenMode != BrainBrowserWindowScreenModeEnum::NORMAL) {
-//        this->toolBox->setVisible(false);
+        this->overlayToolBoxAction->blockSignals(true);
+        this->overlayToolBoxAction->setChecked(true);
+        this->overlayToolBoxAction->blockSignals(false);
+        this->overlayToolBoxAction->trigger();
+
+        this->layersToolBoxAction->blockSignals(true);
+        this->layersToolBoxAction->setChecked(true);
+        this->layersToolBoxAction->blockSignals(false);
+        this->layersToolBoxAction->trigger();
     }
     
     EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->browserWindowIndex).getPointer());
@@ -1437,7 +1484,6 @@ void
 BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wcs)
 {
     this->showToolBarAction->setEnabled(true);
-//    this->toolBox->toggleViewAction()->setEnabled(true);
     if (wcs.isToolBarDisplayed) {
         this->showToolBarAction->setChecked(false);
         this->showToolBarAction->trigger();
@@ -1446,13 +1492,33 @@ BrainBrowserWindow::restoreWindowComponentStatus(const WindowComponentStatus& wc
         this->showToolBarAction->setChecked(true);
         this->showToolBarAction->trigger();
     }
-    if (wcs.isToolBoxDisplayed) {
-//        this->toolBox->toggleViewAction()->setChecked(false);
-//        this->toolBox->toggleViewAction()->trigger();
+    
+    this->overlayToolBoxAction->setEnabled(true);
+    if (wcs.isOverlayToolBoxDisplayed) {
+        this->overlayToolBoxAction->blockSignals(true);
+        this->overlayToolBoxAction->setChecked(false);
+        this->overlayToolBoxAction->blockSignals(false);
+        this->overlayToolBoxAction->trigger();
     }
     else {
-//        this->toolBox->toggleViewAction()->setChecked(true);
-//        this->toolBox->toggleViewAction()->trigger();
+        this->overlayToolBoxAction->blockSignals(true);
+        this->overlayToolBoxAction->setChecked(true);
+        this->overlayToolBoxAction->blockSignals(false);
+        this->overlayToolBoxAction->trigger();
+    }
+    
+    this->layersToolBoxAction->setEnabled(true);
+    if (wcs.isLayersToolBoxDisplayed) {
+        this->layersToolBoxAction->blockSignals(true);
+        this->layersToolBoxAction->setChecked(false);
+        this->layersToolBoxAction->blockSignals(false);
+        this->layersToolBoxAction->trigger();
+    }
+    else {
+        this->layersToolBoxAction->blockSignals(true);
+        this->layersToolBoxAction->setChecked(true);
+        this->layersToolBoxAction->blockSignals(false);
+        this->layersToolBoxAction->trigger();
     }
 }
 
@@ -1467,9 +1533,11 @@ void
 BrainBrowserWindow::saveWindowComponentStatus(WindowComponentStatus& wcs)
 {
     wcs.isToolBarDisplayed = this->showToolBarAction->isChecked();
-//    wcs.isToolBoxDisplayed = this->toolBox->toggleViewAction()->isChecked();
+    wcs.isOverlayToolBoxDisplayed = this->overlayToolBoxAction->isChecked();
+    wcs.isLayersToolBoxDisplayed  = this->layersToolBoxAction->isChecked();
     this->showToolBarAction->setEnabled(false);
-//    this->toolBox->toggleViewAction()->setEnabled(false);
+    this->overlayToolBoxAction->setEnabled(false);
+    this->layersToolBoxAction->setEnabled(false);
 }
 
 /**

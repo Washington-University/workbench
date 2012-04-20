@@ -121,6 +121,8 @@ namespace caret {
         
         void processShowOverlayToolBox(bool);
 //        void processShowLayersToolBox(bool);
+        void processOverlayHorizontalToolBoxVisibilityChanged(bool);
+        void processOverlayVerticalToolBoxVisibilityChanged(bool);
         
         void shrinkToolbox();
         
@@ -133,7 +135,8 @@ namespace caret {
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
-            bool isToolBoxDisplayed;
+            bool isLayersToolBoxDisplayed;
+            bool isOverlayToolBoxDisplayed;
             bool isToolBarDisplayed;
         };
         
