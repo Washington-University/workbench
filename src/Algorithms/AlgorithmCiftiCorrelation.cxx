@@ -66,7 +66,7 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     OptionalParameter* volRoiOpt = roiOverrideOpt->createOptionalParameter(4, "-vol-roi", "use an roi for volume");
     volRoiOpt->addVolumeParameter(1, "roi-vol", "the roi volume file");
     
-    OptionalParameter* weightsOpt = ret->createOptionalParameter(4, "-weights", "specify weights for elements in a row");
+    OptionalParameter* weightsOpt = ret->createOptionalParameter(4, "-weights", "specify column weights");
     weightsOpt->addStringParameter(1, "weight-file", "text file containing one weight per column");
     
     ret->createOptionalParameter(5, "-fisher-z", "apply fisher z transform to correlation");
@@ -76,9 +76,9 @@ OperationParameters* AlgorithmCiftiCorrelation::getParameters()
     
     ret->setHelpText(
         AString("For each row (or each row inside an roi if -roi-override is specified), correlate to all other rows.  ") +
-        "Restricting the memory usage such will make it calculate in chunks, and if the input file size is more than 70% of the memory limit, " +
-        "it will also read through the input file as rows are required, resulting in several passes (once per chunk).  " +
-        "Memory limit does not need to be an integer, you may also specify 0 to calculate a single output row at a time."
+        "Restricting the memory usage will make it calculate the output in chunks, and if the input file size is more than 70% of the memory limit, " +
+        "it will also read through the input file as rows are required, resulting in several passes through the input file (once per chunk).  " +
+        "Memory limit does not need to be an integer, you may also specify 0 to calculate a single output row at a time (this may be very slow)."
     );
     return ret;
 }

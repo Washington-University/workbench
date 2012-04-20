@@ -106,6 +106,8 @@ namespace caret {
         inline const std::vector<std::vector<float> >& getVolumeSpace() const {
             return m_indexToSpace;
         }
+        
+        void setVolumeSpace(const std::vector<std::vector<float> >& indexToSpace);
 
         ///get the originally specified dimensions vector
         inline const std::vector<int64_t>& getOriginalDimensions() const {

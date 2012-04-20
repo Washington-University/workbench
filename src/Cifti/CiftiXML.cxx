@@ -891,7 +891,8 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
         return false;
     }
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
-    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
+    CaretAssertMessage(checkSurfaceNodes(nodeList, numberOfNodes), "node list has node numbers that don't exist in the surface");
+    CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);//call the check function inside an assert so it never does the check in release builds
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
     CiftiBrainModelElement tempModel;
     tempModel.m_brainStructure = structure;
@@ -922,6 +923,16 @@ bool CiftiXML::addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, 
     return true;
 }
 
+bool CiftiXML::checkSurfaceNodes(const vector<int64_t>& nodeList, const int& numberOfNodes) const
+{
+    int listSize = (int)nodeList.size();
+    for (int i = 0; i < listSize; ++i)
+    {
+        if (nodeList[i] < 0 || nodeList[i] >= numberOfNodes) return false;
+    }
+    return true;
+}
+
 bool CiftiXML::addVolumeModelToColumns(const vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure)
 {
     separateMaps();
@@ -943,14 +954,30 @@ bool CiftiXML::addVolumeModel(const int& myMapIndex, const vector<voxelIndexType
     CaretAssertVectorIndex(m_root.m_matrices[0].m_matrixIndicesMap, myMapIndex);
     CiftiMatrixIndicesMapElement* myMap = &(m_root.m_matrices[0].m_matrixIndicesMap[myMapIndex]);
     if (myMap->m_indicesMapToDataType != CIFTI_INDEX_TYPE_BRAIN_MODELS) return false;
-    CaretAssert(ijkList.size() % 3 == 0);
-    CiftiBrainModelElement tempModel;
+    CaretAssertMessage(checkVolumeIndices(ijkList), "volume voxel list doesn't match cifti volume space, do setVolumeDimsAndSForm first");
+    CiftiBrainModelElement tempModel;//call the check function inside an assert so it never does the check in release builds
     tempModel.m_brainStructure = structure;
     tempModel.m_modelType = CIFTI_MODEL_TYPE_VOXELS;
     tempModel.m_indexOffset = getNewRangeStart(myMapIndex);
     tempModel.m_indexCount = ijkList.size() / 3;
     tempModel.m_voxelIndicesIJK = ijkList;
     myMap->m_brainModels.push_back(tempModel);
+    return true;
+}
+
+bool CiftiXML::checkVolumeIndices(const vector<voxelIndexType>& ijkList) const
+{
+    int64_t listSize = (int64_t)ijkList.size();
+    if (listSize % 3 != 0) return false;
+    int64_t dims[3];
+    vector<vector<float> > sform;//not used, but needed by the funciton
+    if (!getVolumeDimsAndSForm(dims, sform)) return false;
+    for (int i = 0; i < listSize; i += 3)
+    {
+        if (ijkList[i] < 0 || ijkList[i] >= dims[0]) return false;
+        if (ijkList[i + 1] < 0 || ijkList[i + 1] >= dims[1]) return false;
+        if (ijkList[i + 2] < 0 || ijkList[i + 2] >= dims[2]) return false;
+    }
     return true;
 }
 

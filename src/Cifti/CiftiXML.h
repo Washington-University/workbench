@@ -323,6 +323,8 @@ namespace caret {
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const float* roi);
         bool addSurfaceModel(const int& myMapIndex, const int& numberOfNodes, const StructureEnum::Enum& structure, const std::vector<int64_t>& nodeList);
         bool addVolumeModel(const int& myMapIndex, const std::vector<voxelIndexType>& ijkList, const StructureEnum::Enum& structure);
+        bool checkVolumeIndices(const std::vector<voxelIndexType>& ijkList) const;
+        bool checkSurfaceNodes(const std::vector<int64_t>& nodeList, const int& numberOfNodes) const;
         void applyDimensionHelper(const int& from, const int& to);
         int getNewRangeStart(const int& myMapIndex) const;
         void separateMaps();

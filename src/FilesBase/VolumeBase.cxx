@@ -104,6 +104,27 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     setupIndexing();
 }
 
+void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
+{
+    CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
+    CaretAssert(indexToSpace[0].size() == 4);
+    CaretAssert(indexToSpace[1].size() == 4);
+    CaretAssert(indexToSpace[2].size() == 4);
+    m_indexToSpace = indexToSpace;
+    m_indexToSpace.resize(4);//ensure row 4 exists
+    m_indexToSpace[3].resize(4);//give it the right length
+    m_indexToSpace[3][0] = 0.0f;//and overwrite it
+    m_indexToSpace[3][1] = 0.0f;
+    m_indexToSpace[3][2] = 0.0f;
+    m_indexToSpace[3][3] = 1.0f;//explicitly set last row to 0 0 0 1, never trust input's fourth row
+    FloatMatrix temp(m_indexToSpace);
+    FloatMatrix temp2 = temp.inverse();//invert the space to get the reverse space
+    m_spaceToIndex = temp2.getMatrix();
+    m_indexToSpace.resize(3);//reduce them both back to 3x4
+    m_spaceToIndex.resize(3);
+    setModified();
+}
+
 VolumeBase::VolumeBase()
 {
     m_data = NULL;
