@@ -280,8 +280,13 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
         }
     }
     
+    /*
+     * File Open, Class Closed
+     */
+    this->treeWidget->collapseAll();
+    this->treeWidget->expandToDepth(0);
     
-    this->treeWidget->expandAll();
+//    this->treeWidget->expandAll();
     
     this->treeWidget->blockSignals(false);
 }
