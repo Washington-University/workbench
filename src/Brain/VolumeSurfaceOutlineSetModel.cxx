@@ -73,7 +73,7 @@ VolumeSurfaceOutlineSetModel::VolumeSurfaceOutlineSetModel()
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES; i++) {
         this->outlineModels[i] = new VolumeSurfaceOutlineModel();
     }
-    this->numberOfDisplayedVolumeSurfaceOutlines = BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
+    this->numberOfDisplayedVolumeSurfaceOutlines = 6; //BrainConstants::MINIMUM_NUMBER_OF_VOLUME_SURFACE_OUTLINES;
 }
 
 /**
