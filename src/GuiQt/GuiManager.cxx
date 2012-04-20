@@ -537,7 +537,10 @@ GuiManager::receiveEvent(Event* event)
         dynamic_cast<EventInformationTextDisplay*>(event);
         CaretAssert(infoEvent);
         
-        if (infoEvent->isImportant()) {
+        bool showInfoDialog = (infoEvent->isImportant()
+                               && (infoEvent->getText().trimmed().isEmpty() == false));
+        
+        if (showInfoDialog) {
             std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
             if (bbws.empty() == false) {
                 this->processShowInformationDisplayDialog(bbws[0]);
@@ -795,7 +798,7 @@ void GuiManager::removeTimeCourseDialog(void *id)
 /**
  * sets animation start time for Time Course Dialogs
  */
-void GuiManager::updateAnimationStartTime(double value)
+void GuiManager::updateAnimationStartTime(double /*value*/)
 {
        
 }
