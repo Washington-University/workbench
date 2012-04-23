@@ -266,11 +266,6 @@ BrainBrowserWindow::createActionsUsedByToolBar()
      * the menu is as set here.
      */
     this->layersToolBoxAction = this->layersToolBox->toggleViewAction();
-//    WuQtUtilities::createAction("Layers ToolBox",
-//                                "Show the Layers ToolBox",
-//                                this,
-//                                this,
-//                                SLOT(processShowLayersToolBox(bool)));
     this->layersToolBoxAction->setCheckable(true);
     if (toolBoxIconValid) {
         this->layersToolBoxAction->setIcon(toolBoxIcon);
@@ -751,7 +746,7 @@ BrainBrowserWindow::createMenuView()
 QMenu* 
 BrainBrowserWindow::createMenuViewMoveLayersToolBox()
 {
-    QMenu* menu = new QMenu("Layers Toolbox", this);
+    QMenu* menu = new QMenu("Features Toolbox", this);
     
     menu->addAction("Attach to Right", this, SLOT(processMoveLayersToolBoxToRight()));
     menu->addAction("Detach", this, SLOT(processMoveLayersToolBoxToFloat()));
