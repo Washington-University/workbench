@@ -305,37 +305,54 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         //
         if ((isWheelEvent == false) 
             && (mouseEvent->isAnyKeyDown() == false)) {
-            //if (modelController->isRotationAllowed()) {
             /*
-             * Special case when the surface is a right surface that is
-             * lateral/medial yoked.
-             * Matrix index 0 is used in almost all cases.
-             * Matrix index 1 is ONLY used when the surface is a right surface
-             * that is lateral/medial yoked.
+             * There are several rotation matrix.  The 'NORMAL' matrix is used
+             * in most cases and others are used in special viewing modes
+             * such as surface montage and right/left lateral medial yoking
              */ 
             if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 0);
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                      Model::ROTATION_MATRIX_NORMAL);
                 rotationMatrix->rotateX(-dy);
                 rotationMatrix->rotateY(-dx);
                 
                 /*
-                 * Matrix "1" is used for a right medial/lateral yoked surface
+                 * Matrix for a right medial/lateral yoked surface
                  */
-                Matrix4x4* rotationMatrixRight = modelController->getViewingRotationMatrix(tabIndex, 1);
-                rotationMatrixRight->rotateX(dy);
-                rotationMatrixRight->rotateY(dx);
+                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                           Model::ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+                rotationMatrixSurfMontLeftOpp->rotateY(-dx);
+                
+                /*
+                 * Matrix for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                      Model::ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED);
+                rotationMatrixRightLatMedYoked->rotateX(dy);
+                rotationMatrixRightLatMedYoked->rotateY(dx);
             }
             else {
-                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 0);
+                Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                      Model::ROTATION_MATRIX_NORMAL);
                 rotationMatrix->rotateX(-dy);
                 rotationMatrix->rotateY(dx);
                 
                 /*
-                 * Matrix "1" is used for a right medial/lateral yoked surface
+                 * Matrix for a right medial/lateral yoked surface
                  */
-                Matrix4x4* rotationMatrixRight = modelController->getViewingRotationMatrix(tabIndex, 1);
-                rotationMatrixRight->rotateX(dy);
-                rotationMatrixRight->rotateY(-dx);
+                Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                                     Model::ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                rotationMatrixSurfMontLeftOpp->rotateX(-dy);
+                rotationMatrixSurfMontLeftOpp->rotateY(dx);
+                
+                /*
+                 * Matrix for a right medial/lateral yoked surface
+                 */
+                Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
+                                                                                           Model::ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED);
+                rotationMatrixRightLatMedYoked->rotateX(dy);
+                rotationMatrixRightLatMedYoked->rotateY(-dx);
             }
             //}
         }

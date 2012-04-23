@@ -63,6 +63,20 @@ namespace caret {
         void initializeMembersModel();
         
     public:
+        /**
+         * Index for getting the viewing rotation matrix.
+         */
+        enum RotationMatrixIndex {
+            /** For normal viewing modes */
+            ROTATION_MATRIX_NORMAL = 0,
+            /** For right surface lateral/medial yoked to left surface */
+            ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED = 1,
+            /** Left surface opposing view in surface montage */
+            ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE = 2,
+            /** Number of rotation matrices */
+            ROTATION_MATRIX_COUNT = 3
+        };
+        
         virtual void initializeOverlays() = 0;
         
         Brain* getBrain();
@@ -82,10 +96,10 @@ namespace caret {
                                  const int32_t windowTabNumberTarget);
         
         Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                            const int32_t matrixIndex = 0);
+                                            const RotationMatrixIndex rotationMatrixIndex);
         
         const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                                  const int32_t matrixIndex = 0) const;
+                                                  const RotationMatrixIndex rotationMatrixIndex) const;
         
         const float* getTranslation(const int32_t windowTabNumber) const;
         
@@ -144,7 +158,7 @@ namespace caret {
          * The second dimension equal to one is used only for a right surface that
          * is lateral/medial yoked.
          */
-        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][2];
+        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][ROTATION_MATRIX_COUNT];
         
         /**translation. */
         float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][3];
