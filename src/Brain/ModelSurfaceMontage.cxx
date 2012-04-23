@@ -47,7 +47,7 @@ using namespace caret;
  */
 ModelSurfaceMontage::ModelSurfaceMontage(Brain* brain)
 : Model(ModelTypeEnum::MODEL_TYPE_SURFACE_MONTAGE,
-                         YOKING_ALLOWED_YES,
+                         YOKING_ALLOWED_NO,
                          ROTATION_ALLOWED_YES,
                          brain)
 {
