@@ -544,10 +544,12 @@ Model::posteriorView(const int32_t windowTabNumberIn)
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
     
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
     
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
 }
 
 /**
