@@ -118,6 +118,14 @@ ConnectivityDenseViewController::createGridLayout(const Qt::Orientation /*orient
     WuQtUtilities::setLayoutMargins(gridLayout, 2, 2);
     gridLayout->setColumnStretch(0, 0);
     gridLayout->setColumnStretch(1, 100);
+    
+    QLabel* onLabel = new QLabel("On");
+    QLabel* fileLabel = new QLabel("File");
+    
+    const int row = gridLayout->rowCount();
+    gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
+    gridLayout->addWidget(fileLabel, row, 1, Qt::AlignHCenter);
+    
     return gridLayout;
 }
 

@@ -84,6 +84,18 @@ VolumeSurfaceOutlineSetViewController::VolumeSurfaceOutlineSetViewController(con
         gridLayout->setColumnStretch(1, 0);
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 100);
+        
+        QLabel* onLabel = new QLabel("On");
+        QLabel* colorLabel = new QLabel("Color Source");
+        QLabel* thicknessLabel = new QLabel("Thickness");
+        QLabel* fileLabel = new QLabel("File");
+        
+        const int row = gridLayout->rowCount();
+        gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(colorLabel, row, 1, Qt::AlignHCenter);
+        gridLayout->addWidget(thicknessLabel, row, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 3, Qt::AlignHCenter);
+        
     }
     else {
         gridLayout->setColumnStretch(0, 0);

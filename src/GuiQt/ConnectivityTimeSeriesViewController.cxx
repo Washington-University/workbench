@@ -149,7 +149,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1, 1, 3);
         row++;
-        this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
+        this->gridLayoutGroup->addWidget(graphToolButton, row, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
         this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3, Qt::AlignLeft);
         row++;
@@ -220,6 +220,19 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(2, 0);
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 100);
+        
+        QLabel* onLabel = new QLabel("On");
+        QLabel* graphLabel = new QLabel("Graph");
+        QLabel* animateLabel = new QLabel("Animate");
+        QLabel* timeLabel = new QLabel("Time");
+        QLabel* fileLabel = new QLabel("File");
+        
+        const int row = gridLayout->rowCount();
+        gridLayout->addWidget(onLabel, row, 0, Qt::AlignHCenter);
+        gridLayout->addWidget(graphLabel, row, 1, Qt::AlignHCenter);
+        gridLayout->addWidget(animateLabel, row, 2, Qt::AlignHCenter);
+        gridLayout->addWidget(timeLabel, row, 3, Qt::AlignHCenter);
+        gridLayout->addWidget(fileLabel, row, 4, Qt::AlignHCenter);
     }
     else {
         gridLayout->setColumnStretch(0, 0);
