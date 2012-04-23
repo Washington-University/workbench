@@ -96,6 +96,17 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     
     const int32_t numAdditionalSurfaceIdentifications = idManager->getNumberOfAdditionalSurfaceNodeIdentifications();
     for (int32_t i = 0; i < numAdditionalSurfaceIdentifications; i++) {
+        /*
+         * Ignore additional identification if surface from same structure
+         */
+        if (surfaceID->isValid()) {
+            if (surfaceID->isContralateral() == false) {
+                if (surfaceID->getSurface()->getStructure() ==
+                    idManager->getAdditionalSurfaceNodeIdentification(i)->getSurface()->getStructure()) {
+                    continue;
+                }
+            }
+        }
         this->generateSurfaceIdentificationText(idText, 
                                                 brain, 
                                                 idManager->getAdditionalSurfaceNodeIdentification(i));
