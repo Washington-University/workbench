@@ -224,14 +224,29 @@ namespace caret {
         void viewModeRadioButtonClicked(QAbstractButton*);
         
     private:
+        QAction* orientationLateralMedialToolButtonAction;
+        QAction* orientationDorsalVentralToolButtonAction;
+        QAction* orientationAnteriorPosteriorToolButtonAction;
+        
+        QToolButton* orientationLateralMedialToolButton;
+        QToolButton* orientationDorsalVentralToolButton;
+        QToolButton* orientationAnteriorPosteriorToolButton;
+        
         QAction* orientationLeftOrLateralToolButtonAction;
         QAction* orientationRightOrMedialToolButtonAction;
         QAction* orientationAnteriorToolButtonAction;
         QAction* orientationPosteriorToolButtonAction;
         QAction* orientationDorsalToolButtonAction;
         QAction* orientationVentralToolButtonAction;
+        
+        QToolButton* orientationLeftOrLateralToolButton;
+        QToolButton* orientationRightOrMedialToolButton;
+        QToolButton* orientationAnteriorToolButton;
+        QToolButton* orientationPosteriorToolButton;
+        QToolButton* orientationDorsalToolButton;
+        QToolButton* orientationVentralToolButton;
+
         QAction* orientationResetToolButtonAction;
-        QAction* orientationUserViewOneToolButtonAction;
         QAction* orientationUserViewTwoToolButtonAction;
         QAction* orientationUserViewSelectToolButtonAction;
         QMenu* orientationUserViewSelectToolButtonMenu;
@@ -255,8 +270,10 @@ namespace caret {
         void orientationDorsalToolButtonTriggered(bool checked);
         void orientationVentralToolButtonTriggered(bool checked);
         void orientationResetToolButtonTriggered(bool checked);
-        void orientationUserViewOneToolButtonTriggered(bool checked);
-        void orientationUserViewTwoToolButtonTriggered(bool checked);
+        
+        void orientationLateralMedialToolButtonTriggered(bool checked);
+        void orientationDorsalVentralToolButtonTriggered(bool checked);
+        void orientationAnteriorPosteriorToolButtonTriggered(bool checked);
 
         void orientationUserViewSelectToolButtonMenuAboutToShow();
         void orientationUserViewSelectToolButtonMenuTriggered(QAction* action);

@@ -1300,25 +1300,31 @@ BrainBrowserWindowToolBar::createOrientationWidget()
         this->orientationVentralToolButtonAction->setIconText("V");
     }
     
+    
+    this->orientationLateralMedialToolButtonAction = WuQtUtilities::createAction("LM", 
+                                                                                 "View from a Lateral/Medial perspective", 
+                                                                                 this, 
+                                                                                 this, 
+                                                                                 SLOT(orientationLateralMedialToolButtonTriggered(bool)));
+    
+    this->orientationDorsalVentralToolButtonAction = WuQtUtilities::createAction("DV", 
+                                                                                    "View from a Dorsal/Ventral perspective", 
+                                                                                    this, 
+                                                                                    this, 
+                                                                                    SLOT(orientationDorsalVentralToolButtonTriggered(bool)));
+    
+    this->orientationAnteriorPosteriorToolButtonAction = WuQtUtilities::createAction("AP", 
+                                                                                        "View from a Anterior/Posterior perspective", 
+                                                                                        this, 
+                                                                                        this, 
+                                                                                        SLOT(orientationAnteriorPosteriorToolButtonTriggered(bool)));
+    
+    
     this->orientationResetToolButtonAction = WuQtUtilities::createAction("Reset", 
                                                                          "Reset the view to dorsal and remove any panning or zooming", 
                                                                          this, 
                                                                          this, 
                                                                          SLOT(orientationResetToolButtonTriggered(bool)));
-
-    this->orientationUserViewOneToolButtonAction = WuQtUtilities::createAction("V1", 
-                                                                                "Display the model using user view 1", 
-                                                                                this, 
-                                                                                this, 
-                                                                                SLOT(orientationUserViewOneToolButtonTriggered(bool)));
-    
-    this->orientationUserViewTwoToolButtonAction = WuQtUtilities::createAction("V2", 
-                                                                               "Display the model using user view 2", 
-                                                                               this, 
-                                                                               this, 
-                                                                               SLOT(orientationUserViewTwoToolButtonTriggered(bool)));
-    
-
     
     this->orientationUserViewSelectToolButtonMenu = new QMenu(this);
     QObject::connect(this->orientationUserViewSelectToolButtonMenu, SIGNAL(aboutToShow()),
@@ -1333,33 +1339,36 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationUserViewSelectToolButtonAction->setStatusTip("Select, add, and delete user-defined views");
 
 
-    QToolButton* orientationLeftToolButton = new QToolButton();
-    orientationLeftToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
+    this->orientationLeftOrLateralToolButton = new QToolButton();
+    this->orientationLeftOrLateralToolButton->setDefaultAction(this->orientationLeftOrLateralToolButtonAction);
     
-    QToolButton* orientationRightToolButton = new QToolButton();
-    orientationRightToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
+    this->orientationRightOrMedialToolButton = new QToolButton();
+    this->orientationRightOrMedialToolButton->setDefaultAction(this->orientationRightOrMedialToolButtonAction);
     
-    QToolButton* orientationAnteriorToolButton = new QToolButton();
-    orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
+    this->orientationAnteriorToolButton = new QToolButton();
+    this->orientationAnteriorToolButton->setDefaultAction(this->orientationAnteriorToolButtonAction);
     
-    QToolButton* orientationPosteriorToolButton = new QToolButton();
-    orientationPosteriorToolButton->setDefaultAction(this->orientationPosteriorToolButtonAction);
+    this->orientationPosteriorToolButton = new QToolButton();
+    this->orientationPosteriorToolButton->setDefaultAction(this->orientationPosteriorToolButtonAction);
     
-    QToolButton* orientationDorsalToolButton = new QToolButton();
-    orientationDorsalToolButton->setDefaultAction(this->orientationDorsalToolButtonAction);
+    this->orientationDorsalToolButton = new QToolButton();
+    this->orientationDorsalToolButton->setDefaultAction(this->orientationDorsalToolButtonAction);
     
-    QToolButton* orientationVentralToolButton = new QToolButton();
-    orientationVentralToolButton->setDefaultAction(this->orientationVentralToolButtonAction);
+    this->orientationVentralToolButton = new QToolButton();
+    this->orientationVentralToolButton->setDefaultAction(this->orientationVentralToolButtonAction);
+    
+    this->orientationLateralMedialToolButton = new QToolButton();
+    this->orientationLateralMedialToolButton->setDefaultAction(this->orientationLateralMedialToolButtonAction);
+    
+    this->orientationDorsalVentralToolButton = new QToolButton();
+    this->orientationDorsalVentralToolButton->setDefaultAction(this->orientationDorsalVentralToolButtonAction);
+    
+    this->orientationAnteriorPosteriorToolButton = new QToolButton();
+    this->orientationAnteriorPosteriorToolButton->setDefaultAction(this->orientationAnteriorPosteriorToolButtonAction);
     
     QToolButton* orientationResetToolButton = new QToolButton();
     orientationResetToolButton->setDefaultAction(this->orientationResetToolButtonAction);
 
-    QToolButton* userViewOneToolButton = new QToolButton();
-    userViewOneToolButton->setDefaultAction(this->orientationUserViewOneToolButtonAction);
-    
-    QToolButton* userViewTwoToolButton = new QToolButton();
-    userViewTwoToolButton->setDefaultAction(this->orientationUserViewTwoToolButtonAction);
-    
     this->orientationUserViewSelectToolButton = new QToolButton();
     this->orientationUserViewSelectToolButton->setDefaultAction(this->orientationUserViewSelectToolButtonAction);
     
@@ -1371,20 +1380,16 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     
     QGridLayout* buttonGridLayout = new QGridLayout();
     WuQtUtilities::setLayoutMargins(buttonGridLayout, 0, 0);
-    buttonGridLayout->addWidget(orientationLeftToolButton,      0, 0);
-    buttonGridLayout->addWidget(orientationRightToolButton,     0, 1);
-    buttonGridLayout->addWidget(orientationDorsalToolButton,    1, 0);
-    buttonGridLayout->addWidget(orientationVentralToolButton,   1, 1);
-    buttonGridLayout->addWidget(orientationAnteriorToolButton,  2, 0);
-    buttonGridLayout->addWidget(orientationPosteriorToolButton, 2, 1);
-    buttonGridLayout->addLayout(userViewAndResetLayout, 0, 2, 3, 1);
-    
-//    QHBoxLayout* userOrientLayout = new QHBoxLayout();
-//    WuQtUtilities::setLayoutMargins(userOrientLayout, 0, 0);
-//    userOrientLayout->addWidget(userViewOneToolButton);
-//    userOrientLayout->addWidget(userViewTwoToolButton);
-//    userOrientLayout->addWidget(this->orientationUserViewSelectToolButton);
-//    userOrientLayout->addStretch();
+    buttonGridLayout->addWidget(this->orientationLeftOrLateralToolButton,      0, 0);
+    buttonGridLayout->addWidget(this->orientationRightOrMedialToolButton,     0, 1);
+    buttonGridLayout->addWidget(this->orientationDorsalToolButton,    1, 0);
+    buttonGridLayout->addWidget(this->orientationVentralToolButton,   1, 1);
+    buttonGridLayout->addWidget(this->orientationAnteriorToolButton,  2, 0);
+    buttonGridLayout->addWidget(this->orientationPosteriorToolButton, 2, 1);
+    buttonGridLayout->addWidget(this->orientationLateralMedialToolButton, 0, 2);
+    buttonGridLayout->addWidget(this->orientationDorsalVentralToolButton, 1, 2);
+    buttonGridLayout->addWidget(this->orientationAnteriorPosteriorToolButton, 2, 2);
+    buttonGridLayout->addLayout(userViewAndResetLayout, 0, 3, 3, 1);
     
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
@@ -1399,8 +1404,6 @@ BrainBrowserWindowToolBar::createOrientationWidget()
     this->orientationWidgetGroup->add(this->orientationDorsalToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationVentralToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationResetToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationUserViewOneToolButtonAction);
-    this->orientationWidgetGroup->add(this->orientationUserViewTwoToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonAction);
     this->orientationWidgetGroup->add(this->orientationUserViewSelectToolButtonMenu);
 
@@ -1441,6 +1444,8 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
         bool rightFlag = false;
         bool leftFlag = false;
         bool leftRightFlag = false;
+        bool showCombinedViewOrientationButtons = false;
+        
         if (mdcs != NULL) {
             const Surface* surface = mdcs->getSurface();
             const StructureEnum::Enum structure = surface->getStructure();
@@ -1455,7 +1460,7 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
             }
         }
         else if (mdcsm != NULL) {
-            leftRightFlag = true;
+            showCombinedViewOrientationButtons = true;
         }
         else if (mdcv != NULL) {
             // nothing
@@ -1519,6 +1524,17 @@ BrainBrowserWindowToolBar::updateOrientationWidget(BrowserTabContent* /*browserT
             WuQtUtilities::setToolTipAndStatusTip(this->orientationRightOrMedialToolButtonAction, 
                                                   "View from a RIGHT perspective");
         }
+
+        this->orientationLateralMedialToolButton->setVisible(showCombinedViewOrientationButtons);
+        this->orientationDorsalVentralToolButton->setVisible(showCombinedViewOrientationButtons);
+        this->orientationAnteriorPosteriorToolButton->setVisible(showCombinedViewOrientationButtons);
+    
+        this->orientationLeftOrLateralToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        this->orientationRightOrMedialToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        this->orientationDorsalToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        this->orientationVentralToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        this->orientationAnteriorToolButton->setVisible(showCombinedViewOrientationButtons == false);
+        this->orientationPosteriorToolButton->setVisible(showCombinedViewOrientationButtons == false);
     }
     this->orientationWidgetGroup->blockAllSignals(false);
         
@@ -3223,30 +3239,48 @@ BrainBrowserWindowToolBar::orientationResetToolButtonTriggered(bool /*checked*/)
     this->checkUpdateCounter();
 }
 
-
 /**
- * Called when orientation user view one button is pressed.
+ * Called when orientation lateral/medial button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewOneToolButtonTriggered(bool /*checked*/)
+BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        WuQMessageBox::errorOk(this, "User View not implemented yet");
+    if (btc != NULL) {
+        Model* mdc = btc->getModelControllerForTransformation();
+        if (mdc != NULL) {
+            mdc->leftView(btc->getTabNumber());
+        }
     }
 }
 
 /**
- * Called when orientation user view one button is pressed.
+ * Called when orientation dorsal/ventral button is pressed.
  */
 void 
-BrainBrowserWindowToolBar::orientationUserViewTwoToolButtonTriggered(bool /*checked*/)
+BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*checked*/)
 {
     BrowserTabContent* btc = this->getTabContentFromSelectedTab();
-    Model* mdc = btc->getModelControllerForTransformation();
-    if (mdc != NULL) {
-        WuQMessageBox::errorOk(this, "User View not implemented yet");
+    if (btc != NULL) {
+        Model* mdc = btc->getModelControllerForTransformation();
+        if (mdc != NULL) {
+            mdc->dorsalView(btc->getTabNumber());
+        }
+    }
+}
+
+/**
+ * Called when orientation anterior/posterior button is pressed.
+ */
+void 
+BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool /*checked*/)
+{
+    BrowserTabContent* btc = this->getTabContentFromSelectedTab();
+    if (btc != NULL) {
+        Model* mdc = btc->getModelControllerForTransformation();
+        if (mdc != NULL) {
+            mdc->anteriorView(btc->getTabNumber());
+        }
     }
 }
 
