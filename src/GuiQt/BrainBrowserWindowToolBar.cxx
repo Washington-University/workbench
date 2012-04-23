@@ -2265,11 +2265,9 @@ BrainBrowserWindowToolBar::createWindowWidget()
     
     QLabel* yokeToLabel = new QLabel("Yoking:");
     this->windowYokeGroupComboBox = new QComboBox();
-    this->windowYokeGroupComboBox->setStatusTip("Select the the type of yoking (linked views)");
-    this->windowYokeGroupComboBox->setToolTip(("Select the the type of yoking (linked views)\n"
-                                               "Off    - Turns yoking off\n"
-                                               "On     - All surfaces and whole brains viewed identically\n"
-                                               "On L/M - left and right surfaces viewed with 'standard views'"));
+    this->windowYokeGroupComboBox->setStatusTip("Select a yoking group (linked views)");
+    this->windowYokeGroupComboBox->setToolTip(("Select a yoking group (linked views)\n"
+                                               "Models yoked to a group are displayed in the same view"));
     const int32_t numYokingGroups = static_cast<int>(yokingGroups.size());
     for (int32_t i = 0; i < numYokingGroups; i++) {
         this->windowYokeGroupComboBox->addItem(yokingGroups[i]->getNameForBrowserTab());
@@ -2285,7 +2283,12 @@ BrainBrowserWindowToolBar::createWindowWidget()
     layout->addWidget(this->windowYokeGroupComboBox);
     
     this->windowWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->windowWidgetGroup->add(yokeToLabel);
     this->windowWidgetGroup->add(this->windowYokeGroupComboBox);
+    
+    this->windowYokingWidgetGroup = new WuQWidgetObjectGroup(this);
+    this->windowYokingWidgetGroup->add(yokeToLabel);
+    this->windowYokingWidgetGroup->add(this->windowYokeGroupComboBox);
     
     QWidget* w = this->createToolWidget("Window", 
                                         widget, 
@@ -2320,6 +2323,15 @@ BrainBrowserWindowToolBar::updateWindowWidget(BrowserTabContent* browserTabConte
     
     this->windowWidgetGroup->blockAllSignals(false);
 
+    Model* model = browserTabContent->getModelControllerForDisplay();
+    bool yokingEnabled = false;
+    if (model != NULL) {
+        if (model->isYokeable()) {
+            yokingEnabled = true;
+        }
+    }
+    this->windowYokingWidgetGroup->setEnabled(yokingEnabled);
+    
     this->decrementUpdateCounter(__CARET_FUNCTION_NAME__);
 }
 

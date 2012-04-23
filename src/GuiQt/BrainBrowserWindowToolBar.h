@@ -311,6 +311,8 @@ namespace caret {
     private:
         
         QComboBox* windowYokeGroupComboBox;
+        WuQWidgetObjectGroup* windowYokingWidgetGroup;
+
     
     private slots:
         void windowYokeToGroupComboBoxIndexChanged(int indx);
