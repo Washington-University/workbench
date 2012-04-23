@@ -419,12 +419,22 @@ Model::rightView(const int32_t windowTabNumberIn)
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateZ(-90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(-90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(-90.0);
+
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateZ(-90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(-90.0);
 }
 
 /**
@@ -449,12 +459,22 @@ Model::leftView(const int32_t windowTabNumberIn)
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateZ(90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateZ(90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(90.0);
 }
 
 /**
@@ -479,11 +499,19 @@ Model::anteriorView(const int32_t windowTabNumberIn)
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateX(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(180.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(180.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
 }
 
 /**
@@ -507,11 +535,19 @@ Model::posteriorView(const int32_t windowTabNumberIn)
                           windowTabNumber);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateX(-90.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(180.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(90.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(90.0);
 }
 
 /**
@@ -534,9 +570,17 @@ Model::dorsalView(const int32_t windowTabNumberIn)
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-180.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(180.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(180.0);
 }
 
 /**
@@ -560,9 +604,17 @@ Model::ventralView(const int32_t windowTabNumberIn)
                           windowTabNumber);
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(-180.0);
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-180.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
+    //viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
+    
+    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    //viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
 }
 
 /**

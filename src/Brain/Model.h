@@ -73,8 +73,12 @@ namespace caret {
             ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED = 1,
             /** Left surface opposing view in surface montage */
             ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE = 2,
+            /** Right surface view in surface montage */
+            ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT = 3,
+            /** Right surface opposing view in surface montage */
+            ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE = 4,
             /** Number of rotation matrices */
-            ROTATION_MATRIX_COUNT = 3
+            ROTATION_MATRIX_COUNT = 5
         };
         
         virtual void initializeOverlays() = 0;
