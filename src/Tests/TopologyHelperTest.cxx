@@ -49,7 +49,7 @@ void TopologyHelperTest::execute()
     for (int i = 0; i < TEST_SAMPLES; ++i)
     {
         int selectedNode = rand() % numNodes;
-        vector<int> newNeigh = myNewTopoHelp->getNodeNeighbors(selectedNode);//copy out rather than using const reference so we can reuse them for depth
+        vector<int32_t> newNeigh = myNewTopoHelp->getNodeNeighbors(selectedNode);//copy out rather than using const reference so we can reuse them for depth
         vector<int> oldNeigh = myOldTopoHelp->getNodeNeighbors(selectedNode);
         int newSize = (int)newNeigh.size(), oldSize = (int)oldNeigh.size();
         if (newSize != oldSize)
@@ -77,7 +77,8 @@ void TopologyHelperTest::execute()
         }
         myNewTopoHelp->getNodeNeighborsToDepth(selectedNode, TEST_DEPTH, newNeigh);
         myOldTopoHelp->getNodeNeighborsToDepth(selectedNode, TEST_DEPTH, oldNeigh);
-        newSize = (int)newNeigh.size(), oldSize = (int)oldNeigh.size();
+        newSize = (int)newNeigh.size();
+        oldSize = (int)oldNeigh.size();
         if (newSize != oldSize)
         {
             setFailed("depth " + AString::number(TEST_DEPTH) + " size difference at node " + AString::number(selectedNode) + ", new: " + AString::number(newSize) + ", old: " + AString::number(oldSize));
