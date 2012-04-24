@@ -1112,7 +1112,7 @@ void CiftiXML::separateMaps()
     int numMaps = (int)myMatrix.m_matrixIndicesMap.size();
     for (int i = 0; i < numMaps; ++i)//don't need to loop over newly created maps
     {
-        CiftiMatrixIndicesMapElement& myMap = myMatrix.m_matrixIndicesMap[i];
+        CiftiMatrixIndicesMapElement myMap = myMatrix.m_matrixIndicesMap[i];//make a copy because we are modifying this vector
         int numDimensions = (int)myMap.m_appliesToMatrixDimension.size();
         for (int j = 1; j < numDimensions; ++j)//leave the first in place
         {
@@ -1129,7 +1129,7 @@ void CiftiXML::separateMaps()
                 m_colMapIndex = myMatrix.m_matrixIndicesMap.size() - 1;
             }
         }
-        myMap.m_appliesToMatrixDimension.resize(1);//ditch all but the first, they have their own maps
+        myMatrix.m_matrixIndicesMap[i].m_appliesToMatrixDimension.resize(1);//ditch all but the first, they have their own maps
     }
 }
 
