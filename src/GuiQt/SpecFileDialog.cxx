@@ -54,6 +54,7 @@
 #include "SpecFileDataFileTypeGroup.h"
 #include "StructureEnum.h"
 #include "StructureEnumComboBox.h"
+#include "WuQEventBlockingFilter.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -125,6 +126,15 @@ SpecFileDialog::SpecFileDialog(const Mode mode,
                  parent)
 {
     this->mode = mode;
+    
+    /*
+     * Mac wheel event causes unintentional selection of combo box
+     */
+    this->comboBoxWheelEventBlockingFilter = new WuQEventBlockingFilter(this);
+#ifdef CARET_OS_MACOSX
+    this->comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel, 
+                                                            true);
+#endif // CARET_OS_MACOSX
     
     this->specFile = specFile;
     QWidget* fileGroupWidget = new QWidget();
@@ -437,6 +447,11 @@ SpecFileDialog::createDataTypeGroup(const DataFileTypeEnum::Enum dataFileType,
         gridLayout->addWidget(dfi->removeToolButton, iRow, COLUMN_REMOVE);
         gridLayout->addWidget(dfi->structureEnumComboBox->getWidget(), iRow, COLUMN_STRUCTURE);
         gridLayout->addWidget(dfi->nameLabel, iRow, COLUMN_NAME);
+        
+        /*
+         * Do not let wheel alter the structure combo box
+         */
+        dfi->structureEnumComboBox->getWidget()->installEventFilter(this->comboBoxWheelEventBlockingFilter);
         
         switch (this->mode) {
             case MODE_FAST_OPEN:

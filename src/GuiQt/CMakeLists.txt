@@ -74,6 +74,7 @@ WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h
 WuQDoubleSlider.h
+WuQEventBlockingFilter.h
 WuQFileDialog.h
 WuQGridLayoutGroup.h
 WuQMessageBox.h
@@ -161,6 +162,7 @@ WuQDialog.h
 WuQDialogModal.h
 WuQDialogNonModal.h
 WuQDoubleSlider.h
+WuQEventBlockingFilter.h
 WuQFileDialog.h
 WuQFileDialogIcons.h
 WuQGridLayoutGroup.h
@@ -240,6 +242,7 @@ WuQDialog.cxx
 WuQDialogModal.cxx
 WuQDialogNonModal.cxx
 WuQDoubleSlider.cxx
+WuQEventBlockingFilter.cxx
 WuQFileDialog.cxx
 WuQGridLayoutGroup.cxx
 WuQMessageBox.cxx

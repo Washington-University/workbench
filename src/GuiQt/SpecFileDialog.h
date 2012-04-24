@@ -44,6 +44,7 @@ namespace caret {
     class SpecFileDataFileTypeGroup;
     class SpecFile;
     class StructureEnumComboBox;
+    class WuQEventBlockingFilter;
     class WuQWidgetObjectGroup;
     
     class SpecFileDialog : public WuQDialogModal {
@@ -109,6 +110,8 @@ namespace caret {
         
         QAction* selectAllFilesToolButtonAction;
         QAction* selectNoneFilesToolButtonAction;
+        
+        WuQEventBlockingFilter* comboBoxWheelEventBlockingFilter;
         
         friend class GuiSpecDataFileInfo;
     };
