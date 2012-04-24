@@ -42,11 +42,13 @@ public:
     /// Constructor
     CiftiFile() throw (CiftiFileException);
     /// Constructor
-    CiftiFile(const CacheEnum &caching) throw (CiftiFileException);
+    CiftiFile(const CacheEnum &caching, const AString &cacheFile = NULL) throw (CiftiFileException);
     /// Constructor
-    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
+    CiftiFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY, const AString &cacheFile = NULL);
     /// Open the Cifti File
     virtual void openFile(const AString &fileName, const CacheEnum &caching = IN_MEMORY);
+    /// Set Cifti Cache File, must be called BEFORE open file, or set in the constructor
+    virtual void setCiftiCacheFile(const AString &cacheFile);
     /// Write the Cifti File
     virtual void writeFile(const AString &fileName);
     
@@ -104,6 +106,7 @@ protected:
     virtual void init();
 
     AString m_fileName;
+    AString m_cacheFileName;
     CiftiHeaderIO m_headerIO;
     CiftiMatrix m_matrix;
     bool m_swapNeeded;

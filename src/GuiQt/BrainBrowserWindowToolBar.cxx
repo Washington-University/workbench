@@ -2188,7 +2188,7 @@ BrainBrowserWindowToolBar::toolsConnectToDatabaseActionTriggered(bool)
     else if (result == this->toolsConnectToConnectomeDatabaseAction) {
         static QWebView *view = NULL;
         if(view == NULL) view = new QWebView();
-        view->load(QUrl("http://intradb.humanconnectome.org/"));             
+        view->load(QUrl("https://intradb.humanconnectome.org/"));             
         view->show();
     }
     else if (result != NULL) {

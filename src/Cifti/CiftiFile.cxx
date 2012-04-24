@@ -45,10 +45,11 @@ CiftiFile::CiftiFile() throw (CiftiFileException)
     init();    
 }
 
-CiftiFile::CiftiFile(const CacheEnum &caching) throw (CiftiFileException)
+CiftiFile::CiftiFile(const CacheEnum &caching, const AString &cacheFile) throw (CiftiFileException)
 {
     init();
     this->m_caching = caching;
+    this->m_cacheFileName = cacheFile;
 }
 
 /**
@@ -59,11 +60,17 @@ CiftiFile::CiftiFile(const CacheEnum &caching) throw (CiftiFileException)
  * @param fileName name and path of the Cifti File
  *
  */
-CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching)
+CiftiFile::CiftiFile(const AString &fileName, const CacheEnum &caching, const AString &cacheFile)
 {
     init();
     this->m_caching = caching;
+    this->m_cacheFileName = cacheFile;
     this->openFile(fileName,caching);
+}
+
+void CiftiFile::setCiftiCacheFile(const AString &fileName)
+{
+    this->m_cacheFileName = fileName;
 }
 
 void CiftiFile::init()
@@ -123,7 +130,7 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         }
         
         //set up Matrix for reading..
-        m_matrix.setMatrixFile(fileName);
+        m_matrix.setMatrixFile(fileName, m_cacheFileName);
         CiftiHeader header;
         m_headerIO.getHeader(header);
         std::vector <int64_t> vec;
@@ -189,6 +196,7 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
     m_headerIO.setHeader(ciftiHeader);
     
     //setup the matrix
+    m_matrix.setMatrixFile(m_fileName, m_cacheFileName);
     m_matrix.setup(dim, vox_offset, this->m_caching, this->m_swapNeeded);
 }
 
@@ -214,6 +222,21 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
  */
 void CiftiFile::writeFile(const AString &fileName)
 {
+    QFile *file = this->m_matrix.getCacheFile();
+    bool writingNewFile = false;
+    AString cacheFileName = file->fileName();
+    if(QDir::toNativeSeparators(cacheFileName) != QDir::toNativeSeparators(fileName))
+    {
+        file = new QFile();
+        file->setFileName(fileName);  
+        if (!file->open(QIODevice::ReadWrite))//this function is writeFile, try to open writable at all times
+        {
+            throw CiftiFileException("encountered error reopening file as writable");
+        }
+        writingNewFile = true;
+    }
+    file->seek(0);
+    
     //Get XML string and length, which is needed to calculate the vox_offset stored in the Nifti Header
     QByteArray xmlBytes;
     CiftiXML xml = m_xml;
@@ -243,17 +266,14 @@ void CiftiFile::writeFile(const AString &fileName)
 
     //write out the file
     //write out header
-    m_headerIO.writeFile(fileName);
+    m_headerIO.writeFile(*file);
+    file->flush();
 
     //write out the xml extension
-    QFile file;
-    file.setFileName(fileName);
+    
     //isWritable DOES NOT CHECK PERMISSIONS
-    if (!file.open(QIODevice::ReadWrite))//this function is writeFile, try to open writable at all times
-    {
-        throw CiftiFileException("encountered error reopening file as writable");
-    }
-    file.seek(540);
+    
+    file->seek(540);
     char eflags[4] = {1,0x00,0x00,0x00};
     int32_t ecode = NIFTI_ECODE_CIFTI;
     
@@ -261,16 +281,18 @@ void CiftiFile::writeFile(const AString &fileName)
         ByteSwapping::swapBytes(&length,1);
         ByteSwapping::swapBytes(&ecode,1);
     }
-    file.write(eflags,4);
-    file.write((char *)&length,4);
-    file.write((char *)&ecode, 4);
-    file.write(xmlBytes);
+    file->write(eflags,4);
+    file->write((char *)&length,4);
+    file->write((char *)&ecode, 4);
+    file->write(xmlBytes);
     char nulls[8] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-    file.write(nulls,padding);//pad out null values to 8 byte boundary
-    file.close();
+    file->write(nulls,padding);//pad out null values to 8 byte boundary
+    file->flush();
 
     //write the matrix
+    if(writingNewFile) file->close();
     m_matrix.writeToNewFile(fileName,vox_offset, false);
+    
 }
 
 bool CiftiFile::isInMemory() const

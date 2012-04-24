@@ -507,7 +507,7 @@ AString::toCharArray() const
     QByteArray byteArray = this->toLocal8Bit();
     const int32_t numBytes = byteArray.length();
     if (numBytes > 0) {
-        char* charOut = new char[numBytes + 1];
+        char* charOut = new char[numBytes + 1];//are there any byteArrays that don't already come with a line terminator?
         
         int32_t lastAsciiChar = -1;
         for (int32_t i = 0; i < numBytes; i++) {
@@ -516,7 +516,11 @@ AString::toCharArray() const
                 charOut[i] = c;
                 lastAsciiChar = i;
             }
-            else {
+            else if((c == 0 || c == 10) && i == (numBytes-1)) {
+                charOut[i] = c;
+            }
+            else
+            {
                 charOut[i] = '_';
                 haveNonAsciiCharacters = true;
             }

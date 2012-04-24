@@ -227,6 +227,14 @@ void CommandParser::parseComponent(ParameterComponent* myComponent, ProgramParam
         OutputAssoc tempItem;
         tempItem.m_fileName = nextArg;
         tempItem.m_param = myComponent->m_outputList[i];
+        switch (myComponent->m_outputList[i]->getType())
+        {
+        case OperationParametersEnum::CIFTI:
+            ((CiftiParameter*)myComponent->m_outputList[i])->m_parameter->setCiftiCacheFile(nextArg);
+            break;
+        default:
+            break;
+        }
         outAssociation.push_back(tempItem);
         if (debug)
         {

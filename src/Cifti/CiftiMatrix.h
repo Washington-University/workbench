@@ -46,13 +46,13 @@ class CiftiMatrix
 {
 public:
     CiftiMatrix();
-    CiftiMatrix(const AString &fileNameIn, const CacheEnum e=IN_MEMORY);
+    CiftiMatrix(const AString &fileNameIn, const CacheEnum e=IN_MEMORY, const AString &cacheFile = NULL);
     ~CiftiMatrix();
     void init();
     void deleteCache();
 
     void setup(vector <int64_t> &dimensions, const int64_t &offsetIn=0, const CacheEnum &e=IN_MEMORY, const bool &needsSwapping=false) throw (CiftiFileException);
-    void setMatrixFile(const AString &fileNameIn);
+    void setMatrixFile(const AString &fileNameIn, const AString &cacheFile = NULL);
     void getMatrixFile(AString &fileNameOut);
     void getMatrixDimensions(vector <int64_t> &dimensions) const;
     //void setCaching(const CacheEnum &e);
@@ -69,9 +69,13 @@ public:
     void setMatrix(float *matrixIn) throw (CiftiFileException);
 
     //Flush Cache
-    void flushCache() throw (CiftiFileException);
+    //void flushCache() throw (CiftiFileException);
     //Write to a new file
     void writeToNewFile(const AString &fileNameIn, const int64_t &offsetIn, const bool &needsSwappingIn=false) throw (CiftiFileException);
+    //Gets the file handle to the cache so that CiftiFile and write the header and xml
+    QFile *getCacheFile();
+    void copyMatrix(QFile *output, QFile *input);
+    void updateCache();
 protected:
     CacheEnum m_caching;
     float *m_matrix;
@@ -79,9 +83,15 @@ protected:
     //1,1,1,1,M,N nifti matrix and convert it if needed.
     int64_t m_matrixOffset;//the beginning of the matrix in the file
     AString m_fileName;
-    mutable QFile *file;
+    mutable QFile *m_file;
+    mutable QFile *m_readFile;
+    mutable QFile *m_cacheFile;
     bool m_needsSwapping;
     bool m_beenInitialized;
+    AString m_cacheFileName;
+    
+    bool matrixChanged;
+    std::vector<bool> rowsChanged;
 };
 
 }
