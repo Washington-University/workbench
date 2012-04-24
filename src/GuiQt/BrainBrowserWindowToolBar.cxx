@@ -3250,8 +3250,11 @@ BrainBrowserWindowToolBar::orientationLateralMedialToolButtonTriggered(bool /*ch
         Model* mdc = btc->getModelControllerForTransformation();
         if (mdc != NULL) {
             mdc->leftView(btc->getTabNumber());
+            this->updateGraphicsWindow();
         }
     }
+    
+    this->checkUpdateCounter();
 }
 
 /**
@@ -3265,8 +3268,11 @@ BrainBrowserWindowToolBar::orientationDorsalVentralToolButtonTriggered(bool /*ch
         Model* mdc = btc->getModelControllerForTransformation();
         if (mdc != NULL) {
             mdc->dorsalView(btc->getTabNumber());
+            this->updateGraphicsWindow();
         }
     }
+    
+    this->checkUpdateCounter();
 }
 
 /**
@@ -3280,8 +3286,11 @@ BrainBrowserWindowToolBar::orientationAnteriorPosteriorToolButtonTriggered(bool 
         Model* mdc = btc->getModelControllerForTransformation();
         if (mdc != NULL) {
             mdc->anteriorView(btc->getTabNumber());
+            this->updateGraphicsWindow();
         }
     }
+    
+    this->checkUpdateCounter();
 }
 
 /**
