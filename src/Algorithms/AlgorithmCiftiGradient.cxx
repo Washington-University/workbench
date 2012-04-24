@@ -208,7 +208,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         }
         MetricFile myMetric, myRoi, myMetricOut;
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
-        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, NULL, surfKern, false, &myRoi);
+        AlgorithmMetricGradient(NULL, mySurf, &myMetric, &myMetricOut, NULL, surfKern, &myRoi);
         if (outputAverage)
         {
             int numNodes = myMetricOut.getNumberOfNodes(), numCols = myMetricOut.getNumberOfColumns();

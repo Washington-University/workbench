@@ -114,7 +114,7 @@ void AlgorithmMetricGradient::useParameters(OperationParameters* myParams, Progr
     {
         myVectorsOut = vecOut->getOutputMetric(12);
     }
-    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myAvgNormals, myRoi, myColumn);//executes the algorithm
+    AlgorithmMetricGradient(myProgObj, mySurf, myMetricIn, myMetricOut, myVectorsOut, myPresmooth, myRoi, myAvgNormals, myColumn);//executes the algorithm
 }
 
 AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
@@ -123,8 +123,8 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                                                  MetricFile* myMetricOut,
                                                  MetricFile* myVectorsOut,
                                                  const float myPresmooth,
-                                                 const bool myAvgNormals,
                                                  const MetricFile* myRoi,
+                                                 const bool myAvgNormals,
                                                  const int32_t myColumn) : AbstractAlgorithm(myProgObj)
 {
     ProgressObject* smoothProgress = NULL;

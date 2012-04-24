@@ -42,8 +42,8 @@ namespace caret {
                                 MetricFile* myMetricOut,
                                 MetricFile* myVectorsOut = NULL,
                                 const float myPresmooth = -1.0f,
-                                const bool myAvgNormals = false,
                                 const MetricFile* myRoi = NULL,
+                                const bool myAvgNormals = false,
                                 const int32_t myColumn = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
