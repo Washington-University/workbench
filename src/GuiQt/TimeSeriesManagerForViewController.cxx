@@ -50,6 +50,7 @@ TimeSeriesManagerForViewController::TimeSeriesManagerForViewController(Connectiv
     m_timePoints = clf->getNumberOfTimePoints();
     m_timeStep  = clf->getTimeStep();
     m_spinBox = m_ctsvc->getTimeSpinBox();
+    m_spinBox->setSingleStep(m_timeStep);
     CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
     
     double time;
