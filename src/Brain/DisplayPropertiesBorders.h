@@ -35,6 +35,7 @@
 /*LICENSE_END*/
 
 #include "BrainConstants.h"
+#include "BorderDrawingTypeEnum.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 
@@ -68,6 +69,18 @@ namespace caret {
         void setDisplayGroup(const int32_t browserTabIndex,
                              const DisplayGroupEnum::Enum  displayGroup);
         
+        float getPointSize() const;
+        
+        void setPointSize(const float pointSize);
+        
+        float getLineWidth() const;
+        
+        void setLineWidth(const float lineWidth);
+        
+        BorderDrawingTypeEnum::Enum getDrawingType() const;
+        
+        void setDrawingType(const BorderDrawingTypeEnum::Enum drawingType);
+        
     private:
         DisplayPropertiesBorders(const DisplayPropertiesBorders&);
 
@@ -78,6 +91,12 @@ namespace caret {
         bool contralateralDisplayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         DisplayGroupEnum::Enum displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        float m_pointSize;
+        
+        float m_lineWidth;
+        
+        BorderDrawingTypeEnum::Enum m_drawingType;
     };
     
 #ifdef __DISPLAY_PROPERTIES_BORDERS_DECLARE__

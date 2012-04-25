@@ -60,6 +60,10 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         this->contralateralDisplayStatus[i] = false;
         this->displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
     }
+    
+    m_lineWidth  = 1.0;
+    m_pointSize = 1.5;
+    m_drawingType = BorderDrawingTypeEnum::DRAW_AS_LINES;
 }
 
 /**
@@ -181,6 +185,66 @@ DisplayPropertiesBorders::setDisplayGroup(const int32_t browserTabIndex,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           browserTabIndex);
     this->displayGroup[browserTabIndex] = displayGroup;
+}
+
+/**
+ * @return The point size.
+ */
+float 
+DisplayPropertiesBorders::getPointSize() const
+{
+    return m_pointSize;
+}
+
+/**
+ * Set the point size to the given value.
+ * @param pointSize
+ *     New value for point size.
+ */
+void 
+DisplayPropertiesBorders::setPointSize(const float pointSize)
+{
+    m_pointSize = pointSize;
+}
+
+/**
+ * @return The line width.
+ */
+float 
+DisplayPropertiesBorders::getLineWidth() const
+{
+    return m_lineWidth;
+}
+
+/**
+ * Set the line width to the given value.
+ * @param lineWidth
+ *     New value for line width.
+ */
+void 
+DisplayPropertiesBorders::setLineWidth(const float lineWidth)
+{
+    m_lineWidth = lineWidth;
+}
+
+/**
+ * @return The drawing type.
+ */
+BorderDrawingTypeEnum::Enum 
+DisplayPropertiesBorders::getDrawingType() const
+{
+    return m_drawingType;
+}
+
+/**
+ * Set the drawing type to the given value.
+ * @param drawingType
+ *     New value for drawing type.
+ */
+void 
+DisplayPropertiesBorders::setDrawingType(const BorderDrawingTypeEnum::Enum drawingType)
+{
+    m_drawingType = drawingType;
 }
 
 

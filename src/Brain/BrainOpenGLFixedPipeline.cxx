@@ -1454,51 +1454,157 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const int32_t numBorderPoints = border->getNumberOfPoints();
     
-    for (int32_t i = 0; i < numBorderPoints; i++) {
-        const SurfaceProjectedItem* p = border->getPoint(i);
+    float pointSize = 1.5;
+    float lineWidth  = 1.0;
+    BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS;
+    if (borderFileIndex >= 0) {
+        const BrainStructure* bs = surface->getBrainStructure();
+        const Brain* brain = bs->getBrain();
+        const DisplayPropertiesBorders* dpb = brain->getDisplayPropertiesBorders();
+        pointSize = dpb->getPointSize();
+        lineWidth  = dpb->getLineWidth();
+        drawType  = dpb->getDrawingType();
+    }
+    
+    bool drawPoints = false;
+    bool drawLines  = false;
+    switch (drawType) {
+        case BorderDrawingTypeEnum::DRAW_AS_LINES:
+            drawLines = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS:
+            drawPoints = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_AND_LINES:
+            drawLines = true;
+            drawPoints = true;
+            break;
+    }
 
-        /*
-         * If surface structure does not match the point's structure,
-         * check to see if contralateral display is enabled and 
-         * compare contralateral surface structure to point's structure.
-         */
-        const StructureEnum::Enum pointStructure = p->getStructure();
-        bool structureMatches = true;
-        if (surfaceStructure != pointStructure) {
-            structureMatches = false;
-            if (isContralateralEnabled) {
-                const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
-                if (contralateralSurfaceStructure == pointStructure) {
-                    structureMatches = true;
+    if (drawPoints) {    
+        for (int32_t i = 0; i < numBorderPoints; i++) {
+            const SurfaceProjectedItem* p = border->getPoint(i);
+            
+            /*
+             * If surface structure does not match the point's structure,
+             * check to see if contralateral display is enabled and 
+             * compare contralateral surface structure to point's structure.
+             */
+            const StructureEnum::Enum pointStructure = p->getStructure();
+            bool structureMatches = true;
+            if (surfaceStructure != pointStructure) {
+                structureMatches = false;
+                if (isContralateralEnabled) {
+                    const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+                    if (contralateralSurfaceStructure == pointStructure) {
+                        structureMatches = true;
+                    }
                 }
             }
-        }
-        if (structureMatches == false) {
-            continue;
-        }
-        
-        float xyz[3];
-        const bool isXyzValid = p->getProjectedPosition(*surface, 
-                                                        xyz,
-                                                        false);
-                 
-        if (isXyzValid) {
-            if (isSelect) {
-                uint8_t idRGB[3];
-                this->colorIdentification->addItem(idRGB, 
-                                                   IdentificationItemDataTypeEnum::BORDER_SURFACE, 
-                                                   borderFileIndex,
-                                                   borderIndex,
-                                                   i);
-                glColor3ubv(idRGB);
+            if (structureMatches == false) {
+                continue;
             }
-            glPushMatrix();
-            glTranslatef(xyz[0], xyz[1], xyz[2]);
-            this->drawSphere(1.5);
-            glPopMatrix();
-        }
-    }    
+            
+            float xyz[3];
+            const bool isXyzValid = p->getProjectedPosition(*surface, 
+                                                            xyz,
+                                                            false);
+            
+            if (isXyzValid) {
+                if (isSelect) {
+                    uint8_t idRGB[3];
+                    this->colorIdentification->addItem(idRGB, 
+                                                       IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                                       borderFileIndex,
+                                                       borderIndex,
+                                                       i);
+                    glColor3ubv(idRGB);
+                }
+                
+                glPushMatrix();
+                glTranslatef(xyz[0], xyz[1], xyz[2]);
+                this->drawSphere(pointSize);
+                glPopMatrix();
+            }
+        }    
+    }
+
+    if (drawLines) {
+        this->disableLighting();
+        
+        glLineWidth(lineWidth);
+        
+        for (int32_t i = 0; i < (numBorderPoints - 1); i++) {
+            const SurfaceProjectedItem* p = border->getPoint(i);
+            
+            /*
+             * If surface structure does not match the point's structure,
+             * check to see if contralateral display is enabled and 
+             * compare contralateral surface structure to point's structure.
+             */
+            const StructureEnum::Enum pointStructure = p->getStructure();
+            bool structureMatches = true;
+            if (surfaceStructure != pointStructure) {
+                structureMatches = false;
+                if (isContralateralEnabled) {
+                    const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+                    if (contralateralSurfaceStructure == pointStructure) {
+                        structureMatches = true;
+                    }
+                }
+            }
+            if (structureMatches == false) {
+                continue;
+            }
+            
+            float xyz[3];
+            const bool isXyzValid = p->getProjectedPosition(*surface, 
+                                                            xyz,
+                                                            false);
+            
+            if (isXyzValid) {
+                if (isSelect) {
+                    uint8_t idRGB[3];
+                    this->colorIdentification->addItem(idRGB, 
+                                                       IdentificationItemDataTypeEnum::BORDER_SURFACE, 
+                                                       borderFileIndex,
+                                                       borderIndex,
+                                                       i);
+                    glColor3ubv(idRGB);
+                }
+                
+                const SurfaceProjectedItem* p2 = border->getPoint(i + 1);
+                const StructureEnum::Enum pointStructure = p2->getStructure();
+                bool structureMatches = true;
+                if (surfaceStructure != pointStructure) {
+                    structureMatches = false;
+                    if (isContralateralEnabled) {
+                        const StructureEnum::Enum contralateralSurfaceStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+                        if (contralateralSurfaceStructure == pointStructure) {
+                            structureMatches = true;
+                        }
+                    }
+                }
+                if (structureMatches) {
+                    float xyz2[3];
+                    const bool isXyzValid2 = p2->getProjectedPosition(*surface, 
+                                                                      xyz2,
+                                                                      false);
+                    
+                    if (isXyzValid2) {
+                        glBegin(GL_LINES);
+                        glVertex3fv(xyz);
+                        glVertex3fv(xyz2);
+                        glEnd();
+                    }
+                }
+            }
+        }   
+        
+        this->enableLighting();
+    }
 }
+
 /**
  * Draw borders on a surface.
  * @param surface

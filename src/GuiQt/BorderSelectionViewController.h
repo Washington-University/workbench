@@ -37,6 +37,8 @@
 #include <stdint.h>
 #include <set>
 
+#include <QComboBox>
+#include <QDoubleSpinBox>
 #include <QWidget>
 
 #include "DisplayGroupEnum.h"
@@ -71,26 +73,38 @@ namespace caret {
         
         void borderDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
+        void showAttributesDialog();
+        
+        void attributesDialogDataModified();
+        
     private:
         BorderSelectionViewController(const BorderSelectionViewController&);
 
         BorderSelectionViewController& operator=(const BorderSelectionViewController&);
 
-        int32_t browserWindowIndex;
-        
         void updateBorderSelectionViewController();
         
         void updateOtherBorderSelectionViewControllers();
         
+        int32_t m_browserWindowIndex;
+        
+        ClassAndNameHierarchyViewController* m_borderClassNameHierarchyViewController;
+        
+        QCheckBox* m_bordersDisplayCheckBox;
+        
+        QCheckBox* m_bordersContralateralCheckBox;
+        
+        DisplayGroupEnumComboBox* m_bordersDisplayGroupComboBox;
+
+        struct AttributesDialogWidgets {
+            QComboBox* m_drawTypeComboBox;
+            QDoubleSpinBox* m_lineWidthSpinBox;
+            QDoubleSpinBox* m_pointSizeSpinBox;
+        };
+        
+        struct AttributesDialogWidgets m_attributesDialogWidgets;
+                
         static std::set<BorderSelectionViewController*> allBorderSelectionViewControllers;
-        
-        ClassAndNameHierarchyViewController* borderClassNameHierarchyViewController;
-        
-        QCheckBox* bordersDisplayCheckBox;
-        
-        QCheckBox* bordersContralateralCheckBox;
-        
-        DisplayGroupEnumComboBox* bordersDisplayGroupComboBox;
     };
     
 #ifdef __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
