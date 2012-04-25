@@ -1530,6 +1530,8 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
     }
 
     if (drawLines) {
+        const float distanceAboveSurfaceForLines = 0.5;
+        
         this->disableLighting();
         
         glLineWidth(lineWidth);
@@ -1558,9 +1560,9 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             }
             
             float xyz[3];
-            const bool isXyzValid = p->getProjectedPosition(*surface, 
-                                                            xyz,
-                                                            false);
+            const bool isXyzValid = p->getProjectedPositionAboveSurface(*surface, 
+                                                                        xyz,
+                                                                        distanceAboveSurfaceForLines);
             
             if (isXyzValid) {
                 if (isSelect) {
@@ -1587,9 +1589,9 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                 }
                 if (structureMatches) {
                     float xyz2[3];
-                    const bool isXyzValid2 = p2->getProjectedPosition(*surface, 
-                                                                      xyz2,
-                                                                      false);
+                    const bool isXyzValid2 = p2->getProjectedPositionAboveSurface(*surface, 
+                                                                                  xyz2,
+                                                                                  distanceAboveSurfaceForLines);
                     
                     if (isXyzValid2) {
                         glBegin(GL_LINES);

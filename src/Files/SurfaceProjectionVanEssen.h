@@ -52,7 +52,8 @@ namespace caret {
         
         bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                 float xyzOut[3],
-                                const bool isUnprojectedOntoSurface = false) const;
+                                const float offsetFromSurface,
+                                const bool unprojectWithOffsetFromSurface) const;
         
         float getDR() const;
         

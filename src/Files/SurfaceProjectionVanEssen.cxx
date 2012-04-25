@@ -147,13 +147,19 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
  *    Surface file used for unprojecting.
  * @param xyzOut
  *    Output containing coordinate created by unprojecting.
- * @param isUnprojectedOntoSurface
- *    If true, ouput coordinate will be directly on the surface.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface' 
+ *    distance from the surface.
  */
 bool 
 SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
-                                                 float xyzOut[3],
-                                                 const bool isUnprojectedOntoSurface) const
+                                              float xyzOut[3],
+                                              const float offsetFromSurface,
+                                              const bool unprojectWithOffsetFromSurface) const
 {
     /*
      * Make sure projection surface number of nodes matches surface.
@@ -200,10 +206,31 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     const float* posPIS = surfaceFile.getCoordinate(pis);
     const float* posPJS = surfaceFile.getCoordinate(pjs);
     
-    if (isUnprojectedOntoSurface) {
+    if (unprojectWithOffsetFromSurface) {
         xyzOut[0] = (posPIS[0] + posPJS[0]) / 2.0f;
         xyzOut[1] = (posPIS[1] + posPJS[1]) / 2.0f;
         xyzOut[2] = (posPIS[2] + posPJS[2]) / 2.0f;
+        
+        if (unprojectWithOffsetFromSurface != 0.0) {
+            const float* normalI = surfaceFile.getNormalVector(pis);
+            const float* normalJ = surfaceFile.getNormalVector(pjs);
+            
+            float avgNormal[3] = {
+                ((normalI[0] + normalJ[0]) / 2.0),
+                ((normalI[1] + normalJ[1]) / 2.0),
+                ((normalI[2] + normalJ[2]) / 2.0),
+            };
+            MathFunctions::normalizeVector(avgNormal);
+            
+            const float offsetX = avgNormal[0] * offsetFromSurface;
+            const float offsetY = avgNormal[1] * offsetFromSurface;
+            const float offsetZ = avgNormal[2] * offsetFromSurface;
+            
+            xyzOut[0] += offsetX;
+            xyzOut[1] += offsetY;
+            xyzOut[2] += offsetZ;
+        }
+        
         return true;
     }
     

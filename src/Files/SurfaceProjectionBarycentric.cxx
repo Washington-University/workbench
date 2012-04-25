@@ -201,15 +201,21 @@ SurfaceProjectionBarycentric::setTriangleAreas(const float triangleAreas[3])
  *    Surface file used for unprojecting.
  * @param xyzOut
  *    Output containing coordinate created by unprojecting.
- * @param isUnprojectedOntoSurface
- *    If true, ouput coordinate will be directly on the surface.
+ * @param offsetFromSurface
+ *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+ *    position will be this distance above (negative=below)
+ *    the surface.
+ * @param unprojectWithOffsetFromSurface
+ *    If true, ouput coordinate will be offset 'offsetFromSurface' 
+ *    distance from the surface.
  * @return
  *    True if unprojection was successful.
  */
 bool 
 SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
                                                  float xyzOut[3],
-                                                 const bool isUnprojectedOntoSurface) const
+                                                 const float offsetFromSurface,
+                                                 const bool unprojectWithOffsetFromSurface) const
 {
     /*
      * Make sure projection surface number of nodes matches surface.
@@ -294,12 +300,13 @@ SurfaceProjectionBarycentric::unprojectToSurface(const SurfaceFile& surfaceFile,
      * Set output coordinate, possibly offsetting from surface.
      */
     for (int j = 0; j < 3; j++) {
-        if (isUnprojectedOntoSurface) {
-            xyzOut[j] = barycentricXYZ[j];
+        if (unprojectWithOffsetFromSurface) {
+            xyzOut[j] = (barycentricXYZ[j]
+                         + (barycentricNormal[j] * offsetFromSurface));
         }
         else {
-            xyzOut[j] = barycentricXYZ[j] 
-            + (barycentricNormal[j] * signedDistanceAboveSurface);
+            xyzOut[j] = (barycentricXYZ[j] 
+                         + (barycentricNormal[j] * signedDistanceAboveSurface));
         }
     }
     

@@ -78,14 +78,20 @@ namespace caret {
          *    Surface file used for unprojecting.
          * @param xyzOut
          *    Output containing coordinate created by unprojecting.
-         * @param isUnprojectedOntoSurface
-         *    If true, ouput coordinate will be directly on the surface.
+         * @param offsetFromSurface
+         *    If 'unprojectWithOffsetFromSurface' is true, unprojected
+         *    position will be this distance above (negative=below)
+         *    the surface.
+         * @param unprojectWithOffsetFromSurface
+         *    If true, ouput coordinate will be offset 'offsetFromSurface' 
+         *    distance from the surface.
          * @return
          *    True if unprojection is successful, else false.
          */
         virtual bool unprojectToSurface(const SurfaceFile& surfaceFile,
                                         float xyzOut[3],
-                                        const bool isUnprojectedOntoSurface = false) const = 0;
+                                        const float offsetFromSurface,
+                                        const bool unprojectWithOffsetFromSurface) const = 0;
         
         int32_t getProjectionSurfaceNumberOfNodes() const;
         
