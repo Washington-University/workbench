@@ -1454,8 +1454,8 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
     const StructureEnum::Enum surfaceStructure = surface->getStructure();
     const int32_t numBorderPoints = border->getNumberOfPoints();
     
-    float pointSize = 1.5;
-    float lineWidth  = 1.0;
+    float pointSize = 2.0;
+    float lineWidth  = 2.0;
     BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS;
     if (borderFileIndex >= 0) {
         const BrainStructure* bs = surface->getBrainStructure();
@@ -1481,7 +1481,11 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             break;
     }
 
+    const float drawAtDistanceAboveSurface = 0.5;
+
     if (drawPoints) {    
+        const float pointSymbolRadius = pointSize / 2.0;
+        
         for (int32_t i = 0; i < numBorderPoints; i++) {
             const SurfaceProjectedItem* p = border->getPoint(i);
             
@@ -1506,9 +1510,9 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             }
             
             float xyz[3];
-            const bool isXyzValid = p->getProjectedPosition(*surface, 
-                                                            xyz,
-                                                            false);
+            const bool isXyzValid = p->getProjectedPositionAboveSurface(*surface, 
+                                                                        xyz,
+                                                                        drawAtDistanceAboveSurface);
             
             if (isXyzValid) {
                 if (isSelect) {
@@ -1523,18 +1527,17 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                 
                 glPushMatrix();
                 glTranslatef(xyz[0], xyz[1], xyz[2]);
-                this->drawSphere(pointSize);
+                this->drawSphere(pointSymbolRadius);
                 glPopMatrix();
             }
         }    
     }
 
-    if (drawLines) {
-        const float distanceAboveSurfaceForLines = 0.5;
-        
+    if (drawLines) {        
         this->disableLighting();
         
-        glLineWidth(lineWidth);
+        const float lineWidthInPixels = this->modelSizeToPixelSize(lineWidth);
+        glLineWidth(lineWidthInPixels);
         
         for (int32_t i = 0; i < (numBorderPoints - 1); i++) {
             const SurfaceProjectedItem* p = border->getPoint(i);
@@ -1562,7 +1565,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             float xyz[3];
             const bool isXyzValid = p->getProjectedPositionAboveSurface(*surface, 
                                                                         xyz,
-                                                                        distanceAboveSurfaceForLines);
+                                                                        drawAtDistanceAboveSurface);
             
             if (isXyzValid) {
                 if (isSelect) {
@@ -1591,7 +1594,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
                     float xyz2[3];
                     const bool isXyzValid2 = p2->getProjectedPositionAboveSurface(*surface, 
                                                                                   xyz2,
-                                                                                  distanceAboveSurfaceForLines);
+                                                                                  drawAtDistanceAboveSurface);
                     
                     if (isXyzValid2) {
                         glBegin(GL_LINES);

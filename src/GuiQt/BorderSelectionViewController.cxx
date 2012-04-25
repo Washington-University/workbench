@@ -92,6 +92,7 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
                       "Attributes");
     tabWidget->addTab(selectionWidget, 
                       "Selection");
+    tabWidget->setCurrentWidget(selectionWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(tabWidget, 0, Qt::AlignLeft);
@@ -167,13 +168,14 @@ BorderSelectionViewController::createAttributesWidget()
         m_drawTypeComboBox->addItem(BorderDrawingTypeEnum::toGuiName(drawType),
                                     (int)drawType);
     }
+    m_drawTypeComboBox->setToolTip("Select the drawing style of borders");
     QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
     
     float minLineWidth = 0;
-    float maxLineWidth = 0;
-    BrainOpenGL::getMinMaxLineWidth(minLineWidth,
-                                    maxLineWidth);
+    float maxLineWidth = 1000;
+    //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
+    //                                maxLineWidth);
     
     QLabel* lineWidthLabel = new QLabel("Line Width");
     m_lineWidthSpinBox = new QDoubleSpinBox();
@@ -182,6 +184,12 @@ BorderSelectionViewController::createAttributesWidget()
                                  maxLineWidth);
     m_lineWidthSpinBox->setSingleStep(1.0);
     m_lineWidthSpinBox->setDecimals(1);
+    m_lineWidthSpinBox->setToolTip("Adjust the width of borders drawn as lines.\n"
+                                   "The maximum width is dependent upon the \n"
+                                   "graphics system.  There is no maximum value\n"
+                                   "for this control and the drawn width of the \n"
+                                   "lines will stop increasing even though the\n"
+                                   "value of this control is changing");
     QObject::connect(m_lineWidthSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
@@ -192,6 +200,7 @@ BorderSelectionViewController::createAttributesWidget()
                                  maxLineWidth);
     m_pointSizeSpinBox->setSingleStep(1.0);
     m_pointSizeSpinBox->setDecimals(1);
+    m_pointSizeSpinBox->setToolTip("Adjust the size of borders drawn as points");
     QObject::connect(m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(processAttributesChanges()));
     
