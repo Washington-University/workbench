@@ -36,8 +36,10 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDoubleSpinBox>
+#include <QGridLayout>
 #include <QLabel>
 #include <QLayout>
+#include <QTabWidget>
 #include <QToolButton>
 
 #define __BORDER_SELECTION_VIEW_CONTROLLER_DECLARE__
@@ -80,6 +82,41 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
 : QWidget(parent)
 {
     m_browserWindowIndex = browserWindowIndex;
+    
+    QWidget* attributesWidget = this->createAttributesWidget();
+    QWidget* selectionWidget = this->createSelectionWidget();
+    
+    
+    QTabWidget* tabWidget = new QTabWidget();
+    tabWidget->addTab(attributesWidget, 
+                      "Attributes");
+    tabWidget->addTab(selectionWidget, 
+                      "Selection");
+    
+    QVBoxLayout* layout = new QVBoxLayout(this);
+    layout->addWidget(tabWidget, 0, Qt::AlignLeft);
+    layout->addStretch();
+    
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
+    
+    BorderSelectionViewController::allBorderSelectionViewControllers.insert(this);
+}
+
+/**
+ * Destructor.
+ */
+BorderSelectionViewController::~BorderSelectionViewController()
+{
+    EventManager::get()->removeAllEventsFromListener(this);
+    
+    BorderSelectionViewController::allBorderSelectionViewControllers.erase(this);
+}
+
+
+QWidget* 
+BorderSelectionViewController::createSelectionWidget()
+{
     QLabel* groupLabel = new QLabel("Group");
     m_bordersDisplayGroupComboBox = new DisplayGroupEnumComboBox(this);
     QObject::connect(m_bordersDisplayGroupComboBox, SIGNAL(displayGroupSelected(const DisplayGroupEnum::Enum)),
@@ -102,36 +139,138 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
     QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
                      this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
     
-    QAction* attributesAction = WuQtUtilities::createAction("Attributes",
-                                                            "Show attributes editor",
-                                                            this,
-                                                            this,
-                                                            SLOT(showAttributesDialog()));
-    QToolButton* attributesToolButton = new QToolButton();
-    attributesToolButton->setDefaultAction(attributesAction);
-    
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(attributesToolButton);
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
     layout->addWidget(m_bordersDisplayCheckBox);  
     layout->addWidget(m_bordersContralateralCheckBox);  
     layout->addLayout(groupLayout);  
     layout->addWidget(m_borderClassNameHierarchyViewController);
     layout->addStretch();
     
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
-    
-    BorderSelectionViewController::allBorderSelectionViewControllers.insert(this);
+    return widget;
 }
 
 /**
- * Destructor.
+ * @return The attributes widget.
  */
-BorderSelectionViewController::~BorderSelectionViewController()
+QWidget* 
+BorderSelectionViewController::createAttributesWidget()
 {
-    EventManager::get()->removeAllEventsFromListener(this);
+    std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
+    BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
     
-    BorderSelectionViewController::allBorderSelectionViewControllers.erase(this);
+    QLabel* drawAsLabel = new QLabel("Draw As");
+    m_drawTypeComboBox = new QComboBox(); 
+    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
+        BorderDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
+        m_drawTypeComboBox->addItem(BorderDrawingTypeEnum::toGuiName(drawType),
+                                    (int)drawType);
+    }
+    QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    float minLineWidth = 0;
+    float maxLineWidth = 0;
+    BrainOpenGL::getMinMaxLineWidth(minLineWidth,
+                                    maxLineWidth);
+    
+    QLabel* lineWidthLabel = new QLabel("Line Width");
+    m_lineWidthSpinBox = new QDoubleSpinBox();
+    m_lineWidthSpinBox->setFixedWidth(80);
+    m_lineWidthSpinBox->setRange(minLineWidth,
+                                 maxLineWidth);
+    m_lineWidthSpinBox->setSingleStep(1.0);
+    m_lineWidthSpinBox->setDecimals(1);
+    QObject::connect(m_lineWidthSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
+    QLabel* pointSizeLabel = new QLabel("Point Size");
+    m_pointSizeSpinBox = new QDoubleSpinBox();
+    m_pointSizeSpinBox->setFixedWidth(80);
+    m_pointSizeSpinBox->setRange(minLineWidth,
+                                 maxLineWidth);
+    m_pointSizeSpinBox->setSingleStep(1.0);
+    m_pointSizeSpinBox->setDecimals(1);
+    QObject::connect(m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
+                     this, SLOT(processAttributesChanges()));
+    
+    
+    QWidget* gridWidget = new QWidget();
+    QGridLayout* gridLayout = new QGridLayout(gridWidget);
+    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    int row = gridLayout->rowCount();
+    gridLayout->addWidget(drawAsLabel, row, 0);
+    gridLayout->addWidget(m_drawTypeComboBox, row, 1);
+    row++;
+    gridLayout->addWidget(lineWidthLabel, row, 0);
+    gridLayout->addWidget(m_lineWidthSpinBox, row, 1);
+    row++;
+    gridLayout->addWidget(pointSizeLabel, row, 0);
+    gridLayout->addWidget(m_pointSizeSpinBox, row, 1);
+    gridWidget->setSizePolicy(QSizePolicy::Fixed,
+                              QSizePolicy::Fixed);
+    
+    QWidget* widget = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(widget);
+    layout->addWidget(gridWidget);
+    layout->addStretch();
+        
+    return widget;
+}
+
+/**
+ * Called when a widget on the attributes page has 
+ * its value changed.
+ */
+void 
+BorderSelectionViewController::processAttributesChanges()
+{
+    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    
+    const int selectedDrawTypeIndex = m_drawTypeComboBox->currentIndex();
+    const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
+    const BorderDrawingTypeEnum::Enum selectedDrawingType = static_cast<BorderDrawingTypeEnum::Enum>(drawTypeInteger);
+
+    dpb->setDrawingType(selectedDrawingType);
+    dpb->setLineWidth(m_lineWidthSpinBox->value());
+    dpb->setPointSize(m_pointSizeSpinBox->value());
+    
+    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
+    
+    updateOtherBorderAttributesWidgets();
+}
+
+/**
+ * Update the attributes widget
+ */ 
+void 
+BorderSelectionViewController::updateAttributesWidget()
+{
+    std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
+    BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    
+    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    
+    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType();
+    int32_t selectedDrawingTypeIndex = 0;
+    
+    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
+        BorderDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
+        if (drawType == selectedDrawingType) {
+            selectedDrawingTypeIndex = i;
+        }
+    }
+    m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
+    
+    m_lineWidthSpinBox->blockSignals(true);
+    m_lineWidthSpinBox->setValue(dpb->getLineWidth());
+    m_lineWidthSpinBox->blockSignals(false);
+    
+    m_pointSizeSpinBox->blockSignals(true);
+    m_pointSizeSpinBox->setValue(dpb->getPointSize());
+    m_pointSizeSpinBox->blockSignals(false);
 }
 
 /**
@@ -228,6 +367,22 @@ BorderSelectionViewController::updateOtherBorderSelectionViewControllers()
 }
 
 /**
+ * Update other border attributes widgets since they all should be the same.
+ */
+void 
+BorderSelectionViewController::updateOtherBorderAttributesWidgets()
+{
+    for (std::set<BorderSelectionViewController*>::iterator iter = BorderSelectionViewController::allBorderSelectionViewControllers.begin();
+         iter != BorderSelectionViewController::allBorderSelectionViewControllers.end();
+         iter++) {
+        BorderSelectionViewController* bsw = *iter;
+        if (bsw != this) {
+            bsw->updateAttributesWidget();
+        }
+    }
+}
+
+/**
  * Gets called when border selections are changed.
  */
 void 
@@ -268,17 +423,18 @@ BorderSelectionViewController::processSelectionChanges()
 void 
 BorderSelectionViewController::receiveEvent(Event* event)
 {
+    bool doUpdate = false;
+    
     if (event->getEventType() == EventTypeEnum::EVENT_USER_INTERFACE_UPDATE) {
         EventUserInterfaceUpdate* uiEvent = dynamic_cast<EventUserInterfaceUpdate*>(event);
         CaretAssert(uiEvent);
         
-        updateBorderSelectionViewController();
+        doUpdate = true;
         event->setEventProcessed();
     }
     else if (event->getEventType() == EventTypeEnum::EVENT_TOOLBOX_UPDATE) {
         EventToolBoxUpdate* tbEvent =
         dynamic_cast<EventToolBoxUpdate*>(event);
-        bool doUpdate = false;
         if (tbEvent->isUpdateAllWindows()) {
             doUpdate = true;
         }
@@ -286,84 +442,13 @@ BorderSelectionViewController::receiveEvent(Event* event)
             doUpdate = true;
         }
         
-        if (doUpdate) {
-            updateBorderSelectionViewController();
-        }
-        
         tbEvent->setEventProcessed();
     }
-}
 
-/**
- * Show the attributes dialog.
- */ 
-void 
-BorderSelectionViewController::showAttributesDialog()
-{
-    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    
-    WuQDataEntryDialog ded("Border Attributes",
-                           this);
-
-    std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
-    BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
-    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
-    
-    const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType();
-    int32_t selectedDrawingTypeIndex = 0;
-    QStringList drawingTypeNames;
-    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
-        if (drawingTypeEnums[i] == selectedDrawingType) {
-            selectedDrawingTypeIndex = i;
-        }
-        drawingTypeNames.append(BorderDrawingTypeEnum::toGuiName(drawingTypeEnums[i]));
+    if (doUpdate) {
+        updateBorderSelectionViewController();
+        updateAttributesWidget();
     }
-    
-    m_attributesDialogWidgets.m_drawTypeComboBox = ded.addComboBox("Draw As", 
-                                                                     drawingTypeNames);
-    m_attributesDialogWidgets.m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
-    
-    QObject::connect(m_attributesDialogWidgets.m_drawTypeComboBox, SIGNAL(activated(int)),
-                     this, SLOT(attributesDialogDataModified()));
-    
-    float minLineWidth = 0;
-    float maxLineWidth = 0;
-    BrainOpenGL::getMinMaxLineWidth(minLineWidth,
-                                    maxLineWidth);
-    
-    m_attributesDialogWidgets.m_lineWidthSpinBox = ded.addDoubleSpinBox("Line Width",
-                                                                          dpb->getLineWidth());
-    m_attributesDialogWidgets.m_lineWidthSpinBox->setRange(minLineWidth,
-                                                           maxLineWidth);
-    QObject::connect(m_attributesDialogWidgets.m_lineWidthSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(attributesDialogDataModified()));
-    
-    m_attributesDialogWidgets.m_pointSizeSpinBox = ded.addDoubleSpinBox("Point Size", 
-                                                                          dpb->getPointSize());
-    QObject::connect(m_attributesDialogWidgets.m_pointSizeSpinBox, SIGNAL(valueChanged(double)),
-                     this, SLOT(attributesDialogDataModified()));
-    
-    ded.exec();
-    
-}
-
-/**
- * Called when a widget on the attributes dialog has 
- * its value changed.
- */
-void 
-BorderSelectionViewController::attributesDialogDataModified()
-{
-    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
-    
-    const AString selectedDrawingTypeName = m_attributesDialogWidgets.m_drawTypeComboBox->currentText();
-    const BorderDrawingTypeEnum::Enum selectedDrawingType = BorderDrawingTypeEnum::fromGuiName(selectedDrawingTypeName, 
-                                                                                               NULL);
-    dpb->setDrawingType(selectedDrawingType);
-    dpb->setLineWidth(m_attributesDialogWidgets.m_lineWidthSpinBox->value());
-    dpb->setPointSize(m_attributesDialogWidgets.m_pointSizeSpinBox->value());
-    
-    EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
 

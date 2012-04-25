@@ -73,9 +73,7 @@ namespace caret {
         
         void borderDisplayGroupSelected(const DisplayGroupEnum::Enum);
         
-        void showAttributesDialog();
-        
-        void attributesDialogDataModified();
+        void processAttributesChanges();
         
     private:
         BorderSelectionViewController(const BorderSelectionViewController&);
@@ -85,6 +83,14 @@ namespace caret {
         void updateBorderSelectionViewController();
         
         void updateOtherBorderSelectionViewControllers();
+        
+        void updateOtherBorderAttributesWidgets();
+        
+        QWidget* createSelectionWidget();
+        
+        QWidget* createAttributesWidget();
+        
+        void updateAttributesWidget();
         
         int32_t m_browserWindowIndex;
         
@@ -96,14 +102,12 @@ namespace caret {
         
         DisplayGroupEnumComboBox* m_bordersDisplayGroupComboBox;
 
-        struct AttributesDialogWidgets {
-            QComboBox* m_drawTypeComboBox;
-            QDoubleSpinBox* m_lineWidthSpinBox;
-            QDoubleSpinBox* m_pointSizeSpinBox;
-        };
+        QComboBox* m_drawTypeComboBox;
         
-        struct AttributesDialogWidgets m_attributesDialogWidgets;
-                
+        QDoubleSpinBox* m_lineWidthSpinBox;
+        
+        QDoubleSpinBox* m_pointSizeSpinBox;
+        
         static std::set<BorderSelectionViewController*> allBorderSelectionViewControllers;
     };
     
