@@ -47,9 +47,16 @@ using namespace caret;
  * \brief A QEvent Filter
  *
  * A QEvent Filter.  There are cases in which one wants to
- * block a specific event from being processed by a widget.
+ * block a specific event from being processed by widgets.
  * For example, on Mac, dragging the mouse over a combo box
- * causes a wheel event and 
+ * causes a wheel event that unintentionally changes the 
+ * value of the combo box.
+ *
+ * To use an instance of this blocking filter, (1) Create
+ * an instance of this class, (2) call setEventBlocked() which
+ * the event enumerated type that is to be blocked, (3) pass
+ * the instance of this class to the widget's 
+ * installEventFilter() method.
  */
 
 /**
@@ -123,5 +130,9 @@ WuQEventBlockingFilter::eventFilter(QObject* object,
         return true;
     }
 
-    return false;
+    /*
+     * Let parent do the filtering
+     */
+    return QObject::eventFilter(object, 
+                                event);
 }
