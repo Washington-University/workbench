@@ -381,7 +381,13 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
 {
     if (this->connectivityLoaderFile != NULL) {
         const double currentValue = this->connectivityLoaderFile->getSelectedTimePoint();
-        if (std::fabs(currentValue - value) < 0.001) {
+        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
+        double timeStepOffset;
+        prefs->getAnimationStartTime(timeStepOffset);
+        //NOTE!!
+        //currentValue is always the value in seconds starting from zero, NOT the spinbox value, which can have an offset
+        //to properly compare the two, add timeStepOffset.
+        if (std::fabs((currentValue+timeStepOffset) - value) < 0.001) {
             std::cout << "IGNORED UNCHANGED SPIN BOX VALUE" << std::endl;
             return;
         }
@@ -389,9 +395,8 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
         ConnectivityLoaderManager* manager = GuiManager::get()->getBrain()->getConnectivityLoaderManager();
         ElapsedTimer et;
         et.start();
-        CaretPreferences *prefs = SessionManager::get()->getCaretPreferences();
-        double timeStepOffset;
-        prefs->getAnimationStartTime(timeStepOffset);
+
+        
         
         bool dataLoadedFlag = false;
         if (manager->loadTimePointAtTime(this->connectivityLoaderFile, 

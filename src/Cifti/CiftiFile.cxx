@@ -102,13 +102,8 @@ void CiftiFile::openFile(const AString &fileName, const CacheEnum &caching)
         {
             QFile inputFile(fileName);
             inputFile.setFileName(fileName);
-            FileInformation myInfo(fileName);
-            if(myInfo.isWritable())//WARNING: QFile::isWritable does not check permissions, so use FileInformation
-            {
-                inputFile.open(QIODevice::ReadWrite);
-            } else {
-                inputFile.open(QIODevice::ReadOnly);
-            }
+            inputFile.open(QIODevice::ReadOnly);
+
             if (!inputFile.isOpen())
             {
                 throw CiftiFileException("unable to open cifti file");//so permissions problems result in an exception, not an abort later
