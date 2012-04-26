@@ -271,6 +271,8 @@ namespace caret {
                                           const int barycentricNodes[3],
                                           const int numberOfNodes);
         
+        void setLineWidth(const float lineWidth);
+        
         /** Indicates OpenGL has been initialized */
         bool initializedOpenGLFlag;
         

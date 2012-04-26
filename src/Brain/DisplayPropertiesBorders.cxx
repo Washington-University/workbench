@@ -61,7 +61,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
         this->displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
     }
     
-    m_lineWidth  = 2.0;
+    m_lineWidth  = 1.0;
     m_pointSize = 2.0;
     m_drawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS;
 }
