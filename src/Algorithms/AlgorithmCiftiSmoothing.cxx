@@ -93,17 +93,17 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     }
     CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
-    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(6);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
     }
-    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(7);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
     }
-    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(8);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
