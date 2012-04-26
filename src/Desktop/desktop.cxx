@@ -245,6 +245,10 @@ main(int argc, char* argv[])
         QApplication::setGraphicsSystem("raster");
 #endif //CARET_OS_MACOSX        
         QApplication app(argc, argv);
+        QApplication::addLibraryPath(
+            QApplication::applicationDirPath()
+            + QDir::separator()
+            + "plugins");
         QApplication::setApplicationName("Connectome Workbench");
         QApplication::setApplicationVersion("0");
         QApplication::setOrganizationDomain("brainvis.wustl.edu");
