@@ -214,14 +214,14 @@ bool VolumeFile::matchesVolumeSpace(const VolumeFile* right) const
             return false;
         }
     }
-    const float TOLER_RATIO = 1.0002f;//ratio a spacing element can mismatch by
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 4; ++j)
         {
             float leftelem = m_indexToSpace[i][j];
             float rightelem = right->m_indexToSpace[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (abs(leftelem / rightelem) > TOLER_RATIO || abs(rightelem / leftelem) > TOLER_RATIO)))
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
             {
                 return false;
             }
@@ -239,7 +239,7 @@ bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<f
             return false;
         }
     }
-    const float TOLER_RATIO = 1.0002f;//ratio a spacing element can mismatch by
+    const float TOLER_RATIO = 0.999f;//ratio a spacing element can mismatch by
     CaretAssert(sform.size() >= 3);
     for (int i = 0; i < 3; ++i)
     {
@@ -248,7 +248,7 @@ bool VolumeFile::matchesVolumeSpace(const int64_t dims[3], const vector<vector<f
         {
             float leftelem = m_indexToSpace[i][j];
             float rightelem = sform[i][j];
-            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (abs(leftelem / rightelem) > TOLER_RATIO || abs(rightelem / leftelem) > TOLER_RATIO)))
+            if ((leftelem != rightelem) && (leftelem == 0.0f || rightelem == 0.0f || (leftelem / rightelem < TOLER_RATIO || rightelem / leftelem < TOLER_RATIO)))
             {
                 return false;
             }
