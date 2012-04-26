@@ -114,7 +114,6 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
             volRoi = volRoiOpt->getVolume(1);
         }
     }
-    float memLimitGB = -1.0f;
     OptionalParameter* weightsOpt = myParams->getOptionalParameter(4);
     vector<float>* weights = NULL, realweights;//NOTE: realweights is NOT a pointer
     if (weightsOpt->m_present)
@@ -142,6 +141,7 @@ void AlgorithmCiftiCorrelation::useParameters(OperationParameters* myParams, Pro
         }
     }
     bool fisherZ = myParams->getOptionalParameter(5)->m_present;
+    float memLimitGB = -1.0f;
     OptionalParameter* memLimitOpt = myParams->getOptionalParameter(6);
     if (memLimitOpt->m_present)
     {
@@ -177,7 +177,12 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         numCacheRows = numRows;
     }
     if (numCacheRows > numRows) numCacheRows = numRows;
-    if (numCacheRows != numRows) CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
+    if (cacheFullInput)
+    {
+        if (numCacheRows != numRows) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
+    } else {
+        CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
+    }
     vector<CaretArray<float> > outRows;
     if (cacheFullInput)
     {
@@ -353,7 +358,12 @@ AlgorithmCiftiCorrelation::AlgorithmCiftiCorrelation(ProgressObject* myProgObj, 
         numCacheRows = numSelected;
     }
     if (numCacheRows > numSelected) numCacheRows = numSelected;
-    if (numCacheRows != numSelected) CaretLogInfo("using " + AString::number(numCacheRows) + " rows at a time");
+    if (cacheFullInput)
+    {
+        if (numCacheRows != numSelected) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
+    } else {
+        CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
+    }
     vector<CaretArray<float> > outRows;
     if (cacheFullInput)
     {
@@ -547,7 +557,7 @@ const float* AlgorithmCiftiCorrelation::getRow(const int& ciftiIndex, float& roo
         CaretAssert(!mustBeCached);
         if (mustBeCached)//largely so it doesn't give warning about unused when compiled in release
         {
-            throw AlgorithmException("something very bad happenned, notify the developers");
+            throw AlgorithmException("something very bad happened, notify the developers");
         }
         ret = getTempRow();
         m_inputCifti->getRow(ret, ciftiIndex);

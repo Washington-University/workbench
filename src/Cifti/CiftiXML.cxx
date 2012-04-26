@@ -1120,11 +1120,11 @@ void CiftiXML::separateMaps()
             myMatrix.m_matrixIndicesMap.push_back(myMap);
             myMatrix.m_matrixIndicesMap.back().m_appliesToMatrixDimension.resize(1);
             myMatrix.m_matrixIndicesMap.back().m_appliesToMatrixDimension[0] = whichDim;
-            if (whichDim == 0)
+            if (whichDim == 1)
             {
                 m_rowMapIndex = myMatrix.m_matrixIndicesMap.size() - 1;
             }
-            if (whichDim == 1)
+            if (whichDim == 0)
             {
                 m_colMapIndex = myMatrix.m_matrixIndicesMap.size() - 1;
             }
