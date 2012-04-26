@@ -30,6 +30,8 @@
 #include "MetricFile.h"
 #include "VolumeFile.h"
 #include "SurfaceFile.h"
+#include "AlgorithmCiftiSeparate.h"
+#include "AlgorithmCiftiReplaceStructure.h"
 
 using namespace caret;
 using namespace std;
@@ -48,16 +50,23 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti", "the input cifti");
-    ret->addSurfaceParameter(2, "left-surface", "the left surface to smooth on");
-    ret->addSurfaceParameter(3, "right-surface", "the right surface to smooth on");
-    ret->addDoubleParameter(4, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
-    ret->addDoubleParameter(5, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
-    ret->addStringParameter(6, "direction", "which dimension to smooth along, ROW or COLUMN");
-    ret->addCiftiOutputParameter(7, "cifti-out", "the output cifti");
+    ret->addDoubleParameter(2, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    ret->addDoubleParameter(3, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    ret->addStringParameter(4, "direction", "which dimension to smooth along, ROW or COLUMN");
+    ret->addCiftiOutputParameter(5, "cifti-out", "the output cifti");
     
-    ret->createOptionalParameter(8, "-fix-zeros-volume", "treat values of zero in the volume as missing data");
+    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(6, "-left-surface", "specify the left surface to use");
+    leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
     
-    ret->createOptionalParameter(9, "-fix-zeros-surface", "treat values of zero on the surface as missing data");
+    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(7, "-right-surface", "specify the right surface to use");
+    rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
+    
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(8, "-cereb-surface", "specify the cerebellum surface to use");
+    cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
+    
+    ret->createOptionalParameter(9, "-fix-zeros-volume", "treat values of zero in the volume as missing data");
+    
+    ret->createOptionalParameter(10, "-fix-zeros-surface", "treat values of zero on the surface as missing data");
     
     ret->setHelpText(
         AString("The input cifti file must have a brain models mapping on the chosen dimension, columns for .dtseries, and ") +
@@ -70,10 +79,9 @@ OperationParameters* AlgorithmCiftiSmoothing::getParameters()
 void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* myCifti = myParams->getCifti(1);
-    SurfaceFile* myLeftSurf = myParams->getSurface(2), *myRightSurf = myParams->getSurface(3);
-    float surfKern = (float)myParams->getDouble(4);
-    float volKern = (float)myParams->getDouble(5);
-    AString directionName = myParams->getString(6);
+    float surfKern = (float)myParams->getDouble(2);
+    float volKern = (float)myParams->getDouble(3);
+    AString directionName = myParams->getString(4);
     SmoothDirection myDir;
     if (directionName == "ROW")
     {
@@ -83,13 +91,29 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    CiftiFile* myCiftiOut = myParams->getOutputCifti(7);
-    bool fixZerosVol = myParams->getOptionalParameter(8)->m_present;
-    bool fixZerosSurf = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiSmoothing(myProgObj, myCifti, myLeftSurf, myRightSurf, surfKern, volKern, myDir, myCiftiOut, fixZerosVol, fixZerosSurf);
+    CiftiFile* myCiftiOut = myParams->getOutputCifti(5);
+    SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
+    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(5);
+    if (leftSurfOpt->m_present)
+    {
+        myLeftSurf = leftSurfOpt->getSurface(1);
+    }
+    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(6);
+    if (rightSurfOpt->m_present)
+    {
+        myRightSurf = rightSurfOpt->getSurface(1);
+    }
+    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(7);
+    if (cerebSurfOpt->m_present)
+    {
+        myCerebSurf = cerebSurfOpt->getSurface(1);
+    }
+    bool fixZerosVol = myParams->getOptionalParameter(9)->m_present;
+    bool fixZerosSurf = myParams->getOptionalParameter(10)->m_present;
+    AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, fixZerosVol, fixZerosSurf);
 }
 
-AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const float& surfKern, const float& volKern, SmoothDirection myDir, CiftiFile* myCiftiOut, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, SmoothDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
     const CiftiXML& myXML = myCifti->getCiftiXML();
     vector<CiftiVolumeStructureMap> myVolMaps;
@@ -116,6 +140,14 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                 throw AlgorithmException("number of nodes doesn't match for right surface");
             }
         }
+        surfNumNodes = myXML.getRowSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
+        if (surfNumNodes != -1)
+        {
+            if (myCerebSurf == NULL || myCerebSurf->getNumberOfNodes() != surfNumNodes)
+            {
+                throw AlgorithmException("number of nodes doesn't match for cerebellum surface");
+            }
+        }
     } else {
         if (myXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
         {
@@ -134,6 +166,14 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
         if (surfNumNodes != -1)
         {
             if (myRightSurf == NULL || myRightSurf->getNumberOfNodes() != surfNumNodes)
+            {
+                throw AlgorithmException("number of nodes doesn't match for right surface");
+            }
+        }
+        surfNumNodes = myXML.getColumnSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
+        if (surfNumNodes != -1)
+        {
+            if (myCerebSurf == NULL || myCerebSurf->getNumberOfNodes() != surfNumNodes)
             {
                 throw AlgorithmException("number of nodes doesn't match for right surface");
             }
@@ -221,6 +261,54 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                     input.setValuesForColumn(col, metricCol);
                 }
                 AlgorithmMetricSmoothing(NULL, myRightSurf, &input, surfKern, &output, &roi, fixZerosSurf);
+                for (int col = 0; col < numToSmooth; ++col)
+                {
+                    const float* outcol = output.getValuePointerForColumn(col);
+                    myCiftiOut->getRow(rowScratch, col);//get the existing values so as to not overwrite them
+                    for (int i = 0; i < mapSize; ++i)
+                    {
+                        rowScratch[myMap[i].m_ciftiIndex] = outcol[myMap[i].m_surfaceNode];
+                    }
+                    myCiftiOut->setRow(rowScratch, col);
+                }
+            } else {
+                for (int col = 0; col < numToSmooth; ++col)
+                {
+                    myCifti->getRow(rowScratch, col);
+                    myCiftiOut->getRow(rowScratch2, col);//ditto, though it shouldn't matter
+                    for (int i = 0; i < mapSize; ++i)
+                    {
+                        rowScratch2[myMap[i].m_ciftiIndex] = rowScratch[myMap[i].m_ciftiIndex];
+                    }
+                    myCiftiOut->setRow(rowScratch2, col);
+                }
+            }
+        }
+        if (myXML.getSurfaceMapForRows(myMap, StructureEnum::CEREBELLUM))
+        {
+            int numNodes = (int)myCifti->getRowSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
+            int mapSize = (int)myMap.size();
+            if (surfKern > 0.0f)
+            {
+                MetricFile input, output, roi;
+                input.setNumberOfNodesAndColumns(numNodes, numToSmooth);
+                roi.setNumberOfNodesAndColumns(numNodes, 1);
+                roi.initializeColumn(0);
+                for (int i = 0; i < mapSize; ++i)
+                {
+                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
+                }
+                CaretArray<float> metricCol(numNodes);
+                for (int col = 0; col < numToSmooth; ++col)
+                {
+                    myCifti->getRow(rowScratch, col);
+                    for (int i = 0; i < mapSize; ++i)
+                    {
+                        metricCol[myMap[i].m_surfaceNode] = rowScratch[myMap[i].m_ciftiIndex];
+                    }
+                    input.setValuesForColumn(col, metricCol);
+                }
+                AlgorithmMetricSmoothing(NULL, myCerebSurf, &input, surfKern, &output, &roi, fixZerosSurf);
                 for (int col = 0; col < numToSmooth; ++col)
                 {
                     const float* outcol = output.getValuePointerForColumn(col);
@@ -380,6 +468,45 @@ AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, cons
                     }
                 }
                 AlgorithmMetricSmoothing(NULL, myRightSurf, &input, surfKern, &output, &roi, fixZerosSurf);
+                for (int index = 0; index < mapSize; ++index)
+                {//don't need to preload the row because we set the entire row
+                    for (int i = 0; i < rowSize; ++i)
+                    {
+                        rowScratch[i] = output.getValue(myMap[index].m_surfaceNode, i);
+                    }
+                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
+                }
+            } else {
+                for (int index = 0; index < mapSize; ++index)
+                {
+                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
+                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
+                }
+            }
+        }
+        if (myXML.getSurfaceMapForColumns(myMap, StructureEnum::CEREBELLUM))
+        {
+            int numNodes = (int)myCifti->getColumnSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
+            int mapSize = (int)myMap.size();
+            if (surfKern > 0.0f)
+            {
+                MetricFile input, output, roi;
+                input.setNumberOfNodesAndColumns(numNodes, rowSize);
+                roi.setNumberOfNodesAndColumns(numNodes, 1);
+                roi.initializeColumn(0);
+                for (int i = 0; i < mapSize; ++i)
+                {
+                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
+                }
+                for (int index = 0; index < mapSize; ++index)
+                {
+                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
+                    for (int i = 0; i < rowSize; ++i)
+                    {
+                        input.setValue(myMap[index].m_surfaceNode, i, rowScratch[i]);
+                    }
+                }
+                AlgorithmMetricSmoothing(NULL, myCerebSurf, &input, surfKern, &output, &roi, fixZerosSurf);
                 for (int index = 0; index < mapSize; ++index)
                 {//don't need to preload the row because we set the entire row
                     for (int i = 0; i < rowSize; ++i)

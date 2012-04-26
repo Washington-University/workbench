@@ -25,44 +25,6 @@
  *
  */
 
-/*
-file->save as... and enter what you will name the class, plus .h
-
-find and replace these strings, without matching "whole word only" (plain text mode):
-
-AlgorithmCiftiSmoothing     : algorithm name, in CamelCase, with initial capital, same as what you saved the header file to
-ALGORITHM_CIFTI_SMOOTHING    : uppercase of algorithm name, with underscore between words, used in #ifdef guards
--cifti-smoothing   : switch for the command line to use, often hyphenated version of algorithm name, lowercase, minus "algorithm"
-SMOOTH A CIFTI FILE : short description of the command, uppercase, three to five words, often just command switch with more verbosity
-
-if the algorithm takes no parameters (???) uncomment the line below for takesParameters(), otherwise delete it
-
-next, make AlgorithmCiftiSmoothing.cxx from AlgorithmTemplate.cxx.txt via one of the following (depending on working directory):
-
-cat AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiSmoothing/g' | sed 's/-[c]ommand-switch/-cifti-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A CIFTI FILE/g' > AlgorithmCiftiSmoothing.cxx
-cat Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiSmoothing/g' | sed 's/-[c]ommand-switch/-cifti-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A CIFTI FILE/g' > Algorithms/AlgorithmCiftiSmoothing.cxx
-cat src/Algorithms/AlgorithmTemplate.cxx.txt | sed 's/[A]lgorithmName/AlgorithmCiftiSmoothing/g' | sed 's/-[c]ommand-switch/-cifti-smoothing/g' | sed 's/[S]HORT DESCRIPTION/SMOOTH A CIFTI FILE/g' > src/Algorithms/AlgorithmCiftiSmoothing.cxx
-
-or manually copy and replace
-
-next, implement its functions - the algorithm work goes in the CONSTRUCTOR
-
-add these into Algorithms/CMakeLists.txt:
-
-AlgorithmCiftiSmoothing.h
-AlgorithmCiftiSmoothing.cxx
-
-place the following lines into Commands/CommandOperationManager.cxx:
-
-#include "AlgorithmCiftiSmoothing.h"
-    //near the top
-
-    this->commandOperations.push_back(new CommandParser(new AutoAlgorithmCiftiSmoothing()));
-        //in CommandOperationManager()
-
-finally, remove this block comment
-*/
-
 #include "AbstractAlgorithm.h"
 
 namespace caret {
@@ -79,7 +41,7 @@ namespace caret {
             ALONG_ROW,
             ALONG_COLUMN
         };
-        AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const float& surfKern, const float& volKern, SmoothDirection myDir, CiftiFile* myCiftiOut, bool fixZerosVol = false, bool fixZerosSurf = false);
+        AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, SmoothDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf = NULL, const SurfaceFile* myRightSurf = NULL, const SurfaceFile* myCerebSurf = NULL, bool fixZerosVol = false, bool fixZerosSurf = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();
