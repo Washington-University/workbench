@@ -257,14 +257,14 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                     if (j > myrow)
                     {
                         float cacheRrs;
-                        const float* cacheRow = getRow(j, cacheRrs, true);
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
                         computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
                         computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
                     }
                 } else {
                     float cacheRrs;
-                    const float* cacheRow = getRow(j, cacheRrs, true);
+                    const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                     float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
                     computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
                 }
@@ -392,23 +392,21 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
                     if (j > myrow)
                     {
                         float cacheRrs;
-                        const float* cacheRow = getRow(j, cacheRrs, true);
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                         float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
                         computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
                         computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
                     }
                 } else {
                     float cacheRrs;
-                    const float* cacheRow = getRow(j, cacheRrs, true);
+                    const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
                     float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
                     computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
                 }
             }
         }
         VolumeFile outputVol;
-        //computeVol.writeFile("debugcorr.nii");
         AlgorithmVolumeGradient(NULL, &computeVol, volKern, &outputVol, &volRoi);
-        //outputVol.writeFile("debuggrad.nii");
         int numSubvols = endpos - startpos;
         for (int j = 0; j < numSubvols; ++j)
         {
