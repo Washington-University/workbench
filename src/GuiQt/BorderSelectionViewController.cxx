@@ -128,22 +128,12 @@ BorderSelectionViewController::createSelectionWidget()
     groupLayout->addWidget(m_bordersDisplayGroupComboBox->getWidget());
     groupLayout->addStretch(); 
     
-    m_bordersContralateralCheckBox = new QCheckBox("Contralateral");
-    QObject::connect(m_bordersContralateralCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processBorderSelectionChanges()));
-    
-    m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
-    QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
-                     this, SLOT(processBorderSelectionChanges()));
-    
     m_borderClassNameHierarchyViewController = new ClassAndNameHierarchyViewController(m_browserWindowIndex);
     QObject::connect(m_borderClassNameHierarchyViewController, SIGNAL(itemSelected(ClassAndNameHierarchySelectedItem*)),
                      this, SLOT(bordersSelectionsChanged(ClassAndNameHierarchySelectedItem*)));
     
     QWidget* widget = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(widget);
-    layout->addWidget(m_bordersDisplayCheckBox);  
-    layout->addWidget(m_bordersContralateralCheckBox);  
     layout->addLayout(groupLayout);  
     layout->addWidget(m_borderClassNameHierarchyViewController);
     layout->addStretch();
@@ -157,6 +147,14 @@ BorderSelectionViewController::createSelectionWidget()
 QWidget* 
 BorderSelectionViewController::createAttributesWidget()
 {
+    m_bordersDisplayCheckBox = new QCheckBox("Display Borders");
+    QObject::connect(m_bordersDisplayCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_bordersContralateralCheckBox = new QCheckBox("Contralateral");
+    QObject::connect(m_bordersContralateralCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
     std::vector<BorderDrawingTypeEnum::Enum> drawingTypeEnums;
     BorderDrawingTypeEnum::getAllEnums(drawingTypeEnums);
     const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
@@ -207,8 +205,14 @@ BorderSelectionViewController::createAttributesWidget()
     
     QWidget* gridWidget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(gridWidget);
-    WuQtUtilities::setLayoutMargins(gridLayout, 4, 2);
+    WuQtUtilities::setLayoutMargins(gridLayout, 8, 2);
     int row = gridLayout->rowCount();
+    gridLayout->addWidget(m_bordersDisplayCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(m_bordersContralateralCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
+    row++;
     gridLayout->addWidget(drawAsLabel, row, 0);
     gridLayout->addWidget(m_drawTypeComboBox, row, 1);
     row++;
@@ -241,6 +245,17 @@ BorderSelectionViewController::processAttributesChanges()
     const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
     const BorderDrawingTypeEnum::Enum selectedDrawingType = static_cast<BorderDrawingTypeEnum::Enum>(drawTypeInteger);
 
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    dpb->setDisplayed(browserTabIndex,
+                      m_bordersDisplayCheckBox->isChecked());
+    dpb->setContralateralDisplayed(browserTabIndex,
+                                   m_bordersContralateralCheckBox->isChecked());
+
     dpb->setDrawingType(selectedDrawingType);
     dpb->setLineWidth(m_lineWidthSpinBox->value());
     dpb->setPointSize(m_pointSizeSpinBox->value());
@@ -261,6 +276,16 @@ BorderSelectionViewController::updateAttributesWidget()
     const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
     
     DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
+    if (browserTabContent == NULL) {
+        return;
+    }
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    
+    m_bordersDisplayCheckBox->setChecked(dpb->isDisplayed(browserTabIndex));
+    m_bordersContralateralCheckBox->setChecked(dpb->isContralateralDisplayed(browserTabIndex));
     
     const BorderDrawingTypeEnum::Enum selectedDrawingType = dpb->getDrawingType();
     int32_t selectedDrawingTypeIndex = 0;
@@ -340,8 +365,6 @@ BorderSelectionViewController::updateBorderSelectionViewController()
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
     
-    m_bordersDisplayCheckBox->setChecked(dsb->isDisplayed(browserTabIndex));
-    m_bordersContralateralCheckBox->setChecked(dsb->isContralateralDisplayed(browserTabIndex));
     m_bordersDisplayGroupComboBox->setSelectedDisplayGroup(dsb->getDisplayGroup(browserTabIndex));
     
     /*;
@@ -402,10 +425,6 @@ BorderSelectionViewController::processBorderSelectionChanges()
     const int32_t browserTabIndex = browserTabContent->getTabNumber();
     Brain* brain = GuiManager::get()->getBrain();
     DisplayPropertiesBorders* dsb = brain->getDisplayPropertiesBorders();
-    dsb->setDisplayed(browserTabIndex,
-                      m_bordersDisplayCheckBox->isChecked());
-    dsb->setContralateralDisplayed(browserTabIndex,
-                                   m_bordersContralateralCheckBox->isChecked());
     dsb->setDisplayGroup(browserTabIndex, 
                          m_bordersDisplayGroupComboBox->getSelectedDisplayGroup());
     
