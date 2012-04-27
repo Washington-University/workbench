@@ -546,7 +546,7 @@ const GiftiLabel*
 GiftiLabelTable::getLabelBestMatching(const AString& name) const
 {
     GiftiLabel* bestMatchingLabel = NULL;
-    size_t bestMatchLength = -1;
+    int32_t bestMatchLength = -1;
     
     LABELS_MAP newMap;
     for (LABELS_MAP_CONST_ITERATOR iter = this->labelsMap.begin();
@@ -554,8 +554,8 @@ GiftiLabelTable::getLabelBestMatching(const AString& name) const
          iter++) {
         GiftiLabel* gl = iter->second;
         AString labelName = gl->getName();
-        if (name.toStdString().find(labelName.toStdString()) == 0) {
-            size_t len = labelName.length();
+        if (name.startsWith(labelName)) {
+            const int32_t len = labelName.length();
             if (len > bestMatchLength) {
                 bestMatchLength = len;
                 bestMatchingLabel = iter->second;
