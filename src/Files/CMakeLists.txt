@@ -31,6 +31,9 @@ ConnectivityLoaderFile.h
 DataFileTypeEnum.h
 DisplayGroupEnum.h
 EventSurfaceColoringInvalidate.h
+FociFile.h
+FociFileSaxReader.h
+Focus.h
 GeodesicHelper.h
 GiftiTypeFile.h
 ImageFile.h
@@ -42,6 +45,9 @@ SpecFile.h
 SpecFileDataFileTypeGroup.h
 SpecFileDataFile.h
 SpecFileSaxReader.h
+StudyMetaDataLink.h
+StudyMetaDataLinkSet.h
+StudyMetaDataLinkSetSaxReader.h
 SurfaceFile.h
 SurfaceProjectedItem.h
 SurfaceProjectedItemSaxReader.h
@@ -67,6 +73,9 @@ ClassAndNameHierarchyModel.cxx
 ConnectivityLoaderFile.cxx
 DisplayGroupEnum.cxx
 EventSurfaceColoringInvalidate.cxx
+FociFile.cxx
+FociFileSaxReader.cxx
+Focus.cxx
 GeodesicHelper.cxx
 GiftiTypeFile.cxx
 ImageFile.cxx
@@ -78,6 +87,9 @@ SpecFile.cxx
 SpecFileDataFileTypeGroup.cxx
 SpecFileDataFile.cxx
 SpecFileSaxReader.cxx
+StudyMetaDataLink.cxx
+StudyMetaDataLinkSet.cxx
+StudyMetaDataLinkSetSaxReader.cxx
 SurfaceFile.cxx
 SurfaceProjectedItem.cxx
 SurfaceProjectedItemSaxReader.cxx

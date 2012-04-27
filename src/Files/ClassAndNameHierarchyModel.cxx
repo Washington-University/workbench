@@ -38,6 +38,8 @@
 
 #include "Border.h"
 #include "BorderFile.h"
+#include "FociFile.h"
+#include "Focus.h"
 #include "CaretAssert.h"
 
 using namespace caret;
@@ -239,6 +241,143 @@ ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(BorderFile* borderFile)
      * Update with latest data.
      */ 
     this->update(borderFile,
+                 true);
+    
+    /*
+     * Remove unused classes.
+     */
+    const int32_t numberOfClasses = static_cast<int32_t>(this->keyToClassNameSelectorVector.size());
+    for (int32_t classKey = 0; classKey < numberOfClasses; classKey++) {
+        ClassDisplayGroupSelector* classSelector = this->keyToClassNameSelectorVector[classKey];
+        if (classSelector != NULL) {
+            classSelector->removeNamesWithCountersEqualZero();
+            if (classSelector->getNumberOfNamesWithCountersGreaterThanZero() <= 0) {
+                for (std::map<AString, ClassDisplayGroupSelector*>::iterator iter = this->classNameToClassSelectorMap.begin();
+                     iter != this->classNameToClassSelectorMap.end();
+                     iter++) {
+                    if (classSelector == iter->second) {
+                        this->classNameToClassSelectorMap.erase(iter);
+                        break;
+                    }
+                }
+                
+                this->availableClassKeys.push_front(classKey);
+                delete classSelector;
+                this->keyToClassNameSelectorVector[classKey] = NULL;
+            }
+        }
+    }
+}
+
+/**
+ * Update this class hierarchy with the foci names
+ * and classes.
+ *
+ * NOTE: Both the classes and names are stored 
+ * in a GIFTI label table which use a map that 
+ * maps an integer key to a string name.  Because
+ * insertion/removal are slow, do not clear the
+ * LabelTable when an update is needed.  Instead,
+ * use the count attribute that is associated with
+ * each label.  A count greater than zero indicates
+ * that the class or names is valid.  Plus, color
+ * components are associated with classes and
+ * thus they must not be deleted.
+ *
+ * @param fociFile
+ *    The foci file from which classes and names are from.
+ * @parm forceUpdate
+ *    If true, force an update.
+ */
+void 
+ClassAndNameHierarchyModel::update(FociFile* fociFile,
+                                   const bool forceUpdate)
+{
+    bool needToGenerateKeys = forceUpdate;
+    
+    this->name = fociFile->getFileNameNoPath();
+    
+    const int32_t numFoci = fociFile->getNumberOfFoci();
+    if (needToGenerateKeys == false) {
+        for (int32_t i = 0; i < numFoci; i++) {
+            const Focus* focus = fociFile->getFocus(i);
+            if (focus->isSelectionClassOrNameModified()) {
+                needToGenerateKeys = true;
+            }
+        }
+    }
+    
+    if (needToGenerateKeys) {
+        /*
+         * Names for missing class names or foci names.
+         */
+        const AString missingClassName = "NoClass";
+        const AString missingName = "NoName";
+        
+        /*
+         * Reset the counts for all class and children names.
+         */
+        const int32_t numberOfClassKeys = static_cast<int32_t>(this->keyToClassNameSelectorVector.size());
+        for (int32_t classKey = 0; classKey < numberOfClassKeys; classKey++) {
+            ClassDisplayGroupSelector* cs = this->keyToClassNameSelectorVector[classKey];
+            if (cs != NULL) {
+                cs->clearAllNameCounters();
+            }
+        }
+        
+        /*
+         * Update with all foci.
+         */
+        for (int32_t i = 0; i < numFoci; i++) {
+            Focus* focus = fociFile->getFocus(i);
+            
+            /*
+             * Get the class.  If it is empty, use the default name.
+             */
+            AString theClassName = focus->getClassName();
+            if (theClassName.isEmpty()) {
+                theClassName = missingClassName;
+            }
+            
+            /*
+             * Get the name.
+             */
+            AString name = focus->getName();
+            if (name.isEmpty()) {
+                name = missingName;
+            }
+            
+            /*
+             * Adding focus class and name will set the class name keys.
+             */
+            int32_t classKey = -1;
+            int32_t nameKey = -1;
+            this->addName(theClassName,
+                          name,
+                          classKey,
+                          nameKey);
+            
+            /*
+             * Update keys used by the focus.
+             */
+            focus->setSelectionClassAndNameKeys(classKey,
+                                                 nameKey);
+        }
+    }
+}
+
+/**
+ * Remove any unused names and classes.
+ * @param fociFile
+ *    Foci file that contains names and classes.
+ */
+void 
+ClassAndNameHierarchyModel::removeUnusedNamesAndClasses(FociFile* fociFile)
+{
+    /*
+     * Update with latest data.
+     */ 
+    this->update(fociFile,
                  true);
     
     /*

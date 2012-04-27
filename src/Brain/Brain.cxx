@@ -49,6 +49,7 @@
 #include "EventSpecFileReadDataFiles.h"
 #include "EventManager.h"
 #include "FileInformation.h"
+#include "FociFile.h"
 #include "MetricFile.h"
 #include "ModelSurfaceMontage.h"
 #include "ModelVolume.h"
@@ -234,6 +235,14 @@ Brain::resetBrain()
         delete bf;
     }
     this->borderFiles.clear();
+    
+    for (std::vector<FociFile*>::iterator ffi = this->fociFiles.begin();
+         ffi != this->fociFiles.end();
+         ffi++) {
+        FociFile* ff = *ffi;
+        delete ff;
+    }
+    this->fociFiles.clear();
     
     for (std::vector<ConnectivityLoaderFile*>::iterator clfi = this->connectivityDenseFiles.begin();
          clfi != this->connectivityDenseFiles.end();
@@ -578,7 +587,7 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
 }
 
 /**
- * Read a border projection file.
+ * Read a border file.
  *
  * @param filename
  *    Name of the file.
@@ -586,7 +595,7 @@ Brain::getVolumeFile(const int32_t volumeFileIndex) const
  *    If reading failed.
  */
 void 
-Brain::readBorderProjectionFile(const AString& filename) throw (DataFileException)
+Brain::readBorderFile(const AString& filename) throw (DataFileException)
 {
     BorderFile* bf = new BorderFile;
     try {
@@ -595,6 +604,28 @@ Brain::readBorderProjectionFile(const AString& filename) throw (DataFileExceptio
     }
     catch (DataFileException& dfe) {
         delete bf;
+        throw dfe;
+    }
+}
+
+/**
+ * Read a foci file.
+ *
+ * @param filename
+ *    Name of the file.
+ * @throws DataFileException
+ *    If reading failed.
+ */
+void 
+Brain::readFociFile(const AString& filename) throw (DataFileException)
+{
+    FociFile* ff = new FociFile;
+    try {
+        ff->readFile(filename);
+        this->fociFiles.push_back(ff);
+    }
+    catch (DataFileException& dfe) {
+        delete ff;
         throw dfe;
     }
 }
@@ -652,20 +683,6 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
     }
     
     this->connectivityTimeSeriesFiles.push_back(clf);
-}
-
-/**
- * Read a foci projection file.
- *
- * @param filename
- *    Name of the file.
- * @throws DataFileException
- *    If reading failed.
- */
-void 
-Brain::readFociProjectionFile(const AString& /*filename*/) throw (DataFileException)
-{
-    throw DataFileException("Reading not implemented for: foci projection");
 }
 
 /**
@@ -1064,6 +1081,48 @@ Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
     return valid;
 }
 
+/**
+ * @return Number of foci files.
+ */
+int32_t 
+Brain::getNumberOfFociFiles() const
+{
+    return this->borderFiles.size();
+}
+
+/**
+ * @return Return a new FociFile that has been added to the brain.
+ */
+FociFile* 
+Brain::addFociFile()
+{
+    FociFile* bf = new FociFile();
+    this->fociFiles.push_back(bf);
+    return bf;
+}
+
+/**
+ * @return The foci file.
+ * @param indx Index of the foci file.
+ */
+FociFile* 
+Brain::getFociFile(const int32_t indx)
+{
+    CaretAssertVectorIndex(this->fociFiles, indx);
+    return this->fociFiles[indx];
+}
+
+/**
+ * @return The foci file.
+ * @param indx Index of the foci file.
+ */
+const FociFile* 
+Brain::getFociFile(const int32_t indx) const
+{
+    CaretAssertVectorIndex(this->fociFiles, indx);
+    return this->fociFiles[indx];
+}
+
 /*
  * @return The palette file.
  */
@@ -1246,7 +1305,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
-            this->readBorderProjectionFile(dataFileName);
+            this->readBorderFile(dataFileName);
             break;
         case DataFileTypeEnum::CONNECTIVITY_DENSE:
             this->readConnectivityDenseFile(dataFileName);
@@ -1255,7 +1314,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readConnectivityTimeSeriesFile(dataFileName);
             break;
         case DataFileTypeEnum::FOCI:
-            this->readFociProjectionFile(dataFileName);
+            this->readFociFile(dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
             this->readLabelFile(dataFileName, structure);
@@ -1559,6 +1618,10 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
                            this->borderFiles.end());
     
     allDataFilesOut.insert(allDataFilesOut.end(),
+                           this->fociFiles.begin(),
+                           this->fociFiles.end());
+    
+    allDataFilesOut.insert(allDataFilesOut.end(),
                            this->connectivityDenseFiles.begin(),
                            this->connectivityDenseFiles.end());
     
@@ -1637,6 +1700,15 @@ Brain::removeDataFile(CaretDataFile* caretDataFile)
     if (timeIterator != this->connectivityTimeSeriesFiles.end()) {
         delete caretDataFile;
         this->connectivityTimeSeriesFiles.erase(timeIterator);
+        wasRemoved = true;
+    }
+    
+    std::vector<FociFile*>::iterator fociIterator = std::find(this->fociFiles.begin(),
+                                                                  this->fociFiles.end(),
+                                                                  caretDataFile);
+    if (fociIterator != this->fociFiles.end()) {
+        delete caretDataFile;
+        this->fociFiles.erase(fociIterator);
         wasRemoved = true;
     }
     

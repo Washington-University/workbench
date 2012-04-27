@@ -87,9 +87,9 @@ namespace caret {
         
         void getTriAnatomical(float triAnatomical[2][3][3]) const;
         
-        void setVertexAnatomical(const float vertexAnatomical[2][2]);
+        void setVertexAnatomical(const float vertexAnatomical[2][3]);
         
-        void getVertexAnatomical(float vertexAnatomical[2][2]) const;
+        void getVertexAnatomical(float vertexAnatomical[2][3]) const;
         
         void getPosAnatomical(float posAnatomical[3]) const;
         
@@ -148,7 +148,7 @@ namespace caret {
         
         float triAnatomical[2][3][3];
         
-        float vertexAnatomical[2][2];
+        float vertexAnatomical[2][3];
         
         float posAnatomical[3];
         

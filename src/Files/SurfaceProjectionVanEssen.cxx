@@ -122,8 +122,10 @@ SurfaceProjectionVanEssen::copyHelperSurfaceProjectionVanEssen(const SurfaceProj
     
     this->vertexAnatomical[0][0] = this->vertexAnatomical[0][0];
     this->vertexAnatomical[0][1] = this->vertexAnatomical[0][1];
+    this->vertexAnatomical[0][2] = this->vertexAnatomical[0][2];
     this->vertexAnatomical[1][0] = this->vertexAnatomical[1][0];
     this->vertexAnatomical[1][1] = this->vertexAnatomical[1][1];
+    this->vertexAnatomical[1][2] = this->vertexAnatomical[1][2];
     
     this->posAnatomical[0] = this->posAnatomical[0];
     this->posAnatomical[1] = this->posAnatomical[1];
@@ -578,12 +580,14 @@ SurfaceProjectionVanEssen::getTriAnatomical(float triAnatomical[2][3][3]) const
  *    New values.
  */
 void 
-SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][2])
+SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][3])
 {
     this->vertexAnatomical[0][0] = vertexAnatomical[0][0];
     this->vertexAnatomical[0][1] = vertexAnatomical[0][1];
+    this->vertexAnatomical[0][2] = vertexAnatomical[0][2];
     this->vertexAnatomical[1][0] = vertexAnatomical[1][0];
     this->vertexAnatomical[1][1] = vertexAnatomical[1][1];
+    this->vertexAnatomical[1][2] = vertexAnatomical[1][2];
     this->setModified();
 }
 
@@ -593,12 +597,14 @@ SurfaceProjectionVanEssen::setVertexAnatomical(const float vertexAnatomical[2][2
  *    Output values.
  */
 void 
-SurfaceProjectionVanEssen::getVertexAnatomical(float vertexAnatomical[2][2]) const
+SurfaceProjectionVanEssen::getVertexAnatomical(float vertexAnatomical[2][3]) const
 {
     vertexAnatomical[0][0] = this->vertexAnatomical[0][0];
     vertexAnatomical[0][1] = this->vertexAnatomical[0][1];
+    vertexAnatomical[0][2] = this->vertexAnatomical[0][2];
     vertexAnatomical[1][0] = this->vertexAnatomical[1][0];
     vertexAnatomical[1][1] = this->vertexAnatomical[1][1];
+    vertexAnatomical[1][2] = this->vertexAnatomical[1][2];
 }
 
 /**
@@ -663,8 +669,10 @@ SurfaceProjectionVanEssen::resetAllValues()
     
     this->vertexAnatomical[0][0] = 0.0;
     this->vertexAnatomical[0][1] = 0.0;
+    this->vertexAnatomical[0][2] = 0.0;
     this->vertexAnatomical[1][0] = 0.0;
     this->vertexAnatomical[1][1] = 0.0;
+    this->vertexAnatomical[1][2] = 0.0;
     
     this->posAnatomical[0] = 0.0;
     this->posAnatomical[1] = 0.0;
@@ -727,7 +735,7 @@ SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
                                          (int32_t*)this->vertex);
         xmlWriter.writeElementCharacters(XML_TAG_VERTEX_ANATOMICAL,
                                          (float*)this->vertexAnatomical,
-                                         4);
+                                         6);
         xmlWriter.writeElementCharacters(XML_TAG_POS_ANATOMICAL,
                                          this->posAnatomical,
                                          3);

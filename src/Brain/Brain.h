@@ -38,6 +38,7 @@ namespace caret {
     
     class Border;
     class BorderFile;
+    class FociFile;
     class BrainStructure;
     class CaretDataFile;
     class ConnectivityLoaderFile;
@@ -112,6 +113,14 @@ namespace caret {
                                  SurfaceProjectedItem*& borderPointOut,
                                  int32_t& borderPointIndexOut,
                                  float& distanceToBorderPointOut) const;
+        
+        int32_t getNumberOfFociFiles() const;
+        
+        FociFile* getFociFile(const int32_t indx);
+        
+        const FociFile* getFociFile(const int32_t indx) const;
+        
+        FociFile* addFociFile();
         
         PaletteFile* getPaletteFile();
         
@@ -196,13 +205,13 @@ namespace caret {
         
         void readVolumeFile(const AString& filename) throw (DataFileException);
                             
-        void readBorderProjectionFile(const AString& filename) throw (DataFileException);
+        void readBorderFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityDenseFile(const AString& filename) throw (DataFileException);
         
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
-        void readFociProjectionFile(const AString& filename) throw (DataFileException);
+        void readFociFile(const AString& filename) throw (DataFileException);
         
         void readPaletteFile(const AString& filename) throw (DataFileException);
         
@@ -219,6 +228,8 @@ namespace caret {
         std::vector<BrainStructure*> brainStructures;
         
         std::vector<BorderFile*> borderFiles;
+        
+        std::vector<FociFile*> fociFiles;
         
         PaletteFile* paletteFile;
         

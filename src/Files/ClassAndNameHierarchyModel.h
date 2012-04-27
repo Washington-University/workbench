@@ -44,6 +44,7 @@
 namespace caret {
 
     class BorderFile;
+    class FociFile;
     
     class ClassAndNameHierarchyModel : public CaretObject {
     public:
@@ -137,11 +138,16 @@ namespace caret {
         
         void removeUnusedNamesAndClasses(BorderFile* borderFile);
         
+        void removeUnusedNamesAndClasses(FociFile* fociFile);
+        
         bool isClassValid(const int32_t classKey) const;
         
         void setAllSelected(const bool status);
         
         void update(BorderFile* borderFile,
+                    const bool forceUpdate);
+        
+        void update(FociFile* fociFile,
                     const bool forceUpdate);
         
         AString toString() const;
