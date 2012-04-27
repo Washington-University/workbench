@@ -82,12 +82,12 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     float surfKern = (float)myParams->getDouble(2);
     float volKern = (float)myParams->getDouble(3);
     AString directionName = myParams->getString(4);
-    SmoothDirection myDir;
+    CiftiInterface::CiftiDirection myDir;
     if (directionName == "ROW")
     {
-        myDir = ALONG_ROW;
+        myDir = CiftiInterface::ALONG_ROW;
     } else if (directionName == "COLUMN") {
-        myDir = ALONG_COLUMN;
+        myDir = CiftiInterface::ALONG_COLUMN;
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
@@ -113,482 +113,92 @@ void AlgorithmCiftiSmoothing::useParameters(OperationParameters* myParams, Progr
     AlgorithmCiftiSmoothing(myProgObj, myCifti, surfKern, volKern, myDir, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, fixZerosVol, fixZerosSurf);
 }
 
-AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, SmoothDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
+AlgorithmCiftiSmoothing::AlgorithmCiftiSmoothing(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& surfKern, const float& volKern, CiftiInterface::CiftiDirection myDir, CiftiFile* myCiftiOut, const SurfaceFile* myLeftSurf, const SurfaceFile* myRightSurf, const SurfaceFile* myCerebSurf, bool fixZerosVol, bool fixZerosSurf) : AbstractAlgorithm(myProgObj)
 {
-    const CiftiXML& myXML = myCifti->getCiftiXML();
-    vector<CiftiVolumeStructureMap> myVolMaps;
-    if (myDir == ALONG_ROW)
-    {
-        if (myXML.getRowMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
-        {
-            throw AlgorithmException("a row doesn't map to brain models, try column instead");
-        }
-        myXML.getVolumeParcelMapsForRows(myVolMaps);
-        int surfNumNodes = myXML.getRowSurfaceNumberOfNodes(StructureEnum::CORTEX_LEFT);
-        if (surfNumNodes != -1)
-        {
-            if (myLeftSurf == NULL || myLeftSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for left surface");
-            }
-        }
-        surfNumNodes = myXML.getRowSurfaceNumberOfNodes(StructureEnum::CORTEX_RIGHT);
-        if (surfNumNodes != -1)
-        {
-            if (myRightSurf == NULL || myRightSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for right surface");
-            }
-        }
-        surfNumNodes = myXML.getRowSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
-        if (surfNumNodes != -1)
-        {
-            if (myCerebSurf == NULL || myCerebSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for cerebellum surface");
-            }
-        }
-    } else {
-        if (myXML.getColumnMappingType() != CIFTI_INDEX_TYPE_BRAIN_MODELS)
-        {
-            throw AlgorithmException("a column doesn't map to brain models, try row instead");
-        }
-        myXML.getVolumeParcelMapsForColumns(myVolMaps);
-        int surfNumNodes = myXML.getColumnSurfaceNumberOfNodes(StructureEnum::CORTEX_LEFT);
-        if (surfNumNodes != -1)
-        {
-            if (myLeftSurf == NULL || myLeftSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for left surface");
-            }
-        }
-        surfNumNodes = myXML.getColumnSurfaceNumberOfNodes(StructureEnum::CORTEX_RIGHT);
-        if (surfNumNodes != -1)
-        {
-            if (myRightSurf == NULL || myRightSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for right surface");
-            }
-        }
-        surfNumNodes = myXML.getColumnSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
-        if (surfNumNodes != -1)
-        {
-            if (myCerebSurf == NULL || myCerebSurf->getNumberOfNodes() != surfNumNodes)
-            {
-                throw AlgorithmException("number of nodes doesn't match for right surface");
-            }
-        }
-    }
-    int numVolMaps = (int)myVolMaps.size();
-    //ProgressObject* leftSurfSmooth = NULL, *rightSurfSmooth = NULL;
-    //vector<ProgressObject*> volProgObjs;
-    if (myProgObj != NULL)
-    {//TODO: set this up depending on existence of mappings
-        //leftSurfSmooth = myProgObj->addAlgorithm(AlgorithmMetricSmoothing::getAlgorithmWeight());
-    }
     LevelProgress myProgress(myProgObj);
-    myCiftiOut->setCiftiXML(myXML);
-    int rowSize = myCifti->getNumberOfColumns();
-    CaretArray<float> rowScratch(rowSize), rowScratch2(rowSize);
-    if (myDir == ALONG_ROW)
+    const CiftiXML& myXML = myCifti->getCiftiXML();
+    vector<StructureEnum::Enum> surfaceList, volumeList;
+    if (myDir == CiftiInterface::ALONG_COLUMN)
     {
-        int numToSmooth = (int)myCifti->getNumberOfRows();
-        vector<CiftiSurfaceMap> myMap;
-        if (myXML.getSurfaceMapForRows(myMap, StructureEnum::CORTEX_LEFT))
+        if (!myXML.getStructureListsForColumns(surfaceList, volumeList))
         {
-            int numNodes = (int)myCifti->getRowSurfaceNumberOfNodes(StructureEnum::CORTEX_LEFT);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
-            {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, numToSmooth);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                CaretArray<float> metricCol(numNodes);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        metricCol[myMap[i].m_surfaceNode] = rowScratch[myMap[i].m_ciftiIndex];
-                    }
-                    input.setValuesForColumn(col, metricCol);
-                }
-                AlgorithmMetricSmoothing(NULL, myLeftSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    const float* outcol = output.getValuePointerForColumn(col);
-                    for (int i = 0; i < mapSize; ++i)//don't need to copy the existing part of the row because this is the first step
-                    {
-                        rowScratch[myMap[i].m_ciftiIndex] = outcol[myMap[i].m_surfaceNode];
-                    }
-                    myCiftiOut->setRow(rowScratch, col);
-                }
-            } else {
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    myCiftiOut->setRow(rowScratch, col);
-                }
-            }
-        }
-        if (myXML.getSurfaceMapForRows(myMap, StructureEnum::CORTEX_RIGHT))
-        {
-            int numNodes = (int)myCifti->getRowSurfaceNumberOfNodes(StructureEnum::CORTEX_RIGHT);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
-            {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, numToSmooth);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                CaretArray<float> metricCol(numNodes);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        metricCol[myMap[i].m_surfaceNode] = rowScratch[myMap[i].m_ciftiIndex];
-                    }
-                    input.setValuesForColumn(col, metricCol);
-                }
-                AlgorithmMetricSmoothing(NULL, myRightSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    const float* outcol = output.getValuePointerForColumn(col);
-                    myCiftiOut->getRow(rowScratch, col);//get the existing values so as to not overwrite them
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        rowScratch[myMap[i].m_ciftiIndex] = outcol[myMap[i].m_surfaceNode];
-                    }
-                    myCiftiOut->setRow(rowScratch, col);
-                }
-            } else {
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    myCiftiOut->getRow(rowScratch2, col);//ditto, though it shouldn't matter
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        rowScratch2[myMap[i].m_ciftiIndex] = rowScratch[myMap[i].m_ciftiIndex];
-                    }
-                    myCiftiOut->setRow(rowScratch2, col);
-                }
-            }
-        }
-        if (myXML.getSurfaceMapForRows(myMap, StructureEnum::CEREBELLUM))
-        {
-            int numNodes = (int)myCifti->getRowSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
-            {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, numToSmooth);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                CaretArray<float> metricCol(numNodes);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        metricCol[myMap[i].m_surfaceNode] = rowScratch[myMap[i].m_ciftiIndex];
-                    }
-                    input.setValuesForColumn(col, metricCol);
-                }
-                AlgorithmMetricSmoothing(NULL, myCerebSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    const float* outcol = output.getValuePointerForColumn(col);
-                    myCiftiOut->getRow(rowScratch, col);//get the existing values so as to not overwrite them
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        rowScratch[myMap[i].m_ciftiIndex] = outcol[myMap[i].m_surfaceNode];
-                    }
-                    myCiftiOut->setRow(rowScratch, col);
-                }
-            } else {
-                for (int col = 0; col < numToSmooth; ++col)
-                {
-                    myCifti->getRow(rowScratch, col);
-                    myCiftiOut->getRow(rowScratch2, col);//ditto, though it shouldn't matter
-                    for (int i = 0; i < mapSize; ++i)
-                    {
-                        rowScratch2[myMap[i].m_ciftiIndex] = rowScratch[myMap[i].m_ciftiIndex];
-                    }
-                    myCiftiOut->setRow(rowScratch2, col);
-                }
-            }
-        }
-        int64_t myDims[3];
-        vector<vector<float> > mySForm;
-        if (myXML.getVolumeDimsAndSForm(myDims, mySForm))
-        {
-            for (int map = 0; map < numVolMaps; ++map)
-            {
-                int numVoxels = (int)myVolMaps[map].m_map.size();
-                if (volKern > 0.0f)
-                {
-                    if (numVoxels > 0)
-                    {//make a voxel bounding box to minimize memory usage
-                        int extrema[6] = { myVolMaps[map].m_map[0].m_ijk[0],
-                            myVolMaps[map].m_map[0].m_ijk[0],
-                            myVolMaps[map].m_map[0].m_ijk[1],
-                            myVolMaps[map].m_map[0].m_ijk[1],
-                            myVolMaps[map].m_map[0].m_ijk[2],
-                            myVolMaps[map].m_map[0].m_ijk[2]
-                        };
-                        for (int i = 1; i < numVoxels; ++i)
-                        {
-                            if (myVolMaps[map].m_map[i].m_ijk[0] < extrema[0]) extrema[0] = myVolMaps[map].m_map[i].m_ijk[0];
-                            if (myVolMaps[map].m_map[i].m_ijk[0] > extrema[1]) extrema[1] = myVolMaps[map].m_map[i].m_ijk[0];
-                            if (myVolMaps[map].m_map[i].m_ijk[1] < extrema[2]) extrema[2] = myVolMaps[map].m_map[i].m_ijk[1];
-                            if (myVolMaps[map].m_map[i].m_ijk[1] > extrema[3]) extrema[3] = myVolMaps[map].m_map[i].m_ijk[1];
-                            if (myVolMaps[map].m_map[i].m_ijk[2] < extrema[4]) extrema[4] = myVolMaps[map].m_map[i].m_ijk[2];
-                            if (myVolMaps[map].m_map[i].m_ijk[2] > extrema[5]) extrema[5] = myVolMaps[map].m_map[i].m_ijk[2];
-                        }
-                        vector<int64_t> volDims, volDims2;
-                        volDims.push_back(extrema[1] - extrema[0] + 1);
-                        volDims.push_back(extrema[3] - extrema[2] + 1);
-                        volDims.push_back(extrema[5] - extrema[4] + 1);
-                        volDims2 = volDims;
-                        volDims.push_back(rowSize);
-                        VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
-                        roi.setValueAllVoxels(0.0f);
-                        for (int i = 0; i < numVoxels; ++i)
-                        {
-                            roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4]);
-                        }
-                        for (int subvol = 0; subvol < numToSmooth; ++subvol)
-                        {
-                            myCifti->getRow(rowScratch, subvol);
-                            for (int i = 0; i < numVoxels; ++i)
-                            {
-                                input.setValue(rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex], myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4], subvol);
-                            }
-                        }
-                        AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
-                        for (int subvol = 0; subvol < numToSmooth; ++subvol)
-                        {
-                            myCiftiOut->getRow(rowScratch, subvol);
-                            for (int i = 0; i < numVoxels; ++i)
-                            {
-                                rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex] = output.getValue(myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4], subvol);
-                            }
-                            myCiftiOut->setRow(rowScratch, subvol);
-                        }
-                    }
-                } else {
-                    for (int subvol = 0; subvol < numToSmooth; ++subvol)
-                    {
-                        myCifti->getRow(rowScratch, subvol);
-                        myCiftiOut->getRow(rowScratch2, subvol);
-                        for (int i = 0; i < numVoxels; ++i)
-                        {
-                            rowScratch2[myVolMaps[map].m_map[i].m_ciftiIndex] = rowScratch[myVolMaps[map].m_map[i].m_ciftiIndex];
-                        }
-                        myCiftiOut->setRow(rowScratch2, subvol);
-                    }
-                }
-            }
+            throw AlgorithmException("specified direction does not contain brainordinates");
         }
     } else {
-        vector<CiftiSurfaceMap> myMap;
-        if (myXML.getSurfaceMapForColumns(myMap, StructureEnum::CORTEX_LEFT))
+        if (!myXML.getStructureListsForRows(surfaceList, volumeList))
         {
-            int numNodes = (int)myCifti->getColumnSurfaceNumberOfNodes(StructureEnum::CORTEX_LEFT);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
+            throw AlgorithmException("specified direction does not contain brainordinates");
+        }
+    }
+    for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
+    {//sanity check surfaces
+        const SurfaceFile* mySurf = NULL;
+        AString surfType;
+        switch (surfaceList[whichStruct])
+        {
+            case StructureEnum::CORTEX_LEFT:
+                mySurf = myLeftSurf;
+                surfType = "left";
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                mySurf = myRightSurf;
+                surfType = "right";
+                break;
+            case StructureEnum::CEREBELLUM:
+                mySurf = myCerebSurf;
+                surfType = "cerebellum";
+                break;
+            default:
+                throw AlgorithmException("found surface model with incorrect type: " + StructureEnum::toName(surfaceList[whichStruct]));
+                break;
+        }
+        if (mySurf == NULL)
+        {
+            throw AlgorithmException(surfType + " surface required but not provided");
+        }
+        if (myDir == CiftiInterface::ALONG_COLUMN)
+        {
+            if (mySurf->getNumberOfNodes() != myCifti->getColumnSurfaceNumberOfNodes(surfaceList[whichStruct]))
             {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, rowSize);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        input.setValue(myMap[index].m_surfaceNode, i, rowScratch[i]);
-                    }
-                }
-                AlgorithmMetricSmoothing(NULL, myLeftSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        rowScratch[i] = output.getValue(myMap[index].m_surfaceNode, i);
-                    }
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
-            } else {
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
+                throw AlgorithmException(surfType + " surface has the wrong number of nodes");
+            }
+        } else {
+            if (mySurf->getNumberOfNodes() != myCifti->getRowSurfaceNumberOfNodes(surfaceList[whichStruct]))
+            {
+                throw AlgorithmException(surfType + " surface has the wrong number of nodes");
             }
         }
-        if (myXML.getSurfaceMapForColumns(myMap, StructureEnum::CORTEX_RIGHT))
+    }
+    myCiftiOut->setCiftiXML(myXML);
+    for (int whichStruct = 0; whichStruct < (int)surfaceList.size(); ++whichStruct)
+    {
+        const SurfaceFile* mySurf = NULL;
+        switch (surfaceList[whichStruct])
         {
-            int numNodes = (int)myCifti->getColumnSurfaceNumberOfNodes(StructureEnum::CORTEX_RIGHT);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
-            {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, rowSize);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        input.setValue(myMap[index].m_surfaceNode, i, rowScratch[i]);
-                    }
-                }
-                AlgorithmMetricSmoothing(NULL, myRightSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int index = 0; index < mapSize; ++index)
-                {//don't need to preload the row because we set the entire row
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        rowScratch[i] = output.getValue(myMap[index].m_surfaceNode, i);
-                    }
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
-            } else {
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
-            }
+            case StructureEnum::CORTEX_LEFT:
+                mySurf = myLeftSurf;
+                break;
+            case StructureEnum::CORTEX_RIGHT:
+                mySurf = myRightSurf;
+                break;
+            case StructureEnum::CEREBELLUM:
+                mySurf = myCerebSurf;
+                break;
+            default:
+                break;
         }
-        if (myXML.getSurfaceMapForColumns(myMap, StructureEnum::CEREBELLUM))
-        {
-            int numNodes = (int)myCifti->getColumnSurfaceNumberOfNodes(StructureEnum::CEREBELLUM);
-            int mapSize = (int)myMap.size();
-            if (surfKern > 0.0f)
-            {
-                MetricFile input, output, roi;
-                input.setNumberOfNodesAndColumns(numNodes, rowSize);
-                roi.setNumberOfNodesAndColumns(numNodes, 1);
-                roi.initializeColumn(0);
-                for (int i = 0; i < mapSize; ++i)
-                {
-                    roi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
-                }
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        input.setValue(myMap[index].m_surfaceNode, i, rowScratch[i]);
-                    }
-                }
-                AlgorithmMetricSmoothing(NULL, myCerebSurf, &input, surfKern, &output, &roi, fixZerosSurf);
-                for (int index = 0; index < mapSize; ++index)
-                {//don't need to preload the row because we set the entire row
-                    for (int i = 0; i < rowSize; ++i)
-                    {
-                        rowScratch[i] = output.getValue(myMap[index].m_surfaceNode, i);
-                    }
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
-            } else {
-                for (int index = 0; index < mapSize; ++index)
-                {
-                    myCifti->getRow(rowScratch, myMap[index].m_ciftiIndex);
-                    myCiftiOut->setRow(rowScratch, myMap[index].m_ciftiIndex);
-                }
-            }
-        }
-        int64_t myDims[3];
-        vector<vector<float> > mySForm;
-        if (myXML.getVolumeDimsAndSForm(myDims, mySForm))
-        {
-            for (int map = 0; map < numVolMaps; ++map)
-            {
-                int numVoxels = (int)myVolMaps[map].m_map.size();
-                if (volKern > 0.0f)
-                {
-                    if (numVoxels > 0)
-                    {//make a voxel bounding box to minimize memory usage
-                        int extrema[6] = { myVolMaps[map].m_map[0].m_ijk[0],
-                            myVolMaps[map].m_map[0].m_ijk[0],
-                            myVolMaps[map].m_map[0].m_ijk[1],
-                            myVolMaps[map].m_map[0].m_ijk[1],
-                            myVolMaps[map].m_map[0].m_ijk[2],
-                            myVolMaps[map].m_map[0].m_ijk[2]
-                        };
-                        for (int i = 1; i < numVoxels; ++i)
-                        {
-                            if (myVolMaps[map].m_map[i].m_ijk[0] < extrema[0]) extrema[0] = myVolMaps[map].m_map[i].m_ijk[0];
-                            if (myVolMaps[map].m_map[i].m_ijk[0] > extrema[1]) extrema[1] = myVolMaps[map].m_map[i].m_ijk[0];
-                            if (myVolMaps[map].m_map[i].m_ijk[1] < extrema[2]) extrema[2] = myVolMaps[map].m_map[i].m_ijk[1];
-                            if (myVolMaps[map].m_map[i].m_ijk[1] > extrema[3]) extrema[3] = myVolMaps[map].m_map[i].m_ijk[1];
-                            if (myVolMaps[map].m_map[i].m_ijk[2] < extrema[4]) extrema[4] = myVolMaps[map].m_map[i].m_ijk[2];
-                            if (myVolMaps[map].m_map[i].m_ijk[2] > extrema[5]) extrema[5] = myVolMaps[map].m_map[i].m_ijk[2];
-                        }
-                        vector<int64_t> volDims, volDims2;
-                        volDims.push_back(extrema[1] - extrema[0] + 1);
-                        volDims.push_back(extrema[3] - extrema[2] + 1);
-                        volDims.push_back(extrema[5] - extrema[4] + 1);
-                        volDims2 = volDims;
-                        volDims.push_back(rowSize);
-                        VolumeFile input(volDims, mySForm), roi(volDims2, mySForm), output;
-                        roi.setValueAllVoxels(0.0f);
-                        for (int i = 0; i < numVoxels; ++i)
-                        {
-                            roi.setValue(1.0f, myVolMaps[map].m_map[i].m_ijk[0] - extrema[0], myVolMaps[map].m_map[i].m_ijk[1] - extrema[2], myVolMaps[map].m_map[i].m_ijk[2] - extrema[4]);
-                        }
-                        for (int index = 0; index < numVoxels; ++index)
-                        {
-                            myCifti->getRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
-                            for (int subvol = 0; subvol < rowSize; ++subvol)
-                            {
-                                input.setValue(rowScratch[subvol], myVolMaps[map].m_map[index].m_ijk[0] - extrema[0], myVolMaps[map].m_map[index].m_ijk[1] - extrema[2], myVolMaps[map].m_map[index].m_ijk[2] - extrema[4], subvol);
-                            }
-                        }
-                        AlgorithmVolumeSmoothing(NULL, &input, volKern, &output, &roi, fixZerosVol);
-                        for (int index = 0; index < numVoxels; ++index)
-                        {
-                            for (int subvol = 0; subvol < rowSize; ++subvol)
-                            {
-                                rowScratch[subvol] = output.getValue(myVolMaps[map].m_map[index].m_ijk[0] - extrema[0], myVolMaps[map].m_map[index].m_ijk[1] - extrema[2], myVolMaps[map].m_map[index].m_ijk[2] - extrema[4], subvol);
-                            }
-                            myCiftiOut->setRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
-                        }
-                    }
-                } else {
-                    for (int index = 0; index < numVoxels; ++index)
-                    {
-                        myCifti->getRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
-                        myCiftiOut->setRow(rowScratch, myVolMaps[map].m_map[index].m_ciftiIndex);
-                    }
-                }
-            }
-        }
+        MetricFile myMetric, myRoi, myMetricOut;
+        AlgorithmCiftiSeparate(NULL, myCifti, myDir, surfaceList[whichStruct], &myMetric, &myRoi);
+        AlgorithmMetricSmoothing(NULL, mySurf, &myMetric, surfKern, &myMetricOut, &myRoi, fixZerosSurf);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, surfaceList[whichStruct], &myMetricOut);
+    }
+    for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
+    {
+        VolumeFile myVol, myRoi, myVolOut;
+        int64_t offset[3];
+        AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
+        AlgorithmVolumeSmoothing(NULL, &myVol, volKern, &myVolOut, &myRoi, fixZerosVol);
+        AlgorithmCiftiReplaceStructure(NULL, myCiftiOut, myDir, volumeList[whichStruct], &myVolOut, true);
     }
 }
 

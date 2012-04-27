@@ -270,12 +270,20 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 }
             }
         }
-        MetricFile outputMetric;
-        AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, surfKern, &myRoi);
+        MetricFile outputMetric, *finalMetric;
+        if (surfKern > 0.0f)
+        {
+            AlgorithmMetricSmoothing(NULL, mySurf, &computeMetric, surfKern, &outputMetric, &myRoi);
+            AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &computeMetric, NULL, -1.0f, &myRoi);
+            finalMetric = &computeMetric;
+        } else {
+            AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi);
+            finalMetric = &outputMetric;
+        }
         int numMetricCols = endpos - startpos;
         for (int j = 0; j < numMetricCols; ++j)
         {
-            const float* myCol = outputMetric.getValuePointerForColumn(j);
+            const float* myCol = finalMetric->getValuePointerForColumn(j);
             for (int i = 0; i < mapSize; ++i)
             {
                 accum[i] += myCol[myMap[i].m_surfaceNode];
