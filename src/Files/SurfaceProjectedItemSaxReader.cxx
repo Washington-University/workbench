@@ -173,6 +173,8 @@ SurfaceProjectedItemSaxReader::endElement(const AString& /* namspaceURI */,
                 if (isValid == false) {
                     CaretLogWarning("Invalid structure name: " 
                                     + text);
+                    throw XmlSaxParserException("Invalid structure name: " 
+                                                + text);
                 }
             }
             else if (qName == SurfaceProjectedItem::XML_TAG_VOLUME_XYZ) {

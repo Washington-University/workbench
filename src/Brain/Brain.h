@@ -45,6 +45,7 @@ namespace caret {
     class ConnectivityLoaderManager;
     class DisplayProperties;
     class DisplayPropertiesBorders;
+    class DisplayPropertiesFoci;
     class DisplayPropertiesInformation;
     class DisplayPropertiesVolume;
     class EventDataFileRead;
@@ -176,6 +177,10 @@ namespace caret {
         
         const DisplayPropertiesBorders* getDisplayPropertiesBorders() const;
         
+        DisplayPropertiesFoci* getDisplayPropertiesFoci();
+        
+        const DisplayPropertiesFoci* getDisplayPropertiesFoci() const;
+        
         DisplayPropertiesVolume* getDisplayPropertiesVolume();
         
         const DisplayPropertiesVolume* getDisplayPropertiesVolume() const;
@@ -265,6 +270,12 @@ namespace caret {
          * is also in the displayProperties std::vector.
          */
         DisplayPropertiesBorders* displayPropertiesBorders;
+        
+        /**
+         * Display properties for foci - DO NOT delete since this
+         * is also in the displayProperties std::vector.
+         */
+        DisplayPropertiesFoci* displayPropertiesFoci;
         
         /**
          * Display properties for information - DO NOT delete since this

@@ -44,6 +44,7 @@
 #undef __IDENTIFICATION_MANAGER_DECLARE__
 
 #include "IdentificationItemBorderSurface.h"
+#include "IdentificationItemFocusSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -68,12 +69,14 @@ IdentificationManager::IdentificationManager()
 : CaretObject()
 {
     this->surfaceBorderIdentification = new IdentificationItemBorderSurface();
+    this->surfaceFocusIdentification = new IdentificationItemFocusSurface();
     this->surfaceNodeIdentification = new IdentificationItemSurfaceNode();
     this->surfaceNodeIdentificationSymbol = new IdentificationItemSurfaceNodeIdentificationSymbol();
     this->surfaceTriangleIdentification = new IdentificationItemSurfaceTriangle();
     this->voxelIdentification = new IdentificationItemVoxel();
     
     this->allIdentificationItems.push_back(this->surfaceBorderIdentification);
+    this->allIdentificationItems.push_back(this->surfaceFocusIdentification);
     this->allIdentificationItems.push_back(this->surfaceNodeIdentification);
     this->allIdentificationItems.push_back(this->surfaceNodeIdentificationSymbol);
     this->allIdentificationItems.push_back(this->surfaceTriangleIdentification);
@@ -83,6 +86,7 @@ IdentificationManager::IdentificationManager()
     this->surfaceSelectedItems.push_back(this->surfaceTriangleIdentification);
     
     this->layeredSelectedItems.push_back(this->surfaceBorderIdentification);
+    this->layeredSelectedItems.push_back(this->surfaceFocusIdentification);
     
     this->volumeSelectedItems.push_back(this->voxelIdentification);
     
@@ -97,6 +101,8 @@ IdentificationManager::~IdentificationManager()
     this->reset();
     delete this->surfaceBorderIdentification;
     this->surfaceBorderIdentification = NULL;
+    delete this->surfaceFocusIdentification;
+    this->surfaceFocusIdentification = NULL;
     delete this->surfaceNodeIdentification;
     this->surfaceNodeIdentification = NULL;
     delete this->surfaceNodeIdentificationSymbol;
@@ -437,6 +443,24 @@ const IdentificationItemBorderSurface*
 IdentificationManager::getSurfaceBorderIdentification() const
 {
     return this->surfaceBorderIdentification;
+}
+
+/**
+ * @return Identification for foci.
+ */
+IdentificationItemFocusSurface* 
+IdentificationManager::getSurfaceFocusIdentification()
+{
+    return this->surfaceFocusIdentification;
+}
+
+/**
+ * @return Identification for foci.
+ */
+const IdentificationItemFocusSurface* 
+IdentificationManager::getSurfaceFocusIdentification() const
+{
+    return this->surfaceFocusIdentification;
 }
 
 /**

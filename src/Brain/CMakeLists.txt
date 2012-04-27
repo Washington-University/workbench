@@ -60,6 +60,7 @@ BrowserTabYoking.h
 ConnectivityLoaderManager.h
 DisplayProperties.h
 DisplayPropertiesBorders.h
+DisplayPropertiesFoci.h
 DisplayPropertiesInformation.h
 DisplayPropertiesVolume.h
 EventBrowserTabDelete.h
@@ -78,9 +79,11 @@ EventModelSurfaceGet.h
 EventModelYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
+FociColoringTypeEnum.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemBorderSurface.h
+IdentificationItemFocusSurface.h
 IdentificationItemSurfaceNode.h
 IdentificationItemSurfaceNodeIdentificationSymbol.h
 IdentificationItemSurfaceTriangle.h
@@ -126,6 +129,7 @@ BrowserTabYoking.cxx
 ConnectivityLoaderManager.cxx
 DisplayProperties.cxx
 DisplayPropertiesBorders.cxx
+DisplayPropertiesFoci.cxx
 DisplayPropertiesInformation.cxx
 DisplayPropertiesVolume.cxx
 EventBrowserTabDelete.cxx
@@ -144,9 +148,11 @@ EventModelSurfaceGet.cxx
 EventModelYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
+FociColoringTypeEnum.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemBorderSurface.cxx
+IdentificationItemFocusSurface.cxx
 IdentificationItemSurfaceNode.cxx
 IdentificationItemSurfaceNodeIdentificationSymbol.cxx
 IdentificationItemSurfaceTriangle.cxx

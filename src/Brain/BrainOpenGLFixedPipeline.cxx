@@ -63,15 +63,19 @@
 #include "DescriptiveStatistics.h"
 #include "DisplayGroupEnum.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
 #include "EventManager.h"
 #include "EventModelSurfaceGet.h"
 #include "FastStatistics.h"
+#include "FociFile.h"
+#include "Focus.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
 #include "IdentificationItemBorderSurface.h"
+#include "IdentificationItemFocusSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemSurfaceTriangle.h"
@@ -827,6 +831,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceTrianglesWithVertexArrays(surface,
                                                        nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
+            this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
             this->drawSurfaceBorderBeingDrawn(surface);
             break;
@@ -837,6 +842,7 @@ BrainOpenGLFixedPipeline::drawSurface(Surface* surface,
             this->drawSurfaceTriangles(surface,
                                        nodeColoringRGBA);
             this->drawSurfaceBorders(surface);
+            this->drawSurfaceFoci(surface);
             this->drawSurfaceNodeAttributes(surface);
             glShadeModel(GL_SMOOTH);
             break;
@@ -1621,6 +1627,171 @@ BrainOpenGLFixedPipeline::setLineWidth(const float lineWidth)
 }
 
 /**
+ * Draw foci on a surface.
+ * @param surface
+ *   Surface on which foci are drawn.
+ */
+void 
+BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
+{
+    IdentificationItemFocusSurface* idFocus = this->getIdentificationManager()->getSurfaceFocusIdentification();
+    
+    /*
+     * Check for a 'selection' type mode
+     */
+    bool isSelect = false;
+    switch (this->mode) {
+        case MODE_DRAWING:
+            break;
+        case MODE_IDENTIFICATION:
+            if (idFocus->isEnabledForSelection()) {
+                isSelect = true;
+                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);            
+            }
+            else {
+                return;
+            }
+            break;
+        case MODE_PROJECTION:
+            return;
+            break;
+    }
+    
+    
+    Brain* brain = surface->getBrainStructure()->getBrain();
+    const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
+    if (fociDisplayProperties->isDisplayed(this->windowTabIndex) == false) {
+        return;
+    }
+    const float focusRadius = fociDisplayProperties->getFociSize() / 2.0;
+    const FociColoringTypeEnum::Enum fociColoringType = fociDisplayProperties->getColoringType();
+    
+    const StructureEnum::Enum surfaceStructure = surface->getStructure();
+    const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
+    
+    const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroup(this->windowTabIndex);
+    
+    const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
+    const int32_t numFociFiles = brain->getNumberOfFociFiles();
+    for (int32_t i = 0; i < numFociFiles; i++) {
+        FociFile* fociFile = brain->getFociFile(i);
+        
+        const ClassAndNameHierarchyModel* classAndNameSelection = fociFile->getClassAndNameHierarchyModel();
+        if (classAndNameSelection->isSelected(displayGroup) == false) {
+            continue;
+        }
+        
+        const GiftiLabelTable* classColorTable = fociFile->getColorTable();
+        
+        const int32_t numFoci = fociFile->getNumberOfFoci();
+        
+        for (int32_t j = 0; j < numFoci; j++) {
+            Focus* focus = fociFile->getFocus(j);
+            const int32_t selectionClassKey = focus->getSelectionClassKey();
+            const int32_t selectionNameKey  = focus->getSelectionNameKey();
+            if (classAndNameSelection->isClassSelected(displayGroup, selectionClassKey) == false) {
+                continue;
+            }
+            if (classAndNameSelection->isNameSelected(displayGroup, 
+                                                      selectionClassKey, 
+                                                      selectionNameKey) == false) {
+                continue;
+            }
+            
+            AString nameForColoring = focus->getName();
+            switch (fociColoringType) {
+                case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
+                    nameForColoring = focus->getClassName();
+                    break;
+                case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
+                    nameForColoring = focus->getName();
+                    break;
+            }
+            
+            const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(nameForColoring);
+            if (colorLabel != NULL) {
+                const float* rgba = colorLabel->getColor();
+                glColor3fv(rgba);
+            }
+            else {
+                glColor3fv(CaretColorEnum::toRGB(CaretColorEnum::BLACK));
+            }
+            
+            const int32_t numProjections = focus->getNumberOfProjections();
+            for (int32_t k = 0; k < numProjections; k++) {
+                const SurfaceProjectedItem* spi = focus->getProjection(k);
+                float xyz[3];
+                if (spi->getProjectedPosition(*surface,
+                                              xyz,
+                                              false)) {
+                    const StructureEnum::Enum focusStructure = spi->getStructure();
+                    bool drawIt = false;
+                    if (focusStructure == surfaceStructure) {
+                        drawIt = true;
+                    }
+                    else if (isContralateralEnabled) {
+                        if (focusStructure == surfaceContralateralStructure) {
+                            drawIt = true;
+                        }
+                    }
+                    
+                    if (drawIt) {
+                        if (isSelect) {
+                            uint8_t idRGB[3];
+                            this->colorIdentification->addItem(idRGB, 
+                                                               IdentificationItemDataTypeEnum::FOCUS_SURFACE, 
+                                                               i, // file index
+                                                               j, // focus index
+                                                               k);// projection index
+                            glColor3ubv(idRGB);
+                        }
+                        
+                        glPushMatrix();
+                        glTranslatef(xyz[0], xyz[1], xyz[2]);
+                        this->drawSphere(focusRadius);
+                        glPopMatrix();
+                    }
+                }                
+            }
+        }
+    }
+    
+    if (isSelect) {
+        int32_t fociFileIndex = -1;
+        int32_t focusIndex = -1;
+        int32_t focusProjectionIndex = -1;
+        float depth = -1.0;
+        this->getIndexFromColorSelection(IdentificationItemDataTypeEnum::FOCUS_SURFACE, 
+                                         this->mouseX, 
+                                         this->mouseY,
+                                         fociFileIndex,
+                                         focusIndex,
+                                         focusProjectionIndex,
+                                         depth);
+        if (fociFileIndex >= 0) {
+            if (idFocus->isOtherScreenDepthCloserToViewer(depth)) {
+                Focus* focus = brain->getFociFile(fociFileIndex)->getFocus(focusIndex);
+                idFocus->setBrain(brain);
+                idFocus->setFocus(focus);
+                idFocus->setFociFile(brain->getFociFile(fociFileIndex));
+                idFocus->setFocusIndex(focusIndex);
+                idFocus->setFocusProjectionIndex(focusProjectionIndex);
+                idFocus->setSurface(surface);
+                idFocus->setScreenDepth(depth);
+                float xyz[3];
+                const SurfaceProjectedItem* spi = focus->getProjection(focusProjectionIndex);
+                spi->getProjectedPosition(*surface,
+                                            xyz,
+                                            false);
+                this->setIdentifiedItemScreenXYZ(idFocus, xyz);
+                CaretLogFine("Selected Focus Identification Symbol: " + QString::number(focusIndex));   
+            }
+        }
+    }
+}
+
+
+/**
  * Draw borders on a surface.
  * @param surface
  *   Surface on which borders are drawn.
@@ -1738,7 +1909,7 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                                                                          xyz,
                                                                          false);
                 this->setIdentifiedItemScreenXYZ(idBorder, xyz);
-                CaretLogFine("Selected Node Identification Symbol: " + QString::number(borderIndex));   
+                CaretLogFine("Selected Border Identification Symbol: " + QString::number(borderIndex));   
             }
         }
     }
@@ -4070,11 +4241,76 @@ BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeE
  *    X-coordinate of identification.
  * @param y
  *    X-coordinate of identification.
- * @param indexOut
+ * @param indexOut1
  *    First index of identified item.
- * @param indexOut
+ * @param indexOut2
  *    Second index of identified item.
- * @param indexOut
+ * @param depthOut
+ *    Depth of identified item.
+ */
+void
+BrainOpenGLFixedPipeline::getIndexFromColorSelection(IdentificationItemDataTypeEnum::Enum dataType,
+                                                     const int32_t x,
+                                                     const int32_t y,
+                                                     int32_t& index1Out,
+                                                     int32_t& index2Out,
+                                                     float& depthOut)
+{
+    // Figure out item was picked using color in color buffer
+    //
+    glReadBuffer(GL_BACK);
+    glPixelStorei(GL_PACK_SKIP_ROWS, 0);
+    glPixelStorei(GL_PACK_SKIP_PIXELS, 0);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    uint8_t pixels[3];
+    glReadPixels((int)x,
+                 (int)y,
+                 1,
+                 1,
+                 GL_RGB,
+                 GL_UNSIGNED_BYTE,
+                 pixels);
+    
+    index1Out = -1;
+    index2Out = -1;
+    depthOut = -1.0;
+    
+    CaretLogFine("ID color is "
+                 + QString::number(pixels[0]) + ", "
+                 + QString::number(pixels[1]) + ", "
+                 + QString::number(pixels[2]));
+    
+    this->colorIdentification->getItem(pixels, dataType, &index1Out, &index2Out);
+    
+    if (index1Out >= 0) {
+        /*
+         * Get depth from depth buffer
+         */
+        glPixelStorei(GL_PACK_ALIGNMENT, 4);
+        glReadPixels(x,
+                     y,
+                     1,
+                     1,
+                     GL_DEPTH_COMPONENT,
+                     GL_FLOAT,
+                     &depthOut);
+    }
+    this->colorIdentification->reset();
+}
+
+/**
+ * Analyze color information to extract identification data.
+ * @param dataType
+ *    Type of data.
+ * @param x
+ *    X-coordinate of identification.
+ * @param y
+ *    X-coordinate of identification.
+ * @param indexOut1
+ *    First index of identified item.
+ * @param indexOut2
+ *    Second index of identified item.
+ * @param indexOut3
  *    Third index of identified item.
  * @param depthOut
  *    Depth of identified item.

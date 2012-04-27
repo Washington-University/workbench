@@ -37,6 +37,7 @@
 #include "ConnectivityLoaderFile.h"
 #include "ConnectivityLoaderManager.h"
 #include "DisplayPropertiesBorders.h"
+#include "DisplayPropertiesFoci.h"
 #include "DisplayPropertiesInformation.h"
 #include "DisplayPropertiesVolume.h"
 #include "ElapsedTimer.h"
@@ -83,6 +84,9 @@ Brain::Brain()
     
     this->displayPropertiesBorders = new DisplayPropertiesBorders(this);
     this->displayProperties.push_back(this->displayPropertiesBorders);
+    
+    this->displayPropertiesFoci = new DisplayPropertiesFoci(this);
+    this->displayProperties.push_back(this->displayPropertiesFoci);
     
     this->displayPropertiesInformation = new DisplayPropertiesInformation(this);
     this->displayProperties.push_back(this->displayPropertiesInformation);
@@ -1087,7 +1091,7 @@ Brain::findBorderNearestXYZ(const SurfaceFile* surfaceFile,
 int32_t 
 Brain::getNumberOfFociFiles() const
 {
-    return this->borderFiles.size();
+    return this->fociFiles.size();
 }
 
 /**
@@ -1751,6 +1755,24 @@ const DisplayPropertiesBorders*
 Brain::getDisplayPropertiesBorders() const
 {
     return this->displayPropertiesBorders;
+}
+
+/**
+ * @return The foci display properties.
+ */
+DisplayPropertiesFoci* 
+Brain::getDisplayPropertiesFoci()
+{
+    return this->displayPropertiesFoci;
+}
+
+/**
+ * @return The foci display properties.
+ */
+const DisplayPropertiesFoci* 
+Brain::getDisplayPropertiesFoci() const
+{
+    return this->displayPropertiesFoci;
 }
 
 /**

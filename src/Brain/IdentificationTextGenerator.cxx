@@ -34,8 +34,11 @@
 #include "ConnectivityLoaderFile.h"
 #include "CaretVolumeExtension.h"
 #include "EventManager.h"
+#include "FociFile.h"
+#include "Focus.h"
 #include "GiftiLabel.h"
 #include "IdentificationItemBorderSurface.h"
+#include "IdentificationItemFocusSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
@@ -114,6 +117,9 @@ IdentificationTextGenerator::createIdentificationText(const IdentificationManage
     
     this->generateSurfaceBorderIdentifcationText(idText,
                                                  idManager->getSurfaceBorderIdentification());
+    
+    this->generateSurfaceFociIdentifcationText(idText, 
+                                               idManager->getSurfaceFocusIdentification());
     
     const IdentificationItemVoxel* voxelID = idManager->getVoxelIdentification();
     if (voxelID->isValid()) {
@@ -351,6 +357,41 @@ IdentificationTextGenerator::generateSurfaceBorderIdentifcationText(Identificati
         idText.addLine(true, boldText, text);
     }
 }
+
+/**
+ * Generate identification text for a surface focus identification.
+ * @param idText
+ *     String builder for identification text.
+ * @param idSurfaceFocus
+ *     Information for surface focus ID.
+ */void 
+IdentificationTextGenerator::generateSurfaceFociIdentifcationText(IdentificationStringBuilder& idText,
+                                          const IdentificationItemFocusSurface* idSurfaceFocus) const
+{
+    if (idSurfaceFocus->isValid()) {
+        const Focus* focus = idSurfaceFocus->getFocus();
+        const SurfaceProjectedItem* spi = focus->getProjection(idSurfaceFocus->getFocusProjectionIndex());
+        float xyz[3];
+        spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyz, false);
+        
+        AString boldText = ("FOCUS " 
+                            + StructureEnum::toGuiName(spi->getStructure())
+                            + " Name: "
+                            + focus->getName());
+        if (focus->getClassName().isEmpty() == false) {
+            boldText += (" ClassName: "
+                         + focus->getClassName()
+                         + ": ");
+        }
+        const AString text = ("("
+                              + AString::number(idSurfaceFocus->getFocusIndex())
+                              + ") ("
+                              + AString::fromNumbers(xyz, 3, ",")
+                              + ")");
+        idText.addLine(true, boldText, text);
+    }
+}
+
 
 
 /**

@@ -193,7 +193,7 @@ SurfaceProjectionVanEssen::unprojectToSurface(const SurfaceFile& surfaceFile,
     float v[3];
     float v_t1[3];
     MathFunctions::subtractVectors(this->vertexAnatomical[js], this->vertexAnatomical[is], v);
-    MathFunctions::subtractVectors(this->posAnatomical, this->posAnatomical, v_t1);
+    MathFunctions::subtractVectors(this->posAnatomical, this->vertexAnatomical[is], v_t1);
     
     float s_t2 = MathFunctions::dotProduct(v, v);
     float s_t3 = MathFunctions::dotProduct(v_t1, v);

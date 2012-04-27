@@ -155,6 +155,8 @@ namespace caret {
                         const bool isSelect,
                         const bool isContralateralEnabled);
         
+        void drawSurfaceFoci(Surface* surface);
+        
         void drawVolumeController(BrowserTabContent* browserTabContent,
                                   ModelVolume* volumeController,
                                   const int32_t viewport[4]);
@@ -211,6 +213,13 @@ namespace caret {
                                            const int32_t y,
                                            int32_t& indexOut,
                                            float& depthOut);
+        
+        void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
+                                        const int32_t x,
+                                        const int32_t y,
+                                        int32_t& index1Out,
+                                        int32_t& index2Out,
+                                        float& depthOut);
         
         void getIndexFromColorSelection(const IdentificationItemDataTypeEnum::Enum dataType,
                                         const int32_t x,
