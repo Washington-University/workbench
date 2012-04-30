@@ -92,7 +92,7 @@ BorderSelectionViewController::BorderSelectionViewController(const int32_t brows
                       "Attributes");
     tabWidget->addTab(selectionWidget, 
                       "Selection");
-    tabWidget->setCurrentWidget(selectionWidget);
+    tabWidget->setCurrentWidget(attributesWidget);
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addWidget(tabWidget, 0, Qt::AlignLeft);
