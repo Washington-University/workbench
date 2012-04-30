@@ -218,17 +218,35 @@ void CiftiFile::setupMatrix() throw (CiftiFileException)
 void CiftiFile::writeFile(const AString &fileName)
 {
     QFile *file = this->m_matrix.getCacheFile();
-    bool writingNewFile = false;
-    AString cacheFileName = file->fileName();
-    if(QDir::toNativeSeparators(cacheFileName) != QDir::toNativeSeparators(fileName))
+    bool writingNewFile = true;
+    
+    if(file && m_caching == ON_DISK) 
+    {
+        AString cacheFileName = file->fileName();
+        if(QDir::toNativeSeparators(cacheFileName) != QDir::toNativeSeparators(fileName))
+        {
+            writingNewFile = false;
+        }
+    }    
+    
+    if(writingNewFile)
     {
         file = new QFile();
-        file->setFileName(fileName);  
-        if (!file->open(QIODevice::ReadWrite))//this function is writeFile, try to open writable at all times
+        file->setFileName(fileName);
+        if(m_caching == IN_MEMORY)
         {
-            throw CiftiFileException("encountered error reopening file as writable");
+            if (!file->open(QIODevice::WriteOnly))//this function is writeFile, try to open writable at all times
+            {
+                throw CiftiFileException("encountered error reopening file as writable");
+            }
         }
-        writingNewFile = true;
+        else
+        {
+            if (!file->open(QIODevice::ReadWrite))//this function is writeFile, try to open writable at all times
+            {
+                throw CiftiFileException("encountered error reopening file as writable");
+            }
+        }        
     }
     file->seek(0);
     
