@@ -159,7 +159,7 @@ FociSelectionViewController::createAttributesWidget()
     FociColoringTypeEnum::getAllEnums(coloringTypeEnums);
     const int32_t numDrawingTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
     
-    QLabel* drawAsLabel = new QLabel("Draw As");
+    QLabel* drawAsLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new QComboBox(); 
     for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
         FociColoringTypeEnum::Enum drawType = coloringTypeEnums[i];
@@ -175,7 +175,7 @@ FociSelectionViewController::createAttributesWidget()
     //BrainOpenGL::getMinMaxLineWidth(minLineWidth,
     //                                maxLineWidth);
         
-    QLabel* pointSizeLabel = new QLabel("Point Size");
+    QLabel* pointSizeLabel = new QLabel("Size");
     m_sizeSpinBox = new QDoubleSpinBox();
     m_sizeSpinBox->setFixedWidth(80);
     m_sizeSpinBox->setRange(minLineWidth,
