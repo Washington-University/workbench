@@ -47,6 +47,7 @@ class QTreeWidgetItem;
 namespace caret {
 
     class BorderFile;
+    class FociFile;
     class ClassAndNameHierarchyModel;
     class ClassAndNameHierarchySelectedItem;
     class WuQTreeWidget;
@@ -62,6 +63,8 @@ namespace caret {
         virtual ~ClassAndNameHierarchyViewController();
         
         void updateContents(std::vector<BorderFile*> borderFiles);
+        
+        void updateContents(std::vector<FociFile*> fociFiles);
         
     signals:
         void itemSelected(ClassAndNameHierarchySelectedItem* selectedItem);

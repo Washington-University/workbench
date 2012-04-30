@@ -16,6 +16,7 @@
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "EventUserInterfaceUpdate.h"
+#include "FociSelectionViewController.h"
 #include "OverlaySetViewController.h"
 #include "SessionManager.h"
 #include "VolumeSurfaceOutlineSetViewController.h"
@@ -70,6 +71,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     
     this->borderSelectionViewController = NULL;
     this->connectivityViewController = NULL;
+    this->fociSelectionViewController = NULL;
     this->overlaySetViewController = NULL;
     this->timeSeriesViewController = NULL;
     this->volumeSurfaceOutlineSetViewController = NULL;
@@ -78,6 +80,7 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
     this->connectivityTabIndex = -1;
     this->timeSeriesTabIndex = -1;
     this->borderSelectionTabIndex = -1;
+    this->fociSelectionTabIndex = -1;
     this->volumeSurfaceOutlineTabIndex = -1;
     
     this->tabWidget = new QTabWidget();
@@ -109,6 +112,14 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         this->addToTabWidget(this->borderSelectionViewController, 
                              "Borders");
     }
+    
+    if (isLayersToolBox) {
+        this->fociSelectionViewController = new FociSelectionViewController(browserWindowIndex,
+                                                                                this);
+        this->addToTabWidget(this->fociSelectionViewController, 
+                             "Foci");
+    }
+    
     if (isOverlayToolBox) {
         this->volumeSurfaceOutlineSetViewController = new VolumeSurfaceOutlineSetViewController(orientation,
                                                                                                 this->browserWindowIndex);

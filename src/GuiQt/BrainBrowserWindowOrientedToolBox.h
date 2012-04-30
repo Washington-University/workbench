@@ -13,6 +13,7 @@ class QTabWidget;
 namespace caret {
     class BorderSelectionViewController;
     class ConnectivityManagerViewController;
+    class FociSelectionViewController;
     class OverlaySetViewController;
     class VolumeSurfaceOutlineSetViewController;
     
@@ -56,6 +57,9 @@ namespace caret {
         
         ConnectivityManagerViewController* timeSeriesViewController;
         int timeSeriesTabIndex;
+        
+        FociSelectionViewController* fociSelectionViewController;
+        int fociSelectionTabIndex;
         
         VolumeSurfaceOutlineSetViewController* volumeSurfaceOutlineSetViewController;
         int volumeSurfaceOutlineTabIndex;

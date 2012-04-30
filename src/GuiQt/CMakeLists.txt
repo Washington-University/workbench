@@ -44,6 +44,7 @@ ConnectivityManagerViewController.h
 ConnectivityTimeSeriesViewController.h
 ConnectomeDBBrowserWindow.h
 DisplayGroupEnumComboBox.h
+FociSelectionViewController.h
 GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -126,6 +127,7 @@ EventToolBoxUpdate.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
 EventUserInterfaceUpdate.h
+FociSelectionViewController.h
 GiftiLabelTableEditor.h
 GuiManager.h
 HyperLinkTextBrowser.h
@@ -207,6 +209,7 @@ EventToolBoxUpdate.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx
 EventUserInterfaceUpdate.cxx
+FociSelectionViewController.cxx
 GiftiLabelTableEditor.cxx
 GuiManager.cxx
 HyperLinkTextBrowser.cxx

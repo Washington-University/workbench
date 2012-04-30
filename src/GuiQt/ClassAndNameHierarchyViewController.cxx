@@ -47,6 +47,7 @@
 #include "ClassAndNameHierarchyModel.h"
 #include "ClassAndNameHierarchySelectedItem.h"
 #include "DisplayPropertiesBorders.h"
+#include "FociFile.h"
 #include "GuiManager.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
@@ -151,14 +152,34 @@ void
 ClassAndNameHierarchyViewController::updateContents(std::vector<BorderFile*> borderFiles)
 {
     std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
-    std::vector<void*> borderFilePointers;
     for (std::vector<BorderFile*>::iterator iter = borderFiles.begin();
          iter != borderFiles.end();
          iter++) {
         BorderFile* bf = *iter;
         CaretAssert(bf);
         classAndNameHierarchyModels.push_back(bf->getClassAndNameHierarchyModel());
-        borderFilePointers.push_back((void*)bf);
+    }
+    
+    this->updateContents(classAndNameHierarchyModels);
+    
+    this->treeWidget->resizeToFitContent();
+}
+
+/**
+ * Update with border files.
+ * @param borderFiles
+ *    The border files.
+ */
+void 
+ClassAndNameHierarchyViewController::updateContents(std::vector<FociFile*> fociFiles)
+{
+    std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
+    for (std::vector<FociFile*>::iterator iter = fociFiles.begin();
+         iter != fociFiles.end();
+         iter++) {
+        FociFile* ff = *iter;
+        CaretAssert(ff);
+        classAndNameHierarchyModels.push_back(ff->getClassAndNameHierarchyModel());
     }
     
     this->updateContents(classAndNameHierarchyModels);
