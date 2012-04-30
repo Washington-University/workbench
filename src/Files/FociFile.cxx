@@ -33,6 +33,7 @@
 /*LICENSE_END*/
 
 #include <fstream>
+#include <memory>
 
 #define __FOCI_FILE_DECLARE__
 #include "FociFile.h"
