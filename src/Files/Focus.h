@@ -227,9 +227,6 @@ namespace caret {
         /** RGBA color components assigned to focus' name validity */
         bool m_classRgbaColorValid;
         
-        /** Key in foci file's color table for color assigned to focus name */
-        int32_t m_classColorKey;
-        
         /** May project to more than one surface */
         std::vector<SurfaceProjectedItem*> m_projections;
         
