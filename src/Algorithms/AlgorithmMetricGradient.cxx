@@ -267,7 +267,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         if (!haveWarned && myRoi == NULL)
                         {//don't issue this warning with an ROI, because it is somewhat expected
                             haveWarned = true;
-                            CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method");
+                            CaretLogWarning("WARNING: gradient calculation found a NaN/inf with regression method for at least node " + AString::number(i));
                         }
                         float xgrad = 0.0f, ygrad = 0.0f;
                         int32_t totalNeigh = 0;
@@ -301,7 +301,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
                         if (!haveFailed)
                         {
                             haveFailed = true;
-                            CaretLogWarning("Failed to compute gradient for a node with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
+                            CaretLogWarning("Failed to compute gradient for at least node " + AString::number(i) + " with standard and fallback methods, outputting ZERO, check your surface for disconnected nodes or other strangeness");
                         }
                         somevec[0] = 0.0f;
                         somevec[1] = 0.0f;

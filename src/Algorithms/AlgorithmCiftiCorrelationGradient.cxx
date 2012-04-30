@@ -254,7 +254,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
             {
                 if (myrow >= startpos && myrow < endpos)
                 {
-                    if (j > myrow)
+                    if (j >= myrow)
                     {
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
@@ -397,7 +397,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
             {
                 if (myrow >= startpos && myrow < endpos)
                 {
-                    if (j > myrow)
+                    if (j >= myrow)
                     {
                         float cacheRrs;
                         const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
@@ -414,7 +414,9 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
             }
         }
         VolumeFile outputVol;
+        //computeVol.writeFile("debug." + StructureEnum::toName(myStructure) + ".corr.nii");
         AlgorithmVolumeGradient(NULL, &computeVol, volKern, &outputVol, &volRoi);
+        //outputVol.writeFile("debug." + StructureEnum::toName(myStructure) + ".grad.nii");
         int numSubvols = endpos - startpos;
         for (int j = 0; j < numSubvols; ++j)
         {
