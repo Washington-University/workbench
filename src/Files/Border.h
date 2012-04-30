@@ -117,6 +117,16 @@ namespace caret {
         
         int32_t getSelectionClassKey() const;
         
+        bool isClassRgbaValid() const;
+        
+        void setClassRgbaInvalid();
+        
+        const float* getClassRgba() const;
+        
+        void getClassRgba(float rgba[4]) const;
+        
+        void setClassRgba(const float rgba[4]);
+        
         static const AString XML_TAG_BORDER;
         static const AString XML_TAG_NAME;
         static const AString XML_TAG_CLASS_NAME;
@@ -134,6 +144,12 @@ namespace caret {
         CaretColorEnum::Enum color;
         
         std::vector<SurfaceProjectedItem*> points;
+        
+        /** RGBA color component assigned to border's class name */
+        float m_classRgbaColor[4];
+        
+        /** RGBA color components assigned to border's class name validity */
+        bool m_classRgbaColorValid;
         
         /** Used for determining display status: not saved to file and does not affect modification status */
         int32_t selectionNameKey;

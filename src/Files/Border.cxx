@@ -53,8 +53,9 @@ using namespace caret;
 Border::Border()
 : CaretObjectTracksModification()
 {
-    this->color = CaretColorEnum::BLACK;
-    this->selectionClassNameModificationStatus = true; // name/class is new!!
+    this->clear();
+//    this->color = CaretColorEnum::BLACK;
+//    this->selectionClassNameModificationStatus = true; // name/class is new!!
 }
 
 /**
@@ -125,6 +126,12 @@ Border::clear()
 {
     this->removeAllPoints();
     
+    m_classRgbaColor[0] = 0.0;
+    m_classRgbaColor[1] = 0.0;
+    m_classRgbaColor[2] = 0.0;
+    m_classRgbaColor[3] = 1.0;
+    m_classRgbaColorValid = false;
+    
     this->name = "";
     this->className = "";
     this->color = CaretColorEnum::BLACK;
@@ -144,6 +151,62 @@ Border::getStructure()
     }
     
     return structure;
+}
+
+/**
+ * @return Is the class RGBA color valid?
+ */
+bool 
+Border::isClassRgbaValid() const
+{
+    return m_classRgbaColorValid;
+}
+
+/**
+ * Set then class RGBA color invalid.
+ */
+void 
+Border::setClassRgbaInvalid()
+{
+    m_classRgbaColorValid = false;
+}
+
+/**
+ * @return The class RGBA color components 
+ * ranging zero to one.
+ */
+const float* 
+Border::getClassRgba() const
+{
+    return m_classRgbaColor;
+}
+
+/**
+ * Get the class RGBA color components 
+ * ranging zero to one.
+ */
+void
+Border::getClassRgba(float rgba[4]) const
+{
+    rgba[0] = m_classRgbaColor[0];
+    rgba[1] = m_classRgbaColor[1];
+    rgba[2] = m_classRgbaColor[2];
+    rgba[3] = m_classRgbaColor[3];
+}
+
+/**
+ * Set the RGBA color components assigned to the class.
+ * @param rgba
+ *     Red, green, blue, alpha ranging zero to one.
+ */
+void 
+Border::setClassRgba(const float rgba[3])
+{
+    m_classRgbaColor[0] = rgba[0];
+    m_classRgbaColor[1] = rgba[1];
+    m_classRgbaColor[2] = rgba[2];
+    m_classRgbaColor[3] = rgba[2];
+    m_classRgbaColorValid = true;
 }
 
 /**
@@ -866,6 +929,7 @@ void
 Border::setNameOrClassModified()
 {
     this->selectionClassNameModificationStatus = true;
+    m_classRgbaColorValid = false;
 }
 
 /**

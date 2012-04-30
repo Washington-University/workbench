@@ -1870,21 +1870,31 @@ BrainOpenGLFixedPipeline::drawSurfaceBorders(Surface* surface)
                 continue;
             }
             
+            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
+            
             const CaretColorEnum::Enum colorEnum = border->getColor();
             if (colorEnum == CaretColorEnum::CLASS) {
-                const AString classColorName = border->getClassName();
-                const GiftiLabel* classColorLabel = classColorTable->getLabel(classColorName);
-                if (classColorLabel != NULL) {
-                    const float* rgba = classColorLabel->getColor();
-                    glColor3fv(rgba);
+                if (border->isClassRgbaValid() == false) {
+                    const AString classColorName = border->getClassName();
+                    const GiftiLabel* classColorLabel = classColorTable->getLabel(classColorName);
+                    if (classColorLabel != NULL) {
+                        border->setClassRgba(classColorLabel->getColor());
+                    }
                 }
-                else {
-                    glColor3fv(CaretColorEnum::toRGB(CaretColorEnum::BLACK));
+                
+                if (border->isClassRgbaValid()) {
+                    border->getClassRgba(rgba);
                 }
             }
             else {
-                glColor3fv(CaretColorEnum::toRGB(border->getColor()));
+                const float* colorRGB = CaretColorEnum::toRGB(border->getColor());
+                rgba[0] = colorRGB[0];
+                rgba[1] = colorRGB[1];
+                rgba[2] = colorRGB[2];
             }
+            
+            glColor3fv(rgba);
+            
             this->drawBorder(surface, 
                              border,
                              i,

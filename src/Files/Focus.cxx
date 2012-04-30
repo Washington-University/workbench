@@ -377,7 +377,7 @@ Focus::setStatistic(const AString& statistic)
 bool 
 Focus::isClassRgbaValid() const
 {
-    return m_nameRgbaColorValid;
+    return m_classRgbaColorValid;
 }
 
 /**
