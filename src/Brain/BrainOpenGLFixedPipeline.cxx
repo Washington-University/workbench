@@ -1681,7 +1681,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             continue;
         }
         
-        const GiftiLabelTable* classColorTable = fociFile->getColorTable();
+        const GiftiLabelTable* colorTable = fociFile->getColorTable();
         
         const int32_t numFoci = fociFile->getNumberOfFoci();
         
@@ -1698,24 +1698,36 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                 continue;
             }
             
-            AString nameForColoring = focus->getName();
+            float rgba[4] = { 0.0, 0.0, 0.0, 1.0 };
             switch (fociColoringType) {
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_CLASS:
-                    nameForColoring = focus->getClassName();
+                    if (focus->isClassRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getClassName());
+                        if (colorLabel != NULL) {
+                            focus->setClassRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setClassRgba(rgba);
+                        }
+                    }
+                    focus->getClassRgba(rgba);
                     break;
                 case FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME:
-                    nameForColoring = focus->getName();
+                    if (focus->isNameRgbaValid() == false) {
+                        const GiftiLabel* colorLabel = colorTable->getLabelBestMatching(focus->getName());
+                        if (colorLabel != NULL) {
+                            focus->setNameRgba(colorLabel->getColor());
+                        }
+                        else {
+                            focus->setNameRgba(rgba);
+                        }
+                    }
+                    focus->getNameRgba(rgba);
                     break;
             }
             
-            const GiftiLabel* colorLabel = classColorTable->getLabelBestMatching(nameForColoring);
-            if (colorLabel != NULL) {
-                const float* rgba = colorLabel->getColor();
-                glColor3fv(rgba);
-            }
-            else {
-                glColor3fv(CaretColorEnum::toRGB(CaretColorEnum::BLACK));
-            }
+            glColor3fv(rgba);
+            
             
             const int32_t numProjections = focus->getNumberOfProjections();
             for (int32_t k = 0; k < numProjections; k++) {

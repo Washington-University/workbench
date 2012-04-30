@@ -127,6 +127,18 @@ Focus::clear()
     m_sumsMSLID = "";
     m_attributeID = "";
 
+    m_nameRgbaColor[0] = 0.0;
+    m_nameRgbaColor[1] = 0.0;
+    m_nameRgbaColor[2] = 0.0;
+    m_nameRgbaColor[3] = 1.0;
+    m_nameRgbaColorValid = false;
+
+    m_classRgbaColor[0] = 0.0;
+    m_classRgbaColor[1] = 0.0;
+    m_classRgbaColor[2] = 0.0;
+    m_classRgbaColor[3] = 1.0;
+    m_classRgbaColorValid = false;
+    
     m_selectionClassKey = -1;
     m_selectionNameKey  = -1;
     
@@ -144,6 +156,8 @@ Focus::clear()
 void 
 Focus::copyHelperFocus(const Focus& focus)
 {
+    clear();
+    
     m_area = focus.m_area;
     m_className = focus.m_className;
     m_comment = focus.m_comment;
@@ -164,11 +178,6 @@ Focus::copyHelperFocus(const Focus& focus)
     m_sumsMSLID = focus.m_sumsMSLID;
     m_attributeID = focus.m_attributeID;
     
-    m_selectionClassKey = -1;
-    m_selectionNameKey  = -1;
-    
-    setNameOrClassModified(); // new name/class so modified
-    
     this->removeAllProjections();
     
     const int numProj = focus.getNumberOfProjections();
@@ -176,6 +185,8 @@ Focus::copyHelperFocus(const Focus& focus)
         SurfaceProjectedItem* spi = new SurfaceProjectedItem(*focus.getProjection(i));
         this->addProjection(spi);
     }
+    
+    setNameOrClassModified(); // new name/class so modified
 }
 
 /**
@@ -196,6 +207,7 @@ Focus::setClassName(const AString& className)
 {
     if (m_className != className) {
         m_className = className;
+        setNameOrClassModified();
         setModified();
     }
 }
@@ -284,6 +296,7 @@ Focus::setName(const AString& name)
 {
     if (m_name != name) {
         m_name = name;
+        setNameOrClassModified();
         setModified();
     }
 }
@@ -356,6 +369,115 @@ Focus::setStatistic(const AString& statistic)
         m_statistic = statistic;
         setModified();
     }
+}
+
+/**
+ * @return Is the class RGBA color valid?
+ */
+bool 
+Focus::isClassRgbaValid() const
+{
+    return m_nameRgbaColorValid;
+}
+
+/**
+ * Set then class RGBA color invalid.
+ */
+void 
+Focus::setClassRgbaInvalid()
+{
+    m_classRgbaColorValid = false;
+}
+
+/**
+ * @return The class RGBA color components 
+ * ranging zero to one.
+ */
+const float* 
+Focus::getClassRgba() const
+{
+    return m_classRgbaColor;
+}
+
+/**
+ * Get the class RGBA color components 
+ * ranging zero to one.
+ */
+void
+Focus::getClassRgba(float rgba[4]) const
+{
+    rgba[0] = m_classRgbaColor[0];
+    rgba[1] = m_classRgbaColor[1];
+    rgba[2] = m_classRgbaColor[2];
+    rgba[3] = m_classRgbaColor[3];
+}
+
+/**
+ * Set the RGBA color components assigned to the class.
+ * @param rgba
+ *     Red, green, blue, alpha ranging zero to one.
+ */
+void Focus::setClassRgba(const float rgba[3])
+{
+    m_classRgbaColor[0] = rgba[0];
+    m_classRgbaColor[1] = rgba[1];
+    m_classRgbaColor[2] = rgba[2];
+    m_classRgbaColor[3] = rgba[2];
+    m_classRgbaColorValid = true;
+}
+
+/**
+ * @return Is the name RGBA color valid?
+ */
+bool 
+Focus::isNameRgbaValid() const
+{
+    return m_nameRgbaColorValid;
+}
+
+/**
+ * Set then name RGBA color invalid.
+ */
+void 
+Focus::setNameRgbaInvalid()
+{
+    m_nameRgbaColorValid = false;
+}
+
+/**
+ * @return The name RGBA color components 
+ * ranging zero to one.
+ */
+const float* Focus::getNameRgba() const
+{
+    return m_nameRgbaColor;
+}
+
+/**
+ * Get the name RGBA color components 
+ * ranging zero to one.
+ */
+void
+Focus::getNameRgba(float rgba[4]) const
+{
+    rgba[0] = m_nameRgbaColor[0];
+    rgba[1] = m_nameRgbaColor[1];
+    rgba[2] = m_nameRgbaColor[2];
+    rgba[3] = m_nameRgbaColor[3];
+}
+
+/**
+ * Set the RGBA color components assigned to the name.
+ * @param rgba
+ *     Red, green, blue, alpha ranging zero to one.
+ */
+void Focus::setNameRgba(const float rgba[4])
+{
+    m_nameRgbaColor[0] = rgba[0];
+    m_nameRgbaColor[1] = rgba[1];
+    m_nameRgbaColor[2] = rgba[2];
+    m_nameRgbaColor[2] = rgba[2];
+    m_nameRgbaColorValid = true;
 }
 
 /**

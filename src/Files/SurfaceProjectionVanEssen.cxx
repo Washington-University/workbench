@@ -732,7 +732,8 @@ SurfaceProjectionVanEssen::writeAsXML(XmlWriter& xmlWriter) throw (XmlException)
                                          (int32_t*)this->triVertices,
                                          6);
         xmlWriter.writeElementCharacters(XML_TAG_VERTEX,
-                                         (int32_t*)this->vertex);
+                                         (int32_t*)this->vertex,
+                                         2);
         xmlWriter.writeElementCharacters(XML_TAG_VERTEX_ANATOMICAL,
                                          (float*)this->vertexAnatomical,
                                          6);

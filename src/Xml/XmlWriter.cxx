@@ -425,7 +425,7 @@ XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
          writer << c;
       }
       else {
-          CaretLogWarning("Unicode value of character not written: " + (int)c);
+          CaretLogWarning("Unicode value of character not written: " + AString::number((int)c));
       }
    }
    //writer << (text);

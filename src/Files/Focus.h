@@ -87,6 +87,26 @@ namespace caret {
         
         void setStatistic(const AString& statistic);
         
+        bool isClassRgbaValid() const;
+        
+        void setClassRgbaInvalid();
+        
+        const float* getClassRgba() const;
+        
+        void getClassRgba(float rgba[4]) const;
+        
+        void setClassRgba(const float rgba[4]);
+        
+        bool isNameRgbaValid() const;
+        
+        void setNameRgbaInvalid();
+        
+        const float* getNameRgba() const;
+        
+        void getNameRgba(float rgba[4]) const;
+        
+        void setNameRgba(const float rgba[4]);
+        
         AString getSumsIdNumber() const;
         
         void setSumsIdNumber(const AString& sumsIdNumber);
@@ -195,6 +215,20 @@ namespace caret {
         
         AString m_attributeID;
         
+        /** RGBA color components assigned to focus' name */
+        float m_nameRgbaColor[4];
+        
+        /** RGBA color components assigned to focus' name validity */
+        bool m_nameRgbaColorValid;
+        
+        /** RGBA color component assigned to focus' class name */
+        float m_classRgbaColor[4];
+        
+        /** RGBA color components assigned to focus' name validity */
+        bool m_classRgbaColorValid;
+        
+        /** Key in foci file's color table for color assigned to focus name */
+        int32_t m_classColorKey;
         
         /** May project to more than one surface */
         std::vector<SurfaceProjectedItem*> m_projections;

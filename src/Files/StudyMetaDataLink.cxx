@@ -30,6 +30,8 @@
 #define __STUDY_META_DATA_LINK_MAIN__
 #include "StudyMetaDataLink.h"
 #undef __STUDY_META_DATA_LINK_MAIN__
+
+#include "CaretLogger.h"
 #include "XmlWriter.h"
 
 using namespace caret;
@@ -213,31 +215,30 @@ void
 StudyMetaDataLink::setElementFromText(const AString& elementName,
                                       const AString& textValue)
 {
-   if (elementName == tagPubMedID) {
+   if (elementName == XML_TAG_PUBMED_ID) {
       setPubMedID(textValue);
    }
-   else if (elementName == tagTableNumber) {
+   else if (elementName == XML_TAG_TABLE_NUMBER) {
       setTableNumber(textValue);
    }
-   else if (elementName == tagTableSubHeaderNumber) {
+   else if (elementName == XML_TAG_TABLE_SUB_HEADER_NUMBER) {
       setTableSubHeaderNumber(textValue);
    }
-   else if (elementName == tagFigureNumber) {
+   else if (elementName == XML_TAG_FIGURE_NUMBER) {
       setFigureNumber(textValue);
    }
-   else if (elementName == tagPanelNumberOrLetter) {
+   else if (elementName == XML_TAG_PANEL_NUMBER_OR_LETTER) {
       setFigurePanelNumberOrLetter(textValue);
    }
-   else if (elementName == tagPageReferencePageNumber) {
+   else if (elementName == XML_TAG_PAGE_REFERENCE_PAGE_NUMBER) {
       setPageReferencePageNumber(textValue);
    }
-   else if (elementName == tagPageReferenceSubHeaderNumber) {
+   else if (elementName == XML_TAG_PAGE_REFERENCE_SUB_HEADER_NUMBER) {
       setPageReferenceSubHeaderNumber(textValue);
    }
    else {
-      std::cout << "WARNING: unrecognized StudyMetaDataLink element ignored: "
-                << elementName.toAscii().constData()
-                << std::endl;
+      CaretLogWarning("Unrecognized StudyMetaDataLink element ignored: "
+                      + elementName);
    }
 }
       
@@ -247,14 +248,14 @@ StudyMetaDataLink::setElementFromText(const AString& elementName,
 void
 StudyMetaDataLink::writeXML(XmlWriter& xmlWriter) const throw (XmlException)
 {
-   xmlWriter.writeStartElement(tagStudyMetaDataLink);
-   xmlWriter.writeElementCData(tagPubMedID, m_pubMedID);
-   xmlWriter.writeElementCData(tagTableNumber, m_tableNumber);
-   xmlWriter.writeElementCData(tagTableSubHeaderNumber, m_tableSubHeaderNumber);
-   xmlWriter.writeElementCData(tagFigureNumber, m_figureNumber);
-   xmlWriter.writeElementCData(tagPanelNumberOrLetter, m_panelNumberOrLetter);
-   xmlWriter.writeElementCData(tagPageReferencePageNumber, m_pageReferencePageNumber);
-   xmlWriter.writeElementCData(tagPageReferenceSubHeaderNumber, m_pageReferenceSubHeaderNumber);
+   xmlWriter.writeStartElement(XML_TAG_STUDY_META_DATA_LINK);
+   xmlWriter.writeElementCData(XML_TAG_PUBMED_ID, m_pubMedID);
+   xmlWriter.writeElementCData(XML_TAG_TABLE_NUMBER, m_tableNumber);
+   xmlWriter.writeElementCData(XML_TAG_TABLE_SUB_HEADER_NUMBER, m_tableSubHeaderNumber);
+   xmlWriter.writeElementCData(XML_TAG_FIGURE_NUMBER, m_figureNumber);
+   xmlWriter.writeElementCData(XML_TAG_PANEL_NUMBER_OR_LETTER, m_panelNumberOrLetter);
+   xmlWriter.writeElementCData(XML_TAG_PAGE_REFERENCE_PAGE_NUMBER, m_pageReferencePageNumber);
+   xmlWriter.writeElementCData(XML_TAG_PAGE_REFERENCE_SUB_HEADER_NUMBER, m_pageReferenceSubHeaderNumber);
    xmlWriter.writeEndElement();
 }
 

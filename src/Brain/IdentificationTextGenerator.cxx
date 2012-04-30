@@ -374,21 +374,49 @@ IdentificationTextGenerator::generateSurfaceFociIdentifcationText(Identification
         float xyz[3];
         spi->getProjectedPosition(*idSurfaceFocus->getSurface(), xyz, false);
         
-        AString boldText = ("FOCUS " 
-                            + StructureEnum::toGuiName(spi->getStructure())
-                            + " Name: "
-                            + focus->getName());
-        if (focus->getClassName().isEmpty() == false) {
-            boldText += (" ClassName: "
-                         + focus->getClassName()
-                         + ": ");
-        }
-        const AString text = ("("
-                              + AString::number(idSurfaceFocus->getFocusIndex())
-                              + ") ("
-                              + AString::fromNumbers(xyz, 3, ",")
-                              + ")");
-        idText.addLine(true, boldText, text);
+        idText.addLine(false, 
+                       "FOCUS", 
+                       focus->getName());
+
+        idText.addLine(true,
+                       "Structure",
+                       StructureEnum::toGuiName(spi->getStructure()));
+
+        idText.addLine(true,
+                       "XYZ",
+                       xyz,
+                       3,
+                       true);
+        
+        idText.addLine(true,
+                       "Area",
+                       focus->getArea());
+        
+        idText.addLine(true,
+                       "Class Name",
+                       focus->getClassName());
+
+        idText.addLine(true,
+                       "Comment",
+                       focus->getComment());
+        
+        idText.addLine(true,
+                       "Extent",
+                       focus->getExtent(),
+                       true);
+        
+        idText.addLine(true,
+                       "Geography",
+                       focus->getArea());
+        
+        idText.addLine(true,
+                       "Region of Interest",
+                       focus->getRegionOfInterest());
+        
+        idText.addLine(true,
+                       "Statistic",
+                       focus->getStatistic());
+        
     }
 }
 

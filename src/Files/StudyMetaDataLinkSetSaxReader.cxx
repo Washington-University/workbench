@@ -80,12 +80,12 @@ StudyMetaDataLinkSetSaxReader::startElement(const AString& /* namespaceURI */,
             }
             break;
         case STATE_STUDY_META_DATA_LINK_SET:
-            if (qName == StudyMetaDataLink::tagStudyMetaDataLink) {
+            if (qName == StudyMetaDataLink::XML_TAG_STUDY_META_DATA_LINK) {
                 m_state = STATE_STUDY_META_DATA_LINK;
                 m_studyMetaDataLinkBeingRead = new StudyMetaDataLink();
             }
             else {
-                AString txt = XmlUtilities::createInvalidChildElementMessage(StudyMetaDataLink::tagStudyMetaDataLink,
+                AString txt = XmlUtilities::createInvalidChildElementMessage(StudyMetaDataLink::XML_TAG_STUDY_META_DATA_LINK,
                                                                              qName);
                 XmlSaxParserException e(txt);
                 CaretLogThrowing(e);
@@ -124,8 +124,10 @@ StudyMetaDataLinkSetSaxReader::endElement(const AString& /* namspaceURI */,
             }
             break;
         case STATE_STUDY_META_DATA_LINK:
-            m_studyMetaDataLinkBeingRead->setElementFromText(qName, 
-                                                             text);
+            if (qName != StudyMetaDataLink::XML_TAG_STUDY_META_DATA_LINK) {
+                m_studyMetaDataLinkBeingRead->setElementFromText(qName, 
+                                                                 text);
+            }
             break;
     }
     

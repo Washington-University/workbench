@@ -114,31 +114,31 @@ namespace caret {
         //----- tags for reading and writing 
         //
         /// tag for reading and writing study metadata
-        static const AString tagStudyMetaDataLink;
+        static const AString XML_TAG_STUDY_META_DATA_LINK;
         
         /// tag for reading and writing study metadata
-        static const AString tagPubMedID;
+        static const AString XML_TAG_PUBMED_ID;
         
         /// tag for reading and writing study metadata
-        static const AString tagTableNumber;
+        static const AString XML_TAG_TABLE_NUMBER;
         
         /// tag for reading and writing study metadata
-        static const AString tagTableSubHeaderNumber;
+        static const AString XML_TAG_TABLE_SUB_HEADER_NUMBER;
         
         /// tag for reading and writing study metadata
-        static const AString tagFigureNumber;
+        static const AString XML_TAG_FIGURE_NUMBER;
         
         /// tag for reading and writing study metadata
-        static const AString tagPanelNumberOrLetter;
+        static const AString XML_TAG_PANEL_NUMBER_OR_LETTER;
         
         /// tag for reading and writing study metadata
         //static const AString tagPageNumber;
         
         /// tag for reading and writing study metadata
-        static const AString tagPageReferencePageNumber;
+        static const AString XML_TAG_PAGE_REFERENCE_PAGE_NUMBER;
         
         /// tag for reading and writing study metadata
-        static const AString tagPageReferenceSubHeaderNumber;
+        static const AString XML_TAG_PAGE_REFERENCE_SUB_HEADER_NUMBER;
         
     protected:
         /// copy helper
@@ -172,15 +172,14 @@ namespace caret {
     };
 
 #ifdef __STUDY_META_DATA_LINK_MAIN__
-    const AString StudyMetaDataLink::tagStudyMetaDataLink = "StudyMetaDataLink";
-    const AString StudyMetaDataLink::tagPubMedID = "pubMedID";
-    const AString StudyMetaDataLink::tagTableNumber = "tableNumber";
-    const AString StudyMetaDataLink::tagTableSubHeaderNumber = "tableSubHeaderNumber";
-    const AString StudyMetaDataLink::tagFigureNumber = "figureNumber";
-    const AString StudyMetaDataLink::tagPanelNumberOrLetter = "panelNumberOrLetter";
-    //const AString StudyMetaDataLink::tagPageNumber = "pageNumber";
-    const AString StudyMetaDataLink::tagPageReferencePageNumber = "pageReferencePageNumber";
-    const AString StudyMetaDataLink::tagPageReferenceSubHeaderNumber = "pageReferenceSubHeaderNumber";
+    const AString StudyMetaDataLink::XML_TAG_STUDY_META_DATA_LINK = "StudyMetaDataLink";
+    const AString StudyMetaDataLink::XML_TAG_PUBMED_ID = "pubMedID";
+    const AString StudyMetaDataLink::XML_TAG_TABLE_NUMBER = "tableNumber";
+    const AString StudyMetaDataLink::XML_TAG_TABLE_SUB_HEADER_NUMBER = "tableSubHeaderNumber";
+    const AString StudyMetaDataLink::XML_TAG_FIGURE_NUMBER = "figureNumber";
+    const AString StudyMetaDataLink::XML_TAG_PANEL_NUMBER_OR_LETTER = "panelNumberOrLetter";
+    const AString StudyMetaDataLink::XML_TAG_PAGE_REFERENCE_PAGE_NUMBER = "pageReferencePageNumber";
+    const AString StudyMetaDataLink::XML_TAG_PAGE_REFERENCE_SUB_HEADER_NUMBER = "pageReferenceSubHeaderNumber";
 #endif // __STUDY_META_DATA_LINK_MAIN__
 } // namespace caret
 
