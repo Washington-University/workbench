@@ -45,17 +45,16 @@ namespace caret {
     class FileAdapter : public CaretObject {
         
     public:
-        FileAdapter(const AString filename);
+        FileAdapter();
         
         ~FileAdapter();
         
-        QTextStream* openQTextStreamForWriting(AString& errorMessageOut);
+        QTextStream* openQTextStreamForWritingFile(const AString& filename,
+                                                   AString& errorMessageOut);
         
         void close();
         
     private:
-        AString m_filename;
-        
         QFile* m_file;
         
         QTextStream* m_textStream;

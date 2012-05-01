@@ -24,9 +24,12 @@
  */ 
 
 #include <algorithm>
-#include <fstream>
 #include <limits>
 #include <memory>
+
+#include <QFile>
+#include <QTextStream>
+
 #define __BORDER_FILE_DECLARE__
 #include "BorderFile.h"
 #undef __BORDER_FILE_DECLARE__
@@ -36,6 +39,8 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ClassAndNameHierarchyModel.h"
+#include "FileAdapter.h"
+#include "FileInformation.h"
 #include "GiftiLabelTable.h"
 #include "GiftiMetaData.h"
 #include "SurfaceFile.h"
@@ -506,17 +511,18 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Open the file
         //
-        char* name = this->getFileName().toCharArray();
-        std::ofstream xmlFileOutputStream(name);
-        delete[] name;
-        if (! xmlFileOutputStream) {
-            AString msg = "Unable to open " + this->getFileName() + " for writing.";
-            throw DataFileException(msg);
+        FileAdapter file;
+        AString errorMessage;
+        QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
+                                                                     errorMessage);
+        if (textStream == NULL) {
+            throw DataFileException(errorMessage);
         }
+
         //
         // Create the xml writer
         //
-        XmlWriter xmlWriter(xmlFileOutputStream);
+        XmlWriter xmlWriter(*textStream);
         
         //
         // Write header info
@@ -560,7 +566,7 @@ BorderFile::writeFile(const AString& filename) throw (DataFileException)
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         
-        xmlFileOutputStream.close();
+        file.close();
         
         this->clearModified();
     }

@@ -32,8 +32,10 @@
  */
 /*LICENSE_END*/
 
-#include <fstream>
+
 #include <memory>
+
+#include <QTextStream>
 
 #define __FOCI_FILE_DECLARE__
 #include "FociFile.h"
@@ -42,6 +44,7 @@
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ClassAndNameHierarchyModel.h"
+#include "FileAdapter.h"
 #include "FociFileSaxReader.h"
 #include "Focus.h"
 #include "GiftiLabelTable.h"
@@ -443,17 +446,18 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Open the file
         //
-        char* name = this->getFileName().toCharArray();
-        std::ofstream xmlFileOutputStream(name);
-        delete[] name;
-        if (! xmlFileOutputStream) {
-            AString msg = "Unable to open " + this->getFileName() + " for writing.";
-            throw DataFileException(msg);
+        FileAdapter file;
+        AString errorMessage;
+        QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
+                                                                     errorMessage);
+        if (textStream == NULL) {
+            throw DataFileException(errorMessage);
         }
+        
         //
         // Create the xml writer
         //
-        XmlWriter xmlWriter(xmlFileOutputStream);
+        XmlWriter xmlWriter(*textStream);
         
         //
         // Write header info
@@ -497,7 +501,7 @@ FociFile::writeFile(const AString& filename) throw (DataFileException)
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         
-        xmlFileOutputStream.close();
+        file.close();
         
         this->clearModified();
     }

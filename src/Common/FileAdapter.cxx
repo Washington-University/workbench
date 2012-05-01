@@ -67,8 +67,7 @@ using namespace caret;
 /**
  * Constructor.
  */
-FileAdapter::FileAdapter(const AString filename) {
-    m_filename = filename;
+FileAdapter::FileAdapter() {
     m_file = NULL;
     m_textStream = NULL;
 }
@@ -81,9 +80,11 @@ FileAdapter::~FileAdapter() {
 }
 
 /**
- * Open a file with the name passed to the constructor for writing,
- * create a QTextStream for the file, and return the QTextStream.
+ * Open a file with the given name, create a QTextStream for
+ * the file, and return the QTextStream.
  *
+ * @filename
+ *    Name of file.
  * @errorMessagesOut
  *    Contains information about errors if any occur.
  * @return
@@ -94,7 +95,8 @@ FileAdapter::~FileAdapter() {
  * parameter.
  */
 QTextStream* 
-FileAdapter::openQTextStreamForWriting(AString& errorMessageOut) {
+FileAdapter::openQTextStreamForWritingFile(const AString& filename,
+                                           AString& errorMessageOut) {
     errorMessageOut = "";
     
     if (m_file != NULL) {
@@ -102,24 +104,24 @@ FileAdapter::openQTextStreamForWriting(AString& errorMessageOut) {
         return NULL;
     }
     
-    if (m_filename.isEmpty()) {
+    if (filename.isEmpty()) {
         errorMessageOut = "Filename contains no characters.";
         return NULL;
     }
     
-    FileInformation fileInfo(m_filename);
+    FileInformation fileInfo(filename);
     if (fileInfo.exists()) {
         if (fileInfo.isWritable() == false) {
-            errorMessageOut = (m_filename
+            errorMessageOut = (filename
                                + " exists and does not have writable permission.");
             return NULL;
         }
     }
     
-    m_file = new QFile(m_filename);
+    m_file = new QFile(filename);
     if (m_file->open(QFile::WriteOnly) == false) {
         errorMessageOut = ("Unable to open "
-                           + m_filename
+                           + filename
                            + " for writing.");
     }
     

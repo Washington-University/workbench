@@ -22,12 +22,14 @@
  * 
  */ 
 
-#include <fstream>
 #include <memory>
+
+#include <QTextStream>
 
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "CaretPointer.h"
+#include "FileAdapter.h"
 #include "FileInformation.h"
 #include "GiftiMetaData.h"
 #define __SPEC_FILE_DEFINE__
@@ -424,17 +426,18 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         //
         // Open the file
         //
-        char* name = this->getFileName().toCharArray();
-        std::ofstream xmlFileOutputStream(name);
-        delete[] name;
-        if (! xmlFileOutputStream) {
-            AString msg = "Unable to open " + this->getFileName() + " for writing.";
-            throw DataFileException(msg);
+        FileAdapter file;
+        AString errorMessage;
+        QTextStream* textStream = file.openQTextStreamForWritingFile(this->getFileName(),
+                                                                     errorMessage);
+        if (textStream == NULL) {
+            throw DataFileException(errorMessage);
         }
+
         //
         // Create the xml writer
         //
-        XmlWriter xmlWriter(xmlFileOutputStream);
+        XmlWriter xmlWriter(*textStream);
         
         //
         // Write header info
@@ -494,7 +497,7 @@ SpecFile::writeFile(const AString& filename) throw (DataFileException)
         xmlWriter.writeEndElement();
         xmlWriter.writeEndDocument();
         
-        xmlFileOutputStream.close();
+        file.close();
         
         this->clearModified();
     }
