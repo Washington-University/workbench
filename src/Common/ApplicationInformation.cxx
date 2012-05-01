@@ -32,6 +32,8 @@
  */
 /*LICENSE_END*/
 
+#include <QtGlobal>
+
 #define __APPLICATION_INFORMATION_DECLARE__
 #include "ApplicationInformation.h"
 #undef __APPLICATION_INFORMATION_DECLARE__
@@ -96,5 +98,9 @@ ApplicationInformation::getAllInformation(std::vector<AString>& informationValue
     informationValues.push_back(this->name);
     
     informationValues.push_back("Version: " + this->version);
+    
+    informationValues.push_back("Qt Compiled Version: " + QString(QT_VERSION_STR));
+    
+    informationValues.push_back("Qt Runtime Version: " + QString(qVersion()));
 }
 
