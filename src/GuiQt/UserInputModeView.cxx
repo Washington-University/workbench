@@ -49,6 +49,7 @@
 #include "IdentificationItemSurfaceNodeIdentificationSymbol.h"
 #include "IdentificationItemVoxel.h"
 #include "IdentificationManager.h"
+#include "ModelSurfaceMontage.h"
 #include "MouseEvent.h"
 #include "Model.h"
 #include "Surface.h"
@@ -287,13 +288,13 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 void 
 UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrowserTabContent* browserTabContent,
-                                                  BrainOpenGLWidget* /*openGLWidget*/)
+                                                  BrainOpenGLWidget* openGLWidget)
 {
     Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
         const int32_t tabIndex = browserTabContent->getTabNumber();
-        const float dx = mouseEvent->getDx();
-        const float dy = mouseEvent->getDy();
+        float dx = mouseEvent->getDx();
+        float dy = mouseEvent->getDy();
         
         /*
          * Is this a mouse wheel event?
@@ -325,6 +326,47 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                 rotationMatrixRightLatMedYoked->rotateY(dx);
             }
             else {
+                ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+                if (montageModel != NULL) {
+                    /*
+                     * By default, surface montage rotates a left surface.
+                     * Bottom row contains a right surface so flip the 
+                     * rotation.
+                     */
+                    const int32_t halfHeight = openGLWidget->height() / 2;
+                    if (mouseEvent->getY() < halfHeight) {
+                        dx = -dx;
+                    }
+                    
+                    /*
+                     * For single configuration, need to rotate second column
+                     * opposite of first.  For dual, rotate second and fourth
+                     * columns opposite of first and third.
+                     */
+                    const int32_t halfWidth = openGLWidget->width() / 2;
+                    const int32_t mouseX    = mouseEvent->getX();
+                    bool flipY = false;
+                    if (montageModel->isDualConfigurationEnabled(tabIndex)) {
+                        const int32_t quarterWidth = halfWidth / 2;
+                        const int32_t threeQuarterWidth = halfWidth + quarterWidth;
+                        if ((mouseX > quarterWidth)
+                            && (mouseX <= halfWidth)) {
+                            flipY = true;
+                        }
+                        else if (mouseX > threeQuarterWidth) {
+                            flipY = true;
+                        }
+                    }
+                    else {
+                        if (mouseX > halfWidth) {
+                            flipY = true;
+                        }
+                    }
+                    if (flipY) {
+                        dy = -dy;
+                    }
+                }
+                
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
                                                                                       Model::ROTATION_MATRIX_NORMAL);
                 rotationMatrix->rotateX(-dy);
