@@ -63,6 +63,7 @@ ConnectivityLoaderFile::ConnectivityLoaderFile()
     this->timeSeriesGraphEnabled = false;
     this->selectedTimePoint = 0.0;
     this->dataLoadingEnabled = true;
+    this->yokeEnabled = false;
     this->uniqueID = SystemUtilities::createUniqueID();
     
     this->setFileName("");

@@ -56,8 +56,12 @@ namespace caret {
         virtual bool isEmpty() const;
 
         bool isDataLoadingEnabled() const;
-        
+
         void setDataLoadingEnabled(const bool enabled);
+
+        bool isYokeEnabled() const { return this->yokeEnabled; }
+
+        void setYokeEnabled(const bool &enabled) { this->yokeEnabled = enabled; }
         
         void setupLocalFile(const AString& filename,
                             const DataFileTypeEnum::Enum connectivityFileType) throw (DataFileException);
@@ -250,6 +254,8 @@ namespace caret {
         bool timeSeriesGraphEnabled;
         
         bool dataLoadingEnabled;
+
+        bool yokeEnabled;
         
         float selectedTimePoint;
 

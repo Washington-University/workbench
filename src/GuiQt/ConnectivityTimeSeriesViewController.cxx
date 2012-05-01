@@ -259,6 +259,12 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         if (this->animator == NULL) {
             this->animator = new TimeSeriesManagerForViewController(this);            
         }
+
+        Qt::CheckState enabledState = Qt::Unchecked;
+        if (this->connectivityLoaderFile->isYokeEnabled()) {
+            enabledState = Qt::Checked;
+        }
+        this->yokeCheckBox->setCheckState(enabledState);
         
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
     }
@@ -343,12 +349,13 @@ void
 ConnectivityTimeSeriesViewController::yokeCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
-    /*if (this->connectivityLoaderFile != NULL) {
-        this->connectivityLoaderFile->setDataLoadingEnabled(selected);
+
+    if (this->connectivityLoaderFile != NULL) {
+        this->connectivityLoaderFile->setYokeEnabled(selected);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
-    }*/
+    }
     
-    //this->updateUserInterfaceAndGraphicsWindow();
+    this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
