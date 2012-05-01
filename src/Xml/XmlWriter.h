@@ -36,114 +36,106 @@
 #include <stdint.h>
 #include <ostream>
 #include <stack>
-#include <AString.h>
 
 #include "CaretObject.h"
 #include "XmlException.h"
 #include "XmlAttributes.h"
 
+class QTextStream;
+
 namespace caret {
-
-/**
- * Writes XML to a writer with indentation (pretty printing).
- * Similar to StAX.
- */
-class XmlWriter : public CaretObject {
-
-public:
-    XmlWriter(std::ostream& writerIn);
-
-   void writeStartDocument(const AString& xmlVersion) throw (XmlException);
-
-   //void writeStartDocument(const char* localName) throw(XmlException) {
-   //   AString ln = localName;
-   //   this->writeStartDocument(ln);
-   //}
-
-   void writeStartDocument() throw (XmlException);
-
-   void writeDTD(const AString& rootTag, const AString& dtdURL) throw(XmlException);
-
-   void writeEndDocument() throw(XmlException);
-
-   void writeElementCharacters(const AString& localName, const float f);
-
-   void writeElementCharacters(const AString& localName, const float* values, const int32_t num);
-
-    void writeElementCharacters(const AString& localName, const int32_t value);
-
-    void writeElementCharacters(const AString& localName, const bool value);
     
-
-    void writeElementCharacters(const AString& localName, const int* values, const int32_t num);
-
-
-    //void writeElementCharacters(const char* localName, const char* text) {
-   //   this->writeElementCharacters(localName, text);
-   //}
-
-   void writeElementCharacters(const AString& localName, const AString& text)
-                                                    throw(XmlException);
-
-   //void writeElementCharacters(const char* localName, AString text)
-   //                                                 throw(XmlException) {
-   //   AString ln = localName;
-   //   this->writeElementCharacters(ln, text);
-   //}
-   
-   //void writeElementCData(const char* localName, const char* text) {
-   //   this->writeElementCData(localName, text);
-   //}
-
-   //void writeElementCData(const char* localName, AString text) {
-   //   this->writeElementCData(localName, text);
-   //}
-
-   void writeElementCData(const AString& localName, const AString& text)
-                                                    throw(XmlException);
-
-   void writeElementCData(const AString& localName,
-                                 const XmlAttributes& attributes,
-                                 const AString& text)
-                                                    throw(XmlException);
-
-   void writeElementNoSpace(const AString& localName, const AString& text)
-                                                    throw(XmlException);
-   //void writeStartElement(const char* localName) throw(XmlException) {
-   //   AString ln = localName;
-   //   this->writeStartElement(ln);
-   //}
-   void writeStartElement(const AString& localName) throw(XmlException);
-
-   void writeStartElement(const AString& localName,
-                     const XmlAttributes& attributes) throw(XmlException);
-
-   void writeEndElement() throw(XmlException);
-
-   void writeCData(const AString& data) throw(XmlException);
-
-   void writeCharacters(const AString& text) throw(XmlException);
-
-   void writeCharactersWithIndent(const AString& text) throw(XmlException);
-
-   void setNumberOfDecimalPlaces(const int32_t decimals);
-
-private:
-   void writeIndentation() throw(XmlException);
-
-   /** The writer to which XML is written */
-   std::ostream& writer;
-
-   /** The indentation amount for new element tags. */
-   int32_t indentationSpaces;
-
-   /** The element stack used for closing elements. */
-    std::stack<AString> elementStack;
-
-    /** Number of decimal places for float data */
-    int32_t numberOfDecimalPlaces;
-};
-
+    class AString;
+    /**
+     * Writes XML to a writer with indentation (pretty printing).
+     * Similar to StAX.
+     */
+    class XmlWriter : public CaretObject {
+        
+    public:
+        XmlWriter(std::ostream& writerIn);
+        
+        XmlWriter(QTextStream& writerIn);
+        
+        void writeStartDocument(const AString& xmlVersion) throw (XmlException);
+        
+        void writeStartDocument() throw (XmlException);
+        
+        void writeDTD(const AString& rootTag, const AString& dtdURL) throw(XmlException);
+        
+        void writeEndDocument() throw(XmlException);
+        
+        void writeElementCharacters(const AString& localName, const float f);
+        
+        void writeElementCharacters(const AString& localName, const float* values, const int32_t num);
+        
+        void writeElementCharacters(const AString& localName, const int32_t value);
+        
+        void writeElementCharacters(const AString& localName, const bool value);
+        
+        
+        void writeElementCharacters(const AString& localName, const int* values, const int32_t num);
+        
+        
+        void writeElementCharacters(const AString& localName, const AString& text)
+        throw(XmlException);
+        
+        void writeElementCData(const AString& localName, const AString& text)
+        throw(XmlException);
+        
+        void writeElementCData(const AString& localName,
+                               const XmlAttributes& attributes,
+                               const AString& text)
+        throw(XmlException);
+        
+        void writeElementNoSpace(const AString& localName, const AString& text)
+        throw(XmlException);
+        void writeStartElement(const AString& localName) throw(XmlException);
+        
+        void writeStartElement(const AString& localName,
+                               const XmlAttributes& attributes) throw(XmlException);
+        
+        void writeEndElement() throw(XmlException);
+        
+        void writeCData(const AString& data) throw(XmlException);
+        
+        void writeCharacters(const AString& text) throw(XmlException);
+        
+        void writeCharactersWithIndent(const AString& text) throw(XmlException);
+        
+        void setNumberOfDecimalPlaces(const int32_t decimals);
+        
+    protected:
+        void flushOutputStream();
+        
+        void writeTextToOutputStream(const AString& text);
+        
+    private:
+        enum OutputStreamType {
+            OUTPUT_STREAM_Q_TEXT_STREAM,
+            OUTPUT_STREAM_STD_OUTPUT_STREAM
+        };
+        
+        void writeIndentation() throw(XmlException);
+        
+        /** The std::ostream writer to which XML is written */
+        std::ostream* stdOutputStreamWriter;
+        
+        /** The QTextStream writer to which XML is written */
+        QTextStream* qTextStreamWriter;
+        
+        /** The indentation amount for new element tags. */
+        int32_t indentationSpaces;
+        
+        /** The element stack used for closing elements. */
+        std::stack<AString> elementStack;
+        
+        /** Number of decimal places for float data */
+        int32_t numberOfDecimalPlaces;
+        
+        OutputStreamType outputStreamType; 
+    };
+    
 }  // namespace
 
 #endif	/* __XML_WRITER_H__ */
