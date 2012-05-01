@@ -39,7 +39,9 @@
 #include "FileAdapter.h"
 #undef __FILE_ADAPTER_DECLARE__
 
+#include "CaretAssert.h"
 #include "FileInformation.h"
+
 using namespace caret;
 
 
@@ -126,6 +128,27 @@ FileAdapter::openQTextStreamForWritingFile(const AString& filename,
     }
     
     m_textStream = new QTextStream(m_file);
+    
+    return m_textStream;
+}
+
+/**
+ * Open a textstream that writes to the given string.
+ * @param textString
+ *    String into which the QTextStream sends its output.
+ * @return
+ *    A pointer to the QTextStream that was created.  DO NOT
+ * destroy it or else disaster will likely occur.  DO NOT
+ * destroy the textString prior to closing or deleting the
+ * instance of this class.
+ */
+QTextStream* 
+FileAdapter::openQTextStreamForWritingToString(QString* textString)
+{
+    CaretAssert(textString);
+    
+    m_textStream = new QTextStream(textString,
+                                   QIODevice::WriteOnly);
     
     return m_textStream;
 }

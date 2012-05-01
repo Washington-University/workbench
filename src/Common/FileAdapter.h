@@ -49,12 +49,15 @@ namespace caret {
         
         ~FileAdapter();
         
+        QTextStream* openQTextStreamForWritingToString(QString* textString);
+        
         QTextStream* openQTextStreamForWritingFile(const AString& filename,
                                                    AString& errorMessageOut);
         
         void close();
         
     private:
+        
         QFile* m_file;
         
         QTextStream* m_textStream;
