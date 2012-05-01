@@ -386,7 +386,37 @@ void
 XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
     switch (this->outputStreamType) {
         case OUTPUT_STREAM_Q_TEXT_STREAM:
-            *qTextStreamWriter << text;
+        {
+            const ushort CARRIAGE_RETURN = 13;
+            const ushort LINE_FEED = 10;
+            const ushort TAB = 9;
+            
+            int32_t num = text.length();
+            for (int32_t i = 0; i < num; i++) {
+                QChar c = text[i];
+                ushort u = c.unicode();
+                
+                bool printIt = true; //c.isPrint();
+                
+                if (u < 32) {
+                    printIt = false;
+                    
+                    if ((u == CARRIAGE_RETURN) ||
+                        (u == LINE_FEED) ||
+                        (u == TAB)) {
+                        printIt = true;
+                    }
+                }
+                if (printIt) {
+                    *qTextStreamWriter << c;
+                }
+                else {
+                    CaretLogWarning("Unicode value of character not written: " 
+                                    + AString::number((int)u));
+                }
+            }
+            
+        }
             break;
         case OUTPUT_STREAM_STD_OUTPUT_STREAM:
         {
@@ -397,7 +427,7 @@ XmlWriter::writeCharacters(const AString& text) throw(XmlException) {
             std::string tempstring = text.toStdString();
             int32_t num = tempstring.length();
             for (int32_t i = 0; i < num; i++) {
-                char c = tempstring.at(i);
+                char c = tempstring[i];
                 
                 bool printIt = true; //c.isPrint();
                 
