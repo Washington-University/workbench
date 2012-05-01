@@ -49,8 +49,6 @@ namespace caret {
         
         ~FileAdapter();
         
-        QTextStream* openQTextStreamForWritingToString(QString* textString);
-        
         QTextStream* openQTextStreamForWritingFile(const AString& filename,
                                                    AString& errorMessageOut);
         
