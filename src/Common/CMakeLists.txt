@@ -60,6 +60,7 @@ EventManager.h
 EventProgressUpdate.h
 EventTypeEnum.h
 FastStatistics.h
+FileAdapter.h
 FileInformation.h
 FloatMatrix.h
 Histogram.h
@@ -118,6 +119,7 @@ EventManager.cxx
 EventProgressUpdate.cxx
 EventTypeEnum.cxx
 FastStatistics.cxx
+FileAdapter.cxx
 FileInformation.cxx
 FloatMatrix.cxx
 Histogram.cxx
