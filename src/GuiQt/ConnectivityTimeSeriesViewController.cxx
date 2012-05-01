@@ -88,9 +88,9 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
     this->connectivityLoaderFile = NULL;
     this->previousConnectivityLoaderFile = NULL;
     
-    this->enabledCheckBox = new QCheckBox(" ");
-    QObject::connect(this->enabledCheckBox, SIGNAL(stateChanged(int)),
-                     this, SLOT(enabledCheckBoxStateChanged(int)));
+    this->yokeCheckBox = new QCheckBox(" ");
+    QObject::connect(this->yokeCheckBox, SIGNAL(stateChanged(int)),
+                     this, SLOT(yokeCheckBoxStateChanged(int)));
     
     this->fileNameLineEdit = new QLineEdit("                 ");
     this->fileNameLineEdit->setReadOnly(true);
@@ -133,7 +133,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
                                                    this);
     if (orientation == Qt::Horizontal) {
         int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0);
+        this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0);
         this->gridLayoutGroup->addWidget(graphToolButton, row, 1);
         this->gridLayoutGroup->addWidget(animateToolButton, row, 2);
         this->gridLayoutGroup->addWidget(this->timeSpinBox, row, 3);
@@ -146,7 +146,7 @@ ConnectivityTimeSeriesViewController::ConnectivityTimeSeriesViewController(const
         bottomHorizontalLineWidget->setFrameStyle(QFrame::HLine | QFrame::Raised);
         
         int row = this->gridLayoutGroup->rowCount();
-        this->gridLayoutGroup->addWidget(this->enabledCheckBox, row, 0, 2, 1, Qt::AlignCenter);
+        this->gridLayoutGroup->addWidget(this->yokeCheckBox, row, 0, 2, 1, Qt::AlignCenter);
         this->gridLayoutGroup->addWidget(this->fileNameLineEdit, row, 1, 1, 3);
         row++;
         this->gridLayoutGroup->addWidget(graphToolButton, row, 1, Qt::AlignCenter);
@@ -221,7 +221,7 @@ ConnectivityTimeSeriesViewController::createGridLayout(const Qt::Orientation ori
         gridLayout->setColumnStretch(3, 0);
         gridLayout->setColumnStretch(4, 100);
         
-        QLabel* onLabel = new QLabel("On");
+        QLabel* onLabel = new QLabel("Yoke");
         QLabel* graphLabel = new QLabel("Graph");
         QLabel* animateLabel = new QLabel("Animate");
         QLabel* timeLabel = new QLabel("Time");
@@ -260,18 +260,11 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
             this->animator = new TimeSeriesManagerForViewController(this);            
         }
         
-        Qt::CheckState enabledState = Qt::Unchecked;
-        if (this->connectivityLoaderFile->isDataLoadingEnabled()) {
-            enabledState = Qt::Checked;
-        }
-        this->enabledCheckBox->setCheckState(enabledState);
-        
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
     }
     else {
         this->deleteAnimator();
-    }
-    
+    }    
     this->previousConnectivityLoaderFile = this->connectivityLoaderFile;
 }
 
@@ -285,18 +278,77 @@ ConnectivityTimeSeriesViewController::updateViewController()
 }
 
 /**
+ * Update other connectivity view controllers other than 'this' instance
+ * that contain the same connectivity file.
+ */
+void 
+ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
+{
+    
+    QMap <ConnectivityLoaderFile *, bool> alreadyLoaded;
+    alreadyLoaded.insert(connectivityLoaderFile,true);
+    if (this->connectivityLoaderFile != NULL) {
+        for (std::set<ConnectivityTimeSeriesViewController*>::iterator iter = allConnectivityTimeSeriesViewControllers.begin();
+             iter != allConnectivityTimeSeriesViewControllers.end();
+             iter++) {
+            ConnectivityTimeSeriesViewController* clvc = *iter;
+            if (clvc != this) {
+                clvc->updateTimeSpinBox(this, alreadyLoaded, time);
+            }
+        }
+    }    
+}
+
+/**
+ * Update this view controller.
+ * @param connectivityLoaderFile
+ *    Connectivity loader file in this view controller.
+ */
+void 
+ConnectivityTimeSeriesViewController::updateTimeSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, 
+                                                        QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded,
+                                                        double time)
+{
+    
+    if (this->connectivityLoaderFile != NULL) {   
+        if(timeSeriesViewController->connectivityLoaderFile == this->connectivityLoaderFile)
+        {
+            this->timeSpinBox->blockSignals(true);            
+            this->timeSpinBox->setValue(time);
+            this->timeSpinBox->update();
+            this->timeSpinBox->blockSignals(false);
+        }
+        else if(timeSeriesViewController->yokeCheckBox->checkState() == Qt::Checked && 
+                this->yokeCheckBox->checkState() == Qt::Checked)
+        {
+            if(alreadyLoaded.value(this->connectivityLoaderFile, false))
+            {
+                this->timeSpinBox->blockSignals(true);            
+                this->timeSpinBox->setValue(time);
+                this->timeSpinBox->blockSignals(false);
+            }
+            else
+            {
+                this->timeSpinBox->setValue(time);
+                alreadyLoaded.insert(this->connectivityLoaderFile, true);
+            }            
+        }
+    }
+}
+
+/**
  * Called when enabled check box changes state.
  */
 void 
-ConnectivityTimeSeriesViewController::enabledCheckBoxStateChanged(int state)
+ConnectivityTimeSeriesViewController::yokeCheckBoxStateChanged(int state)
 {
     const bool selected = (state == Qt::Checked);
-    if (this->connectivityLoaderFile != NULL) {
+    /*if (this->connectivityLoaderFile != NULL) {
         this->connectivityLoaderFile->setDataLoadingEnabled(selected);
         this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
-    }
+    }*/
     
-    this->updateUserInterfaceAndGraphicsWindow();
+    //this->updateUserInterfaceAndGraphicsWindow();
 }
 
 /**
@@ -407,6 +459,10 @@ ConnectivityTimeSeriesViewController::timeSpinBoxValueChanged(double value)
         
         if (dataLoadedFlag) {
             this->updateOtherConnectivityTimeSeriesViewControllers();
+            //if(this->yokeCheckBox->checkState() == Qt::Checked)
+            //{
+                this->updateOtherYokedTimeSpinBoxes(value);
+            //}
             const float guiUpdateTime = et.getElapsedTimeSeconds() - loadTime;
             
             EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());

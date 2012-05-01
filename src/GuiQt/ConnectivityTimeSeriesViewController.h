@@ -37,6 +37,7 @@
 #include <set>
 
 #include <QObject>
+#include <qmap.h>
 
 #include "EventListenerInterface.h"
 
@@ -79,7 +80,7 @@ namespace caret {
         ConnectivityLoaderFile* getConnectivityLoaderFile();
         
     private slots:
-        void enabledCheckBoxStateChanged(int);
+        void yokeCheckBoxStateChanged(int);
 
         void graphDisplayActionTriggered(bool);
         
@@ -97,6 +98,10 @@ namespace caret {
         void updateOtherConnectivityTimeSeriesViewControllers();
         
         void updateViewController();
+
+        void updateTimeSpinBox(ConnectivityTimeSeriesViewController *timeSeriesViewController, QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded, double time);        
+
+        void updateOtherYokedTimeSpinBoxes(double time);
         
         void deleteAnimator();
         
@@ -104,7 +109,7 @@ namespace caret {
         
         ConnectivityLoaderFile* previousConnectivityLoaderFile;
         
-        QCheckBox* enabledCheckBox;
+        QCheckBox* yokeCheckBox;
         
         QLineEdit* fileNameLineEdit;
         
