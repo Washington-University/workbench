@@ -299,7 +299,11 @@ ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
              iter++) {
             ConnectivityTimeSeriesViewController* clvc = *iter;
             if (clvc != this) {
-                clvc->updateTimeSpinBox(this, alreadyLoaded, time);
+                if(clvc->timeSpinBox->value() != time) 
+                {
+                    alreadyLoaded.insert(clvc->connectivityLoaderFile,true);
+                    clvc->updateTimeSpinBox(this, alreadyLoaded, time);
+                }                    
             }
         }
     }    
@@ -315,7 +319,6 @@ ConnectivityTimeSeriesViewController::updateTimeSpinBox(ConnectivityTimeSeriesVi
                                                         QMap <ConnectivityLoaderFile *, bool> &alreadyLoaded,
                                                         double time)
 {
-    
     if (this->connectivityLoaderFile != NULL) {   
         if(timeSeriesViewController->connectivityLoaderFile == this->connectivityLoaderFile)
         {
@@ -331,11 +334,13 @@ ConnectivityTimeSeriesViewController::updateTimeSpinBox(ConnectivityTimeSeriesVi
             {
                 this->timeSpinBox->blockSignals(true);            
                 this->timeSpinBox->setValue(time);
+                this->timeSpinBox->update();
                 this->timeSpinBox->blockSignals(false);
             }
             else
             {
                 this->timeSpinBox->setValue(time);
+                this->timeSpinBox->update();
                 alreadyLoaded.insert(this->connectivityLoaderFile, true);
             }            
         }
