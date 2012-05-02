@@ -150,7 +150,7 @@ namespace caret {
         //BrainOpenGL* brainOpenGL;
         
         /* Editor for scalar color mapping. */
-        MapScalarDataColorMappingEditorDialog* scalarDataColorMappingEditor;
+        std::set<MapScalarDataColorMappingEditorDialog*> scalarDataColorMappingEditors;
         
         ImageCaptureDialog* imageCaptureDialog;
         

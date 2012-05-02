@@ -1,5 +1,5 @@
-#ifndef __EVENT_PALETTE_COLOR_MAPPING_EDITOR_H__
-#define __EVENT_PALETTE_COLOR_MAPPING_EDITOR_H__
+#ifndef __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__
+#define __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__
 
 /*LICENSE_START*/ 
 /* 
@@ -32,15 +32,15 @@ namespace caret {
 
     class CaretMappableDataFile;
     
-    /// Event for editing map scalar color mapping
-    class EventMapScalarDataColorMappingEditor : public Event {
+    /// Event for showing edit map scalar color mapping editor
+    class EventMapScalarDataColorMappingEditorShow : public Event {
         
     public:
-        EventMapScalarDataColorMappingEditor(const int32_t browserWindowIndex,
+        EventMapScalarDataColorMappingEditorShow(const int32_t browserWindowIndex,
                                        CaretMappableDataFile* mapFile,
                                        const int32_t mapIndex);
         
-        virtual ~EventMapScalarDataColorMappingEditor();
+        virtual ~EventMapScalarDataColorMappingEditorShow();
         
         /**
          * @return Get the index of the browser window for palette being edited.
@@ -58,9 +58,9 @@ namespace caret {
         int32_t getMapIndex() const { return this->mapIndex; }
         
     private:
-        EventMapScalarDataColorMappingEditor(const EventMapScalarDataColorMappingEditor&);
+        EventMapScalarDataColorMappingEditorShow(const EventMapScalarDataColorMappingEditorShow&);
         
-        EventMapScalarDataColorMappingEditor& operator=(const EventMapScalarDataColorMappingEditor&);
+        EventMapScalarDataColorMappingEditorShow& operator=(const EventMapScalarDataColorMappingEditorShow&);
         
         /** Map file containing map whose color palette is edited */
         CaretMappableDataFile* mapFile;
@@ -74,4 +74,4 @@ namespace caret {
 
 } // namespace
 
-#endif // __EVENT_PALETTE_COLOR_MAPPING_EDITOR_H__
+#endif // __EVENT_PALETTE_COLOR_MAPPING_EDITOR_SHOW_H__

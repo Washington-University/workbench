@@ -61,8 +61,12 @@ namespace caret {
 
         void updateDialog();
         
+        bool isDoNotReplaceSelected() const;
+        
     protected:
         virtual void applyButtonPressed();
+        
+        virtual void closeButtonPressed();
         
     private:
         MapScalarDataColorMappingEditorDialog(const MapScalarDataColorMappingEditorDialog&);
@@ -80,11 +84,15 @@ namespace caret {
         void histogramResetViewButtonClicked();
         void applyAndUpdate();
         
+        void doNotReplaceCheckBoxStateChanged(int state);
+        void applyAllMapsCheckBoxStateChanged(int state);
+        
     private:
         QWidget* createPaletteSection();
         QWidget* createThresholdSection();
         QWidget* createHistogramSection();
         QWidget* createHistogramControlSection();
+        QWidget* createOptionsSection();
         
         void updateHistogramPlot();
         
@@ -97,6 +105,9 @@ namespace caret {
         PaletteColorMapping* paletteColorMapping;
         
         QComboBox* paletteNameComboBox;
+        
+        QCheckBox* doNotReplaceCheckBox;
+        QCheckBox* applyAllMapsCheckBox;
         
         QRadioButton* scaleAutoRadioButton;
         QRadioButton* scaleAutoPercentageRadioButton;

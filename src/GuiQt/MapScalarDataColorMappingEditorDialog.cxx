@@ -116,6 +116,8 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     QWidget* histogramWidget = this->createHistogramSection();
     QWidget* histogramControlWidget = this->createHistogramControlSection();
     
+    QWidget* optionsWidget = this->createOptionsSection();
+    
     QWidget* paletteWidget = this->createPaletteSection();
 
     QWidget* thresholdWidget = this->createThresholdSection();
@@ -130,7 +132,8 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
     this->setLayoutMargins(bottomRightLayout);
-    bottomRightLayout->addWidget(histogramControlWidget);    
+    bottomRightLayout->addWidget(histogramControlWidget);   
+    bottomRightLayout->addWidget(optionsWidget);
     bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
@@ -425,7 +428,7 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     this->histogramAllRadioButton = new QRadioButton("All");
     WuQtUtilities::setToolTipAndStatusTip(this->histogramAllRadioButton, 
                                           "Displays all map data in the histogram");
-    this->histogramMatchPaletteRadioButton = new QRadioButton("Match Palette");
+    this->histogramMatchPaletteRadioButton = new QRadioButton("Match\nPalette");
     WuQtUtilities::setToolTipAndStatusTip(this->histogramMatchPaletteRadioButton, 
                                           "Use the palette mapping selections");
     
@@ -469,9 +472,9 @@ MapScalarDataColorMappingEditorDialog::createHistogramControlSection()
     statisticsLayout->addWidget(this->statisticsMeanValueLabel, 0, 1);
     statisticsLayout->addWidget(new QLabel("Std Dev"), 1, 0);
     statisticsLayout->addWidget(this->statisticsStandardDeviationLabel, 1, 1);
-    statisticsLayout->addWidget(new QLabel("Maximum"), 2, 0);
+    statisticsLayout->addWidget(new QLabel("Max"), 2, 0);
     statisticsLayout->addWidget(this->statisticsMaximumValueLabel, 2, 1);
-    statisticsLayout->addWidget(new QLabel("Minimum"), 3, 0);
+    statisticsLayout->addWidget(new QLabel("Min"), 3, 0);
     statisticsLayout->addWidget(this->statisticsMinimumValueLabel, 3, 1);
     statisticsWidget->setFixedHeight(statisticsWidget->sizeHint().height());
     
@@ -1472,16 +1475,106 @@ void MapScalarDataColorMappingEditorDialog::applyButtonPressed()
         this->paletteColorMapping->setThresholdTest(PaletteThresholdTestEnum::THRESHOLD_TEST_SHOW_OUTSIDE);
     }
     
+    if (this->applyAllMapsCheckBox->checkState() == Qt::Checked) {
+        const int numMaps = this->caretMappableDataFile->getNumberOfMaps();
+        for (int32_t i = 0; i < numMaps; i++) {
+            PaletteColorMapping* pcm = this->caretMappableDataFile->getMapPaletteColorMapping(i);
+            if (pcm != this->paletteColorMapping) {
+                pcm->copy(*this->paletteColorMapping);
+            }
+        }
+    }
+    
     this->updateHistogramPlot();
     
     EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Called when close button pressed.
+ */ 
+void
+MapScalarDataColorMappingEditorDialog::closeButtonPressed()
+{
+    /*
+     * Allow this dialog to be reused (checked means DO NOT reuse)
+     */
+    this->doNotReplaceCheckBox->setCheckState(Qt::Unchecked);
+    
+    WuQDialogNonModal::closeButtonPressed();
+}
+
+/**
+ * Set the layout margins.
+ * @param layout
+ *   Layout for which margins are set.
+ */
 void 
 MapScalarDataColorMappingEditorDialog::setLayoutMargins(QLayout* layout)
 {
     WuQtUtilities::setLayoutMargins(layout, 5, 3);
 }
+
+/**
+ * @return Is the Do Not Replace selected.  If so, this instance of the
+ * dialog should not be replaced.
+ */
+bool 
+MapScalarDataColorMappingEditorDialog::isDoNotReplaceSelected() const
+{
+    const bool checked = (this->doNotReplaceCheckBox->checkState() == Qt::Checked);
+    return checked;
+}
+
+/**
+ * Called when the state of the apply all maps checkbox is changed.
+ * @param state
+ *    New state of checkbox.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::applyAllMapsCheckBoxStateChanged(int /*state*/)
+{
+    //const bool checked = (state == Qt::Checked);
+    this->applyButtonPressed();
+}
+
+/**
+ * Called when the state of the do not reply checkbox is changed.
+ * @param state
+ *    New state of checkbox.
+ */
+void 
+MapScalarDataColorMappingEditorDialog::doNotReplaceCheckBoxStateChanged(int /*state*/)
+{
+//    const bool checked = (state == Qt::Checked);
+}
+
+/**
+ * @return A widget containing the options.
+ */
+QWidget*
+MapScalarDataColorMappingEditorDialog::createOptionsSection()
+{
+    this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
+    this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
+                                           "in the file containing the selected map");
+    
+    this->doNotReplaceCheckBox = new QCheckBox("Do Not Replace");
+    this->doNotReplaceCheckBox->setToolTip("If checked, this dialog remains displayed until\n"
+                                           "the dialog is closed or this box is unchecked\n"
+                                           "and a map is selected for palette editing");
+    
+    QGroupBox* optionsGroupBox = new QGroupBox("Options");
+    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
+    this->setLayoutMargins(optionsLayout);
+    optionsLayout->addWidget(this->applyAllMapsCheckBox);
+    optionsLayout->addWidget(this->doNotReplaceCheckBox);
+    optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
+                                               QSizePolicy::Fixed));
+    
+    return optionsGroupBox;
+}
+
 
 

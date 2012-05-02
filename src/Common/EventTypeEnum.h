@@ -72,8 +72,8 @@ public:
         EVENT_IDENTIFICATION_SYMBOL_REMOVAL,
         /** Display text in information windows */
         EVENT_INFORMATION_TEXT_DISPLAY,
-        /** map scalar color data mapping editor */
-        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
+        /** request display of map scalar color data mapping editor */
+        EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
         /** model display controllers - ADD */
         EVENT_MODEL_DISPLAY_CONTROLLER_ADD,
         /** model display controllers - DELETE */

@@ -130,9 +130,9 @@ EventTypeEnum::initialize()
                                      "EVENT_INFORMATION_TEXT_DISPLAY",
                                      "Display text in information windows"));
     
-    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR,
-                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR",
-                                     "Display map scalar data color mapping editor"));
+    enumData.push_back(EventTypeEnum(EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW,
+                                     "EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW",
+                                     "Request display of map scalar data color mapping editor"));
     
     enumData.push_back(EventTypeEnum(EVENT_MODEL_DISPLAY_CONTROLLER_ADD, 
                                      "EVENT_MODEL_DISPLAY_CONTROLLER_ADD", 

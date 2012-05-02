@@ -122,7 +122,7 @@ EventBrowserWindowNew.h
 EventGetOrSetUserInputModeProcessor.h
 EventGraphicsUpdateAllWindows.h
 EventGraphicsUpdateOneWindow.h
-EventMapScalarDataColorMappingEditor.h
+EventMapScalarDataColorMappingEditorShow.h
 EventToolBoxUpdate.h
 EventUpdateAnimationStartTime.h
 EventUpdateTimeCourseDialog.h
@@ -204,7 +204,7 @@ EventBrowserWindowNew.cxx
 EventGetOrSetUserInputModeProcessor.cxx
 EventGraphicsUpdateAllWindows.cxx
 EventGraphicsUpdateOneWindow.cxx
-EventMapScalarDataColorMappingEditor.cxx
+EventMapScalarDataColorMappingEditorShow.cxx
 EventToolBoxUpdate.cxx
 EventUpdateAnimationStartTime.cxx
 EventUpdateTimeCourseDialog.cxx

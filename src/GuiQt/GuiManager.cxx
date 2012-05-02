@@ -42,7 +42,7 @@
 #include "EventGraphicsUpdateOneWindow.h"
 #include "EventInformationTextDisplay.h"
 #include "EventManager.h"
-#include "EventMapScalarDataColorMappingEditor.h"
+#include "EventMapScalarDataColorMappingEditorShow.h"
 #include "ImageFile.h"
 #include "ImageCaptureDialog.h"
 #include "InformationDisplayDialog.h"
@@ -73,14 +73,13 @@ GuiManager::GuiManager(QObject* parent)
     this->imageCaptureDialog = NULL;
     this->informationDisplayDialog = NULL;
     this->preferencesDialog = NULL;    
-    this->scalarDataColorMappingEditor = NULL;
     
     this->cursorManager = new CursorManager();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG);
-    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR);
+    EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW);
 }
 
 /**
@@ -552,9 +551,9 @@ GuiManager::receiveEvent(Event* event)
     else if(event->getEventType() == EventTypeEnum::EVENT_UPDATE_TIME_COURSE_DIALOG) {
         this->processUpdateTimeCourseDialogs();
     }
-    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR) {
-        EventMapScalarDataColorMappingEditor* mapEditEvent =
-        dynamic_cast<EventMapScalarDataColorMappingEditor*>(event);
+    else if (event->getEventType() == EventTypeEnum::EVENT_MAP_SCALAR_DATA_COLOR_MAPPING_EDITOR_SHOW) {
+        EventMapScalarDataColorMappingEditorShow* mapEditEvent =
+        dynamic_cast<EventMapScalarDataColorMappingEditorShow*>(event);
         CaretAssert(mapEditEvent);
         
         const int browserWindowIndex = mapEditEvent->getBrowserWindowIndex();
@@ -565,18 +564,39 @@ GuiManager::receiveEvent(Event* event)
         CaretMappableDataFile* mapFile = mapEditEvent->getCaretMappableDataFile();
         const int mapIndex = mapEditEvent->getMapIndex();
         
-        if (this->scalarDataColorMappingEditor == NULL) {
-            this->scalarDataColorMappingEditor =
-            new MapScalarDataColorMappingEditorDialog(browserWindow);
-            this->nonModalDialogs.push_back(this->scalarDataColorMappingEditor);
+        MapScalarDataColorMappingEditorDialog* mapEditor = NULL;
+        for (std::set<MapScalarDataColorMappingEditorDialog*>::iterator mapEditorIter = scalarDataColorMappingEditors.begin();
+             mapEditorIter != scalarDataColorMappingEditors.end();
+             mapEditorIter++) {
+            MapScalarDataColorMappingEditorDialog* med = *mapEditorIter;
+            if (med->isDoNotReplaceSelected() == false) {
+                mapEditor = med;
+                break;
+            }
         }
-        this->scalarDataColorMappingEditor->updateEditor(mapFile,
-                                                         mapIndex);
-        this->scalarDataColorMappingEditor->show();
-        this->scalarDataColorMappingEditor->raise();
-        this->scalarDataColorMappingEditor->activateWindow();
-        WuQtUtilities::moveWindowToSideOfParent(browserWindow,
-                                                this->scalarDataColorMappingEditor);
+        
+        bool placeInDefaultLocation = false;
+        if (mapEditor == NULL) {
+            mapEditor = new MapScalarDataColorMappingEditorDialog(browserWindow);
+            this->scalarDataColorMappingEditors.insert(mapEditor);
+            this->nonModalDialogs.push_back(mapEditor);
+            placeInDefaultLocation = true;
+        }
+        else {
+            if (mapEditor->isHidden()) {
+                placeInDefaultLocation = true;
+            }
+        }
+        
+        mapEditor->updateEditor(mapFile,
+                                mapIndex);
+        mapEditor->show();
+        mapEditor->raise();
+        mapEditor->activateWindow();
+        if (placeInDefaultLocation) {
+            WuQtUtilities::moveWindowToSideOfParent(browserWindow,
+                                                    mapEditor);
+        }
         mapEditEvent->setEventProcessed();
     }
 }

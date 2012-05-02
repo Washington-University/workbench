@@ -80,6 +80,18 @@ PaletteColorMapping::operator=(const PaletteColorMapping& o)
 }
 
 /**
+ * Copy the palette color mapping from the given palette
+ * color mapping.
+ * @param pcm
+ *    Color mapping that is copied to this.
+ */
+void 
+PaletteColorMapping::copy(const PaletteColorMapping& pcm)
+{
+    this->copyHelper(pcm);
+}
+
+/**
  * Helps with copy constructor and assignment operator.
  */
 void
