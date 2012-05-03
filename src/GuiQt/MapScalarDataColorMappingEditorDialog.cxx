@@ -116,7 +116,9 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     QWidget* histogramWidget = this->createHistogramSection();
     QWidget* histogramControlWidget = this->createHistogramControlSection();
     
-    QWidget* optionsWidget = this->createOptionsSection();
+    QWidget* dataOptionsWidget = this->createDataOptionsSection();
+    
+    QWidget* windowOptionsWidget = this->createWindowOptionsSection();
     
     QWidget* paletteWidget = this->createPaletteSection();
 
@@ -129,11 +131,16 @@ MapScalarDataColorMappingEditorDialog::MapScalarDataColorMappingEditorDialog(QWi
     leftLayout->addWidget(paletteWidget);
     leftLayout->addStretch();
     
+    QVBoxLayout* optionsLayout = new QVBoxLayout();
+    optionsLayout->addWidget(dataOptionsWidget);
+    optionsLayout->addStretch(10000);
+    optionsLayout->addWidget(windowOptionsWidget);
+    
     QWidget* bottomRightWidget = new QWidget();
     QHBoxLayout* bottomRightLayout = new QHBoxLayout(bottomRightWidget);
     this->setLayoutMargins(bottomRightLayout);
     bottomRightLayout->addWidget(histogramControlWidget);   
-    bottomRightLayout->addWidget(optionsWidget);
+    bottomRightLayout->addLayout(optionsLayout);
     bottomRightWidget->setFixedSize(bottomRightWidget->sizeHint());
     
     QWidget* rightWidget = new QWidget();
@@ -1551,24 +1558,46 @@ MapScalarDataColorMappingEditorDialog::doNotReplaceCheckBoxStateChanged(int /*st
 }
 
 /**
- * @return A widget containing the options.
+ * @return A widget containing the data options.
  */
 QWidget*
-MapScalarDataColorMappingEditorDialog::createOptionsSection()
+MapScalarDataColorMappingEditorDialog::createDataOptionsSection()
 {
-    this->applyAllMapsCheckBox = new QCheckBox("Apply to All Maps");
+    this->applyAllMapsCheckBox = new QCheckBox("Apply to File");
     this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
                                            "in the file containing the selected map");
     
-    this->doNotReplaceCheckBox = new QCheckBox("Do Not Replace");
-    this->doNotReplaceCheckBox->setToolTip("If checked, this dialog remains displayed until\n"
-                                           "the dialog is closed or this box is unchecked\n"
-                                           "and a map is selected for palette editing");
-    
-    QGroupBox* optionsGroupBox = new QGroupBox("Options");
+    QGroupBox* optionsGroupBox = new QGroupBox("Data Options");
     QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
     this->setLayoutMargins(optionsLayout);
     optionsLayout->addWidget(this->applyAllMapsCheckBox);
+    optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
+                                               QSizePolicy::Fixed));
+    
+    return optionsGroupBox;
+}
+
+/**
+ * @return A widget containing the window options.
+ */
+QWidget*
+MapScalarDataColorMappingEditorDialog::createWindowOptionsSection()
+{
+    this->doNotReplaceCheckBox = new QCheckBox("Do Not Replace");
+    this->doNotReplaceCheckBox->setToolTip("If checked: \n"
+                                           "   (1) this window remains displayed until it is\n"
+                                           "       closed.\n"
+                                           "   (2) if the user selects editing of another map's\n"
+                                           "       palette, it will not replace the content of\n"
+                                           "       this window.\n"
+                                           "If NOT checked:\n"
+                                           "   If the user selects editing of another map's \n"
+                                           "   palette, it will replace the content of this\n"
+                                           "   window.");
+    
+    QGroupBox* optionsGroupBox = new QGroupBox("Window Options");
+    QVBoxLayout* optionsLayout = new QVBoxLayout(optionsGroupBox);
+    this->setLayoutMargins(optionsLayout);
     optionsLayout->addWidget(this->doNotReplaceCheckBox);
     optionsGroupBox->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding,
                                                QSizePolicy::Fixed));
