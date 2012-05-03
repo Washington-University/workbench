@@ -53,12 +53,20 @@ IF (APPLE)
 #       RESOURCE
 #       ${QT_BINARY_DIR}/../src/gui/mac/qt_menu.nib
 #   )
-ELSE (APPLE)
+ENDIF (APPLE)
+IF (WIN32)
+   ADD_EXECUTABLE(${EXE_NAME}
+      desktop.cxx
+      ${IMAGE_RCS_SRCS}
+      ${CMAKE_SOURCE_DIR}/../icons/windows/workbench.rc
+   )
+ENDIF (WIN32)
+IF (UNIX)
    ADD_EXECUTABLE(${EXE_NAME}
       desktop.cxx
       ${IMAGE_RCS_SRCS}
    )
-ENDIF (APPLE)
+ENDIF (UNIX)
 
 #
 # Libraries that are linked
