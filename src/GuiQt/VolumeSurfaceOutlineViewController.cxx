@@ -90,7 +90,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
     this->colorOrTabSelectionControl->getWidget()->setToolTip("Select coloring for surface outline.\n"
                                                               "If tab, coloring assigned to selected surface\n"
                                                               "in the selected tab is used.\n");
-    const float minLineWidth = 0.5;
+    const float minLineWidth = 0.1;
     const float maxLineWidth = 100.0;
     const float stepSize = 0.1;
     this->thicknessSpinBox = new QDoubleSpinBox();
