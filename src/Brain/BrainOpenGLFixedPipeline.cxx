@@ -2140,10 +2140,10 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                                          * sliceStep);
                 sliceIndex -= sliceOffset;
                 
-                if (sliceIndex >= 0) {
                     for (int i = 0; i < numRows; i++) {
                         for (int j = 0; j < numCols; j++) {
-                            if (sliceIndex < maximumSliceIndex) {
+                            if ((sliceIndex >= 0)
+                                && (sliceIndex < maximumSliceIndex)) {
                                 const int vpX = j * vpSizeX;
                                 const int vpY = i * vpSizeY;
                                 const int vp[4] = { 
@@ -2172,7 +2172,6 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                             sliceIndex += sliceStep;
                         }
                     }
-                }
                 
                 glViewport(viewport[0],
                            viewport[1],
