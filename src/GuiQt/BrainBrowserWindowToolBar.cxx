@@ -2067,9 +2067,15 @@ BrainBrowserWindowToolBar::createToolsWidget()
                                                                                "Connect to Connectome DB Database",
                                                                                this);
     
+    
+    this->toolsConnectToHcpAction = WuQtUtilities::createAction("Human Connectome Project...",
+                                                                "Connect to the Human Connectome Project Website",
+                                                                this);
+    
     this->toolsConnectMenu = new QMenu("DB");
     this->toolsConnectMenu->addAction(this->toolsConnectToAllenDatabaseAction);
     this->toolsConnectMenu->addAction(this->toolsConnectToConnectomeDatabaseAction);
+    this->toolsConnectMenu->addAction(this->toolsConnectToHcpAction);
     
     /*
      * Create the toolbutton that pops up the Connect Menu
@@ -2189,6 +2195,12 @@ BrainBrowserWindowToolBar::toolsConnectToDatabaseActionTriggered(bool)
         static QWebView *view = NULL;
         if(view == NULL) view = new QWebView();
         view->load(QUrl("https://intradb.humanconnectome.org/"));             
+        view->show();
+    }
+    else if (result == this->toolsConnectToHcpAction) {
+        static QWebView *view = NULL;
+        if(view == NULL) view = new QWebView();
+        view->load(QUrl("https://humanconnectome.org"));             
         view->show();
     }
     else if (result != NULL) {

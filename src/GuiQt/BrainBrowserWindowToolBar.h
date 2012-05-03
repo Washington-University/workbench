@@ -392,6 +392,7 @@ namespace caret {
         void updateDisplayedToolsUserInputWidget();
         QMenu* toolsConnectMenu;
         QAction* toolsConnectToAllenDatabaseAction;
+        QAction* toolsConnectToHcpAction;
         QAction* toolsConnectToConnectomeDatabaseAction;
         
         QActionGroup* toolsInputModeActionGroup;
