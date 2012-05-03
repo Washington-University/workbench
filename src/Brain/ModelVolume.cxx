@@ -71,7 +71,7 @@ ModelVolume::initializeMembersModelVolume()
         this->sliceViewPlane[i]         = VolumeSliceViewPlaneEnum::AXIAL;
         this->sliceViewMode[i]          = VolumeSliceViewModeEnum::ORTHOGONAL;
         this->montageNumberOfColumns[i] = 3;
-        this->montageNumberOfRows[i]    = 3;
+        this->montageNumberOfRows[i]    = 4;
         this->montageSliceSpacing[i]    = 5;
         this->volumeSlicesSelected[i].reset();
     }
@@ -388,6 +388,32 @@ ModelVolume::initializeOverlays()
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
         this->overlaySet[i]->initializeOverlays();
+        
+        VolumeFile* vf = this->overlaySet[i]->getUnderlayVolume();
+        if (vf != NULL) {
+            /*
+             * Set montage slice spacing based upon slices
+             * in the Z-axis.
+             */
+            std::vector<int64_t> dimensions;
+            vf->getDimensions(dimensions);
+            
+            if (dimensions.size() >= 3) {
+                const int32_t dimZ = dimensions[2];
+                if (dimZ > 0) {
+                    const int32_t maxZ = static_cast<int32_t>(dimZ * 0.90);
+                    const int32_t minZ = static_cast<int32_t>(dimZ * 0.10);
+                    const int32_t sliceRange = (maxZ - minZ);
+                    int32_t sliceSpacing = 1;
+                    if (sliceRange > 0) {
+                        const int32_t numSlicesViewed = (this->montageNumberOfRows[i]
+                                                         * this->montageNumberOfColumns[i]);
+                        sliceSpacing = (sliceRange / numSlicesViewed);
+                    }
+                    this->montageSliceSpacing[i] = sliceSpacing;
+                }
+            }
+        }
     }
 }
 

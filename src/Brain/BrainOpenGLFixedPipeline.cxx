@@ -2131,6 +2131,15 @@ BrainOpenGLFixedPipeline::drawVolumeController(BrowserTabContent* browserTabCont
                         break;
                 }
 
+                /*
+                 * Determine a slice offset to selected slices is in
+                 * the center of the montage
+                 */
+                const int numSlicesViewed = (numCols * numRows);
+                const int sliceOffset = ((numSlicesViewed / 2)
+                                         * sliceStep);
+                sliceIndex -= sliceOffset;
+                
                 if (sliceIndex >= 0) {
                     for (int i = 0; i < numRows; i++) {
                         for (int j = 0; j < numCols; j++) {
