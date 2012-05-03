@@ -157,7 +157,7 @@ ImageCaptureDialog::ImageCaptureDialog(BrainBrowserWindow* parent)
     this->copyImageToClipboardCheckBox->setChecked(true);
     this->saveImageToFileCheckBox = new QCheckBox("Save to File: " );
     this->imageFileNameLineEdit = new QLineEdit();
-    this->imageFileNameLineEdit->setText("capture.png");
+    this->imageFileNameLineEdit->setText("untitled.png");
     QPushButton* fileNameSelectionPushButton = new QPushButton("Choose File...");
     QObject::connect(fileNameSelectionPushButton, SIGNAL(clicked()),
                      this, SLOT(selectImagePushButtonPressed()));
@@ -202,23 +202,37 @@ ImageCaptureDialog::updateDialog()
 void 
 ImageCaptureDialog::selectImagePushButtonPressed()
 {
-    QString filterText = "Image File (";
-    
-    QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
-    const int numFormats = imageFormats.count();
-    for (int i = 0; i < numFormats; i++) {        
-        QByteArray format = imageFormats.at(i);
-        if (i > 0) {
-            filterText += " ";
-        }
-        filterText.append(("*." + QString(format)));
+    QString defaultFileName = this->imageFileNameLineEdit->text().trimmed();
+    if (defaultFileName.isEmpty()) {
+        defaultFileName = "untitled.png";
     }
-    filterText += ")";
+    FileInformation fileInfo(this->imageFileNameLineEdit->text().trimmed());
+    if (fileInfo.isRelative()) {
+        FileInformation absFileInfo(GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                    this->imageFileNameLineEdit->text().trimmed());
+        defaultFileName = absFileInfo.getFilePath();
+    }
+    
+    std::vector<AString> imageFileFilters;
+    AString defaultFileFilter;
+    ImageFile::getImageFileFilters(imageFileFilters, 
+                                   defaultFileFilter);
+    QString filters;
+    for (std::vector<AString>::iterator filterIterator = imageFileFilters.begin();
+         filterIterator != imageFileFilters.end();
+         filterIterator++) {
+        if (filters.isEmpty() == false) {
+            filters += ";;";
+        }
+        
+        filters += *filterIterator;
+    }
+    
     AString name = CaretFileDialog::getSaveFileNameDialog(this,
                                                   "Choose File Name",
-                                                  GuiManager::get()->getBrain()->getCurrentDirectory(),
-                                                  filterText,
-                                                  &filterText);
+                                                  defaultFileName, //GuiManager::get()->getBrain()->getCurrentDirectory(),
+                                                  filters,
+                                                  &defaultFileFilter);
     if (name.isEmpty() == false) {
         this->imageFileNameLineEdit->setText(name.trimmed());
     }
@@ -262,7 +276,28 @@ void ImageCaptureDialog::applyButtonPressed()
     }
 
     if (this->saveImageToFileCheckBox->isChecked()) {
+        std::vector<AString> imageFileExtensions;
+        AString defaultFileExtension;
+        ImageFile::getImageFileExtensions(imageFileExtensions, 
+                                          defaultFileExtension);
+        
         AString filename = this->imageFileNameLineEdit->text().trimmed();
+        
+        bool validExtension = false;
+        for (std::vector<AString>::iterator extensionIterator = imageFileExtensions.begin();
+             extensionIterator != imageFileExtensions.end();
+             extensionIterator++) {
+            if (filename.endsWith(*extensionIterator)) {
+                validExtension = true;
+            }
+        }
+        
+        if (validExtension == false) {
+            if (defaultFileExtension.isEmpty() == false) {
+                filename += ("." + defaultFileExtension);
+            }
+        }
+        
         try {
             imageFile.writeFile(filename);
         }

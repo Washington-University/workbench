@@ -779,3 +779,114 @@ ImageFile::writeFile(const AString& filename) throw (DataFileException)
     this->clearModified();
 }
 
+/**
+ * Get the image file extensions for the supported image types.
+ * The extensions do not include the leading period.
+ *
+ * @param imageFileExtensions
+ *    Output filled with extensions for supported image types.
+ * @param defaultExtension
+ *    The default extension (preference is png, jpg, jpeg)
+ */
+void 
+ImageFile::getImageFileExtensions(std::vector<AString>& imageFileExtensions,
+                                  AString& defaultExtension)
+{
+    imageFileExtensions.clear();
+    defaultExtension = "";
+    
+    QString firstExtension;
+    QString pngExtension;
+    QString jpegExtension;
+    QString jpgExtension;
+    QString tifExtension;
+    QString tiffExtension;
+    
+    QList<QByteArray> imageFormats = QImageWriter::supportedImageFormats();
+    const int numFormats = imageFormats.count();
+    for (int i = 0; i < numFormats; i++) {        
+        AString extension = QString(imageFormats.at(i)).toLower();
+        imageFileExtensions.push_back(extension);
+
+        if (i == 0) {
+            firstExtension = extension;
+        }
+        if (extension == "png") {
+            pngExtension = extension;
+        }
+        else if (extension == "jpg") {
+            jpgExtension = extension;
+        }
+        else if (extension == "jpeg") {
+            jpegExtension = extension;
+        }
+        else if (extension == "tif") {
+            tifExtension = extension;
+        }
+        else if (extension == "tiff") {
+            tiffExtension = extension;
+        }
+    }
+    
+    if (pngExtension.isEmpty() == false) {
+        defaultExtension = pngExtension;
+    }
+    else if (jpgExtension.isEmpty() == false) {
+        defaultExtension = jpgExtension;
+    }
+    else if (jpegExtension.isEmpty() == false) {
+        defaultExtension = jpegExtension;
+    }
+    else if (tifExtension.isEmpty() == false) {
+        defaultExtension = tifExtension;
+    }
+    else if (tiffExtension.isEmpty() == false) {
+        defaultExtension = tiffExtension;
+    }
+    else {
+        defaultExtension = firstExtension;
+    }
+}
+
+/**
+ * Get the image file filters for the supported image types.
+ * 
+ * @param imageFileFilters
+ *    Output filled with the filters for supported image types.
+ * @param defaultFilter
+ *    Filter for the preferred image type.
+ */
+void 
+ImageFile::getImageFileFilters(std::vector<AString>& imageFileFilters,
+                               AString& defaultFilter)
+{
+    imageFileFilters.clear();
+    defaultFilter.clear();
+    
+    std::vector<AString> imageFileExtensions;
+    AString defaultExtension;
+    ImageFile::getImageFileExtensions(imageFileExtensions, 
+                                      defaultExtension);
+    
+    const int32_t numExtensions = static_cast<int32_t>(imageFileExtensions.size());
+    for (int32_t i = 0; i < numExtensions; i++) {
+        const AString ext = imageFileExtensions[i];
+        const AString filter = (ext.toUpper()
+                                + " Image File (*."
+                                + ext
+                                + ")");
+        imageFileFilters.push_back(filter);
+        
+        if (ext == defaultExtension) {
+            defaultFilter = filter;
+        }
+    }
+    
+    if (defaultFilter.isEmpty()) {
+        if (imageFileFilters.empty() == false) {
+            defaultFilter = imageFileFilters[0];
+        }
+    }
+}
+
+
