@@ -92,7 +92,7 @@ VolumeSurfaceOutlineViewController::VolumeSurfaceOutlineViewController(const Qt:
                                                               "in the selected tab is used.\n");
     const float minLineWidth = 0.5;
     const float maxLineWidth = 100.0;
-    const float stepSize = 0.5;
+    const float stepSize = 0.1;
     this->thicknessSpinBox = new QDoubleSpinBox();
     this->thicknessSpinBox->setRange(minLineWidth, 
                                maxLineWidth);
