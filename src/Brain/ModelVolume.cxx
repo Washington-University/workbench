@@ -337,11 +337,41 @@ ModelVolume::receiveEvent(Event* event)
         CaretAssert(idLocationEvent);
 
         const float* highlighXYZ = idLocationEvent->getXYZ();
+        float sliceXYZ[3] = {
+            highlighXYZ[0],
+            highlighXYZ[1],
+            highlighXYZ[2]
+        };
         
         for (int32_t windowTabNumber = 0; 
              windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
              windowTabNumber++) {
-             this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(highlighXYZ);
+            switch (this->getSliceViewMode(windowTabNumber)) {
+                case VolumeSliceViewModeEnum::MONTAGE:
+                    /*
+                     * For montage, do not allow slice in selected plane change
+                     */
+                    switch (this->getSliceViewPlane(windowTabNumber)) {
+                        case VolumeSliceViewPlaneEnum::ALL:
+                            break;
+                        case VolumeSliceViewPlaneEnum::PARASAGITTAL:
+                            sliceXYZ[0] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateParasagittal();
+                            break;
+                        case VolumeSliceViewPlaneEnum::CORONAL:
+                            sliceXYZ[1] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateCoronal();
+                            break;
+                        case VolumeSliceViewPlaneEnum::AXIAL:
+                            sliceXYZ[2] = this->volumeSlicesSelected[windowTabNumber].getSliceCoordinateAxial();
+                            break;
+                    }
+                    break;
+                case VolumeSliceViewModeEnum::OBLIQUE:
+                    break;
+                case VolumeSliceViewModeEnum::ORTHOGONAL:
+                    break;
+            }
+            
+            this->volumeSlicesSelected[windowTabNumber].selectSlicesAtCoordinate(sliceXYZ);
         }
         
         idLocationEvent->setEventProcessed();
