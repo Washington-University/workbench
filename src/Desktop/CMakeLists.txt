@@ -61,12 +61,14 @@ IF (WIN32)
       ${CMAKE_SOURCE_DIR}/../icons/windows/workbench.rc
    )
 ENDIF (WIN32)
-IF (UNIX)
-   ADD_EXECUTABLE(${EXE_NAME}
-      desktop.cxx
-      ${IMAGE_RCS_SRCS}
-   )
-ENDIF (UNIX)
+IF (NOT APPLE)
+    IF (UNIX)
+       ADD_EXECUTABLE(${EXE_NAME}
+          desktop.cxx
+          ${IMAGE_RCS_SRCS}
+       )
+    ENDIF (UNIX)
+ENDIF (NOT APPLE)
 
 #
 # Libraries that are linked
