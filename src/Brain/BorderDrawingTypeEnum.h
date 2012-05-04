@@ -50,8 +50,10 @@ public:
     enum Enum {
         /** draw as lines */
         DRAW_AS_LINES,
-        /** draw as points */
-        DRAW_AS_POINTS,
+        /** draw as spherical points */
+        DRAW_AS_POINTS_SPHERES,
+        /** draw as square points */
+        DRAW_AS_POINTS_SQUARES,
         /** draw as points and lines */
         DRAW_AS_POINTS_AND_LINES
     };

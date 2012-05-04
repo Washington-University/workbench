@@ -248,6 +248,8 @@ namespace caret {
         
         void drawSphere(const double radius);
         
+        void drawSquare(const float size);
+        
         void drawTextWindowCoords(const int windowX,
                                   const int windowY,
                                   const QString& text,
@@ -314,6 +316,9 @@ namespace caret {
         uint32_t sphereDisplayList;
         
         SphereOpenGL* sphereOpenGL;
+        
+        double inverseRotationMatrix[16];
+        bool inverseRotationMatrixValid;
         
         double orthographicLeft; 
         double orthographicRight;

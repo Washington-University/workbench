@@ -162,6 +162,8 @@ BrainOpenGLFixedPipeline::selectModel(BrainOpenGLViewportContent* viewportConten
                          const int32_t mouseX,
                          const int32_t mouseY)
 {
+    this->inverseRotationMatrixValid = false;
+    
     /*
      * For identification, set the background
      * to white.
@@ -232,6 +234,8 @@ BrainOpenGLFixedPipeline::projectToModel(BrainOpenGLViewportContent* viewportCon
 void 
 BrainOpenGLFixedPipeline::drawModels(std::vector<BrainOpenGLViewportContent*>& viewportContents)
 {
+    this->inverseRotationMatrixValid = false;
+    
     float backgroundColor[3];
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->getColorBackground(backgroundColor);
@@ -376,6 +380,16 @@ BrainOpenGLFixedPipeline::applyViewingTransformations(const Model* modelDisplayC
     double rotationMatrixElements[16];
     rotationMatrix->getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
+    
+    /*
+     * Save the inverse rotation matrix which may be used
+     * later by some drawing functions.
+     */
+    Matrix4x4 inverseMatrix(*rotationMatrix);
+    this->inverseRotationMatrixValid = inverseMatrix.invert();
+    if (this->inverseRotationMatrixValid) {
+        inverseMatrix.getMatrixForOpenGL(this->inverseRotationMatrix);
+    }
     
     const float scale = modelDisplayController->getScaling(tabIndex);
     glScalef(scale, 
@@ -524,6 +538,16 @@ BrainOpenGLFixedPipeline::applyViewingTransformationsVolumeSlice(const ModelVolu
     double rotationMatrixElements[16];
     rotationMatrix.getMatrixForOpenGL(rotationMatrixElements);
     glMultMatrixd(rotationMatrixElements);
+    
+    /*
+     * Save the inverse rotation matrix which may be used
+     * later by some drawing functions.
+     */
+    Matrix4x4 inverseMatrix(rotationMatrix);
+    this->inverseRotationMatrixValid = inverseMatrix.invert();
+    if (this->inverseRotationMatrixValid) {
+        inverseMatrix.getMatrixForOpenGL(this->inverseRotationMatrix);
+    }
     
     /*
      * Scaling to fit window.
@@ -1466,7 +1490,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
     
     float pointSize = 2.0;
     float lineWidth  = 2.0;
-    BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS;
+    BorderDrawingTypeEnum::Enum drawType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
     if (borderFileIndex >= 0) {
         const BrainStructure* bs = surface->getBrainStructure();
         const Brain* brain = bs->getBrain();
@@ -1476,18 +1500,22 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
         drawType  = dpb->getDrawingType();
     }
     
-    bool drawPoints = false;
+    bool drawSphericalPoints = false;
+    bool drawSquarePoints = false;
     bool drawLines  = false;
     switch (drawType) {
         case BorderDrawingTypeEnum::DRAW_AS_LINES:
             drawLines = true;
             break;
-        case BorderDrawingTypeEnum::DRAW_AS_POINTS:
-            drawPoints = true;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES:
+            drawSphericalPoints = true;
+            break;
+        case BorderDrawingTypeEnum::DRAW_AS_POINTS_SQUARES:
+            drawSquarePoints = true;
             break;
         case BorderDrawingTypeEnum::DRAW_AS_POINTS_AND_LINES:
             drawLines = true;
-            drawPoints = true;
+            drawSphericalPoints = true;
             break;
     }
 
@@ -1537,9 +1565,10 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
     const int32_t numPointsToDraw = static_cast<int32_t>(pointXYZ.size() / 3);
     
     /*
-     * Draw points
+     * Draw spherical points
      */
-    if (drawPoints) {
+    if (drawSphericalPoints
+        || drawSquarePoints) {
         const float pointSymbolRadius = pointSize / 2.0;
         for (int32_t i = 0; i < numPointsToDraw; i++) {
             const int32_t i3 = i * 3;
@@ -1556,7 +1585,12 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             const float* xyz = &pointXYZ[i3];
             glPushMatrix();
             glTranslatef(xyz[0], xyz[1], xyz[2]);
-            this->drawSphere(pointSymbolRadius);
+            if (drawSphericalPoints) {
+                this->drawSphere(pointSymbolRadius);
+            }
+            else {
+                this->drawSquare(pointSymbolRadius);
+            }
             glPopMatrix();
         }
     }
@@ -4453,6 +4487,28 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
         this->sphereOpenGL->drawWithQuadStrips();
     }
     glPopMatrix();
+}
+
+/**
+ * Draw a one millimeter square facing the user.
+ * @param size
+ *     Size of square.
+ */
+void 
+BrainOpenGLFixedPipeline::drawSquare(const float size)
+{
+    if (this->inverseRotationMatrixValid) {
+        glMultMatrixd(this->inverseRotationMatrix);
+    }
+    glScalef(size, size, size);
+    
+    glBegin(GL_QUADS);
+    glNormal3f(0.0, 0.0, 1.0);
+    glVertex3f(-0.5, -0.5, 0.0);
+    glVertex3f( 0.5, -0.5, 0.0);
+    glVertex3f( 0.5,  0.5, 0.0);
+    glVertex3f(-0.5,  0.5, 0.0);
+    glEnd();
 }
 
 /**

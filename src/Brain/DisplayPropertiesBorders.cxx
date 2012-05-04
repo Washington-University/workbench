@@ -63,7 +63,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
     
     m_lineWidth  = 1.0;
     m_pointSize = 2.0;
-    m_drawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS;
+    m_drawingType = BorderDrawingTypeEnum::DRAW_AS_POINTS_SPHERES;
 }
 
 /**
