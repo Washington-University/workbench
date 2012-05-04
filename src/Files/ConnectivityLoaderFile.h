@@ -191,7 +191,7 @@ namespace caret {
                           const int32_t nodeIndex, TimeLine &timeLine) throw (DataFileException);
 
                          
-        void loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        void loadTimeLineForVoxelAtCoordinate(const float xyz[3],TimeLine &timeLine) throw (DataFileException);
         void getTimeLine(TimeLine &tl);
         
     private:

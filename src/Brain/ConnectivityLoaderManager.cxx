@@ -40,6 +40,7 @@ using namespace caret;
 #include "Palette.h"
 #include "PaletteColorMapping.h"
 #include "PaletteFile.h"
+#include "StructureEnum.h"
 #include "SurfaceFile.h"
     
 /**
@@ -433,13 +434,15 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) 
     bool haveData = false;
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
-    
+    TimeLine tl;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
          iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadTimeLineForVoxelAtCoordinate(xyz);
+            AString structure = StructureEnum::toGuiName(clf->getStructure());
+            tl.label = structure + ":[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
+            clf->loadTimeLineForVoxelAtCoordinate(xyz,tl);
             haveData = true;
         }
     }

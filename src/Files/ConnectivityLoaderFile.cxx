@@ -1787,7 +1787,7 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
 
 }
 
-void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3], TimeLine &timeLine) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -1825,7 +1825,9 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                             {
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
-                            }
+                            }                            
+                            this->tl.label = timeLine.label;
+                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             //double point[3] = {0.0,0.0,0.0};
                             //this->tl.nodeid = nodeIndex;
 
