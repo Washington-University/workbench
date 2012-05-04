@@ -151,6 +151,7 @@ void TimeCourseDialog::on_TDClearChart_clicked()
 {
     this->plot->clear(tlV);
     tlV.clear();
+    this->ui->TDCoordsText->clear();
     this->updateDialog(true);
 }
 
