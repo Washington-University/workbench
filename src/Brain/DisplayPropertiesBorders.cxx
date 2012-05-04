@@ -56,7 +56,7 @@ DisplayPropertiesBorders::DisplayPropertiesBorders(Brain* brain)
 : DisplayProperties(brain)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        this->displayStatus[i] = true;
+        this->displayStatus[i] = false;
         this->contralateralDisplayStatus[i] = false;
         this->displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
     }

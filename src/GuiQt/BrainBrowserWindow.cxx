@@ -171,6 +171,8 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
      
     this->toolbar->updateToolBar();
 
+    this->processHideLayersToolBox();
+    
     if (browserTabContent == NULL) {
         this->toolbar->addDefaultTabsAfterLoadingSpecFile();
     }

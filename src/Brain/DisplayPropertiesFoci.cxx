@@ -56,7 +56,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
 : DisplayProperties(brain)
 {
     for (int32_t i = 0; i < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; i++) {
-        m_displayStatus[i] = true;
+        m_displayStatus[i] = false;
         m_contralateralDisplayStatus[i] = false;
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
     }
