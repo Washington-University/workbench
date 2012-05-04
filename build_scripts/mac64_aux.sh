@@ -34,7 +34,7 @@ echo "BUILD_DIR: ${BUILD_DIR}"
 #
 #QTDIR=/Users/caret/QtSDK/Desktop/Qt/474/gcc
 # has SSL linked
-QTDIR=/Volumes/DS4600/caret_development/mac64/libraries/qt-software/qt-4.8.1
+QTDIR=/Volumes/DS4600/caret_development/mac64/libraries/qt-software/qt-4.8.0
 export QTDIR
 echo "QTDIR: ${QTDIR}"
 
