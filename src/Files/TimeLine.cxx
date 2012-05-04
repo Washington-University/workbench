@@ -30,6 +30,7 @@ TimeLine::TimeLine()
     colorID = -1;
     id = NULL;
     clmID = -1;
+    type = NODE;
 }
 
 TimeLine::TimeLine(uint64_t nodeidIn, double *pointIn, QVector<double> &xIn, QVector<double> &yIn, void *idIn)

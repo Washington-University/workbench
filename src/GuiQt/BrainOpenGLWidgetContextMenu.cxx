@@ -50,9 +50,11 @@
 #include "EventIdentificationSymbolRemoval.h"
 #include "EventInformationTextDisplay.h"
 #include "EventGraphicsUpdateAllWindows.h"
+#include "EventUpdateTimeCourseDialog.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GiftiLabel.h"
 #include "GiftiLabelTable.h"
+#include "GuiManager.h"
 #include "IdentificationItemBorderSurface.h"
 #include "IdentificationItemSurfaceNode.h"
 #include "IdentificationItemVoxel.h"
@@ -148,21 +150,54 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
     QObject::connect(connectivityActionGroup, SIGNAL(triggered(QAction*)),
                      this, SLOT(parcelConnectivityActionSelected(QAction*)));
 
+    std::vector<QAction*> timeSeriesActions;
+    QActionGroup* timeSeriesActionGroup = new QActionGroup(this);
+    QObject::connect(timeSeriesActionGroup, SIGNAL(triggered(QAction*)),
+                     this, SLOT(parcelTimeSeriesActionSelected(QAction*)));
+    /*static bool run = false;
+    if(!run)
+    {
+        run = true;
+        const AString actionName("Show Time series For Parcel ");
+        QAction* action = connectivityActionGroup->addAction(actionName);
+        timeSeriesActions.push_back(action);
+
+    }*/
+
     if (borderID->isValid()) {
         /*
          * Connectivity actions for labels
          */
         Brain* brain = borderID->getBrain();
-        ConnectivityLoaderManager* clm = this->getConnectivityLoaderManager(brain);
+        ConnectivityLoaderManager* clm = NULL;
+        bool hasDenseConnectivity = brain->getNumberOfConnectivityDenseFiles() > 0 ? true : false;
+        bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
+        if (hasDenseConnectivity || hasTimeSeries) {
+            clm = brain->getConnectivityLoaderManager();
+        }        
         if (clm != NULL) {
-            const QString text = ("Show Connectivity for Nodes Inside Border "
-                                  + borderID->getBorder()->getName());
-            QAction* action = WuQtUtilities::createAction(text,
-                                                          "",
-                                                          this,
-                                                          this,
-                                                          SLOT(borderConnectivitySelected()));
-            connectivityActions.push_back(action);
+            if(hasDenseConnectivity)
+            {
+                const QString text = ("Show Connectivity for Nodes Inside Border "
+                                      + borderID->getBorder()->getName());
+                QAction* action = WuQtUtilities::createAction(text,
+                                                              "",
+                                                              this,
+                                                              this,
+                                                              SLOT(borderConnectivitySelected()));
+                connectivityActions.push_back(action);
+            }
+            if(hasTimeSeries)
+            {
+                const QString text = ("Show Time Series for Nodes Inside Border "
+                                      + borderID->getBorder()->getName());
+                QAction* action = WuQtUtilities::createAction(text,
+                                                              "",
+                                                              this,
+                                                              this,
+                                                              SLOT(borderTimeSeriesSelected()));
+                timeSeriesActions.push_back(action);
+            }   
         }
     }
     
@@ -173,7 +208,13 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
         Brain* brain = surfaceID->getBrain();
         Surface* surface = surfaceID->getSurface();
         const int32_t nodeNumber = surfaceID->getNodeNumber();
-        ConnectivityLoaderManager* clm = this->getConnectivityLoaderManager(brain);
+        ConnectivityLoaderManager* clm = NULL;
+        bool hasDenseConnectivity = brain->getNumberOfConnectivityDenseFiles() > 0 ? true : false;
+        bool hasTimeSeries = brain->getNumberOfConnectivityTimeSeriesFiles() > 0 ? true : false;
+        if (hasDenseConnectivity || hasTimeSeries) {
+            clm = brain->getConnectivityLoaderManager();
+        }    
+    
         if (clm != NULL) {
             Model* model = this->browserTabContent->getModelControllerForDisplay();
             if (model != NULL) {
@@ -217,7 +258,7 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                                         surface,
                                                                         nodeNumber,
                                                                         clm);
-                        this->parcelConntivities.push_back(pc);
+                        this->parcelConnectivities.push_back(pc);
                         
                         const AString actionName("Show Connectivity For Parcel "
                                                  + giftiLabel->getName()
@@ -225,7 +266,15 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
                                                  + mapName);
                         QAction* action = connectivityActionGroup->addAction(actionName);
                         action->setData(qVariantFromValue((void*)pc));
+
+                        const AString tsActionName("Show Time Series For Parcel "
+                                                 + giftiLabel->getName()
+                                                 + " in map "
+                                                 + mapName);
+                        QAction* tsAction = timeSeriesActionGroup->addAction(tsActionName);
+                        tsAction->setData(qVariantFromValue((void*)pc));
                         
+                        timeSeriesActions.push_back(tsAction);
                         connectivityActions.push_back(action);
                     }
                 }
@@ -239,6 +288,14 @@ BrainOpenGLWidgetContextMenu::BrainOpenGLWidgetContextMenu(IdentificationManager
              connIter != connectivityActions.end();
              connIter++) {
             this->addAction(*connIter);
+        }
+    }
+    if(timeSeriesActions.empty() == false) {
+        this->addSeparator();            
+        for (std::vector<QAction*>::iterator tsIter = timeSeriesActions.begin();
+             tsIter != timeSeriesActions.end();
+             tsIter++) {
+            this->addAction(*tsIter);
         }
     }
 }
@@ -266,8 +323,8 @@ BrainOpenGLWidgetContextMenu::getConnectivityLoaderManager(Brain* brain)
  */
 BrainOpenGLWidgetContextMenu::~BrainOpenGLWidgetContextMenu()
 {
-    for (std::vector<ParcelConnectivity*>::iterator parcelIter = this->parcelConntivities.begin();
-         parcelIter != this->parcelConntivities.end();
+    for (std::vector<ParcelConnectivity*>::iterator parcelIter = this->parcelConnectivities.begin();
+         parcelIter != this->parcelConnectivities.end();
          parcelIter++) {
         ParcelConnectivity* pc = *parcelIter;
         delete pc;
@@ -362,6 +419,114 @@ BrainOpenGLWidgetContextMenu::borderConnectivitySelected()
         
         EventManager::get()->sendEvent(EventUserInterfaceUpdate().getPointer());
         EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());    
+    }
+    catch (const AlgorithmException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }
+
+}
+
+/**
+ * Called when a connectivity action is selected.
+ * @param action
+ *    Action that was selected.
+ */
+void 
+BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
+{
+    void* pointer = action->data().value<void*>();
+    ParcelConnectivity* pc = (ParcelConnectivity*)pointer;
+    
+    std::vector<int32_t> nodeIndices;
+    pc->labelFile->getNodeIndicesWithLabelKey(pc->labelFileMapIndex, 
+                                              pc->labelKey,
+                                              nodeIndices);
+    if (nodeIndices.empty()) {
+        WuQMessageBox::errorOk(this,
+                               "No nodes match label " + pc->labelName);
+        return;
+    }
+    
+    try {
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        pc->connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(pc->surface,
+                                                                      nodeIndices);
+
+        QList <TimeLine> tlV;
+        pc->connectivityLoaderManager->getSurfaceTimeLines(tlV);
+        if(tlV.size()!=0)
+        {                    
+                GuiManager::get()->addTimeLines(tlV);                    
+        }
+        EventUpdateTimeCourseDialog e;
+        EventManager::get()->sendEvent(e.getPointer());
+    }
+    catch (const DataFileException& e) {
+        WuQMessageBox::errorOk(this, e.whatString());
+    }   
+  
+}
+
+/**
+ * Called when border timeseries is selected.
+ */
+void 
+BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
+{
+    IdentificationItemBorderSurface* borderID = this->identificationManager->getSurfaceBorderIdentification();
+    Border* border = borderID->getBorder();
+    Surface* surface = borderID->getSurface();
+    
+    const int32_t numberOfNodes = surface->getNumberOfNodes();
+    LabelFile labelFile;
+    labelFile.setNumberOfNodesAndColumns(numberOfNodes, 1);
+    const int32_t labelKey = labelFile.getLabelTable()->addLabel("TempLabel", 1.0f, 1.0f, 1.0f, 1.0f);
+    const int32_t mapIndex = 0;
+    
+    try {
+        AlgorithmNodesInsideBorder algorithmInsideBorder(NULL,
+                                                         surface,
+                                                         border,
+                                                         false,
+                                                         mapIndex,
+                                                         labelKey,
+                                                         &labelFile);
+        std::vector<int32_t> nodeIndices;
+        nodeIndices.reserve(numberOfNodes);
+        for (int32_t i = 0; i < numberOfNodes; i++) {
+            if (labelFile.getLabelKey(i, mapIndex) == labelKey) {
+                nodeIndices.push_back(i);
+            }
+        }
+        
+        if (nodeIndices.empty()) {
+            WuQMessageBox::errorOk(this,
+                                   "No nodes found inside border " + border->getName());
+            return;
+        }
+        
+        try {
+            CursorDisplayScoped cursor;
+            cursor.showWaitCursor();
+            ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
+            connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(surface,
+                                                                          nodeIndices);
+            QList <TimeLine> tlV;
+            connectivityLoaderManager->getSurfaceTimeLines(tlV);
+            if(tlV.size()!=0)
+            {                    
+                 GuiManager::get()->addTimeLines(tlV);                    
+            }
+            EventUpdateTimeCourseDialog e;
+            EventManager::get()->sendEvent(e.getPointer());
+
+        }
+        catch (const DataFileException& e) {
+            WuQMessageBox::errorOk(this, e.whatString());
+        }   
+        
+  
     }
     catch (const AlgorithmException& e) {
         WuQMessageBox::errorOk(this, e.whatString());

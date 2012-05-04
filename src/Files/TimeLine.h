@@ -31,6 +31,10 @@
 #include "ColorManager.h"
 #include "QVector"
 namespace caret {
+enum TimeLineType {
+    NODE,
+    AVERAGE
+};
 class TimeLine {
 public:
     TimeLine();
@@ -45,6 +49,8 @@ public:
     AString filename;
     int64_t clmID; //the timelines number in the connectivity loader manager
     double timeStep;
+    TimeLineType type;
+    AString label;//label or ROI descriptor for timelines consisting of an average of nodes
 };
 }
 #endif//__TIME_LINE__

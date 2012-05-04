@@ -132,6 +132,11 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
                 clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
                 haveData = true;
             }
+            else if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
+            {
+                //moved to loadaveragetimeseriesforsurfacenodes
+                //clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+            }
         }
     }
     
@@ -140,6 +145,38 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
+    return haveData;
+}
+
+/**
+ * Load time series for each of the given surface node indices and average the data.
+ * @param surfaceFile
+ *    Surface File that contains the node (uses its structure).
+ * @param nodeIndices
+ *    Indices of the surface nodes.
+ * @return
+ *    true if any connectivity loaders are active, else false.
+ */
+bool 
+ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+{
+    std::vector<ConnectivityLoaderFile*> connectivityFiles;
+    this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    bool haveData = false;
+    for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
+         iter != connectivityFiles.end();
+         iter++) {
+        ConnectivityLoaderFile* clf = *iter;
+        if (clf->isEmpty() == false) {            
+            if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
+            {
+                clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+            }
+        }
+    }
+
     return haveData;
 }
 

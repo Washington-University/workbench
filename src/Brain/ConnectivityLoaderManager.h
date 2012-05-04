@@ -51,6 +51,10 @@ namespace caret {
         
         bool loadAverageDataForSurfaceNodes(const SurfaceFile* surfaceFile,
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+
+        bool loadAverageTimeSeriesForSurfaceNodes(const SurfaceFile* surfaceFile,
+                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+
         
         bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
 

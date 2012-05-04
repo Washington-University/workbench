@@ -1031,8 +1031,65 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
             }
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
-                throw DataFileException("Loading of average time-series data not supported.");
+            {
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    vector< vector<float> > rowDataVectors(numberOfNodeIndices, vector<float>(num,0.0));
+                                    
+                    
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    
+                    
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        const int32_t nodeIndex = nodeIndices[i];
+                        float *rowData = &(rowDataVectors.at(i).at(0));
+                        if (!this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        for(int32_t j = 0;j < num; j++) {
+                            averageData[j] += rowDataVectors[i][j];
+                        }
+                        countForAveraging += 1.0;      
+                    }
+                    
+                    
+                    if(this->timeSeriesGraphEnabled)
+                    {
+                        tl.x.clear();
+                        tl.y.clear();
+                        this->tl.x.reserve(num);
+                        this->tl.y.reserve(num);
+                        for(int64_t i = 0;i<num;i++)
+                        {
+                            tl.x.push_back(i);
+                            tl.y.push_back(averageData[i] / countForAveraging);
+                        }
+                        //double point[3] = {0.0,0.0,0.0};
+                        this->tl.nodeid = 0;
+                        this->tl.type = AVERAGE;
+                    }
+                    
+                    
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                }
+                //throw DataFileException("Loading of average time-series data not supported.");
                 break;
+            }
         }
     }
     catch (CiftiFileException& e) {

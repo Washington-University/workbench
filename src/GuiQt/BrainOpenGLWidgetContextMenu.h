@@ -71,8 +71,12 @@ namespace caret {
         void identifyVoxelSelected();
         
         void parcelConnectivityActionSelected(QAction* action);
+
+        void parcelTimeSeriesActionSelected(QAction* action);
         
         void borderConnectivitySelected();
+
+        void borderTimeSeriesSelected();
         
     private:
         class ParcelConnectivity {
@@ -108,7 +112,7 @@ namespace caret {
         
         ConnectivityLoaderManager* getConnectivityLoaderManager(Brain* brain);
         
-        std::vector<ParcelConnectivity*> parcelConntivities;
+        std::vector<ParcelConnectivity*> parcelConnectivities;
         
         IdentificationManager* identificationManager;
         
