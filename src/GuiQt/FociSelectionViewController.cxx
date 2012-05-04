@@ -157,17 +157,32 @@ FociSelectionViewController::createAttributesWidget()
     
     std::vector<FociColoringTypeEnum::Enum> coloringTypeEnums;
     FociColoringTypeEnum::getAllEnums(coloringTypeEnums);
-    const int32_t numDrawingTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
+    const int32_t numColoringTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
     
-    QLabel* drawAsLabel = new QLabel("Coloring");
+    QLabel* coloringLabel = new QLabel("Coloring");
     m_coloringTypeComboBox = new QComboBox(); 
-    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
+    for (int32_t i = 0; i < numColoringTypeEnums; i++) {
         FociColoringTypeEnum::Enum drawType = coloringTypeEnums[i];
         m_coloringTypeComboBox->addItem(FociColoringTypeEnum::toGuiName(drawType),
                                     (int)drawType);
     }
     m_coloringTypeComboBox->setToolTip("Select the coloring assignment for foci");
     QObject::connect(m_coloringTypeComboBox, SIGNAL(activated(int)),
+                     this, SLOT(processAttributesChanges()));
+    
+    std::vector<FociDrawingTypeEnum::Enum> drawingTypeEnums;
+    FociDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    
+    QLabel* drawAsLabel = new QLabel("Draw As");
+    m_drawTypeComboBox = new QComboBox(); 
+    for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
+        FociDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
+        m_drawTypeComboBox->addItem(FociDrawingTypeEnum::toGuiName(drawType),
+                                    (int)drawType);
+    }
+    m_drawTypeComboBox->setToolTip("Select the drawing style of borders");
+    QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
     
     float minLineWidth = 0;
@@ -197,9 +212,11 @@ FociSelectionViewController::createAttributesWidget()
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
-    gridLayout->addWidget(drawAsLabel, row, 0);
+    gridLayout->addWidget(coloringLabel, row, 0);
     gridLayout->addWidget(m_coloringTypeComboBox, row, 1);
     row++;
+    gridLayout->addWidget(drawAsLabel, row, 0);
+    gridLayout->addWidget(m_drawTypeComboBox , row, 1);
     row++;
     gridLayout->addWidget(pointSizeLabel, row, 0);
     gridLayout->addWidget(m_sizeSpinBox, row, 1);
@@ -227,6 +244,10 @@ FociSelectionViewController::processAttributesChanges()
     const int coloringTypeInteger = m_coloringTypeComboBox->itemData(selectedColoringTypeIndex).toInt();
     const FociColoringTypeEnum::Enum selectedColoringType = static_cast<FociColoringTypeEnum::Enum>(coloringTypeInteger);
 
+    const int selectedDrawTypeIndex = m_drawTypeComboBox->currentIndex();
+    const int drawTypeInteger = m_drawTypeComboBox->itemData(selectedDrawTypeIndex).toInt();
+    const FociDrawingTypeEnum::Enum selectedDrawingType = static_cast<FociDrawingTypeEnum::Enum>(drawTypeInteger);
+    
     BrowserTabContent* browserTabContent = 
     GuiManager::get()->getBrowserTabContentForBrowserWindow(m_browserWindowIndex, true);
     if (browserTabContent == NULL) {
@@ -240,6 +261,7 @@ FociSelectionViewController::processAttributesChanges()
 
     dpf->setColoringType(selectedColoringType);
     dpf->setFociSize(m_sizeSpinBox->value());
+    dpf->setDrawingType(selectedDrawingType);
     
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
     
@@ -252,9 +274,13 @@ FociSelectionViewController::processAttributesChanges()
 void 
 FociSelectionViewController::updateAttributesWidget()
 {
+    std::vector<FociDrawingTypeEnum::Enum> drawingTypeEnums;
+    FociDrawingTypeEnum::getAllEnums(drawingTypeEnums);
+    const int32_t numDrawingTypeEnums = static_cast<int32_t>(drawingTypeEnums.size());
+    
     std::vector<FociColoringTypeEnum::Enum> coloringTypeEnums;
     FociColoringTypeEnum::getAllEnums(coloringTypeEnums);
-    const int32_t numDrawingTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
+    const int32_t numColoringTypeEnums = static_cast<int32_t>(coloringTypeEnums.size());
     
     DisplayPropertiesFoci* dpf = GuiManager::get()->getBrain()->getDisplayPropertiesFoci();
     
@@ -269,15 +295,26 @@ FociSelectionViewController::updateAttributesWidget()
     m_fociContralateralCheckBox->setChecked(dpf->isContralateralDisplayed(browserTabIndex));
     
     const FociColoringTypeEnum::Enum selectedColoringType = dpf->getColoringType();
+    int32_t selectedColoringTypeIndex = 0;
+    
+    for (int32_t i = 0; i < numColoringTypeEnums; i++) {
+        FociColoringTypeEnum::Enum colorType = coloringTypeEnums[i];
+        if (colorType == selectedColoringType) {
+            selectedColoringTypeIndex = i;
+        }
+    }
+    m_coloringTypeComboBox->setCurrentIndex(selectedColoringTypeIndex);
+    
+    const FociDrawingTypeEnum::Enum selectedDrawingType = dpf->getDrawingType();
     int32_t selectedDrawingTypeIndex = 0;
     
     for (int32_t i = 0; i < numDrawingTypeEnums; i++) {
-        FociColoringTypeEnum::Enum colorType = coloringTypeEnums[i];
-        if (colorType == selectedColoringType) {
+        FociDrawingTypeEnum::Enum drawType = drawingTypeEnums[i];
+        if (drawType == selectedDrawingType) {
             selectedDrawingTypeIndex = i;
         }
     }
-    m_coloringTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
+    m_drawTypeComboBox->setCurrentIndex(selectedDrawingTypeIndex);
     
     m_sizeSpinBox->blockSignals(true);
     m_sizeSpinBox->setValue(dpf->getFociSize());

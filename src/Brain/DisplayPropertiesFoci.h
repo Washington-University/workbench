@@ -38,6 +38,7 @@
 #include "DisplayGroupEnum.h"
 #include "DisplayProperties.h"
 #include "FociColoringTypeEnum.h"
+#include "FociDrawingTypeEnum.h"
 
 namespace caret {
 
@@ -77,6 +78,10 @@ namespace caret {
         
         void setColoringType(const FociColoringTypeEnum::Enum coloringType);
         
+        FociDrawingTypeEnum::Enum getDrawingType() const;
+        
+        void setDrawingType(const FociDrawingTypeEnum::Enum drawingType);
+        
     private:
         DisplayPropertiesFoci(const DisplayPropertiesFoci&);
 
@@ -91,6 +96,8 @@ namespace caret {
         float m_fociSize;
         
         FociColoringTypeEnum::Enum m_coloringType;
+        
+        FociDrawingTypeEnum::Enum m_drawingType;
         
     };
     

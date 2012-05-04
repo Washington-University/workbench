@@ -1691,7 +1691,6 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
-    
     Brain* brain = surface->getBrainStructure()->getBrain();
     const DisplayPropertiesFoci* fociDisplayProperties = brain->getDisplayPropertiesFoci();
     if (fociDisplayProperties->isDisplayed(this->windowTabIndex) == false) {
@@ -1704,6 +1703,15 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
     const StructureEnum::Enum surfaceContralateralStructure = StructureEnum::getContralateralStructure(surfaceStructure);
     
     const DisplayGroupEnum::Enum displayGroup = fociDisplayProperties->getDisplayGroup(this->windowTabIndex);
+    
+    bool drawAsSpheres = false;
+    switch (fociDisplayProperties->getDrawingType()) {
+        case FociDrawingTypeEnum::DRAW_AS_SPHERES:
+            drawAsSpheres = true;
+            break;
+        case FociDrawingTypeEnum::DRAW_AS_SQUARES:
+            break;
+    }
     
     const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
     const int32_t numFociFiles = brain->getNumberOfFociFiles();
@@ -1794,7 +1802,12 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                         
                         glPushMatrix();
                         glTranslatef(xyz[0], xyz[1], xyz[2]);
-                        this->drawSphere(focusRadius);
+                        if (drawAsSpheres) {
+                            this->drawSphere(focusRadius);
+                        }
+                        else {
+                            this->drawSquare(focusRadius);
+                        }
                         glPopMatrix();
                     }
                 }                

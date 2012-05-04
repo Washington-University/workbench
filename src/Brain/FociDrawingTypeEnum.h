@@ -1,5 +1,5 @@
-#ifndef __BORDER_DRAWING_TYPE_ENUM__H_
-#define __BORDER_DRAWING_TYPE_ENUM__H_
+#ifndef __FOCI_DRAWING_TYPE_ENUM__H_
+#define __FOCI_DRAWING_TYPE_ENUM__H_
 
 /*LICENSE_START*/
 /*
@@ -41,25 +41,21 @@
 
 namespace caret {
 
-class BorderDrawingTypeEnum {
+class FociDrawingTypeEnum {
 
 public:
     /**
-     * Enumerated values for border drawing types.
+     * Enumerated values for foci drawing type.
      */
     enum Enum {
-        /** draw as lines */
-        DRAW_AS_LINES,
-        /** draw as spherical points */
-        DRAW_AS_POINTS_SPHERES,
-        /** draw as square points */
-        DRAW_AS_POINTS_SQUARES,
-        /** draw as points and lines */
-        DRAW_AS_POINTS_AND_LINES
+        /** Draw as spheres */
+        DRAW_AS_SPHERES,
+        /** Draw as squares*/
+        DRAW_AS_SQUARES
     };
 
 
-    ~BorderDrawingTypeEnum();
+    ~FociDrawingTypeEnum();
 
     static AString toName(Enum enumValue);
     
@@ -80,14 +76,14 @@ public:
     static void getAllGuiNames(std::vector<AString>& allGuiNames, const bool isSorted);
 
 private:
-    BorderDrawingTypeEnum(const Enum enumValue, 
+    FociDrawingTypeEnum(const Enum enumValue, 
                  const AString& name,
                  const AString& guiName);
 
-    static const BorderDrawingTypeEnum* findData(const Enum enumValue);
+    static const FociDrawingTypeEnum* findData(const Enum enumValue);
 
     /** Holds all instance of enum values and associated metadata */
-    static std::vector<BorderDrawingTypeEnum> enumData;
+    static std::vector<FociDrawingTypeEnum> enumData;
 
     /** Initialize instances that contain the enum values and metadata */
     static void initialize();
@@ -111,11 +107,11 @@ private:
     AString guiName;
 };
 
-#ifdef __BORDER_DRAWING_TYPE_ENUM_DECLARE__
-std::vector<BorderDrawingTypeEnum> BorderDrawingTypeEnum::enumData;
-bool BorderDrawingTypeEnum::initializedFlag = false;
-int32_t BorderDrawingTypeEnum::integerCodeCounter = 0; 
-#endif // __BORDER_DRAWING_TYPE_ENUM_DECLARE__
+#ifdef __FOCI_DRAWING_TYPE_ENUM_DECLARE__
+std::vector<FociDrawingTypeEnum> FociDrawingTypeEnum::enumData;
+bool FociDrawingTypeEnum::initializedFlag = false;
+int32_t FociDrawingTypeEnum::integerCodeCounter = 0; 
+#endif // __FOCI_DRAWING_TYPE_ENUM_DECLARE__
 
 } // namespace
-#endif  //__BORDER_DRAWING_TYPE_ENUM__H_
+#endif  //__FOCI_DRAWING_TYPE_ENUM__H_

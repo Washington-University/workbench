@@ -80,6 +80,7 @@ EventModelYokingGroupGetAll.h
 EventSpecFileReadDataFiles.h
 EventSurfacesGet.h
 FociColoringTypeEnum.h
+FociDrawingTypeEnum.h
 IdentificationItemDataTypeEnum.h
 IdentificationItem.h
 IdentificationItemBorderSurface.h
@@ -149,6 +150,7 @@ EventModelYokingGroupGetAll.cxx
 EventSpecFileReadDataFiles.cxx
 EventSurfacesGet.cxx
 FociColoringTypeEnum.cxx
+FociDrawingTypeEnum.cxx
 IdentificationItemDataTypeEnum.cxx
 IdentificationItem.cxx
 IdentificationItemBorderSurface.cxx

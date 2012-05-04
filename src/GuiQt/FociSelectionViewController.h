@@ -108,6 +108,8 @@ namespace caret {
         
         QDoubleSpinBox* m_sizeSpinBox;
         
+        QComboBox* m_drawTypeComboBox;
+        
         static std::set<FociSelectionViewController*> allFociSelectionViewControllers;
     };
     

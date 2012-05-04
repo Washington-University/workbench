@@ -63,6 +63,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
     
     m_fociSize = 4.0;
     m_coloringType = FociColoringTypeEnum::FOCI_COLORING_TYPE_NAME;
+    m_drawingType = FociDrawingTypeEnum::DRAW_AS_SQUARES;
 }
 
 /**
@@ -224,6 +225,26 @@ void
 DisplayPropertiesFoci::setColoringType(const FociColoringTypeEnum::Enum coloringType)
 {
     m_coloringType = coloringType;
+}
+
+/**
+ * @return The drawing type.
+ */
+FociDrawingTypeEnum::Enum 
+DisplayPropertiesFoci::getDrawingType() const
+{
+    return m_drawingType;
+}
+
+/**
+ * Set the drawing type to the given value.
+ * @param drawingType
+ *     New value for drawing type.
+ */
+void 
+DisplayPropertiesFoci::setDrawingType(const FociDrawingTypeEnum::Enum drawingType)
+{
+    m_drawingType = drawingType;
 }
 
 
