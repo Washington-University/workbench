@@ -398,16 +398,19 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
+    TimeLine tl;//hack so that we can set labels and points
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
          iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+            surfaceFile->getTimeLineInformation(nodeIndex,tl);
+            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,tl);            
             haveData = true;
         }
     }
+
     
     //if (haveData) {
         //this->colorConnectivityData();

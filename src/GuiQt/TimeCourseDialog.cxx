@@ -98,6 +98,7 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     }
     plot->detachItems();
     plot->populate(tlV);    
+    this->populateHistory();
     this->setVisible(true);
     this->show();
     this->activateWindow();
@@ -105,6 +106,19 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     plot->replot();
     plot->setFocus();
     this->setAttribute(Qt::WA_NoMousePropagation,true);
+}
+
+void TimeCourseDialog::populateHistory()
+{
+    if(tlV.isEmpty()) return;
+    this->ui->TDCoordsText->clear();
+    for(int i =0;i<tlV.size();i++)
+    { 
+        
+        this->ui->TDCoordsText->setTextColor(plot->colors.getColor(tlV[i].colorID));
+        this->ui->TDCoordsText->append(tlV[i].label);
+        this->ui->TDCoordsText->show();
+    }
 }
 
 void TimeCourseDialog::setAnimationStartTime(const double &time)

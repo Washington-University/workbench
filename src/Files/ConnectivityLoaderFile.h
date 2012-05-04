@@ -188,7 +188,7 @@ namespace caret {
         float getSelectedTimePoint() const;
 
         void loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
-                          const int32_t nodeIndex) throw (DataFileException);
+                          const int32_t nodeIndex, TimeLine &timeLine) throw (DataFileException);
 
                          
         void loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);

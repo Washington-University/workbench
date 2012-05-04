@@ -38,6 +38,7 @@
 #include "GeodesicHelper.h"
 #include "GiftiTypeFile.h"
 #include "SurfaceTypeEnum.h"
+#include "TimeLine.h"
 #include "TopologyHelper.h"
 
 namespace caret {
@@ -127,6 +128,8 @@ namespace caret {
         
         void setWholeBrainNodeColoringRgbaForBrowserTab(const int32_t browserTabIndex,
                                               const float* rgbaNodeColorComponents);
+
+        void getTimeLineInformation(int32_t nodeIndex, TimeLine &tl) const;
         
     protected:
         /**

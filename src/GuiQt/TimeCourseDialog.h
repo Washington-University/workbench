@@ -99,6 +99,7 @@ private slots:
     void on_resetViewButton_clicked();
 
 private:
+    void populateHistory();
     PlotTC *plot;
     Ui::TimeCourseDialog *ui;
     QList<TimeLine> tlV;
@@ -129,7 +130,8 @@ public:
      void setTimeLineWidth(int width);
      PlotMagnifier * magnifier;
      void resetView();
-     bool getAutoScale();     
+     bool getAutoScale();
+     ColorManager colors;
 protected:
     bool ctrlKeyDown;
     bool shiftKeyDown;
@@ -137,7 +139,7 @@ protected:
     void drawTimeLine(TimeLine &tl, QPen *pen=NULL);
     virtual void resizeEvent( QResizeEvent * );
     QList<QwtPlotCurve *> plotV;
-    ColorManager colors;
+    
     int max;
     bool displayAverage;
     TimeLine averageTimeLine;
