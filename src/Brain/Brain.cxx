@@ -1297,9 +1297,10 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const StructureEnum::Enum structure,
                     const AString& dataFileNameIn) throw (DataFileException)
 {
-    const AString dataFileName = this->updateFileNameForReading(dataFileNameIn);
+    AString dataFileName = dataFileNameIn;
     
     if (dataFileName.contains("://") == false) {
+        dataFileName = this->updateFileNameForReading(dataFileNameIn);
         FileInformation fileInfo(dataFileName);
         if (fileInfo.exists() == false) {
             throw DataFileException(dataFileName
