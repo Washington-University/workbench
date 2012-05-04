@@ -3770,7 +3770,7 @@ BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
 
                 float* nodeColoringRGBA = NULL;
                 if (surfaceColorFlag) {
-                    nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(modelDisplayController, 
+                    nodeColoringRGBA = this->surfaceNodeColoring->colorSurfaceNodes(NULL, /*modelDisplayController*/
                                                                                     surface, 
                                                                                     colorSourceBrowserTabIndex);
                 }
