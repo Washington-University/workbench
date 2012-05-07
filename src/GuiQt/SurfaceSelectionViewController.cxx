@@ -31,6 +31,7 @@
 
 #include "Surface.h"
 #include "SurfaceSelectionModel.h"
+#include "WuQEventBlockingFilter.h"
 
 using namespace caret;
 
@@ -121,6 +122,18 @@ SurfaceSelectionViewController::initializeControl(const Mode mode,
     this->surfaceComboBox = new QComboBox();
     QObject::connect(this->surfaceComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(comboBoxCurrentIndexChanged(int)));
+
+#ifdef CARET_OS_MACOSX
+    /*
+     * Block the wheel event on Mac since it get issued when a mouse 
+     * is moved over the combo box.
+     */
+    WuQEventBlockingFilter* comboBoxWheelEventBlockingFilter = new WuQEventBlockingFilter(this);
+    comboBoxWheelEventBlockingFilter->setEventBlocked(QEvent::Wheel, 
+                                                            true);
+    surfaceComboBox->installEventFilter(comboBoxWheelEventBlockingFilter);
+#endif // CARET_OS_MACOSX
+    
     this->surfaceSelectionModel = surfaceSelectionModel;
 }
 
