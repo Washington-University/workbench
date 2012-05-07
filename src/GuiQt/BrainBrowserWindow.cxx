@@ -284,13 +284,6 @@ BrainBrowserWindow::createActionsUsedByToolBar()
         this->layersToolBoxAction->setIconText("LT");
     }
     
-    this->informationDialogAction =
-    WuQtUtilities::createAction("Information...",
-                                "Show the Information Window",
-                                this,
-                                this,
-                                SLOT(processInformationDialog()));   
-    this->informationDialogAction->setIconText("Info");    
 }
 
 /**
@@ -485,6 +478,13 @@ BrainBrowserWindow::createActions()
                                 this,
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
+    
+    this->informationDialogAction =
+    WuQtUtilities::createAction("Information Window",
+                                "Show the Informaiton Window",
+                                this,
+                                guiManager,
+                                SLOT(processShowInformationWindow()));
     
     this->helpHcpWebsiteAction =
     WuQtUtilities::createAction("Go to HCP Website...",

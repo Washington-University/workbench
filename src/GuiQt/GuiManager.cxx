@@ -25,6 +25,7 @@
 
 #include <algorithm>
 
+#include <QAction>
 #include <QApplication>
 #include <QWebView>
 
@@ -77,6 +78,15 @@ GuiManager::GuiManager(QObject* parent)
     this->connectomeDatabaseWebView = NULL;
     
     this->cursorManager = new CursorManager();
+    
+    this->informationDisplayDialogEnabledAction =
+    WuQtUtilities::createAction("Information...",
+                                "Enables display of the Information Window\n"
+                                "when new information is available",
+                                this); 
+    this->informationDisplayDialogEnabledAction->setCheckable(true);
+    this->informationDisplayDialogEnabledAction->setChecked(true);
+    this->informationDisplayDialogEnabledAction->setIconText("Info"); 
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_BROWSER_WINDOW_NEW);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_INFORMATION_TEXT_DISPLAY);
@@ -546,10 +556,7 @@ GuiManager::receiveEvent(Event* event)
                                && (infoEvent->getText().trimmed().isEmpty() == false));
         
         if (showInfoDialog) {
-            std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
-            if (bbws.empty() == false) {
-                this->processShowInformationDisplayDialog(bbws[0]);
-            }
+            this->processShowInformationDisplayDialog(false);
         }
         
         infoEvent->setEventProcessed();
@@ -714,21 +721,53 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
 }
 
 /**
- * Show the information display window.
+ * @return The action that indicates the enabled status
+ * for display of the information window.
+ */
+QAction* 
+GuiManager::getInformationDisplayDialogEnabledAction()
+{
+    return this->informationDisplayDialogEnabledAction;
+}
+
+/**
+ * Show the information window.
  */
 void 
-GuiManager::processShowInformationDisplayDialog(BrainBrowserWindow* browserWindow)
+GuiManager::processShowInformationWindow()
+{
+    this->processShowInformationDisplayDialog(true);
+}
+
+/**
+ * Show the information display window.
+ * @param forceDisplayOfDialog
+ *   If true, the window will be displayed even if its display
+ *   enabled status is off.
+ */
+void 
+GuiManager::processShowInformationDisplayDialog(const bool forceDisplayOfDialog)
 {
     if (this->informationDisplayDialog == NULL) {
-        this->informationDisplayDialog = new InformationDisplayDialog(browserWindow);
-        this->nonModalDialogs.push_back(this->informationDisplayDialog);
-
-        this->informationDisplayDialog->resize(600, 200);
-        this->informationDisplayDialog->setSavePositionForNextTime(true);
+        std::vector<BrainBrowserWindow*> bbws = this->getAllOpenBrainBrowserWindows();
+        if (bbws.empty() == false) {
+            BrainBrowserWindow* parentWindow = bbws[0];
+            this->informationDisplayDialog = new InformationDisplayDialog(parentWindow);
+            this->nonModalDialogs.push_back(this->informationDisplayDialog);
+            
+            this->informationDisplayDialog->resize(600, 200);
+            this->informationDisplayDialog->setSavePositionForNextTime(true);
+        }
     }
-    this->informationDisplayDialog->setVisible(true);
-    this->informationDisplayDialog->show();
-    this->informationDisplayDialog->activateWindow();
+    
+    if (forceDisplayOfDialog
+        || this->informationDisplayDialogEnabledAction->isChecked()) {
+        if (this->informationDisplayDialog != NULL) {
+            this->informationDisplayDialog->setVisible(true);
+            this->informationDisplayDialog->show();
+            this->informationDisplayDialog->activateWindow();
+        }
+    }
 }
 
 /**
@@ -781,7 +820,7 @@ GuiManager::processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow)
  *    If the web view needs to be created, use this as parent.
  */
 void 
-GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow)
+GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* /*browserWindow*/)
 {
     if (this->connectomeDatabaseWebView == NULL) {
         this->connectomeDatabaseWebView = new QWebView();

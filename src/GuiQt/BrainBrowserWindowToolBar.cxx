@@ -176,7 +176,7 @@ BrainBrowserWindowToolBar::BrainBrowserWindowToolBar(const int32_t browserWindow
      * Actions at right side of toolbar
      */
     QToolButton* informationDialogToolButton = new QToolButton();
-    informationDialogToolButton->setDefaultAction(parentBrainBrowserWindow->informationDialogAction);
+    informationDialogToolButton->setDefaultAction(GuiManager::get()->getInformationDisplayDialogEnabledAction());
     
     /*
      * Toolbar action and tool button at right of the tab bar

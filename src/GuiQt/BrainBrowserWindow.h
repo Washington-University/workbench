@@ -217,8 +217,6 @@ namespace caret {
         
         QAction* showToolBarAction;
         
-        QAction* informationDialogAction;
-        
         QActionGroup* viewScreenActionGroup;
         QAction* viewScreenNormalAction;
         QAction* viewScreenFullAction;
@@ -236,6 +234,8 @@ namespace caret {
         QAction* moveTabsFromAllWindowsToOneWindowAction;
         
         QAction* bringAllToFrontAction;
+        
+        QAction* informationDialogAction;
         
         QAction* connectToAllenDatabaseAction;
         QAction* connectToConnectomeDatabaseAction;

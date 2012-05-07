@@ -36,6 +36,7 @@
 #include "EventListenerInterface.h"
 #include "TimeCourseDialog.h"
 
+class QAction;
 class QDialog;
 class QWebView;
 class QWidget;
@@ -93,6 +94,8 @@ namespace caret {
 
         const CursorManager* getCursorManager() const;
         
+        QAction* getInformationDisplayDialogEnabledAction();
+        
         void closeAllOtherWindows(BrainBrowserWindow* browserWindow);
         
         void closeOtherWindowsAndReturnTheirTabContent(BrainBrowserWindow* browserWindow,
@@ -100,7 +103,7 @@ namespace caret {
         
         void processShowImageCaptureDialog(BrainBrowserWindow* browserWindow);
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
-        void processShowInformationDisplayDialog(BrainBrowserWindow* browserWindow);
+        void processShowInformationDisplayDialog(const bool forceDisplayOfDialog);
                 
         
         void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
@@ -119,6 +122,7 @@ namespace caret {
         void processBringAllWindowsToFront();
         void processShowHelpOnlineWindow();
         void processShowSearchHelpOnlineWindow();
+        void processShowInformationWindow();
         
     private:
         GuiManager(QObject* parent = 0);
@@ -165,6 +169,8 @@ namespace caret {
         QWebView* connectomeDatabaseWebView;
         
         CursorManager* cursorManager;
+        
+        QAction* informationDisplayDialogEnabledAction;
         
         /** 
          * Tracks non-modal dialogs that are created only one time
