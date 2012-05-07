@@ -33,8 +33,6 @@
 /*LICENSE_END*/
 
 #include <QAction>
-#include <QLabel>
-#include <QLineEdit>
 #include <QMessageBox>
 #include <QToolButton>
 #include <QVBoxLayout>
@@ -53,7 +51,6 @@
 #include "EventToolBoxUpdate.h"
 #include "EventUserInterfaceUpdate.h"
 #include "GuiManager.h"
-#include "WuQDialogModal.h"
 #include "WuQtUtilities.h"
 
 using namespace caret;
@@ -94,18 +91,8 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
             break;
     }
     
-    QAction* loadFileFromWebAction = 
-    WuQtUtilities::createAction("Web",
-                                "Load a file from the Web",
-                                this,
-                                this,
-                                SLOT(processLoadFileFromWeb()));
-    QToolButton* webToolButton = new QToolButton();
-    webToolButton->setDefaultAction(loadFileFromWebAction);
-    
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->addLayout(this->viewControllerGridLayout);
-    layout->addWidget(webToolButton, 0, Qt::AlignLeft);
     layout->addStretch();    
 
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -118,61 +105,6 @@ ConnectivityManagerViewController::ConnectivityManagerViewController(const Qt::O
 ConnectivityManagerViewController::~ConnectivityManagerViewController()
 {    
     EventManager::get()->removeAllEventsFromListener(this);
-}
-
-void 
-ConnectivityManagerViewController::processLoadFileFromWeb()
-{
-    QStringList filenameFilterList;
-    std::vector<DataFileTypeEnum::Enum> connectivityEnums;
-    DataFileTypeEnum::getAllConnectivityEnums(connectivityEnums);
-    
-    QLabel* urlLabel = new QLabel("URL: ");
-    QLineEdit* urlLineEdit = new QLineEdit();
-    urlLineEdit->setText("");
-    
-    QLabel* usernameLabel = new QLabel("Username: ");
-    QLineEdit* usernameLineEdit = new QLineEdit();
-    usernameLineEdit->setText(ConnectivityManagerViewController::previousNetworkUsername);
-    
-    QLabel* passwordLabel = new QLabel("Password: ");
-    QLineEdit* passwordLineEdit = new QLineEdit();
-    passwordLineEdit->setEchoMode(QLineEdit::Password);
-    passwordLineEdit->setText(ConnectivityManagerViewController::previousNetworkPassword);
-    
-    QWidget* controlsWidget = new QWidget();
-    QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
-    WuQtUtilities::setLayoutMargins(controlsLayout, 4, 2);
-    controlsLayout->addWidget(urlLabel, 0, 0);
-    controlsLayout->addWidget(urlLineEdit, 0, 1);
-    controlsLayout->addWidget(usernameLabel, 1, 0);
-    controlsLayout->addWidget(usernameLineEdit, 1, 1);
-    controlsLayout->addWidget(passwordLabel, 2, 0);
-    controlsLayout->addWidget(passwordLineEdit, 2, 1);
-    
-    WuQDialogModal d("Connectivity File on Web",
-                     controlsWidget,
-                     this);
-    if (d.exec() == QDialog::Accepted) {
-        const AString filename = urlLineEdit->text().trimmed();
-        ConnectivityManagerViewController::previousNetworkUsername = usernameLineEdit->text().trimmed();
-        ConnectivityManagerViewController::previousNetworkPassword = passwordLineEdit->text().trimmed();
-        
-        Brain* brain = GuiManager::get()->getBrain();
-        
-        EventDataFileRead readFileEvent(brain,
-                                        this->connectivityFileType,
-                                        filename);
-        readFileEvent.setUsernameAndPassword(ConnectivityManagerViewController::previousNetworkUsername,
-                                             ConnectivityManagerViewController::previousNetworkPassword);
-        
-        EventManager::get()->sendEvent(readFileEvent.getPointer());
-        if (readFileEvent.isError()) {
-            QMessageBox::critical(this, 
-                                  "ERROR", 
-                                  readFileEvent.getErrorMessage());                
-        }
-    }
 }
 
 void 

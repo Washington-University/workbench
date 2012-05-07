@@ -66,7 +66,6 @@ namespace caret {
         void receiveEvent(Event* event);
         
     private slots:
-        void processLoadFileFromWeb();
         
     private:
         ConnectivityManagerViewController(const ConnectivityManagerViewController&);
