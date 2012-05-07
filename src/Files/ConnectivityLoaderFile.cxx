@@ -1029,6 +1029,99 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                 }
             }
+            break;
+            case LOADER_TYPE_DENSE_TIME_SERIES:
+            /*{
+                const int32_t num = this->ciftiInterface->getNumberOfColumns();
+                if (num <= 0) {
+                    throw DataFileException("No data in CIFTI file (0 columns)");
+                }
+                
+                if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
+                    
+                    std::vector<double> averageVector(num, 0.0);
+                    double* averageData = &averageVector[0];
+                    const int32_t numberOfNodeIndices = nodeIndices.size();
+                    vector< vector<float> > rowDataVectors(numberOfNodeIndices, vector<float>(num,0.0));
+                                    
+                    
+                    CaretLogFine("Reading rows for nodes "
+                                 + AString::fromNumbers(nodeIndices, ","));
+                    double countForAveraging = 0.0;
+                    
+                    
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        const int32_t nodeIndex = nodeIndices[i];
+                        float *rowData = &(rowDataVectors.at(i).at(0));
+                        if (!this->ciftiInterface->getRowFromNode(rowData,
+                                                                 nodeIndex,
+                                                                 structure)) {
+                            CaretLogFine("FAILED to read row for node " + AString::number(nodeIndex));
+                        }
+                    }
+
+                    for (int32_t i = 0; i < numberOfNodeIndices; i++) {
+                        for(int32_t j = 0;j < num; j++) {
+                            averageData[j] += rowDataVectors[i][j];
+                        }
+                        countForAveraging += 1.0;      
+                    }
+                    
+                    
+                    if(this->timeSeriesGraphEnabled)
+                    {
+                        tl.x.clear();
+                        tl.y.clear();
+                        this->tl.x.reserve(num);
+                        this->tl.y.reserve(num);
+                        for(int64_t i = 0;i<num;i++)
+                        {
+                            tl.x.push_back(i);
+                            tl.y.push_back(averageData[i] / countForAveraging);
+                        }
+                        //double point[3] = {0.0,0.0,0.0};
+                        this->tl.nodeid = 0;
+                        this->tl.type = AVERAGE;
+                    }
+                    
+                    
+                    this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
+                }
+                //throw DataFileException("Loading of average time-series data not supported.");
+                
+            }*/
+            break;
+        }
+    }
+    catch (CiftiFileException& e) {
+        throw DataFileException(e.whatString());
+    }
+    
+}
+
+/** 
+ * Load average timeLine graph for a given set of node indices
+ */
+void 
+ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum::Enum structure,
+                                    const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
+{
+    if (this->ciftiInterface == NULL) {
+        throw DataFileException("Connectivity Loader has not been initialized");
+    }
+    
+    /*
+     * Allow loading of data disable?
+     */
+    if (this->dataLoadingEnabled == false) {
+        return;
+    }
+    
+    try {
+        switch (this->loaderType) {
+            case LOADER_TYPE_INVALID:
+                break;
+            case LOADER_TYPE_DENSE:
                 break;
             case LOADER_TYPE_DENSE_TIME_SERIES:
             {
@@ -1070,6 +1163,7 @@ ConnectivityLoaderFile::loadAverageDataForSurfaceNodes(const StructureEnum::Enum
                     
                     if(this->timeSeriesGraphEnabled)
                     {
+                        tl = timeLine;
                         tl.x.clear();
                         tl.y.clear();
                         this->tl.x.reserve(num);
@@ -1726,7 +1820,7 @@ ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
 
 void 
 ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
-                          const int32_t nodeIndex,TimeLine &timeLine) throw (DataFileException)
+                          const int32_t nodeIndex,const TimeLine &timeLine) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -1757,6 +1851,9 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         if(this->timeSeriesGraphEnabled)
                         {
+                            this->tl.nodeid = nodeIndex;
+                            this->tl = timeLine;
+                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
@@ -1767,9 +1864,7 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                                 tl.y.push_back(data[i]);
                             }
                             
-                            this->tl.nodeid = nodeIndex;
-                            this->tl.label = timeLine.label;
-                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
+                            
                         }
                     }
                     else {
@@ -1817,6 +1912,8 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                         //this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
                         if(this->timeSeriesGraphEnabled)
                         {
+                            this->tl = timeLine;
+                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
                             tl.x.clear();
                             tl.y.clear();
                             this->tl.x.reserve(num);
@@ -1826,8 +1923,7 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                                 tl.x.push_back(i);
                                 tl.y.push_back(data[i]);
                             }                            
-                            this->tl.label = timeLine.label;
-                            for(int i = 3;i<3;i++) this->tl.point[i] = timeLine.point[i];
+                            
                             //double point[3] = {0.0,0.0,0.0};
                             //this->tl.nodeid = nodeIndex;
 

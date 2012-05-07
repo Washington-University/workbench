@@ -450,8 +450,13 @@ BrainOpenGLWidgetContextMenu::parcelTimeSeriesActionSelected(QAction* action)
     try {
         CursorDisplayScoped cursor;
         cursor.showWaitCursor();
+        TimeLine tl;
+        for(int i=0;i<3;i++) tl.point[i] = 0.0;
+        tl.parcelName = pc->labelName;       
+        tl.structureName = StructureEnum::toGuiName(pc->surface->getStructure());
+        tl.label = tl.structureName + ":" + tl.parcelName;
         pc->connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(pc->surface,
-                                                                      nodeIndices);
+                                                                      nodeIndices, tl);
 
         QList <TimeLine> tlV;
         pc->connectivityLoaderManager->getSurfaceTimeLines(tlV);
@@ -509,9 +514,15 @@ BrainOpenGLWidgetContextMenu::borderTimeSeriesSelected()
         try {
             CursorDisplayScoped cursor;
             cursor.showWaitCursor();
+            TimeLine tl;
+            for(int i=0;i<3;i++) tl.point[i] = 0.0;
+            tl.borderClassName = border->getClassName();
+            tl.borderName = border->getName();
+            tl.structureName = StructureEnum::toGuiName(border->getStructure());
+            tl.label =  tl.structureName + ":" + tl.borderClassName + ":" + tl.borderName;
             ConnectivityLoaderManager* connectivityLoaderManager = borderID->getBrain()->getConnectivityLoaderManager();
             connectivityLoaderManager->loadAverageTimeSeriesForSurfaceNodes(surface,
-                                                                          nodeIndices);
+                                                                          nodeIndices,tl);
             QList <TimeLine> tlV;
             connectivityLoaderManager->getSurfaceTimeLines(tlV);
             if(tlV.size()!=0)

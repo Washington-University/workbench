@@ -178,8 +178,10 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         if ((surface != NULL) &&
             (nodeIndex >= 0)) {
             try {
+                TimeLine timeLine;
                 connMan->loadDataForSurfaceNode(surface, nodeIndex);
-                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex);
+                surface->getTimeLineInformation(nodeIndex,timeLine);
+                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine);
                 updateGraphicsFlag = true;
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();

@@ -50,6 +50,10 @@ public:
     int64_t clmID; //the timelines number in the connectivity loader manager
     double timeStep;
     TimeLineType type;
+    AString structureName;
+    AString parcelName;
+    AString borderName;
+    AString borderClassName;
     AString label;//label or ROI descriptor for timelines consisting of an average of nodes
 };
 }

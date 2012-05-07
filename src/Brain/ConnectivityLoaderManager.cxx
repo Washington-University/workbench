@@ -42,6 +42,7 @@ using namespace caret;
 #include "PaletteFile.h"
 #include "StructureEnum.h"
 #include "SurfaceFile.h"
+#
     
 /**
  * \class ConnectivityLoaderManager 
@@ -160,7 +161,7 @@ ConnectivityLoaderManager::loadAverageDataForSurfaceNodes(const SurfaceFile* sur
  */
 bool 
 ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException)
+                                                const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
@@ -173,7 +174,7 @@ ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFil
         if (clf->isEmpty() == false) {            
             if(clf->isDenseTimeSeries() && clf->isTimeSeriesGraphEnabled())
             {
-                clf->loadAverageDataForSurfaceNodes(surfaceFile->getStructure(), nodeIndices);
+                clf->loadAverageTimeSeriesForSurfaceNodes(surfaceFile->getStructure(), nodeIndices, timeLine);
             }
         }
     }
@@ -393,21 +394,21 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
  */
 bool 
 ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex) throw (DataFileException)
+                            const int32_t nodeIndex,const TimeLine &timeLine) throw (DataFileException)
 {
     bool haveData = false;
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
-    TimeLine tl;//hack so that we can set labels and points
+    
     
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityTimeSeriesFiles.begin();
          iter != connectivityTimeSeriesFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            surfaceFile->getTimeLineInformation(nodeIndex,tl);
-            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,tl);            
+            
+            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
         }
     }

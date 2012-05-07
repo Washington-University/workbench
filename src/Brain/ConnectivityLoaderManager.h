@@ -53,7 +53,7 @@ namespace caret {
                                             const std::vector<int32_t>& nodeIndices) throw (DataFileException);
 
         bool loadAverageTimeSeriesForSurfaceNodes(const SurfaceFile* surfaceFile,
-                                                const std::vector<int32_t>& nodeIndices) throw (DataFileException);
+                                                const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException);
 
         
         bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
@@ -69,7 +69,7 @@ namespace caret {
         void getSurfaceTimeLines(QList<TimeLine> &tlV);
 
         bool loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
-                                    const int32_t nodeIndex) throw (DataFileException);
+                                    const int32_t nodeIndex, const TimeLine &timeLine) throw (DataFileException);
         
         bool loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
