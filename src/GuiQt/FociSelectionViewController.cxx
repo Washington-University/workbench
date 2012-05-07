@@ -148,11 +148,18 @@ QWidget*
 FociSelectionViewController::createAttributesWidget()
 {
     m_fociDisplayCheckBox = new QCheckBox("Display Foci");
+    m_fociDisplayCheckBox->setToolTip("Enable the display of foci");
     QObject::connect(m_fociDisplayCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
     m_fociContralateralCheckBox = new QCheckBox("Contralateral");
+    m_fociContralateralCheckBox->setToolTip("Enable display of foci from contralateral brain structure");
     QObject::connect(m_fociContralateralCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(processAttributesChanges()));
+    
+    m_pasteOntoSurfaceCheckBox = new QCheckBox("Paste Onto Surface");
+    m_pasteOntoSurfaceCheckBox->setToolTip("Place the foci onto the surface");
+    QObject::connect(m_pasteOntoSurfaceCheckBox, SIGNAL(clicked(bool)),
                      this, SLOT(processAttributesChanges()));
     
     std::vector<FociColoringTypeEnum::Enum> coloringTypeEnums;
@@ -181,7 +188,7 @@ FociSelectionViewController::createAttributesWidget()
         m_drawTypeComboBox->addItem(FociDrawingTypeEnum::toGuiName(drawType),
                                     (int)drawType);
     }
-    m_drawTypeComboBox->setToolTip("Select the drawing style of borders");
+    m_drawTypeComboBox->setToolTip("Select the drawing style of foci");
     QObject::connect(m_drawTypeComboBox, SIGNAL(activated(int)),
                      this, SLOT(processAttributesChanges()));
     
@@ -209,6 +216,8 @@ FociSelectionViewController::createAttributesWidget()
     gridLayout->addWidget(m_fociDisplayCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(m_fociContralateralCheckBox, row, 0, 1, 2, Qt::AlignLeft);
+    row++;
+    gridLayout->addWidget(m_pasteOntoSurfaceCheckBox, row, 0, 1, 2, Qt::AlignLeft);
     row++;
     gridLayout->addWidget(WuQtUtilities::createHorizontalLineWidget(), row, 0, 1, 2);
     row++;
@@ -258,7 +267,8 @@ FociSelectionViewController::processAttributesChanges()
                       m_fociDisplayCheckBox->isChecked());
     dpf->setContralateralDisplayed(browserTabIndex,
                                    m_fociContralateralCheckBox->isChecked());
-
+    dpf->setPasteOntoSurface(browserTabIndex,
+                             m_pasteOntoSurfaceCheckBox->isChecked());
     dpf->setColoringType(selectedColoringType);
     dpf->setFociSize(m_sizeSpinBox->value());
     dpf->setDrawingType(selectedDrawingType);
@@ -293,6 +303,7 @@ FociSelectionViewController::updateAttributesWidget()
     
     m_fociDisplayCheckBox->setChecked(dpf->isDisplayed(browserTabIndex));
     m_fociContralateralCheckBox->setChecked(dpf->isContralateralDisplayed(browserTabIndex));
+    m_pasteOntoSurfaceCheckBox->setChecked(dpf->isPasteOntoSurface(browserTabIndex));
     
     const FociColoringTypeEnum::Enum selectedColoringType = dpf->getColoringType();
     int32_t selectedColoringTypeIndex = 0;

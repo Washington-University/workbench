@@ -1713,6 +1713,8 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
             break;
     }
     
+    const bool isPasteOntoSurface = fociDisplayProperties->isPasteOntoSurface(this->windowTabIndex);
+    
     const bool isContralateralEnabled = fociDisplayProperties->isContralateralDisplayed(this->windowTabIndex);
     const int32_t numFociFiles = brain->getNumberOfFociFiles();
     for (int32_t i = 0; i < numFociFiles; i++) {
@@ -1777,7 +1779,7 @@ BrainOpenGLFixedPipeline::drawSurfaceFoci(Surface* surface)
                 float xyz[3];
                 if (spi->getProjectedPosition(*surface,
                                               xyz,
-                                              false)) {
+                                              isPasteOntoSurface)) {
                     const StructureEnum::Enum focusStructure = spi->getStructure();
                     bool drawIt = false;
                     if (focusStructure == surfaceStructure) {
@@ -3679,7 +3681,7 @@ BrainOpenGLFixedPipeline::colorizeVoxels(const VolumeDrawInfo& volumeDrawInfo,
  */
 void 
 BrainOpenGLFixedPipeline::drawVolumeSurfaceOutlines(Brain* brain,
-                                                    Model* modelDisplayController,
+                                                    Model* /*modelDisplayController*/,
                                                     BrowserTabContent* browserTabContent,
                                                     const VolumeSliceViewPlaneEnum::Enum slicePlane,
                                                     const int64_t sliceIndex,

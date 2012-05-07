@@ -82,6 +82,11 @@ namespace caret {
         
         void setDrawingType(const FociDrawingTypeEnum::Enum drawingType);
         
+        void setPasteOntoSurface(const int32_t browserTabIndex,
+                                 const bool enabled);
+        
+        bool isPasteOntoSurface(const int32_t browserTabIndex) const;
+        
     private:
         DisplayPropertiesFoci(const DisplayPropertiesFoci&);
 
@@ -90,6 +95,8 @@ namespace caret {
         bool m_displayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         bool m_contralateralDisplayStatus[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
+        
+        bool m_pasteOntoSurface[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         
         DisplayGroupEnum::Enum m_displayGroup[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];
         

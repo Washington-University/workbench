@@ -100,6 +100,8 @@ namespace caret {
         
         QCheckBox* m_fociContralateralCheckBox;
         
+        QCheckBox* m_pasteOntoSurfaceCheckBox;
+        
         DisplayGroupEnumComboBox* m_fociDisplayGroupComboBox;
 
         QComboBox* m_coloringTypeComboBox;

@@ -59,6 +59,7 @@ DisplayPropertiesFoci::DisplayPropertiesFoci(Brain* brain)
         m_displayStatus[i] = false;
         m_contralateralDisplayStatus[i] = false;
         m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+        m_pasteOntoSurface[i] = false;
     }
     
     m_fociSize = 4.0;
@@ -85,6 +86,7 @@ DisplayPropertiesFoci::reset()
 //        m_displayStatus[i] = true;
 //        m_contralateralDisplayStatus[i] = false;
 //        m_displayGroup[i] = DisplayGroupEnum::DISPLAY_ALL_WINDOWS;
+//        m_pasteOntoSurface[i] = false;
 //    }
 }
 
@@ -245,6 +247,34 @@ void
 DisplayPropertiesFoci::setDrawingType(const FociDrawingTypeEnum::Enum drawingType)
 {
     m_drawingType = drawingType;
+}
+
+/**
+ * Set paste onto surface so the foci are placed directly on the surface.
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @param enabled
+ *   True if pasting foci onto surface is enabled.
+ */
+void 
+DisplayPropertiesFoci::setPasteOntoSurface(const int32_t browserTabIndex,
+                                           const bool enabled)
+{
+    CaretAssertArrayIndex(m_displayGroup, 
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          browserTabIndex);
+    m_pasteOntoSurface[browserTabIndex] = enabled; 
+}
+
+/**
+ * @param browserTabIndex
+ *    Index of browser tab.
+ * @return True if foci are pasted onto surface.
+ */
+bool 
+DisplayPropertiesFoci::isPasteOntoSurface(const int32_t browserTabIndex) const
+{
+    return m_pasteOntoSurface[browserTabIndex];
 }
 
 
