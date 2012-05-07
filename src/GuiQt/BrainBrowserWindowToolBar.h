@@ -385,16 +385,10 @@ namespace caret {
         void montageSpacingSpinBoxValueChanged(int i);
         
     private slots:
-        void toolsConnectToDatabaseActionTriggered(bool);
         void toolsInputModeActionTriggered(QAction*);
         
     private:
         void updateDisplayedToolsUserInputWidget();
-        QMenu* toolsConnectMenu;
-        QAction* toolsConnectToAllenDatabaseAction;
-        QAction* toolsConnectToHcpAction;
-        QAction* toolsConnectToConnectomeDatabaseAction;
-        
         QActionGroup* toolsInputModeActionGroup;
         QAction* toolsInputModeBordersAction;
         QAction* toolsInputModeViewAction;
