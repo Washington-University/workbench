@@ -1518,7 +1518,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             drawSphericalPoints = true;
             break;
     }
-
+    
     const float drawAtDistanceAboveSurface = 0.5;
 
     std::vector<float> pointXYZ;
@@ -4183,6 +4183,8 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
     this->orthographicNear   = -1000.0; //-500.0; //-10000.0;
     this->orthographicFar    =  1000.0; //500.0; // 10000.0;
     
+    bool viewingFromFarSide = false;
+    
     switch (rotationMatrixIndex) {
         case Model::ROTATION_MATRIX_NORMAL:
             glOrtho(this->orthographicLeft, this->orthographicRight, 
@@ -4192,12 +4194,14 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
         case Model::ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE:
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
-                    this->orthographicFar, this->orthographicNear);    
+                    this->orthographicFar, this->orthographicNear); 
+            viewingFromFarSide = true;
             break;
         case Model::ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT:
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
                     this->orthographicFar, this->orthographicNear);    
+            viewingFromFarSide = true;
             break;
         case Model::ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE:
             glOrtho(this->orthographicLeft, this->orthographicRight, 
@@ -4208,6 +4212,7 @@ BrainOpenGLFixedPipeline::setOrthographicProjection(const int32_t viewport[4],
             glOrtho(this->orthographicRight, this->orthographicLeft, 
                     this->orthographicBottom, this->orthographicTop, 
                     this->orthographicFar, this->orthographicNear);    
+            viewingFromFarSide = true;
             break;
         case Model::ROTATION_MATRIX_COUNT:
             CaretAssert(0);
@@ -4504,6 +4509,11 @@ BrainOpenGLFixedPipeline::drawSphere(const double radius)
 
 /**
  * Draw a one millimeter square facing the user.
+ * NOTE: This method will alter the current
+ * modelviewing matrices so caller may need
+ * to enclose the call to this method within
+ * glPushMatrix() and glPopMatrix().
+ *
  * @param size
  *     Size of square.
  */
@@ -4511,17 +4521,31 @@ void
 BrainOpenGLFixedPipeline::drawSquare(const float size)
 {
     if (this->inverseRotationMatrixValid) {
+        /*
+         * Remove any rotation 
+         */
         glMultMatrixd(this->inverseRotationMatrix);
+
+        glScalef(size, size, size);
+        
+        /*
+         * Draw both front and back side since in some instances,
+         * such as surface montage, we are viweing from the far
+         * side (from back of monitor)
+         */
+        glBegin(GL_QUADS);
+        glNormal3f(0.0, 0.0, 1.0);
+        glVertex3f(-0.5, -0.5, 0.0);
+        glVertex3f( 0.5, -0.5, 0.0);
+        glVertex3f( 0.5,  0.5, 0.0);
+        glVertex3f(-0.5,  0.5, 0.0);
+        glNormal3f(0.0, 0.0, -1.0);
+        glVertex3f(-0.5, -0.5, 0.0);
+        glVertex3f(-0.5,  0.5, 0.0);
+        glVertex3f( 0.5,  0.5, 0.0);
+        glVertex3f( 0.5, -0.5, 0.0);
+        glEnd();
     }
-    glScalef(size, size, size);
-    
-    glBegin(GL_QUADS);
-    glNormal3f(0.0, 0.0, 1.0);
-    glVertex3f(-0.5, -0.5, 0.0);
-    glVertex3f( 0.5, -0.5, 0.0);
-    glVertex3f( 0.5,  0.5, 0.0);
-    glVertex3f(-0.5,  0.5, 0.0);
-    glEnd();
 }
 
 /**
