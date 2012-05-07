@@ -34,6 +34,7 @@
 #include "AString.h"
 #include "BrainBrowserWindowScreenModeEnum.h"
 #include "DataFileException.h"
+#include "DataFileTypeEnum.h"
 #include "EventListenerInterface.h"
 
 class QAction;
@@ -94,6 +95,7 @@ namespace caret {
         void processInformationDialog();
         void processNewWindow();
         void processNewTab();
+        void processDataFileLocationOpen();
         void processDataFileOpen();
         void processDataFileOpenFromSpecFile();
         void processManageSaveLoadedFiles();
@@ -132,6 +134,11 @@ namespace caret {
         void processSurfaceMenuInformation();
         void processSurfaceMenuVolumeInteraction();
         
+        void processConnectToAllenDataBase();
+        void processConnectToConnectomeDataBase();
+        
+        void processHcpWebsiteInBrowser();
+                                       
     private:
         // Contains status of components such as enter/exit full screen
         struct WindowComponentStatus {
@@ -160,6 +167,7 @@ namespace caret {
         QMenu* createMenuView();
         QMenu* createMenuViewMoveOverlayToolBox();
         QMenu* createMenuViewMoveLayersToolBox();
+        QMenu* createMenuConnect();
         QMenu* createMenuData();
         QMenu* createMenuSurface();
         QMenu* createMenuVolume();
@@ -188,6 +196,8 @@ namespace caret {
         QAction* newTabAction;
         
         QAction* openFileAction;
+        
+        QAction* openLocationAction;
         
         QAction* openFileViaSpecFileAction;
         
@@ -227,9 +237,12 @@ namespace caret {
         
         QAction* bringAllToFrontAction;
         
+        QAction* connectToAllenDatabaseAction;
+        QAction* connectToConnectomeDatabaseAction;
+
+        QAction* helpHcpWebsiteAction;
         QAction* helpOnlineAction;
-        
-        QAction* searchHelpOnlineAction;
+        QAction* helpSearchOnlineAction;
         
         QAction* overlayToolBoxAction;
         
@@ -250,9 +263,22 @@ namespace caret {
         
         WindowComponentStatus normalWindowComponentStatus;
                 
+        static DataFileTypeEnum::Enum previousNetworkDataFileType;
+        static AString previousNetworkFileName;
+        static AString previousNetworkUsername;
+        static AString previousNetworkPassword;
+        
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
     };
+#ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
+    DataFileTypeEnum::Enum BrainBrowserWindow::previousNetworkDataFileType = DataFileTypeEnum::UNKNOWN;
+    AString BrainBrowserWindow::previousNetworkFileName = "";
+    AString BrainBrowserWindow::previousNetworkUsername = "";
+    AString BrainBrowserWindow::previousNetworkPassword = "";
+#endif // __BRAIN_BROWSER_WINDOW_DECLARE__
+    
 }
+
 #endif // __BRAIN_BROWSER_WINDOW_H__
 

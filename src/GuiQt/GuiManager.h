@@ -36,9 +36,9 @@
 #include "EventListenerInterface.h"
 #include "TimeCourseDialog.h"
 
-#include "qdialog.h"
-#include "qwidget.h"
-//class QWidget;
+class QDialog;
+class QWebView;
+class QWidget;
 
 namespace caret {
     
@@ -102,6 +102,10 @@ namespace caret {
         void processShowPreferencesDialog(BrainBrowserWindow* browserWindow);
         void processShowInformationDisplayDialog(BrainBrowserWindow* browserWindow);
                 
+        
+        void processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow);
+        void processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow);
+        
         bool captureImageOfBrowserWindowGraphicsArea(const int32_t browserWindowIndex,
                                                      const int32_t imageSizeX,
                                                      const int32_t imageSizeY,
@@ -158,6 +162,8 @@ namespace caret {
         
         InformationDisplayDialog* informationDisplayDialog;
         
+        QWebView* connectomeDatabaseWebView;
+        
         CursorManager* cursorManager;
         
         /** 
@@ -166,7 +172,8 @@ namespace caret {
          * BrainBrowserWindow is closed in which case the dialog
          * is reparented to a different BrainBrowserWindow.
          */
-        std::vector<QDialog*> nonModalDialogs;
+        std::vector<QWidget*> nonModalDialogs;
+        
         QMap<void *,TimeCourseDialog *> timeCourseDialogs;
     };
     

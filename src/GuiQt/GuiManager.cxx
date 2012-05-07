@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include <QApplication>
+#include <QWebView>
 
 #define __GUI_MANAGER_DEFINE__
 #include "GuiManager.h"
@@ -72,7 +73,8 @@ GuiManager::GuiManager(QObject* parent)
     
     this->imageCaptureDialog = NULL;
     this->informationDisplayDialog = NULL;
-    this->preferencesDialog = NULL;    
+    this->preferencesDialog = NULL;  
+    this->connectomeDatabaseWebView = NULL;
     
     this->cursorManager = new CursorManager();
     
@@ -90,6 +92,10 @@ GuiManager::~GuiManager()
     EventManager::get()->removeAllEventsFromListener(this);
     
     delete this->cursorManager;
+    
+    if (this->connectomeDatabaseWebView != NULL) {
+        delete this->connectomeDatabaseWebView;
+    }
     
 //    if (this->brainOpenGL != NULL) {
 //        delete this->brainOpenGL;
@@ -698,7 +704,7 @@ GuiManager::reparentNonModalDialogs(BrainBrowserWindow* closingBrainBrowserWindo
     if (firstBrainBrowserWindow != NULL) {
         const int32_t numNonModalDialogs = static_cast<int32_t>(this->nonModalDialogs.size());
         for (int32_t i = 0; i < numNonModalDialogs; i++) {
-            QDialog* d = this->nonModalDialogs[i];
+            QWidget* d = this->nonModalDialogs[i];
             if (d->parent() == closingBrainBrowserWindow) {
                 d->setParent(firstBrainBrowserWindow, d->windowFlags());
                 d->hide();
@@ -755,6 +761,35 @@ GuiManager::processShowPreferencesDialog(BrainBrowserWindow* browserWindow)
     this->preferencesDialog->setVisible(true);
     this->preferencesDialog->show();
     this->preferencesDialog->activateWindow();
+}
+
+/**
+ * Show the allen database web view.
+ * @param browserWindow
+ *    If the web view needs to be created, use this as parent.
+ */
+void 
+GuiManager::processShowAllenDataBaseWebView(BrainBrowserWindow* browserWindow)
+{
+    WuQMessageBox::informationOk(browserWindow, 
+                                 "Allen Database connection not yet implemented");
+}
+
+/**
+ * Show the connectome database web view.
+ * @param browserWindow
+ *    If the web view needs to be created, use this as parent.
+ */
+void 
+GuiManager::processShowConnectomeDataBaseWebView(BrainBrowserWindow* browserWindow)
+{
+    if (this->connectomeDatabaseWebView == NULL) {
+        this->connectomeDatabaseWebView = new QWebView();
+        this->connectomeDatabaseWebView->load(QUrl("https://intradb.humanconnectome.org/"));
+        this->nonModalDialogs.push_back(this->connectomeDatabaseWebView);
+    }
+    this->connectomeDatabaseWebView->show();
+//    this->connectomeDatabaseWebView->activateWindow();
 }
 
 /**

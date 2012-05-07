@@ -23,14 +23,21 @@
  */
 
 #include <QCloseEvent>
+#include <QDesktopServices>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QTabBar>
+#include <QUrl>
+
+#define __BRAIN_BROWSER_WINDOW_DECLARE__
+#include "BrainBrowserWindow.h"
+#undef __BRAIN_BROWSER_WINDOW_DECLARE__
 
 #include "AboutWorkbenchDialog.h"
 #include "Brain.h"
-#include "BrainBrowserWindow.h"
 #include "BrainBrowserWindowToolBar.h"
 #include "BrainBrowserWindowOrientedToolBox.h"
 #include "BrainOpenGLWidget.h"
@@ -322,11 +329,19 @@ BrainBrowserWindow::createActions()
     
     this->openFileAction =
     WuQtUtilities::createAction("Open File...", 
-                                "Open a data file including a spec file",
+                                "Open a data file including a spec file located on the computer",
                                 Qt::CTRL+Qt::Key_O,
                                 this,
                                 this,
                                 SLOT(processDataFileOpen()));
+    
+    this->openLocationAction = 
+    WuQtUtilities::createAction("Open Location...", 
+                                "Open a data file including a spec file located on a web server (http)",
+                                Qt::CTRL+Qt::Key_L,
+                                this,
+                                this,
+                                SLOT(processDataFileLocationOpen()));
     
     this->openFileViaSpecFileAction =
     WuQtUtilities::createAction("Open File via Spec File...", 
@@ -471,6 +486,13 @@ BrainBrowserWindow::createActions()
                                 guiManager,
                                 SLOT(processBringAllWindowsToFront()));
     
+    this->helpHcpWebsiteAction =
+    WuQtUtilities::createAction("Go to HCP Website...",
+                                "Load the HCP Website in your computer's web browser",
+                                this,
+                                this,
+                                SLOT(processHcpWebsiteInBrowser()));
+    
     this->helpOnlineAction =
     WuQtUtilities::createAction("Show Help (Online)...",
                                 "Show the Help Window",
@@ -479,14 +501,27 @@ BrainBrowserWindow::createActions()
                                 SLOT(processShowHelpOnlineWindow()));
     this->helpOnlineAction->setEnabled(false);
     
-    this->searchHelpOnlineAction =
+    this->helpSearchOnlineAction =
     WuQtUtilities::createAction("Search Help (Online)...",
                                 "Show the Search Helper Window",
                                 this,
                                 guiManager,
                                 SLOT(processShowSearchHelpOnlineWindow()));
-    this->searchHelpOnlineAction->setEnabled(false);
+    this->helpSearchOnlineAction->setEnabled(false);
 
+    this->connectToAllenDatabaseAction =
+    WuQtUtilities::createAction("Allen Brain Institute Database..",
+                                "Open a connection to the Allen Brain Institute Database",
+                                this,
+                                this,
+                                SLOT(processConnectToAllenDataBase()));
+    
+    this->connectToConnectomeDatabaseAction =
+    WuQtUtilities::createAction("Human Connectome Project Database...",
+                                "Open a connection to the Human Connectome Project Database",
+                                this,
+                                this,
+                                SLOT(processConnectToConnectomeDataBase()));
 }
 
 /**
@@ -501,9 +536,13 @@ BrainBrowserWindow::createMenus()
     QMenuBar* menuBar = this->menuBar();
     menuBar->addMenu(this->createMenuFile());
     menuBar->addMenu(this->createMenuView());
-    menuBar->addMenu(this->createMenuData());
+    QMenu* dataMenu = this->createMenuData();
+    if (dataMenu != NULL) {
+        menuBar->addMenu(dataMenu);
+    }
     menuBar->addMenu(this->createMenuSurface());
     menuBar->addMenu(this->createMenuVolume());
+    menuBar->addMenu(this->createMenuConnect());
     menuBar->addMenu(this->createMenuWindow());
     menuBar->addMenu(this->createMenuHelp());    
 }
@@ -528,6 +567,7 @@ BrainBrowserWindow::createMenuFile()
     menu->addAction(this->newTabAction);
     menu->addSeparator();
     menu->addAction(this->openFileAction);
+    menu->addAction(this->openLocationAction);
     this->recentSpecFileMenu = menu->addMenu("Open Recent Spec File");
     QObject::connect(this->recentSpecFileMenu, SIGNAL(aboutToShow()),
                      this, SLOT(processRecentSpecFileMenuAboutToBeDisplayed()));
@@ -774,15 +814,32 @@ BrainBrowserWindow::createMenuViewMoveOverlayToolBox()
 }
 
 /**
+ * Create the connect menu.
+ * @return the connect menu.
+ */
+QMenu* 
+BrainBrowserWindow::createMenuConnect()
+{
+    QMenu* menu = new QMenu("Connect", this);
+    
+    menu->addAction(this->connectToAllenDatabaseAction);
+    menu->addAction(this->connectToConnectomeDatabaseAction);
+    
+    return menu;
+}
+
+/**
  * Create the data menu.
  * @return the data menu.
  */
 QMenu* 
 BrainBrowserWindow::createMenuData()
 {
+/*
     QMenu* menu = new QMenu("Data", this);
-    
     return menu;
+*/
+    return NULL;
 }
 
 /**
@@ -925,8 +982,10 @@ BrainBrowserWindow::createMenuHelp()
 {
     QMenu* menu = new QMenu("Help", this);
     
+    menu->addAction(this->helpHcpWebsiteAction);
+    menu->addSeparator();
     menu->addAction(this->helpOnlineAction);
-    menu->addAction(this->searchHelpOnlineAction);
+    menu->addAction(this->helpSearchOnlineAction);
     
     return menu;
 }
@@ -997,6 +1056,90 @@ BrainBrowserWindow::processAboutWorkbench()
 {
     AboutWorkbenchDialog awd(this);
     awd.exec();
+}
+
+/**
+ * Called when open location is selected.
+ */
+void 
+BrainBrowserWindow::processDataFileLocationOpen()
+{
+    QStringList filenameFilterList;
+    std::vector<DataFileTypeEnum::Enum> dataFileTypes;
+    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypes);
+    
+    QLabel* urlLabel = new QLabel("URL: ");
+    QLineEdit* urlLineEdit = new QLineEdit();
+    urlLineEdit->setText(BrainBrowserWindow::previousNetworkFileName);
+    
+    int defaultFileTypeComboBoxIndex = -1;
+    QLabel* fileTypeLabel = new QLabel("File Type: ");
+    QComboBox* fileTypeComboBox = new QComboBox();
+    const int numDataFileTypes = static_cast<int>(dataFileTypes.size());
+    for (int idft = 0; idft < numDataFileTypes; idft++) {
+        const DataFileTypeEnum::Enum dft = dataFileTypes[idft];
+        if (dft == BrainBrowserWindow::previousNetworkDataFileType) {
+            defaultFileTypeComboBoxIndex = idft;
+        }
+        fileTypeComboBox->addItem(DataFileTypeEnum::toGuiName(dft),
+                                  (int)DataFileTypeEnum::toIntegerCode(dft));
+    }
+    
+    QLabel* usernameLabel = new QLabel("Username: ");
+    QLineEdit* usernameLineEdit = new QLineEdit();
+    usernameLineEdit->setText(BrainBrowserWindow::previousNetworkUsername);
+    
+    QLabel* passwordLabel = new QLabel("Password: ");
+    QLineEdit* passwordLineEdit = new QLineEdit();
+    passwordLineEdit->setEchoMode(QLineEdit::Password);
+    passwordLineEdit->setText(BrainBrowserWindow::previousNetworkPassword);
+    
+    QWidget* controlsWidget = new QWidget();
+    QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
+    WuQtUtilities::setLayoutMargins(controlsLayout, 4, 2);
+    controlsLayout->addWidget(urlLabel, 0, 0);
+    controlsLayout->addWidget(urlLineEdit, 0, 1);
+    controlsLayout->addWidget(fileTypeLabel, 1, 0);
+    controlsLayout->addWidget(fileTypeComboBox, 1, 1);
+    controlsLayout->addWidget(usernameLabel, 2, 0);
+    controlsLayout->addWidget(usernameLineEdit, 2, 1);
+    controlsLayout->addWidget(passwordLabel, 3, 0);
+    controlsLayout->addWidget(passwordLineEdit, 3, 1);
+    
+    WuQDialogModal d("Open Data File on Web Server",
+                     controlsWidget,
+                     this);
+    if (d.exec() == QDialog::Accepted) {
+        const AString filename = urlLineEdit->text().trimmed();
+
+        DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
+        const int fileTypeComboBoxIndex = fileTypeComboBox->currentIndex();
+        if (fileTypeComboBoxIndex >= 0) {
+            const int dataTypeIntegerCode = fileTypeComboBox->itemData(fileTypeComboBoxIndex).toInt();
+            dataFileType = DataFileTypeEnum::fromIntegerCode(dataTypeIntegerCode, 
+                                                             NULL);
+        }
+        
+        BrainBrowserWindow::previousNetworkDataFileType = dataFileType;
+        BrainBrowserWindow::previousNetworkFileName = filename;
+        BrainBrowserWindow::previousNetworkUsername = usernameLineEdit->text().trimmed();
+        BrainBrowserWindow::previousNetworkPassword = passwordLineEdit->text().trimmed();
+        
+        Brain* brain = GuiManager::get()->getBrain();
+        
+        EventDataFileRead readFileEvent(brain,
+                                        BrainBrowserWindow::previousNetworkDataFileType,
+                                        BrainBrowserWindow::previousNetworkFileName);
+        readFileEvent.setUsernameAndPassword(BrainBrowserWindow::previousNetworkUsername,
+                                             BrainBrowserWindow::previousNetworkPassword);
+        
+        EventManager::get()->sendEvent(readFileEvent.getPointer());
+        if (readFileEvent.isError()) {
+            QMessageBox::critical(this, 
+                                  "ERROR", 
+                                  readFileEvent.getErrorMessage());                
+        }
+    }
 }
 
 /**
@@ -2007,6 +2150,34 @@ BrainBrowserWindow::captureImageOfGraphicsArea(const int32_t imageSizeX,
                                                     imageSizeY);
     
     return image;
+}
+
+/**
+ * Open a connection to the allen brain institute database.
+ */
+void 
+BrainBrowserWindow::processConnectToAllenDataBase()
+{
+    GuiManager::get()->processShowAllenDataBaseWebView(this);
+}
+
+/**
+ * Open a connection to the human connectome project database.
+ */
+void 
+BrainBrowserWindow::processConnectToConnectomeDataBase()
+{
+    GuiManager::get()->processShowConnectomeDataBaseWebView(this);
+}
+
+/**
+ * Load the HCP Website into the user's web browser.
+ */
+void 
+BrainBrowserWindow::processHcpWebsiteInBrowser()
+{
+    QUrl url("https://humanconnectome.org");
+    QDesktopServices::openUrl(url);
 }
 
 
