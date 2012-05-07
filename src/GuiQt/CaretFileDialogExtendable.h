@@ -36,15 +36,13 @@
 
 
 #include <QDialog>
-#include <QFileDialog>
+#include <QUrl>
 
-class AbstractItemDelegate;
-class AbstractProxyModel;
+#include "CaretFileDialog.h"
+
 class QVBoxLayout;
 
 namespace caret {
-    class CaretFileDialog;
-
     class CaretFileDialogExtendable : public QDialog {
         
         Q_OBJECT
@@ -62,101 +60,97 @@ namespace caret {
         
         void addWidget(QWidget* widget);
         
-        QFileDialog* getQFileDialog();
+        QFileDialog::AcceptMode acceptMode() const { return m_caretFileDialog->acceptMode(); }
         
-        const QFileDialog* getQFileDialog() const;
+        bool confirmOverwrite() const { return m_caretFileDialog->confirmOverwrite(); } 
         
-        QFileDialog::AcceptMode acceptMode() const;
+        QString defaultSuffix() const { return m_caretFileDialog->defaultSuffix(); }
         
-        bool confirmOverwrite() const;
+        QDir directory() const { return m_caretFileDialog->directory(); }
         
-        QString defaultSuffix() const;
+        QFileDialog::FileMode fileMode() const { return m_caretFileDialog->fileMode(); }
         
-        QDir directory() const;
+        QStringList filters() const { return m_caretFileDialog->filters(); }
         
-        QFileDialog::FileMode fileMode() const;
+        QStringList history() const { return m_caretFileDialog->history(); }
         
-        QStringList filters() const;
+        QFileIconProvider* iconProvider() const { return m_caretFileDialog->iconProvider(); }
         
-        QStringList history() const;
+        bool isReadOnly() const { return m_caretFileDialog->isReadOnly(); }
         
-        QFileIconProvider* iconProvider() const;
+        QAbstractItemDelegate* itemDelegate() const { return m_caretFileDialog->itemDelegate(); }
         
-        bool isReadOnly() const;
+        QString labelText(const QFileDialog::DialogLabel label) const { return m_caretFileDialog->labelText(label); }
         
-        QAbstractItemDelegate* itemDelegate() const;
-        
-        QString labelText(const QFileDialog::DialogLabel label) const;
-        
-        QStringList nameFilters() const;
+        QStringList nameFilters() const { return m_caretFileDialog->nameFilters(); }
 
-        void open(QObject* receiver, const char* member);
+        void open(QObject* receiver, const char* member) { m_caretFileDialog->open(receiver, member); }
         
-        QFileDialog::Options options() const;
+        QFileDialog::Options options() const { return m_caretFileDialog->options(); }
         
-        QAbstractProxyModel* proxyModel() const;
+        QAbstractProxyModel* proxyModel() const { return m_caretFileDialog->proxyModel(); }
         
-        bool resolveSymlinks() const;
+        bool resolveSymlinks() const { return m_caretFileDialog->resolveSymlinks(); }
         
-        bool restoreState(const QByteArray& state);
+        bool restoreState(const QByteArray& state) { return m_caretFileDialog->restoreState(state); }
         
-        QByteArray saveState() const;
+        QByteArray saveState() const { return m_caretFileDialog->saveState(); }
         
-        void selectFile(const QString& name);
+        void selectFile(const QString& name) { m_caretFileDialog->selectFile(name); }
         
-        void selectNameFilter(const QString& filter);
+        void selectNameFilter(const QString& filter) { m_caretFileDialog->selectNameFilter(filter); }
         
-        QStringList selectedFiles() const;
+        QStringList selectedFiles() const { return m_caretFileDialog->selectedFiles(); }
         
-        QString selectedNameFilter() const;
+        QString selectedNameFilter() const { return m_caretFileDialog->selectedNameFilter(); }
         
-        void setAcceptMode(const QFileDialog::AcceptMode mode);
+        void setAcceptMode(const QFileDialog::AcceptMode mode) { m_caretFileDialog->setAcceptMode(mode); }
         
-        void setConfirmOverwrite(const bool enabled);
+        void setConfirmOverwrite(const bool enabled) { m_caretFileDialog->setConfirmOverwrite(enabled); }
         
-        void setDefaultSuffix(const QString& suffix);
+        void setDefaultSuffix(const QString& suffix) { m_caretFileDialog->setDefaultSuffix(suffix); }
         
-        void setDirectory(const QString& dir);
+        void setDirectory(const QString& dir) { m_caretFileDialog->setDirectory(dir); }
         
-        void setDirectory(const QDir& dir);
+        void setDirectory(const QDir& dir) { m_caretFileDialog->setDirectory(dir); }
         
-        void setFileMode(const QFileDialog::FileMode mode);
+        void setFileMode(const QFileDialog::FileMode mode) { m_caretFileDialog->setFileMode(mode); }
         
-        void setFilter(const QString& filter);
+        void setFilter(const QString& filter) { m_caretFileDialog->setFilter(filter); }
         
-        void setHistory(const QStringList& paths);
+        void setHistory(const QStringList& paths) { m_caretFileDialog->setHistory(paths); }
         
-        void setIconProvider(QFileIconProvider* provider);
+        void setIconProvider(QFileIconProvider* provider) { m_caretFileDialog->setIconProvider(provider); }
         
-        void setItemDelegate(AbstractItemDelegate* delegate);
+        void setItemDelegate(QAbstractItemDelegate* delegate) { m_caretFileDialog->setItemDelegate(delegate); }
         
-        void setLabelText(const QFileDialog::DialogLabel label, const QString& text);
+        void setLabelText(const QFileDialog::DialogLabel label, const QString& text) { m_caretFileDialog->setLabelText(label, text); }
         
-        void setNameFilter(const QString& filter);
+        void setNameFilter(const QString& filter) { m_caretFileDialog->setNameFilter(filter); }
         
-        void setNameFilterDetailsVisible(bool enabled);
+        void setNameFilterDetailsVisible(bool enabled) { m_caretFileDialog->setNameFilterDetailsVisible(enabled); }
         
-        void setNameFilters(const QStringList& filters);
+        void setNameFilters(const QStringList& filters) { m_caretFileDialog->setNameFilters(filters); }
         
-        void setOption(QFileDialog::Option option, bool on = true);
+        void setOption(QFileDialog::Option option, bool on = true) { m_caretFileDialog->setOption(option, on); }
         
-        void setOptions(QFileDialog::Options options);
+        void setOptions(QFileDialog::Options options) { m_caretFileDialog->setOptions(options); }
         
-        void setProxyModel(AbstractProxyModel* proxyModel);
+        void setProxyModel(QAbstractProxyModel* proxyModel) { m_caretFileDialog->setProxyModel(proxyModel); }
         
-        void setReadOnly(const bool enabled);
+        void setReadOnly(const bool enabled) { m_caretFileDialog->setReadOnly(enabled); }
         
-        void setResolveSymlinks(bool enabled);
+        void setResolveSymlinks(bool enabled) { m_caretFileDialog->setResolveSymlinks(enabled); }
         
-        void setSidebarUrls(const QList<QUrl>& urls);
+        void setSidebarUrls(const QList<QUrl>& urls) { m_caretFileDialog->setSidebarUrls(urls); }
         
-        void setViewMode(const QFileDialog::ViewMode viewMode);
+        void setViewMode(const QFileDialog::ViewMode viewMode) { m_caretFileDialog->setViewMode(viewMode); }
         
-        QList<QUrl> sidebarUrls() const;
+        QList<QUrl> sidebarUrls() const { return m_caretFileDialog->sidebarUrls(); }
         
-        bool testOption(QFileDialog::Option option) const;
+        bool testOption(QFileDialog::Option option) const { return m_caretFileDialog->testOption(option); }
         
-        QFileDialog::ViewMode viewMode() const;
+        QFileDialog::ViewMode viewMode() const { return m_caretFileDialog->viewMode(); }
         
     signals:
         void currentChanged(const QString& path);

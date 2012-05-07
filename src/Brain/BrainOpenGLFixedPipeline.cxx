@@ -1519,7 +1519,7 @@ BrainOpenGLFixedPipeline::drawBorder(const Surface* surface,
             break;
     }
     
-    const float drawAtDistanceAboveSurface = 0.5;
+    const float drawAtDistanceAboveSurface = 0.0;
 
     std::vector<float> pointXYZ;
     std::vector<int32_t> pointIndex;

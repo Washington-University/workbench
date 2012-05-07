@@ -49,7 +49,9 @@ using namespace caret;
  * \brief A File Dialog that can have a widget added to it.
  *
  * Embeds a QFileDialog inside a dialog so that a widget
- * can be inserted below the FileDialog.
+ * can be inserted below the FileDialog.  All public methods
+ * from QFileDialog are duplicated and go straight to 
+ * the embedded QFileDialog.
  */
 
 /**
@@ -94,6 +96,21 @@ CaretFileDialogExtendable::~CaretFileDialogExtendable()
 void 
 CaretFileDialogExtendable::createDialog()
 {
+    QObject::connect(m_caretFileDialog, SIGNAL(currentChanged(const QString&)),
+                     this, SIGNAL(currentChanged(const QString&)));
+    
+    QObject::connect(m_caretFileDialog, SIGNAL( directoryEntered(const QString&)),
+                     this, SIGNAL( directoryEntered(const QString&)));
+    
+    QObject::connect(m_caretFileDialog, SIGNAL(fileSelected(const QString&)),
+                     this, SIGNAL(fileSelected(const QString&)));
+    
+    QObject::connect(m_caretFileDialog, SIGNAL(filesSelected(const QStringList&)),
+                     this, SIGNAL(filesSelected(const QStringList&)));
+    
+    QObject::connect(m_caretFileDialog, SIGNAL(filterSelected(const QString&)),
+                     this, SIGNAL(filterSelected(const QString&)));
+    
     QWidget* newWidget = new QWidget(this);
     QVBoxLayout* m_dialogLayout = new QVBoxLayout(newWidget);
     m_dialogLayout->addWidget(m_caretFileDialog);
