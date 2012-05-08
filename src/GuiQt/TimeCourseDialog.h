@@ -68,7 +68,8 @@ public:
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
     void setTimeSeriesGraphEnabled(bool enabled);
-    void setAnimationStartTime(const double &time);  
+    void setAnimationStartTime(const double &time);
+    void updateExtents();
 protected:
     //virtual bool eventFilter(QObject * object,QEvent *event);
 private slots:
@@ -131,13 +132,18 @@ public:
      void calculateAndDisplayAverage(QList<TimeLine> &tlV);
      void clear(QList<TimeLine> &tlV);
      void setMaxTimeLines(int maxIn) { max = maxIn; }
-     int getMaxTimeLines() { return max;}
+     int getMaxTimeLines() { return max; }
      void setAutoScaleEnabled(bool checked);
      void setTimeLineWidth(int width);
      PlotMagnifier * magnifier;
      void resetView();
      bool getAutoScale();
-     ColorManager colors;
+     ColorManager colors;     
+     void initExtents(double &tmin, double &tmax, double &amin, double &amax);
+     void setTimeExtents(const double &min, const double &max);
+     void setActivityExtents(const double &min, const double &max);
+     void getTimeExtents(double &min, double &max) const;
+     void getActivityExtents(double &min, double &max) const;
 public slots:
     virtual void replot();
 signals:
@@ -160,6 +166,10 @@ protected:
     bool autoScaleEnabled;
     bool autoScaleOnce;
     int lineWidth;
+    double minTimeExtent;
+    double maxTimeExtent;
+    double minActivityExtent;
+    double maxActivityExtent;
 
 };
 

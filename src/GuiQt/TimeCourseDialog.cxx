@@ -23,7 +23,7 @@
  */ 
 /*LICENSE_END*/
 
-
+#include <algorithm>
 #include "TimeCourseDialog.h"
 #include "ui_TimeCourseDialog.h"
 
@@ -55,8 +55,18 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
 #endif
     this->plot = new caret::PlotTC();
     isEnabled = true;
-    //this->ui->TDMinTime->setEnabled(true);
-    //this->ui->TDMaxTime->setEnabled(true);
+    this->ui->TDMinTime->setEnabled(true);
+    this->ui->TDMaxTime->setEnabled(true);
+    this->ui->TDMinActivity->setEnabled(true);
+    this->ui->TDMaxActivity->setEnabled(true);
+    this->ui->TDMinTime->setMinimum(-1000000.0);
+    this->ui->TDMaxTime->setMinimum(-1000000.0);
+    this->ui->TDMinActivity->setMinimum(-1000000.0);
+    this->ui->TDMaxActivity->setMinimum(-1000000.0);
+    this->ui->TDMinTime->setMaximum(1000000.0);
+    this->ui->TDMaxTime->setMaximum(1000000.0);
+    this->ui->TDMinActivity->setMaximum(1000000.0);
+    this->ui->TDMaxActivity->setMaximum(1000000.0);
     /*QObject::connect(this->plot, SIGNAL(timeStartValueChanged(double)),
                     this->ui->TDMinTime, SLOT(setValue(double)));
     QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
@@ -68,7 +78,7 @@ TimeCourseDialog::TimeCourseDialog(QWidget *parent) :
     QObject::connect(this->plot, SIGNAL(timeStartValueChanged(double)),
                     this, SLOT(plotTimeStartValueChanged(double)));
     QObject::connect(this->plot, SIGNAL(timeEndValueChanged(double)),
-                    this, SLOT(plotTimeEndValueChanged(double)));
+                    this, SLOT(plotTimeEndValueChanged(double)));    
     ui->verticalLayout_4->setContentsMargins(0,0,0,0);
     ui->verticalLayout_4->insertWidget(0,plot,100);    
 }
@@ -170,61 +180,62 @@ void TimeCourseDialog::on_TDClearChart_clicked()
 
 void TimeCourseDialog::on_TDMinTime_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::xBottom);
+    plot->setAxisScale(QwtPlot::xBottom,arg1,sd->upperBound());
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMaxTime_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::xBottom);
+    plot->setAxisScale(QwtPlot::xBottom,sd->lowerBound(),arg1);
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMinActivity_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::yLeft);
+    plot->setAxisScale(QwtPlot::yLeft,arg1,sd->upperBound());
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::on_TDMaxActivity_valueChanged(double arg1)
 {
-
+    QwtScaleDiv *sd = this->plot->axisScaleDiv(QwtPlot::yLeft);
+    plot->setAxisScale(QwtPlot::yLeft,sd->lowerBound(),arg1);
+    plot->QwtPlot::replot();
 }
 
 void TimeCourseDialog::plotTimeEndValueChanged(double time)
 {
-    double minExtent = this->ui->TDMaxTime->minimum();
-    double maxExtent = this->ui->TDMaxTime->maximum();
-    this->ui->TDMaxTime->setMaximum(std::max(time,maxExtent));
-    this->ui->TDMaxTime->setMinimum(std::min(time,minExtent));
+    this->ui->TDMaxTime->blockSignals(true);
     this->ui->TDMaxTime->setValue(time);
+    this->ui->TDMaxTime->blockSignals(false);
 
 }
 void TimeCourseDialog::plotTimeStartValueChanged(double time)
 {
-    double minExtent = this->ui->TDMinTime->minimum();
-    double maxExtent = this->ui->TDMinTime->maximum();
-    this->ui->TDMinTime->setMaximum(std::max(time,maxExtent));
-    this->ui->TDMinTime->setMinimum(std::min(time,minExtent));
+    this->ui->TDMinTime->blockSignals(true);
     this->ui->TDMinTime->setValue(time);
+    this->ui->TDMinTime->blockSignals(false);
 }
 void TimeCourseDialog::plotActivityMaxValueChanged(double time)
 {
-    double minExtent = this->ui->TDMaxActivity->minimum();
-    double maxExtent = this->ui->TDMaxActivity->maximum();
-    this->ui->TDMaxActivity->setMaximum(std::max(time,maxExtent));
-    this->ui->TDMaxActivity->setMinimum(std::min(time,minExtent));
+    this->ui->TDMaxActivity->blockSignals(true);
     this->ui->TDMaxActivity->setValue(time);
+    this->ui->TDMaxActivity->blockSignals(false);
 }
 void TimeCourseDialog::plotActivityMinValueChanged(double time)
 {
-    double minExtent = this->ui->TDMinActivity->minimum();
-    double maxExtent = this->ui->TDMinActivity->maximum();
-    this->ui->TDMinActivity->setMaximum(std::max(time,maxExtent));
-    this->ui->TDMinActivity->setMinimum(std::min(time,minExtent));
+    this->ui->TDMinActivity->blockSignals(true);
     this->ui->TDMinActivity->setValue(time);
+    this->ui->TDMinActivity->blockSignals(false);
 }
 void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
 {
     this->plot->setDisplayAverage(checked);
     this->updateDialog();
+
 }
 
 void TimeCourseDialog::setTimeSeriesGraphEnabled(bool enabled)
@@ -316,8 +327,18 @@ void PlotTC::populate(QList<TimeLine> &tlV)
         setAxisAutoScale(QwtPlot::yLeft,false);
     }
     
+    double amin,amax,tmin,tmax;
+    amin = tlV[0].y.first();
+    amax = tlV[0].y.first();
+    tmin = tlV[0].x.first();
+    tmax = tlV[0].x.last();
     for(int i = 0;i<tlV.size();i++)
-    {
+    {    
+        amin = std::min(amin, *(std::min_element(tlV[i].y.begin(),tlV[i].y.end())));
+        amax = std::max(amax, *(std::max_element(tlV[i].y.begin(),tlV[i].y.end())));
+        tmin = std::min(tmin, *(std::min_element(tlV[i].x.begin(),tlV[i].x.end())));
+        tmax = std::max(tmax, *(std::max_element(tlV[i].x.begin(),tlV[i].x.end())));
+        
         drawTimeLine(tlV[i]);
     }
     if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
@@ -347,6 +368,48 @@ void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
     if(pen == NULL) delete myPen;
 }
 
+
+void TimeCourseDialog::updateExtents()
+{
+    double tmin, tmax, amin, amax;
+    this->plot->getTimeExtents(tmin,tmax);
+    this->plot->getActivityExtents(amin, amax);
+    this->ui->TDMinActivity->setMinimum(amin);
+    this->ui->TDMinActivity->setMaximum(amax - 1.0);
+    this->ui->TDMinTime->setMinimum(tmin);
+    this->ui->TDMinTime->setMaximum(tmax - 1.0);
+    this->ui->TDMaxActivity->setMinimum(amin + 1.0);
+    this->ui->TDMaxActivity->setMaximum(amax);
+    this->ui->TDMaxTime->setMinimum(tmin + 1.0);
+    this->ui->TDMaxTime->setMaximum(tmax);    
+}
+void PlotTC::setTimeExtents(const double &min, const double &max)
+{    
+    this->minActivityExtent = std::min(min,this->minActivityExtent);
+    this->maxActivityExtent = std::max(max,this->maxActivityExtent);
+}
+void PlotTC::setActivityExtents(const double &min, const double &max)
+{    
+    this->minActivityExtent = std::min(min,this->minActivityExtent);
+    this->maxActivityExtent = std::max(max,this->maxActivityExtent);
+}
+void PlotTC::initExtents(double &tmin, double &tmax, double &amin, double &amax)
+{
+    this->minTimeExtent = tmin;
+    this->maxTimeExtent = tmax;
+    this->minActivityExtent = amin;
+    this->maxActivityExtent = amax;
+}
+void PlotTC::getTimeExtents(double &min, double &max) const
+{
+    min = this->minTimeExtent;
+    max = this->maxTimeExtent;
+}
+void PlotTC::getActivityExtents(double &min, double &max) const
+{
+    min = this->minActivityExtent;
+    max = this->maxActivityExtent;
+}
 
 void PlotTC::calculateAndDisplayAverage(QList<TimeLine> &tlV)
 {
@@ -461,6 +524,7 @@ void PlotTC::replot()
     ubound = sd->upperBound();
     emit this->activityMinValueChanged(sd->lowerBound());
     emit this->activityMaxValueChanged(sd->upperBound());
+    //this->axisMaxMajor
 }
 
 void TimeCourseDialog::on_autoFitTimeLinesCheckBox_toggled(bool checked)
