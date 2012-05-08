@@ -96,13 +96,10 @@ UserInputModeBordersWidget::UserInputModeBordersWidget(UserInputModeBorders* inp
     
     this->widgetRoiOperation = this->createRoiOperationWidget();
     
-    this->widgetSelectOperation = this->createSelectOperationWidget();
-    
     this->operationStackedWidget = new QStackedWidget();
     this->operationStackedWidget->addWidget(this->widgetDrawOperation);
     this->operationStackedWidget->addWidget(this->widgetEditOperation);
     this->operationStackedWidget->addWidget(this->widgetRoiOperation);
-    this->operationStackedWidget->addWidget(this->widgetSelectOperation);
     
     QHBoxLayout* layout = new QHBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
@@ -144,9 +141,6 @@ UserInputModeBordersWidget::updateWidget()
         case UserInputModeBorders::MODE_ROI:
             this->operationStackedWidget->setCurrentWidget(this->widgetRoiOperation);
             break;
-        case UserInputModeBorders::MODE_SELECT:
-            this->operationStackedWidget->setCurrentWidget(this->widgetSelectOperation);
-            break;
     }
     const int selectedModeInteger = (int)this->inputModeBorders->getMode();
 
@@ -155,22 +149,6 @@ UserInputModeBordersWidget::updateWidget()
     this->modeComboBox->blockSignals(true);
     this->modeComboBox->setCurrentIndex(modeComboBoxIndex);
     this->modeComboBox->blockSignals(false);
-    
-    /*
-     * Select the button for the mode
-     */
-    this->modeActionGroup->blockSignals(true);
-    const QList<QAction*> modeActions = this->modeActionGroup->actions();
-    QListIterator<QAction*> iter(modeActions);
-    while (iter.hasNext()) {
-        QAction* action = iter.next();
-        const int modeInteger = action->data().toInt();
-        if (selectedModeInteger == modeInteger) {
-            action->setChecked(true);
-            break;
-        }
-    }
-    this->modeActionGroup->blockSignals(false);
 }
 
 /**
@@ -209,49 +187,13 @@ UserInputModeBordersWidget::createModeWidget()
     this->modeComboBox->addItem("Draw", (int)UserInputModeBorders::MODE_DRAW);
     this->modeComboBox->addItem("Edit", (int)UserInputModeBorders::MODE_EDIT);
     this->modeComboBox->addItem("ROI", (int)UserInputModeBorders::MODE_ROI);
-    this->modeComboBox->addItem("Select", (int)UserInputModeBorders::MODE_SELECT);
     QObject::connect(this->modeComboBox, SIGNAL(currentIndexChanged(int)),
                      this, SLOT(modeComboBoxSelection(int)));
-    
-    QAction* drawAction = WuQtUtilities::createAction("Draw", "Draw new and updated borders", this);
-    drawAction->setCheckable(true);
-    drawAction->setData((int)UserInputModeBorders::MODE_DRAW);
-    QToolButton* drawToolButton = new QToolButton();
-    drawToolButton->setDefaultAction(drawAction);
-    
-    QAction* editAction = WuQtUtilities::createAction("Edit", "Edit Borders", this);
-    editAction->setCheckable(true);
-    editAction->setData((int)UserInputModeBorders::MODE_EDIT);
-    QToolButton* editToolButton = new QToolButton();
-    editToolButton->setDefaultAction(editAction);
-    
-    QAction* selectAction = WuQtUtilities::createAction("Select", "Select Borders", this);
-    selectAction->setCheckable(true);
-    selectAction->setData((int)UserInputModeBorders::MODE_SELECT);
-    QToolButton* selectToolButton = new QToolButton();
-    selectToolButton->setDefaultAction(selectAction);
-    
-    this->modeActionGroup = new QActionGroup(this);
-    this->modeActionGroup->addAction(drawAction);
-    this->modeActionGroup->addAction(editAction);
-    this->modeActionGroup->addAction(selectAction);
-    this->modeActionGroup->setExclusive(true);
-    QObject::connect(this->modeActionGroup, SIGNAL(triggered(QAction*)),
-                     this, SLOT(modeActionTriggered(QAction*)));
-    
-    const bool useComboBoxFlag = true;
-    
+        
     QWidget* widget = new QWidget();
     QHBoxLayout* layout = new QHBoxLayout(widget);
     WuQtUtilities::setLayoutMargins(layout, 2, 0);
-    if (useComboBoxFlag) {
-        layout->addWidget(this->modeComboBox);
-    }
-    else {
-        layout->addWidget(drawToolButton);
-        layout->addWidget(editToolButton);
-        layout->addWidget(selectToolButton);
-    }
+    layout->addWidget(this->modeComboBox);
     
     widget->setFixedWidth(widget->sizeHint().width());
     
@@ -278,20 +220,6 @@ void
 UserInputModeBordersWidget::modeComboBoxSelection(int indx)
 {
     const int modeInteger = this->modeComboBox->itemData(indx).toInt();
-    const UserInputModeBorders::Mode mode = (UserInputModeBorders::Mode)modeInteger;
-    this->inputModeBorders->setMode(mode);
-}
-
-/**
- * Called when a mode button is clicked.
- * @param action
- *    Action that was triggered.
- */
-void 
-UserInputModeBordersWidget::modeActionTriggered(QAction* action)
-{
-    CaretAssert(action);
-    const int modeInteger = action->data().toInt();
     const UserInputModeBorders::Mode mode = (UserInputModeBorders::Mode)modeInteger;
     this->inputModeBorders->setMode(mode);
 }
@@ -650,20 +578,6 @@ UserInputModeBordersWidget::editOperationActionTriggered(QAction* action)
     const UserInputModeBorders::EditOperation editOperation = 
     static_cast<UserInputModeBorders::EditOperation>(editModeInteger);
     this->inputModeBorders->setEditOperation(editOperation);
-}
-
-/**
- * @return The select widget.
- */
-QWidget* 
-UserInputModeBordersWidget::createSelectOperationWidget()
-{
-    QWidget* widget = new QWidget();
-    QHBoxLayout* layout = new QHBoxLayout(widget);
-    WuQtUtilities::setLayoutMargins(layout, 2, 0);
-    
-    widget->setFixedWidth(widget->sizeHint().width());
-    return widget;
 }
 
 /**

@@ -300,15 +300,6 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                                                       openGLWidget);
                 }
                 break;
-            case MODE_SELECT:
-            {
-                if (isLeftDrag || isWheel) {
-                    UserInputModeView::processModelViewTransformation(mouseEvent, 
-                                                                      browserTabContent, 
-                                                                      openGLWidget);
-                }
-            }
-                break;
         }
     }
 }
@@ -474,8 +465,6 @@ UserInputModeBorders::getCursor() const
             break;
         case MODE_ROI:
             cursor = CursorEnum::CURSOR_POINTING_HAND;
-            break;
-        case MODE_SELECT:
             break;
     }
             

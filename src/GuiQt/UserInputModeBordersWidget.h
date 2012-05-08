@@ -62,7 +62,6 @@ namespace caret {
         
     private slots:
         void adjustViewActionTriggered();
-        void modeActionTriggered(QAction*);
         void drawOperationActionTriggered(QAction*);
         void editOperationActionTriggered(QAction*);
         
@@ -80,8 +79,6 @@ namespace caret {
         void setActionGroupByActionData(QActionGroup* actionGroup, 
                                         const int dataInteger);
         
-        QActionGroup* modeActionGroup;
-        
         QActionGroup* drawOperationActionGroup;
         
         QActionGroup* editOperationActionGroup;
@@ -94,8 +91,6 @@ namespace caret {
         
         QWidget* createRoiOperationWidget();
         
-        QWidget* createSelectOperationWidget();
-        
         QComboBox* modeComboBox;
         
         QWidget* widgetMode;
@@ -105,8 +100,6 @@ namespace caret {
         QWidget* widgetEditOperation;
         
         QWidget* widgetRoiOperation;
-        
-        QWidget* widgetSelectOperation;
         
         QStackedWidget* operationStackedWidget;
         
