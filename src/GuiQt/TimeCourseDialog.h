@@ -98,6 +98,12 @@ private slots:
 
     void on_resetViewButton_clicked();
 
+public slots:
+    virtual void plotTimeEndValueChanged(double time);
+    virtual void plotTimeStartValueChanged(double time);
+    virtual void plotActivityMaxValueChanged(double time);
+    virtual void plotActivityMinValueChanged(double time);
+
 private:
     void populateHistory();
     PlotTC *plot;
@@ -132,6 +138,14 @@ public:
      void resetView();
      bool getAutoScale();
      ColorManager colors;
+public slots:
+    virtual void replot();
+signals:
+     void timeStartValueChanged(double value);
+     void timeEndValueChanged(double value);
+     void activityMinValueChanged(double value);
+     void activityMaxValueChanged(double value);
+
 protected:
     bool ctrlKeyDown;
     bool shiftKeyDown;
@@ -146,6 +160,7 @@ protected:
     bool autoScaleEnabled;
     bool autoScaleOnce;
     int lineWidth;
+
 };
 
 
