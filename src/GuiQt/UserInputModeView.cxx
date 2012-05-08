@@ -425,6 +425,9 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         // Mouse moved with shift key and left mouse button down
         //
         else if (mouseEvent->isShiftKeyDown()) {
+            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+                dx = -dx;
+            }
             const float* t1 = modelController->getTranslation(tabIndex);
             float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
             modelController->setTranslation(tabIndex, t2);
