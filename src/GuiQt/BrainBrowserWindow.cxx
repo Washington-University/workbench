@@ -1175,14 +1175,16 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
-    fd.selectFilter(this->previousOpenFileNameFilter);
+    fd.setNameFilter(this->previousOpenFileNameFilter);
+//    fd.selectFilter(this->previousOpenFileNameFilter);
     fd.selectNameFilter(this->previousOpenFileNameFilter);
     
     AString errorMessages;
     
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
-        this->previousOpenFileNameFilter = fd.selectedFilter();
+        this->previousOpenFileNameFilter = fd.selectedNameFilter();
+//        this->previousOpenFileNameFilter = fd.selectedFilter();
         
         /*
          * Load the files.
