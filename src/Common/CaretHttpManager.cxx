@@ -108,6 +108,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
         }
         myRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         myRequest.setUrl(myUrl);
+        CaretLogInfo("POST URL: " + myUrl.toString());
         myReply = myQNetMgr->post(myRequest, postData);
         break;
     case GET:
@@ -116,6 +117,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
+        CaretLogInfo("GET URL: " + myUrl.toString());
         myReply = myQNetMgr->get(myRequest);
         break;
     case HEAD:
@@ -124,6 +126,7 @@ void CaretHttpManager::httpRequest(const CaretHttpRequest &request, CaretHttpRes
             myUrl.addQueryItem(request.m_arguments[i].first, request.m_arguments[i].second);
         }
         myRequest.setUrl(myUrl);
+        CaretLogInfo("HEAD URL: " + myUrl.toString());
         myReply = myQNetMgr->head(myRequest);
         break;
     default:
