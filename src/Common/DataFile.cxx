@@ -174,7 +174,8 @@ DataFile::isModified() const
 bool 
 DataFile::isFileOnNetwork(const AString& filename)
 {
-    if (filename.startsWith("http://")) {
+    if (filename.startsWith("http://")
+        || filename.startsWith("https://")) {
         return true;
     }
     
