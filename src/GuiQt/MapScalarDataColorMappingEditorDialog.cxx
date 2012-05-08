@@ -1566,6 +1566,8 @@ QWidget*
 MapScalarDataColorMappingEditorDialog::createDataOptionsSection()
 {
     this->applyAllMapsCheckBox = new QCheckBox("Apply to File");
+    QObject::connect(this->applyAllMapsCheckBox, SIGNAL(clicked(bool)),
+                     this, SLOT(applyAndUpdate()));
     this->applyAllMapsCheckBox->setToolTip("If checked, settings are applied to all maps\n"
                                            "in the file containing the selected map");
     
