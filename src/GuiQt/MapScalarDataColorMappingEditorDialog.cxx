@@ -1063,10 +1063,12 @@ MapScalarDataColorMappingEditorDialog::getHistogram(const FastStatistics* statis
         matchFlag = true;
         switch (this->paletteColorMapping->getScaleMode()) {
             case PaletteScaleModeEnum::MODE_AUTO_SCALE:
-                mostPos  = std::numeric_limits<float>::max();
+                //mostPos  = std::numeric_limits<float>::max();
+                mostPos  = statisticsForAll->getMax();
                 leastPos = 0.0;
                 leastNeg = 0.0;
-                mostNeg  = -std::numeric_limits<float>::max();
+                //mostNeg  = -std::numeric_limits<float>::max();
+                mostNeg  = statisticsForAll->getMin();
                 break;
             case PaletteScaleModeEnum::MODE_AUTO_SCALE_PERCENTAGE:
                 mostPos  = statisticsForAll->getApproxPositivePercentile(this->scaleAutoPercentagePositiveMaximumSpinBox->value());
