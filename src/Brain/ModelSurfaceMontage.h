@@ -28,6 +28,7 @@
 
 #include "EventListenerInterface.h"
 #include "Model.h"
+#include "StructureEnum.h"
 
 namespace caret {
 
@@ -58,6 +59,9 @@ namespace caret {
         SurfaceSelectionModel* getRightSurfaceSelectionModel(const int tabIndex);
         
         SurfaceSelectionModel* getRightSecondSurfaceSelectionModel(const int tabIndex);
+        
+        Surface* getSelectedSurface(const StructureEnum::Enum structure,
+                                    const int32_t windowTabNumber);
         
         AString getNameForGUI(const bool includeStructureFlag) const;
         

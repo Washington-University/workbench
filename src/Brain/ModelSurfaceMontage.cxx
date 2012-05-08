@@ -290,3 +290,40 @@ ModelSurfaceMontage::initializeOverlays()
         this->overlaySet[i]->initializeOverlays();
     }
 }
+
+/**
+ * Get a surface for the given struture in the given tab.  Since there
+ * may be one surface of the given structure, the returned surface
+ * may be different in future calls based upon the surfaces the user
+ * has chosen for display.
+ *
+ * @param structure
+ *    Structure for the surface
+ * @param windowTabNumber
+ *    Tab number of window.
+ * @param Pointer to selected surface for given structure or NULL if not available.
+ */
+Surface* 
+ModelSurfaceMontage::getSelectedSurface(const StructureEnum::Enum structure,
+                                    const int32_t windowTabNumber)
+
+{
+    SurfaceSelectionModel* selectionModel = NULL;
+    switch (structure) {
+        case StructureEnum::CORTEX_LEFT:
+            selectionModel = this->getLeftSurfaceSelectionModel(windowTabNumber);
+            break;
+        case StructureEnum::CORTEX_RIGHT:
+            selectionModel = this->getRightSurfaceSelectionModel(windowTabNumber);
+            break;
+        default:
+            break;
+    }
+    
+    Surface* surface = NULL;
+    if (selectionModel != NULL) {
+        surface = selectionModel->getSurface();
+    }
+    return surface;
+}
+

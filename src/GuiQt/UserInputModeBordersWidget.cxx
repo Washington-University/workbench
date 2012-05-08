@@ -54,6 +54,7 @@
 #include "LabelFile.h"
 #include "MetricFile.h"
 #include "ModelSurface.h"
+#include "ModelSurfaceMontage.h"
 #include "ModelWholeBrain.h"
 #include "RegionOfInterestCreateFromBorderDialog.h"
 #include "Surface.h"
@@ -481,6 +482,7 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     
     ModelSurface* surfaceController = btc->getDisplayedSurfaceModel();
     ModelWholeBrain* wholeBrainController = btc->getDisplayedWholeBrainModel();
+    ModelSurfaceMontage* surfaceMontageController = btc->getDisplayedSurfaceMontageModel();
     
     Surface* surface = NULL;
     if (surfaceController != NULL) {
@@ -489,6 +491,10 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     else if (wholeBrainController != NULL) {
         const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
         surface = wholeBrainController->getSelectedSurface(structure, btc->getTabNumber());
+    }
+    else if (surfaceMontageController != NULL) {
+        const StructureEnum::Enum structure = this->inputModeBorders->borderBeingDrawnByOpenGL->getStructure();
+        surface = surfaceMontageController->getSelectedSurface(structure, btc->getTabNumber());
     }
     
     if (surface == NULL) {
