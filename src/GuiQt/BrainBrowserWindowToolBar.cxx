@@ -58,6 +58,7 @@
 #include "CaretFunctionName.h"
 #include "CaretLogger.h"
 #include "CaretPreferences.h"
+#include "DisplayPropertiesBorders.h"
 #include "EventBrowserTabDelete.h"
 #include "EventBrowserTabGetAll.h"
 #include "EventBrowserTabNew.h"
@@ -2125,10 +2126,27 @@ BrainBrowserWindowToolBar::createToolsWidget()
 void 
 BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
 {
+    BrowserTabContent* tabContent = this->getTabContentFromSelectedTab();
+    if (tabContent == NULL) {
+        return;
+    }
+
     UserInputReceiverInterface::UserInputMode inputMode = UserInputReceiverInterface::INVALID;
     
     if (action == this->toolsInputModeBordersAction) {
         inputMode = UserInputReceiverInterface::BORDERS;
+        
+        /*
+         * If borders are not displayed, display them
+         */
+        DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+        const int32_t browserTabIndex = tabContent->getTabNumber();
+        if (dpb->isDisplayed(browserTabIndex) == false) {
+            dpb->setDisplayed(browserTabIndex, 
+                              true);
+            this->updateUserInterface();
+            this->updateGraphicsWindow();
+        }
     }
     else if (action == this->toolsInputModeViewAction) {
         inputMode = UserInputReceiverInterface::VIEW;
@@ -2139,7 +2157,7 @@ BrainBrowserWindowToolBar::toolsInputModeActionTriggered(QAction* action)
     
     EventManager::get()->sendEvent(EventGetOrSetUserInputModeProcessor(this->browserWindowIndex,
                                                                        inputMode).getPointer());    
-    
+    this->updateToolsWidget(tabContent);
     this->updateDisplayedToolsUserInputWidget();
 }
 
