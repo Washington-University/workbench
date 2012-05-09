@@ -50,10 +50,14 @@ namespace caret {
     class DisplayPropertiesVolume;
     class EventDataFileRead;
     class EventSpecFileReadDataFiles;
+    class LabelFile;
+    class MetricFile;
     class ModelSurfaceMontage;
     class ModelVolume;
     class ModelWholeBrain;
     class PaletteFile;
+    class RgbaFile;
+    class Surface;
     class SurfaceFile;
     class SurfaceProjectedItem;
     class SpecFile;
@@ -194,18 +198,19 @@ namespace caret {
         
         void readDataFile(const DataFileTypeEnum::Enum dataFileType,
                           const StructureEnum::Enum structure,
-                          const AString& dataFileName) throw (DataFileException);
+                          const AString& dataFileName,
+                          const bool addDataFileToSpecFile) throw (DataFileException);
         
-        void readLabelFile(const AString& filename,
+        LabelFile* readLabelFile(const AString& filename,
                            const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readMetricFile(const AString& filename,
+        MetricFile* readMetricFile(const AString& filename,
                             const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readRgbaFile(const AString& filename,
+        RgbaFile* readRgbaFile(const AString& filename,
                           const StructureEnum::Enum structure) throw (DataFileException);
         
-        void readSurfaceFile(const AString& filename,
+        Surface* readSurfaceFile(const AString& filename,
                              const StructureEnum::Enum structure) throw (DataFileException);
         
         void readVolumeFile(const AString& filename) throw (DataFileException);

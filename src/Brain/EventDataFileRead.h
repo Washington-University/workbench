@@ -41,12 +41,14 @@ namespace caret {
     public:
         EventDataFileRead(Brain* loadIntoBrain,
                           const DataFileTypeEnum::Enum dataFileType,
-                          const AString& dataFileName);
+                          const AString& dataFileName,
+                          const bool addDataFileToSpecFile);
         
         EventDataFileRead(Brain* loadIntoBrain,
                           const StructureEnum::Enum structure,
                           const DataFileTypeEnum::Enum dataFileType,
-                          const AString& dataFileName);
+                          const AString& dataFileName,
+                          const bool addDataFileToSpecFile);
         
         virtual ~EventDataFileRead();
         
@@ -69,6 +71,8 @@ namespace caret {
         void setUsernameAndPassword(const AString& username,
                                     const AString& password);
         
+        bool isAddDataFileToSpecFile() const;
+        
     private:
         EventDataFileRead(const EventDataFileRead&);
         
@@ -87,6 +91,8 @@ namespace caret {
         AString password;
         
         bool errorInvalidStructure;
+        
+        bool addDataFileToSpecFile;
         
     };
 

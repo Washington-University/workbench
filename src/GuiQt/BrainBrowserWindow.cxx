@@ -65,6 +65,7 @@
 #include "ModelWholeBrain.h"
 #include "SessionManager.h"
 #include "SpecFile.h"
+#include "SpecFileCreateAddToDialog.h"
 #include "SpecFileDialog.h"
 #include "StructureEnumComboBox.h"
 #include "Surface.h"
@@ -1129,7 +1130,8 @@ BrainBrowserWindow::processDataFileLocationOpen()
         
         EventDataFileRead readFileEvent(brain,
                                         BrainBrowserWindow::previousNetworkDataFileType,
-                                        BrainBrowserWindow::previousNetworkFileName);
+                                        BrainBrowserWindow::previousNetworkFileName,
+                                        false);
         readFileEvent.setUsernameAndPassword(BrainBrowserWindow::previousNetworkUsername,
                                              BrainBrowserWindow::previousNetworkPassword);
         
@@ -1175,29 +1177,55 @@ BrainBrowserWindow::processDataFileOpen()
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
-    fd.setNameFilter(this->previousOpenFileNameFilter);
-//    fd.selectFilter(this->previousOpenFileNameFilter);
     fd.selectNameFilter(this->previousOpenFileNameFilter);
     
     AString errorMessages;
     
     if (fd.exec()) {
         QStringList selectedFiles = fd.selectedFiles();
-        this->previousOpenFileNameFilter = fd.selectedNameFilter();
-//        this->previousOpenFileNameFilter = fd.selectedFilter();
-        
-        /*
-         * Load the files.
-         */
-        std::vector<AString> filenamesVector;
-        QStringListIterator nameIter(selectedFiles);
-        while (nameIter.hasNext()) {
-            const QString name = nameIter.next();
-            filenamesVector.push_back(name);
+        if (selectedFiles.empty() == false) {            
+            /*
+             * Load the files.
+             */
+            bool isLoadingSpecFile = false;
+            std::vector<AString> filenamesVector;
+            QStringListIterator nameIter(selectedFiles);
+            while (nameIter.hasNext()) {
+                const QString name = nameIter.next();
+                filenamesVector.push_back(name);
+                if (name.endsWith(DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION))) {
+                    isLoadingSpecFile = true;
+                }
+            }
+            
+            bool isLoadDataFiles = true;
+            
+            AddDataFileToSpecFileMode addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_NO;
+            if (isLoadingSpecFile) {
+                addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+            }
+            else {
+                SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
+                                                                    this);
+                
+                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
+                    if (createAddToSpecFileDialog.isAddToSpecFileSelected()) {
+                        addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+                    }
+                }
+                else {
+                    isLoadDataFiles = false;
+                }
+            }
+            
+            if (isLoadDataFiles) {
+                this->loadFiles(filenamesVector,
+                                LOAD_SPEC_FILE_WITH_DIALOG,
+                                addDataFileToSpecFileMode);
+            }
         }
-        this->loadFiles(filenamesVector,
-                        LOAD_SPEC_FILE_WITH_DIALOG,
-                        false);
+        this->previousOpenFileNameFilter = fd.selectedNameFilter();
+        
     }
 }
 
@@ -1214,7 +1242,7 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
 {
     this->loadFiles(filenames,
                     loadSpecFileMode,
-                    true);
+                    ADD_DATA_FILE_TO_SPEC_FILE_NO);
 }
 
 /**
@@ -1231,7 +1259,7 @@ BrainBrowserWindow::loadFilesFromCommandLine(const std::vector<AString>& filenam
 void 
 BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                               const LoadSpecFileMode loadSpecFileMode,
-                              const bool commandLineFlag)
+                              const AddDataFileToSpecFileMode addDataFileToSpecFileMode)
 {
     /*
      * Pick out specific file types.
@@ -1298,7 +1326,17 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                            otherFileNames.end());
                            
 
-    bool createDefaultTabsFlag = commandLineFlag;
+    bool createDefaultTabsFlag = false;
+    switch (loadSpecFileMode) {
+        case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
+            createDefaultTabsFlag = true;
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG:
+            break;
+        case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
+            createDefaultTabsFlag = true;
+            break;
+    }
     
     AString errorMessages;
     
@@ -1332,7 +1370,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 }
                 
                 switch (loadSpecFileMode) {
-                    case LOAD_SPEC_FILE_CONTENTS:
+                    case LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE:
                     {
                         timer.reset(); // resets timer
                         specFileTimeStart = timer.getElapsedTimeSeconds();
@@ -1357,6 +1395,7 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                     }
                         break;
                     case LOAD_SPEC_FILE_WITH_DIALOG:
+                    case LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE:
                     {
                         /*
                          * Remove wait cursor
@@ -1405,9 +1444,20 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                 }
             }
             else {
+                bool addDataFileToSpecFile = false;
+                switch (addDataFileToSpecFileMode) {
+                    case ADD_DATA_FILE_TO_SPEC_FILE_NO:
+                        addDataFileToSpecFile = false;
+                        break;
+                    case ADD_DATA_FILE_TO_SPEC_FILE_YES:
+                        addDataFileToSpecFile = true;
+                        break;
+                }
+                
                 EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
                                                 fileType,
-                                                name);
+                                                name,
+                                                addDataFileToSpecFile);
                 
                 EventManager::get()->sendEvent(loadFileEvent.getPointer());
                 
@@ -1438,7 +1488,8 @@ BrainBrowserWindow::loadFiles(const std::vector<AString>& filenames,
                             EventDataFileRead loadFileEventStructure(GuiManager::get()->getBrain(),
                                                                      ssc->getSelectedStructure(),
                                                                      fileType,
-                                                                     name);
+                                                                     name,
+                                                                     addDataFileToSpecFile);
                             
                             EventManager::get()->sendEvent(loadFileEventStructure.getPointer());
                             if (loadFileEventStructure.isError()) {

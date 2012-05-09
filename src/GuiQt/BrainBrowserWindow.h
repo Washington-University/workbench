@@ -78,10 +78,12 @@ namespace caret {
          * Mode for loading spec files
          */
         enum LoadSpecFileMode {
-            /** Do not show spec file dialog, just load all files listed in spec file */
-            LOAD_SPEC_FILE_CONTENTS,
+            /** Do not show spec file dialog, just load all files listed in spec file listed on command line at program startup */
+            LOAD_SPEC_FILE_CONTENTS_VIA_COMMAND_LINE,
             /** Show spec file in spec file dialog for user selections */
-            LOAD_SPEC_FILE_WITH_DIALOG
+            LOAD_SPEC_FILE_WITH_DIALOG,
+            /** Show spec file in spec file dialog for user selections from spec file listed on command line at program startup */
+            LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE
         };
         
         void loadFilesFromCommandLine(const std::vector<AString>& filenames,
@@ -147,6 +149,11 @@ namespace caret {
             bool isToolBarDisplayed;
         };
         
+        enum AddDataFileToSpecFileMode {
+            ADD_DATA_FILE_TO_SPEC_FILE_YES,
+            ADD_DATA_FILE_TO_SPEC_FILE_NO
+        };
+        
         BrainBrowserWindow(const int browserWindowIndex,
                            BrowserTabContent* browserTabContent,
                            QWidget* parent = 0,
@@ -157,7 +164,7 @@ namespace caret {
         
         void loadFiles(const std::vector<AString>& filenames,
                        const LoadSpecFileMode loadSpecFileMode,
-                       const bool commandLineFlag);
+                       const AddDataFileToSpecFileMode addDataFileToSpecFileMode);
         
         void createActions();
         void createActionsUsedByToolBar();

@@ -39,13 +39,15 @@ using namespace caret;
  */
 EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
                                      const DataFileTypeEnum::Enum dataFileType,
-                                     const AString& dataFileName)
+                                     const AString& dataFileName,
+                                     const bool addDataFileToSpecFile)
 : Event(EventTypeEnum::EVENT_DATA_FILE_READ)
 {
     this->loadIntoBrain = loadIntoBrain;
     this->structure     = StructureEnum::INVALID;
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
+    this->addDataFileToSpecFile = addDataFileToSpecFile;
     
     this->username = "";
     this->password = "";
@@ -70,7 +72,8 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
 EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
                                      const StructureEnum::Enum structure,
                                      const DataFileTypeEnum::Enum dataFileType,
-                                     const AString& dataFileName)
+                                     const AString& dataFileName,
+                                     const bool addDataFileToSpecFile)
 : Event(EventTypeEnum::EVENT_DATA_FILE_READ)
 {
     this->loadIntoBrain = loadIntoBrain;
@@ -78,6 +81,7 @@ EventDataFileRead::EventDataFileRead(Brain* loadIntoBrain,
     this->dataFileType  = dataFileType;
     this->dataFileName  = dataFileName;
     this->errorInvalidStructure = false;
+    this->addDataFileToSpecFile = addDataFileToSpecFile;
     
     this->username = "";
     this->password = "";
@@ -189,6 +193,16 @@ EventDataFileRead::setUsernameAndPassword(const AString& username,
 {
     this->username = username;
     this->password = password;
+}
+
+/**
+ * @return Are data files to be added to spec file after
+ * the data file is read?
+ */
+bool 
+EventDataFileRead::isAddDataFileToSpecFile() const
+{
+    return this->addDataFileToSpecFile;
 }
 
 

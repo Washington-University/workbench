@@ -645,7 +645,8 @@ GuiSpecDataFileInfo::openFilePushButtonClicked()
         EventDataFileRead loadFileEvent(GuiManager::get()->getBrain(),
                                         structure,
                                         fileType,
-                                        name);
+                                        name,
+                                        false);
         
         EventManager::get()->sendEvent(loadFileEvent.getPointer());
         

@@ -327,6 +327,10 @@ SystemUtilities::unitTest(std::ostream& stream,
                      "remove:/usr/local",
                      "root:/var/etc");
     
+//    testRelativePath("/Volumes/DS4600/caret7_gui_design/data/HCP_demo/Glasser_PilotIII.L.very_inflated.20k_fs_LR.surf.gii",
+//                     "/Volumes/DS4600/caret7_gui_design/data/HCP_demo/border.spec",
+//                     "border.spec");
+    
     /*
      * Restore std::err
      */

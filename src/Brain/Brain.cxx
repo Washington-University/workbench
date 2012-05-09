@@ -290,8 +290,9 @@ Brain::resetBrain()
  *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
+ * @return Pointer to file that was read.
  */
-void 
+Surface* 
 Brain::readSurfaceFile(const AString& filename,
                        const StructureEnum::Enum structureIn) throw (DataFileException)
 {
@@ -330,6 +331,8 @@ Brain::readSurfaceFile(const AString& filename,
     }
     
     surface->clearModified();
+
+    return surface;
 }
 
 /**
@@ -341,8 +344,9 @@ Brain::readSurfaceFile(const AString& filename,
  *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
+ * @return Pointer to file that was read.
  */
-void 
+LabelFile* 
 Brain::readLabelFile(const AString& filename,
                      const StructureEnum::Enum structureIn) throw (DataFileException)
 {
@@ -386,6 +390,8 @@ Brain::readLabelFile(const AString& filename,
     }
     
     labelFile->clearModified();
+    
+    return labelFile;
 }
 
 /**
@@ -397,8 +403,9 @@ Brain::readLabelFile(const AString& filename,
  *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
+ * @return Pointer to file that was read.
  */
-void 
+MetricFile* 
 Brain::readMetricFile(const AString& filename,
                       const StructureEnum::Enum structureIn) throw (DataFileException)
 {
@@ -442,6 +449,8 @@ Brain::readMetricFile(const AString& filename,
     }
     
     metricFile->clearModified();
+    
+    return metricFile;
 }
 
 /**
@@ -453,8 +462,9 @@ Brain::readMetricFile(const AString& filename,
  *    Structure of label file.
  * @throws DataFileException
  *    If reading failed.
+ * @return Pointer to file that was read.
  */
-void 
+RgbaFile* 
 Brain::readRgbaFile(const AString& filename,
                     const StructureEnum::Enum structureIn) throw (DataFileException)
 {
@@ -498,6 +508,8 @@ Brain::readRgbaFile(const AString& filename,
     }
     
     rgbaFile->clearModified();
+    
+    return rgbaFile;
 }
 
 /**
@@ -1269,7 +1281,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
     try {
         this->readDataFile(dataFileType,
                            structure,
-                           filename);
+                           filename,
+                           readDataFileEvent->isAddDataFileToSpecFile());
     }
     catch (const DataFileException& e) {
         readDataFileEvent->setErrorMessage(e.whatString());
@@ -1295,7 +1308,8 @@ Brain::processReadDataFileEvent(EventDataFileRead* readDataFileEvent)
 void 
 Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                     const StructureEnum::Enum structure,
-                    const AString& dataFileNameIn) throw (DataFileException)
+                    const AString& dataFileNameIn,
+                    const bool addDataFileToSpecFile) throw (DataFileException)
 {
     AString dataFileName = dataFileNameIn;
     
@@ -1307,6 +1321,8 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
                                     + " does not exist!");
         }
     }
+    
+    CaretDataFile* caretDataFileRead;
     
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
@@ -1322,16 +1338,16 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readFociFile(dataFileName);
             break;
         case DataFileTypeEnum::LABEL:
-            this->readLabelFile(dataFileName, structure);
+            caretDataFileRead = this->readLabelFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::METRIC:
-            this->readMetricFile(dataFileName, structure);
+            caretDataFileRead = this->readMetricFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::PALETTE:
             this->readPaletteFile(dataFileName);
             break;
         case DataFileTypeEnum::RGBA:
-            this->readRgbaFile(dataFileName, structure);
+            caretDataFileRead = this->readRgbaFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::SCENE:
             this->readSceneFile(dataFileName);
@@ -1341,7 +1357,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             throw DataFileException("PROGRAM ERROR: Reading spec file should never call Brain::readDataFile()");
             break;
         case DataFileTypeEnum::SURFACE:
-            this->readSurfaceFile(dataFileName, structure);
+            caretDataFileRead = this->readSurfaceFile(dataFileName, structure);
             break;
         case DataFileTypeEnum::UNKNOWN:
             throw DataFileException("Unable to read files of type");
@@ -1350,6 +1366,26 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             this->readVolumeFile(dataFileName);
             break;
     }    
+    
+    if (addDataFileToSpecFile) {
+        const AString specFileName = this->specFile->getFileName();
+        if (specFileName.isEmpty() == false) {
+            FileInformation specFileInfo(specFileName);
+            QString relativePathDataFileName = SystemUtilities::relativePath(dataFileName, 
+                                                                             specFileInfo.getPathName());
+            
+            StructureEnum::Enum dataFileStructure = structure;
+            if (dataFileStructure == StructureEnum::INVALID) {
+                if (caretDataFileRead != NULL) {
+                    dataFileStructure = caretDataFileRead->getStructure();
+                }
+            }
+            this->specFile->addDataFile(dataFileType, 
+                                        dataFileStructure, 
+                                        relativePathDataFileName);
+            this->specFile->writeFile(specFileName);
+        }
+    }
     
     this->updateVolumeSliceController();
     this->updateWholeBrainController();
@@ -1401,7 +1437,8 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
                 try {
                     this->readDataFile(dataFileType, 
                                        structure, 
-                                       filename);
+                                       filename,
+                                       false);
                 }
                 catch (const DataFileException& e) {
                     if (errorMessage.isEmpty() == false) {

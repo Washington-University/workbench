@@ -35,6 +35,7 @@ BrainOpenGLWidget.h
 BrainOpenGLWidgetContextMenu.h
 CaretColorEnumComboBox.h
 CaretFileDialog.h
+CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
@@ -59,6 +60,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
+SpecFileCreateAddToDialog.h
 SpecFileDialog.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
@@ -105,6 +107,7 @@ BrainOpenGLWidgetContextMenu.h
 BrainOpenGLWidgetTextRenderer.h
 CaretColorEnumComboBox.h
 CaretFileDialog.h
+CaretFileRemoteDialog.h
 CaretMappableDataFileAndMapSelector.h
 ClassAndNameHierarchySelectedItem.h
 ClassAndNameHierarchyViewController.h
@@ -144,6 +147,7 @@ PlotMagnifier.h
 PlotPanner.h
 PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
+SpecFileCreateAddToDialog.h
 SpecFileDialog.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
@@ -187,6 +191,7 @@ BrainOpenGLWidgetContextMenu.cxx
 BrainOpenGLWidgetTextRenderer.cxx
 CaretColorEnumComboBox.cxx
 CaretFileDialog.cxx
+CaretFileRemoteDialog.cxx
 CaretMappableDataFileAndMapSelector.cxx
 ClassAndNameHierarchySelectedItem.cxx
 ClassAndNameHierarchyViewController.cxx
@@ -226,6 +231,7 @@ PreferencesDialog.cxx
 PlotMagnifier.cxx
 PlotPanner.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
+SpecFileCreateAddToDialog.cxx
 SpecFileDialog.cxx
 StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
