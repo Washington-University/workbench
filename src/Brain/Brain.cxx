@@ -1695,10 +1695,13 @@ Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
     
     const AString specFileName = this->specFile->getFileName();
     if (specFileName.isEmpty() == false) {
-        this->specFile->addDataFile(caretDataFile->getDataFileType(), 
-                                    caretDataFile->getStructure(), 
-                                    specFileName);
-        this->specFile->writeFile(specFileName);
+        FileInformation fileInfo(specFileName);
+        if (fileInfo.exists()) {
+            this->specFile->addDataFile(caretDataFile->getDataFileType(), 
+                                        caretDataFile->getStructure(), 
+                                        caretDataFile->getFileName());
+            this->specFile->writeFile(specFileName);
+        }
     }
 }
 

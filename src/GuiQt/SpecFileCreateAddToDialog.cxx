@@ -168,7 +168,20 @@ SpecFileCreateAddToDialog::okButtonPressed()
             }
             
             FileInformation fileInfo(specFileName);
-            if (fileInfo.exists() == false) {
+            if (fileInfo.exists()) {
+                /**
+                 * If spec file exists, need to read it.
+                 */
+                try {
+                    m_specFile->readFile(specFileName);
+                }
+                catch (const DataFileException& dfe) {
+                    WuQMessageBox::errorOk(this, 
+                                           dfe.whatString());
+                    return;
+                }
+            }
+            else {
                 try {
                     m_specFile->writeFile(specFileName);
                 }

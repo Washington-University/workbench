@@ -37,6 +37,9 @@
 #include "EventSurfaceColoringInvalidate.h"
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
+#include "FileInformation.h"
+#include "SpecFile.h"
+#include "SpecFileCreateAddToDialog.h"
 #include "WuQMessageBox.h"
 #include "WuQtUtilities.h"
 #include "WuQWidgetObjectGroup.h"
@@ -191,16 +194,37 @@ ManageLoadedFilesDialog::~ManageLoadedFilesDialog()
 void 
 ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
 {
-    /*
-     * Wait cursor
-     */
-    CursorDisplayScoped cursor;
-    cursor.showWaitCursor();
-
     if (this->saveCheckedFilesPushButton == userPushButton) {
+        bool isSavingFiles = false;
+        const int32_t numFiles = static_cast<int32_t>(this->fileRows.size());
+        for (int32_t i = 0; i < numFiles; i++) {
+            if (this->fileRows[i]->saveCheckBox->isChecked()) {
+                isSavingFiles = true;
+                break;
+            }
+        }
+        
+        if (isSavingFiles) {
+            SpecFile* specFile = this->brain->getSpecFile();
+            FileInformation fileInfo(specFile->getFileName());
+            if (fileInfo.exists() == false) {
+                SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
+                                                                    this);
+
+                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Rejected) {
+                    return;
+                }
+            }
+        }
+        
+        /*
+         * Wait cursor
+         */
+        CursorDisplayScoped cursor;
+        cursor.showWaitCursor();
+        
         AString msg;
         try {
-            const int32_t numFiles = static_cast<int32_t>(this->fileRows.size());
             for (int32_t i = 0; i < numFiles; i++) {
                 this->fileRows[i]->saveFile();
             }
