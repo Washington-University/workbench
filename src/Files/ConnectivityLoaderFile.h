@@ -178,6 +178,10 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
+        bool getCiftiRowOrColumnIndexForSurfaceNode(const int64_t node, 
+                                                    const StructureEnum::Enum& structure,
+                                                    int64_t& indexOut,
+                                                    bool& isColumnIndexOut) const;
 
         VolumeFile* getConnectivityVolumeFile();
         int64_t getNumberOfTimePoints();

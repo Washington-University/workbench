@@ -84,20 +84,51 @@ ConnectivityLoaderManager::~ConnectivityLoaderManager()
  */
 bool 
 ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex) throw (DataFileException)
+                                                  const int32_t nodeIndex,
+                                                  AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
+    
+    const bool doRowColumnInformation = (rowColumnInformationOut != NULL);
+
+    AString rowColText;
     
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
-        if (clf->isEmpty() == false) {
+        if ((clf->isEmpty() == false)
+            && clf->isDense()) {
             clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
             haveData = true;
+            
+            if (doRowColumnInformation) {
+                /*
+                 * Get row/column info for node 
+                 */
+                int64_t ciftiRowColumnIndex = -1;
+                bool isCiftiColumnIndex = false;
+                if (clf->getCiftiRowOrColumnIndexForSurfaceNode(nodeIndex,
+                                                                surfaceFile->getStructure(),
+                                                                ciftiRowColumnIndex,
+                                                                isCiftiColumnIndex)) {
+                    if (rowColText.isEmpty() == false) {
+                        rowColText += "\n";
+                    }
+                    
+                    rowColText += (clf->getFileNameNoPath()
+                                             + (isCiftiColumnIndex ? " column" : " row")
+                                             + " index: "
+                                             + AString::number(ciftiRowColumnIndex));
+                }
+            }
         }
+    }
+    
+    if (doRowColumnInformation) {
+        *rowColumnInformationOut = rowColText;
     }
     
     if (haveData) {
@@ -394,9 +425,14 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
  */
 bool 
 ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surfaceFile,
-                            const int32_t nodeIndex,const TimeLine &timeLine) throw (DataFileException)
+                                                      const int32_t nodeIndex,
+                                                      const TimeLine &timeLine,
+                                                      AString* rowColumnInformationOut) throw (DataFileException)
 {
     bool haveData = false;
+    
+    const bool doRowColumnInformation = (rowColumnInformationOut != NULL);
+    AString rowColText;
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
@@ -410,6 +446,27 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
             
             clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
+            
+            if (doRowColumnInformation) {
+                /*
+                 * Get row/column info for node 
+                 */
+                int64_t ciftiRowColumnIndex = -1;
+                bool isCiftiColumnIndex = false;
+                if (clf->getCiftiRowOrColumnIndexForSurfaceNode(nodeIndex,
+                                                                surfaceFile->getStructure(),
+                                                                ciftiRowColumnIndex,
+                                                                isCiftiColumnIndex)) {
+                    if (rowColText.isEmpty() == false) {
+                        rowColText += "\n";
+                    }
+                    
+                    rowColText += (clf->getFileNameNoPath()
+                                   + (isCiftiColumnIndex ? " column" : " row")
+                                   + " index: "
+                                   + AString::number(ciftiRowColumnIndex));
+                }
+            }
         }
     }
 
@@ -418,6 +475,10 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
         //this->colorConnectivityData();
         //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //}
+    
+    if (doRowColumnInformation) {
+        *rowColumnInformationOut = rowColText;
+    }
     
     return haveData;
 }

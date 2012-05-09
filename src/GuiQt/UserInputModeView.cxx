@@ -178,10 +178,13 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         if ((surface != NULL) &&
             (nodeIndex >= 0)) {
             try {
+                AString rowColInfo;
                 TimeLine timeLine;
-                connMan->loadDataForSurfaceNode(surface, nodeIndex);
+                connMan->loadDataForSurfaceNode(surface, nodeIndex, &rowColInfo);
+
+                AString timeLineRowColInfo;
                 surface->getTimeLineInformation(nodeIndex,timeLine);
-                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine);
+                connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, &timeLineRowColInfo);
                 updateGraphicsFlag = true;
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
@@ -215,6 +218,26 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
+                
+                AString rowColumnInformation;
+                if (rowColInfo.isEmpty() == false) {
+                    if (rowColumnInformation.isEmpty() == false) {
+                        rowColumnInformation += "\n";
+                    }
+                    rowColumnInformation += rowColInfo;
+                }
+                
+                if (timeLineRowColInfo.isEmpty() == false) {
+                    if (rowColumnInformation.isEmpty() == false) {
+                        rowColumnInformation += "\n";
+                    }
+                    rowColumnInformation += timeLineRowColInfo;
+                }
+                
+                if (rowColumnInformation.isEmpty() == false) {
+                    EventManager::get()->sendEvent(EventInformationTextDisplay(rowColumnInformation,
+                                                                               EventInformationTextDisplay::TYPE_PLAIN).getPointer());                    
+                }
                 
             }
             catch (const DataFileException& e) {

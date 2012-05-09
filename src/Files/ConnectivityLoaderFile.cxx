@@ -1974,4 +1974,49 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
     return numNodes;
 }
 
+/**
+ * For the given surface node in the specified structure.
+ * @param node
+ *    Index of node.
+ * @param structure
+ *    Structure containing node.
+ * @param indexOut
+ *    Output filled with row/column index in CIFTI file (negative if not valid data for node)
+ * @parma isColumnIndexOut
+ *    True if index if for a column, or false if index is for a row.
+ *
+ */
+bool ConnectivityLoaderFile::getCiftiRowOrColumnIndexForSurfaceNode(const int64_t node, 
+                                            const StructureEnum::Enum& structure,
+                                            int64_t& indexOut,
+                                            bool& isColumnIndexOut) const
+{
+    indexOut = -1;
+    
+    if (this->ciftiInterface == NULL) {
+        return false;
+    }
+    
+    const CiftiXML& ciftiXML = this->ciftiInterface->getCiftiXML();
+
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            indexOut = ciftiXML.getRowIndexForNode(node,
+                                                   structure);
+            isColumnIndexOut = false;
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            indexOut = ciftiXML.getRowIndexForNode(node,
+                                                      structure);
+            isColumnIndexOut = true;
+            break;
+    }
+    
+    const bool validIndex = (indexOut >= 0);
+    return validIndex;
+}
+
+
 
