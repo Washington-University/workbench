@@ -197,6 +197,8 @@ namespace caret {
         void loadTimeLineForVoxelAtCoordinate(const float xyz[3],TimeLine &timeLine) throw (DataFileException);
         void getTimeLine(TimeLine &tl);
         
+        int32_t getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;
+        
     private:
         ConnectivityLoaderFile(const ConnectivityLoaderFile&);
         ConnectivityLoaderFile& operator=(const ConnectivityLoaderFile&);

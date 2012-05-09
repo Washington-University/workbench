@@ -1943,4 +1943,35 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
     }
 }
 
+/**
+ * Get the number of nodes for a surface of the given structure in this file.
+ * @param structure
+ *    The surface structure.
+ * @return  Number of nodes in this file for the given structure or negative if
+ *    this file is invalid (not yet loaded) or the given structure is not in
+ *    this file.
+ */
+int32_t 
+ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const
+{
+    if (this->ciftiInterface == NULL) {
+        return -1;
+    }
+    
+    int32_t numNodes = -1;
+    
+    switch (this->loaderType) {
+        case LOADER_TYPE_INVALID:
+            break;
+        case LOADER_TYPE_DENSE:
+            numNodes = this->ciftiInterface->getRowSurfaceNumberOfNodes(structure);
+            break;
+        case LOADER_TYPE_DENSE_TIME_SERIES:
+            numNodes = this->ciftiInterface->getColumnSurfaceNumberOfNodes(structure);
+            break;
+    }
+    
+    return numNodes;
+}
+
 

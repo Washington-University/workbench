@@ -221,6 +221,8 @@ namespace caret {
         
         void readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileException);
         
+        void validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException);
+        
         void readFociFile(const AString& filename) throw (DataFileException);
         
         void readPaletteFile(const AString& filename) throw (DataFileException);

@@ -671,12 +671,14 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
                                 DataFileTypeEnum::CONNECTIVITY_DENSE);
         }
         
-        this->connectivityDenseFiles.push_back(clf);
+        this->validateConnectivityFile(clf);
     }
     catch (const DataFileException& dfe) {
         delete clf;
         throw dfe;
     }
+    
+    this->connectivityDenseFiles.push_back(clf);
 }
 
 /**
@@ -692,20 +694,64 @@ Brain::readConnectivityTimeSeriesFile(const AString& filename) throw (DataFileEx
 {
     ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
     
-    if (DataFile::isFileOnNetwork(filename)) {
-        clf->setupNetworkFile(filename,
-                              DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
-                              this->fileReadingUsername,
-                              this->fileReadingPassword);
+    try {
+        if (DataFile::isFileOnNetwork(filename)) {
+            clf->setupNetworkFile(filename,
+                                  DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES,
+                                  this->fileReadingUsername,
+                                  this->fileReadingPassword);
+        }
+        else {
+            clf->setupLocalFile(filename, 
+                                DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
+            clf->loadTimePointAtTime(0.0);
+        }
+        
+        this->validateConnectivityFile(clf);
     }
-    else {
-        clf->setupLocalFile(filename, 
-                            DataFileTypeEnum::CONNECTIVITY_DENSE_TIME_SERIES);
-        clf->loadTimePointAtTime(0.0);
+    catch (const DataFileException& dfe) {
+        delete clf;
+        throw dfe;
     }
     
     this->connectivityTimeSeriesFiles.push_back(clf);
 }
+
+/**
+ * Verify the number of nodes in the CIFTI file matches any 
+ * surface structures that are currently loaded.
+ * @param clf
+ *    The CIFTI file.
+ * @throw If the number of nodes for a structure in the CIFTI file
+ *    does not match the number of nodes in a currently loaded
+ *    structure.
+ */
+void 
+Brain::validateConnectivityFile(const ConnectivityLoaderFile* clf) throw (DataFileException)
+{
+    const int32_t numBrainStructures = this->getNumberOfBrainStructures();
+    for (int32_t i = 0; i < numBrainStructures; i++) {
+        const StructureEnum::Enum structure = this->getBrainStructure(i)->getStructure();
+        const int numNodes = this->getBrainStructure(i)->getNumberOfNodes();
+        
+        const int numConnNodes = clf->getSurfaceNumberOfNodes(structure);
+        if (numConnNodes > 0) {
+            if (numNodes != numConnNodes) {
+                AString msg = ("The CIFTI file "
+                               + clf->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(numConnNodes)
+                               + " for structure "
+                               + StructureEnum::toGuiName(structure)
+                               + " but the corresponding surface brain structure contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
+                throw DataFileException(msg);
+            }
+        }
+    }
+}
+
 
 /**
  * Read a palette file.
