@@ -659,18 +659,24 @@ Brain::readConnectivityDenseFile(const AString& filename) throw (DataFileExcepti
 {
     ConnectivityLoaderFile* clf = new ConnectivityLoaderFile();
 
-    if (DataFile::isFileOnNetwork(filename)) {
-        clf->setupNetworkFile(filename,
-                              DataFileTypeEnum::CONNECTIVITY_DENSE,
-                              this->fileReadingUsername,
-                              this->fileReadingPassword);
+    try {
+        if (DataFile::isFileOnNetwork(filename)) {
+            clf->setupNetworkFile(filename,
+                                  DataFileTypeEnum::CONNECTIVITY_DENSE,
+                                  this->fileReadingUsername,
+                                  this->fileReadingPassword);
+        }
+        else {
+            clf->setupLocalFile(filename, 
+                                DataFileTypeEnum::CONNECTIVITY_DENSE);
+        }
+        
+        this->connectivityDenseFiles.push_back(clf);
     }
-    else {
-        clf->setupLocalFile(filename, 
-                            DataFileTypeEnum::CONNECTIVITY_DENSE);
+    catch (const DataFileException& dfe) {
+        delete clf;
+        throw dfe;
     }
-    
-    this->connectivityDenseFiles.push_back(clf);
 }
 
 /**
