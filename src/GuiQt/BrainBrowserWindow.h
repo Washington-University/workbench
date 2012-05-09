@@ -270,19 +270,10 @@ namespace caret {
         
         WindowComponentStatus normalWindowComponentStatus;
                 
-        static DataFileTypeEnum::Enum previousNetworkDataFileType;
-        static AString previousNetworkFileName;
-        static AString previousNetworkUsername;
-        static AString previousNetworkPassword;
-        
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
-    DataFileTypeEnum::Enum BrainBrowserWindow::previousNetworkDataFileType = DataFileTypeEnum::UNKNOWN;
-    AString BrainBrowserWindow::previousNetworkFileName = "";
-    AString BrainBrowserWindow::previousNetworkUsername = "";
-    AString BrainBrowserWindow::previousNetworkPassword = "";
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

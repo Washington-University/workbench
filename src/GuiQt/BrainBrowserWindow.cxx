@@ -45,6 +45,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
 #include "DisplayPropertiesVolume.h"
@@ -1065,83 +1066,8 @@ BrainBrowserWindow::processAboutWorkbench()
 void 
 BrainBrowserWindow::processDataFileLocationOpen()
 {
-    QStringList filenameFilterList;
-    std::vector<DataFileTypeEnum::Enum> dataFileTypes;
-    DataFileTypeEnum::getAllConnectivityEnums(dataFileTypes);
-    
-    QLabel* urlLabel = new QLabel("URL: ");
-    QLineEdit* urlLineEdit = new QLineEdit();
-    urlLineEdit->setText(BrainBrowserWindow::previousNetworkFileName);
-    
-    int defaultFileTypeComboBoxIndex = -1;
-    QLabel* fileTypeLabel = new QLabel("File Type: ");
-    QComboBox* fileTypeComboBox = new QComboBox();
-    const int numDataFileTypes = static_cast<int>(dataFileTypes.size());
-    for (int idft = 0; idft < numDataFileTypes; idft++) {
-        const DataFileTypeEnum::Enum dft = dataFileTypes[idft];
-        if (dft == BrainBrowserWindow::previousNetworkDataFileType) {
-            defaultFileTypeComboBoxIndex = idft;
-        }
-        fileTypeComboBox->addItem(DataFileTypeEnum::toGuiName(dft),
-                                  (int)DataFileTypeEnum::toIntegerCode(dft));
-    }
-    
-    QLabel* usernameLabel = new QLabel("Username: ");
-    QLineEdit* usernameLineEdit = new QLineEdit();
-    usernameLineEdit->setText(BrainBrowserWindow::previousNetworkUsername);
-    
-    QLabel* passwordLabel = new QLabel("Password: ");
-    QLineEdit* passwordLineEdit = new QLineEdit();
-    passwordLineEdit->setEchoMode(QLineEdit::Password);
-    passwordLineEdit->setText(BrainBrowserWindow::previousNetworkPassword);
-    
-    QWidget* controlsWidget = new QWidget();
-    QGridLayout* controlsLayout = new QGridLayout(controlsWidget);
-    WuQtUtilities::setLayoutMargins(controlsLayout, 4, 2);
-    controlsLayout->addWidget(urlLabel, 0, 0);
-    controlsLayout->addWidget(urlLineEdit, 0, 1);
-    controlsLayout->addWidget(fileTypeLabel, 1, 0);
-    controlsLayout->addWidget(fileTypeComboBox, 1, 1);
-    controlsLayout->addWidget(usernameLabel, 2, 0);
-    controlsLayout->addWidget(usernameLineEdit, 2, 1);
-    controlsLayout->addWidget(passwordLabel, 3, 0);
-    controlsLayout->addWidget(passwordLineEdit, 3, 1);
-    
-    WuQDialogModal d("Open Data File on Web Server",
-                     controlsWidget,
-                     this);
-    if (d.exec() == QDialog::Accepted) {
-        const AString filename = urlLineEdit->text().trimmed();
-
-        DataFileTypeEnum::Enum dataFileType = DataFileTypeEnum::UNKNOWN;
-        const int fileTypeComboBoxIndex = fileTypeComboBox->currentIndex();
-        if (fileTypeComboBoxIndex >= 0) {
-            const int dataTypeIntegerCode = fileTypeComboBox->itemData(fileTypeComboBoxIndex).toInt();
-            dataFileType = DataFileTypeEnum::fromIntegerCode(dataTypeIntegerCode, 
-                                                             NULL);
-        }
-        
-        BrainBrowserWindow::previousNetworkDataFileType = dataFileType;
-        BrainBrowserWindow::previousNetworkFileName = filename;
-        BrainBrowserWindow::previousNetworkUsername = usernameLineEdit->text().trimmed();
-        BrainBrowserWindow::previousNetworkPassword = passwordLineEdit->text().trimmed();
-        
-        Brain* brain = GuiManager::get()->getBrain();
-        
-        EventDataFileRead readFileEvent(brain,
-                                        BrainBrowserWindow::previousNetworkDataFileType,
-                                        BrainBrowserWindow::previousNetworkFileName,
-                                        false);
-        readFileEvent.setUsernameAndPassword(BrainBrowserWindow::previousNetworkUsername,
-                                             BrainBrowserWindow::previousNetworkPassword);
-        
-        EventManager::get()->sendEvent(readFileEvent.getPointer());
-        if (readFileEvent.isError()) {
-            QMessageBox::critical(this, 
-                                  "ERROR", 
-                                  readFileEvent.getErrorMessage());                
-        }
-    }
+    CaretFileRemoteDialog fileRemoteDialog(this);
+    fileRemoteDialog.exec();
 }
 
 /**

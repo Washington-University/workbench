@@ -34,8 +34,11 @@
  */
 /*LICENSE_END*/
 
-
+#include "DataFileTypeEnum.h"
 #include "WuQDialogModal.h"
+
+class QComboBox;
+class QLineEdit;
 
 namespace caret {
 
@@ -47,17 +50,30 @@ namespace caret {
         
         virtual ~CaretFileRemoteDialog();
         
+    protected:
+        void okButtonPressed();
+        
     private:
         CaretFileRemoteDialog(const CaretFileRemoteDialog&);
 
         CaretFileRemoteDialog& operator=(const CaretFileRemoteDialog&);
         
-    public:
-    private:
+        QComboBox* m_fileTypeComboBox;
+        QLineEdit* m_urlLineEdit;
+        QLineEdit* m_usernameLineEdit;
+        QLineEdit* m_passwordLineEdit;
+        
+        static DataFileTypeEnum::Enum previousNetworkDataFileType;
+        static AString previousNetworkFileName;
+        static AString previousNetworkUsername;
+        static AString previousNetworkPassword;
     };
     
 #ifdef __CARET_FILE_REMOTE_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    DataFileTypeEnum::Enum CaretFileRemoteDialog::previousNetworkDataFileType = DataFileTypeEnum::UNKNOWN;
+    AString CaretFileRemoteDialog::previousNetworkFileName = "";
+    AString CaretFileRemoteDialog::previousNetworkUsername = "";
+    AString CaretFileRemoteDialog::previousNetworkPassword = "";
 #endif // __CARET_FILE_REMOTE_DIALOG_DECLARE__
 
 } // namespace
