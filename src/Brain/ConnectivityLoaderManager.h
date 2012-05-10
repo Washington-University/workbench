@@ -57,7 +57,8 @@ namespace caret {
                                                 const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException);
 
         
-        bool loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        bool loadDataForVoxelAtCoordinate(const float xyz[3],
+                                          AString* rowColumnInformationOut = NULL) throw (DataFileException);
 
         void reset();
         

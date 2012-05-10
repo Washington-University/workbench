@@ -79,6 +79,9 @@ ConnectivityLoaderManager::~ConnectivityLoaderManager()
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param rowColumnInformationOut
+ *    If not NULL, the string will be contain information listing the 
+ *    row/column that corresponds to the surface node.
  * @return
  *    true if any connectivity loaders are active, else false.
  */
@@ -90,8 +93,6 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
-    const bool doRowColumnInformation = (rowColumnInformationOut != NULL);
-
     AString rowColText;
     
     bool haveData = false;
@@ -104,7 +105,7 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
             clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
             haveData = true;
             
-            if (doRowColumnInformation) {
+            if (rowColumnInformationOut != NULL) {
                 /*
                  * Get row/column info for node 
                  */
@@ -118,16 +119,20 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
                         rowColText += "\n";
                     }
                     
-                    rowColText += (clf->getFileNameNoPath()
-                                             + (isCiftiColumnIndex ? " column" : " row")
-                                             + " index: "
-                                             + AString::number(ciftiRowColumnIndex));
+                    rowColText += ("   "
+                                   + clf->getFileNameNoPath()
+                                   + " nodeIndex="
+                                   + AString::number(nodeIndex)
+                                   + ", "
+                                   + (isCiftiColumnIndex ? " column" : " row")
+                                   + " index= "
+                                   + AString::number(ciftiRowColumnIndex));
                 }
             }
         }
     }
     
-    if (doRowColumnInformation) {
+    if (rowColumnInformationOut != NULL) {
         *rowColumnInformationOut = rowColText;
     }
     
@@ -218,11 +223,15 @@ ConnectivityLoaderManager::loadAverageTimeSeriesForSurfaceNodes(const SurfaceFil
  * Load data for the voxel near the given coordinate.
  * @param xyz
  *     Coordinate of voxel.
+ * @param rowColumnInformationOut
+ *    If not NULL, the string will be contain information listing the 
+ *    row/column that corresponds to the voxel.
  * @return
  *    true if any connectivity loaders are active, else false.
  */
 bool 
-ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
+                                                        AString* rowColumnInformationOut) throw (DataFileException)
 {
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
@@ -420,6 +429,11 @@ ConnectivityLoaderManager::getVolumeTimeLines(QList<TimeLine> &tlV)
  *    Surface File that contains the node (uses its structure).
  * @param nodeIndex
  *    Index of the surface node.
+ * @param timeLine
+ *    Output timeline.
+ * @param rowColumnInformationOut
+ *    If not NULL, the string will be contain information listing the 
+ *    row/column that corresponds to the surface node.
  * @return
  *    true if any connectivity loaders are active, else false.
  */
@@ -431,7 +445,6 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
 {
     bool haveData = false;
     
-    const bool doRowColumnInformation = (rowColumnInformationOut != NULL);
     AString rowColText;
     
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
@@ -447,7 +460,7 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
             clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
             
-            if (doRowColumnInformation) {
+            if (rowColumnInformationOut != NULL) {
                 /*
                  * Get row/column info for node 
                  */
@@ -461,9 +474,13 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
                         rowColText += "\n";
                     }
                     
-                    rowColText += (clf->getFileNameNoPath()
+                    rowColText += ("   "
+                                   + clf->getFileNameNoPath()
+                                   + " nodeIndex="
+                                   + AString::number(nodeIndex)
+                                   + ", "
                                    + (isCiftiColumnIndex ? " column" : " row")
-                                   + " index: "
+                                   + " index= "
                                    + AString::number(ciftiRowColumnIndex));
                 }
             }
@@ -476,7 +493,7 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
         //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //}
     
-    if (doRowColumnInformation) {
+    if (rowColumnInformationOut != NULL) {
         *rowColumnInformationOut = rowColText;
     }
     
