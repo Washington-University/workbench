@@ -56,15 +56,11 @@ namespace caret {
                                const QString& filter = QString());
         
         virtual ~CaretFileDialogPrivate();
-        
-        void hideButtons();
-        
+
     protected:  
         virtual void done(int result);
         
         virtual void closeEvent(QCloseEvent* event);
-    
-        virtual void show();
     };
     
     

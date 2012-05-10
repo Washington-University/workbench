@@ -126,15 +126,20 @@ CaretFileDialogExtendable::createDialog()
     m_caretFileDialog->setAttribute(Qt::WA_DeleteOnClose, false);
     m_caretFileDialog->setSizeGripEnabled(false);
     
-    QVBoxLayout* m_dialogLayout = new QVBoxLayout(this);
+    m_dialogLayout = new QVBoxLayout(this);
     m_dialogLayout->addWidget(m_caretFileDialog);
-    m_dialogLayout->addWidget(new QLabel("Extra widget"));
 }
 
+/**
+ * Gets called when child file dialog issues its finished signal.
+ * @param result
+ *    Result of dialog.
+ */
 void 
 CaretFileDialogExtendable::fileDialogFinished(int result)
 {
-    std::cout << "Result is: " << result << std::endl;
+    this->setResult(result);
+    this->done(result);
 }
 
 
@@ -173,40 +178,10 @@ CaretFileDialogPrivate::CaretFileDialogPrivate(QWidget* parent,
 
 CaretFileDialogPrivate::~CaretFileDialogPrivate()
 {
-    
+    std::cout << "CaretFileDialogPrivate destroyed" << std::endl;
 }
 
-void 
-CaretFileDialogPrivate::hideButtons()
-{
-    const QString acceptText("ACCEPT");
-    const QString rejectText("REJECT");
-    setLabelText(QFileDialog::Accept, acceptText);
-    setLabelText(QFileDialog::Reject, rejectText);
-    
-    QList<QAbstractButton*> buttons = this->findChildren<QAbstractButton*>();
-    const int numButtons = buttons.size();
-    std::cout << "There are " << buttons.size() << " push buttons" << std::endl;
-    
-    for (int i = 0; i < numButtons; i++) {
-        QAbstractButton* button = buttons.at(i);
-        const QString buttonText = button->text();
-        if ((buttonText == rejectText)) {
-            button->hide();
-            std::cout << "Hiding button from class: " << button->metaObject()->className() << std::endl;
-        }
-        std::cout << qPrintable(buttons.at(i)->text()) << std::endl;
-    }
-}
-
-void 
-CaretFileDialogPrivate::show()
-{
-    CaretFileDialog::show();
-    hideButtons();
-}
-
-void 
+void
 CaretFileDialogPrivate::closeEvent(QCloseEvent* event)
 {
     event->ignore();
@@ -215,5 +190,5 @@ CaretFileDialogPrivate::closeEvent(QCloseEvent* event)
 void 
 CaretFileDialogPrivate::done(int result)
 {
-//    CaretFileDialog::done(0);
+    CaretFileDialog::done(result);
 }
