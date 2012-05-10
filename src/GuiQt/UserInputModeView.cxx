@@ -170,6 +170,7 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         updateGraphicsFlag = true;
     }
     else {
+        AString ciftiRowColumnInformation;
         
         IdentificationItemSurfaceNode* idNode = idManager->getSurfaceNodeIdentification();
         Surface* surface = idNode->getSurface();
@@ -178,14 +179,27 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
         if ((surface != NULL) &&
             (nodeIndex >= 0)) {
             try {
-                AString rowColInfo;
+                AString nodeRowColInfo;
                 TimeLine timeLine;
-                connMan->loadDataForSurfaceNode(surface, nodeIndex, &rowColInfo);
+                connMan->loadDataForSurfaceNode(surface, nodeIndex, &nodeRowColInfo);
+                if (ciftiRowColumnInformation.isEmpty() == false) {
+                    if (ciftiRowColumnInformation.isEmpty() == false) {
+                        ciftiRowColumnInformation += "\n";
+                    }
+                }
+                ciftiRowColumnInformation += nodeRowColInfo;
 
                 AString timeLineRowColInfo;
                 surface->getTimeLineInformation(nodeIndex,timeLine);
                 connMan->loadTimeLineForSurfaceNode(surface, nodeIndex,timeLine, &timeLineRowColInfo);
                 updateGraphicsFlag = true;
+                
+                if (ciftiRowColumnInformation.isEmpty() == false) {
+                    if (ciftiRowColumnInformation.isEmpty() == false) {
+                        ciftiRowColumnInformation += "\n";
+                    }
+                }
+                ciftiRowColumnInformation += timeLineRowColInfo;
                 
                 BrainStructure* brainStructure = surface->getBrainStructure();
                 CaretAssert(brainStructure);
@@ -218,27 +232,6 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 }
                 EventUpdateTimeCourseDialog e;
                 EventManager::get()->sendEvent(e.getPointer());
-                
-                AString rowColumnInformation;
-                if (rowColInfo.isEmpty() == false) {
-                    if (rowColumnInformation.isEmpty() == false) {
-                        rowColumnInformation += "\n";
-                    }
-                    rowColumnInformation += rowColInfo;
-                }
-                
-                if (timeLineRowColInfo.isEmpty() == false) {
-                    if (rowColumnInformation.isEmpty() == false) {
-                        rowColumnInformation += "\n";
-                    }
-                    rowColumnInformation += timeLineRowColInfo;
-                }
-                
-                if (rowColumnInformation.isEmpty() == false) {
-                    EventManager::get()->sendEvent(EventInformationTextDisplay(rowColumnInformation,
-                                                                               EventInformationTextDisplay::TYPE_PLAIN).getPointer());                    
-                }
-                
             }
             catch (const DataFileException& e) {
                 QMessageBox::critical(openGLWidget, "", e.whatString());
@@ -263,13 +256,29 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 updateGraphicsFlag = true;
                 
                 try {
-                    connMan->loadDataForVoxelAtCoordinate(xyz);
+                    AString voxelRowColInfo;
+                    connMan->loadDataForVoxelAtCoordinate(xyz,
+                                                          &voxelRowColInfo);
+                    if (ciftiRowColumnInformation.isEmpty() == false) {
+                        if (ciftiRowColumnInformation.isEmpty() == false) {
+                            ciftiRowColumnInformation += "\n";
+                        }
+                    }
+                    ciftiRowColumnInformation += voxelRowColInfo;
                 }
                 catch (const DataFileException& e) {
                     QMessageBox::critical(openGLWidget, "", e.whatString());
                 }
                 try {
-                    connMan->loadTimeLineForVoxelAtCoordinate(xyz);
+                    AString voxelTimeLineRowColInfo;
+                    connMan->loadTimeLineForVoxelAtCoordinate(xyz,
+                                                              &voxelTimeLineRowColInfo);
+                    if (ciftiRowColumnInformation.isEmpty() == false) {
+                        if (ciftiRowColumnInformation.isEmpty() == false) {
+                            ciftiRowColumnInformation += "\n";
+                        }
+                    }
+                    ciftiRowColumnInformation += voxelTimeLineRowColInfo;
                 }
                 catch (const DataFileException& e) {
                     QMessageBox::critical(openGLWidget, "", e.whatString());
@@ -284,6 +293,13 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
                 EventManager::get()->sendEvent(e.getPointer());
             }
         }
+        
+        if (ciftiRowColumnInformation.isEmpty() == false) {
+            ciftiRowColumnInformation.insert(0, "CIFTI Rows loaded:\n");
+            EventManager::get()->sendEvent(EventInformationTextDisplay(ciftiRowColumnInformation,
+                                                                       EventInformationTextDisplay::TYPE_PLAIN).getPointer());                    
+        }
+        
     }
     
     const BrowserTabContent* btc = NULL;

@@ -873,8 +873,10 @@ ConnectivityLoaderFile::loadTimePointAtTime(const float seconds) throw (DataFile
  *    Surface file used for structure.
  * @param nodeIndex
  *    Index of node number.
+ * @return
+ *    Index of the row that was loaded from the CIFTI file (negative if invalid).
  */
-void 
+int64_t 
 ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                                const int32_t nodeIndex) throw (DataFileException)
 {
@@ -886,8 +888,10 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
      * Allow loading of data disable?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex;
     
     try {
         switch (this->loaderType) {
@@ -903,7 +907,8 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
                 if (this->ciftiInterface->hasRowSurfaceData(structure)) {
                     if (this->ciftiInterface->getRowFromNode(this->data,
                                                              nodeIndex,
-                                                             structure)) {
+                                                             structure,
+                                                             rowIndex)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                     }
@@ -950,6 +955,8 @@ ConnectivityLoaderFile::loadDataForSurfaceNode(const StructureEnum::Enum structu
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
 /**
@@ -1203,7 +1210,7 @@ ConnectivityLoaderFile::loadAverageTimeSeriesForSurfaceNodes(const StructureEnum
  * @param xyz
  *    Coordinate of voxel.
  */
-void 
+int64_t 
 ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
@@ -1214,9 +1221,10 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
      * Allow loading of data disable?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
     
+    int64_t rowIndex = -1;
     try {
         switch (this->loaderType) {
             case LOADER_TYPE_INVALID:
@@ -1229,7 +1237,7 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
                 this->allocateData(num);
                 
                 if (this->ciftiInterface->hasRowVolumeData()) {
-                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz)) {
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(this->data, xyz, rowIndex)) {
                         CaretLogFine("Read row for voxel " + AString::fromNumbers(xyz, 3, ","));
                         this->mapToType = MAP_TO_TYPE_BRAINORDINATES;
                     }
@@ -1276,6 +1284,8 @@ ConnectivityLoaderFile::loadDataForVoxelAtCoordinate(const float xyz[3]) throw (
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
 /**
@@ -1818,7 +1828,11 @@ ConnectivityLoaderFile::getTimeLine(TimeLine &tlOut)
     tlOut = this->tl;
 }
 
-void 
+/**
+ * Load a timeline.
+ * @return Index of row that was loaded.
+ */
+int64_t 
 ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
                           const int32_t nodeIndex,const TimeLine &timeLine) throw (DataFileException)
 {
@@ -1830,8 +1844,10 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
      * Allow loading of data disable?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -1847,7 +1863,8 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
                 if (this->ciftiInterface->hasColumnSurfaceData(structure)) {
                     if (this->ciftiInterface->getRowFromNode(data,
                                                              nodeIndex,
-                                                             structure)) {
+                                                             structure,
+                                                             rowIndex)) {
                         CaretLogFine("Read row for node " + AString::number(nodeIndex));
                         if(this->timeSeriesGraphEnabled)
                         {
@@ -1879,10 +1896,11 @@ ConnectivityLoaderFile::loadTimeLineForSurfaceNode(const StructureEnum::Enum str
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
-
+    
+    return rowIndex;
 }
 
-void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3], TimeLine &timeLine) throw (DataFileException)
+int64_t ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3], TimeLine &timeLine) throw (DataFileException)
 {
     if (this->ciftiInterface == NULL) {
         throw DataFileException("Connectivity Loader has not been initialized");
@@ -1892,8 +1910,10 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
      * Allow loading of data disabled?
      */
     if (this->dataLoadingEnabled == false) {
-        return;
+        return -1;
     }
+    
+    int64_t rowIndex = -1;
     
     try {
         switch (this->loaderType) {
@@ -1906,7 +1926,7 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
                 const int32_t num = this->ciftiInterface->getNumberOfColumns();
                 float *data = new float [num];
                 if (this->ciftiInterface->hasColumnVolumeData()) {
-                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz))
+                    if (this->ciftiInterface->getRowFromVoxelCoordinate(data,xyz,rowIndex))
                     {
                         CaretLogFine("Read row for node " + AString::fromNumbers(xyz, 3, ","));
                         //this->mapToType = MAP_TO_TYPE_TIMEPOINTS;
@@ -1941,6 +1961,8 @@ void ConnectivityLoaderFile::loadTimeLineForVoxelAtCoordinate(const float xyz[3]
     catch (CiftiFileException& e) {
         throw DataFileException(e.whatString());
     }
+    
+    return rowIndex;
 }
 
 /**
@@ -1973,50 +1995,3 @@ ConnectivityLoaderFile::getSurfaceNumberOfNodes(const StructureEnum::Enum struct
     
     return numNodes;
 }
-
-/**
- * For the given surface node in the specified structure.
- * @param node
- *    Index of node.
- * @param structure
- *    Structure containing node.
- * @param indexOut
- *    Output filled with row/column index in CIFTI file (negative if not valid data for node)
- * @parma isColumnIndexOut
- *    True if index if for a column, or false if index is for a row.
- *
- */
-bool ConnectivityLoaderFile::getCiftiRowOrColumnIndexForSurfaceNode(const int64_t node, 
-                                            const StructureEnum::Enum& structure,
-                                            int64_t& indexOut,
-                                            bool& isColumnIndexOut) const
-{
-    indexOut = -1;
-    
-    if (this->ciftiInterface == NULL) {
-        return false;
-    }
-    
-    const CiftiXML& ciftiXML = this->ciftiInterface->getCiftiXML();
-
-    switch (this->loaderType) {
-        case LOADER_TYPE_INVALID:
-            break;
-        case LOADER_TYPE_DENSE:
-            indexOut = ciftiXML.getRowIndexForNode(node,
-                                                   structure);
-            isColumnIndexOut = false;
-            break;
-        case LOADER_TYPE_DENSE_TIME_SERIES:
-            indexOut = ciftiXML.getRowIndexForNode(node,
-                                                      structure);
-            isColumnIndexOut = true;
-            break;
-    }
-    
-    const bool validIndex = (indexOut >= 0);
-    return validIndex;
-}
-
-
-

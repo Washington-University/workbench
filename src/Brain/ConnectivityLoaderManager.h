@@ -75,7 +75,8 @@ namespace caret {
                                         const TimeLine &timeLine,
                                         AString* rowColumnInformationOut = NULL) throw (DataFileException);
         
-        bool loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        bool loadTimeLineForVoxelAtCoordinate(const float xyz[3],
+                                              AString* rowColumnInformationOut = NULL) throw (DataFileException);
         
     private:
         ConnectivityLoaderManager(const ConnectivityLoaderManager&);

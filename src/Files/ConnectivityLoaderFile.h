@@ -146,7 +146,7 @@ namespace caret {
         
         AString getCiftiTypeName() const;
         
-        void loadDataForSurfaceNode(const StructureEnum::Enum structure,
+        int64_t loadDataForSurfaceNode(const StructureEnum::Enum structure,
                                     const int32_t nodeIndex) throw (DataFileException);
         
         void loadAverageDataForSurfaceNodes(const StructureEnum::Enum structure,
@@ -155,7 +155,7 @@ namespace caret {
         void loadAverageTimeSeriesForSurfaceNodes(const StructureEnum::Enum structure,
                                     const std::vector<int32_t>& nodeIndices, const TimeLine &timeLine) throw (DataFileException);
         
-        void loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
+        int64_t loadDataForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException);
         
         void loadTimePointAtTime(const float seconds) throw (DataFileException);
         
@@ -178,11 +178,6 @@ namespace caret {
                                     float* nodeRGBA,
                                     const int32_t numberOfNodes);
         
-        bool getCiftiRowOrColumnIndexForSurfaceNode(const int64_t node, 
-                                                    const StructureEnum::Enum& structure,
-                                                    int64_t& indexOut,
-                                                    bool& isColumnIndexOut) const;
-
         VolumeFile* getConnectivityVolumeFile();
         int64_t getNumberOfTimePoints();
 
@@ -194,11 +189,11 @@ namespace caret {
         
         float getSelectedTimePoint() const;
 
-        void loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
+        int64_t loadTimeLineForSurfaceNode(const StructureEnum::Enum structure,
                           const int32_t nodeIndex, const TimeLine &timeLine) throw (DataFileException);
 
                          
-        void loadTimeLineForVoxelAtCoordinate(const float xyz[3],TimeLine &timeLine) throw (DataFileException);
+        int64_t loadTimeLineForVoxelAtCoordinate(const float xyz[3],TimeLine &timeLine) throw (DataFileException);
         void getTimeLine(TimeLine &tl);
         
         int32_t getSurfaceNumberOfNodes(const StructureEnum::Enum structure) const;

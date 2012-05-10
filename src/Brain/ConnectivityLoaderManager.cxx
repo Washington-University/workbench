@@ -102,32 +102,24 @@ ConnectivityLoaderManager::loadDataForSurfaceNode(const SurfaceFile* surfaceFile
         ConnectivityLoaderFile* clf = *iter;
         if ((clf->isEmpty() == false)
             && clf->isDense()) {
-            clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
+            const int64_t rowIndex = clf->loadDataForSurfaceNode(surfaceFile->getStructure(), nodeIndex);
             haveData = true;
             
-            if (rowColumnInformationOut != NULL) {
+            if ((rowColumnInformationOut != NULL)
+                && (rowIndex >= 0)) {
                 /*
                  * Get row/column info for node 
                  */
-                int64_t ciftiRowColumnIndex = -1;
-                bool isCiftiColumnIndex = false;
-                if (clf->getCiftiRowOrColumnIndexForSurfaceNode(nodeIndex,
-                                                                surfaceFile->getStructure(),
-                                                                ciftiRowColumnIndex,
-                                                                isCiftiColumnIndex)) {
-                    if (rowColText.isEmpty() == false) {
-                        rowColText += "\n";
-                    }
-                    
-                    rowColText += ("   "
-                                   + clf->getFileNameNoPath()
-                                   + " nodeIndex="
-                                   + AString::number(nodeIndex)
-                                   + ", "
-                                   + (isCiftiColumnIndex ? " column" : " row")
-                                   + " index= "
-                                   + AString::number(ciftiRowColumnIndex));
+                if (rowColText.isEmpty() == false) {
+                    rowColText += "\n";
                 }
+                
+                rowColText += ("   "
+                               + clf->getFileNameNoPath()
+                               + " nodeIndex="
+                               + AString::number(nodeIndex)
+                               + ", row index= "
+                               + AString::number(rowIndex));
             }
         }
     }
@@ -236,14 +228,31 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
     std::vector<ConnectivityLoaderFile*> connectivityFiles;
     this->brain->getConnectivityFilesOfAllTypes(connectivityFiles);
     
+    AString rowColText;
     bool haveData = false;
     for (std::vector<ConnectivityLoaderFile*>::iterator iter = connectivityFiles.begin();
          iter != connectivityFiles.end();
          iter++) {
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
-            clf->loadDataForVoxelAtCoordinate(xyz);
+            const int64_t rowIndex = clf->loadDataForVoxelAtCoordinate(xyz);
             haveData = true;
+            if ((rowColumnInformationOut != NULL)
+                && (rowIndex >= 0)) {
+                /*
+                 * Get row/column info for node 
+                 */
+                if (rowColText.isEmpty() == false) {
+                    rowColText += "\n";
+                }
+                
+                rowColText += ("   "
+                               + clf->getFileNameNoPath()
+                               + " Voxel XYZ="
+                               + AString::fromNumbers(xyz, 3, ",")
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
         }
     }
     
@@ -252,6 +261,9 @@ ConnectivityLoaderManager::loadDataForVoxelAtCoordinate(const float xyz[3],
         EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     }
     
+    if (rowColumnInformationOut != NULL) {
+        *rowColumnInformationOut = rowColText;
+    }
     return haveData;
 }
 
@@ -457,32 +469,24 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
         ConnectivityLoaderFile* clf = *iter;
         if (clf->isEmpty() == false) {
             
-            clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
+            const int64_t rowIndex = clf->loadTimeLineForSurfaceNode(surfaceFile->getStructure(), nodeIndex,timeLine);            
             haveData = true;
             
-            if (rowColumnInformationOut != NULL) {
+            if ((rowColumnInformationOut != NULL)
+                && (rowIndex >= 0)) {
                 /*
                  * Get row/column info for node 
                  */
-                int64_t ciftiRowColumnIndex = -1;
-                bool isCiftiColumnIndex = false;
-                if (clf->getCiftiRowOrColumnIndexForSurfaceNode(nodeIndex,
-                                                                surfaceFile->getStructure(),
-                                                                ciftiRowColumnIndex,
-                                                                isCiftiColumnIndex)) {
-                    if (rowColText.isEmpty() == false) {
-                        rowColText += "\n";
-                    }
-                    
-                    rowColText += ("   "
-                                   + clf->getFileNameNoPath()
-                                   + " nodeIndex="
-                                   + AString::number(nodeIndex)
-                                   + ", "
-                                   + (isCiftiColumnIndex ? " column" : " row")
-                                   + " index= "
-                                   + AString::number(ciftiRowColumnIndex));
+                if (rowColText.isEmpty() == false) {
+                    rowColText += "\n";
                 }
+                
+                rowColText += ("   "
+                               + clf->getFileNameNoPath()
+                               + " nodeIndex="
+                               + AString::number(nodeIndex)
+                               + ", row index= "
+                               + AString::number(rowIndex));
             }
         }
     }
@@ -508,8 +512,11 @@ ConnectivityLoaderManager::loadTimeLineForSurfaceNode(const SurfaceFile* surface
  *    true if any connectivity loaders are active, else false.
  */
 bool 
-ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) throw (DataFileException)
+ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3],
+                                                            AString* rowColumnInformationOut) throw (DataFileException)
 {
+    AString rowColText;
+    
     bool haveData = false;
     std::vector<ConnectivityLoaderFile*> connectivityTimeSeriesFiles;
     this->brain->getConnectivityTimeSeriesFiles(connectivityTimeSeriesFiles);
@@ -521,15 +528,36 @@ ConnectivityLoaderManager::loadTimeLineForVoxelAtCoordinate(const float xyz[3]) 
         if (clf->isEmpty() == false) {
             AString structure = StructureEnum::toGuiName(clf->getStructure());
             tl.label = structure + ":[" + AString::fromNumbers(xyz,3,AString(", ")) + "]";
-            clf->loadTimeLineForVoxelAtCoordinate(xyz,tl);
+            const int64_t rowIndex = clf->loadTimeLineForVoxelAtCoordinate(xyz,tl);
             haveData = true;
-        }
+            
+            if ((rowColumnInformationOut != NULL)
+                && (rowIndex >= 0)) {
+                /*
+                 * Get row/column info for node 
+                 */
+                if (rowColText.isEmpty() == false) {
+                    rowColText += "\n";
+                }
+                
+                rowColText += ("   "
+                               + clf->getFileNameNoPath()
+                               + " Voxel XYZ="
+                               + AString::fromNumbers(xyz, 3, ",")
+                               + ", row index= "
+                               + AString::number(rowIndex));
+            }
+       }
     }
     
     //if (haveData) {
         //this->colorConnectivityData();
         //EventManager::get()->sendEvent(EventSurfaceColoringInvalidate().getPointer());
     //}
+    
+    if (rowColumnInformationOut != NULL) {
+        *rowColumnInformationOut = rowColText;
+    }
     
     return haveData;
 }
