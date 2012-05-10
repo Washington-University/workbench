@@ -301,8 +301,8 @@ ConnectivityTimeSeriesViewController::updateOtherYokedTimeSpinBoxes(double time)
             if (clvc != this) {
                 if(clvc->timeSpinBox->value() != time) 
                 {
-                    alreadyLoaded.insert(clvc->connectivityLoaderFile,true);
                     clvc->updateTimeSpinBox(this, alreadyLoaded, time);
+                    alreadyLoaded.insert(clvc->connectivityLoaderFile,true);
                 }                    
             }
         }
