@@ -60,8 +60,6 @@ namespace caret {
 
         ManageLoadedFilesDialog& operator=(const ManageLoadedFilesDialog&);
         
-    public:
-    private:
         enum Column {
             COLUMN_SAVE_CHECKBOX,
             COLUMN_MODIFIED,
@@ -79,13 +77,18 @@ namespace caret {
         
         QPushButton* saveCheckedFilesPushButton;
         
+        QCheckBox* addSavedFilesToSpecFileCheckBox;
+        
         std::vector<ManageFileRow*> fileRows;
         
         Brain* brain;
         
+        bool isQuittingWorkbench;
+        
+        static bool previousSaveFileAddToSpecFileSelection;
+
         friend class ManageFileRow;
         
-        bool isQuittingWorkbench;
     };
     
     
@@ -129,7 +132,8 @@ namespace caret {
     };
     
 #ifdef __MANAGE_LOADED_FILES_DIALOG_DECLARE__
-    // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>
+    bool ManageLoadedFilesDialog::previousSaveFileAddToSpecFileSelection = true;
+    
 #endif // __MANAGE_LOADED_FILES_DIALOG_DECLARE__
 
 } // namespace

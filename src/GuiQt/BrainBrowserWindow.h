@@ -264,7 +264,9 @@ namespace caret {
         QDockWidget* overlayActiveToolBox;
         QDockWidget* layersToolBox;
         
-        AString previousOpenFileNameFilter;
+        static AString previousOpenFileNameFilter;
+        static bool previousOpenFileAddToSpecFileSelection;
+        
         
         BrainBrowserWindowScreenModeEnum::Enum screenMode;
         
@@ -274,6 +276,8 @@ namespace caret {
         friend class GuiManager;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
+    AString BrainBrowserWindow::previousOpenFileNameFilter;
+    bool BrainBrowserWindow::previousOpenFileAddToSpecFileSelection = true;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

@@ -22,8 +22,10 @@
  *
  */
 
+#include <QCheckBox>
 #include <QCloseEvent>
 #include <QDesktopServices>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
@@ -45,6 +47,7 @@
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
+#include "CaretFileDialogExtendable.h"
 #include "CaretFileRemoteDialog.h"
 #include "CaretPreferences.h"
 #include "CursorDisplayScoped.h"
@@ -1096,14 +1099,25 @@ BrainBrowserWindow::processDataFileOpen()
     }
     
     /*
+     * Widget for adding to file dialog
+     */
+    QCheckBox* addFileToSpecFileCheckBox = new QCheckBox("Add Opened Data File to Spec File");
+    addFileToSpecFileCheckBox->setChecked(previousOpenFileAddToSpecFileSelection);
+    QWidget* extraWidget = new QWidget();
+    QVBoxLayout* extraLayout = new QVBoxLayout(extraWidget);
+    extraLayout->addWidget(WuQtUtilities::createHorizontalLineWidget());
+    extraLayout->addWidget(addFileToSpecFileCheckBox, 0, Qt::AlignLeft);
+    
+    /*
      * Setup file selection dialog.
      */
-    CaretFileDialog fd(this);
+    CaretFileDialogExtendable fd(this);
     fd.setAcceptMode(CaretFileDialog::AcceptOpen);
     fd.setNameFilters(filenameFilterList);
     fd.setFileMode(CaretFileDialog::ExistingFiles);
     fd.setViewMode(CaretFileDialog::List);
     fd.selectNameFilter(this->previousOpenFileNameFilter);
+    fd.addWidget(extraWidget);
     
     AString errorMessages;
     
@@ -1130,7 +1144,7 @@ BrainBrowserWindow::processDataFileOpen()
             if (isLoadingSpecFile) {
                 addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
             }
-            else {
+            else if (addFileToSpecFileCheckBox->isChecked()) {
                 SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
                                                                     this);
                 
@@ -1150,8 +1164,8 @@ BrainBrowserWindow::processDataFileOpen()
                                 addDataFileToSpecFileMode);
             }
         }
-        this->previousOpenFileNameFilter = fd.selectedNameFilter();
-        
+        previousOpenFileNameFilter = fd.selectedNameFilter();
+        previousOpenFileAddToSpecFileSelection = addFileToSpecFileCheckBox->isChecked();
     }
 }
 

@@ -168,9 +168,15 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
                               COLUMN_FILE_NAME);
     }
 
+    QWidget* horizLineWidget = WuQtUtilities::createHorizontalLineWidget();
+    this->addSavedFilesToSpecFileCheckBox = new QCheckBox("Add Saved Files to Spec File");
+    this->addSavedFilesToSpecFileCheckBox->setChecked(previousSaveFileAddToSpecFileSelection);
+    
     QWidget* w = new QWidget();
     QVBoxLayout* layout = new QVBoxLayout(w);
     layout->addWidget(filesWidget);
+    layout->addWidget(horizLineWidget);
+    layout->addWidget(this->addSavedFilesToSpecFileCheckBox, 0, Qt::AlignLeft);
 
     this->setCentralWidget(w);
 }
@@ -204,15 +210,19 @@ ManageLoadedFilesDialog::userButtonPressed(QPushButton* userPushButton)
             }
         }
         
+        previousSaveFileAddToSpecFileSelection = this->addSavedFilesToSpecFileCheckBox->isChecked();
+        
         if (isSavingFiles) {
-            SpecFile* specFile = this->brain->getSpecFile();
-            FileInformation fileInfo(specFile->getFileName());
-            if (fileInfo.exists() == false) {
-                SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
-                                                                    this);
-
-                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Rejected) {
-                    return;
+            if (this->addSavedFilesToSpecFileCheckBox->isChecked()) {
+                SpecFile* specFile = this->brain->getSpecFile();
+                FileInformation fileInfo(specFile->getFileName());
+                if (fileInfo.exists() == false) {
+                    SpecFileCreateAddToDialog createAddToSpecFileDialog(brain,
+                                                                        this);
+                    
+                    if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Rejected) {
+                        return;
+                    }
                 }
             }
         }

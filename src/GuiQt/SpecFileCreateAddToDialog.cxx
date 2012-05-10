@@ -64,9 +64,11 @@ using namespace caret;
  */
 SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
                                                      QWidget* parent)
-: WuQDialogModal("Add to Spec File",
+: WuQDialogModal("Choose a Spec File",
                  parent)
 {
+    const bool showAddCheckBox = false;
+    
     m_specFile = brain->getSpecFile();
     const QString specFileName = m_specFile->getFileName();
     
@@ -81,12 +83,12 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
     m_createAddSpecFileCheckBox = new QCheckBox(checkBoxText);
     m_specFileNameLineEdit      = new QLineEdit();
     m_specFileNameLineEdit->setMinimumWidth(500);
+    m_specFileNameLineEdit->setReadOnly(true);
 
     QWidget* fileLabelOrToolButtonWidget = NULL;
     if (m_isSpecFileValid) {
-        QLabel* fileLabel = new QLabel("Spec File: ");
+        QLabel* fileLabel = new QLabel("Choose Spec File: ");
         fileLabelOrToolButtonWidget = fileLabel;
-        m_specFileNameLineEdit->setReadOnly(true);
         m_specFileNameLineEdit->setText(specFileName);
         m_specFileNameLineEdit->end(false);
     }
@@ -101,11 +103,22 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
         fileLabelOrToolButtonWidget = fileToolButton;
     }
     
+    QLabel* instructionsLabel = new QLabel("There is no spec file.  Press the <B>Choose Spec File</B> button to navigate the "
+                                           "the file system, choose an existing Spec File or enter the name of a new "
+                                           "Spec File in the desired directory, and press the <B>Continue</B> button.  Otherwise,"
+                                           "press the <B>Cancel</B> button and uncheck the Add To Spec File option on "
+                                           "the previous Open or Save window.");
+    instructionsLabel->setWordWrap(true);
+    if (showAddCheckBox) {
+        instructionsLabel->setVisible(false);
+    }
+    
     QWidget* widget = new QWidget();
     QGridLayout* gridLayout = new QGridLayout(widget);
-    gridLayout->addWidget(m_createAddSpecFileCheckBox, 0, 0, 1, 2);
-    gridLayout->addWidget(fileLabelOrToolButtonWidget, 1, 0);
-    gridLayout->addWidget(m_specFileNameLineEdit, 1, 1);
+    gridLayout->addWidget(instructionsLabel, 0, 0, 1, 2);
+    gridLayout->addWidget(m_createAddSpecFileCheckBox, 1, 0, 1, 2);
+    gridLayout->addWidget(fileLabelOrToolButtonWidget, 2, 0);
+    gridLayout->addWidget(m_specFileNameLineEdit, 2, 1);
     setCentralWidget(widget);
 
     if (dynamic_cast<QToolButton*>(fileLabelOrToolButtonWidget) != NULL) {
@@ -115,6 +128,13 @@ SpecFileCreateAddToDialog::SpecFileCreateAddToDialog(Brain* brain,
     QObject::connect(m_createAddSpecFileCheckBox, SIGNAL(toggled(bool)),
                      m_specFileNameLineEdit, SLOT(setEnabled(bool)));
     m_createAddSpecFileCheckBox->setChecked(true);
+    
+    /*
+     * May not need checkbox any longer
+     */
+    if (showAddCheckBox == false) {
+        m_createAddSpecFileCheckBox->setVisible(false);
+    }
     
     setOkButtonText("Continue");
 }
@@ -134,17 +154,40 @@ SpecFileCreateAddToDialog::~SpecFileCreateAddToDialog()
 void 
 SpecFileCreateAddToDialog::fileButtonClicked()
 {
-    QString filename = CaretFileDialog::getSaveFileNameDialog(this,
-                                                              "Choose Spec File",
-                                                              "",
-                                                              DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
-    if (filename.isEmpty() == false) {
-        const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
-        if (filename.endsWith(fileExt) == false) {
-            filename += fileExt;
+    CaretFileDialog fd(this);
+    fd.setAcceptMode(CaretFileDialog::AcceptSave);
+    fd.setLabelText(QFileDialog::Accept, "Choose");
+    fd.setNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+    fd.setFileMode(CaretFileDialog::AnyFile);
+    fd.setViewMode(CaretFileDialog::List);
+    fd.selectNameFilter(DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+    fd.setConfirmOverwrite(false);
+    
+    if (fd.exec() == CaretFileDialog::Accepted) {
+        if (fd.selectedFiles().empty() == false) {
+            QString filename = fd.selectedFiles().at(0);
+
+            if (filename.isEmpty() == false) {
+                const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
+                if (filename.endsWith(fileExt) == false) {
+                    filename += fileExt;
+                }
+                m_specFileNameLineEdit->setText(filename);
+            }
         }
-        m_specFileNameLineEdit->setText(filename);
     }
+    
+//    QString filename = CaretFileDialog::getSaveFileNameDialog(this,
+//                                                              "Choose Spec File",
+//                                                              "",
+//                                                              DataFileTypeEnum::toQFileDialogFilter(DataFileTypeEnum::SPECIFICATION));
+//    if (filename.isEmpty() == false) {
+//        const QString fileExt = ("." + DataFileTypeEnum::toFileExtension(DataFileTypeEnum::SPECIFICATION));
+//        if (filename.endsWith(fileExt) == false) {
+//            filename += fileExt;
+//        }
+//        m_specFileNameLineEdit->setText(filename);
+//    }
 }
 
 /**
