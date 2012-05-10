@@ -79,6 +79,19 @@ bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const car
     return true;
 }
 
+bool CiftiInterface::getRowFromNode(float* rowOut, const int64_t node, const caret::StructureEnum::Enum structure, int64_t& rowIndexOut) const
+{
+    rowIndexOut = -1;
+    int64_t myIndex = m_xml.getRowIndexForNode(node, structure);
+    if (!checkRowIndex(myIndex))
+    {
+        return false;
+    }
+    getRow(rowOut, myIndex);
+    rowIndexOut = myIndex;
+    return true;
+}
+
 bool CiftiInterface::getRowFromVoxel(float* rowOut, const int64_t* ijk) const
 {
     int64_t myIndex = m_xml.getRowIndexForVoxel(ijk);
@@ -109,6 +122,19 @@ bool CiftiInterface::getRowFromVoxelCoordinate(float* rowOut, const float* xyz) 
         return false;
     }
     getRow(rowOut, myIndex);
+    return true;
+}
+
+bool CiftiInterface::getRowFromVoxelCoordinate(float* rowOut, const float* xyz, int64_t& rowIndexOut) const
+{
+    rowIndexOut = -1;
+    int64_t myIndex = m_xml.getRowIndexForVoxelCoordinate(xyz);
+    if (!checkRowIndex(myIndex))
+    {
+        return false;
+    }
+    getRow(rowOut, myIndex);
+    rowIndexOut = myIndex;
     return true;
 }
 

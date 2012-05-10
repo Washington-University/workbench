@@ -67,6 +67,9 @@ namespace caret
         ///get a row by surface and node - returns false if not found in mapping
         bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure) const;
         
+        ///get a row by surface and node - returns false if not found in mapping
+        bool getRowFromNode(float* rowOut, const int64_t node, const StructureEnum::Enum structure, int64_t& rowIndexOut) const;
+        
         ///get a column by surface and node - returns false if not found in mapping
         bool getColumnFromNode(float* columnOut, const int64_t node, const StructureEnum::Enum structure) const;
         
@@ -78,6 +81,9 @@ namespace caret
         
         ///get a row by voxel coordinate - returns false if not found in mapping
         bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz) const;
+        
+        ///get a row by voxel coordinate - returns false if not found in mapping
+        bool getRowFromVoxelCoordinate(float* rowOut, const float* xyz, int64_t& rowIndexOut) const;
         
         ///get a row by voxel coordinate - returns false if not found in mapping
         bool getColumnFromVoxelCoordinate(float* columnOut, const float* xyz) const;
