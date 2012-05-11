@@ -86,6 +86,10 @@ namespace caret {
         
         void setVolumeAxesLabelsDisplayed(const bool displayed);
         
+        bool isDataFileAddToSpecFileEnabled() const;
+        
+        void setDataFileAddToSpecFileEnabled(const bool enabled);
+        
         void setAnimationStartTime(const double &time);
         
         void getAnimationStartTime(double &time);
@@ -146,6 +150,8 @@ namespace caret {
         
         bool displayVolumeAxesLabels;
         
+        bool dataFileAddToSpecFileEnabled;
+        
         double animationStartTime;
         
         int32_t toolBoxType;
@@ -162,6 +168,7 @@ namespace caret {
         static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_USER_VIEWS;
         static const AString NAME_ANIMATION_START_TIME;
+        static const AString NAME_DATA_FILE_ADD_TO_SPEC_FILE;
         
         static const AString NAME_TOOLBOX_TYPE;
     };
@@ -177,6 +184,7 @@ namespace caret {
     const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
     const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
+    const AString CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE = "dataFileAddToSpecFile";
     const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
 #endif // __CARET_PREFERENCES_DECLARE__
 

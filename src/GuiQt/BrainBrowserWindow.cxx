@@ -99,6 +99,12 @@ BrainBrowserWindow::BrainBrowserWindow(const int browserWindowIndex,
                                        Qt::WindowFlags flags)
 : QMainWindow(parent, flags)
 {
+    if (BrainBrowserWindow::firstWindowFlag) {
+        BrainBrowserWindow::firstWindowFlag = false;
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        BrainBrowserWindow::previousOpenFileAddToSpecFileSelection = prefs->isDataFileAddToSpecFileEnabled();
+    }
+    
     this->screenMode = BrainBrowserWindowScreenModeEnum::NORMAL;
     
     GuiManager* guiManager = GuiManager::get();

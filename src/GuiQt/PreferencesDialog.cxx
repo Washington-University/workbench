@@ -89,6 +89,7 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     this->gridLayout = new QGridLayout(widget);
     
     this->addColorItems();
+    this->createDataFileItems();
     this->addLoggingItems();
     this->addTimeCourseItems();
     this->addVolumeItems();
@@ -175,6 +176,8 @@ PreferencesDialog::updateDialog()
     if (indx >= 0) {
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
+    
+    this->dataFileAddToSpecFileComboBox->setStatus(prefs->isDataFileAddToSpecFileEnabled());
     
     this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
@@ -381,5 +384,32 @@ PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
+/**
+ * Create data file items.
+ */
+void 
+PreferencesDialog::createDataFileItems()
+{
+    this->dataFileAddToSpecFileComboBox = new WuQTrueFalseComboBox("On",
+                                                             "Off",
+                                                             this);
+    QObject::connect(this->dataFileAddToSpecFileComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(dataFileAddToSpecFileComboBoxChanged(bool)));
+    this->addWidgetToLayout("Data File Open/Save Add to Spec File: ", 
+                            this->dataFileAddToSpecFileComboBox->getWidget());
+}
+
+/**
+ * Called when add data file to spec file option changed.
+ * @param value
+ *   New value.
+ */
+void 
+PreferencesDialog::dataFileAddToSpecFileComboBoxChanged(bool value)
+{
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setVolumeAxesLabelsDisplayed(value);    
+    prefs->setDataFileAddToSpecFileEnabled(value);
+}
 
 

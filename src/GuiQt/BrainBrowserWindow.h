@@ -272,12 +272,15 @@ namespace caret {
         
         WindowComponentStatus normalWindowComponentStatus;
                 
+        static bool firstWindowFlag;
+        
         friend class BrainBrowserWindowToolBar;
         friend class GuiManager;
     };
 #ifdef __BRAIN_BROWSER_WINDOW_DECLARE__
     AString BrainBrowserWindow::previousOpenFileNameFilter;
     bool BrainBrowserWindow::previousOpenFileAddToSpecFileSelection = true;
+    bool BrainBrowserWindow::firstWindowFlag = true;
 #endif // __BRAIN_BROWSER_WINDOW_DECLARE__
     
 }

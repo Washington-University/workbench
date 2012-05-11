@@ -552,6 +552,28 @@ CaretPreferences::setVolumeAxesLabelsDisplayed(const bool displayed)
 }
 
 /**
+ * @return Is add data file to spec file enabled?
+ */
+bool 
+CaretPreferences::isDataFileAddToSpecFileEnabled() const
+{
+    return this->dataFileAddToSpecFileEnabled;
+}
+
+/**
+ * Set add data file to spec file enabled.
+ * @param enabled
+ *    New enabled status.
+ */
+void 
+CaretPreferences::setDataFileAddToSpecFileEnabled(const bool enabled)
+{
+    this->dataFileAddToSpecFileEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE, 
+                     this->dataFileAddToSpecFileEnabled);
+}
+
+/**
  * @return The toolbox type.
  */
 int32_t 
@@ -666,6 +688,9 @@ CaretPreferences::readPreferences()
     this->displayVolumeAxesCrosshairs = this->getBoolean(CaretPreferences::NAME_AXES_CROSSHAIRS,
                                                          true);    
 
+    this->dataFileAddToSpecFileEnabled = this->getBoolean(CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE,
+                                                          true);
+    
     this->animationStartTime = this->qSettings->value(CaretPreferences::NAME_ANIMATION_START_TIME).toDouble();
 
     this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,

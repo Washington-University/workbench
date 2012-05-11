@@ -86,7 +86,8 @@ namespace caret {
         bool isQuittingWorkbench;
         
         static bool previousSaveFileAddToSpecFileSelection;
-
+        static bool firstWindowFlag;
+        
         friend class ManageFileRow;
         
     };
@@ -132,8 +133,8 @@ namespace caret {
     };
     
 #ifdef __MANAGE_LOADED_FILES_DIALOG_DECLARE__
+    bool ManageLoadedFilesDialog::firstWindowFlag = true;
     bool ManageLoadedFilesDialog::previousSaveFileAddToSpecFileSelection = true;
-    
 #endif // __MANAGE_LOADED_FILES_DIALOG_DECLARE__
 
 } // namespace

@@ -31,6 +31,7 @@
 #include "CaretAssert.h"
 #include "CaretDataFile.h"
 #include "CaretMappableDataFile.h"
+#include "CaretPreferences.h"
 #include "EventManager.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventUserInterfaceUpdate.h"
@@ -38,6 +39,7 @@
 #include "CaretFileDialog.h"
 #include "CursorDisplayScoped.h"
 #include "FileInformation.h"
+#include "SessionManager.h"
 #include "SpecFile.h"
 #include "SpecFileCreateAddToDialog.h"
 #include "WuQMessageBox.h"
@@ -79,6 +81,11 @@ ManageLoadedFilesDialog::ManageLoadedFilesDialog(QWidget* parent,
 : WuQDialogModal("Manage and Save Loaded Files",
                  parent)
 {
+    if (ManageLoadedFilesDialog::firstWindowFlag) {
+        ManageLoadedFilesDialog::firstWindowFlag = false;
+        CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+        ManageLoadedFilesDialog::previousSaveFileAddToSpecFileSelection = prefs->isDataFileAddToSpecFileEnabled();
+    }
     this->brain = brain;
     this->isQuittingWorkbench = isQuittingWorkbench;
     
