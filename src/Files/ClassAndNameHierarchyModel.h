@@ -118,6 +118,11 @@ namespace caret {
             
             void removeNamesWithCountersEqualZero();
             
+            bool isExpanded(const DisplayGroupEnum::Enum displayGroup) const;
+            
+            void setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                             const bool expanded);
+            
         private:
             /** If keys are removed, they are stored here for future reuse. */
             std::deque<int32_t> availableNameKeys;
@@ -127,6 +132,9 @@ namespace caret {
             
             /** Maps a name to its name information.  Map is fastest way to search by name.   */
             std::map<AString, NameDisplayGroupSelector*> nameToNameSelectorMap;
+            
+            /** Expanded (collapsed) status */        
+            bool expandedStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         };
         
     public:
@@ -174,21 +182,26 @@ namespace caret {
                      int32_t& parentClassKeyOut,
                      int32_t& nameKeyOut);
         
-        bool isClassSelected(DisplayGroupEnum::Enum displayGroup,
+        bool isClassSelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t classKey) const;
         
-        void setClassSelected(DisplayGroupEnum::Enum displayGroup,
+        void setClassSelected(const DisplayGroupEnum::Enum displayGroup,
                               const int32_t classKey,
                               const bool selected);
         
-        bool isNameSelected(DisplayGroupEnum::Enum displayGroup,
+        bool isNameSelected(const DisplayGroupEnum::Enum displayGroup,
                             const int32_t parentClassKey,
                             const int32_t nameKey) const;
 
-        void setNameSelected(DisplayGroupEnum::Enum displayGroup,
+        void setNameSelected(const DisplayGroupEnum::Enum displayGroup,
                              const int32_t parentClassKey,
                              const int32_t nameKey,
                              const bool selected);
+        
+        bool isExpanded(const DisplayGroupEnum::Enum displayGroup) const;
+        
+        void setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                         const bool expanded);
         
     private:
         ClassAndNameHierarchyModel(const ClassAndNameHierarchyModel&);
@@ -201,6 +214,9 @@ namespace caret {
         /* overlay selection status */
         bool selectionStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
         
+        /** Expanded (collapsed) status */        
+        bool expandedStatus[DisplayGroupEnum::NUMBER_OF_GROUPS];
+
         /** If keys are removed, they are stored here for future reuse. */
         std::deque<int32_t> availableClassKeys;
         

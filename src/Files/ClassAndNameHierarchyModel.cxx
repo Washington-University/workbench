@@ -80,6 +80,9 @@ ClassAndNameHierarchyModel::ClassAndNameHierarchyModel()
     for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
         this->selectionStatus[i] = true;
     }
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        this->expandedStatus[i] = true;
+    }
 }
 
 /**
@@ -112,7 +115,7 @@ ClassAndNameHierarchyModel::clear()
     this->keyToClassNameSelectorVector.clear();
     this->classNameToClassSelectorMap.clear();
     
-    this->availableClassKeys.clear();    
+    this->availableClassKeys.clear();        
 }
 
 /**
@@ -805,6 +808,39 @@ void ClassAndNameHierarchyModel::setNameSelected(DisplayGroupEnum::Enum displayG
     
 }
 
+/**
+ * @return The expanded status.
+ * @param displayGroup
+ *    Display group for which selection status is set.
+ */
+bool 
+ClassAndNameHierarchyModel::isExpanded(const DisplayGroupEnum::Enum displayGroup) const
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selected, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    return this->expandedStatus[displayIndex];
+}
+
+/**
+ * Set the expanded status.
+ * @param displayGroup
+ *    Display group for which selection status is set.
+ * @param expanded
+ *    New expaned status.
+ */
+void 
+ClassAndNameHierarchyModel::setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                        const bool expanded)
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selected, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    this->expandedStatus[displayIndex] = expanded;
+}
+
 //===================================================================
 
 /**
@@ -970,6 +1006,10 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::clear()
     this->nameToNameSelectorMap.clear();
     
     this->availableNameKeys.clear();
+    
+    for (int32_t i = 0; i < DisplayGroupEnum::NUMBER_OF_GROUPS; i++) {
+        this->expandedStatus[i] = false;
+    }
 }
 
 /**
@@ -1192,6 +1232,40 @@ ClassAndNameHierarchyModel::ClassDisplayGroupSelector::removeNamesWithCountersEq
         }
     }
 }
+
+/**
+ * @param displayGroup
+ *    Display group for which selection status is set.
+ * @return The expanded status.
+ */
+bool 
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::isExpanded(const DisplayGroupEnum::Enum displayGroup) const
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selected, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    return this->expandedStatus[displayIndex];
+}
+
+/**
+ * Set the expanded status.
+ * @param displayGroup
+ *    Display group for which selection status is set.
+ * @param expanded
+ *    New expaned status.
+ */
+void 
+ClassAndNameHierarchyModel::ClassDisplayGroupSelector::setExpanded(const DisplayGroupEnum::Enum displayGroup,
+                                                                   const bool expanded)
+{
+    const int32_t displayIndex = (int32_t)displayGroup;
+    CaretAssertArrayIndex(this->selected, 
+                          DisplayGroupEnum::NUMBER_OF_GROUPS, 
+                          displayIndex);
+    this->expandedStatus[displayIndex] = expanded;
+}
+
 
 
 

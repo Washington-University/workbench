@@ -81,6 +81,10 @@ ClassAndNameHierarchyViewController::ClassAndNameHierarchyViewController(const i
     this->treeWidget->setColumnCount(1);
     QObject::connect(this->treeWidget, SIGNAL(itemChanged(QTreeWidgetItem*,int)),
                      this, SLOT(treeWidgetItemChanged(QTreeWidgetItem*,int)));
+    QObject::connect(this->treeWidget, SIGNAL(itemCollapsed(QTreeWidgetItem*)),
+                     this, SLOT(treeWidgetItemCollapsed(QTreeWidgetItem*)));
+    QObject::connect(this->treeWidget, SIGNAL(itemExpanded(QTreeWidgetItem*)),
+                     this, SLOT(treeWidgetItemExpanded(QTreeWidgetItem*)));
     
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
@@ -99,6 +103,10 @@ ClassAndNameHierarchyViewController::~ClassAndNameHierarchyViewController()
 /**
  * Called when an item in the border selection tree widget
  * is changed.
+ * @param item
+ *    Item that is changed.
+ * @param column
+ *    Not used.
  */
 void 
 ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item,
@@ -106,6 +114,7 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
 {
     void* ptr = item->data(0, Qt::UserRole).value<void*>();
     ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
+    CaretAssert(selectionInfo);
     
     const bool isSelected = (item->checkState(0) == Qt::Checked);
     
@@ -141,6 +150,88 @@ ClassAndNameHierarchyViewController::treeWidgetItemChanged(QTreeWidgetItem* item
     }
     
     emit itemSelected(selectionInfo);
+}
+
+/**
+ * Called when an item in the border selection tree widget
+ * is collapsed.
+ * @param item
+ *    Item that is collapsed.
+ */
+void 
+ClassAndNameHierarchyViewController::treeWidgetItemCollapsed(QTreeWidgetItem* item)
+{    
+    void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
+    CaretAssert(selectionInfo);
+    
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    
+    switch (selectionInfo->getItemType()) {
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
+        {
+            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            CaretAssert(hierarchyModel);
+            hierarchyModel->setExpanded(displayGroup,
+                                        false);
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
+        {
+            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            CaretAssert(classSelector);
+            classSelector->setExpanded(displayGroup, 
+                                       false);
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
+            break;
+    }
+}
+
+/**
+ * Called when an item in the border selection tree widget
+ * is expanded.
+ * @param item
+ *    Item that is expanded.
+ */
+void 
+ClassAndNameHierarchyViewController::treeWidgetItemExpanded(QTreeWidgetItem* item)
+{
+    void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
+    CaretAssert(selectionInfo);
+    
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    
+    switch (selectionInfo->getItemType()) {
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
+        {
+            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            CaretAssert(hierarchyModel);
+            hierarchyModel->setExpanded(displayGroup,
+                                        true);
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
+        {
+            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            CaretAssert(classSelector);
+            classSelector->setExpanded(displayGroup, 
+                                       true);
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
+            break;
+    }
 }
 
 /**
@@ -280,9 +371,9 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
                 QTreeWidgetItem* classItem = this->createTreeWidgetItem(classSelector->getName(),
                                                                         classSelector->isSelected(displayGroup),
                                                                         classInfo);
-                classItem->addChildren(nameTreeWidgets);
-                
+                classItem->addChildren(nameTreeWidgets);                
                 classTreeWidgets.append(classItem);
+                classItem->setExpanded(classSelector->isExpanded(displayGroup));
             }
         }
         
@@ -293,24 +384,77 @@ ClassAndNameHierarchyViewController::updateContents(std::vector<ClassAndNameHier
             ClassAndNameHierarchySelectedItem* modelInfo = 
                new ClassAndNameHierarchySelectedItem(classNamesModel);
             QTreeWidgetItem* modelItem = this->createTreeWidgetItem(classNamesModel->getName(), 
-                                                                    true, 
+                                                                    classNamesModel->isSelected(displayGroup), 
                                                                     modelInfo);
-            modelItem->addChildren(classTreeWidgets);
-            
+            modelItem->addChildren(classTreeWidgets);                                   
             this->treeWidget->addTopLevelItem(modelItem);
+            modelItem->setExpanded(classNamesModel->isExpanded(displayGroup));
         }
     }
     
     /*
+     * Expand collapse items
+     */
+    const int numTopItems = this->treeWidget->topLevelItemCount();
+    for (int nti = 0; nti < numTopItems; nti++) {
+        QTreeWidgetItem* twi = this->treeWidget->topLevelItem(nti);
+        this->expandCollapseTreeWidgetItem(twi);
+        const int numChildren = twi->childCount();
+        for (int ic = 0; ic < numChildren; ic++) {
+            QTreeWidgetItem* child = twi->child(ic);
+            this->expandCollapseTreeWidgetItem(child);
+        }
+    }
+
+    /*
      * File Open, Class Closed
      */
-    this->treeWidget->collapseAll();
-    this->treeWidget->expandToDepth(0);
+//    this->treeWidget->collapseAll();
+//    this->treeWidget->expandToDepth(0);
     
 //    this->treeWidget->expandAll();
     
     this->treeWidget->blockSignals(false);
 }
+
+/**
+ * Expand or collapse tree widget item using its assigned model's status.
+ * @param item
+ *    The tree widget item.
+ */
+void 
+ClassAndNameHierarchyViewController::expandCollapseTreeWidgetItem(QTreeWidgetItem* item)
+{
+    void* ptr = item->data(0, Qt::UserRole).value<void*>();
+    ClassAndNameHierarchySelectedItem* selectionInfo = (ClassAndNameHierarchySelectedItem*)ptr;
+    CaretAssert(selectionInfo);
+    
+    BrowserTabContent* browserTabContent = 
+    GuiManager::get()->getBrowserTabContentForBrowserWindow(this->browserWindowIndex, false);
+    const int32_t browserTabIndex = browserTabContent->getTabNumber();
+    DisplayPropertiesBorders* displayPropertiesBorders = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    DisplayGroupEnum::Enum displayGroup = displayPropertiesBorders->getDisplayGroup(browserTabIndex);
+    
+    switch (selectionInfo->getItemType()) {
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_HIERARCHY_MODEL:
+        {
+            ClassAndNameHierarchyModel* hierarchyModel = selectionInfo->getClassAndNameHierarchyModel();
+            CaretAssert(hierarchyModel);
+            item->setExpanded(hierarchyModel->isExpanded(displayGroup));
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_CLASS:
+        {
+            ClassAndNameHierarchyModel::ClassDisplayGroupSelector* classSelector = selectionInfo->getClassDisplayGroupSelector();
+            CaretAssert(classSelector);
+            item->setExpanded(classSelector->isExpanded(displayGroup));
+        }
+            break;
+        case ClassAndNameHierarchySelectedItem::ITEM_TYPE_NAME:
+            break;
+    }
+}
+
 
 /**
  * Create a tree widget item that is checkable.

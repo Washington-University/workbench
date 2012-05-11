@@ -73,6 +73,10 @@ namespace caret {
         void treeWidgetItemChanged(QTreeWidgetItem* item,
                                    int column);
         
+        void treeWidgetItemCollapsed(QTreeWidgetItem* item);
+        
+        void treeWidgetItemExpanded(QTreeWidgetItem* item);
+        
 
     private:
         ClassAndNameHierarchyViewController(const ClassAndNameHierarchyViewController&);
@@ -86,6 +90,8 @@ namespace caret {
         QTreeWidgetItem* createTreeWidgetItem(const AString& name,
                                               const bool isSelected,
                                               ClassAndNameHierarchySelectedItem* selectionInfo);
+        
+        void expandCollapseTreeWidgetItem(QTreeWidgetItem* twi);
         
         std::vector<ClassAndNameHierarchyModel*> classAndNameHierarchyModels;
         
