@@ -266,7 +266,7 @@ ConnectivityTimeSeriesViewController::updateViewController(ConnectivityLoaderFil
         }
         this->yokeCheckBox->setCheckState(enabledState);
         
-        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
+        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
     }
     else {
         this->deleteAnimator();

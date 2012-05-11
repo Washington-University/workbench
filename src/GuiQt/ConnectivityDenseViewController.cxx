@@ -145,7 +145,7 @@ ConnectivityDenseViewController::updateViewController(ConnectivityLoaderFile* co
         }
         this->enabledCheckBox->setCheckState(enabledState);
         
-        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileNameNoPath());
+        this->fileNameLineEdit->setText(this->connectivityLoaderFile->getFileName());
         
     }
 }
