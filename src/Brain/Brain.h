@@ -229,7 +229,7 @@ namespace caret {
         
         void readSceneFile(const AString& filename) throw (DataFileException);
         
-        AString updateFileNameForReading(const AString& filename);
+        AString updateFileNameForReadingAndWriting(const AString& filename);
         
         void updateVolumeSliceController();
         

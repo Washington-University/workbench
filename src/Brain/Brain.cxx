@@ -1366,7 +1366,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
     AString dataFileName = dataFileNameIn;
     
     if (dataFileName.contains("://") == false) {
-        dataFileName = this->updateFileNameForReading(dataFileNameIn);
+        dataFileName = this->updateFileNameForReadingAndWriting(dataFileNameIn);
         FileInformation fileInfo(dataFileName);
         if (fileInfo.exists() == false) {
             throw DataFileException(dataFileName
@@ -1572,7 +1572,7 @@ Brain::loadFilesSelectedInSpecFile(EventSpecFileReadDataFiles* readSpecFileDataF
  *    the input filename was a relative path.
  */
 AString 
-Brain::updateFileNameForReading(const AString& filename)
+Brain::updateFileNameForReadingAndWriting(const AString& filename)
 {
     FileInformation fileInfo(filename);
     if (fileInfo.isAbsolute()) {
@@ -1745,6 +1745,13 @@ Brain::getAllDataFiles(std::vector<CaretDataFile*>& allDataFilesOut)
 void 
 Brain::writeDataFile(CaretDataFile* caretDataFile) throw (DataFileException)
 {
+    /*
+     * If file is relative path, update path using current directory
+     */
+    AString dataFileName = caretDataFile->getFileName();
+    dataFileName = this->updateFileNameForReadingAndWriting(dataFileName);
+    caretDataFile->setFileName(dataFileName);
+
     caretDataFile->writeFile(caretDataFile->getFileName());
     caretDataFile->clearModified();
     
