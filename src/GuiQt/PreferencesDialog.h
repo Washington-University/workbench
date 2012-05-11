@@ -31,6 +31,7 @@
 class QCheckBox;
 class QComboBox;
 class QDoubleSpinBox;
+class QGridLayout;
 class QSpinBox;
 
 namespace caret {
@@ -58,19 +59,19 @@ namespace caret {
         void volumeAxesCrosshairsCheckBoxToggled(bool value);
         void volumeAxesLabelsCheckBoxToggled(bool value);
         
-        void identificationContralateralCheckBoxToggled(bool value);
-
         void animationStartChanged(double value);
         
-        void toolBoxTypeSpinBoxChanged(int value);
-        
     private:
-        QWidget* createColorsWidget();
-        QWidget* createDeveloperWidget();
-        QWidget* createIdentificationWidget();
-        QWidget* createLoggingWidget();
-        QWidget* createVolumeWidget();
-        QWidget* createTimeCourseWidget();
+        void addColorItems();
+        void addLoggingItems();
+        void addVolumeItems();
+        void addTimeCourseItems();
+        
+        void addWidgetToLayout(const QString& labelText,
+                               QWidget* widget);
+        
+        void addWidgetsToLayout(QWidget* leftWidget,
+                             QWidget* rightWidget);
         
         PreferencesDialog(const PreferencesDialog&);
 
@@ -81,14 +82,15 @@ namespace caret {
 
         QComboBox* loggingLevelComboBox;
         
+        WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
+        WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
+        
         QCheckBox* volumeAxesCrosshairsCheckBox;
         QCheckBox* volumeAxesLabelsCheckBox;
         
-        QCheckBox* identificationContralateralCheckBox;
-
         QDoubleSpinBox* animationStartDoubleSpinBox;
         
-        QSpinBox* toolBoxTypeSpinBox;
+        QGridLayout* gridLayout;
         
         WuQWidgetObjectGroup* allWidgets;
     };

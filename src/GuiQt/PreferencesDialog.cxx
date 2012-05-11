@@ -84,14 +84,15 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
      */
     this->allWidgets = new WuQWidgetObjectGroup(this);
     
-    QTabWidget* tabWidget = new QTabWidget();
-    tabWidget->addTab(this->createColorsWidget(), "Colors");
-    tabWidget->addTab(this->createDeveloperWidget(), "Developer");
-//    tabWidget->addTab(this->createIdentificationWidget(), "ID");
-    tabWidget->addTab(this->createLoggingWidget(), "Logging");
-    tabWidget->addTab(this->createVolumeWidget(), "Volume");
-    tabWidget->addTab(this->createTimeCourseWidget(), "TimeCourse");
-    this->setCentralWidget(tabWidget);
+    QWidget* widget = new QWidget();
+    this->gridLayout = new QGridLayout(widget);
+    
+    this->addColorItems();
+    this->addLoggingItems();
+    this->addTimeCourseItems();
+    this->addVolumeItems();
+    
+    this->setCentralWidget(widget);
 }
 
 /**
@@ -100,6 +101,46 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
 PreferencesDialog::~PreferencesDialog()
 {
     
+}
+
+/**
+ * Add a label in the left column and the widget in the right column.
+ * @param labelText
+ *    Text for label.
+ * @param widget
+ *    Widget for right column.
+ */
+void 
+PreferencesDialog::addWidgetToLayout(const QString& labelText,
+                                     QWidget* widget)
+{
+    QLabel* label = new QLabel(labelText);
+    label->setAlignment(Qt::AlignRight);
+    this->addWidgetsToLayout(label, 
+                             widget);
+}
+
+/**
+ * Add widgets to the layout.  If rightWidget is NULL,
+ * leftItem spans both columns.
+ *
+ * @param leftWidget
+ *    Widget for left column.
+ * @param rightWidget
+ *    Widget for right column.
+ */
+void 
+PreferencesDialog::addWidgetsToLayout(QWidget* leftWidget,
+                                   QWidget* rightWidget)
+{
+    int row = this->gridLayout->rowCount();
+    if (rightWidget != NULL) {
+        this->gridLayout->addWidget(leftWidget, row, 0);
+        this->gridLayout->addWidget(rightWidget, row, 1);
+    }
+    else {
+        this->gridLayout->addWidget(leftWidget, row, 0, 1, 2, Qt::AlignLeft);
+    }
 }
 
 /**
@@ -136,10 +177,6 @@ PreferencesDialog::updateDialog()
     
     this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
-    
-//    this->identificationContralateralCheckBox->setChecked(prefs->isContralateralIdentificationEnabled());
-    
-    this->toolBoxTypeSpinBox->setValue(prefs->getToolBoxType());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -214,48 +251,33 @@ void PreferencesDialog::applyButtonPressed()
 
 /**
  * Creates colors widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createColorsWidget()
+void
+PreferencesDialog::addColorItems()
 {
-    QPushButton* foregroundPushButton = new QPushButton("Set Foreground...");
+    QPushButton* foregroundPushButton = new QPushButton("Foreground Color...");
     QObject::connect(foregroundPushButton, SIGNAL(clicked()),
                      this, SLOT(foregroundColorPushButtonPressed()));
     this->foregroundColorWidget = new QWidget();
     
-    QPushButton* backgroundPushButton = new QPushButton("Set Background...");
+    QPushButton* backgroundPushButton = new QPushButton("Background Color...");
     QObject::connect(backgroundPushButton, SIGNAL(clicked()),
                      this, SLOT(backgroundColorPushButtonPressed()));
     this->backgroundColorWidget = new QWidget();
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(foregroundPushButton, 0, 0);
-    gridLayout->addWidget(this->foregroundColorWidget, 0, 1);
-    gridLayout->addWidget(backgroundPushButton, 1, 0);
-    gridLayout->addWidget(this->backgroundColorWidget, 1, 1);
-
-    return w;
+    this->addWidgetsToLayout(backgroundPushButton, 
+                             this->backgroundColorWidget);
+    this->addWidgetsToLayout(foregroundPushButton, 
+                             this->foregroundColorWidget);
 }
 
 /**
  * Creates time course widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createTimeCourseWidget()
+void 
+PreferencesDialog::addTimeCourseItems()
 {
-    QLabel* animationStartLabel = new QLabel("Animation Starts at: ");
     this->animationStartDoubleSpinBox = new QDoubleSpinBox();
-
-    
-    
-    
-   
-    
     QObject::connect(this->animationStartDoubleSpinBox, SIGNAL(valueChanged(double)),
                      this, SLOT(animationStartChanged(double)));
     
@@ -267,12 +289,9 @@ PreferencesDialog::createTimeCourseWidget()
     this->animationStartDoubleSpinBox->blockSignals(true);
     this->animationStartDoubleSpinBox->setValue(time);    
     this->animationStartDoubleSpinBox->blockSignals(false);
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(animationStartLabel, 0, 0);
-    gridLayout->addWidget(this->animationStartDoubleSpinBox, 0, 1);   
-    
-    return w;
+
+    this->addWidgetToLayout("Timecourse Animation Starts at: ", 
+                             this->animationStartDoubleSpinBox);
 }
 
 /**
@@ -290,13 +309,10 @@ PreferencesDialog::animationStartChanged(double value)
 }
 /**
  * Creates logging widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createLoggingWidget()
+void
+PreferencesDialog::addLoggingItems()
 {
-    QLabel* loggingLevelLabel = new QLabel("Logging Level: ");
     this->loggingLevelComboBox = new QComboBox();
     
     std::vector<LogLevelEnum::Enum> loggingLevels;
@@ -312,20 +328,14 @@ PreferencesDialog::createLoggingWidget()
     
     this->allWidgets->add(this->loggingLevelComboBox);
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(loggingLevelLabel, 0, 0);
-    gridLayout->addWidget(this->loggingLevelComboBox, 0, 1);
-    return w;
+    this->addWidgetToLayout("Logging Level: ", this->loggingLevelComboBox);
 }
 
 /**
  * Creates volume widget.
- * @return
- *    Its widget.
  */
-QWidget* 
-PreferencesDialog::createVolumeWidget()
+void
+PreferencesDialog::addVolumeItems()
 {
     this->volumeAxesCrosshairsCheckBox = new QCheckBox("Axes Crosshairs");
     QObject::connect(this->volumeAxesCrosshairsCheckBox, SIGNAL(toggled(bool)),
@@ -338,11 +348,10 @@ PreferencesDialog::createVolumeWidget()
     this->allWidgets->add(this->volumeAxesCrosshairsCheckBox);
     this->allWidgets->add(this->volumeAxesLabelsCheckBox);
     
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(this->volumeAxesCrosshairsCheckBox, 0, 0);
-    gridLayout->addWidget(this->volumeAxesLabelsCheckBox, 1, 0);
-    return w;
+    this->addWidgetToLayout("Volume Axes Crosshairs: ", 
+                            this->volumeAxesCrosshairsCheckBox);
+    this->addWidgetToLayout("Volume Axes Labels: ", 
+                            this->volumeAxesLabelsCheckBox);
 }
 
 /**
@@ -371,74 +380,5 @@ PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
     EventManager::get()->sendEvent(EventGraphicsUpdateAllWindows().getPointer());
 }
 
-/**
- * Creates identification widget.
- * @return
- *    Its widget.
- */
-QWidget* 
-PreferencesDialog::createIdentificationWidget()
-{
-    this->identificationContralateralCheckBox = new QCheckBox("Contralateral");
-    WuQtUtilities::setToolTipAndStatusTip(this->identificationContralateralCheckBox, 
-                                          "Enables contralateral (right<==>left) identification");
-    QObject::connect(this->identificationContralateralCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(identificationContralateralCheckBoxToggled(bool)));
-    
-    
-    this->allWidgets->add(this->identificationContralateralCheckBox);
-    
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(this->identificationContralateralCheckBox, 0, 0);
-    return w;
-}
-
-/**
- * Creates developer widget.
- * @return
- *    Its widget.
- */
-QWidget* 
-PreferencesDialog::createDeveloperWidget()
-{
-    QLabel* toolBoxLabel = new QLabel("ToolBox Type");
-    this->toolBoxTypeSpinBox = new QSpinBox();
-    this->toolBoxTypeSpinBox->setRange(0, 100);
-    this->toolBoxTypeSpinBox->setSingleStep(1);    
-    QObject::connect(this->toolBoxTypeSpinBox, SIGNAL(valueChanged(int)),
-                     this, SLOT(toolBoxTypeSpinBoxChanged(int)));
-    
-    
-    this->allWidgets->add(this->toolBoxTypeSpinBox);
-    
-    QWidget* w = new QWidget();
-    QGridLayout* gridLayout = new QGridLayout(w);
-    gridLayout->addWidget(toolBoxLabel, 0, 0);
-    gridLayout->addWidget(this->toolBoxTypeSpinBox, 0, 1);
-    return w;
-}
-
-/**
- * Called when toolbox type changed.
- */
-void 
-PreferencesDialog::toolBoxTypeSpinBoxChanged(int value)
-{
-    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setToolBoxType(value);
-}
-
-/**
- * Called when contralateral checkbox is toggled.
- * @param value
- *    New value.
- */
-void 
-PreferencesDialog::identificationContralateralCheckBoxToggled(bool /*value*/)
-{
-//    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-//    prefs->setContralateralIdentificationEnabled(value);    
-}
 
 
