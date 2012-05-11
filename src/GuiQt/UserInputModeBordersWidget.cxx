@@ -48,6 +48,7 @@
 #include "BrainStructure.h"
 #include "BrowserTabContent.h"
 #include "CaretAssert.h"
+#include "DisplayPropertiesBorders.h"
 #include "EventGraphicsUpdateAllWindows.h"
 #include "EventManager.h"
 #include "GuiManager.h"
@@ -428,6 +429,10 @@ UserInputModeBordersWidget::drawFinishButtonClicked()
     if (surface == NULL) {
         return;
     }
+    
+    DisplayPropertiesBorders* dpb = GuiManager::get()->getBrain()->getDisplayPropertiesBorders();
+    dpb->setDisplayed(btc->getTabNumber(), 
+                      true);
     
     switch (this->inputModeBorders->getDrawOperation()) {
         case UserInputModeBorders::DRAW_OPERATION_CREATE:
