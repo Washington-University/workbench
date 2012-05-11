@@ -364,10 +364,10 @@ void
 UserInputModeBorders::setMode(const Mode mode)
 {
     if (this->mode != mode) {
+        this->mode = mode;
         this->borderBeingDrawnByOpenGL->clear();
         EventManager::get()->sendEvent(EventGraphicsUpdateOneWindow(this->windowIndex).getPointer());
     }
-    this->mode = mode;
     this->borderToolsWidget->updateWidget();
 }
 
