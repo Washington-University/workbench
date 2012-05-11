@@ -54,21 +54,22 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti", "the input cifti");
     
-    ret->addDoubleParameter(2, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    ret->addCiftiOutputParameter(2, "cifti-out", "the output cifti");
     
-    ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti");
-    
-    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(4, "-left-surface", "specify the left surface to use");
+    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(3, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
     
-    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(5, "-right-surface", "specify the right surface to use");
+    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(4, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(6, "-cereb-surface", "specify the cerebellum surface to use");
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(5, "-cereb-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
-    OptionalParameter* presmoothOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
-    presmoothOpt->addDoubleParameter(1, "presmooth-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(6, "-surface-presmooth", "smooth on the surface before computing the gradient");
+    presmoothSurfOpt->addDoubleParameter(1, "surface-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    
+    OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(7, "-volume-presmooth", "smooth the volume before computing the gradient");
+    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
     ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher z transformed");
     
@@ -94,29 +95,34 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
 void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* myCifti = myParams->getCifti(1);
-    float volKern = (float)myParams->getDouble(2);
-    CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
+    CiftiFile* myCiftiOut = myParams->getOutputCifti(2);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
-    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(4);
+    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(3);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
     }
-    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(4);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
     }
-    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(5);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
     }
     float surfKern = -1.0f;
-    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(7);
-    if (presmoothOpt->m_present)
+    OptionalParameter* presmoothSurfOpt = myParams->getOptionalParameter(6);
+    if (presmoothSurfOpt->m_present)
     {
-        surfKern = (float)presmoothOpt->getDouble(1);
+        surfKern = (float)presmoothSurfOpt->getDouble(1);
+    }
+    float volKern = -1.0f;
+    OptionalParameter* presmoothVolOpt = myParams->getOptionalParameter(7);
+    if (presmoothVolOpt->m_present)
+    {
+        volKern = (float)presmoothVolOpt->getDouble(1);
     }
     bool undoFisher = myParams->getOptionalParameter(8)->m_present;
     float surfaceExclude = -1.0f;
@@ -150,12 +156,12 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, volKern, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, undoFisher, surfaceExclude, volumeExclude, memLimitGB);
+    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, volKern, undoFisher, surfaceExclude, volumeExclude, memLimitGB);
 }
 
-AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern,
-                                                                     CiftiFile* myCiftiOut, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
-                                                                     SurfaceFile* myCerebSurf, const float& surfKern, const bool& undoFisher,
+AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+                                                                     SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf, SurfaceFile* myCerebSurf,
+                                                                     const float& surfKern, const float& volKern, const bool& undoFisher,
                                                                      const float& surfaceExclude, const float& volumeExclude, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);

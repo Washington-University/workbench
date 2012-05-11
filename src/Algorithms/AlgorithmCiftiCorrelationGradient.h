@@ -75,9 +75,9 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern,
-                                            CiftiFile* myCiftiOut, SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL,
-                                            SurfaceFile* myCerebSurf = NULL, const float& surfKern = -1.0f, const bool& undoFisher = false,
+        AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, CiftiFile* myCiftiOut,
+                                            SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL, SurfaceFile* myCerebSurf = NULL,
+                                            const float& surfKern = -1.0f, const float& volKern = -1.0f, const bool& undoFisher = false,
                                             const float& surfaceExclude = -1.0f, const float& volumeExclude = -1.0f, const float& memLimitGB = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
