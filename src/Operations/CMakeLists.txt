@@ -21,6 +21,7 @@ AbstractOperation.h
 OperationAddToSpecFile.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
+OperationCiftiROIAverage.h
 OperationException.h
 OperationMetricMask.h
 OperationMetricPalette.h
@@ -32,6 +33,7 @@ AbstractOperation.cxx
 OperationAddToSpecFile.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
+OperationCiftiROIAverage.cxx
 OperationException.cxx
 OperationMetricMask.cxx
 OperationMetricPalette.cxx

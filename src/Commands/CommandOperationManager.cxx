@@ -48,6 +48,7 @@
 #include "OperationAddToSpecFile.h"
 #include "OperationCiftiChangeTimestep.h"
 #include "OperationCiftiConvert.h"
+#include "OperationCiftiROIAverage.h"
 #include "OperationMetricMask.h"
 #include "OperationMetricPalette.h"
 #include "OperationSetStructure.h"
@@ -125,6 +126,7 @@ CommandOperationManager::CommandOperationManager()
     this->commandOperations.push_back(new CommandParser(new AutoOperationAddToSpecFile()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiChangeTimestep()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiConvert()));
+    this->commandOperations.push_back(new CommandParser(new AutoOperationCiftiROIAverage()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricMask()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationMetricPalette()));
     this->commandOperations.push_back(new CommandParser(new AutoOperationSetStructure()));
