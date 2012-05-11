@@ -67,8 +67,8 @@ GiftiTypeFile::~GiftiTypeFile()
 GiftiTypeFile::GiftiTypeFile(const GiftiTypeFile& gtf)
 : CaretMappableDataFile(gtf)
 {
-    this->copyHelperGiftiTypeFile(gtf);
-}
+    this->giftiFile = new GiftiFile(*gtf.giftiFile);//NOTE: while CONSTRUCTING, this has virtual type GiftiTypeFile*, NOT MetricFile*, or whatever
+}//so, validateDataArraysAfterReading will ABORT due to pure virtual
 
 /**
  * Assignment operator.
