@@ -89,8 +89,9 @@ PreferencesDialog::PreferencesDialog(QWidget* parent)
     this->gridLayout = new QGridLayout(widget);
     
     this->addColorItems();
-    this->createDataFileItems();
+    this->addDataFileItems();
     this->addLoggingItems();
+    this->addSplashItems();
     this->addTimeCourseItems();
     this->addVolumeItems();
     
@@ -388,7 +389,7 @@ PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
  * Create data file items.
  */
 void 
-PreferencesDialog::createDataFileItems()
+PreferencesDialog::addDataFileItems()
 {
     this->dataFileAddToSpecFileComboBox = new WuQTrueFalseComboBox("On",
                                                              "Off",
@@ -410,6 +411,30 @@ PreferencesDialog::dataFileAddToSpecFileComboBoxChanged(bool value)
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesLabelsDisplayed(value);    
     prefs->setDataFileAddToSpecFileEnabled(value);
+}
+
+/**
+ * Add splash screen items.
+ */
+void PreferencesDialog::addSplashItems()
+{
+    this->splashScreenShowAtStartupComboBox = new WuQTrueFalseComboBox("On",
+                                                                       "Off",
+                                                                       this);
+    QObject::connect(this->splashScreenShowAtStartupComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(splashScreenShowAtStartupComboBoxChanged(bool)));
+    this->addWidgetToLayout("Show Splash Screen at Startup: ", 
+                            this->splashScreenShowAtStartupComboBox->getWidget());
+}
+
+/**
+ * Called when add data file to spec file option changed.
+ * @param value
+ *   New value.
+ */
+void PreferencesDialog::splashScreenShowAtStartupComboBoxChanged(bool value)
+{
+    
 }
 
 

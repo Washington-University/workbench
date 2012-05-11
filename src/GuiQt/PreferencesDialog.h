@@ -61,13 +61,15 @@ namespace caret {
         void volumeAxesLabelsComboBoxToggled(bool value);
         
         void dataFileAddToSpecFileComboBoxChanged(bool value);
+        void splashScreenShowAtStartupComboBoxChanged(bool value);
         
         void animationStartChanged(double value);
         
     private:
         void addColorItems();
-        void createDataFileItems();
+        void addDataFileItems();
         void addLoggingItems();
+        void addSplashItems();
         void addVolumeItems();
         void addTimeCourseItems();
         
@@ -90,6 +92,8 @@ namespace caret {
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
         
         WuQTrueFalseComboBox* dataFileAddToSpecFileComboBox;
+        
+        WuQTrueFalseComboBox* splashScreenShowAtStartupComboBox;
         
         QDoubleSpinBox* animationStartDoubleSpinBox;
         
