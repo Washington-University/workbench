@@ -148,11 +148,16 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         throw AlgorithmException("invalid column number");
     }
     const MetricFile* toProcess = myMetricIn;
+    MetricFile processTemp;
+    int32_t useColumn = myColumn;
     if (myPresmooth > 0.0f)
     {
-        MetricFile* tempMetric = new MetricFile();
-        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, tempMetric, myRoi, myColumn);
-        toProcess = tempMetric;
+        AlgorithmMetricSmoothing(smoothProgress, mySurf, myMetricIn, myPresmooth, &processTemp, myRoi, myColumn);
+        toProcess = &processTemp;
+        if (myColumn != -1)
+        {
+            useColumn = 0;
+        }
     }
     mySurf->computeNormals(myAvgNormals);
     const float* myNormals = mySurf->getNormalData();
@@ -336,14 +341,14 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         {
             myVectorsOut->setNumberOfNodesAndColumns(numNodes, 3);
             myVectorsOut->setStructure(mySurf->getStructure());
-            myVectorsOut->setColumnName(0, toProcess->getColumnName(myColumn) + ", gradient vector X");
-            myVectorsOut->setColumnName(1, toProcess->getColumnName(myColumn) + ", gradient vector Y");
-            myVectorsOut->setColumnName(2, toProcess->getColumnName(myColumn) + ", gradient vector Z");
+            myVectorsOut->setColumnName(0, toProcess->getColumnName(useColumn) + ", gradient vector X");
+            myVectorsOut->setColumnName(1, toProcess->getColumnName(useColumn) + ", gradient vector Y");
+            myVectorsOut->setColumnName(2, toProcess->getColumnName(useColumn) + ", gradient vector Z");
             myVecScratch = new float[numNodes * 3];
         }
         myMetricOut->setNumberOfNodesAndColumns(numNodes, 1);
         myMetricOut->setStructure(mySurf->getStructure());
-        myMetricOut->setColumnName(0, toProcess->getColumnName(myColumn) + ", gradient");
+        myMetricOut->setColumnName(0, toProcess->getColumnName(useColumn) + ", gradient");
         const float* myRoiColumn;
         if (myRoi != NULL)
         {
@@ -354,7 +359,7 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         {
             float somevec[3], xhat[3], yhat[3];
             float sanity = 0.0f;
-            const float* myMetricColumn = toProcess->getValuePointerForColumn(myColumn);
+            const float* myMetricColumn = toProcess->getValuePointerForColumn(useColumn);
             CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
 #pragma omp CARET_FOR schedule(dynamic)
             for (int32_t i = 0; i < numNodes; ++i)
@@ -494,10 +499,6 @@ AlgorithmMetricGradient::AlgorithmMetricGradient(ProgressObject* myProgObj,
         {
             delete[] myVecScratch;
         }
-    }
-    if (myPresmooth > 0.0f)
-    {
-        delete toProcess;
     }
 }
 

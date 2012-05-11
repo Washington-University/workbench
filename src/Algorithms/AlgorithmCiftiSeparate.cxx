@@ -49,7 +49,7 @@ OperationParameters* AlgorithmCiftiSeparate::getParameters()
     
     ret->addCiftiParameter(1, "cifti-in", "the cifti to separate a component of");
     
-    ret->addStringParameter(2, "direction", "which dimension to interpret as a single map, ROW or COLUMN");
+    ret->addStringParameter(2, "direction", "which direction to separate into components, ROW or COLUMN");
     
     OptionalParameter* metricOpt = ret->createOptionalParameter(3, "-metric", "separate a surface model into a metric file");
     metricOpt->addStringParameter(1, "structure", "the structure to output");

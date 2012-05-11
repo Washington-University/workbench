@@ -188,14 +188,19 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
                             myScratch[i] = 0.0f;
                         }
                     } else {
-                        float sum = 0.0f;
                         WeightList& myWeightRef = m_weightLists[i];
-                        int32_t numWeights = myWeightRef.m_nodes.size();
-                        for (int32_t j = 0; j < numWeights; ++j)
+                        if (myWeightRef.m_weightSum != 0.0f)
                         {
-                            sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                            float sum = 0.0f;
+                            int32_t numWeights = myWeightRef.m_nodes.size();
+                            for (int32_t j = 0; j < numWeights; ++j)
+                            {
+                                sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                            }
+                            myScratch[i] = sum / myWeightRef.m_weightSum;
+                        } else {
+                            myScratch[i] = 0.0f;
                         }
-                        myScratch[i] = sum / myWeightRef.m_weightSum;
                     }
                 } else {
                     myScratch[i] = 0.0f;//zero other stuff
@@ -244,14 +249,19 @@ AlgorithmMetricSmoothing::AlgorithmMetricSmoothing(ProgressObject* myProgObj, co
                         myScratch[i] = 0.0f;
                     }
                 } else {
-                    float sum = 0.0f;
                     WeightList& myWeightRef = m_weightLists[i];
-                    int32_t numWeights = myWeightRef.m_nodes.size();
-                    for (int32_t j = 0; j < numWeights; ++j)
+                    if (myWeightRef.m_weightSum != 0.0f)
                     {
-                        sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                        float sum = 0.0f;
+                        int32_t numWeights = myWeightRef.m_nodes.size();
+                        for (int32_t j = 0; j < numWeights; ++j)
+                        {
+                            sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                        }
+                        myScratch[i] = sum / myWeightRef.m_weightSum;
+                    } else {
+                        myScratch[i] = 0.0f;
                     }
-                    myScratch[i] = sum / myWeightRef.m_weightSum;
                 }
             } else {
                 myScratch[i] = 0.0f;//zero other stuff
