@@ -517,41 +517,54 @@ void NiftiFile::writeVolumeFile(VolumeBase &vol, const AString &filename) throw 
                 break;//ignore unknown extensions since we don't know the ecode for them
         }
     }
-
-    if (vol.m_header == NULL)
-    {//default to nifti1 for now
-        Nifti1Header header;
-        header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
-        header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        header.setDimensions(myOrigDims);
-        headerIO.setHeader(header);
-        matrix.setMatrixLayoutOnDisk(header);
-    } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
-        Nifti1Header header;
-        headerIO.getHeader(header);
-        header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
-        header.setDimensions(myOrigDims);
-        headerIO.setHeader(header);
-        matrix.setMatrixLayoutOnDisk(header);
-    } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
+    std::vector<int64_t> myOrigDims;
+    myOrigDims = vol.getOriginalDimensions();
+    int components = vol.getNumberOfComponents();
+    if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
+    bool forceNifti2 = false;
+    for (int i = 0; i < (int)myOrigDims.size(); ++i)
+    {
+        if (myOrigDims[i] > 32767)
+        {
+            forceNifti2 = true;
+        }
+    }
+    if (forceNifti2)
+    {
         Nifti2Header header;
-        headerIO.getHeader(header);
+        if (vol.m_header != NULL)
+        {
+            headerIO.getHeader(header);
+            header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+        }
         header.setSForm(vol.getVolumeSpace());
-        std::vector<int64_t> myOrigDims;
-        myOrigDims = vol.getOriginalDimensions();
-        int components = vol.getNumberOfComponents();
-        if (components != 1) throw NiftiException("writing multi-component volumes not implemented");
         header.setDimensions(myOrigDims);
         headerIO.setHeader(header);
         matrix.setMatrixLayoutOnDisk(header);
+    } else {
+        if (vol.m_header == NULL)
+        {//default to nifti1 if the dimensions check out
+            Nifti1Header header;
+            header.setNiftiDataTypeEnum(NiftiDataTypeEnum::NIFTI_TYPE_FLOAT32);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        } else if (vol.m_header->getType() == AbstractHeader::NIFTI1) {
+            Nifti1Header header;
+            headerIO.getHeader(header);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        } else if (vol.m_header->getType() == AbstractHeader::NIFTI2) {
+            Nifti2Header header;
+            headerIO.getHeader(header);
+            header.setSForm(vol.getVolumeSpace());
+            header.setDimensions(myOrigDims);
+            headerIO.setHeader(header);
+            matrix.setMatrixLayoutOnDisk(header);
+        }
     }
     //matrix.setVolume(vol);
     this->m_fileName = filename;

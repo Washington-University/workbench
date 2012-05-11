@@ -60,7 +60,10 @@ void VolumeBase::reinitialize(const vector<uint64_t>& dimensionsIn, const vector
 void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<vector<float> >& indexToSpace, const int64_t numComponents)
 {
     freeMemory();
-    CaretAssert(dimensionsIn.size() >= 3);
+    if (dimensionsIn.size() < 3)
+    {
+        throw DataFileException("volume files must have 3 or more dimensions");
+    }
     CaretAssert(indexToSpace.size() == 3 || indexToSpace.size() == 4);//support using 3x4 and 4x4 as input
     CaretAssert(indexToSpace[0].size() == 4);
     CaretAssert(indexToSpace[1].size() == 4);
@@ -99,9 +102,11 @@ void VolumeBase::reinitialize(const vector<int64_t>& dimensionsIn, const vector<
     }
     m_dimensions[4] = numComponents;
     m_dataSize = m_dimensions[0] * m_dimensions[1] * m_dimensions[2] * m_dimensions[3] * m_dimensions[4];
-    m_data = new float[m_dataSize];
-    CaretAssert(m_data != NULL);
-    setupIndexing();
+    if (m_dataSize > 0)
+    {
+        m_data = new float[m_dataSize];
+        setupIndexing();
+    }
 }
 
 void VolumeBase::setVolumeSpace(const vector<vector<float> >& indexToSpace)
@@ -149,6 +154,9 @@ VolumeBase::VolumeBase()
         }
     }
     m_spaceToIndex = m_indexToSpace;
+    m_origDims.push_back(0);//give original dimensions 3 elements, just because
+    m_origDims.push_back(0);
+    m_origDims.push_back(0);
     m_ModifiedFlag = false;
 }
 
@@ -394,7 +402,10 @@ void VolumeBase::freeMemory()
     m_kMult = NULL;
     m_bMult = NULL;
     m_cMult = NULL;
-    
+    m_origDims.clear();
+    m_origDims.push_back(0);//give original dimensions 3 elements, just because
+    m_origDims.push_back(0);
+    m_origDims.push_back(0);
     m_extensions.clear();
 }
 

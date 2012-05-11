@@ -409,7 +409,7 @@ void Nifti2Header::getSForm(std::vector < std::vector <float> > &sForm)
 void Nifti2Header::setSForm(const std::vector < std::vector <float> > &sForm)
 {
     if(sForm.size()<3) return;//TODO should throw an exception
-    for(uint i = 0;i<sForm.size();i++) if(sForm.size() <4 ) return;
+    for(uint i = 0;i<sForm.size();i++) if(sForm[i].size() <4 ) return;
     for(int i = 0;i<4;i++)
     {
         m_header.srow_x[i] = sForm[0][i];
