@@ -1102,6 +1102,10 @@ BrainBrowserWindow::processDataFileOpen()
      * Widget for adding to file dialog
      */
     QCheckBox* addFileToSpecFileCheckBox = new QCheckBox("Add Opened Data File to Spec File");
+    addFileToSpecFileCheckBox->setToolTip("If this box is checked, the data file(s) opened\n"
+                                          "will be added to the currently loaded Spec File.\n"
+                                          "If there is not a valid Spec File loaded, you\n"
+                                          "will be prompted to create or select a Spec File.");
     addFileToSpecFileCheckBox->setChecked(previousOpenFileAddToSpecFileSelection);
     QWidget* extraWidget = new QWidget();
     QVBoxLayout* extraLayout = new QVBoxLayout(extraWidget);
