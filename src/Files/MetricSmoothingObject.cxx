@@ -1,0 +1,487 @@
+/*LICENSE_START*/
+/*
+ *  Copyright 1995-2002 Washington University School of Medicine
+ *
+ *  http://brainmap.wustl.edu
+ *
+ *  This file is part of CARET.
+ *
+ *  CARET is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  CARET is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with CARET; if not, write to the Free Software
+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ */
+
+#include "MetricSmoothingObject.h"
+
+#include "CaretAssert.h"
+#include "CaretException.h"
+#include "SurfaceFile.h"
+#include "MetricFile.h"
+#include "GeodesicHelper.h"
+#include "TopologyHelper.h"
+#include "CaretOMP.h"
+#include <cmath>
+
+using namespace std;
+using namespace caret;
+
+MetricSmoothingObject::MetricSmoothingObject(const SurfaceFile* mySurf, const float& kernel, const MetricFile* myRoi, Method myMethod)
+{
+    CaretAssert(mySurf != NULL);
+    if (myRoi != NULL && mySurf->getNumberOfNodes() != myRoi->getNumberOfNodes())
+    {
+        throw CaretException("roi number of nodes doesn't match the surface");
+    }
+    precomputeWeights(mySurf, kernel, myRoi, myMethod);
+}
+
+void MetricSmoothingObject::smoothColumn(const MetricFile* metricIn, const int& whichColumn, MetricFile* columnOut, const MetricFile* roi, const bool& fixZeros)
+{
+    CaretAssert(metricIn != NULL);
+    CaretAssert(columnOut != NULL);
+    if (metricIn->getNumberOfNodes() != (int32_t)m_weightLists.size())
+    {
+        throw CaretException("metric does not match surface number of nodes");
+    }
+    if (whichColumn < -1 || whichColumn >= metricIn->getNumberOfColumns())
+    {
+        throw CaretException("invalid column number");
+    }
+    if (columnOut->getNumberOfNodes() != (int32_t)m_weightLists.size() || columnOut->getNumberOfColumns() != 1)
+    {
+        columnOut->setNumberOfNodesAndColumns(m_weightLists.size(), 1);
+    }
+    vector<float> scratch(metricIn->getNumberOfNodes());
+    if (roi != NULL)
+    {
+        if (roi->getNumberOfNodes() != (int32_t)m_weightLists.size())
+        {
+            throw CaretException("roi does not match surface number of nodes");
+        }
+        smoothColumnInternal(scratch.data(), metricIn, whichColumn, columnOut, 0, roi, fixZeros);
+    } else {
+        smoothColumnInternal(scratch.data(), metricIn, whichColumn, columnOut, 0, fixZeros);
+    }
+}
+
+void MetricSmoothingObject::smoothMetric(const MetricFile* metricIn, MetricFile* metricOut, const MetricFile* roi, const bool& fixZeros)
+{
+    CaretAssert(metricIn != NULL);
+    CaretAssert(metricOut != NULL);
+    int32_t numCols = metricIn->getNumberOfColumns();
+    if (metricIn->getNumberOfNodes() != (int32_t)m_weightLists.size())
+    {
+        throw CaretException("metric does not match surface number of nodes");
+    }
+    if (metricOut->getNumberOfNodes() != (int32_t)m_weightLists.size() || metricOut->getNumberOfColumns() != numCols)
+    {
+        metricOut->setNumberOfNodesAndColumns(m_weightLists.size(), numCols);
+    }
+    vector<float> scratch(metricIn->getNumberOfNodes());
+    if (roi != NULL)
+    {
+        if (roi->getNumberOfNodes() != (int32_t)m_weightLists.size())
+        {
+            throw CaretException("roi does not match surface number of nodes");
+        }
+        for (int32_t i = 0; i < numCols; ++i)
+        {
+            smoothColumnInternal(scratch.data(), metricIn, i, metricOut, i, roi, fixZeros);
+        }
+    } else {
+        for (int32_t i = 0; i < numCols; ++i)
+        {
+            smoothColumnInternal(scratch.data(), metricIn, i, metricOut, i, fixZeros);
+        }
+    }
+}
+
+void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const bool& fixZeros)
+{
+    CaretAssert(metricIn != NULL);//asserts only, and only basic checks, these functions are private
+    CaretAssert(metricOut != NULL);
+    CaretAssert(scratch != NULL);
+    CaretAssert(whichColumn >= 0 && whichColumn < metricIn->getNumberOfColumns());
+    CaretAssert(whichOutColumn >= 0 && whichOutColumn < metricOut->getNumberOfColumns());
+    const float* myColumn = metricIn->getValuePointerForColumn(whichColumn);
+    int32_t numNodes = metricIn->getNumberOfNodes();
+    if (fixZeros)//special case early to keep branching down
+    {
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            WeightList& myWeightRef = m_weightLists[i];
+            if (myWeightRef.m_weightSum != 0.0f)//skip nodes with no neighbors quickly
+            {
+                float sum = 0.0f, weightsum = 0.0f;
+                int32_t numWeights = myWeightRef.m_nodes.size();
+                for (int32_t j = 0; j < numWeights; ++j)
+                {
+                    float value = myColumn[myWeightRef.m_nodes[j]];
+                    if (value != 0.0f)
+                    {
+                        float weight = myWeightRef.m_weights[j];
+                        sum += weight * value;
+                        weightsum += weight;
+                    }
+                }
+                if (weightsum != 0.0f)
+                {
+                    scratch[i] = sum / weightsum;
+                } else {
+                    scratch[i] = 0.0f;
+                }
+            } else {
+                scratch[i] = 0.0f;//but we do need to zero what we skip, so a list of nodes to check may not help
+            }
+        }
+    } else {
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            WeightList& myWeightRef = m_weightLists[i];
+            if (myWeightRef.m_weightSum != 0.0f)
+            {
+                float sum = 0.0f;
+                int32_t numWeights = myWeightRef.m_nodes.size();
+                for (int32_t j = 0; j < numWeights; ++j)
+                {
+                    sum += myWeightRef.m_weights[j] * myColumn[myWeightRef.m_nodes[j]];
+                }
+                scratch[i] = sum / myWeightRef.m_weightSum;
+            } else {
+                scratch[i] = 0.0f;
+            }
+        }
+    }
+    metricOut->setValuesForColumn(whichOutColumn, scratch);
+}
+
+void MetricSmoothingObject::smoothColumnInternal(float* scratch, const MetricFile* metricIn, const int& whichColumn, MetricFile* metricOut, const int& whichOutColumn, const MetricFile* roi, const bool& fixZeros)
+{
+    CaretAssert(metricIn != NULL);//asserts only, and only basic checks, these functions are private
+    CaretAssert(metricOut != NULL);
+    CaretAssert(scratch != NULL);
+    CaretAssert(roi != NULL);
+    CaretAssert(whichColumn >= 0 && whichColumn < metricIn->getNumberOfColumns());
+    CaretAssert(whichOutColumn >= 0 && whichOutColumn < metricOut->getNumberOfColumns());
+    const float* myColumn = metricIn->getValuePointerForColumn(whichColumn);
+    const float* roiColumn = roi->getValuePointerForColumn(0);
+    int32_t numNodes = metricIn->getNumberOfNodes();
+    if (fixZeros)//special case early to keep branching down
+    {
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            WeightList& myWeightRef = m_weightLists[i];
+            if (roiColumn[i] > 0.0f && myWeightRef.m_weightSum != 0.0f)//skip nodes with no neighbors quickly
+            {
+                float sum = 0.0f, weightsum = 0.0f;
+                int32_t numWeights = myWeightRef.m_nodes.size();
+                for (int32_t j = 0; j < numWeights; ++j)
+                {
+                    int32_t neighbor = myWeightRef.m_nodes[j];
+                    float value = myColumn[neighbor];
+                    if (roiColumn[neighbor] > 0.0f && value != 0.0f)
+                    {
+                        float weight = myWeightRef.m_weights[j];
+                        sum += weight * value;
+                        weightsum += weight;
+                    }
+                }
+                if (weightsum != 0.0f)
+                {
+                    scratch[i] = sum / weightsum;
+                } else {
+                    scratch[i] = 0.0f;
+                }
+            } else {
+                scratch[i] = 0.0f;//but we do need to zero what we skip, so a list of nodes to check may not help
+            }
+        }
+    } else {
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            WeightList& myWeightRef = m_weightLists[i];
+            if (roiColumn[i] > 0.0f && myWeightRef.m_weightSum != 0.0f)
+            {
+                float sum = 0.0f, weightsum = 0.0f;
+                int32_t numWeights = myWeightRef.m_nodes.size();
+                for (int32_t j = 0; j < numWeights; ++j)
+                {
+                    int32_t neighbor = myWeightRef.m_nodes[j];
+                    if (roiColumn[neighbor] > 0.0f)
+                    {
+                        float weight = myWeightRef.m_weights[j];
+                        sum += weight * myColumn[neighbor];
+                        weightsum += weight;
+                    }
+                }
+                if (weightsum != 0.0f)
+                {
+                    scratch[i] = sum / weightsum;
+                } else {
+                    scratch[i] = 0.0f;
+                }
+            } else {
+                scratch[i] = 0.0f;
+            }
+        }
+    }
+    metricOut->setValuesForColumn(whichOutColumn, scratch);
+}
+
+void MetricSmoothingObject::precomputeWeightsGeoGauss(const SurfaceFile* mySurf, float myKernel)
+{
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    m_weightLists.resize(numNodes);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            myGeoHelp->getNodesToGeoDist(i, myGeoDist, m_weightLists[i].m_nodes, distances, true);
+            if (distances.size() < 7)
+            {
+                m_weightLists[i].m_nodes = myTopoHelp->getNodeNeighbors(i);
+                m_weightLists[i].m_nodes.push_back(i);
+                myGeoHelp->getGeoToTheseNodes(i, m_weightLists[i].m_nodes, distances, true);
+            }
+            int32_t numNeigh = (int32_t)distances.size();
+            m_weightLists[i].m_weights.resize(numNeigh);
+            m_weightLists[i].m_weightSum = 0.0f;
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                m_weightLists[i].m_weights[j] = weight;
+                m_weightLists[i].m_weightSum += weight;
+            }
+        }
+    }
+}
+
+void MetricSmoothingObject::precomputeWeightsROIGeoGauss(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+{
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    m_weightLists.resize(numNodes);
+    const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+        vector<int32_t> nodes;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            if (myRoiColumn[i] > 0.0f)
+            {
+                myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+                if (distances.size() < 7)
+                {
+                    nodes = myTopoHelp->getNodeNeighbors(i);
+                    nodes.push_back(i);
+                    myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
+                }
+                int32_t numNeigh = (int32_t)distances.size();
+                m_weightLists[i].m_weights.reserve(numNeigh);
+                m_weightLists[i].m_nodes.reserve(numNeigh);
+                m_weightLists[i].m_weightSum = 0.0f;
+                for (int32_t j = 0; j < numNeigh; ++j)
+                {
+                    if (myRoiColumn[nodes[j]] > 0.0f)
+                    {
+                        float weight = exp(distances[j] * distances[j] * gaussianDenom);//exp(- dist ^ 2 / (2 * sigma ^ 2))
+                        m_weightLists[i].m_weights.push_back(weight);
+                        m_weightLists[i].m_nodes.push_back(nodes[j]);
+                        m_weightLists[i].m_weightSum += weight;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void MetricSmoothingObject::precomputeWeightsGeoGaussArea(const SurfaceFile* mySurf, float myKernel)
+{//this method is normalized in two ways to provide evenly diffusing smoothing with equivalent sum of areas * values as input
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    vector<float> nodeAreas;
+    vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
+    tempList.resize(numNodes);
+    mySurf->computeNodeAreas(nodeAreas);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();//don't really need one per thread here, but good practice in case we want getNeighborsToDepth
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            myGeoHelp->getNodesToGeoDist(i, myGeoDist, tempList[i].m_nodes, distances, true);
+            if (distances.size() < 7)
+            {
+                tempList[i].m_nodes = myTopoHelp->getNodeNeighbors(i);
+                tempList[i].m_nodes.push_back(i);
+                myGeoHelp->getGeoToTheseNodes(i, tempList[i].m_nodes, distances, true);
+            }
+            int32_t numNeigh = (int32_t)distances.size();
+            tempList[i].m_weights.resize(numNeigh);
+            tempList[i].m_weightSum = 0.0f;
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                float weight = exp(distances[j] * distances[j] * gaussianDenom) * nodeAreas[tempList[i].m_nodes[j]];//exp(- dist ^ 2 / (2 * sigma ^ 2)) * area
+                tempList[i].m_weights[j] = weight;//we multiply by area so that a node scattering to a dense region on one side and a sparse region on the other
+                tempList[i].m_weightSum += weight;//gives similar areal influence to each direction rather than giving a more influence on the dense region (simply because nodes are more numerous)
+            }
+            float myFactor = nodeAreas[i] / tempList[i].m_weightSum;//make each scattering kernel sum to the area of the node it scatters from
+            for (int32_t j = 0; j < numNeigh; ++j)
+            {
+                tempList[i].m_weights[j] *= myFactor;
+            }
+            tempList[i].m_weightSum = nodeAreas[i];
+        }
+    }
+    m_weightLists.resize(numNodes);//now convert it to gathering kernels
+    for (int32_t i = 0; i < numNodes; ++i)//sadly, this is VERY hard to parallelize in a manner that is efficient, since it needs random access modification
+    {
+        m_weightLists[i].m_weightSum = 0.0f;//memory initialization may not go much faster in parallel
+        size_t neighborCount = tempList[i].m_nodes.size();
+        m_weightLists[i].m_nodes.reserve(neighborCount);//also preallocate the expected number of nodes (geodesic distance should be symmetric except for rounding errors, so it should usually be exact)
+        m_weightLists[i].m_weights.reserve(neighborCount);
+    }
+    for (int32_t i = 0; i < numNodes; ++i)//and this needs to push onto random vectors in the weight list
+    {
+        int32_t numNeigh = tempList[i].m_nodes.size();
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            int32_t node = tempList[i].m_nodes[j];
+            float weight = tempList[i].m_weights[j];
+            m_weightLists[node].m_nodes.push_back(i);
+            m_weightLists[node].m_weights.push_back(weight);
+            m_weightLists[node].m_weightSum += weight;
+        }
+    }
+}
+
+void MetricSmoothingObject::precomputeWeightsROIGeoGaussArea(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi)
+{
+    int32_t numNodes = mySurf->getNumberOfNodes();
+    float myGeoDist = myKernel * 3.0f;
+    float gaussianDenom = -0.5f / myKernel / myKernel;
+    vector<float> nodeAreas;
+    vector<WeightList> tempList;//this is used to compute scattering kernels because it is easier to normalize scattering kernels correctly, and then convert to gathering kernels
+    tempList.resize(numNodes);
+    mySurf->computeNodeAreas(nodeAreas);
+    const float* myRoiColumn = theRoi->getValuePointerForColumn(0);
+#pragma omp CARET_PAR
+    {
+        CaretPointer<TopologyHelper> myTopoHelp = mySurf->getTopologyHelper();
+        CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+        vector<float> distances;
+        vector<int32_t> nodes;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int32_t i = 0; i < numNodes; ++i)
+        {
+            if (myRoiColumn[i] > 0.0f)//we don't need to scatter from things outside the ROI
+            {
+                myGeoHelp->getNodesToGeoDist(i, myGeoDist, nodes, distances, true);
+                if (distances.size() < 7)
+                {
+                    nodes = myTopoHelp->getNodeNeighbors(i);
+                    nodes.push_back(i);
+                    myGeoHelp->getGeoToTheseNodes(i, nodes, distances, true);
+                }
+                int32_t numNeigh = (int32_t)distances.size();
+                tempList[i].m_weightSum = 0.0f;
+                for (int32_t j = 0; j < numNeigh; ++j)
+                {//but we DO need to compute scattering TO things outside the ROI, so that our normalization doesn't increase the in-ROI influence of edge nodes
+                    float weight = exp(distances[j] * distances[j] * gaussianDenom) * nodeAreas[nodes[j]];//exp(- dist ^ 2 / (2 * sigma ^ 2)) * area
+                    tempList[i].m_weightSum += weight;//add it to the total weight in order to normalize correctly
+                    if (myRoiColumn[nodes[j]] > 0.0f)
+                    {//BUT, don't add it to the list if it is outside the ROI
+                        tempList[i].m_nodes.push_back(nodes[j]);
+                        tempList[i].m_weights.push_back(weight);
+                    }
+                }
+                float myFactor = nodeAreas[i] / tempList[i].m_weightSum;//make each scattering kernel sum to the area of the node it scatters from
+                int32_t numUsed = (int32_t)tempList[i].m_nodes.size();
+                for (int32_t j = 0; j < numUsed; ++j)
+                {
+                    tempList[i].m_weights[j] *= myFactor;
+                }
+                tempList[i].m_weightSum = 0.0f;//this is never actually used again, but make sure it is wrong in case anything tries to use it
+            }
+        }
+    }
+    m_weightLists.resize(numNodes);//now convert it to gathering kernels
+    for (int32_t i = 0; i < numNodes; ++i)//sadly, this is VERY hard to parallelize in a manner that is efficient, since it needs random access modification
+    {
+        m_weightLists[i].m_weightSum = 0.0f;//memory initialization may not go much faster in parallel
+        size_t neighborCount = tempList[i].m_nodes.size();
+        m_weightLists[i].m_nodes.reserve(neighborCount);//also preallocate the expected number of nodes, again, should be exact except for rounding errors in geodesic distance
+        m_weightLists[i].m_weights.reserve(neighborCount);
+    }
+    for (int32_t i = 0; i < numNodes; ++i)//and this needs to push onto random vectors in the weight list
+    {
+        int32_t numNeigh = tempList[i].m_nodes.size();
+        for (int32_t j = 0; j < numNeigh; ++j)
+        {
+            int32_t node = tempList[i].m_nodes[j];
+            float weight = tempList[i].m_weights[j];
+            m_weightLists[node].m_nodes.push_back(i);
+            m_weightLists[node].m_weights.push_back(weight);
+            m_weightLists[node].m_weightSum += weight;
+        }
+    }
+}
+
+void MetricSmoothingObject::precomputeWeights(const SurfaceFile* mySurf, float myKernel, const MetricFile* theRoi, Method myMethod)
+{
+    if (theRoi != NULL)
+    {
+        switch (myMethod)
+        {
+            case GEO_GAUSS_AREA:
+                precomputeWeightsROIGeoGaussArea(mySurf, myKernel, theRoi);
+                break;
+            case GEO_GAUSS:
+                precomputeWeightsROIGeoGauss(mySurf, myKernel, theRoi);
+                break;
+            default:
+                throw CaretException("unknown smoothing method specified");
+        };
+    } else {
+        switch (myMethod)
+        {
+            case GEO_GAUSS_AREA:
+                precomputeWeightsGeoGaussArea(mySurf, myKernel);
+                break;
+            case GEO_GAUSS:
+                precomputeWeightsGeoGauss(mySurf, myKernel);
+                break;
+            default:
+                throw CaretException("unknown smoothing method specified");
+        };
+    }
+}

@@ -39,6 +39,7 @@ GiftiTypeFile.h
 ImageFile.h
 LabelFile.h
 MetricFile.h
+MetricSmoothingObject.h
 PaletteFile.h
 RgbaFile.h
 SpecFile.h
@@ -81,6 +82,7 @@ GiftiTypeFile.cxx
 ImageFile.cxx
 LabelFile.cxx
 MetricFile.cxx
+MetricSmoothingObject.cxx
 PaletteFile.cxx
 RgbaFile.cxx
 SpecFile.cxx
