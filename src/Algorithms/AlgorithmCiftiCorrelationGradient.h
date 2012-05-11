@@ -55,27 +55,30 @@ namespace caret {
         std::vector<float> m_outColumn;
         int m_cacheUsed;//reuse cache entries instead of reallocating them
         int m_numCols;
+        bool m_undoFisher;
         const CiftiFile* m_inputCifti;//so that accesses work through the cache functions
-        void cacheRow(const int& ciftiIndex);
-        void computeRowStats(const float* row, float& mean, float& rootResidSqr);
-        void doSubtract(float* row, const float& mean);
+        void cacheRows(const std::vector<int>& ciftiIndices);//grabs the rows and does whatever it needs to, using as much IO bandwidth and CPU resources as available/needed
         void clearCache();
         const float* getRow(const int& ciftiIndex, float& rootResidSqr, const bool& mustBeCached = false);
+        void adjustRow(float* rowOut, const int& ciftiIndex);//does the reverse fisher transform, computes stuff, subtracts mean
         float* getTempRow();
         float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2);
-        void init(const CiftiFile* input);
+        void init(const CiftiFile* input, const bool& undoFisher);
         int numRowsForMem(const float& memLimitGB, const int& numComponentFloats, bool& cacheFullInput);
-        void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
+        //void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
-        void processVolumeComponentLocal(StructureEnum::Enum& myStructure, const float& volKern, const float& memLimitGB);
+        void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf);
+        //void processVolumeComponentLocal(StructureEnum::Enum& myStructure, const float& volKern, const float& memLimitGB);
         void processVolumeComponent(StructureEnum::Enum& myStructure, const float& volKern, const float& memLimitGB);
+        void processVolumeComponent(StructureEnum::Enum& myStructure, const float& volKern, const float& volExclude, const float& memLimitGB);
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
         AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern,
                                             CiftiFile* myCiftiOut, SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL,
-                                            SurfaceFile* myCerebSurf = NULL, const float& surfKern = -1.0f, const float& memLimitGB = -1.0f);
+                                            SurfaceFile* myCerebSurf = NULL, const float& surfKern = -1.0f, const bool& undoFisher = false,
+                                            const float& surfaceExclude = -1.0f, const float& volumeExclude = -1.0f, const float& memLimitGB = -1.0f);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

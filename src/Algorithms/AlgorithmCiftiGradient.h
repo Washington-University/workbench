@@ -37,8 +37,8 @@ namespace caret {
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern, const CiftiInterface::CiftiDirection& myDir,
-                                CiftiFile* myCiftiOut, const float& surfKern = -1.0f, SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL,
+        AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const CiftiInterface::CiftiDirection& myDir, CiftiFile* myCiftiOut,
+                                const float& surfKern = -1.0f, const float& volKern = -1.0f, SurfaceFile* myLeftSurf = NULL, SurfaceFile* myRightSurf = NULL,
                                 SurfaceFile* myCerebSurf = NULL, bool outputAverage = false);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);

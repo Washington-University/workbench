@@ -22,14 +22,16 @@
  *
  */
 
-#include "AlgorithmVolumeGradient.h"
 #include "AlgorithmException.h"
-#include "VolumeFile.h"
-#include "CaretAssert.h"
-#include "FloatMatrix.h"
-#include "Vector3D.h"
-#include "MathFunctions.h"
+#include "AlgorithmVolumeGradient.h"
+#include "AlgorithmVolumeSmoothing.h"
 #include "CaretOMP.h"
+#include "FloatMatrix.h"
+#include "MathFunctions.h"
+#include "Vector3D.h"
+#include "VolumeFile.h"
+
+#include <algorithm>
 #include <cmath>
 
 using namespace caret;
@@ -48,12 +50,12 @@ AString AlgorithmVolumeGradient::getShortDescription()
 OperationParameters* AlgorithmVolumeGradient::getParameters()
 {
     OperationParameters* ret = new OperationParameters();
-    
     ret->addVolumeParameter(1, "volume-in", "the input volume");
     
-    ret->addDoubleParameter(2, "kernel", "sigma for gaussian weighting function, in mm");
+    ret->addVolumeOutputParameter(2, "volume-out", "the output gradient magnitude volume");
     
-    ret->addVolumeOutputParameter(3, "volume-out", "the output gradient magnitude volume");
+    OptionalParameter* presmoothOpt = ret->createOptionalParameter(3, "-presmooth", "smooth the volume before computing the gradient");
+    presmoothOpt->addDoubleParameter(1, "kernel", "sigma for gaussian weighting function, in mm");
     
     OptionalParameter* roiOption = ret->createOptionalParameter(4, "-roi", "select a region of interest to take the gradient of");
     roiOption->addVolumeParameter(1, "roi-volume", "the region to smooth within");
@@ -65,8 +67,8 @@ OperationParameters* AlgorithmVolumeGradient::getParameters()
     subvolSelect->addStringParameter(1, "subvol", "the subvolume number or name");
     
     ret->setHelpText(
-        AString("Computes the gradient of the volume by doing weighted regressions for each voxel.  The slopes of the resulting ") +
-        "linear function are considered the components of the gradient vector, and the magnitude of this vector is the output.  " +
+        AString("Computes the gradient of the volume by doing linear regressions for each voxel, considering only its face neighbors unless too few face neighbors exist.  ") +
+        "The gradient vector is constructed from the partial derivatives of the resulting linear function, and the magnitude of this vector is the output.  " +
         "If specified, the volume vector output is arranged with the x, y, and z components from a subvolume as consecutive subvolumes."
     );
     return ret;
@@ -75,8 +77,13 @@ OperationParameters* AlgorithmVolumeGradient::getParameters()
 void AlgorithmVolumeGradient::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     VolumeFile* volIn = myParams->getVolume(1);
-    float kernel = (float)myParams->getDouble(2);
-    VolumeFile* volOut = myParams->getOutputVolume(3);
+    VolumeFile* volOut = myParams->getOutputVolume(2);
+    float presmooth = -1.0f;
+    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(3);
+    if (presmoothOpt->m_present)
+    {
+        presmooth = (float)presmoothOpt->getDouble(1);
+    }
     VolumeFile* myRoi = NULL;
     OptionalParameter* roiOption = myParams->getOptionalParameter(4);
     if (roiOption->m_present)
@@ -99,32 +106,51 @@ void AlgorithmVolumeGradient::useParameters(OperationParameters* myParams, Progr
             throw AlgorithmException("invalid subvolume specified");
         }
     }
-    AlgorithmVolumeGradient(myProgObj, volIn, kernel, volOut, myRoi, vectorsOut, subvolNum);
+    AlgorithmVolumeGradient(myProgObj, volIn, volOut, presmooth, myRoi, vectorsOut, subvolNum);
 }
 
-AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, const float& kernel, VolumeFile* volOut, const VolumeFile* myRoi, VolumeFile* vectorsOut, const int& subvolNum) : AbstractAlgorithm(myProgObj)
+AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, VolumeFile* volOut, const float& presmooth,
+                                                       const VolumeFile* myRoi, VolumeFile* vectorsOut, const int& subvolNum) : AbstractAlgorithm(myProgObj)
 {
-    CaretAssert(volIn != NULL);
-    CaretAssert(volOut != NULL);
+    ProgressObject* smoothProgress = NULL;
+    if (myProgObj != NULL && presmooth > 0.0f)
+    {
+        smoothProgress = myProgObj->addAlgorithm(AlgorithmVolumeSmoothing::getAlgorithmWeight());
+    }
     LevelProgress myProgress(myProgObj);
-    if (myRoi != NULL && !myRoi->matchesVolumeSpace(volIn))
+    if (myRoi != NULL && !volIn->matchesVolumeSpace(myRoi))
     {
         throw AlgorithmException("roi volume space does not match input");
     }
-    if (subvolNum < -1 || subvolNum >= volIn->getNumberOfMaps())
+    if (subvolNum < -1 || subvolNum > volIn->getNumberOfMaps())
     {
         throw AlgorithmException("invalid subvolume specified");
     }
-    if (kernel <= 0.0f)
+    VolumeFile smoothVol;
+    const VolumeFile* processVol = volIn;
+    int useSubvol = subvolNum;
+    if (presmooth > 0.0f)
     {
-        throw AlgorithmException("kernel too small");
+        AlgorithmVolumeSmoothing(smoothProgress, volIn, presmooth, &smoothVol, myRoi, false, subvolNum);
+        processVol = &smoothVol;
+        if (subvolNum != -1)
+        {
+            useSubvol = 0;
+        }
     }
-    precompute(kernel, volIn);
-    int irange = (m_kernelWeights.size() - 1) / 2;//precompute should never hand back less than a 3x3x3, and always odd
-    int jrange = (m_kernelWeights[0].size() - 1) / 2;
-    int krange = (m_kernelWeights[0][0].size() - 1) / 2;
     vector<int64_t> origDims = volIn->getOriginalDimensions(), myDims;
     volIn->getDimensions(myDims);
+    int stencil[] = { 0, 0, 1,
+                    0, 0, -1,
+                    0, 1, 0,
+                    0, -1, 0,
+                    1, 0, 0,
+                    -1, 0, 0 };
+    vector<vector<float> > volSpace = volIn->getVolumeSpace();
+    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
+    ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
+    ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
+    ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2]; origin[2] = volSpace[2][3];//TODO: special case orthogonal volumes (central difference)?
     const float* roiFrame = NULL;
     if (myRoi != NULL)
     {
@@ -146,7 +172,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
         {
             for (int s = 0; s < myDims[3]; ++s)
             {
-                const float* inFrame = volIn->getFrame(s, c);
+                const float* inFrame = processVol->getFrame(s, c);
 #pragma omp CARET_PARFOR schedule(dynamic)
                 for (int k = 0; k < myDims[2]; ++k)
                 {
@@ -158,69 +184,209 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                             Vector3D gradient;
                             if (myRoi == NULL || myRoi->getValue(i, j, k) > 0.0f)
                             {
-                                float curval = volIn->getValue(i, j, k, s, c);
+                                float curval = processVol->getValue(i, j, k, s, c);
                                 FloatMatrix regress = FloatMatrix::zeros(4, 5);
-                                int imin = i - irange, imax = i + irange + 1;//one-after array size convention
-                                if (imin < 0) imin = 0;
-                                if (imax > myDims[0]) imax = myDims[0];
-                                int jmin = j - jrange, jmax = j + jrange + 1;
-                                if (jmin < 0) jmin = 0;
-                                if (jmax > myDims[1]) jmax = myDims[1];
-                                int kmin = k - krange, kmax = k + krange + 1;
-                                if (kmin < 0) kmin = 0;
-                                if (kmax > myDims[2]) kmax = myDims[2];
-                                for (int kkern = kmin; kkern < kmax; ++kkern)
+                                regress[3][3] = 1;//count the center voxel in case neighbors are missing (displacement and valdiff are zero, cancelling all other terms)
+                                int dircheck = 0;
+                                for (int neighbase = 0; neighbase < 18; neighbase += 3)
                                 {
-                                    int64_t kindpart = kkern * myDims[1];
-                                    int kkernpart = kkern - k + krange;
-                                    for (int jkern = jmin; jkern < jmax; ++jkern)
+                                    int ikern = i + stencil[neighbase];
+                                    int jkern = j + stencil[neighbase + 1];
+                                    int kkern = k + stencil[neighbase + 2];
+                                    if (volIn->indexValid(ikern, jkern, kkern))
                                     {
-                                        int64_t jindpart = (kindpart + jkern) * myDims[0];
-                                        int jkernpart = jkern - j + jrange;
-                                        for (int ikern = imin; ikern < imax; ++ikern)
+                                        int64_t kernIndex = volIn->getIndex(ikern, jkern, kkern);
+                                        if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
                                         {
-                                            int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
-                                            int ikernpart = ikern - i + irange;
-                                            float weight = m_kernelWeights[kkernpart][jkernpart][ikernpart];//reversed indexing in order to align the linear access with the fast moving index
-                                            if (weight != 0.0f && (myRoi == NULL || roiFrame[thisIndex] > 0.0f))
-                                            {
-                                                Vector3D displacement = m_displacements[kkernpart][jkernpart][ikernpart];//NOTE: has weight PREAPPLIED!
-                                                float valdiff = (inFrame[thisIndex] - curval) * weight;//NOTE: it is VERY IMPORTANT to multiply weight in instead of the usual 1.0 constant in [3][...] and [...][3]
-                                                regress[0][0] += displacement[0] * displacement[0];
-                                                regress[0][1] += displacement[0] * displacement[1];
-                                                regress[0][2] += displacement[0] * displacement[2];
-                                                regress[0][3] += weight * displacement[0];
-                                                regress[0][4] += displacement[0] * valdiff;
-                                                regress[1][1] += displacement[1] * displacement[1];
-                                                regress[1][2] += displacement[1] * displacement[2];
-                                                regress[1][3] += weight * displacement[1];
-                                                regress[1][4] += displacement[1] * valdiff;
-                                                regress[2][2] += displacement[2] * displacement[2];
-                                                regress[2][3] += weight * displacement[2];
-                                                regress[2][4] += displacement[2] * valdiff;
-                                                regress[3][3] += weight * weight;//that means square for constant times constant, too
-                                                regress[3][4] += weight * valdiff;
-                                            }
+                                            dircheck |= 1<<(neighbase / 6);//uses the ordering of the neighbors to map neighbor to direction
+                                            float valdiff = inFrame[kernIndex] - curval;
+                                            Vector3D displacement = ivec * stencil[neighbase] + jvec * stencil[neighbase + 1] + kvec * stencil[neighbase + 2];
+                                            regress[0][0] += displacement[0] * displacement[0];//note: this is the generic code, built to handle strange volumes, to get more speed, test
+                                            regress[0][1] += displacement[0] * displacement[1];// for orthogonal volume, and use central differences (if no ROI, could special case for even more speed)
+                                            regress[0][2] += displacement[0] * displacement[2];//but, seems reasonably fast anyway
+                                            regress[0][3] += displacement[0];
+                                            regress[0][4] += displacement[0] * valdiff;
+                                            regress[1][1] += displacement[1] * displacement[1];
+                                            regress[1][2] += displacement[1] * displacement[2];
+                                            regress[1][3] += displacement[1];
+                                            regress[1][4] += displacement[1] * valdiff;
+                                            regress[2][2] += displacement[2] * displacement[2];
+                                            regress[2][3] += displacement[2];
+                                            regress[2][4] += displacement[2] * valdiff;
+                                            regress[3][3] += 1;
+                                            regress[3][4] += valdiff;
                                         }
                                     }
                                 }
-                                regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
-                                regress[2][0] = regress[0][2];
-                                regress[2][1] = regress[1][2];
-                                regress[3][0] = regress[0][3];
-                                regress[3][1] = regress[1][3];
-                                regress[3][2] = regress[2][3];
-                                FloatMatrix result = regress.reducedRowEchelon();
-                                gradient[0] = result[0][4];
-                                gradient[1] = result[1][4];
-                                gradient[2] = result[2][4];//[3][4] is the constant part of the regression
-                                magnitude = gradient.length();
-                                if (!MathFunctions::isNumeric(magnitude))
+                                if (dircheck == 7)//have at least one neighbor in every index axis, continue
                                 {
-                                    magnitude = 0.0f;
-                                    gradient[0] = 0.0f;
-                                    gradient[1] = 0.0f;
-                                    gradient[2] = 0.0f;
+                                    regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
+                                    regress[2][0] = regress[0][2];
+                                    regress[2][1] = regress[1][2];
+                                    regress[3][0] = regress[0][3];
+                                    regress[3][1] = regress[1][3];
+                                    regress[3][2] = regress[2][3];
+                                    FloatMatrix result = regress.reducedRowEchelon();
+                                    gradient[0] = result[0][4];
+                                    gradient[1] = result[1][4];
+                                    gradient[2] = result[2][4];//[3][4] is the constant part of the regression
+                                    magnitude = gradient.length();
+                                    if (!MathFunctions::isNumeric(magnitude))
+                                    {
+                                        magnitude = 0.0f;
+                                        gradient[0] = 0.0f;
+                                        gradient[1] = 0.0f;
+                                        gradient[2] = 0.0f;
+                                    }
+                                } else {//fallback 1: regression with 26-neighbors
+                                    Vector3D directions[3];//track the displacements in index space for simplicity
+                                    int dirUsed = 0;
+                                    if (dircheck & 1)
+                                    {
+                                        directions[dirUsed][0] = 1;
+                                        ++dirUsed;
+                                    }
+                                    if (dircheck & 2)
+                                    {
+                                        directions[dirUsed][1] = 1;
+                                        ++dirUsed;
+                                    }
+                                    if (dircheck & 4)
+                                    {
+                                        directions[dirUsed][2] = 1;
+                                        ++dirUsed;
+                                    }
+                                    int imin = max(i - 1, 0), jmin = max(j - 1, 0), kmin = max(k - 1, 0);
+                                    int imax = min(i + 2, (int)myDims[0]), jmax = min(j + 2, (int)myDims[1]), kmax = min(k + 2, (int)myDims[2]);
+                                    Vector3D voxelDir;
+                                    for (int kkern = kmin; kkern < kmax; ++kkern)
+                                    {
+                                        voxelDir[2] = kkern - k;
+                                        int kabs = abs(kkern - k);
+                                        int64_t kindpart = kkern * myDims[1];
+                                        for (int jkern = jmin; jkern < jmax; ++jkern)
+                                        {
+                                            int jabs = abs(jkern - j) + kabs;
+                                            if (jabs > 0)//skip inner loop if it won't get any new neighbors
+                                            {
+                                                int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                                voxelDir[1] = jkern - j;
+                                                for (int ikern = imin; ikern < imax; ++ikern)
+                                                {
+                                                    int64_t kernIndex = jindpart + ikern;
+                                                    if (jabs + abs(ikern - i) > 1 && (roiFrame == NULL || roiFrame[kernIndex] > 0.0f))//only add non-face neighbors
+                                                    {
+                                                        if (dirUsed < 3)//check for singularity via base vectors being dependent
+                                                        {
+                                                            bool newDir = true;
+                                                            switch (dirUsed)
+                                                            {
+                                                                case 0:
+                                                                default:
+                                                                    break;
+                                                                case 1:
+                                                                    if (voxelDir.cross(directions[0]).length() < 0.01f) newDir = false;
+                                                                    break;
+                                                                case 2:
+                                                                    if (voxelDir.cross(directions[0]).cross(voxelDir.cross(directions[1])).length() < 0.01f)
+                                                                        newDir = false;
+                                                                    break;
+                                                            }
+                                                            if (newDir)
+                                                            {
+                                                                directions[dirUsed] = voxelDir;
+                                                                ++dirUsed;
+                                                            }
+                                                        }
+                                                        voxelDir[0] = ikern - i;
+                                                        Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
+                                                        float valdiff = inFrame[kernIndex] - curval;
+                                                        regress[0][0] += displacement[0] * displacement[0];
+                                                        regress[0][1] += displacement[0] * displacement[1];
+                                                        regress[0][2] += displacement[0] * displacement[2];
+                                                        regress[0][3] += displacement[0];
+                                                        regress[0][4] += displacement[0] * valdiff;
+                                                        regress[1][1] += displacement[1] * displacement[1];
+                                                        regress[1][2] += displacement[1] * displacement[2];
+                                                        regress[1][3] += displacement[1];
+                                                        regress[1][4] += displacement[1] * valdiff;
+                                                        regress[2][2] += displacement[2] * displacement[2];
+                                                        regress[2][3] += displacement[2];
+                                                        regress[2][4] += displacement[2] * valdiff;
+                                                        regress[3][3] += 1;
+                                                        regress[3][4] += valdiff;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (dirUsed == 3)
+                                    {
+                                        regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
+                                        regress[2][0] = regress[0][2];
+                                        regress[2][1] = regress[1][2];
+                                        regress[3][0] = regress[0][3];
+                                        regress[3][1] = regress[1][3];
+                                        regress[3][2] = regress[2][3];
+                                        FloatMatrix result = regress.reducedRowEchelon();
+                                        gradient[0] = result[0][4];
+                                        gradient[1] = result[1][4];
+                                        gradient[2] = result[2][4];//[3][4] is the constant part of the regression
+                                        magnitude = gradient.length();
+                                        if (!MathFunctions::isNumeric(magnitude))
+                                        {
+                                            magnitude = 0.0f;
+                                            gradient[0] = 0.0f;
+                                            gradient[1] = 0.0f;
+                                            gradient[2] = 0.0f;
+                                        }
+                                    } else {//fallback 2: average forward differences in 26-neighborhood
+                                        Vector3D accum;
+                                        int accumCount = 0;
+                                        for (int kkern = kmin; kkern < kmax; ++kkern)
+                                        {
+                                            voxelDir[2] = kkern - k;
+                                            int64_t kindpart = kkern * myDims[1];
+                                            for (int jkern = jmin; jkern < jmax; ++jkern)
+                                            {
+                                                int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                                voxelDir[1] = jkern - j;
+                                                for (int ikern = imin; ikern < imax; ++ikern)
+                                                {
+                                                    int64_t kernIndex = jindpart + ikern;
+                                                    if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
+                                                    {
+                                                        float valdiff = inFrame[kernIndex] - curval;
+                                                        voxelDir[0] = ikern - i;
+                                                        Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
+                                                        float length = displacement.length();
+                                                        if (length > 0.0f)
+                                                        {
+                                                            accum += displacement * (valdiff / (length * length));//once to normalize vector, and once to find gradient magnitude
+                                                            ++accumCount;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (accumCount > 0)
+                                        {
+                                            gradient = accum / accumCount;
+                                            magnitude = gradient.length();
+                                            if (!MathFunctions::isNumeric(magnitude))
+                                            {
+                                                magnitude = 0.0f;
+                                                gradient[0] = 0.0f;
+                                                gradient[1] = 0.0f;
+                                                gradient[2] = 0.0f;
+                                            }
+                                        } else {
+                                            magnitude = 0.0f;
+                                            gradient[0] = 0.0f;
+                                            gradient[1] = 0.0f;
+                                            gradient[2] = 0.0f;
+                                        }
+                                    }
                                 }
                             } else {
                                 magnitude = 0.0f;
@@ -251,7 +417,7 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
         }
         for (int c = 0; c < myDims[4]; ++c)
         {
-            const float* inFrame = volIn->getFrame(subvolNum, c);
+            const float* inFrame = processVol->getFrame(useSubvol, c);
 #pragma omp CARET_PARFOR schedule(dynamic)
             for (int k = 0; k < myDims[2]; ++k)
             {
@@ -261,71 +427,211 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
                     {
                         float magnitude;
                         Vector3D gradient;
-                        if (myRoi->getValue(i, j, k) > 0.0f)
+                        if (myRoi == NULL || myRoi->getValue(i, j, k) > 0.0f)
                         {
-                            float curval = volIn->getValue(i, j, k, subvolNum, c);
+                            float curval = processVol->getValue(i, j, k, useSubvol, c);
                             FloatMatrix regress = FloatMatrix::zeros(4, 5);
-                            int imin = i - irange, imax = i + irange + 1;//one-after array size convention
-                            if (imin < 0) imin = 0;
-                            if (imax > myDims[0]) imax = myDims[0];
-                            int jmin = j - jrange, jmax = j + jrange + 1;
-                            if (jmin < 0) jmin = 0;
-                            if (jmax > myDims[1]) jmax = myDims[1];
-                            int kmin = k - krange, kmax = k + krange + 1;
-                            if (kmin < 0) kmin = 0;
-                            if (kmax > myDims[2]) kmax = myDims[2];
-                            for (int kkern = kmin; kkern < kmax; ++kkern)
+                            regress[3][3] = 1;//count the center voxel in case neighbors are missing (displacement and valdiff are zero, cancelling all other terms)
+                            int dircheck = 0;
+                            for (int neighbase = 0; neighbase < 18; neighbase += 3)
                             {
-                                int64_t kindpart = kkern * myDims[1];
-                                int kkernpart = kkern - k + krange;
-                                for (int jkern = jmin; jkern < jmax; ++jkern)
+                                int ikern = i + stencil[neighbase];
+                                int jkern = j + stencil[neighbase + 1];
+                                int kkern = k + stencil[neighbase + 2];
+                                if (volIn->indexValid(ikern, jkern, kkern))
                                 {
-                                    int64_t jindpart = (kindpart + jkern) * myDims[0];
-                                    int jkernpart = jkern - j + jrange;
-                                    for (int ikern = imin; ikern < imax; ++ikern)
+                                    int64_t kernIndex = volIn->getIndex(ikern, jkern, kkern);
+                                    if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
                                     {
-                                        int64_t thisIndex = jindpart + ikern;//somewhat optimized index computation, could remove some integer multiplies, but there aren't that many
-                                        int ikernpart = ikern - i + irange;
-                                        float weight = m_kernelWeights[kkernpart][jkernpart][ikernpart];//reversed indexing in order to align the linear access with the fast moving index
-                                        if (weight != 0.0f && (myRoi == NULL || roiFrame[thisIndex] > 0.0f))
-                                        {
-                                            Vector3D displacement = m_displacements[kkernpart][jkernpart][ikernpart];//NOTE: has weight PREAPPLIED!
-                                            float valdiff = (inFrame[thisIndex] - curval) * weight;//NOTE: it is VERY IMPORTANT to multiply weight in instead of the usual 1.0 constant in [3][...] and [...][3]
-                                            regress[0][0] += displacement[0] * displacement[0];
-                                            regress[0][1] += displacement[0] * displacement[1];
-                                            regress[0][2] += displacement[0] * displacement[2];
-                                            regress[0][3] += weight * displacement[0];
-                                            regress[0][4] += displacement[0] * valdiff;
-                                            regress[1][1] += displacement[1] * displacement[1];
-                                            regress[1][2] += displacement[1] * displacement[2];
-                                            regress[1][3] += weight * displacement[1];
-                                            regress[1][4] += displacement[1] * valdiff;
-                                            regress[2][2] += displacement[2] * displacement[2];
-                                            regress[2][3] += weight * displacement[2];
-                                            regress[2][4] += displacement[2] * valdiff;
-                                            regress[3][3] += weight * weight;//that means square for constant times constant, too
-                                            regress[3][4] += weight * valdiff;
-                                        }
+                                        dircheck |= 1<<(neighbase / 6);//uses the ordering of the neighbors to map neighbor to direction
+                                        float valdiff = inFrame[kernIndex] - curval;
+                                        Vector3D displacement = ivec * stencil[neighbase] + jvec * stencil[neighbase + 1] + kvec * stencil[neighbase + 2];
+                                        regress[0][0] += displacement[0] * displacement[0];//note: this is the generic code, built to handle strange volumes, to get more speed, test
+                                        regress[0][1] += displacement[0] * displacement[1];// for orthogonal volume, and use central differences (if no ROI, could special case for even more speed)
+                                        regress[0][2] += displacement[0] * displacement[2];
+                                        regress[0][3] += displacement[0];
+                                        regress[0][4] += displacement[0] * valdiff;
+                                        regress[1][1] += displacement[1] * displacement[1];
+                                        regress[1][2] += displacement[1] * displacement[2];
+                                        regress[1][3] += displacement[1];
+                                        regress[1][4] += displacement[1] * valdiff;
+                                        regress[2][2] += displacement[2] * displacement[2];
+                                        regress[2][3] += displacement[2];
+                                        regress[2][4] += displacement[2] * valdiff;
+                                        regress[3][3] += 1;
+                                        regress[3][4] += valdiff;
                                     }
                                 }
                             }
-                            regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
-                            regress[2][0] = regress[0][2];
-                            regress[2][1] = regress[1][2];
-                            regress[3][0] = regress[0][3];
-                            regress[3][1] = regress[1][3];
-                            regress[3][2] = regress[2][3];
-                            FloatMatrix result = regress.reducedRowEchelon();//and solve the regression
-                            gradient[0] = result[0][4];
-                            gradient[1] = result[1][4];
-                            gradient[2] = result[2][4];//[3][4] is the constant part of the regression
-                            magnitude = gradient.length();
-                            if (!MathFunctions::isNumeric(magnitude))//check results for sanity
+                            if (dircheck == 7)//have at least one neighbor in every index axis, continue
                             {
-                                magnitude = 0.0f;
-                                gradient[0] = 0.0f;
-                                gradient[1] = 0.0f;
-                                gradient[2] = 0.0f;
+                                regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
+                                regress[2][0] = regress[0][2];
+                                regress[2][1] = regress[1][2];
+                                regress[3][0] = regress[0][3];
+                                regress[3][1] = regress[1][3];
+                                regress[3][2] = regress[2][3];
+                                FloatMatrix result = regress.reducedRowEchelon();
+                                gradient[0] = result[0][4];
+                                gradient[1] = result[1][4];
+                                gradient[2] = result[2][4];//[3][4] is the constant part of the regression
+                                magnitude = gradient.length();
+                                if (!MathFunctions::isNumeric(magnitude))
+                                {
+                                    magnitude = 0.0f;
+                                    gradient[0] = 0.0f;
+                                    gradient[1] = 0.0f;
+                                    gradient[2] = 0.0f;
+                                }
+                            } else {//fallback 1: regression with 26-neighbors
+                                Vector3D directions[3];//track the displacements in index space for simplicity
+                                int dirUsed = 0;
+                                if (dircheck & 1)
+                                {
+                                    directions[dirUsed][0] = 1;
+                                    ++dirUsed;
+                                }
+                                if (dircheck & 2)
+                                {
+                                    directions[dirUsed][1] = 1;
+                                    ++dirUsed;
+                                }
+                                if (dircheck & 4)
+                                {
+                                    directions[dirUsed][2] = 1;
+                                    ++dirUsed;
+                                }
+                                int imin = max(i - 1, 0), jmin = max(j - 1, 0), kmin = max(k - 1, 0);
+                                int imax = min(i + 2, (int)myDims[0]), jmax = min(j + 2, (int)myDims[1]), kmax = min(k + 2, (int)myDims[2]);
+                                Vector3D voxelDir;
+                                for (int kkern = kmin; kkern < kmax; ++kkern)
+                                {
+                                    voxelDir[2] = kkern - k;
+                                    int kabs = abs(kkern - k);
+                                    int64_t kindpart = kkern * myDims[1];
+                                    for (int jkern = jmin; jkern < jmax; ++jkern)
+                                    {
+                                        int jabs = abs(jkern - j) + kabs;
+                                        if (jabs > 0)//skip inner loop if it won't get any new neighbors
+                                        {
+                                            int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                            voxelDir[1] = jkern - j;
+                                            for (int ikern = imin; ikern < imax; ++ikern)
+                                            {
+                                                int64_t kernIndex = jindpart + ikern;
+                                                if (jabs + abs(ikern - i) > 1 && (roiFrame == NULL || roiFrame[kernIndex] > 0.0f))//only add non-face neighbors
+                                                {
+                                                    if (dirUsed < 3)//check for singularity via base vectors being dependent
+                                                    {
+                                                        bool newDir = true;
+                                                        switch (dirUsed)
+                                                        {
+                                                            case 0:
+                                                            default:
+                                                                break;
+                                                            case 1:
+                                                                if (voxelDir.cross(directions[0]).length() < 0.01f) newDir = false;
+                                                                break;
+                                                            case 2:
+                                                                if (voxelDir.cross(directions[0]).cross(voxelDir.cross(directions[1])).length() < 0.01f)
+                                                                    newDir = false;
+                                                                break;
+                                                        }
+                                                        if (newDir)
+                                                        {
+                                                            directions[dirUsed] = voxelDir;
+                                                            ++dirUsed;
+                                                        }
+                                                    }
+                                                    voxelDir[0] = ikern - i;
+                                                    Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
+                                                    float valdiff = inFrame[kernIndex] - curval;
+                                                    regress[0][0] += displacement[0] * displacement[0];
+                                                    regress[0][1] += displacement[0] * displacement[1];
+                                                    regress[0][2] += displacement[0] * displacement[2];
+                                                    regress[0][3] += displacement[0];
+                                                    regress[0][4] += displacement[0] * valdiff;
+                                                    regress[1][1] += displacement[1] * displacement[1];
+                                                    regress[1][2] += displacement[1] * displacement[2];
+                                                    regress[1][3] += displacement[1];
+                                                    regress[1][4] += displacement[1] * valdiff;
+                                                    regress[2][2] += displacement[2] * displacement[2];
+                                                    regress[2][3] += displacement[2];
+                                                    regress[2][4] += displacement[2] * valdiff;
+                                                    regress[3][3] += 1;
+                                                    regress[3][4] += valdiff;
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                if (dirUsed == 3)
+                                {
+                                    regress[1][0] = regress[0][1];//finish the symmetric part of the matrix
+                                    regress[2][0] = regress[0][2];
+                                    regress[2][1] = regress[1][2];
+                                    regress[3][0] = regress[0][3];
+                                    regress[3][1] = regress[1][3];
+                                    regress[3][2] = regress[2][3];
+                                    FloatMatrix result = regress.reducedRowEchelon();
+                                    gradient[0] = result[0][4];
+                                    gradient[1] = result[1][4];
+                                    gradient[2] = result[2][4];//[3][4] is the constant part of the regression
+                                    magnitude = gradient.length();
+                                    if (!MathFunctions::isNumeric(magnitude))
+                                    {
+                                        magnitude = 0.0f;
+                                        gradient[0] = 0.0f;
+                                        gradient[1] = 0.0f;
+                                        gradient[2] = 0.0f;
+                                    }
+                                } else {//fallback 2: average forward differences in 26-neighborhood
+                                    Vector3D accum;
+                                    int accumCount = 0;
+                                    for (int kkern = kmin; kkern < kmax; ++kkern)
+                                    {
+                                        voxelDir[2] = kkern - k;
+                                        int64_t kindpart = kkern * myDims[1];
+                                        for (int jkern = jmin; jkern < jmax; ++jkern)
+                                        {
+                                            int64_t jindpart = (kindpart + jkern) * myDims[0];
+                                            voxelDir[1] = jkern - j;
+                                            for (int ikern = imin; ikern < imax; ++ikern)
+                                            {
+                                                int64_t kernIndex = jindpart + ikern;
+                                                if (roiFrame == NULL || roiFrame[kernIndex] > 0.0f)
+                                                {
+                                                    float valdiff = inFrame[kernIndex] - curval;
+                                                    voxelDir[0] = ikern - i;
+                                                    Vector3D displacement = ivec * voxelDir[0] + jvec * voxelDir[1] + kvec * voxelDir[2];
+                                                    float length = displacement.length();
+                                                    if (length > 0.0f)
+                                                    {
+                                                        accum += displacement * (valdiff / (length * length));//once to normalize vector, and once to find gradient magnitude
+                                                        ++accumCount;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (accumCount > 0)
+                                    {
+                                        gradient = accum / accumCount;
+                                        magnitude = gradient.length();
+                                        if (!MathFunctions::isNumeric(magnitude))
+                                        {
+                                            magnitude = 0.0f;
+                                            gradient[0] = 0.0f;
+                                            gradient[1] = 0.0f;
+                                            gradient[2] = 0.0f;
+                                        }
+                                    } else {
+                                        magnitude = 0.0f;
+                                        gradient[0] = 0.0f;
+                                        gradient[1] = 0.0f;
+                                        gradient[2] = 0.0f;
+                                    }
+                                }
                             }
                         } else {
                             magnitude = 0.0f;
@@ -347,55 +653,6 @@ AlgorithmVolumeGradient::AlgorithmVolumeGradient(ProgressObject* myProgObj, cons
     }
 }
 
-void AlgorithmVolumeGradient::precompute(float kernel, const caret::VolumeFile* volIn)
-{
-    float kernBox = 3 * kernel;//copied from volume smoothing (again)...probably should be a function in VolumeFile
-    vector<vector<float> > volSpace = volIn->getVolumeSpace();
-    Vector3D ivec, jvec, kvec, origin, ijorth, jkorth, kiorth;
-    ivec[0] = volSpace[0][0]; jvec[0] = volSpace[0][1]; kvec[0] = volSpace[0][2]; origin[0] = volSpace[0][3];
-    ivec[1] = volSpace[1][0]; jvec[1] = volSpace[1][1]; kvec[1] = volSpace[1][2]; origin[1] = volSpace[1][3];
-    ivec[2] = volSpace[2][0]; jvec[2] = volSpace[2][1]; kvec[2] = volSpace[2][2]; origin[2] = volSpace[2][3];
-    ijorth = ivec.cross(jvec).normal();//find the bounding box that encloses a sphere of radius kernBox
-    jkorth = jvec.cross(kvec).normal();
-    kiorth = kvec.cross(ivec).normal();
-    int irange = (int)floor(abs(kernBox / ivec.dot(jkorth)));
-    int jrange = (int)floor(abs(kernBox / jvec.dot(kiorth)));
-    int krange = (int)floor(abs(kernBox / kvec.dot(ijorth)));
-    if (irange < 1) irange = 1;//don't underflow
-    if (jrange < 1) jrange = 1;
-    if (krange < 1) krange = 1;
-    int isize = irange * 2 + 1;//and construct a precomputed kernel in the box
-    int jsize = jrange * 2 + 1;
-    int ksize = krange * 2 + 1;
-    Vector3D kscratch, jscratch, iscratch;
-    m_kernelWeights.resize(ksize);
-    m_displacements.resize(ksize);
-    for (int k = 0; k < ksize; ++k)
-    {
-        kscratch = kvec * (k - krange);
-        m_kernelWeights[k].resize(jsize);
-        m_displacements[k].resize(jsize);
-        for (int j = 0; j < jsize; ++j)
-        {
-            jscratch = kscratch + jvec * (j - jrange);
-            m_kernelWeights[k][j].resize(isize);
-            m_displacements[k][j].resize(isize);
-            for (int i = 0; i < isize; ++i)
-            {
-                iscratch = jscratch + ivec * (i - irange);
-                float tempf = iscratch.length();
-                if (tempf > kernBox)
-                {
-                    m_kernelWeights[k][j][i] = 0.0f;//test for zero to avoid some multiplies/adds, cheaper or cleaner than checking bounds on indexes from an index list
-                } else {
-                    m_kernelWeights[k][j][i] = exp(-tempf * tempf / kernel / kernel / 2.0f);//optimization here isn't critical
-                    m_displacements[k][j][i] = iscratch * m_kernelWeights[k][j][i];//preapply the weight to the displacement for speed
-                }
-            }
-        }
-    }
-}
-
 float AlgorithmVolumeGradient::getAlgorithmInternalWeight()
 {
     return 1.0f;//override this if needed, if the progress bar isn't smooth
@@ -403,5 +660,6 @@ float AlgorithmVolumeGradient::getAlgorithmInternalWeight()
 
 float AlgorithmVolumeGradient::getSubAlgorithmWeight()
 {
+    //return AlgorithmInsertNameHere::getAlgorithmWeight();//if you use a subalgorithm
     return 0.0f;
 }

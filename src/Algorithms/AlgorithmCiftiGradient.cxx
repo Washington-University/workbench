@@ -51,23 +51,24 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
     OperationParameters* ret = new OperationParameters();
     ret->addCiftiParameter(1, "cifti", "the input cifti");
     
-    ret->addDoubleParameter(2, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
+    ret->addStringParameter(2, "direction", "which dimension to take the gradient along, ROW or COLUMN");
     
-    ret->addStringParameter(3, "direction", "which dimension to take the gradient along, ROW or COLUMN");
+    ret->addCiftiOutputParameter(3, "cifti-out", "the output cifti");
     
-    ret->addCiftiOutputParameter(4, "cifti-out", "the output cifti");
-    
-    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(5, "-left-surface", "specify the left surface to use");
+    OptionalParameter* leftSurfOpt = ret->createOptionalParameter(4, "-left-surface", "specify the left surface to use");
     leftSurfOpt->addSurfaceParameter(1, "surface", "the left surface file");
     
-    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(6, "-right-surface", "specify the right surface to use");
+    OptionalParameter* rightSurfOpt = ret->createOptionalParameter(5, "-right-surface", "specify the right surface to use");
     rightSurfOpt->addSurfaceParameter(1, "surface", "the right surface file");
     
-    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(7, "-cereb-surface", "specify the cerebellum surface to use");
+    OptionalParameter* cerebSurfaceOpt = ret->createOptionalParameter(6, "-cereb-surface", "specify the cerebellum surface to use");
     cerebSurfaceOpt->addSurfaceParameter(1, "surface", "the cerebellum surface file");
     
-    OptionalParameter* presmoothOpt = ret->createOptionalParameter(8, "-surface-presmooth", "smooth on the surface before computing the gradient");
-    presmoothOpt->addDoubleParameter(1, "presmooth-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    OptionalParameter* presmoothSurfOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
+    presmoothSurfOpt->addDoubleParameter(1, "presmooth-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
+    
+    OptionalParameter* presmoothVolOpt = ret->createOptionalParameter(8, "-volume-presmooth", "smooth on the surface before computing the gradient");
+    presmoothVolOpt->addDoubleParameter(1, "volume-kernel", "the sigma for the gaussian volume smoothing kernel, in mm");
     
     ret->createOptionalParameter(9, "-average-output", "output the average of the gradient magnitudes instead of each gradient separately");
     
@@ -82,8 +83,7 @@ OperationParameters* AlgorithmCiftiGradient::getParameters()
 void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, ProgressObject* myProgObj)
 {
     CiftiFile* myCifti = myParams->getCifti(1);
-    float volKern = (float)myParams->getDouble(2);
-    AString directionName = myParams->getString(3);
+    AString directionName = myParams->getString(2);
     CiftiInterface::CiftiDirection myDir;
     if (directionName == "ROW")
     {
@@ -93,35 +93,41 @@ void AlgorithmCiftiGradient::useParameters(OperationParameters* myParams, Progre
     } else {
         throw AlgorithmException("incorrect string for direction, use ROW or COLUMN");
     }
-    CiftiFile* myCiftiOut = myParams->getOutputCifti(4);
+    CiftiFile* myCiftiOut = myParams->getOutputCifti(3);
     SurfaceFile* myLeftSurf = NULL, *myRightSurf = NULL, *myCerebSurf = NULL;
-    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(5);
+    OptionalParameter* leftSurfOpt = myParams->getOptionalParameter(4);
     if (leftSurfOpt->m_present)
     {
         myLeftSurf = leftSurfOpt->getSurface(1);
     }
-    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(6);
+    OptionalParameter* rightSurfOpt = myParams->getOptionalParameter(5);
     if (rightSurfOpt->m_present)
     {
         myRightSurf = rightSurfOpt->getSurface(1);
     }
-    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(7);
+    OptionalParameter* cerebSurfOpt = myParams->getOptionalParameter(6);
     if (cerebSurfOpt->m_present)
     {
         myCerebSurf = cerebSurfOpt->getSurface(1);
     }
     float surfKern = -1.0f;
-    OptionalParameter* presmoothOpt = myParams->getOptionalParameter(8);
-    if (presmoothOpt->m_present)
+    OptionalParameter* presmoothSurfOpt = myParams->getOptionalParameter(7);
+    if (presmoothSurfOpt->m_present)
     {
-        surfKern = (float)presmoothOpt->getDouble(1);
+        surfKern = (float)presmoothSurfOpt->getDouble(1);
+    }
+    float volKern = -1.0f;
+    OptionalParameter* presmoothVolOpt = myParams->getOptionalParameter(8);
+    if (presmoothVolOpt->m_present)
+    {
+        volKern = (float)presmoothVolOpt->getDouble(1);
     }
     bool outputAverage = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiGradient(myProgObj, myCifti, volKern, myDir, myCiftiOut, surfKern, myLeftSurf, myRightSurf, myCerebSurf, outputAverage);//executes the algorithm
+    AlgorithmCiftiGradient(myProgObj, myCifti, myDir, myCiftiOut, surfKern, volKern, myLeftSurf, myRightSurf, myCerebSurf, outputAverage);//executes the algorithm
 }
 
-AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern, const CiftiInterface::CiftiDirection& myDir,
-                                               CiftiFile* myCiftiOut, const float& surfKern, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
+AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const CiftiInterface::CiftiDirection& myDir,
+                                               CiftiFile* myCiftiOut, const float& surfKern, const float& volKern, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
                                                SurfaceFile* myCerebSurf, bool outputAverage) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
@@ -238,7 +244,7 @@ AlgorithmCiftiGradient::AlgorithmCiftiGradient(ProgressObject* myProgObj, const 
         VolumeFile myVol, myRoi, myVolOut;
         int64_t offset[3];
         AlgorithmCiftiSeparate(NULL, myCifti, myDir, volumeList[whichStruct], &myVol, offset, &myRoi, true);
-        AlgorithmVolumeGradient(NULL, &myVol, volKern, &myVolOut, &myRoi);
+        AlgorithmVolumeGradient(NULL, &myVol, &myVolOut, volKern, &myRoi);
         if (outputAverage)
         {
             vector<int64_t> myDims;

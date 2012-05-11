@@ -26,24 +26,18 @@
  */
 
 #include "AbstractAlgorithm.h"
-#include <vector>
 
 namespace caret {
-    
-    class Vector3D;
     
     class AlgorithmVolumeGradient : public AbstractAlgorithm
     {
         AlgorithmVolumeGradient();
-        void precompute(float kernel, const VolumeFile* volIn);
-        std::vector<std::vector<std::vector<float> > > m_kernelWeights;
-        std::vector<std::vector<std::vector<Vector3D> > > m_displacements;
     protected:
         static float getSubAlgorithmWeight();
         static float getAlgorithmInternalWeight();
     public:
-        AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, const float& kernel, VolumeFile* volOut, const VolumeFile* myRoi = NULL,
-                                VolumeFile* vectorsOut = NULL, const int& subvolNum = -1);
+        AlgorithmVolumeGradient(ProgressObject* myProgObj, const VolumeFile* volIn, VolumeFile* volOut, const float& presmooth = -1.0f,
+                                    const VolumeFile* myRoi = NULL, VolumeFile* vectorsOut = NULL, const int& subvolNum = -1);
         static OperationParameters* getParameters();
         static void useParameters(OperationParameters* myParams, ProgressObject* myProgObj);
         static AString getCommandSwitch();

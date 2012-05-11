@@ -25,7 +25,7 @@
 #include "AlgorithmCiftiCorrelationGradient.h"
 #include "AlgorithmException.h"
 #include "AlgorithmMetricGradient.h"
-#include "AlgorithmMetricSmoothing.h"
+#include "MetricSmoothingObject.h"
 #include "AlgorithmVolumeGradient.h"
 #include "CaretLogger.h"
 #include "CaretOMP.h"
@@ -70,7 +70,15 @@ OperationParameters* AlgorithmCiftiCorrelationGradient::getParameters()
     OptionalParameter* presmoothOpt = ret->createOptionalParameter(7, "-surface-presmooth", "smooth on the surface before computing the gradient");
     presmoothOpt->addDoubleParameter(1, "presmooth-kernel", "the sigma for the gaussian surface smoothing kernel, in mm");
     
-    OptionalParameter* memLimitOpt = ret->createOptionalParameter(8, "-mem-limit", "restrict memory usage");
+    ret->createOptionalParameter(8, "-undo-fisher-z", "compensate for input being fisher z transformed");
+    
+    OptionalParameter* surfaceExcludeOpt = ret->createOptionalParameter(9, "-surface-exclude", "exclude nodes near each seed node from computation");
+    surfaceExcludeOpt->addDoubleParameter(1, "distance", "geodesic distance from seed node for the exclusion zone, in mm");
+    
+    OptionalParameter* volumeExcludeOpt = ret->createOptionalParameter(10, "-volume-exclude", "exclude voxels near each seed voxel from computation");
+    volumeExcludeOpt->addDoubleParameter(1, "distance", "distance from seed voxel for the exclusion zone, in mm");
+    
+    OptionalParameter* memLimitOpt = ret->createOptionalParameter(11, "-mem-limit", "restrict memory usage");
     memLimitOpt->addDoubleParameter(1, "limit-GB", "memory limit in gigabytes (default unlimited)");
     
     //ret->createOptionalParameter(9, "-local-method", "use the local gradient at each node instead of averaging all gradients");
@@ -110,8 +118,29 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
     {
         surfKern = (float)presmoothOpt->getDouble(1);
     }
+    bool undoFisher = myParams->getOptionalParameter(8)->m_present;
+    float surfaceExclude = -1.0f;
+    OptionalParameter* surfaceExcludeOpt = myParams->getOptionalParameter(9);
+    if (surfaceExcludeOpt->m_present)
+    {
+        surfaceExclude = (float)surfaceExcludeOpt->getDouble(1);
+        if (surfaceExclude < 0.0f)
+        {
+            throw AlgorithmException("surface exclude distance cannot be negative");
+        }
+    }
+    float volumeExclude = -1.0f;
+    OptionalParameter* volumeExcludeOpt = myParams->getOptionalParameter(10);
+    if (volumeExcludeOpt->m_present)
+    {
+        volumeExclude = (float)volumeExcludeOpt->getDouble(1);
+        if (volumeExclude < 0.0f)
+        {
+            throw AlgorithmException("volume exclude distance cannot be negative");
+        }
+    }
     float memLimitGB = -1.0f;
-    OptionalParameter* memLimitOpt = myParams->getOptionalParameter(8);
+    OptionalParameter* memLimitOpt = myParams->getOptionalParameter(11);
     if (memLimitOpt->m_present)
     {
         memLimitGB = (float)memLimitOpt->getDouble(1);
@@ -121,15 +150,16 @@ void AlgorithmCiftiCorrelationGradient::useParameters(OperationParameters* myPar
         }
     }
     //bool localMethod = myParams->getOptionalParameter(9)->m_present;
-    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, volKern, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, memLimitGB);
+    AlgorithmCiftiCorrelationGradient(myProgObj, myCifti, volKern, myCiftiOut, myLeftSurf, myRightSurf, myCerebSurf, surfKern, undoFisher, surfaceExclude, volumeExclude, memLimitGB);
 }
 
 AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObject* myProgObj, const CiftiFile* myCifti, const float& volKern,
                                                                      CiftiFile* myCiftiOut, SurfaceFile* myLeftSurf, SurfaceFile* myRightSurf,
-                                                                     SurfaceFile* myCerebSurf, const float& surfKern, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
+                                                                     SurfaceFile* myCerebSurf, const float& surfKern, const bool& undoFisher,
+                                                                     const float& surfaceExclude, const float& volumeExclude, const float& memLimitGB) : AbstractAlgorithm(myProgObj)
 {
     LevelProgress myProgress(myProgObj);
-    init(myCifti);
+    init(myCifti, undoFisher);
     const CiftiXML& myXML = myCifti->getCiftiXML();
     CiftiXML myNewXML = myXML;
     myNewXML.resetRowsToTimepoints(1.0f, 1);
@@ -184,11 +214,21 @@ AlgorithmCiftiCorrelationGradient::AlgorithmCiftiCorrelationGradient(ProgressObj
             default:
                 break;
         }
-        processSurfaceComponent(surfaceList[whichStruct], surfKern, memLimitGB, mySurf);
+        if (surfaceExclude > 0.0f)
+        {
+            processSurfaceComponent(surfaceList[whichStruct], surfKern, surfaceExclude, memLimitGB, mySurf);
+        } else {
+            processSurfaceComponent(surfaceList[whichStruct], surfKern, memLimitGB, mySurf);
+        }
     }
     for (int whichStruct = 0; whichStruct < (int)volumeList.size(); ++whichStruct)
     {
-        processVolumeComponent(volumeList[whichStruct], volKern, memLimitGB);
+        if (volumeExclude > 0.0f)
+        {
+            processVolumeComponent(volumeList[whichStruct], volKern, volumeExclude, memLimitGB);
+        } else {
+            processVolumeComponent(volumeList[whichStruct], volKern, memLimitGB);
+        }
     }
     myCiftiOut->setColumn(m_outColumn.data(), 0);
 }
@@ -206,7 +246,11 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     {
         numCacheRows = numRowsForMem(memLimitGB, mySurf->getNumberOfNodes(), cacheFullInput);
     }
-    if (numCacheRows > mapSize) numCacheRows = mapSize;
+    if (numCacheRows > mapSize)
+    {
+        cacheFullInput = true;
+        numCacheRows = mapSize;
+    }
     if (cacheFullInput)
     {
         if (numCacheRows != mapSize) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
@@ -216,13 +260,23 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     MetricFile myRoi;
     myRoi.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
     myRoi.initializeColumn(0);
+    vector<int> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         myRoi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
         if (cacheFullInput)
         {
-            cacheRow(myMap[i].m_ciftiIndex);
+            rowsToCache.push_back(myMap[i].m_ciftiIndex);
         }
+    }
+    if (cacheFullInput)
+    {
+        cacheRows(rowsToCache);
+    }
+    CaretPointer<MetricSmoothingObject> mySmooth;
+    if (surfKern > 0.0f)
+    {
+        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi));//computes the smoothing weights only once per surface
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -230,10 +284,12 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
         if (endpos > mapSize) endpos = mapSize;
         if (!cacheFullInput)
         {
+            rowsToCache.clear();
             for (int i = startpos; i < endpos; ++i)
             {
-                cacheRow(myMap[i].m_ciftiIndex);
+                rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
+            cacheRows(rowsToCache);
         }
         int curRow = 0;//because we can't trust the order threads hit the critical section
         MetricFile computeMetric;
@@ -270,23 +326,27 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 }
             }
         }
-        MetricFile outputMetric, *finalMetric;
-        if (surfKern > 0.0f)
-        {
-            AlgorithmMetricSmoothing(NULL, mySurf, &computeMetric, surfKern, &outputMetric, &myRoi);
-            AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &computeMetric, NULL, -1.0f, &myRoi);
-            finalMetric = &computeMetric;
-        } else {
-            AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi);
-            finalMetric = &outputMetric;
-        }
         int numMetricCols = endpos - startpos;
+        MetricFile outputMetric, outputMetric2;
         for (int j = 0; j < numMetricCols; ++j)
         {
-            const float* myCol = finalMetric->getValuePointerForColumn(j);
+            const float* myCol;
+            if (surfKern > 0.0f)
+            {
+                mySmooth->smoothColumn(&computeMetric, j, &outputMetric);
+                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &myRoi);
+                myCol = outputMetric2.getValuePointerForColumn(0);
+            } else {
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &myRoi, j);
+                myCol = outputMetric.getValuePointerForColumn(0);
+            }
             for (int i = 0; i < mapSize; ++i)
             {
-                accum[i] += myCol[myMap[i].m_surfaceNode];
+                const float* roiColumn = myRoi.getValuePointerForColumn(0);
+                if (roiColumn[myMap[i].m_surfaceNode] > 0.0f)
+                {
+                    accum[i] += myCol[myMap[i].m_surfaceNode];
+                }
             }
         }
         if (!cacheFullInput)
@@ -301,6 +361,183 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     for (int i = 0; i < mapSize; ++i)
     {
         m_outColumn[myMap[i].m_ciftiIndex] = accum[i] / mapSize;
+    }
+}
+
+void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf)
+{
+    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    vector<CiftiSurfaceMap> myMap;
+    myXML.getSurfaceMapForColumns(myMap, myStructure);
+    int mapSize = (int)myMap.size();
+    vector<double> accum(mapSize, 0.0);
+    vector<int32_t> accumCount(mapSize, 0);
+    int numCacheRows = mapSize;
+    bool cacheFullInput = true;
+    if (memLimitGB >= 0.0f)
+    {
+        numCacheRows = numRowsForMem(memLimitGB, mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / (sizeof(float) * 8), cacheFullInput);
+    }
+    if (numCacheRows > mapSize)
+    {
+        cacheFullInput = true;
+        numCacheRows = mapSize;
+    }
+    if (cacheFullInput)
+    {
+        if (numCacheRows != mapSize) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
+    } else {
+        CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
+    }
+    MetricFile myRoi;
+    myRoi.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), 1);
+    myRoi.initializeColumn(0);
+    vector<vector<bool> > roiLookup(numCacheRows);//this gets bit compressed
+    vector<bool> origRoi(mySurf->getNumberOfNodes());
+    vector<vector<int32_t> > excludeNodes(numCacheRows);
+    vector<int> rowsToCache;
+    for (int i = 0; i < mapSize; ++i)
+    {
+        myRoi.setValue(myMap[i].m_surfaceNode, 0, 1.0f);
+        if (cacheFullInput)
+        {
+            rowsToCache.push_back(myMap[i].m_ciftiIndex);
+        }
+    }
+    if (cacheFullInput)
+    {
+        cacheRows(rowsToCache);
+    }
+    CaretPointer<MetricSmoothingObject> mySmooth;
+    if (surfKern > 0.0f)
+    {
+        mySmooth.grabNew(new MetricSmoothingObject(mySurf, surfKern, &myRoi));//computes the smoothing weights only once per surface
+    }
+    for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
+    {
+        int endpos = startpos + numCacheRows;
+        if (endpos > mapSize) endpos = mapSize;
+        if (!cacheFullInput)
+        {
+            rowsToCache.clear();
+            for (int i = startpos; i < endpos; ++i)
+            {
+                rowsToCache.push_back(myMap[i].m_ciftiIndex);
+            }
+            cacheRows(rowsToCache);
+        }
+        int numSurfNodes = mySurf->getNumberOfNodes();
+#pragma omp CARET_PAR
+        {
+            vector<float> distances;
+            CaretPointer<GeodesicHelper> myGeoHelp = mySurf->getGeodesicHelper();
+#pragma omp CARET_FOR
+            for (int i = startpos; i < endpos; ++i)
+            {
+                vector<int32_t>& excludeRef = excludeNodes[i - startpos];
+                myGeoHelp->getNodesToGeoDist(myMap[i].m_surfaceNode, surfExclude, excludeRef, distances);
+                vector<bool>& lookupRef = roiLookup[i - startpos];
+                lookupRef.resize(numSurfNodes);
+                for (int j = 0; j < numSurfNodes; ++j)
+                {
+                    lookupRef[j] = (myRoi.getValue(j, 0) > 0.0f);
+                }
+                int numExclude = excludeRef.size();
+                for (int j = 0; j < numExclude; ++j)
+                {
+                    lookupRef[excludeRef[j]] = false;
+                }
+            }
+        }
+        int curRow = 0;//because we can't trust the order threads hit the critical section
+        MetricFile computeMetric;
+        computeMetric.setNumberOfNodesAndColumns(mySurf->getNumberOfNodes(), endpos - startpos);
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int i = 0; i < mapSize; ++i)
+        {
+            float movingRrs;
+            const float* movingRow;
+            int myrow;
+#pragma omp critical
+            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                myrow = curRow;//so, manually force it to read sequentially
+                ++curRow;
+                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
+            }
+            for (int j = startpos; j < endpos; ++j)
+            {
+                if (roiLookup[j - startpos][myMap[myrow].m_surfaceNode])
+                {
+                    if (myrow >= startpos && myrow < endpos)
+                    {
+                        if (j >= myrow)
+                        {
+                            float cacheRrs;
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                            computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                            computeMetric.setValue(myMap[j].m_surfaceNode, myrow - startpos, result);
+                        }
+                    } else {
+                        float cacheRrs;
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
+                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                        computeMetric.setValue(myMap[myrow].m_surfaceNode, j - startpos, result);
+                    }
+                }
+            }
+        }
+        int numMetricCols = endpos - startpos;
+        MetricFile outputMetric, outputMetric2;
+        MetricFile excludeRoi = myRoi;
+        for (int j = 0; j < numMetricCols; ++j)
+        {
+            int numExclude = (int)excludeNodes[j].size();
+            const float* myCol;
+            for (int k = 0; k < numExclude; ++k)
+            {
+                excludeRoi.setValue(excludeNodes[j][k], 0, 0.0f);//exclude the nodes near the seed node
+            }
+            if (surfKern > 0.0f)
+            {
+                mySmooth->smoothColumn(&computeMetric, j, &outputMetric, &excludeRoi);
+                AlgorithmMetricGradient(NULL, mySurf, &outputMetric, &outputMetric2, NULL, -1.0f, &excludeRoi);
+                myCol = outputMetric2.getValuePointerForColumn(0);
+            } else {
+                AlgorithmMetricGradient(NULL, mySurf, &computeMetric, &outputMetric, NULL, -1.0f, &excludeRoi, j);
+                myCol = outputMetric.getValuePointerForColumn(0);
+            }
+            for (int i = 0; i < mapSize; ++i)
+            {
+                const float* roiColumn = excludeRoi.getValuePointerForColumn(0);
+                if (roiColumn[myMap[i].m_surfaceNode] > 0.0f)
+                {
+                    accum[i] += myCol[myMap[i].m_surfaceNode];
+                    accumCount[i] += 1;//less dubious looking than ++accumCount[i]
+                }
+            }
+            for (int k = 0; k < numExclude; ++k)
+            {
+                excludeRoi.setValue(excludeNodes[j][k], 0, myRoi.getValue(excludeNodes[j][k], 0));//and set them back to original roi afterwards, instead of a full reinitialize
+            }
+        }
+        if (!cacheFullInput)
+        {
+            clearCache();
+        }
+    }
+    if (cacheFullInput)
+    {
+        clearCache();
+    }
+    for (int i = 0; i < mapSize; ++i)
+    {
+        if (accumCount[i] != 0)
+        {
+            m_outColumn[myMap[i].m_ciftiIndex] = accum[i] / accumCount[i];
+        } else {
+            m_outColumn[myMap[i].m_ciftiIndex] = 0.0f;
+        }
     }
 }
 
@@ -346,7 +583,11 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     {
         numCacheRows = numRowsForMem(memLimitGB, newdims[0] * newdims[1] * newdims[2], cacheFullInput);
     }
-    if (numCacheRows > mapSize) numCacheRows = mapSize;
+    if (numCacheRows > mapSize)
+    {
+        cacheFullInput = true;
+        numCacheRows = mapSize;
+    }
     if (cacheFullInput)
     {
         if (numCacheRows != mapSize) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
@@ -358,13 +599,18 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     myXML.getVolumeDimsAndSForm(ciftiDims, ciftiSform);
     VolumeFile volRoi(newdims, ciftiSform);
     volRoi.setValueAllVoxels(0.0f);
+    vector<int> rowsToCache;
     for (int i = 0; i < mapSize; ++i)
     {
         volRoi.setValue(1.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
         if (cacheFullInput)
         {
-            cacheRow(myMap[i].m_ciftiIndex);
+            rowsToCache.push_back(myMap[i].m_ciftiIndex);
         }
+    }
+    if (cacheFullInput)
+    {
+        cacheRows(rowsToCache);
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
     {
@@ -372,10 +618,12 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
         if (endpos > mapSize) endpos = mapSize;
         if (!cacheFullInput)
         {
+            rowsToCache.clear();
             for (int i = startpos; i < endpos; ++i)
             {
-                cacheRow(myMap[i].m_ciftiIndex);
+                rowsToCache.push_back(myMap[i].m_ciftiIndex);
             }
+            cacheRows(rowsToCache);
         }
         int curRow = 0;//because we can't trust the order threads hit the critical section
         vector<int64_t> computeDims = newdims;
@@ -414,15 +662,13 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
             }
         }
         VolumeFile outputVol;
-        //computeVol.writeFile("debug." + StructureEnum::toName(myStructure) + ".corr.nii");
-        AlgorithmVolumeGradient(NULL, &computeVol, volKern, &outputVol, &volRoi);
-        //outputVol.writeFile("debug." + StructureEnum::toName(myStructure) + ".grad.nii");
         int numSubvols = endpos - startpos;
         for (int j = 0; j < numSubvols; ++j)
         {
+            AlgorithmVolumeGradient(NULL, &computeVol, &outputVol, volKern, &volRoi, NULL, j);
             for (int i = 0; i < mapSize; ++i)
             {
-                accum[i] += outputVol.getValue(myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2], j);
+                accum[i] += outputVol.getValue(myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
             }
         }
         if (!cacheFullInput)
@@ -437,6 +683,180 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     for (int i = 0; i < mapSize; ++i)
     {
         m_outColumn[myMap[i].m_ciftiIndex] = accum[i] / mapSize;
+    }
+}
+
+void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::Enum& myStructure, const float& volKern, const float& volExclude, const float& memLimitGB)
+{
+    const CiftiXML& myXML = m_inputCifti->getCiftiXML();
+    vector<CiftiVolumeMap> myMap;
+    myXML.getVolumeStructureMapForColumns(myMap, myStructure);
+    int mapSize = (int)myMap.size();
+    vector<double> accum(mapSize, 0.0);
+    vector<int32_t> accumCount(mapSize, 0);
+    int numCacheRows = mapSize;
+    bool cacheFullInput = true;
+    vector<int64_t> newdims;
+    int64_t offset[3];
+    if (mapSize > 0)
+    {//make a voxel bounding box to minimize memory usage
+        int extrema[6] = { myMap[0].m_ijk[0],
+            myMap[0].m_ijk[0],
+            myMap[0].m_ijk[1],
+            myMap[0].m_ijk[1],
+            myMap[0].m_ijk[2],
+            myMap[0].m_ijk[2]
+        };
+        for (int64_t i = 1; i < mapSize; ++i)
+        {
+            if (myMap[i].m_ijk[0] < extrema[0]) extrema[0] = myMap[i].m_ijk[0];
+            if (myMap[i].m_ijk[0] > extrema[1]) extrema[1] = myMap[i].m_ijk[0];
+            if (myMap[i].m_ijk[1] < extrema[2]) extrema[2] = myMap[i].m_ijk[1];
+            if (myMap[i].m_ijk[1] > extrema[3]) extrema[3] = myMap[i].m_ijk[1];
+            if (myMap[i].m_ijk[2] < extrema[4]) extrema[4] = myMap[i].m_ijk[2];
+            if (myMap[i].m_ijk[2] > extrema[5]) extrema[5] = myMap[i].m_ijk[2];
+        }
+        newdims.push_back(extrema[1] - extrema[0] + 1);
+        newdims.push_back(extrema[3] - extrema[2] + 1);
+        newdims.push_back(extrema[5] - extrema[4] + 1);
+        offset[0] = extrema[0];
+        offset[1] = extrema[2];
+        offset[2] = extrema[4];
+    } else {
+        return;
+    }
+    if (memLimitGB >= 0.0f)
+    {
+        numCacheRows = numRowsForMem(memLimitGB, newdims[0] * newdims[1] * newdims[2], cacheFullInput);
+    }
+    if (numCacheRows > mapSize)
+    {
+        cacheFullInput = true;
+        numCacheRows = mapSize;
+    }
+    if (cacheFullInput)
+    {
+        if (numCacheRows != mapSize) CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time");
+    } else {
+        CaretLogInfo("computing " + AString::number(numCacheRows) + " rows at a time, reading rows as needed during processing");
+    }
+    int64_t ciftiDims[3];
+    vector<vector<float> > ciftiSform;
+    myXML.getVolumeDimsAndSForm(ciftiDims, ciftiSform);
+    VolumeFile volRoi(newdims, ciftiSform);
+    volRoi.setValueAllVoxels(0.0f);
+    vector<int> rowsToCache;
+    for (int i = 0; i < mapSize; ++i)
+    {
+        volRoi.setValue(1.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
+        if (cacheFullInput)
+        {
+            rowsToCache.push_back(myMap[i].m_ciftiIndex);
+        }
+        cacheRows(rowsToCache);
+    }
+    for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
+    {
+        int endpos = startpos + numCacheRows;
+        if (endpos > mapSize) endpos = mapSize;
+        if (!cacheFullInput)
+        {
+            rowsToCache.clear();
+            for (int i = startpos; i < endpos; ++i)
+            {
+                rowsToCache.push_back(myMap[i].m_ciftiIndex);
+            }
+            cacheRows(rowsToCache);
+        }
+        int curRow = 0;//because we can't trust the order threads hit the critical section
+        vector<int64_t> computeDims = newdims;
+        computeDims.push_back(endpos - startpos);
+        VolumeFile computeVol(computeDims, ciftiSform);
+#pragma omp CARET_PARFOR schedule(dynamic)
+        for (int i = 0; i < mapSize; ++i)
+        {
+            float movingRrs;
+            const float* movingRow;
+            int myrow;
+#pragma omp critical
+            {//CiftiFile may explode if we request multiple rows concurrently (needs mutexes), but we should force sequential requests anyway
+                myrow = curRow;//so, manually force it to read sequentially
+                ++curRow;
+                movingRow = getRow(myMap[myrow].m_ciftiIndex, movingRrs);
+            }
+            Vector3D movingLoc;
+            volRoi.indexToSpace(myMap[myrow].m_ijk, movingLoc);//NOTE: this is outside the cropped volume, but matches the real location in the full volume, because we didn't fix the center
+            for (int j = startpos; j < endpos; ++j)
+            {
+                Vector3D seedLoc;
+                volRoi.indexToSpace(myMap[j].m_ijk, seedLoc);//ditto
+                if ((movingLoc - seedLoc).length() > volExclude)//don't correlate if closer than the exclude range
+                {
+                    if (myrow >= startpos && myrow < endpos)
+                    {
+                        if (j >= myrow)
+                        {
+                            float cacheRrs;
+                            const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
+                            float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                            computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                            computeVol.setValue(result, myMap[j].m_ijk[0] - offset[0], myMap[j].m_ijk[1] - offset[1], myMap[j].m_ijk[2] - offset[2], myrow - startpos);
+                        }
+                    } else {
+                        float cacheRrs;
+                        const float* cacheRow = getRow(myMap[j].m_ciftiIndex, cacheRrs, true);
+                        float result = correlate(movingRow, movingRrs, cacheRow, cacheRrs);
+                        computeVol.setValue(result, myMap[myrow].m_ijk[0] - offset[0], myMap[myrow].m_ijk[1] - offset[1], myMap[myrow].m_ijk[2] - offset[2], j - startpos);
+                    }
+                }
+            }
+        }
+        VolumeFile outputVol, excludeRoi(newdims, ciftiSform);
+        excludeRoi.setFrame(volRoi.getFrame());
+        int numSubvols = endpos - startpos;
+        for (int j = 0; j < numSubvols; ++j)
+        {
+            Vector3D seedLoc;
+            volRoi.indexToSpace(myMap[j + startpos].m_ijk, seedLoc);
+            for (int i = 0; i < mapSize; ++i)
+            {
+                Vector3D otherLoc;
+                volRoi.indexToSpace(myMap[i].m_ijk, otherLoc);
+                if ((otherLoc - seedLoc).length() <= volExclude)
+                {
+                    excludeRoi.setValue(0.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
+                }
+            }
+            AlgorithmVolumeGradient(NULL, &computeVol, &outputVol, volKern, &excludeRoi, NULL, j);
+            for (int i = 0; i < mapSize; ++i)
+            {
+                if (excludeRoi.getValue(myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]) > 0.0f)
+                {
+                    float val = outputVol.getValue(myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
+                    accum[i] += val;
+                    accumCount[i] += 1;
+                } else {
+                    excludeRoi.setValue(1.0f, myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);//reset the ROI
+                }
+            }
+        }
+        if (!cacheFullInput)
+        {
+            clearCache();
+        }
+    }
+    if (cacheFullInput)
+    {
+        clearCache();
+    }
+    for (int i = 0; i < mapSize; ++i)
+    {
+        if (accumCount[i] != 0)
+        {
+            m_outColumn[myMap[i].m_ciftiIndex] = accum[i] / accumCount[i];
+        } else {
+            m_outColumn[myMap[i].m_ciftiIndex] = 0.0f;
+        }
     }
 }
 
@@ -628,8 +1048,9 @@ float AlgorithmCiftiCorrelationGradient::correlate(const float* row1, const floa
     return r;
 }
 
-void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input)
+void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool& undoFisher)
 {
+    m_undoFisher = undoFisher;
     m_inputCifti = input;
     m_rowInfo.resize(m_inputCifti->getNumberOfRows());
     m_cacheUsed = 0;
@@ -637,26 +1058,43 @@ void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input)
     m_outColumn.resize(m_inputCifti->getNumberOfRows());
 }
 
-void AlgorithmCiftiCorrelationGradient::cacheRow(const int& ciftiIndex)
+void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int>& ciftiIndices)
 {
-    CaretAssertVectorIndex(m_rowInfo, ciftiIndex);
-    if (m_rowInfo[ciftiIndex].m_cacheIndex != -1) return;//shouldn't happen, but hey
-    if (m_cacheUsed >= (int)m_rowCache.size())
+    int curIndex = 0, numIndices = (int)ciftiIndices.size();//manually in-order
+    m_rowCache.reserve(m_cacheUsed + ciftiIndices.size());//so that pointers to members don't change
+#pragma omp CARET_PAR
     {
-        m_rowCache.push_back(CacheRow());
-        m_rowCache[m_cacheUsed].m_row.resize(m_numCols);
+        int myIndex;
+        float* myPtr;
+#pragma omp CARET_FOR schedule(dynamic)
+        for (int i = 0; i < numIndices; ++i)
+        {
+            myPtr = NULL;
+#pragma omp critical
+            {
+                myIndex = curIndex;
+                ++curIndex;
+                CaretAssertVectorIndex(m_rowInfo, ciftiIndices[myIndex]);
+                if (m_rowInfo[ciftiIndices[myIndex]].m_cacheIndex == -1)
+                {
+                    if (m_cacheUsed >= (int)m_rowCache.size())
+                    {
+                        m_rowCache.push_back(CacheRow());
+                        m_rowCache[m_cacheUsed].m_row.resize(m_numCols);
+                    }
+                    m_rowCache[m_cacheUsed].m_ciftiIndex = ciftiIndices[myIndex];
+                    myPtr = m_rowCache[m_cacheUsed].m_row.data();
+                    m_inputCifti->getRow(myPtr, ciftiIndices[myIndex]);
+                    m_rowInfo[ciftiIndices[myIndex]].m_cacheIndex = m_cacheUsed;
+                    ++m_cacheUsed;
+                }
+            }//end critical, now compute while the next thread reads
+            if (myPtr != NULL)
+            {
+                adjustRow(myPtr, ciftiIndices[myIndex]);
+            }
+        }
     }
-    m_rowCache[m_cacheUsed].m_ciftiIndex = ciftiIndex;
-    float* myPtr = m_rowCache[m_cacheUsed].m_row.data();
-    m_inputCifti->getRow(myPtr, ciftiIndex);
-    if (!m_rowInfo[ciftiIndex].m_haveCalculated)
-    {
-        computeRowStats(myPtr, m_rowInfo[ciftiIndex].m_mean, m_rowInfo[ciftiIndex].m_rootResidSqr);
-        m_rowInfo[ciftiIndex].m_haveCalculated = true;
-    }
-    doSubtract(myPtr, m_rowInfo[ciftiIndex].m_mean);
-    m_rowInfo[ciftiIndex].m_cacheIndex = m_cacheUsed;
-    ++m_cacheUsed;
 }
 
 void AlgorithmCiftiCorrelationGradient::clearCache()
@@ -683,39 +1121,45 @@ const float* AlgorithmCiftiCorrelationGradient::getRow(const int& ciftiIndex, fl
         }
         ret = getTempRow();
         m_inputCifti->getRow(ret, ciftiIndex);
-        if (!m_rowInfo[ciftiIndex].m_haveCalculated)
-        {
-            computeRowStats(ret, m_rowInfo[ciftiIndex].m_mean, m_rowInfo[ciftiIndex].m_rootResidSqr);
-            m_rowInfo[ciftiIndex].m_haveCalculated = true;
-        }
-        doSubtract(ret, m_rowInfo[ciftiIndex].m_mean);
+        adjustRow(ret, ciftiIndex);
     }
     rootResidSqr = m_rowInfo[ciftiIndex].m_rootResidSqr;
     return ret;
 }
 
-void AlgorithmCiftiCorrelationGradient::computeRowStats(const float* row, float& mean, float& rootResidSqr)
+void AlgorithmCiftiCorrelationGradient::adjustRow(float* rowOut, const int& ciftiIndex)
 {
-    double accum = 0.0;//double, for numerical stability
-    for (int i = 0; i < m_numCols; ++i)//two pass, for numerical stability
+    if (m_undoFisher)
     {
-        accum += row[i];
+        for (int i = 0; i < m_numCols; ++i)
+        {
+            double temp = exp(2 * rowOut[i]);
+            rowOut[i] = (float)((temp - 1)/(temp + 1));
+        }
     }
-    mean = accum / m_numCols;
-    accum = 0.0;
+    if (!m_rowInfo[ciftiIndex].m_haveCalculated)
+    {
+        double accum = 0.0;//double, for numerical stability
+        for (int i = 0; i < m_numCols; ++i)//two pass, for numerical stability
+        {
+            accum += rowOut[i];
+        }
+        float mean = accum / m_numCols;
+        accum = 0.0;
+        for (int i = 0; i < m_numCols; ++i)
+        {
+            float tempf = rowOut[i] - mean;
+            accum += tempf * tempf;
+        }
+        float rootResidSqr = sqrt(accum);
+        m_rowInfo[ciftiIndex].m_mean = mean;
+        m_rowInfo[ciftiIndex].m_rootResidSqr = rootResidSqr;
+        m_rowInfo[ciftiIndex].m_haveCalculated = true;
+    }
+    float mean = m_rowInfo[ciftiIndex].m_mean;
     for (int i = 0; i < m_numCols; ++i)
     {
-        float tempf = row[i] - mean;
-        accum += tempf * tempf;
-    }
-    rootResidSqr = sqrt(accum);
-}
-
-void AlgorithmCiftiCorrelationGradient::doSubtract(float* row, const float& mean)
-{
-    for (int i = 0; i < m_numCols; ++i)
-    {
-        row[i] -= mean;
+        rowOut[i] -= mean;
     }
 }
 
@@ -749,13 +1193,13 @@ int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, co
     int64_t inrowBytes = m_numCols * sizeof(float), outrowBytes = numComponentFloats * sizeof(float);
     int64_t targetBytes = (int64_t)(memLimitGB * 1024 * 1024 * 1024);
     if (m_inputCifti->isInMemory()) targetBytes -= numRows * inrowBytes;//count in-memory input against the total too
-    targetBytes -= numRows * sizeof(RowInfo);//storage for mean, stdev, and info about caching
-    int64_t perRowBytes = inrowBytes + outrowBytes * 2;//cache and memory for processing and output structures
+    targetBytes -= numRows * sizeof(RowInfo) + 2 * outrowBytes;//storage for mean, stdev, and info about caching, output structures
+    int64_t perRowBytes = inrowBytes + outrowBytes;//cache and memory for processing structures (output structures are single rows thanks to MetricSmoothingObject)
     if (numComponentFloats * inrowBytes < targetBytes * 0.7f)//if caching the entire input file would take less than 70% of remaining allotted memory, do it to reduce IO
     {
         cacheFullInput = true;//precache the entire input file, rather than caching it synchronously with the in-memory output rows
         targetBytes -= numComponentFloats * inrowBytes;//reduce the remaining total by the memory used
-        perRowBytes = outrowBytes * 2;//don't need to count input rows against the remaining memory total
+        perRowBytes = outrowBytes;//don't need to count input rows against the remaining memory total
     } else {
         cacheFullInput = false;
 #ifdef CARET_OMP
