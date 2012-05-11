@@ -48,6 +48,7 @@
 #include "GuiManager.h"
 #include "SessionManager.h"
 #include "WuQtUtilities.h"
+#include "WuQTrueFalseComboBox.h"
 #include "WuQWidgetObjectGroup.h"
 
 using namespace caret;
@@ -175,8 +176,8 @@ PreferencesDialog::updateDialog()
         this->loggingLevelComboBox->setCurrentIndex(indx);
     }
     
-    this->volumeAxesCrosshairsCheckBox->setChecked(prefs->isVolumeAxesCrosshairsDisplayed());
-    this->volumeAxesLabelsCheckBox->setChecked(prefs->isVolumeAxesLabelsDisplayed());
+    this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
+    this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     
     this->allWidgets->blockAllSignals(false);
 }
@@ -337,21 +338,21 @@ PreferencesDialog::addLoggingItems()
 void
 PreferencesDialog::addVolumeItems()
 {
-    this->volumeAxesCrosshairsCheckBox = new QCheckBox("Axes Crosshairs");
-    QObject::connect(this->volumeAxesCrosshairsCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(volumeAxesCrosshairsCheckBoxToggled(bool)));
-    this->volumeAxesLabelsCheckBox = new QCheckBox("Axes Labels");
-    QObject::connect(this->volumeAxesLabelsCheckBox, SIGNAL(toggled(bool)),
-                     this, SLOT(volumeAxesLabelsCheckBoxToggled(bool)));
+    this->volumeAxesCrosshairsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesCrosshairsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesCrosshairsComboBoxToggled(bool)));
+    this->volumeAxesLabelsComboBox = new WuQTrueFalseComboBox("On", "Off", this);
+    QObject::connect(this->volumeAxesLabelsComboBox, SIGNAL(statusChanged(bool)),
+                     this, SLOT(volumeAxesLabelsComboBoxToggled(bool)));
     
     
-    this->allWidgets->add(this->volumeAxesCrosshairsCheckBox);
-    this->allWidgets->add(this->volumeAxesLabelsCheckBox);
+    this->allWidgets->add(this->volumeAxesCrosshairsComboBox);
+    this->allWidgets->add(this->volumeAxesLabelsComboBox);
     
     this->addWidgetToLayout("Volume Axes Crosshairs: ", 
-                            this->volumeAxesCrosshairsCheckBox);
+                            this->volumeAxesCrosshairsComboBox->getWidget());
     this->addWidgetToLayout("Volume Axes Labels: ", 
-                            this->volumeAxesLabelsCheckBox);
+                            this->volumeAxesLabelsComboBox->getWidget());
 }
 
 /**
@@ -360,7 +361,7 @@ PreferencesDialog::addVolumeItems()
  *    New value.
  */
 void 
-PreferencesDialog::volumeAxesCrosshairsCheckBoxToggled(bool value)
+PreferencesDialog::volumeAxesCrosshairsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesCrosshairsDisplayed(value);    
@@ -373,7 +374,7 @@ PreferencesDialog::volumeAxesCrosshairsCheckBoxToggled(bool value)
  *    New value.
  */
 void 
-PreferencesDialog::volumeAxesLabelsCheckBoxToggled(bool value)
+PreferencesDialog::volumeAxesLabelsComboBoxToggled(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     prefs->setVolumeAxesLabelsDisplayed(value);    

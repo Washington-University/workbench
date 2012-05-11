@@ -36,6 +36,7 @@ class QSpinBox;
 
 namespace caret {
     
+    class WuQTrueFalseComboBox;
     class WuQWidgetObjectGroup;
     
     class PreferencesDialog : public WuQDialogNonModal {
@@ -56,8 +57,8 @@ namespace caret {
         void foregroundColorPushButtonPressed();
         void loggingLevelComboBoxChanged(int);
         
-        void volumeAxesCrosshairsCheckBoxToggled(bool value);
-        void volumeAxesLabelsCheckBoxToggled(bool value);
+        void volumeAxesCrosshairsComboBoxToggled(bool value);
+        void volumeAxesLabelsComboBoxToggled(bool value);
         
         void animationStartChanged(double value);
         
@@ -84,9 +85,6 @@ namespace caret {
         
         WuQTrueFalseComboBox* volumeAxesCrosshairsComboBox;
         WuQTrueFalseComboBox* volumeAxesLabelsComboBox;
-        
-        QCheckBox* volumeAxesCrosshairsCheckBox;
-        QCheckBox* volumeAxesLabelsCheckBox;
         
         QDoubleSpinBox* animationStartDoubleSpinBox;
         
