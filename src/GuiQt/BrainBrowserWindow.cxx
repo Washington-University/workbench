@@ -1139,23 +1139,32 @@ BrainBrowserWindow::processDataFileOpen()
             }
             
             bool isLoadDataFiles = true;
-            
+                        
             AddDataFileToSpecFileMode addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_NO;
             if (isLoadingSpecFile) {
                 addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
             }
-            else if (addFileToSpecFileCheckBox->isChecked()) {
-                SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
-                                                                    this);
-                
-                if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
-                    if (createAddToSpecFileDialog.isAddToSpecFileSelected()) {
+            else {
+                if (addFileToSpecFileCheckBox->isChecked()) {
+                    Brain* brain = GuiManager::get()->getBrain();
+                    FileInformation fileInfo(brain->getSpecFile()->getFileName());
+                    if (fileInfo.exists()) {
                         addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
                     }
-                }
-                else {
-                    isLoadDataFiles = false;
-                }
+                    else {
+                        SpecFileCreateAddToDialog createAddToSpecFileDialog(GuiManager::get()->getBrain(),
+                                                                            this);
+                        
+                        if (createAddToSpecFileDialog.exec() == SpecFileCreateAddToDialog::Accepted) {
+                            if (createAddToSpecFileDialog.isAddToSpecFileSelected()) {
+                                addDataFileToSpecFileMode = ADD_DATA_FILE_TO_SPEC_FILE_YES;
+                            }
+                        }
+                        else {
+                            isLoadDataFiles = false;
+                        }
+                    }
+                }                
             }
             
             if (isLoadDataFiles) {
