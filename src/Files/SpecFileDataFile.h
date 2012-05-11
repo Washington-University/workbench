@@ -65,6 +65,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        SpecFileDataFile(); // not implemented
+        
         void copyHelper(const SpecFileDataFile& sfdf);
         
         AString filename;

@@ -1374,7 +1374,7 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
         }
     }
     
-    CaretDataFile* caretDataFileRead;
+    CaretDataFile* caretDataFileRead = NULL;
     
     switch (dataFileType) {
         case DataFileTypeEnum::BORDER:
@@ -1430,6 +1430,9 @@ Brain::readDataFile(const DataFileTypeEnum::Enum dataFileType,
             if (dataFileStructure == StructureEnum::INVALID) {
                 if (caretDataFileRead != NULL) {
                     dataFileStructure = caretDataFileRead->getStructure();
+                }
+                else {
+                    dataFileStructure = StructureEnum::ALL;
                 }
             }
             this->specFile->addDataFile(dataFileType, 
