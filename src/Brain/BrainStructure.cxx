@@ -159,13 +159,14 @@ BrainStructure::addLabelFile(LabelFile* labelFile) throw (DataFileException)
     int32_t numNodes = this->getNumberOfNodes();
     if (numNodes > 0) {
         if (labelFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(labelFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (labelFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(labelFile->getNumberOfNodes())
+                               + " nodes but the "
+                               + StructureEnum::toGuiName(this->getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -206,13 +207,14 @@ BrainStructure::addMetricFile(MetricFile* metricFile) throw (DataFileException)
     int32_t numNodes = this->getNumberOfNodes();
     if (numNodes > 0) {
         if (metricFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(metricFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (metricFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(metricFile->getNumberOfNodes())
+                               + " nodes but the "
+                               + StructureEnum::toGuiName(this->getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -253,13 +255,14 @@ BrainStructure::addRgbaFile(RgbaFile* rgbaFile) throw (DataFileException)
     int32_t numNodes = this->getNumberOfNodes();
     if (numNodes > 0) {
         if (rgbaFile->getNumberOfNodes() != numNodes) {
-            AString message = " File contains "
-            + AString::number(rgbaFile->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (rgbaFile->getFileNameNoPath()
+                               + " contains "
+                               + AString::number(rgbaFile->getNumberOfNodes())
+                               + " nodes but the "
+                               + StructureEnum::toGuiName(this->getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
@@ -302,13 +305,14 @@ BrainStructure::addSurface(Surface* surface,
     int32_t numNodes = this->getNumberOfNodes();
     if (numNodes > 0) {
         if (surface->getNumberOfNodes() != numNodes) {
-            AString message = " Surface contains "
-            + AString::number(surface->getNumberOfNodes())
-            + " but the "
-            + StructureEnum::toGuiName(this->getStructure())
-            + " contains "
-            + AString::number(numNodes)
-            + " nodes.";
+            AString message = (surface->getFileNameNoPath()
+                               + "  contains "
+                               + AString::number(surface->getNumberOfNodes())
+                               + " nodes but the "
+                               + StructureEnum::toGuiName(this->getStructure())
+                               + " contains "
+                               + AString::number(numNodes)
+                               + " nodes.");
             
             DataFileException e(message);
             CaretLogThrowing(e);
