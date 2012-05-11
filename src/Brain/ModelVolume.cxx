@@ -337,15 +337,16 @@ ModelVolume::receiveEvent(Event* event)
         CaretAssert(idLocationEvent);
 
         const float* highlighXYZ = idLocationEvent->getXYZ();
-        float sliceXYZ[3] = {
-            highlighXYZ[0],
-            highlighXYZ[1],
-            highlighXYZ[2]
-        };
-        
         for (int32_t windowTabNumber = 0; 
              windowTabNumber < BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS; 
              windowTabNumber++) {
+
+            float sliceXYZ[3] = {
+                highlighXYZ[0],
+                highlighXYZ[1],
+                highlighXYZ[2]
+            };
+            
             switch (this->getSliceViewMode(windowTabNumber)) {
                 case VolumeSliceViewModeEnum::MONTAGE:
                     /*
