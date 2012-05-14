@@ -621,6 +621,28 @@ CaretPreferences::setContralateralIdentificationEnabled(const bool enabled)
 */
 
 /**
+ * @return Is the splash screen enabled?
+ */
+bool 
+CaretPreferences::isSplashScreenEnabled() const
+{
+    return this->splashScreenEnabled;
+}
+
+/**
+ * Set the splash screen enabled.
+ * @param enabled
+ *    New status.
+ */
+void 
+CaretPreferences::setSplashScreenEnabled(const bool enabled)
+{
+    this->splashScreenEnabled = enabled;
+    this->setBoolean(CaretPreferences::NAME_SPLASH_SCREEN, 
+                     this->splashScreenEnabled);
+}
+
+/**
  * Initialize/Read the preferences
  */
 void 
@@ -695,6 +717,9 @@ CaretPreferences::readPreferences()
 
     this->toolBoxType = this->getInteger(CaretPreferences::NAME_TOOLBOX_TYPE,
                                          0);
+    
+    this->splashScreenEnabled = this->getBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
+                                                 false);
     
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);

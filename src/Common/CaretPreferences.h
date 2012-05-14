@@ -98,6 +98,10 @@ namespace caret {
         
         //void setContralateralIdentificationEnabled(const bool enabled);
         
+        bool isSplashScreenEnabled() const;
+        
+        void setSplashScreenEnabled(const bool enabled);
+        
         int32_t getToolBoxType() const;
         
         void setToolBoxType(const int32_t toolBoxType);
@@ -152,40 +156,44 @@ namespace caret {
         
         bool dataFileAddToSpecFileEnabled;
         
+        bool splashScreenEnabled;
+        
         double animationStartTime;
         
         int32_t toolBoxType;
         
         //bool contralateralIdentificationEnabled;
         
+        static const AString NAME_ANIMATION_START_TIME;
         static const AString NAME_AXES_CROSSHAIRS;
         static const AString NAME_AXES_LABELS;
         static const AString NAME_COLOR_BACKGROUND;
         static const AString NAME_COLOR_FOREGROUND;
-        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
+        static const AString NAME_DATA_FILE_ADD_TO_SPEC_FILE;
+//        static const AString NAME_IDENTIFICATION_CONTRALATERAL;
+        static const AString NAME_LOGGING_LEVEL;
         static const AString NAME_PREVIOUS_SPEC_FILES;
         static const AString NAME_PREVIOUS_OPEN_FILE_DIRECTORIES;
-        static const AString NAME_LOGGING_LEVEL;
+        static const AString NAME_SPLASH_SCREEN;
         static const AString NAME_USER_VIEWS;
-        static const AString NAME_ANIMATION_START_TIME;
-        static const AString NAME_DATA_FILE_ADD_TO_SPEC_FILE;
         
         static const AString NAME_TOOLBOX_TYPE;
     };
     
 #ifdef __CARET_PREFERENCES_DECLARE__
+    const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
     const AString CaretPreferences::NAME_AXES_CROSSHAIRS = "volumeAxesCrosshairs";
     const AString CaretPreferences::NAME_AXES_LABELS     = "volumeAxesLabels";
     const AString CaretPreferences::NAME_COLOR_BACKGROUND     = "colorBackground";
     const AString CaretPreferences::NAME_COLOR_FOREGROUND     = "colorForeground";
+    const AString CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE = "dataFileAddToSpecFile";
     //const AString CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL     = "identificationContralateral";
+    const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
     const AString CaretPreferences::NAME_PREVIOUS_SPEC_FILES     = "previousSpecFiles";
     const AString CaretPreferences::NAME_PREVIOUS_OPEN_FILE_DIRECTORIES     = "previousOpenFileDirectories";
-    const AString CaretPreferences::NAME_LOGGING_LEVEL     = "loggingLevel";
-    const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
-    const AString CaretPreferences::NAME_ANIMATION_START_TIME = "animationStartTime";
-    const AString CaretPreferences::NAME_DATA_FILE_ADD_TO_SPEC_FILE = "dataFileAddToSpecFile";
+    const AString CaretPreferences::NAME_SPLASH_SCREEN = "splashScreen";
     const AString CaretPreferences::NAME_TOOLBOX_TYPE = "toolBoxType";
+    const AString CaretPreferences::NAME_USER_VIEWS     = "userViews";
 #endif // __CARET_PREFERENCES_DECLARE__
 
 } // namespace

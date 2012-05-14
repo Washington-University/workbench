@@ -183,6 +183,8 @@ PreferencesDialog::updateDialog()
     this->volumeAxesCrosshairsComboBox->setStatus(prefs->isVolumeAxesCrosshairsDisplayed());
     this->volumeAxesLabelsComboBox->setStatus(prefs->isVolumeAxesLabelsDisplayed());
     
+    this->splashScreenShowAtStartupComboBox->setStatus(prefs->isSplashScreenEnabled());
+    
     this->allWidgets->blockAllSignals(false);
 }
 
@@ -409,7 +411,6 @@ void
 PreferencesDialog::dataFileAddToSpecFileComboBoxChanged(bool value)
 {
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
-    prefs->setVolumeAxesLabelsDisplayed(value);    
     prefs->setDataFileAddToSpecFileEnabled(value);
 }
 
@@ -434,7 +435,8 @@ void PreferencesDialog::addSplashItems()
  */
 void PreferencesDialog::splashScreenShowAtStartupComboBoxChanged(bool value)
 {
-    
+    CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
+    prefs->setSplashScreenEnabled(value);
 }
 
 
