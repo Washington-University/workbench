@@ -235,10 +235,10 @@ UserInputModeBordersWidget::createDrawOperationWidget()
                                                                 "When selected, border drawing is paused and\n"
                                                                 "the mouse pans/zooms/rotates the surface.\n"
                                                                 "\n"
-                                                                "Note: When this is NOT selected, holding\n"
-                                                                "down the ALT key while moving the mouse\n"
-                                                                "will rotate the surface instead of drawing\n"
-                                                                "a border.", 
+                                                                "Note: When this is option is NOT selected, holding\n"
+                                                                "down BOTH the CTRL (Apple on Macs) AND the\n"
+                                                                "SHIFT keys while moving the mouse will rotate\n"
+                                                                "the surface instead of drawing border points.", 
                                                                 this,
                                                                 this,
                                                                 SLOT(adjustViewActionTriggered()));

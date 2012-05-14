@@ -77,7 +77,7 @@ namespace caret {
         
         int32_t getWheelRotation() const;
         
-        bool isAltKeyDown() const;
+        bool isControlAndShiftKeyDown() const;
         
         bool isControlKeyDown() const;
         
@@ -85,7 +85,7 @@ namespace caret {
         
         bool isAnyKeyDown() const;
         
-        void setAltKeyDown(const bool altKeyDown);
+        void setNoKeysDown();
         
         bool isGraphicsUpdateOneWindowRequested() const;
         
@@ -112,7 +112,7 @@ namespace caret {
 
         int32_t wheelRotation;
         
-        bool keyDownAlt;
+        bool keyDownControlAndShift;
         
         bool keyDownControl;
         

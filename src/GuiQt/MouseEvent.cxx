@@ -63,14 +63,15 @@ MouseEvent::MouseEvent(const MouseEventTypeEnum::Enum mouseEventType,
     if (keyModifiers == Qt::NoButton) {
         // nothing
     }
-    else if (keyModifiers == Qt::AltModifier) {
-        this->keyDownAlt = true;           
-    }
     else if (keyModifiers == Qt::ControlModifier) {
         this->keyDownControl = true;           
     }
     else if (keyModifiers == Qt::ShiftModifier) {
         this->keyDownShift = true;            
+    }
+    else if ((keyModifiers & Qt::ControlModifier)
+             && (keyModifiers & Qt::ShiftModifier)) {
+        this->keyDownControlAndShift = true;           
     }
     else {
         /*
@@ -115,13 +116,20 @@ MouseEvent::initializeMembersMouseEvent()
     this->dx = 0;
     this->dy = 0;
     this->wheelRotation = 0;
-    this->keyDownAlt = false;
-    this->keyDownControl = false;
-    this->keyDownShift = false;
+    
+    this->setNoKeysDown();
     
     this->graphicsUpdateOneWindowRequested = false;
     this->graphicsUpdateAllWindowsRequested = false;
     this->userInterfaceUpdateRequested = false;
+}
+
+void 
+MouseEvent::setNoKeysDown()
+{
+    this->keyDownControlAndShift = false;
+    this->keyDownControl = false;
+    this->keyDownShift = false;
 }
 
 /**
@@ -151,7 +159,7 @@ MouseEvent::toString() const
     + ", y=" + AString::number(this->y)
     + ", dx=" + AString::number(this->dx)
     + ", dy=" + AString::number(this->dy);
-    + ", keyDownAlt=" + AString::fromBool(this->keyDownAlt)
+    + ", keyDownControlAndShift=" + AString::fromBool(this->keyDownControlAndShift)
     + ", keyDownControl=" + AString::fromBool(this->keyDownControl)
     + ", keyDownShift=" + AString::fromBool(this->keyDownShift)
     + ", wheelRotation=" + AString::number(this->wheelRotation);
@@ -232,32 +240,20 @@ MouseEvent::getWheelRotation() const
 bool 
 MouseEvent::isAnyKeyDown() const
 {
-    const bool anyKeyDown = 
-    this->keyDownAlt
-    || this->keyDownControl
-    || this->keyDownShift;
+    const bool anyKeyDown = (this->keyDownControlAndShift
+                             || this->keyDownControl
+                             || this->keyDownShift);
     
     return anyKeyDown;
 }
 
 /**
- * @return Is the ALT key down?
+ * @return Is the CONTROL AND SHIFT key down?
  */
 bool 
-MouseEvent::isAltKeyDown() const
+MouseEvent::isControlAndShiftKeyDown() const
 {
-    return this->keyDownAlt;
-}
-
-/**
- * Set the status of the ALT key.
- * @param altKeyDown
- *    New status for ALT key.
- */
-void
-MouseEvent::setAltKeyDown(const bool altKeyDown)
-{
-    this->keyDownAlt = altKeyDown;
+    return this->keyDownControlAndShift;
 }
 
 /**

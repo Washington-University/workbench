@@ -182,8 +182,8 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
         const bool isLeftClickOrDrag = (isLeftClick || isLeftDrag);
-        const bool isLeftDragWithAltKeyDown = (isLeftDrag
-                                               && mouseEvent->isAltKeyDown());
+        const bool isLeftDragWithControlAndShiftKeyDown = (isLeftDrag
+                                                           && mouseEvent->isControlAndShiftKeyDown());
         const bool isLeftClickWithShiftKeyDown = (isLeftClick
                                                   && mouseEvent->isShiftKeyDown());
         
@@ -203,11 +203,12 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                                                                           openGLWidget);
                     }
                 }
-                else if (isLeftDragWithAltKeyDown) {
+                else if (isLeftDragWithControlAndShiftKeyDown) {
                     /*
                      * In drawing mode, but perform surface rotation
+                     * by setting no keys down
                      */
-                    mouseEvent->setAltKeyDown(false);
+                    mouseEvent->setNoKeysDown();
                     UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                       browserTabContent, 
                                                                       openGLWidget);
