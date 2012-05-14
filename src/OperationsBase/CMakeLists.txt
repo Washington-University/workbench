@@ -17,9 +17,11 @@ INCLUDE (${QT_USE_FILE})
 # Create the helper library
 #
 ADD_LIBRARY(OperationsBase
+AbstractOperation.h
 OperationParameters.h
 OperationParametersEnum.h
 
+AbstractOperation.cxx
 OperationParameters.cxx
 OperationParametersEnum.cxx
 )

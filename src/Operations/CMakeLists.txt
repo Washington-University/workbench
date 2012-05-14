@@ -17,7 +17,6 @@ INCLUDE (${QT_USE_FILE})
 # Create the helper library
 #
 ADD_LIBRARY(Operations
-AbstractOperation.h
 OperationAddToSpecFile.h
 OperationCiftiChangeTimestep.h
 OperationCiftiConvert.h
@@ -29,7 +28,6 @@ OperationSetStructure.h
 OperationVolumeLabelImport.h
 OperationVolumePalette.h
 
-AbstractOperation.cxx
 OperationAddToSpecFile.cxx
 OperationCiftiChangeTimestep.cxx
 OperationCiftiConvert.cxx
@@ -46,6 +44,7 @@ OperationVolumePalette.cxx
 # Find Headers
 #
 INCLUDE_DIRECTORIES(
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Palette

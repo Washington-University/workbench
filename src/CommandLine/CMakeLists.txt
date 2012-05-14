@@ -44,8 +44,8 @@ ENDIF (APPLE)
 #
 TARGET_LINK_LIBRARIES(${EXE_NAME}
 Commands
-Algorithms
 Operations
+Algorithms
 OperationsBase
 Brain
 Files
@@ -66,8 +66,8 @@ ${LIBS})
 INCLUDE_DIRECTORIES(
 ${CMAKE_SOURCE_DIR}/CommandLine
 ${CMAKE_SOURCE_DIR}/Commands
-${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/Operations
+${CMAKE_SOURCE_DIR}/Algorithms
 ${CMAKE_SOURCE_DIR}/OperationsBase
 ${CMAKE_SOURCE_DIR}/Brain
 ${CMAKE_SOURCE_DIR}/Palette
