@@ -64,7 +64,7 @@ namespace caret {
         float* getTempRow();
         float correlate(const float* row1, const float& rrs1, const float* row2, const float& rrs2);
         void init(const CiftiFile* input, const bool& undoFisher);
-        int numRowsForMem(const float& memLimitGB, const int& numComponentFloats, bool& cacheFullInput);
+        int numRowsForMem(const float& memLimitGB, const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput);
         //void processSurfaceComponentLocal(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& memLimitGB, SurfaceFile* mySurf);
         void processSurfaceComponent(StructureEnum::Enum& myStructure, const float& surfKern, const float& surfExclude, const float& memLimitGB, SurfaceFile* mySurf);

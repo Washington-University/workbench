@@ -250,7 +250,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, mySurf->getNumberOfNodes(), cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -355,14 +355,6 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 }
             }
         }
-        if (!cacheFullInput)
-        {
-            clearCache();
-        }
-    }
-    if (cacheFullInput)
-    {
-        clearCache();
     }
     for (int i = 0; i < mapSize; ++i)
     {
@@ -382,7 +374,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / (sizeof(float) * 8), cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -527,14 +519,6 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
                 excludeRoi.setValue(excludeNodes[j][k], 0, myRoi.getValue(excludeNodes[j][k], 0));//and set them back to original roi afterwards, instead of a full reinitialize
             }
         }
-        if (!cacheFullInput)
-        {
-            clearCache();
-        }
-    }
-    if (cacheFullInput)
-    {
-        clearCache();
     }
     for (int i = 0; i < mapSize; ++i)
     {
@@ -587,7 +571,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, newdims[0] * newdims[1] * newdims[2], cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -677,14 +661,6 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
                 accum[i] += outputVol.getValue(myMap[i].m_ijk[0] - offset[0], myMap[i].m_ijk[1] - offset[1], myMap[i].m_ijk[2] - offset[2]);
             }
         }
-        if (!cacheFullInput)
-        {
-            clearCache();
-        }
-    }
-    if (cacheFullInput)
-    {
-        clearCache();
     }
     for (int i = 0; i < mapSize; ++i)
     {
@@ -733,7 +709,7 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
     }
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, newdims[0] * newdims[1] * newdims[2], cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), newdims[0] * newdims[1] * newdims[2] * sizeof(float), mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -759,6 +735,9 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
         {
             rowsToCache.push_back(myMap[i].m_ciftiIndex);
         }
+    }
+    if (cacheFullInput)
+    {
         cacheRows(rowsToCache);
     }
     for (int startpos = 0; startpos < mapSize; startpos += numCacheRows)
@@ -846,14 +825,6 @@ void AlgorithmCiftiCorrelationGradient::processVolumeComponent(StructureEnum::En
                 }
             }
         }
-        if (!cacheFullInput)
-        {
-            clearCache();
-        }
-    }
-    if (cacheFullInput)
-    {
-        clearCache();
     }
     for (int i = 0; i < mapSize; ++i)
     {
@@ -1066,8 +1037,9 @@ void AlgorithmCiftiCorrelationGradient::init(const CiftiFile* input, const bool&
 
 void AlgorithmCiftiCorrelationGradient::cacheRows(const vector<int>& ciftiIndices)
 {
+    clearCache();//clear first, to be sure we never keep a cache around too long
     int curIndex = 0, numIndices = (int)ciftiIndices.size();//manually in-order
-    m_rowCache.reserve(m_cacheUsed + ciftiIndices.size());//so that pointers to members don't change
+    m_rowCache.reserve(m_cacheUsed + numIndices);//so that pointers to members don't change
 #pragma omp CARET_PAR
     {
         int myIndex;
@@ -1193,31 +1165,63 @@ float* AlgorithmCiftiCorrelationGradient::getTempRow()
 #endif
 }
 
-int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, const int& numComponentFloats, bool& cacheFullInput)
+int AlgorithmCiftiCorrelationGradient::numRowsForMem(const float& memLimitGB, const int64_t& inrowBytes, const int64_t& outrowBytes, const int& numRows, bool& cacheFullInput)
 {
-    int64_t numRows = m_inputCifti->getNumberOfRows();
-    int64_t inrowBytes = m_numCols * sizeof(float), outrowBytes = numComponentFloats * sizeof(float);
     int64_t targetBytes = (int64_t)(memLimitGB * 1024 * 1024 * 1024);
     if (m_inputCifti->isInMemory()) targetBytes -= numRows * inrowBytes;//count in-memory input against the total too
     targetBytes -= numRows * sizeof(RowInfo) + 2 * outrowBytes;//storage for mean, stdev, and info about caching, output structures
-    int64_t perRowBytes = inrowBytes + outrowBytes;//cache and memory for processing structures (output structures are single rows thanks to MetricSmoothingObject)
-    if (numComponentFloats * inrowBytes < targetBytes * 0.7f)//if caching the entire input file would take less than 70% of remaining allotted memory, do it to reduce IO
+    if (targetBytes < 1)
     {
-        cacheFullInput = true;//precache the entire input file, rather than caching it synchronously with the in-memory output rows
-        targetBytes -= numComponentFloats * inrowBytes;//reduce the remaining total by the memory used
-        perRowBytes = outrowBytes;//don't need to count input rows against the remaining memory total
-    } else {
-        cacheFullInput = false;
+        cacheFullInput = false;//the most memory conservation possible, though it will take a LOT of time and do a LOT of IO
+        return 1;
+    }
+    if (inrowBytes * numRows < targetBytes)//if we can cache the full input, compute the number of passes needed and compare
+    {
+        int64_t div = max(outrowBytes, (int64_t)1);//make sure it is never zero or negative
+        int64_t numRowsFull = (targetBytes - inrowBytes * numRows) / div;
+        if (numRowsFull < 1) numRowsFull = 1;
+        int64_t fullPasses = numRows / numRowsFull;
+        int64_t fullCorrSkip = (fullPasses * numRowsFull * (numRowsFull - 1) + (numRows - fullPasses * numRowsFull) * (numRows - fullPasses * numRowsFull - 1)) / 2;
 #ifdef CARET_OMP
         targetBytes -= inrowBytes * omp_get_max_threads();
 #else
         targetBytes -= inrowBytes;//1 row in memory that isn't a reference to cache
 #endif
+        int64_t numPassesPartial = ((outrowBytes + inrowBytes) * numRows + targetBytes - 1) / targetBytes;//break the partial cached passes up equally, to use less memory, and so we don't get an anemic pass at the end
+        if (numPassesPartial < 1)
+        {
+            numPassesPartial = 1;
+            CaretLogWarning("memory usage calculation found zero/negative pass solution, report to developers (it may use a lot of memory this run)");
+        }
+        int64_t numRowsPartial = (numRows + numPassesPartial - 1) / numPassesPartial;
+        fullPasses = numPassesPartial - 1;
+        int64_t partialCorrSkip = (fullPasses * numRowsPartial * (numRowsPartial - 1) + (numRows - fullPasses * numRowsPartial) * (numRows - fullPasses * numRowsPartial - 1)) / 2;
+        int ret;
+        if (partialCorrSkip > fullCorrSkip * 1.05f)//prefer full caching slightly - include a bias factor in options?
+        {//assume IO and row adjustment (unfisher, subtract mean) won't be the limiting factor, since IO should be balanced during correlation due to evenly sized passes when not fully cached
+            cacheFullInput = false;
+            ret = numRowsPartial;
+        } else {
+            cacheFullInput = true;
+            ret = numRowsFull;
+        }
+        if (ret < 1) ret = 1;//sanitize, just in case
+        if (ret > numRows) ret = numRows;
+        return ret;
+    } else {//if we can't cache the whole thing, split passes evenly
+        cacheFullInput = false;
+        int64_t div = max((int64_t)1, (outrowBytes + inrowBytes) * numRows);
+#ifdef CARET_OMP
+        targetBytes -= inrowBytes * omp_get_max_threads();
+#else
+        targetBytes -= inrowBytes;//1 row in memory that isn't a reference to cache
+#endif
+        int64_t numPassesPartial = (targetBytes + div - 1) / div;
+        int ret = (numRows + numPassesPartial - 1) / numPassesPartial;
+        if (ret < 1) ret = 1;//sanitize, just in case
+        if (ret > numRows) ret = numRows;
+        return ret;
     }
-    if (perRowBytes == 0) return 1;//protect against integer div by zero
-    int ret = targetBytes / perRowBytes;//integer divide rounds down
-    if (ret < 1) return 1;//always return at least one
-    return ret;
 }
 
 float AlgorithmCiftiCorrelationGradient::getAlgorithmInternalWeight()
