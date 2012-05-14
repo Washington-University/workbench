@@ -250,7 +250,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / 8, mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
@@ -374,7 +374,7 @@ void AlgorithmCiftiCorrelationGradient::processSurfaceComponent(StructureEnum::E
     bool cacheFullInput = true;
     if (memLimitGB >= 0.0f)
     {
-        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1) / 8, mapSize, cacheFullInput);
+        numCacheRows = numRowsForMem(memLimitGB, m_numCols * sizeof(float), (mySurf->getNumberOfNodes() * (sizeof(float) * 8 + 1)) / 8, mapSize, cacheFullInput);
     }
     if (numCacheRows > mapSize)
     {
