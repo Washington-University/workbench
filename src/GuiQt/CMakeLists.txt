@@ -63,6 +63,7 @@ PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
+SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
@@ -153,6 +154,7 @@ PreferencesDialog.h
 RegionOfInterestCreateFromBorderDialog.h
 SpecFileCreateAddToDialog.h
 SpecFileDialog.h
+SplashScreen.h
 StructureEnumComboBox.h
 StructureSurfaceSelectionControl.h
 SurfaceSelectionViewController.h
@@ -240,6 +242,7 @@ PlotPanner.cxx
 RegionOfInterestCreateFromBorderDialog.cxx
 SpecFileCreateAddToDialog.cxx
 SpecFileDialog.cxx
+SplashScreen.cxx
 StructureEnumComboBox.cxx
 StructureSurfaceSelectionControl.cxx
 SurfaceSelectionViewController.cxx

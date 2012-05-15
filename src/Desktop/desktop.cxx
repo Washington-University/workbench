@@ -34,18 +34,20 @@
 #include <cstdlib>
 #include <iostream>
 
+#include "BrainBrowserWindow.h"
 #include "CaretAssert.h"
 #include "CaretHttpManager.h"
 #include "CaretLogger.h"
+#include "CaretPreferences.h"
 #include "EventBrowserWindowNew.h"
 #include "EventManager.h"
+#include "FileInformation.h"
 #include "GuiManager.h"
 #include "ProgramParameters.h"
 #include "SessionManager.h"
+#include "SplashScreen.h"
 #include "SystemUtilities.h"
 #include "WuQtUtilities.h"
-#include "FileInformation.h"
-#include "BrainBrowserWindow.h"
 
 static bool caretLoggerIsValid = false;
 
@@ -137,6 +139,8 @@ struct ProgramState
     vector<AString> fileList;
     int specLoadType;
     int windowSizeXY[2];
+    bool showSplash;
+    
     ProgramState();
 };
 
@@ -333,22 +337,63 @@ main(int argc, char* argv[])
         }//*/
         
         /*
+         * Enabled the desired splash screen based upon user preferences
+         * and command line options.  Do not show selection splash screen
+         * if there has listed files on the command line.
+         */ 
+        CaretPreferences* preferences = SessionManager::get()->getCaretPreferences();
+        bool showSelectionSplashScreen = preferences->isSplashScreenEnabled();
+        if (myState.fileList.empty() == false) {
+            showSelectionSplashScreen = false;
+        }
+        bool showImageSplashScreen = (! showSelectionSplashScreen);
+        if (myState.showSplash == false) {
+            showSelectionSplashScreen = false;
+            showImageSplashScreen = false;
+        }
+        
+        /*
         * Splash Screen
         */
         QPixmap splashPixmap;
         QSplashScreen splashScreen;
-        if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
-            splashScreen.setPixmap(splashPixmap);
-            splashScreen.showMessage("Starting Workbench...");
-            splashScreen.show();
-            app.processEvents();
-            SystemUtilities::sleepSeconds(2);
+        if (showImageSplashScreen) {
+            if (WuQtUtilities::loadPixmap(":/splash_hcp.png", splashPixmap)) {
+                splashScreen.setPixmap(splashPixmap);
+                splashScreen.showMessage("Starting Workbench...");
+                splashScreen.show();
+                app.processEvents();
+                SystemUtilities::sleepSeconds(2);
+            }
         }
         
         /*
-        * Create the GUI Manager.
-        */
+         * Create the GUI Manager.
+         */
         GuiManager::createGuiManager();
+        
+        /*
+         * Show file selection splash screen if enabled via user's preferences
+         */
+        if (showSelectionSplashScreen) {
+            /*
+             * Show selection splash screen.
+             * Need to process events since QApplication::exec() has not
+             * been called.
+             */
+            SplashScreen splashScreen(NULL);
+            app.processEvents();
+            if (splashScreen.exec()) {
+                const QString specFileName = splashScreen.getSelectedSpecFileName();
+                if (specFileName.isEmpty() == false) {
+                    myState.fileList.clear();
+                    myState.fileList.push_back(specFileName);
+                    myState.specLoadType = 0; // which means use BrainBrowserWindow::LOAD_SPEC_FILE_WITH_DIALOG_VIA_COMMAND_LINE;
+                    haveSpec = true;
+                    haveFiles = false;
+                }
+            }
+        }
         
         /*
         * Create and display a main window.
@@ -469,6 +514,9 @@ void printHelp(const AString& progName)
     << "    -help" << endl
     << "        display this usage text" << endl
     << endl
+    << "    -no-splash" << endl
+    << "        disable all splash screens" << endl
+    << endl
     << "    -style <style-name>" << endl
     << "        change the window style to the specified style" << endl
     << "        the following styles should always be valid:" << endl
@@ -499,6 +547,8 @@ void parseCommandLine(const AString& progName, ProgramParameters* myParams, Prog
             } else if (thisParam == "-help") {
                 printHelp(progName);
                 exit(0);
+            } else if (thisParam == "-no-splash") {
+                myState.showSplash = false;
             } else if (thisParam == "-spec-load-all") {
                 myState.specLoadType = 1;
             } else if (thisParam == "-window-size") {
@@ -530,4 +580,5 @@ ProgramState::ProgramState()
     specLoadType = 0;//0: use spec window, 1: all
     windowSizeXY[0] = -1;
     windowSizeXY[1] = -1;
+    showSplash = true;
 }
