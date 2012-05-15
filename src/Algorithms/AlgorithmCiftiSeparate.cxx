@@ -308,7 +308,7 @@ AlgorithmCiftiSeparate::AlgorithmCiftiSeparate(ProgressObject* myProgObj, const 
             }
         }
     } else {
-        if (rowSize > 1) newdims.push_back(colSize);
+        if (colSize > 1) newdims.push_back(colSize);
         volOut->reinitialize(newdims, mySform);
         volOut->setValueAllVoxels(0.0f);
         for (int64_t i = 0; i < colSize; ++i)
