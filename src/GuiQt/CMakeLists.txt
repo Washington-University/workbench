@@ -85,6 +85,7 @@ WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
+WuQWebView.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 )
@@ -179,6 +180,7 @@ WuQMessageBox.h
 WuQSpinBoxGroup.h
 WuQTreeWidget.h
 WuQTrueFalseComboBox.h
+WuQWebView.h
 WuQWidget.h
 WuQWidgetObjectGroup.h
 WuQtUtilities.h
@@ -263,6 +265,7 @@ WuQMessageBox.cxx
 WuQSpinBoxGroup.cxx
 WuQTreeWidget.cxx
 WuQTrueFalseComboBox.cxx
+WuQWebView.cxx
 WuQWidget.cxx
 WuQWidgetObjectGroup.cxx
 WuQtUtilities.cxx

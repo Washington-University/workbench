@@ -35,6 +35,7 @@
 
 #include "EventListenerInterface.h"
 #include "TimeCourseDialog.h"
+#include "WuQWebView.h"
 
 class QAction;
 class QDialog;
@@ -166,7 +167,7 @@ namespace caret {
         
         InformationDisplayDialog* informationDisplayDialog;
         
-        QWebView* connectomeDatabaseWebView;
+        WuQWebView* connectomeDatabaseWebView;
         
         CursorManager* cursorManager;
         
