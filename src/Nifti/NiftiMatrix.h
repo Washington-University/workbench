@@ -125,7 +125,7 @@ public:
     /// Gets the number of individual elements (array size) of the entire volume matrix
     int64_t getMatrixLength() { return matrixLength; }
 
-    void setUsingVolume(bool usingVolume) { m_usingVolume = true; }
+    void setUsingVolume(bool usingVolume) { m_usingVolume = usingVolume; }
 
    
 

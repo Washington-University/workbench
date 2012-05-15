@@ -291,6 +291,10 @@ void Nifti2Header::initHeaderStruct(nifti_2_header &header)
     header.datatype = 0;
     header.bitpix = 0;//TODO
     header.dim[0] = 0;//TODO
+    for (int i = 1; i < 8; ++i)
+    {
+        header.dim[i] = 1;
+    }
     header.intent_p1 = 0;
     header.intent_p2 = 0;
     header.intent_p3 = 0;
@@ -353,9 +357,14 @@ void Nifti2Header::setDimensions(const std::vector < int64_t > &dimensionsIn) th
 {
     if(dimensionsIn.size()>7) throw NiftiException("Number of dimensions exceeds currently allowed nifti2 dimension number.");
     m_header.dim[0] = dimensionsIn.size();
-    for(uint i =0;i<dimensionsIn.size();i++)
+    int i;
+    for(i =0;i<(int)dimensionsIn.size();i++)
     {
         m_header.dim[i+1]=dimensionsIn[i];
+    }
+    for (; i < 7; ++i)
+    {
+        m_header.dim[i + 1] = 1;
     }
 }
 void Nifti2Header::getNiftiDataTypeEnum(NiftiDataTypeEnum::Enum &enumOut) const
