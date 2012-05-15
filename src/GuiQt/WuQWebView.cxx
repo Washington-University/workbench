@@ -1,8 +1,6 @@
 #include "WuQWebView.h"
-//#include <Qt\qnetworkreply.h>
 #include <QNetworkReply>
 #include <QtDebug>
-//#include <Qt\qsslerror.h>
 #include <QSslError>
 
 WuQWebView::WuQWebView(QWidget *parent) :
