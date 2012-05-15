@@ -10,7 +10,7 @@ class WuQWebView : public QWebView
     public:
         WuQWebView(QWidget *parent = 0);
     private slots:
-        void handleSslErrors(QNetworkReply* reply, const QList<QSslError> &errors);
+        void handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/);
 };
 
 #endif // WUQWEBVIEW_H

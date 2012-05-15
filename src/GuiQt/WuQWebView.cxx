@@ -12,7 +12,7 @@ WuQWebView::WuQWebView(QWidget *parent) :
             SLOT(handleSslErrors(QNetworkReply*, const QList<QSslError> & )));  
 }
 
-void WuQWebView::handleSslErrors(QNetworkReply* reply, const QList<QSslError> &errors)
+void WuQWebView::handleSslErrors(QNetworkReply* reply, const QList<QSslError> &/*errors*/)
 {
     /*qDebug() << "handleSslErrors: ";
     foreach (QSslError e, errors)
