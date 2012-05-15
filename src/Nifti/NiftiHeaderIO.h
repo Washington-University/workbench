@@ -93,6 +93,9 @@ public:
         }
     }
 
+    void fixDimensions(nifti_1_header &header);
+    void fixDimensions(nifti_2_header &header);
+
 private:
     int niftiVersion;
     bool m_swapNeeded;
