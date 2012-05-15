@@ -67,11 +67,16 @@ SplashScreen::SplashScreen(QWidget* parent)
 : WuQDialogModal("",
             parent)
 {
+    const QString labelStyle = ("QLabel { "
+                                " font: 20px bold "
+                                "}");
+    
     QLabel* workbenchLabel  = new QLabel("<html>"
                                    "Welcome to<br>"
-                                   "<bold>Human Connectome Project</bold><br>"
                                    "Workbench"
                                    "</html>");
+    workbenchLabel->setStyleSheet(labelStyle);
+    
     workbenchLabel->setAlignment(Qt::AlignCenter);
 
     QLabel* hcpWebsiteLabel = new QLabel("<html>"
@@ -79,6 +84,7 @@ SplashScreen::SplashScreen(QWidget* parent)
                                          "<bold><a href=\"http://www.humanconnectome.org\">Human Connectome Project</a></bold><br>"
                                          "Website"
                                          "</html>");
+    hcpWebsiteLabel->setStyleSheet(labelStyle);
     hcpWebsiteLabel->setAlignment(Qt::AlignCenter);
     QObject::connect(hcpWebsiteLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(websiteLinkActivated(const QString&)));
@@ -220,23 +226,23 @@ SplashScreen::loadSpecFileListWidget()
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
     for (int32_t i = 0; i < numRecentSpecFiles; i++) {
         FileInformation fileInfo(recentSpecFiles[i]);
-        QString path = fileInfo.getPathName();
-        QString name = fileInfo.getFileName();
-        if (path.isEmpty() == false) {
-            name += (" (" + path + ")");
+        if (fileInfo.exists()) {
+            QString path = fileInfo.getPathName();
+            QString name = fileInfo.getFileName();
+            if (path.isEmpty() == false) {
+                name += (" (" + path + ")");
+            }
+            QString fullPath = fileInfo.getFilePath();
+            
+            QString text = (fileInfo.getFileName()
+                            + "  ("
+                            + fileInfo.getPathName()
+                            + ")");
+            QListWidgetItem* lwi = new QListWidgetItem(text);
+            lwi->setData(Qt::UserRole, 
+                         fullPath);            
+            m_specFileListWidget->addItem(lwi);
         }
-        QString fullPath = fileInfo.getFilePath();
-        
-        QString text = ("<html><bold>"
-                        + fileInfo.getFileName()
-                        + "</bold><br>    ("
-                        + fileInfo.getPathName()
-                        + ")</html>");
-        QListWidgetItem* lwi = new QListWidgetItem(text);
-        lwi->setData(Qt::UserRole, 
-                     fullPath);
-        
-        m_specFileListWidget->addItem(lwi);
     } 
     
     if (m_specFileListWidget->count() > 0) {
