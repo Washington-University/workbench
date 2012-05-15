@@ -864,7 +864,7 @@ TimeCourseDialog * GuiManager::getTimeCourseDialog(void *id)
     if(browserWindow == NULL) return NULL;//not the best error checking but at least it
                                      //won't crash
     if (this->timeCourseDialogs[id] == NULL) {
-        this->timeCourseDialogs.insert(id, new TimeCourseDialog());
+        this->timeCourseDialogs.insert(id, new TimeCourseDialog(browserWindow));
         this->nonModalDialogs.push_back(this->timeCourseDialogs[id]);
     }
     return this->timeCourseDialogs[id];

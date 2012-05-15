@@ -64,7 +64,7 @@ class TimeCourseDialog : public QDialog
 public:
     explicit TimeCourseDialog(QWidget *parent = 0);
     ~TimeCourseDialog();
-    void updateDialog(bool forceUpdate = false);
+    void updateDialog(const bool &forceUpdate = false, const bool &forceDisableAutoScale = false);
     void addTimeLine(TimeLine &tl);
     void addTimeLines(QList<TimeLine> &tlV);
     void setTimeSeriesGraphEnabled(bool enabled);
@@ -126,7 +126,7 @@ class PlotTC : public QwtPlot
     Q_OBJECT
 public:
      PlotTC( QWidget *parent = NULL);
-     void populate(QList<TimeLine> &tlVIn);
+     void populate(QList<TimeLine> &tlVIn, const bool &forceDisableAutoScale = false);
      void sortByColorId(QList<TimeLine> &tlV);
      void setDisplayAverage(bool checked);
      void calculateAndDisplayAverage(QList<TimeLine> &tlV);

@@ -108,7 +108,7 @@ void TimeCourseDialog::addTimeLines(QList <TimeLine> &tlVIn)
     }
 }
 
-void TimeCourseDialog::updateDialog(bool forceUpdate)
+void TimeCourseDialog::updateDialog(const bool &forceUpdate, const bool &forceDisableAutoScale)
 {
     if(tlV.isEmpty() && !forceUpdate) return;
     if(!this->isEnabled) return;
@@ -120,7 +120,7 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
         this->setWindowTitle("Time Course " + AString::number(tlV[0].clmID) + AString(" - ") + temp);
     }
     plot->detachItems();
-    plot->populate(tlV);    
+    plot->populate(tlV,forceDisableAutoScale);    
     this->populateHistory();
     this->setVisible(true);
     this->show();
@@ -128,7 +128,7 @@ void TimeCourseDialog::updateDialog(bool forceUpdate)
     plot->update();
     plot->replot();
     plot->setFocus();
-    this->setAttribute(Qt::WA_NoMousePropagation,true);
+    this->setAttribute(Qt::WA_NoMousePropagation,true);    
 }
 
 void TimeCourseDialog::populateHistory()
@@ -157,7 +157,7 @@ void TimeCourseDialog::setAnimationStartTime(const double &time)
         }
     }
     plot->detachItems();
-    plot->populate(tlV);
+    plot->populate(tlV,true);
     plot->update();
     plot->replot();    
 }
@@ -234,7 +234,7 @@ void TimeCourseDialog::plotActivityMinValueChanged(double time)
 void TimeCourseDialog::on_TDShowAverage_toggled(bool checked)
 {
     this->plot->setDisplayAverage(checked);
-    this->updateDialog();
+    this->updateDialog(true,true);
 
 }
 
@@ -291,7 +291,7 @@ void PlotTC::clear(QList<TimeLine> &tlV)
     }
 }
 
-void PlotTC::populate(QList<TimeLine> &tlV)
+void PlotTC::populate(QList<TimeLine> &tlV, const bool &forceDisableAutoScale)
 {
     if(tlV.isEmpty()) return;
     //Delete oldest time lines first if we are displaying more than max number of time lines
@@ -316,15 +316,15 @@ void PlotTC::populate(QList<TimeLine> &tlV)
     //setAxisScale(yLeft,0,y.size()-1);
 
     //Plot Time Lines
-    if(this->getAutoScale())
-    {
-        setAxisAutoScale(QwtPlot::xBottom);
-        setAxisAutoScale(QwtPlot::yLeft);
-    }
-    else
+    if(forceDisableAutoScale)//we disable autoscale for updates like changing line width
     {
         setAxisAutoScale(QwtPlot::xBottom,false);
         setAxisAutoScale(QwtPlot::yLeft,false);
+    }
+    else
+    {
+        setAxisAutoScale(QwtPlot::xBottom,this->getAutoScale());
+        setAxisAutoScale(QwtPlot::yLeft,this->getAutoScale());
     }
     
     double amin,amax,tmin,tmax;
@@ -343,6 +343,7 @@ void PlotTC::populate(QList<TimeLine> &tlV)
     }
     if(this->displayAverage && tlV.size()) calculateAndDisplayAverage(tlV);
     
+        
 }
 
 void PlotTC::drawTimeLine(TimeLine &tl, QPen *pen)
@@ -464,7 +465,7 @@ void PlotTC::resizeEvent( QResizeEvent *event )
 void TimeCourseDialog::on_TDKeepLast_valueChanged(int arg1)
 {
     this->plot->setMaxTimeLines(arg1);
-    this->updateDialog();
+    this->updateDialog(true,true);
 }
 
 void TimeCourseDialog::on_zoomXCheckBox_toggled(bool checked)
@@ -482,7 +483,7 @@ void TimeCourseDialog::on_zoomYCheckBox_toggled(bool checked)
 void TimeCourseDialog::on_lineWidthSpinBox_valueChanged(int arg1)
 {
     this->plot->setTimeLineWidth(arg1);
-    this->updateDialog(true);
+    this->updateDialog(true,true);
 }
 
 void PlotTC::setTimeLineWidth(int width)
