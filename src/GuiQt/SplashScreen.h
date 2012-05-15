@@ -37,8 +37,8 @@
 
 #include "WuQDialogModal.h"
 
-class QListWidget;
 class QPushButton;
+class QTreeWidget;
 
 namespace caret {
 
@@ -55,7 +55,7 @@ namespace caret {
     private slots:
         void websiteLinkActivated(const QString& link);
         
-        void specFileListWidgetItemSelected();
+        void specFileTreeWidgetItemSelected();
         
         void chooseSpecFileViaOpenFileDialog();
         
@@ -67,9 +67,9 @@ namespace caret {
 
         SplashScreen& operator=(const SplashScreen&);
         
-        void loadSpecFileListWidget();
+        void loadSpecFileTreeWidget();
         
-        QListWidget* m_specFileListWidget;
+        QTreeWidget* m_specFileTreeWidget;
         
         AString m_selectedSpecFileName;
         

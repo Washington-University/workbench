@@ -35,8 +35,8 @@
 #include <QDesktopServices>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QListWidget>
 #include <QPushButton>
+#include <QTreeWidget>
 #include <QUrl>
 #include <QVBoxLayout>
 
@@ -44,12 +44,14 @@
 #include "SplashScreen.h"
 #undef __SPLASH_SCREEN_DECLARE__
 
+#include "ApplicationInformation.h"
 #include "CaretAssert.h"
 #include "CaretFileDialog.h"
 #include "CaretPreferences.h"
 #include "DataFileTypeEnum.h"
 #include "FileInformation.h"
 #include "SessionManager.h"
+#include "WuQtUtilities.h"
 
 using namespace caret;
 
@@ -67,18 +69,27 @@ SplashScreen::SplashScreen(QWidget* parent)
 : WuQDialogModal("",
             parent)
 {
+    QLabel* imageLabel = NULL;
+    QPixmap pixmap;
+    if (WuQtUtilities::loadPixmap(":/splash_startup_image.png", pixmap)) {
+        imageLabel = new QLabel();
+        imageLabel->setPixmap(pixmap);
+        imageLabel->setAlignment(Qt::AlignCenter);
+    }
+
     const QString labelStyle = ("QLabel { "
                                 " font: 20px bold "
                                 "}");
     
-    QLabel* workbenchLabel  = new QLabel("<html>"
-                                   "Welcome to<br>"
-                                   "Workbench"
-                                   "</html>");
+    QLabel* workbenchLabel  = new QLabel("Workbench");
     workbenchLabel->setStyleSheet(labelStyle);
-    
     workbenchLabel->setAlignment(Qt::AlignCenter);
 
+    ApplicationInformation appInfo;
+    QLabel* versionLabel = new QLabel("Version "
+                                      + appInfo.getVersion());
+    versionLabel->setAlignment(Qt::AlignCenter);
+    
     QLabel* hcpWebsiteLabel = new QLabel("<html>"
                                          "Visit<br>"
                                          "<bold><a href=\"http://www.humanconnectome.org\">Human Connectome Project</a></bold><br>"
@@ -89,13 +100,21 @@ SplashScreen::SplashScreen(QWidget* parent)
     QObject::connect(hcpWebsiteLabel, SIGNAL(linkActivated(const QString&)),
                      this, SLOT(websiteLinkActivated(const QString&)));
     
-    
-    m_specFileListWidget = new QListWidget();
-    QObject::connect(m_specFileListWidget, SIGNAL(itemSelectionChanged()),
-                     this, SLOT(specFileListWidgetItemSelected()));
+    QStringList headerText;
+    headerText.append("Spec File");
+    headerText.append("Path");
+    m_specFileTreeWidget = new QTreeWidget();
+    m_specFileTreeWidget->setHeaderLabels(headerText);
+    QObject::connect(m_specFileTreeWidget, SIGNAL(itemSelectionChanged()),
+                     this, SLOT(specFileTreeWidgetItemSelected()));
     
     QVBoxLayout* leftColumnLayout = new QVBoxLayout();
+    if (imageLabel != NULL) {
+        leftColumnLayout->addWidget(imageLabel);
+        leftColumnLayout->addSpacing(15);
+    }
     leftColumnLayout->addWidget(workbenchLabel);
+    leftColumnLayout->addWidget(versionLabel);
     leftColumnLayout->addSpacing(15);
     leftColumnLayout->addWidget(hcpWebsiteLabel);
     leftColumnLayout->addStretch();
@@ -103,9 +122,9 @@ SplashScreen::SplashScreen(QWidget* parent)
     QWidget* widget = new QWidget();
     QHBoxLayout* horizLayout = new QHBoxLayout(widget);
     horizLayout->addLayout(leftColumnLayout);
-    horizLayout->addWidget(m_specFileListWidget);
+    horizLayout->addWidget(m_specFileTreeWidget);
     
-    loadSpecFileListWidget();
+    loadSpecFileTreeWidget();
     
     m_openOtherSpecFilePushButton = addUserPushButton("Open Other...");
     
@@ -143,22 +162,19 @@ SplashScreen::websiteLinkActivated(const QString& link)
     if (link.isEmpty() == false) {
         QDesktopServices::openUrl(QUrl(link));
     }
-    std::cout << "Link selected: " << qPrintable(link) << std::endl;
 }
 
 /**
- * Called when spec file list widget item is selected.
+ * Called when spec file tree widget item is selected.
  */
 void 
-SplashScreen::specFileListWidgetItemSelected()
+SplashScreen::specFileTreeWidgetItemSelected()
 {
     m_selectedSpecFileName = "";
     
-    const int row = m_specFileListWidget->currentRow();
-    if ((row >= 0) 
-        && (row < m_specFileListWidget->count())) {
-        QListWidgetItem* lwi = m_specFileListWidget->item(row);
-        m_selectedSpecFileName = lwi->data(Qt::UserRole).toString();
+    QTreeWidgetItem* twi = m_specFileTreeWidget->currentItem();
+    if (twi != NULL) {
+        m_selectedSpecFileName = twi->data(0, Qt::UserRole).toString();
     }
 }
 
@@ -212,40 +228,65 @@ SplashScreen::chooseSpecFileViaOpenFileDialog()
 }
 
 /**
- * Load the spec files into the list widget.
+ * Load Spec Files into the tree widget.
  */
 void 
-SplashScreen::loadSpecFileListWidget()
+SplashScreen::loadSpecFileTreeWidget()
 {
-    m_specFileListWidget->clear();
+    m_specFileTreeWidget->clear();
     
     CaretPreferences* prefs = SessionManager::get()->getCaretPreferences();
     std::vector<AString> recentSpecFiles;
     prefs->getPreviousSpecFiles(recentSpecFiles);
     
+    QTreeWidgetItem* firstItem = NULL;
+    
     const int32_t numRecentSpecFiles = static_cast<int>(recentSpecFiles.size());
     for (int32_t i = 0; i < numRecentSpecFiles; i++) {
         FileInformation fileInfo(recentSpecFiles[i]);
         if (fileInfo.exists()) {
-            QString path = fileInfo.getPathName();
-            QString name = fileInfo.getFileName();
-            if (path.isEmpty() == false) {
-                name += (" (" + path + ")");
-            }
-            QString fullPath = fileInfo.getFilePath();
+            const QString path = fileInfo.getPathName().trimmed();
+            const QString name = fileInfo.getFileName().trimmed();
+            const QString fullPath = fileInfo.getFilePath();
+
+            QStringList treeText;
+            treeText.append(name);
+            treeText.append(path);
             
-            QString text = (fileInfo.getFileName()
-                            + "  ("
-                            + fileInfo.getPathName()
-                            + ")");
-            QListWidgetItem* lwi = new QListWidgetItem(text);
-            lwi->setData(Qt::UserRole, 
+            QTreeWidgetItem* lwi = new QTreeWidgetItem(treeText);
+            lwi->setData(0,
+                         Qt::UserRole, 
                          fullPath);            
-            m_specFileListWidget->addItem(lwi);
+            lwi->setData(1,
+                         Qt::UserRole, 
+                         fullPath);            
+            m_specFileTreeWidget->addTopLevelItem(lwi);
+            
+            if (firstItem == NULL) {
+                firstItem = lwi;
+            }
         }
     } 
-    
-    if (m_specFileListWidget->count() > 0) {
-        m_specFileListWidget->setCurrentRow(0);
+
+    int nameColWidth = 0;
+    int pathColWidth = 0;
+    if (firstItem != NULL) {
+        m_specFileTreeWidget->setCurrentItem(firstItem);
+        
+        nameColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(0) + 25;
+        pathColWidth = m_specFileTreeWidget->QAbstractItemView::sizeHintForColumn(1);
+        m_specFileTreeWidget->setColumnWidth(0,
+                                             nameColWidth);
     }
+    
+    int treeWidgetWidth = (nameColWidth
+                           + pathColWidth);
+    if (treeWidgetWidth > 600) {
+        treeWidgetWidth = 600;
+    }
+    else if (treeWidgetWidth < 250) {
+        treeWidgetWidth = 250;
+    }
+    m_specFileTreeWidget->setMinimumWidth(treeWidgetWidth);
 }
+
