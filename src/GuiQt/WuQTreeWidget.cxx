@@ -97,6 +97,16 @@ WuQTreeWidget::resizeToFitContent()
 {
     const int height = this->calculateHeight() + 6;
     this->setFixedHeight(height);
+    
+    int totalColumnWidths = 20; // space for arrows
+    const int numCols = this->columnCount();
+    for (int i = 0; i < numCols; i++) {
+        totalColumnWidths += this->sizeHintForColumn(i);
+    }
+    if (totalColumnWidths < 256) {
+        totalColumnWidths = 256;
+    }
+    this->setFixedWidth(totalColumnWidths);
 }
 
 
