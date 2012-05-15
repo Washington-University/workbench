@@ -122,6 +122,9 @@ namespace caret {
         int32_t windowIndex;
         
         friend class UserInputModeBordersWidget;
+
+        int32_t mousePressX;
+        int32_t mousePressY;
     };
 #ifdef __USER_INPUT_MODE_BORDERS_DECLARE__
     // <PLACE DECLARATIONS OF STATIC MEMBERS HERE>

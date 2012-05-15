@@ -64,21 +64,21 @@ namespace caret {
         
     public:
         /**
-         * Index for getting the viewing rotation matrix.
+         * Index for getting the viewing transformation.
          */
-        enum RotationMatrixIndex {
-            /** For normal viewing modes */
-            ROTATION_MATRIX_NORMAL = 0,
+        enum ViewingTransformIndex {
+            /** For normal viewing modes (and surface montage left) */
+            VIEWING_TRANSFORM_NORMAL = 0,
             /** For right surface lateral/medial yoked to left surface */
-            ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED = 1,
+            VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED = 1,
             /** Left surface opposing view in surface montage */
-            ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE = 2,
+            VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE = 2,
             /** Right surface view in surface montage */
-            ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT = 3,
+            VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT = 3,
             /** Right surface opposing view in surface montage */
-            ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE = 4,
+            VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE = 4,
             /** Number of rotation matrices */
-            ROTATION_MATRIX_COUNT = 5
+            VIEWING_TRANSFORM_COUNT = 5
         };
         
         virtual void initializeOverlays() = 0;
@@ -100,17 +100,24 @@ namespace caret {
                                  const int32_t windowTabNumberTarget);
         
         Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                            const RotationMatrixIndex rotationMatrixIndex);
+                                            const ViewingTransformIndex viewingTransformIndex);
         
         const Matrix4x4* getViewingRotationMatrix(const int32_t windowTabNumber,
-                                                  const RotationMatrixIndex rotationMatrixIndex) const;
+                                                  const ViewingTransformIndex viewingTransformIndex) const;
         
-        const float* getTranslation(const int32_t windowTabNumber) const;
+        const float* getTranslation(const int32_t windowTabNumber,
+                                    const ViewingTransformIndex viewingTransformIndex) const;
         
         void setTranslation(const int32_t windowTabNumber,
                             const float t[3]);
         
         void setTranslation(const int32_t windowTabNumber,
+                            const float tx,
+                            const float ty,
+                            const float tz);
+        
+        void setTranslation(const int32_t windowTabNumber,
+                            const ViewingTransformIndex viewingTransformIndex,
                             const float tx,
                             const float ty,
                             const float tz);
@@ -162,10 +169,10 @@ namespace caret {
          * The second dimension equal to one is used only for a right surface that
          * is lateral/medial yoked.
          */
-        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][ROTATION_MATRIX_COUNT];
+        Matrix4x4 viewingRotationMatrix[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT];
         
         /**translation. */
-        float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][3];
+        float translation[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS][VIEWING_TRANSFORM_COUNT][3];
         
         /**scaling. */
         float scaling[BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS];

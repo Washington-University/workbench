@@ -123,16 +123,22 @@ UserInputModeView::processMouseEvent(MouseEvent* mouseEvent,
         case MouseEventTypeEnum::LEFT_DRAGGED:
             this->processModelViewTransformation(mouseEvent, 
                                                  browserTabContent, 
-                                                 openGLWidget);
+                                                 openGLWidget,
+                                                 this->mousePressX,
+                                                 this->mousePressY);
             break;
         case MouseEventTypeEnum::LEFT_PRESSED:
+            this->mousePressX = mouseEvent->getX();
+            this->mousePressY = mouseEvent->getY();
             break;
         case MouseEventTypeEnum::LEFT_RELEASED:
             break;
         case MouseEventTypeEnum::WHEEL_MOVED:
             this->processModelViewTransformation(mouseEvent, 
                                                  browserTabContent, 
-                                                 openGLWidget);
+                                                 openGLWidget,
+                                                 this->mousePressX,
+                                                 this->mousePressY);
             break;
     }
 }
@@ -329,7 +335,9 @@ UserInputModeView::processIdentification(MouseEvent* mouseEvent,
 void 
 UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                                                   BrowserTabContent* browserTabContent,
-                                                  BrainOpenGLWidget* openGLWidget)
+                                                  BrainOpenGLWidget* openGLWidget,
+                                                  const int32_t mousePressedX,
+                                                  const int32_t mousePressedY)
 {
     Model* modelController = browserTabContent->getModelControllerForTransformation();
     if (modelController != NULL) {
@@ -354,7 +362,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
              */ 
             if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                      Model::ROTATION_MATRIX_NORMAL);
+                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
                 rotationMatrix->rotateX(-dy);
                 rotationMatrix->rotateY(-dx);
                 
@@ -362,7 +370,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  * Matrix for a right medial/lateral yoked surface
                  */
                 Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                      Model::ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED);
+                                                                                                      Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
                 rotationMatrixRightLatMedYoked->rotateX(dy);
                 rotationMatrixRightLatMedYoked->rotateY(dx);
             }
@@ -409,7 +417,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                 }
                 
                 Matrix4x4* rotationMatrix = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                      Model::ROTATION_MATRIX_NORMAL);
+                                                                                      Model::VIEWING_TRANSFORM_NORMAL);
                 rotationMatrix->rotateX(-dy);
                 rotationMatrix->rotateY(dx);
                 
@@ -417,7 +425,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  * Matrix for a left surface opposite view in surface montage
                  */
                 Matrix4x4* rotationMatrixSurfMontLeftOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE);
+                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE);
                 rotationMatrixSurfMontLeftOpp->rotateX(-dy);
                 rotationMatrixSurfMontLeftOpp->rotateY(dx);
                 
@@ -425,7 +433,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  * Matrix for a right surface view in surface montage
                  */
                 Matrix4x4* rotationMatrixSurfMontRight = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                     Model::ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT);
+                                                                                                     Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT);
                 rotationMatrixSurfMontRight->rotateX(dy); //-dy);
                 rotationMatrixSurfMontRight->rotateY(-dx);
                 
@@ -433,7 +441,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  * Matrix for a right surface opposite view in surface montage
                  */
                 Matrix4x4* rotationMatrixSurfMontRightOpp = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                                   Model::ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE);
+                                                                                                   Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE);
                 rotationMatrixSurfMontRightOpp->rotateX(dy); //-dy);
                 rotationMatrixSurfMontRightOpp->rotateY(-dx);
                 
@@ -441,7 +449,7 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
                  * Matrix for a right medial/lateral yoked surface
                  */
                 Matrix4x4* rotationMatrixRightLatMedYoked = modelController->getViewingRotationMatrix(tabIndex, 
-                                                                                           Model::ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED);
+                                                                                           Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED);
                 rotationMatrixRightLatMedYoked->rotateX(dy);
                 rotationMatrixRightLatMedYoked->rotateY(-dx);
             }
@@ -464,12 +472,97 @@ UserInputModeView::processModelViewTransformation(MouseEvent* mouseEvent,
         // Mouse moved with shift key and left mouse button down
         //
         else if (mouseEvent->isShiftKeyDown()) {
-            if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
-                dx = -dx;
+            ModelSurfaceMontage* montageModel = browserTabContent->getDisplayedSurfaceMontageModel();
+            if (montageModel != NULL) {
+                /*
+                 * Single Configuration Layout:
+                 *    S1  S3
+                 *    S2  S4
+                 *
+                 * Dual Configuration Layout:
+                 *    S1  S3  S5  S7   (S5 behaves like S1,  S7 behaves like S3)
+                 *    S2  S4  S6  S8   (S6 behaves like S2,  S8 behaves like S4)
+                 */
+
+                /*
+                 * Determine which surface S1 to S4  (S5 to S8 duplicate S1 to S4)
+                 */
+                const int32_t halfHeight = openGLWidget->height() / 2;
+                const int32_t halfWidth  = openGLWidget->width() / 2;
+                const int32_t quarterWidth = halfWidth / 2;
+                
+                int32_t xp = 0;
+                int32_t yp = (mousePressedY / halfHeight);
+                if (montageModel->isDualConfigurationEnabled(tabIndex)) {
+                    xp = (mousePressedX / quarterWidth); 
+                }
+                else {
+                    xp = (mousePressedX / halfWidth);
+                }
+                
+                float flipX = 1.0;
+                switch (yp) {
+                    case 0:
+                        switch (xp) {
+                            case 0:
+                            case 2:
+                                flipX = -1.0;
+                            default:
+                                break;
+                        }
+                        break;
+                    case 1:
+                        switch (xp) {
+                            case 1:
+                            case 3:
+                                flipX = -1.0;
+                            default:
+                                break;
+                        }
+                        break;
+                }
+                
+                const float* translation = modelController->getTranslation(tabIndex, 
+                                                                           Model::VIEWING_TRANSFORM_NORMAL);
+                const float tx = translation[0];
+                const float ty = translation[1];
+                const float tz = translation[2];
+                
+                modelController->setTranslation(tabIndex,
+                                                Model::VIEWING_TRANSFORM_NORMAL,
+                                                tx + (dx * flipX),
+                                                ty + dy,
+                                                tz);
+                modelController->setTranslation(tabIndex,
+                                                Model::VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED,
+                                                tx - (dx * flipX),
+                                                ty + dy,
+                                                tz);
+                modelController->setTranslation(tabIndex,
+                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE,
+                                                tx + (dx * flipX),
+                                                ty + dy,
+                                                tz);
+                modelController->setTranslation(tabIndex,
+                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT,
+                                                tx + (dx * flipX),
+                                                ty + dy,
+                                                tz);
+                modelController->setTranslation(tabIndex,
+                                                Model::VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE,
+                                                tx + (dx * flipX),
+                                                ty + dy,
+                                                tz);
             }
-            const float* t1 = modelController->getTranslation(tabIndex);
-            float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
-            modelController->setTranslation(tabIndex, t2);
+            else {
+                if (browserTabContent->isDisplayedModelSurfaceRightLateralMedialYoked()) {
+                    dx = -dx;
+                }
+                const float* t1 = modelController->getTranslation(tabIndex,
+                                                                  Model::VIEWING_TRANSFORM_NORMAL);                
+                float t2[] = { t1[0] + dx, t1[1] + dy, t1[2] };
+                modelController->setTranslation(tabIndex, t2);
+            }
         }
         
         mouseEvent->setGraphicsUpdateOneWindowRequested();

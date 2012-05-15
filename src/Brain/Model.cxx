@@ -141,15 +141,15 @@ Model::copyTransformations(
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumberSource);
     
-    this->translation[windowTabNumberTarget][0] = controllerSource.translation[windowTabNumberSource][0];
-    this->translation[windowTabNumberTarget][1] = controllerSource.translation[windowTabNumberSource][1];
-    this->translation[windowTabNumberTarget][2] = controllerSource.translation[windowTabNumberSource][2];
     this->scaling[windowTabNumberTarget] = controllerSource.scaling[windowTabNumberSource];
     
-    for (int i = 0; i < ROTATION_MATRIX_COUNT; i++) {
-        const RotationMatrixIndex rmi = static_cast<RotationMatrixIndex>(i);
+    for (int i = 0; i < VIEWING_TRANSFORM_COUNT; i++) {
+        const ViewingTransformIndex rmi = static_cast<ViewingTransformIndex>(i);
         this->viewingRotationMatrix[windowTabNumberTarget][rmi].setMatrix(*controllerSource.getViewingRotationMatrix(windowTabNumberSource,
                                                                                                                      rmi));
+        this->translation[windowTabNumberTarget][i][0] = controllerSource.translation[windowTabNumberSource][i][0];
+        this->translation[windowTabNumberTarget][i][1] = controllerSource.translation[windowTabNumberSource][i][1];
+        this->translation[windowTabNumberTarget][i][2] = controllerSource.translation[windowTabNumberSource][i][2];
     }
 }
 
@@ -158,14 +158,14 @@ Model::copyTransformations(
  *
  * @param  windowTabNumber  
  *    Window for which rotation is requested
- * @param  rotationMatrixIndex
+ * @param  viewingTransformIndex
  *    Index of the rotation matrix.  There are several rotation matrices
  *    that are used for special viewing modes.  
  * @return Pointer to the viewing rotation matrix.
  */
 const Matrix4x4*
 Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
-                                const RotationMatrixIndex rotationMatrixIndex) const
+                                const ViewingTransformIndex viewingTransformIndex) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -179,22 +179,22 @@ Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     CaretAssertArrayIndex(this->viewingRotationMatrix, 
-                          ROTATION_MATRIX_COUNT, 
-                          rotationMatrixIndex);
-    return &this->viewingRotationMatrix[windowTabNumber][rotationMatrixIndex];
+                          VIEWING_TRANSFORM_COUNT, 
+                          viewingTransformIndex);
+    return &this->viewingRotationMatrix[windowTabNumber][viewingTransformIndex];
 }
 
 /**
  * @param  windowTabNumber  
  *    Window for which rotation is requested
- * @param  rotationMatrixIndex
+ * @param  viewingTransformIndex
  *    Index of the rotation matrix.  There are several rotation matrices
  *    that are used for special viewing modes.  
  * @return Pointer to the viewing rotation matrix.
  */
 Matrix4x4*
 Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
-                                const RotationMatrixIndex rotationMatrixIndex)
+                                const ViewingTransformIndex viewingTransformIndex)
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -208,9 +208,9 @@ Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     CaretAssertArrayIndex(this->viewingRotationMatrix, 
-                          ROTATION_MATRIX_COUNT, 
-                          rotationMatrixIndex);
-    return &this->viewingRotationMatrix[windowTabNumber][rotationMatrixIndex];
+                          VIEWING_TRANSFORM_COUNT, 
+                          viewingTransformIndex);
+    return &this->viewingRotationMatrix[windowTabNumber][viewingTransformIndex];
 }
 
 /**
@@ -221,7 +221,8 @@ Model::getViewingRotationMatrix(const int32_t windowTabNumberIn,
  *
  */
 const float*
-Model::getTranslation(const int32_t windowTabNumberIn) const
+Model::getTranslation(const int32_t windowTabNumberIn,
+                      const ViewingTransformIndex viewingTransformIndex) const
 {
     /*
      * Yoking ALWAYS uses first window index.
@@ -234,38 +235,37 @@ Model::getTranslation(const int32_t windowTabNumberIn) const
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    return &this->translation[windowTabNumber][0];
+    CaretAssertArrayIndex(this->translation, 
+                          VIEWING_TRANSFORM_COUNT, 
+                          viewingTransformIndex);
+    return &this->translation[windowTabNumber][viewingTransformIndex][0];
 }
 
 /**
- * set the translation.
+ * Set the translation for ALL viewing transforms (normal, surface
+ * montage, etc).  Translation passed to this method should be for
+ * the normal surface viewing.  The other translations (montage left
+ * opposite, etc.) will be updated appropriately.
  *
  * @param  windowTabNumber  Window for which translation is requested
  * @param  t  The translation, an array of three floats.
  *
  */
 void
-Model::setTranslation(const int32_t windowTabNumberIn,
+Model::setTranslation(const int32_t windowTabNumber,
                           const float t[3])
 {
-    /*
-     * Yoking ALWAYS uses first window index.
-     */
-    int32_t windowTabNumber = windowTabNumberIn;
-    if (this->isYokingController) {
-        windowTabNumber = 0;
-    }
-    
-    CaretAssertArrayIndex(this->translation,
-                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
-                          windowTabNumber);
-    this->translation[windowTabNumber][0] = t[0];
-    this->translation[windowTabNumber][1] = t[1];
-    this->translation[windowTabNumber][2] = t[2];
+    this->setTranslation(windowTabNumber,
+                         t[0],
+                         t[1],
+                         t[2]);
 }
 
 /**
- * set the translation.
+ * Set the translation for ALL viewing transforms (normal, surface
+ * montage, etc).  Translation passed to this method should be for
+ * the normal surface viewing.  The other translations (montage left
+ * opposite, etc.) will be updated appropriately.
  *
  * @param  windowTabNumber  Window for which translation is requested
  * @param  tx - The x-coordinate of the translation.
@@ -290,9 +290,62 @@ Model::setTranslation(const int32_t windowTabNumberIn,
     CaretAssertArrayIndex(this->translation,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    this->translation[windowTabNumber][0] = tx;
-    this->translation[windowTabNumber][1] = ty;
-    this->translation[windowTabNumber][2] = tz;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][0] = tx;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][1] = ty;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL][2] = tz;
+
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][0] = tx;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][1] = ty;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED][2] = tz;
+
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][0] = tx;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][1] = ty;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE][2] = tz;
+
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][0] = tx;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][1] = ty;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT][2] = tz;
+
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][0] = tx;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][1] = ty;
+    this->translation[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE][2] = tz;
+}
+
+/**
+ * Set the translation for the given viewing transform.
+ *
+ * @param  windowTabNumber  Window for which translation is requested
+ * @param  viewingTransformIndex
+ *    Index of the viewing transform.  There are several transform matrices
+ *    that are used for special viewing modes.  
+ * @param  tx - The x-coordinate of the translation.
+ * @param  ty - The y-coordinate of the translation.
+ * @param  tz - The z-coordinate of the translation.
+ *
+ */
+void
+Model::setTranslation(const int32_t windowTabNumber,
+                      const ViewingTransformIndex viewingTransformIndex,
+                      const float tx,
+                      const float ty,
+                      const float tz)
+{
+    /*
+     * Yoking ALWAYS uses first window index.
+     */
+    if (this->isYokingController) {
+        CaretAssert(0);
+    }
+    
+    CaretAssertArrayIndex(this->translation,
+                          BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
+                          windowTabNumber);
+    CaretAssertArrayIndex(this->viewingRotationMatrix, 
+                          VIEWING_TRANSFORM_COUNT, 
+                          viewingTransformIndex);
+    this->translation[windowTabNumber][viewingTransformIndex][0] = tx;
+    this->translation[windowTabNumber][viewingTransformIndex][1] = ty;
+    this->translation[windowTabNumber][viewingTransformIndex][2] = tz;
 }
 
 /**
@@ -371,7 +424,7 @@ Model::resetViewPrivate(const int windowTabNumberIn)
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
     this->setTranslation(windowTabNumber, 0.0f, 0.0f, 0.0f);
-    for (int32_t i = 0; i < ROTATION_MATRIX_COUNT; i++) {
+    for (int32_t i = 0; i < VIEWING_TRANSFORM_COUNT; i++) {
         this->viewingRotationMatrix[windowTabNumber][i].identity();
     }
     this->setScaling(windowTabNumber, this->defaultModelScaling);    
@@ -416,25 +469,25 @@ Model::rightView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateZ(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(-90.0);
 
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(-90.0);
 }
 
 /**
@@ -456,25 +509,25 @@ Model::leftView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateZ(90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateZ(90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateZ(90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateZ(90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateZ(90.0);
 }
 
 /**
@@ -496,22 +549,22 @@ Model::anteriorView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateY(180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
 }
 
 /**
@@ -533,23 +586,23 @@ Model::posteriorView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateX(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateX(-90.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateX(-90.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
 }
 
 /**
@@ -571,18 +624,18 @@ Model::dorsalView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].rotateY(-180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(180.0);
 }
 
 /**
@@ -604,19 +657,19 @@ Model::ventralView(const int32_t windowTabNumberIn)
     CaretAssertArrayIndex(this->viewingRotationMatrix,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS,
                           windowTabNumber);
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_NORMAL].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_NORMAL].rotateY(-180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_RIGHT_LATERAL_MEDIAL_YOKED].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_RIGHT_LATERAL_MEDIAL_YOKED].identity();
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].identity();
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_LEFT_OPPOSITE].rotateY(-180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].identity();
-    //viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].identity();
+    //viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT].rotateY(-180.0);
     
-    viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
-    //viewingRotationMatrix[windowTabNumber][ROTATION_MATRIX_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
+    viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].identity();
+    //viewingRotationMatrix[windowTabNumber][VIEWING_TRANSFORM_SURFACE_MONTAGE_RIGHT_OPPOSITE].rotateY(-180.0);
 }
 
 /**
@@ -635,7 +688,7 @@ Model::getTransformationsInUserView(const int32_t windowTabNumber,
                           BrainConstants::MAXIMUM_NUMBER_OF_BROWSER_TABS, 
                           windowTabNumber);
     
-    userView.setTranslation(this->translation[windowTabNumber]);
+    userView.setTranslation(this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
     float m[4][4];
     this->viewingRotationMatrix[windowTabNumber][0].getMatrix(m);
     userView.setRotation(m);
@@ -659,7 +712,7 @@ Model::setTransformationsFromUserView(const int32_t windowTabNumber,
                           windowTabNumber);
     
 
-    userView.getTranslation(this->translation[windowTabNumber]);
+    userView.getTranslation(this->translation[windowTabNumber][VIEWING_TRANSFORM_NORMAL]);
     float m[4][4];
     userView.getRotation(m);
     this->viewingRotationMatrix[windowTabNumber][0].setMatrix(m);

@@ -54,7 +54,9 @@ namespace caret {
         
         static void processModelViewTransformation(MouseEvent* mouseEvent,
                                                    BrowserTabContent* browserTabContent,
-                                                   BrainOpenGLWidget* openGLWidget);
+                                                   BrainOpenGLWidget* openGLWidget,
+                                                   const int32_t mousePressedX,
+                                                   const int32_t mousePressedY);
         
     private:
         UserInputModeView(const UserInputModeView&);
@@ -69,6 +71,8 @@ namespace caret {
         virtual AString toString() const;
         
     private:
+        int32_t mousePressX;
+        int32_t mousePressY;
     };
     
 #ifdef __USER_INPUT_MODE_VIEW_DECLARE__

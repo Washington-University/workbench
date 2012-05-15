@@ -196,7 +196,7 @@ namespace caret {
                                      const int32_t viewport[4]);
         
         void setOrthographicProjection(const int32_t viewport[4],
-                                       const Model::RotationMatrixIndex rotationMatrixIndex);
+                                       const Model::ViewingTransformIndex rotationMatrixIndex);
         
         void checkForOpenGLError(const Model* modelController,
                                  const AString& msg);
@@ -233,12 +233,12 @@ namespace caret {
                                         const float itemXYZ[3]);
 
         void setViewportAndOrthographicProjection(const int32_t viewport[4],
-                                                  const Model::RotationMatrixIndex rotationMatrixIndex);
+                                                  const Model::ViewingTransformIndex rotationMatrixIndex);
         
         void applyViewingTransformations(const Model* modelDisplayController,
                                          const int32_t tabIndex,
                                          const float objectCenterXYZ[3],
-                                         const Model::RotationMatrixIndex rotationMatrixIndex);
+                                         const Model::ViewingTransformIndex rotationMatrixIndex);
         
         void applyViewingTransformationsVolumeSlice(const ModelVolume* modelDisplayControllerVolume,
                                          const int32_t tabIndex,

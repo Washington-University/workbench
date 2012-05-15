@@ -178,6 +178,10 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
         const int mouseX = mouseEvent->getX();
         const int mouseY = mouseEvent->getY();
         
+        if (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_PRESSED) {
+            this->mousePressX = mouseX;
+            this->mousePressY = mouseY;
+        }
         const bool isLeftClick = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_CLICKED);
         const bool isLeftDrag  = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::LEFT_DRAGGED);
         const bool isWheel     = (mouseEvent->getMouseEventType() == MouseEventTypeEnum::WHEEL_MOVED);
@@ -200,7 +204,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     if (isLeftDrag || isWheel) {
                         UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                           browserTabContent, 
-                                                                          openGLWidget);
+                                                                          openGLWidget,
+                                                                          this->mousePressX,
+                                                                          this->mousePressY);
                     }
                 }
                 else if (isLeftDragWithControlAndShiftKeyDown) {
@@ -211,7 +217,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                     mouseEvent->setNoKeysDown();
                     UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                       browserTabContent, 
-                                                                      openGLWidget);
+                                                                      openGLWidget,
+                                                                      this->mousePressX,
+                                                                      this->mousePressY);
                 }
                 else {
                     switch (this->drawOperation) {
@@ -249,7 +257,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         else if (isLeftDrag || isWheel) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                               browserTabContent, 
-                                                                              openGLWidget);
+                                                                              openGLWidget,
+                                                                              this->mousePressX,
+                                                                              this->mousePressY);
                         }
                         break;
                     case EDIT_OPERATION_PROPERTIES:
@@ -274,7 +284,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                         else if (isLeftDrag || isWheel) {
                             UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                               browserTabContent, 
-                                                                              openGLWidget);
+                                                                              openGLWidget,
+                                                                              this->mousePressX,
+                                                                              this->mousePressY);
                         }
                         break;
                 }
@@ -298,7 +310,9 @@ UserInputModeBorders::processMouseEvent(MouseEvent* mouseEvent,
                 else if (isLeftDrag || isWheel) {
                     UserInputModeView::processModelViewTransformation(mouseEvent, 
                                                                       browserTabContent, 
-                                                                      openGLWidget);
+                                                                      openGLWidget,
+                                                                      this->mousePressX,
+                                                                      this->mousePressY);
                 }
                 break;
         }
