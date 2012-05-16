@@ -30,12 +30,14 @@
 #include <FileInformation.h>
 #include <qdir.h>
 #ifdef CARET_OS_WINDOWS
-#include <io.h>
+//#include <io.h>
+#include <unistd.h>
 #else //not CARET_OS_WINDOWS
 #include <unistd.h>
 #endif //ifdef CARET_OS_WINDOWS
 using namespace caret;
 using namespace std;
+
 CiftiMatrix::CiftiMatrix()
 {
     init();
@@ -107,12 +109,20 @@ void CiftiMatrix::setup(vector<int64_t> &dimensions, const int64_t &offsetIn, co
 #endif
         //QT sucks and is unable to handle reading from files over 2GB's in size
         int fh = m_file->handle();
+#ifdef CARET_OS_WINDOWS
+        _lseek(fh,m_matrixOffset,0);
+#else
         lseek(fh,m_matrixOffset,0);
+#endif
         int64_t rowSize = this->m_dimensions[m_dimensions.size()-1];
         int64_t columnSize = this->m_dimensions[m_dimensions.size()-2];
         for(int64_t i=0;i<columnSize;i++)//apparently read also is unable to handle reading in more than 2GB's at a time, reading a row at a time to get around this
         {
+#ifdef CARET_OS_WINDOWS
+            _read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float));
+#else
             read(fh,(char *)&m_matrix[i*rowSize],rowSize*sizeof(float));
+#endif
         }
         m_file->close();
         if(m_needsSwapping)ByteSwapping::swapBytes(m_matrix,matrixSize);
