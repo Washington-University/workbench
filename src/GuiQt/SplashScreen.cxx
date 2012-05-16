@@ -67,8 +67,10 @@ using namespace caret;
  */
 SplashScreen::SplashScreen(QWidget* parent)
 : WuQDialogModal("",
-            parent)
+                 parent)
 {
+    this->setWindowFlags(Qt::FramelessWindowHint);
+
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
     if (WuQtUtilities::loadPixmap(":/splash_startup_image.png", pixmap)) {
