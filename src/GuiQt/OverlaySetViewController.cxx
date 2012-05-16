@@ -137,6 +137,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     WuQtUtilities::setLayoutMargins(scrolledWidgetLayout, 2, 2);
     scrolledWidgetLayout->addWidget(gridWidget);
     scrolledWidgetLayout->addLayout(overlayCountLayout);
+    scrolledWidgetLayout->addStretch();
     
     this->scrollArea = new QScrollArea();
     this->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
@@ -146,7 +147,6 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     QVBoxLayout* layout = new QVBoxLayout(this);
     WuQtUtilities::setLayoutMargins(layout, 0, 0);
     layout->addWidget(this->scrollArea);
-    layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_TOOLBOX_UPDATE);
@@ -179,7 +179,6 @@ OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
         this->scrollArea->widget()->adjustSize();
         QScrollBar* vsb = this->scrollArea->verticalScrollBar();
         const int maxValue = vsb->maximum();
-        std::cout << "min/maxValue: " << vsb->minimum() << ", " << maxValue << std::endl;
         vsb->setValue(maxValue);
     }
 }
