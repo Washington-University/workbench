@@ -139,6 +139,7 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     scrolledWidgetLayout->addLayout(overlayCountLayout);
     
     this->scrollArea = new QScrollArea();
+    this->scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOn);
     this->scrollArea->setWidget(scrolledWidget);
     this->scrollArea->setWidgetResizable(true);
     
@@ -175,8 +176,10 @@ OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
         /*
          * Scroll to bottom
          */
+        this->scrollArea->widget()->adjustSize();
         QScrollBar* vsb = this->scrollArea->verticalScrollBar();
         const int maxValue = vsb->maximum();
+        std::cout << "min/maxValue: " << vsb->minimum() << ", " << maxValue << std::endl;
         vsb->setValue(maxValue);
     }
 }
