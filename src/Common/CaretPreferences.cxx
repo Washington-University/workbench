@@ -719,7 +719,7 @@ CaretPreferences::readPreferences()
                                          0);
     
     this->splashScreenEnabled = this->getBoolean(CaretPreferences::NAME_SPLASH_SCREEN,
-                                                 false);
+                                                 true);
     
 //    this->contralateralIdentificationEnabled = this->getBoolean(CaretPreferences::NAME_IDENTIFICATION_CONTRALATERAL,
 //                                                                   false);
