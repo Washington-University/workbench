@@ -147,6 +147,9 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     
     CaretAssert(overlaySet);
     
+    /*
+     * RGBA will be Non-NULL if the surface HAS valid coloring
+     */
     if (rgba != NULL) {
         return rgba;
     }
@@ -155,6 +158,9 @@ SurfaceNodeColoring::colorSurfaceNodes(Model* modelDisplayController,
     const int numColorComponents = numNodes * 4;
     float *rgbaColor = new float[numColorComponents];
     
+    /*
+     * Color the surface nodes
+     */
     this->colorSurfaceNodes(surface, 
                             overlaySet, 
                             rgbaColor);
@@ -208,7 +214,6 @@ SurfaceNodeColoring::colorSurfaceNodes(const Surface* surface,
         rgbaNodeColors[i4+2] = 0.70;
         rgbaNodeColors[i4+3] = 1.0;
     }
-    
     
     const BrainStructure* brainStructure = surface->getBrainStructure();
     CaretAssert(brainStructure);
