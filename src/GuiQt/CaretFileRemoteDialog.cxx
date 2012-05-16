@@ -113,6 +113,10 @@ CaretFileRemoteDialog::CaretFileRemoteDialog(QWidget* parent)
     controlsLayout->addWidget(m_passwordLineEdit, 3, 1, Qt::AlignLeft);
 
     setCentralWidget(controlsWidget);
+    
+    m_usernameLineEdit->setText("wbuser");
+    m_passwordLineEdit->setText("hcpWb0512");
+    m_urlLineEdit->setText("https://db.humanconnectome.org/data/services/cifti-average?searchID=PILOT1_AVG_xnat:subjectData");
 }
 
 /**
