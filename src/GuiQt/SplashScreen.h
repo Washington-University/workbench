@@ -67,7 +67,7 @@ namespace caret {
 
         SplashScreen& operator=(const SplashScreen&);
         
-        void loadSpecFileTreeWidget();
+        int32_t loadSpecFileTreeWidget();
         
         QTreeWidget* m_specFileTreeWidget;
         

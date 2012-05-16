@@ -36,6 +36,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <QScrollArea>
 #include <QTreeWidget>
 #include <QUrl>
 #include <QVBoxLayout>
@@ -69,7 +70,10 @@ SplashScreen::SplashScreen(QWidget* parent)
 : WuQDialogModal("",
                  parent)
 {
-    this->setWindowFlags(Qt::FramelessWindowHint);
+    /*
+     * Removes title bar
+     */
+    this->setWindowFlags(Qt::SplashScreen);
 
     QLabel* imageLabel = NULL;
     QPixmap pixmap;
@@ -109,8 +113,13 @@ SplashScreen::SplashScreen(QWidget* parent)
     m_specFileTreeWidget->setHeaderLabels(headerText);
     QObject::connect(m_specFileTreeWidget, SIGNAL(itemSelectionChanged()),
                      this, SLOT(specFileTreeWidgetItemSelected()));
+
+    QScrollArea* treeScrollArea = new QScrollArea();
+    treeScrollArea->setWidget(m_specFileTreeWidget);
+    treeScrollArea->setWidgetResizable(true);
     
-    QVBoxLayout* leftColumnLayout = new QVBoxLayout();
+    QWidget* leftWidget = new QWidget();
+    QVBoxLayout* leftColumnLayout = new QVBoxLayout(leftWidget);
     if (imageLabel != NULL) {
         leftColumnLayout->addWidget(imageLabel);
         leftColumnLayout->addSpacing(15);
@@ -123,10 +132,10 @@ SplashScreen::SplashScreen(QWidget* parent)
     
     QWidget* widget = new QWidget();
     QHBoxLayout* horizLayout = new QHBoxLayout(widget);
-    horizLayout->addLayout(leftColumnLayout);
-    horizLayout->addWidget(m_specFileTreeWidget);
+    horizLayout->addWidget(leftWidget);
+    horizLayout->addWidget(treeScrollArea);
     
-    loadSpecFileTreeWidget();
+    const int32_t treeDesiredWidth = loadSpecFileTreeWidget();
     
     m_openOtherSpecFilePushButton = addUserPushButton("Open Other...");
     
@@ -134,6 +143,18 @@ SplashScreen::SplashScreen(QWidget* parent)
     setOkButtonText("Open");
 
     setCentralWidget(widget);
+
+    /*
+     * Set a minimum width so spec files are visible
+     */
+    int totalWidth = (leftWidget->sizeHint().width()
+                      + treeDesiredWidth);
+    const int maxWidth = std::max(WuQtUtilities::getMinimumScreenSize().width() - 300,
+                                  600);
+    if (totalWidth > maxWidth) {
+        totalWidth = maxWidth;
+    }
+    widget->setMinimumWidth(totalWidth);
 }
 
 /**
@@ -232,7 +253,7 @@ SplashScreen::chooseSpecFileViaOpenFileDialog()
 /**
  * Load Spec Files into the tree widget.
  */
-void 
+int32_t 
 SplashScreen::loadSpecFileTreeWidget()
 {
     m_specFileTreeWidget->clear();
@@ -283,12 +304,12 @@ SplashScreen::loadSpecFileTreeWidget()
     
     int treeWidgetWidth = (nameColWidth
                            + pathColWidth);
-    if (treeWidgetWidth > 600) {
-        treeWidgetWidth = 600;
-    }
-    else if (treeWidgetWidth < 250) {
+    if (treeWidgetWidth < 250) {
         treeWidgetWidth = 250;
     }
+    
     m_specFileTreeWidget->setMinimumWidth(treeWidgetWidth);
+    
+    return treeWidgetWidth;
 }
 
