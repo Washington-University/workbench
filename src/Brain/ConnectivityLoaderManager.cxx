@@ -33,9 +33,9 @@ using namespace caret;
 #include "CaretAssert.h"
 #include "CaretLogger.h"
 #include "ConnectivityLoaderFile.h"
-#include "DescriptiveStatistics.h"
 #include "EventSurfaceColoringInvalidate.h"
 #include "EventManager.h"
+#include "FastStatistics.h"
 #include "NodeAndVoxelColoring.h"
 #include "Palette.h"
 #include "PaletteColorMapping.h"
@@ -282,7 +282,7 @@ ConnectivityLoaderManager::colorConnectivityData()
             const float* data = clf->getData();
             float* dataRGBA = clf->getDataRGBA();
             const int32_t dataSize = clf->getNumberOfDataElements();
-            const DescriptiveStatistics* statistics = clf->getMapStatistics(0);
+            const FastStatistics* statistics = clf->getMapFastStatistics(0);
             const PaletteColorMapping* paletteColorMapping = clf->getMapPaletteColorMapping(0);
             
             const AString paletteName = paletteColorMapping->getSelectedPaletteName();
