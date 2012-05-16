@@ -353,6 +353,11 @@ main(int argc, char* argv[])
         }
         
         /*
+         * DISABLE IMAGE SPLASH SCREEN
+         */
+        showImageSplashScreen = false;
+        
+        /*
         * Splash Screen
         */
         QPixmap splashPixmap;
