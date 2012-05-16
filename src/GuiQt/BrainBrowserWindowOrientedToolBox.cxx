@@ -89,8 +89,10 @@ BrainBrowserWindowOrientedToolBox::BrainBrowserWindowOrientedToolBox(const int32
         this->overlaySetViewController = new OverlaySetViewController(orientation,
                                                                       browserWindowIndex,
                                                                       this);  
-        this->addToTabWidget(this->overlaySetViewController, 
-                             "Overlay");
+//        this->addToTabWidget(this->overlaySetViewController, 
+//                             "Overlay");
+        this->tabWidget->addTab(this->overlaySetViewController ,
+                                "Overlay");
     }
     if (isOverlayToolBox) {
         this->connectivityViewController = new ConnectivityManagerViewController(orientation,

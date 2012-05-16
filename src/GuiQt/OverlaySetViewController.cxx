@@ -36,6 +36,8 @@
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QScrollArea>
+#include <QScrollBar>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -130,10 +132,19 @@ OverlaySetViewController::OverlaySetViewController(const Qt::Orientation orienta
     overlayCountLayout->addWidget(this->overlayCountSpinBox);
     overlayCountLayout->addStretch();
     
+    QWidget* scrolledWidget = new QWidget();
+    QVBoxLayout* scrolledWidgetLayout = new QVBoxLayout(scrolledWidget);
+    WuQtUtilities::setLayoutMargins(scrolledWidgetLayout, 2, 2);
+    scrolledWidgetLayout->addWidget(gridWidget);
+    scrolledWidgetLayout->addLayout(overlayCountLayout);
+    
+    this->scrollArea = new QScrollArea();
+    this->scrollArea->setWidget(scrolledWidget);
+    this->scrollArea->setWidgetResizable(true);
+    
     QVBoxLayout* layout = new QVBoxLayout(this);
-    WuQtUtilities::setLayoutMargins(layout, 2, 2);
-    layout->addWidget(gridWidget);
-    layout->addLayout(overlayCountLayout);
+    WuQtUtilities::setLayoutMargins(layout, 0, 0);
+    layout->addWidget(this->scrollArea);
     layout->addStretch();
     
     EventManager::get()->addEventListener(this, EventTypeEnum::EVENT_USER_INTERFACE_UPDATE);
@@ -160,6 +171,13 @@ OverlaySetViewController::overlayCountSpinBoxValueChanged(int value)
     if (overlaySet != NULL) {
         overlaySet->setNumberOfDisplayedOverlays(value);
         this->updateViewController();
+        
+        /*
+         * Scroll to bottom
+         */
+        QScrollBar* vsb = this->scrollArea->verticalScrollBar();
+        const int maxValue = vsb->maximum();
+        vsb->setValue(maxValue);
     }
 }
 

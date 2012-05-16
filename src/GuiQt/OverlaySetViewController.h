@@ -42,6 +42,7 @@
 
 #include "EventListenerInterface.h"
 
+class QScrollArea;
 class QSpinBox;
 
 namespace caret {
@@ -79,6 +80,8 @@ namespace caret {
         std::vector<OverlayViewController*> overlayViewControllers;
         
         int32_t browserWindowIndex;
+        
+        QScrollArea* scrollArea;
     };
     
 #ifdef __OVERLAY_SET_VIEW_CONTROLLER_DECLARE__
